@@ -1,4 +1,4 @@
-       SUBROUTINE MUON_SELECT(LPMUO,STATUS,OK)
+      SUBROUTINE MUON_SELECT(LPMUO,STATUS,OK)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Offline Muon id and Cosmic Ray Rejection
@@ -69,12 +69,13 @@ C-                  vii.) Trigger confirmation cuts (V12.11+)
 C
 C-           24       :   Level 1 confirmation
 C-           25       :   Level 1.5 confirmation
-C-           26       :   spare
+C-           26       :   Level 2 confirmation
 C-
 C-                  viii.) Global fit cuts
 C-           27       :   global fit chisquared
 C-
-C-           28       :   spare
+C-                  ix.) Calorimeter/CD combination cuts
+C-           28       :   Calorimeter 1NN with CD escape
 C-
 C-           29-32    :   reserved for Physics cuts (eta,Pt etc.)
 C-                        - please do not use !
@@ -108,6 +109,13 @@ C-   Modified 08-JUL-1994  D. Wood - fix bug in MTC bit, add fract cut
 C-                         to MTC, add new global fit bit (27)
 C-   Modified 12-JUL-1994  D. Wood - fix bug in global fit bit
 C-   Modified 16-Aug-1994  D. Wood - fix bug in scintillator & 2NN bits
+C-   Modified 26-Jun-1995  P.Quintas - add SCINT timing cut, L1.5 options,
+C-                         and L2 confirmation
+C-   Modified 17-Jul-1995  P.Quintas - add MTC_EFRH1 cut, split overlaps
+C-   Modified 21-Sep-1995  P.Quintas - change SAMUS CAL1NN cut to hadronic
+C-   Modified 5-Oct-1995   P.Quintas - make Cal+CD its own bit (28)
+C-                         Change name MIN_CALMIP_CD to MIN_CALMIP_2NN
+C-   Modified 18-Jan-1996  J. Hobbs  - Change definition of 3D impact parameter
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -115,7 +123,7 @@ C
       INCLUDE 'D0$INC:ZEBCOM.INC'
       INCLUDE 'D0$INC:ZLINKA.INC'
 C
-      LOGICAL FIRST,DO_NOCD_GOOD_CAL
+      LOGICAL FIRST 
 C
       INTEGER STATUS,I,N,ITEMP,I_SET,I_RESET,IOK,IER
       INTEGER LPMUO,LMUOT,JBIT,IQUAD,IRGN,OK
@@ -126,16 +134,18 @@ C
       INTEGER MAX_IFW4(5),IHITS
       INTEGER MIN_ZTRAK_MULT(5),MAX_ZTRAK_MULT(5)
       INTEGER MAX_IFW4_LOOSE(5)
-      INTEGER IFW2,IFW3
+      INTEGER IFW2,IFW3,IFW3_OFF,TRIG_CONFIRM,IFILTPT,FILTQ,ESUMBIT
+      INTEGER OTC_LEV(5),MAX_FILTQ(5),ESUM_OR_MUOT(5)
 C
       REAL TEMP,CONV
       REAL MAX_3D_IMPACT(5),MAX_BEND_IMPACT(5,3),MAX_NONBEND_IMPACT(5,3)
       REAL MIN_T0FLOAT(5),MAX_T0FLOAT(5),MIN_OPP_MIPEN(5),MIN_BDL
       REAL MAX_BEND_QUAL(5),MAX_NONBEND_QUAL(5),MIN_ETA_BDL
       REAL MAX_ZTRAK_DTHETA(5),MAX_ZTRAK_DPHI(5)
-      REAL MIN_CALMIP_CD(5),MIN_CALMIP_NOCD(5)
-      REAL MIN_CALMIP_1NN(5),MIN_MTC_HFRAC(5),MIN_MTC_FRAC(5)
+      REAL MIN_CALMIP_2NN(5),MIN_CALMIP_NOCD(5),MIN_CALMIP_1NN(5)
+      REAL MIN_MTC_HFRAC(5),MIN_MTC_FRAC(5),MIN_MTC_FRACH1(5)
       REAL MIN_GFIT_CHISQ(5),MAX_GFIT_CHISQ(5)
+      REAL SCINT_CUT,MIN_FILTPT(5),FILTPT
 C
       DATA FIRST,CONV/.TRUE.,57.29578/
 C
@@ -258,10 +268,9 @@ C
      1   CALL EZGETA('MAX_ZTRAK_MULT',1,N,1,
      2     MAX_ZTRAK_MULT,IER)
 C
-        IF(IER.EQ.0) CALL EZGETA('MIN_CALMIP_CD',0,0,0,N,IER)
-        IF(IER.EQ.0) CALL EZGET('DO_NOCD_GOOD_CAL',DO_NOCD_GOOD_CAL,IER)
-        IF(IER.EQ.0) CALL EZGETA('MIN_CALMIP_CD',1,N,1,
-     1    MIN_CALMIP_CD,IER)
+        IF(IER.EQ.0) CALL EZGETA('MIN_CALMIP_2NN',0,0,0,N,IER)
+        IF(IER.EQ.0) CALL EZGETA('MIN_CALMIP_2NN',1,N,1,
+     1    MIN_CALMIP_2NN,IER)
 C
         IF(IER.EQ.0) CALL EZGETA('MIN_CALMIP_NOCD',0,0,0,N,IER)
         IF(IER.EQ.0) CALL EZGETA('MIN_CALMIP_NOCD',1,N,1,
@@ -282,12 +291,34 @@ C
         IF(IER.EQ.0) CALL EZGETA('MIN_MTC_FRAC',1,N,1,
      1    MIN_MTC_FRAC,IER)
 C
+        IF(IER.EQ.0) CALL EZGETA('MIN_MTC_FRACH1',0,0,0,N,IER)
+        IF(IER.EQ.0) CALL EZGETA('MIN_MTC_FRACH1',1,N,1,
+     1    MIN_MTC_FRACH1,IER)
+C
         IF(IER.EQ.0) CALL EZGETA('MIN_GFIT_CHISQ',0,0,0,N,IER)
         IF(IER.EQ.0) CALL EZGETA('MIN_GFIT_CHISQ',1,N,1,
      1    MIN_GFIT_CHISQ,IER)
         IF(IER.EQ.0) CALL EZGETA('MAX_GFIT_CHISQ',0,0,0,N,IER)
         IF(IER.EQ.0) CALL EZGETA('MAX_GFIT_CHISQ',1,N,1,
      1    MAX_GFIT_CHISQ,IER)
+C
+        IF(IER.EQ.0) CALL EZGET('SCINT_CUT',SCINT_CUT,IER)
+C
+        IF(IER.EQ.0) CALL EZGETA('OTC_LEV',0,0,0,N,IER)
+        IF(IER.EQ.0) CALL EZGETA('OTC_LEV',1,N,1,
+     1    OTC_LEV,IER)
+C
+        IF(IER.EQ.0) CALL EZGET('TRIG_CONFIRM',TRIG_CONFIRM,IER)
+C
+        IF(IER.EQ.0) CALL EZGETA('MIN_FILTPT',0,0,0,N,IER)
+        IF(IER.EQ.0) CALL EZGETA('MIN_FILTPT',1,N,1,
+     1    MIN_FILTPT,IER)
+C
+        IF(IER.EQ.0) CALL EZGETA('MAX_FILTQ',0,0,0,N,IER)
+        IF(IER.EQ.0) CALL EZGETA('MAX_FILTQ',1,N,1,
+     1    MAX_FILTQ,IER)
+C
+        IF(IER.EQ.0) CALL EZGET('ESUM_OR_MUOT',ESUM_OR_MUOT,IER)
 C
         CALL EZRSET
         IF (IER.NE.0) CALL ERRMSG('Error in CLEANMU_RCP',
@@ -299,6 +330,7 @@ C
       OK=-1
 C
       IF(LPMUO.LE.0) GO TO 999
+      LMUOT=LQ(LPMUO-2)
       I_SET=1
       I_RESET=0
 C
@@ -315,6 +347,11 @@ C
 C *** EF + EF/SAMUS
 C
         IRGN=2
+        IF (LMUOT.GT.0) THEN
+          IFW2 = IQ(LMUOT+5)
+          IF (BTEST(IFW2,10)) IRGN=4        ! SSW
+          IF (BTEST(IFW2,11)) IRGN=3        ! SWW
+        ENDIF
       ELSE
 C
 C *** Samus only
@@ -335,7 +372,6 @@ C
 C
 C ***  ====> Cut on minimum integral B.dl <====
 C
-      LMUOT=LQ(LPMUO-2)
       IF(LMUOT.GT.0) THEN
         IF(Q(LMUOT+22).LT.MIN_BDL) THEN
           IF(ABS(Q(LPMUO+16)).GT.MIN_ETA_BDL) THEN
@@ -352,7 +388,7 @@ C
 C ***  ====>  Maximum Impact parameter cuts w.r.t. CT vertex position <====
 C ***     3-D Impact, bend view, non-bend view
 C
-      IF(Q(LPMUO+41).GT.MAX_3D_IMPACT(IRGN))
+      IF(SQRT(Q(LPMUO+56)**2+Q(LPMUO+57)**2).GT.MAX_3D_IMPACT(IRGN))
      1  CALL SBIT(I_SET,STATUS,3)
       IF(Q(LPMUO+13).GE.MAX_BEND_IMPACT(IRGN,1)) THEN
 C
@@ -484,63 +520,106 @@ C
         ENDIF
       ENDIF
 C
-C *** Now test for events for which the CD track is missing
-C *** but which have a good mip trace
-C
-      IF(DO_NOCD_GOOD_CAL) THEN
-        IF(MIN_ZTRAK_MULT(IRGN).GE.1.AND.IQ(LPMUO+6).LE.0
-     1  .OR.JBIT(STATUS,18).EQ.1) THEN
-C
-C *** match required but none found -> test against tight calmip cut
-C *** to decide weather to keep this track or not
-C
-          IF(Q(LPMUO+84).GE.MIN_CALMIP_NOCD(IRGN)) THEN
-            CALL SBIT(I_RESET,STATUS,17)
-            CALL SBIT(I_RESET,STATUS,18)
-          ENDIF
-        ENDIF
-      ENDIF
-C
-C *** Scintillator muon validation
-C
-      IF(LMUOT.GT.0) THEN
-        IFW2 = IQ(LMUOT+5)
-C check for active scint
-        IF(BTEST(IFW2,16)) THEN
-          IF(.NOT.BTEST(IFW2,17)) THEN
-C no scint hit
-            CALL SBIT(I_SET,STATUS,19)
-          ENDIF
-        ENDIF
-      ENDIF
-C
 C *** Calorimeter muon validation
 C ***  ====> Check that the calorimeter deposition is consistent <====
 C ***        with min-ionizing track in cone size of (hit cell + 2NN)
 C
-      IF(Q(LPMUO+34).LT.MIN_CALMIP_CD(IRGN))
+      IF(Q(LPMUO+34).LT.MIN_CALMIP_2NN(IRGN))
      1  CALL SBIT(I_SET,STATUS,20)
-C ...and with min-ionizing track in cone size of (hit cell + 1NN)
 C
-      IF(Q(LPMUO+84).LT.MIN_CALMIP_1NN(IRGN))
-     1  CALL SBIT(I_SET,STATUS,21)
+C *** and with min-ionizing track in cone size of (hit cell + 1NN)
+C     Note SAMUS cuts on hadronic = total (PMUO84) - EM (PMUO79)
+C
+      IF (IRGN.LE.3) THEN
+        IF(Q(LPMUO+84).LT.MIN_CALMIP_1NN(IRGN))
+     1    CALL SBIT(I_SET,STATUS,21)
+      ELSE
+        IF((Q(LPMUO+84)-Q(LPMUO+79)).LT.MIN_CALMIP_1NN(IRGN))
+     1    CALL SBIT(I_SET,STATUS,21)
+      ENDIF
+C
+C *** and old top-group style calmip 1NN with/track escape.  The logic 
+C     to pass is:
+C
+C       CAL1NN>MIN_CALMIP_NOCD.or.(CAL1NN>MIN_CALMIP_1NN & Track Match)
+C 
+C     Uses result of track match into bit 18 above.
+C
+      IF( IRGN.LE.3 ) THEN
+        IF( Q(LPMUO+84).LT.MIN_CALMIP_NOCD(IRGN)
+     1   .AND. ( Q(LPMUO+84).LT.MIN_CALMIP_1NN(IRGN)
+     2         .OR. JBIT(STATUS,18).NE.0)
+     3   ) CALL SBIT(I_SET,STATUS,28)
+      ELSE
+        IF( (Q(LPMUO+84)-Q(LPMUO+79)).LT.MIN_CALMIP_NOCD(IRGN)
+     1   .AND. ( (Q(LPMUO+84)-Q(LPMUO+79)).LT.MIN_CALMIP_1NN(IRGN)
+     2         .OR. JBIT(STATUS,18).NE.0)
+     3   ) CALL SBIT(I_SET,STATUS,28)
+      ENDIF
 C
 C *** MTC calorimeter confirm (V12.11 or higher)
       IF(Q(LPMUO+94).LT.MIN_MTC_HFRAC(IRGN) .OR.
-     &  Q(LPMUO+93).LT.MIN_MTC_FRAC(IRGN)) THEN
+     &   Q(LPMUO+93).LT.MIN_MTC_FRAC(IRGN)) THEN
+        CALL SBIT(I_SET,STATUS,23)
+      ENDIF
+      IF(Q(LPMUO+94).LT.1  .AND.
+     &   Q(LPMUO+98).LE.MIN_MTC_FRACH1(IRGN)) THEN
         CALL SBIT(I_SET,STATUS,23)
       ENDIF
 C
 C *** Trigger confirmation:  Did this track satisfy L1 or L1.5
 C     trigger requirements?  (V12.11 or higher)
+C BIT 16/20 = LEVEL 1 MATCH
+C BIT 17/21 = LEVEL 1.5 in REGION
+C BIT 18/22 = LEVEL 1.5 LOW MATCH
+C BIT 19/23 = LEVEL 1.5 HIGH MATCH
+C *** Tight or loose confirmation? 
+      IF (TRIG_CONFIRM.LE.0) THEN
+        IFW3_OFF = 16
+      ELSE
+        IFW3_OFF = 20
+      ENDIF
       IF(LMUOT.GT.0) THEN
         IFW3 = IQ(LMUOT+6)
-        IF(.NOT.BTEST(IFW3,16)) THEN
+        IF(.NOT.BTEST(IFW3,IFW3_OFF)) THEN
           CALL SBIT(I_SET,STATUS,24)
         ENDIF
-        IF(.NOT.BTEST(IFW3,17)) THEN
-          CALL SBIT(I_SET,STATUS,25)
+        IF (OTC_LEV(IRGN).EQ.1) THEN
+          IF(.NOT.BTEST(IFW3,IFW3_OFF+1)) THEN
+            CALL SBIT(I_SET,STATUS,25)
+          ENDIF
         ENDIF
+        IF (OTC_LEV(IRGN).EQ.2) THEN
+          IF(.NOT.BTEST(IFW3,IFW3_OFF+2) .AND. 
+     x       .NOT.BTEST(IFW3,IFW3_OFF+3)) THEN
+            CALL SBIT(I_SET,STATUS,25)
+          ENDIF
+        ENDIF
+        IF (OTC_LEV(IRGN).EQ.3) THEN
+          IF(.NOT.BTEST(IFW3,IFW3_OFF+3)) THEN
+            CALL SBIT(I_SET,STATUS,25)
+          ENDIF
+        ENDIF
+      ENDIF
+C
+C *** Filter Confirmation (PT Cut and IFW4 only)
+C
+      IFILTPT = 0
+      CALL MVBITS(IFW3,24,4,IFILTPT,0)
+      FILTPT = FLOAT(IFILTPT)
+      FILTQ = 0
+      CALL MVBITS(IFW3,28,1,FILTQ,0)
+      ESUMBIT = 0
+      CALL MVBITS(IFW3,29,1,ESUMBIT,0)
+C
+      IF (FILTPT.LT.MIN_FILTPT(IRGN)) THEN
+        CALL SBIT(I_SET,STATUS,26)
+      ENDIF
+      IF (FILTQ.GT.MAX_FILTQ(IRGN)) THEN
+        CALL SBIT(I_SET,STATUS,26)
+      ENDIF
+      IF (ESUMBIT.GT.ESUM_OR_MUOT(IRGN)) THEN
+        CALL SBIT(I_SET,STATUS,26)
       ENDIF
 C
 C *** Global fit chisquared
@@ -551,7 +630,6 @@ C *** Global fit chisquared
 C
 C *** Now do region-dependent cuts
 C *** Branch on muon region no.
-C
       GO TO (16,20,30,40,50),IRGN
    16 CONTINUE
 C-----------------------------------------------------------------------
@@ -574,6 +652,26 @@ C
       ITEMP=WAM_HIT(1)+WAM_HIT(2)+WAM_HIT(3)
       IF(ITEMP.LT.MIN_HIT_WAM_CF(4))
      1  CALL SBIT(I_SET,STATUS,10)
+C
+C *** Scintillator muon validation
+C
+      IF (SCINT_CUT.GT.0) THEN
+        IF(LMUOT.GT.0) THEN
+          IFW2 = IQ(LMUOT+5)
+C check for active scint
+          IF(BTEST(IFW2,16)) THEN
+            IF(.NOT.BTEST(IFW2,17)) THEN
+C no scint hit
+              CALL SBIT(I_SET,STATUS,19)
+            ELSE
+C yes scint hit
+              IF (ABS(Q(LPMUO+52)-Q(LPMUO+53)).GT.SCINT_CUT) THEN
+                CALL SBIT(I_SET,STATUS,19)
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
 C
       GO TO 60
    20 CONTINUE
@@ -675,7 +773,7 @@ C *** Region 5 : SAMUS A,B,C
 C ***
 C
 C *** Cuts on specific plane multiplicities
-C *** Samus
+C *** WARNING: ONLY WORKS FOR RECO 12.20+ OR MUFIXED DATA
 C
       IF(SAM_HIT(1).LT.MIN_HIT_SAMUS(1))
      1  CALL SBIT(I_SET,STATUS,12)
@@ -702,4 +800,5 @@ C
 C------------------------------------------------------------------------
   999 RETURN
       END
+
 

@@ -12,7 +12,12 @@ C-
 C-   Outputs : fills IETA=+-2 or IPHI=+-2 elements of energy and
 C-      chi squared arrays in /MTC_ETOWERS/ and /MTC_EHTOWERS/
 C-
-C-   Created   17-DEC-1993      Elizabeth Gallas
+C-   Created   17-DEC-1993  Elizabeth Gallas
+C-   Modified  30-OCT-1995  EG - allow adjacent cells in the same 
+C-        layer to have a different module type than the module type 
+C-        of the central tower cell in that layer.
+C-        This is the only modification needed to this routine for
+C-        including all possible layers.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -29,12 +34,11 @@ ccC- for calling GTCAEH_ADDR ...
 cc      REAL EX,EY,EZ,ENERGY,ET_CAEH,SEX,SEY,CWEIGHT
 cc      INTEGER STATUS,IER_CAEH
 C- do loop and cal location ...
-      INTEGER ICAL, IHERE, ISUB
+      INTEGER IHERE, ISUB
       INTEGER IETA, IPHI, JPHI, ILYR
       INTEGER IE2, IP2, IETA2, IPHI2, IHERE2, ISUB2
       INTEGER ISETA,ICOUNT, ISETA2,ICOUNT2
       CHARACTER*4 ATUBE
-      INTEGER IXYZ
 C- functns ...
       INTEGER MTC_IWHERE, MTC_IWHLAYER,MTC_ISUBETA
 C----------------------------------------------------------------------
@@ -148,7 +152,8 @@ cc     &            ET_CAEH,SEX,SEY,CWEIGHT,STATUS,IER_CAEH)
             END IF
             IF(ENERGY.LT.0.) ENERGY = 0.
 C-
-            IF(IHERE2.EQ.0 .OR. IHERE2.NE.IHERE) GO TO 113
+C- 12-APR-95            IF(IHERE2.EQ.0 .OR. IHERE2.NE.IHERE) GO TO 113
+            IF(IHERE2.EQ.0) GO TO 113
             ITOTCHI(IE2,IP2) = ITOTCHI(IE2,IP2) + 1
             IF(ILYR.GE.11) ITOTCH(IE2,IP2) = ITOTCH(IE2,IP2) + 1
 C- Get the sublayer number within this calorimeter section ...

@@ -22,10 +22,16 @@ C-   Outputs : integer MTC_IWHERE ranging from 1-10
 C-             returns zero if cell does not exist
 C-
 C-   Created  27-MAY-1993   Elizabeth Gallas
+C-   Modified 30-OCT-1995   Elizabeth Gallas
+C-      Run 1c data (starting with run number 93888) will not have
+C-      ICD cell information from 0.8<eta<1.1, so remove these cells
+C-      from existence.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INTEGER NETA,NPHI,NLYR
+c- fnction for getting the run number (run 1c starts with run=93888)
+      INTEGER RUNNO, irun
 C----------------------------------------------------------------------
       MTC_IWHERE = 0
 C- this routine must be run top down
@@ -64,8 +70,15 @@ C-      must be an CCMG unless it dne ...
         RETURN
       ELSE IF(NLYR.EQ.9) THEN
 C-      must be an ICD unless it dne ...
-        IF(ABS(NETA).GE.9 .AND. ABS(NETA).LE.14) MTC_IWHERE =  4
-        RETURN
+        IF(ABS(NETA).GE.9 .AND. ABS(NETA).LE.14) THEN
+          MTC_IWHERE =  4
+C- in run 1c, the outer icd box info is not used
+          IF(ABS(NETA).LE.11) THEN
+            irun = runno()
+            IF(irun.GE.93888) MTC_IWHERE =  0
+          ENDIF
+          RETURN
+        ENDIF
       ELSE IF(NLYR.EQ.10) THEN
 C-      must be an ECMG unless it dne ...
         IF(ABS(NETA).GE.8 .AND. ABS(NETA).LE.13) MTC_IWHERE =  5
@@ -75,11 +88,11 @@ C- It must be CCFH,CH,ECOH,MH or IH
       ELSE IF(NLYR.GE.11 .AND. NLYR.LE.17) THEN
 C- find ECOH by brute force (ignore OCH3 tied to MCH)
         IF(NLYR.EQ.15 .AND.
-     &    (ABS(NETA).GE.8 .AND. ABS(NETA).LE.12)) MTC_IWHERE = 10
+     &      (ABS(NETA).GE.8 .AND. ABS(NETA).LE.12)) MTC_IWHERE = 10
         IF(NLYR.EQ.16 .AND.
-     &    (ABS(NETA).GE.9 .AND. ABS(NETA).LE.13)) MTC_IWHERE = 10
+     &      (ABS(NETA).GE.9 .AND. ABS(NETA).LE.13)) MTC_IWHERE = 10
         IF(NLYR.EQ.17 .AND.
-     &    (ABS(NETA).GE.11 .AND. ABS(NETA).LE.14)) MTC_IWHERE = 10
+     &      (ABS(NETA).GE.11 .AND. ABS(NETA).LE.14)) MTC_IWHERE = 10
         IF(MTC_IWHERE.EQ.10) RETURN
 C- there are no more layers ge 16 ...
         IF(NLYR.GE.16) RETURN

@@ -1,4 +1,4 @@
-      SUBROUTINE MUREFIT_MUON(NTRK, MOM, X, NV, LMUON)
+      SUBROUTINE MUREFIT_MUON(NTRK, MOM, X, IV, LMUON)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : To calculate and fill MUON bank after refit
@@ -7,7 +7,8 @@ C-   Inputs  :  NTRK     : track number
 C-              MOM      : Muon momentum.
 C-              X(1:3)   : Starting point coordinates. (vertex for now)
 C-              X(4:6)   : Direction cosines of Muon.
-C-              NV       : Vertex number chosen (if any)
+C-              IV       : Vertex number chosen (if <0 then only save in
+C-                         bank & do not propagate
 C-
 C-   Outputs :  LMUON    : Address of MUON bank
 C-   Controls:
@@ -15,25 +16,29 @@ C-
 C-   Created  15-mar-1993 D. Wood, based on MUONFL
 C-   Updated   5-OCT-1994   Daria Zieminska   preset word 31 (chisq/ndf)
 C-                          to -1. Will be filled with GFIT chisq later
+C-   Updated  30-sep-1995 D. Wood, explicitly set IQ(LMUON+4)=0
+C-   Updated  16-oct-1995 D. Wood, copy vertex logic of MUONFL and do call
+C-                                 to MUCAL if CALREFIT.GT.0
 C----------------------------------------------------------------------
       IMPLICIT NONE
-      INTEGER LMFIT, IMFIT, NTRK
+      INTEGER LMFIT, NTRK
       REAL MOM, X(6)
-      REAL PMU(3)
       INCLUDE 'D0$INC:ZEBCOM.INC/LIST'
       INCLUDE 'D0$INC:MUPHYS.INC/LIST'
-      INTEGER I, LMED,NDMUON,ND_V3,NPUSH
+      INTEGER I, NDMUON,ND_V3,NPUSH
+      REAL DECALM_EM(10),DECALM(10),DEERR,MUISOL(10)
       PARAMETER(ND_V3=63)
-      INTEGER LMUON, GZMFIT, GZMUON, GZVERT ,NS, NV
-      INTEGER LMUOT, NS2, GFIT, IER
-      REAL PMUN(3),P, PT, PMUO, LVERT
+      INTEGER LMUON, GZMFIT, GZMUON, GZVERT ,NS, IV, NV
+      INTEGER LMUOT, NS2, GFIT, IER, CALREFIT
+      REAL PMUN(3),PT, PMUO, LVERT
       REAL AMASS,DEEF,EM,PMN
-      LOGICAL FIRST
+      LOGICAL FIRST, MCOK
       DATA FIRST /.TRUE./
       DATA AMASS/.105/
 C
       IF(FIRST) THEN
         CALL EZGET('GFIT',GFIT,IER)
+        CALL EZGET('CALREFIT',CALREFIT,IER)
         FIRST = .FALSE.
       ENDIF
 C
@@ -43,7 +48,7 @@ C check bank size, and push if necessary
       IF(NDMUON.NE.ND_V3) THEN
         NPUSH = ND_V3 - NDMUON
         CALL MZPUSH(IXMAIN,LMUON,0,NPUSH,' ')
-      ENDIF  
+      ENDIF
       IQ(LMUON + 1) = 3   !Bank version
 C
       NS = IQ(LMUON - 2)
@@ -52,6 +57,12 @@ C
       LMUOT = LQ(LMFIT - NS2 - 1)
       LQ(LMUON - NS - 1) = LMUOT
 C---
+      IF(IV .LT. 0) THEN
+        NV = 1
+      ELSE
+        NV = IV
+      ENDIF
+C
       IF(NV .GT. 0) THEN
         LVERT = GZVERT(NV)
         LQ(LMUON - NS - 2) = LVERT
@@ -59,18 +70,27 @@ C---
         LQ(LMUON - NS - 2) = 0
       ENDIF
 C
-C      CALL MUCAL(MOM,X,LMFIT,DECALM_EM,DECALM,DEERR,PMUN,MUISOL,MCOK)
-CDRW normally, this stuff is done inside MUCAL
-      IF(IQ(LMFIT + 7) .EQ. 3) THEN
-        DEEF = DECAL + 0.5 * DEMUO
+      MCOK = .FALSE.
+      IF(CALREFIT.GT.0) THEN
+        CALL MUCAL(MOM,X,LMFIT,DECALM_EM,DECALM,DEERR,PMUN,MUISOL,MCOK)
+        IF( IQ(LMFIT+4).EQ.13 .OR. IQ(LMFIT+4).EQ.14 ) THEN
+          PMUN(1) = X(4)*MOM
+          PMUN(2) = X(5)*MOM
+          PMUN(3) = X(6)*MOM
+        END IF
       ELSE
-        DEEF = DECAL + DEMUO
+CDRW normally, this stuff is done inside MUCAL
+        IF(IQ(LMFIT + 7) .EQ. 3) THEN
+          DEEF = DECAL + 0.5 * DEMUO
+        ELSE
+          DEEF = DECAL + DEMUO
+        ENDIF
+        EM = SQRT(MOM**2 + AMASS**2) + DEEF
+        PMN = SQRT(EM**2 - AMASS**2)
+        DO I=1,3
+          PMUN(I) = PMN * X(I+3)
+        ENDDO
       ENDIF
-      EM = SQRT(MOM**2 + AMASS**2) + DEEF
-      PMN = SQRT(EM**2 - AMASS**2)
-      DO I=1,3
-        PMUN(I) = PMN * X(I+3)
-      ENDDO
 C
       IF(IQ(LMFIT + 10) .LT. 0) THEN
         IQ(LMUON + 2) = 14
@@ -79,6 +99,8 @@ C
       ENDIF
 C - dedx flag
       IQ(LMUON + 3) = MFLG
+C - fit status (clear it; it will be set in MCGLOBAL or MFGLOBAL
+      IQ(LMUON + 4) = 0
 C - number of CD tracks
 CC      IQ(LMUON + 5) = NMTR    ! Done inside MULINK for now
 C - quality flag
@@ -119,19 +141,45 @@ C
       Q(LMUON + 21) = MSACA
       Q(LMUON + 22) = MSAMU
 C        Q(LMUON + 23) = 100.   !will be filled in mulink
-        Q(LMUON + 24)  = DECAL
-        Q(LMUON + 25)  = DEMUO
+      Q(LMUON + 24)  = DECAL
+      Q(LMUON + 25)  = DEMUO
 C
       DO I=1,5
         Q(LMUON + 25 + I) = Q(LMFIT + 24 + I)
       ENDDO
 C      Q(LMUON + 31) = Q(LMFIT + 30)
-      Q(LMUON + 31) = -1.
+C
+C  Initialise chisq/df ( the fitting result will be filled after global
+C  fitting is successfully performed)
+C
+      IF( IQ(LMFIT+4).EQ.13 .OR. IQ(LMFIT+4).EQ.14 ) THEN
+        Q(LMUON + 31) = Q(LMFIT + 30)   ! May be recalculated in Global Fit
+      ELSE
+        Q(LMUON + 31) = -1.
+      ENDIF
+C
+      IF(MCOK) THEN
+        DO I=1,5
+          Q(LMUON + 31 + I) = MUISOL(I)
+        ENDDO
+      ENDIF
 C
       DO I=1,3
         Q(LMUON + 36 + I) = Q(LMFIT + 10 + I)
       ENDDO
 C
+C - Energy in cones...
+      IF(MCOK) THEN
+        DO I=1,3
+          Q(LMUON + 42 + I)  = DECALM(I+2)
+        ENDDO
+        DO I=1,5
+          Q(LMUON + 55 + I)  = DECALM_EM(I)
+        ENDDO
+        DO I=1,2
+          Q(LMUON + 60 + I)  = DECALM(I)
+        ENDDO
+      ENDIF
 C - Middle of iron
       DO I=1,3
         Q(LMUON + 46 + I) = Q(LMFIT + 13 + I)
@@ -146,7 +194,7 @@ C - Muon impact parameter
 C - B mean
       Q(LMUON + 55) = Q(LMFIT + 31)
 C - Vertex number
-      IQ(LMUON + 63) = NV
+      IQ(LMUON + 63) = IABS(IV)
 C
   999 RETURN
       END

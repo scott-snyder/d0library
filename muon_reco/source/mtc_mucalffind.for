@@ -22,6 +22,9 @@ C-                          = +1 if too many tracks were found
 C-             ETA,PHI etc of tracklike objects found by this program
 C-
 C-   Created  20-FEB-1994   Elizabeth Gallas
+C-   Modified 17-APR-1995   Elizabeth Gallas - 
+C-      If caep does not exist, then create it from caeq.
+C-      This change will enable MTC to be run on run 1b dsts.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -35,21 +38,26 @@ C- 5 best tracks from mtc_mucalftrack (for energy sum or energy chi2)
 C- local
       INTEGER itracks,imtc,itfnd, ixyz
       REAL    eta,phi,vtx(3),dvtx(3)
-      INTEGER lcaep, gzcaep
+      INTEGER lcaep, gzcaep, lcaeq, gzcaeq
 C----------------------------------------------------------------------
 C- initialize the error flag, it will be reset if something goes wrong
       IMTC_IERROR = 0
 C----------------------------------------------------------------------
-C- return if no caep bank exists
-C- check for the caep bank, if it's not there, then zero block arrays
+C- if caep exists, use it;  if caeq but no caep, create caep from caeq.
+      lcaeq = gzcaeq()
       lcaep = gzcaep()
-      IF(lcaep.EQ.0) THEN
-        WRITE(6,*) ' MTC_MUCALFFIND: error - no CAEP energy bank'
-        imtc_nscan  =  0
-        imtc_nfnd   =  0
-        imtc_ierror = -1
-        RETURN
-      END IF
+      IF(  lcaeq.LE. 0 ) THEN
+        IF(lcaep.LE.0) THEN
+          WRITE(6,*) ' MTC_MUCALFFIND: error - no CAEP or CAEQ bank'
+          imtc_nscan  =  0
+          imtc_nfnd   =  0
+          imtc_ierror = -1
+          RETURN
+        ENDIF
+      ELSE
+        IF(lcaep .LE. 0 ) CALL caeq_to_caep
+        lcaep = gzcaep()
+      ENDIF
 C----------------------------------------------------------------------
 C- Scan for muons - fill the /MTC_SCAN/ block
       CALL mtc_mucalscan

@@ -31,23 +31,22 @@ C- input ...
 C- output ...
       REAL    zvertex,hadfrac,enersum
 C- local stuff ...
-      REAL    cdist,hfrac,esum,cosmtc(3),pntmtc(3),tresid
-      INTEGER nhad,np,iflg
+      REAL    frac,cdist,hfrac,esum,cosmtc(3),pntmtc(3),tresid
+      INTEGER ntot,nhad,np,iflg
       REAL    zvtx(3),zdca
 C----------------------------------------------------------------------
 C- find the cal cells associated with the track, fit a line through them
-      CALL MTC_HADTRACKS( POINT,DIRCOS,
+      CALL MTC_HADTRACKS( POINT,DIRCOS, frac,ntot,
      &  cdist,hfrac,esum,cosmtc,pntmtc,tresid,nhad,np,iflg)
 C- if input track doesn't project to the beamline (iflg<0), the candidate
 C- trajectory is assumed to go through z=0.
 C-    IF(iflg.LT.0) go to 666
-C- no good calorimeter track was found if nhad<2 or hfrac<.75
+C- no good calorimeter track was found if nhad<2 or hfrac<.65
       IF(nhad.LE.1) go to 666
       IF(hfrac.LE.0.65) go to 666
 C- fit a line from the point in the a layer through the point found by
 C- hadtracks ... determine a 'vertex' from this line
-      CALL MTC_PNTTOCOS(PNTMTC,POINT, dircos)
-      CALL MTCL2_ZIMPACT(PNTMTC,DIRCOS, zdca,zvtx,iflg)
+      CALL MTCL2_ZIMPACT(PNTMTC,COSMTC, zdca,zvtx,iflg)
 
       zvertex = zvtx(3)
       hadfrac = hfrac

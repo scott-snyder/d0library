@@ -38,6 +38,12 @@ C-              If there is no energy in the given tower, then
 C-              POINT(IXYZ) = 0., COSDIR(IXYZ) = 0., CHICALIN = -50.
 C-
 C-   Created   18-JAN-1993   Elizabeth Gallas
+C-   Modified   2-FEB-1995   Elizabeth Gallas - see comments in code
+C-   Modified  13-APR-1995   Elizabeth Gallas - loop over seed cells
+C-    starting from the center of the central tower, use seed cells in 
+C-    last 3 hit layers rather than 2, change criteria for best track
+C-    when more than 3 hadronic layers are available.
+C-    The same routine will work if using all possible layers.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -52,7 +58,7 @@ C- output block contains info for 5 best tracks
       INCLUDE 'D0$INC:MTC_BESTRKS.INC'
 C- local ...
       INTEGER ixyz, nlayers,ilayers, iemark,ipmark,
-     &  iseed,nseed,mseed, ilseed1,ilseed2
+     &  iseed,nseed,mseed, nlseed(3),nseedlyr
       REAL chitemp, x,y,z, xpoints(18),ypoints(18),zpoints(18),
      &  xsave,ysave,zsave,esave
       INTEGER iepoint(18),ippoint(18),ilpoint(18), icnthall, icntghall
@@ -76,11 +82,22 @@ C- hadronic sums, fractions of layers hit
       INTEGER ihitghseed(25),icntghseed(25)
 
 C- do loops and indexes ...
-      INTEGER ilyr, jlyr, ie2,ip2, ilyr2, ie3,ip3,ie23,ip23
-      LOGICAL lyrexi,lenergy
+      INTEGER ilyr, jlyr, klyr, ie2,ip2, ilyr2, ie3,ip3,ie23,ip23
+      LOGICAL lyrexi,lenergy, lswitch
       INTEGER ok
 C- functns
       LOGICAL mtc_lexist
+C----------------------------------------------------------------------
+      INTEGER ifirst,iloop(itthi*2+1),ielp,iplp
+      DATA    ifirst/0/
+      IF(ifirst.EQ.0) THEN
+        ifirst = 1
+        iloop(1) = 0
+        DO 9 ie2=1,itthi
+          iloop((ie2-1)*2+2) = ie2
+          iloop((ie2-1)*2+3) = -ie2
+    9   CONTINUE
+      ENDIF
 C----------------------------------------------------------------------
 C- initialize the # of seeds and number of found tracks ...
       iseed   = 0
@@ -89,28 +106,43 @@ C- initialize the # of seeds and number of found tracks ...
 C- Check for no energy in tower ...
       IF(esum5(18).LE.0.) go to 665
 
-C- find the two uppermost hadronic layers with non0 energy
-C- these are the possible seed layers ...
-      ilseed1=0
-      ilseed2=0
+c- 13-APR-95 find the three uppermost hadronic layers with non0 energy
+C- these are the possible seed layers ... (formerly looked at two)
+      nlseed(1) = 0
+      nlseed(2) = 0
+      nlseed(3) = 0
       DO 669 ilyr=17,11,-1
         IF(esum5(ilyr).GT.0.) THEN
-          ilseed1 = ilyr
+          nlseed(1) = ilyr
           IF(ilyr.EQ.11) go to 664
-          DO 668 jlyr=ilseed1-1,11,-1
+          DO 668 jlyr=nlseed(1)-1,11,-1
             IF(esum5(jlyr).GT.0.) THEN
-              ilseed2 = jlyr
-              go to 667
+              nlseed(2) = jlyr
+              IF(jlyr.EQ.11) go to 664
+              DO 670 klyr=nlseed(2)-1,11,-1
+                IF(esum5(klyr).GT.0.) THEN
+                  nlseed(3) = klyr
+                  go to 667
+                ENDIF
+  670         CONTINUE
             END IF
   668     CONTINUE
           go to 664
         END IF
   669 CONTINUE
   664 CONTINUE
-      IF(ilseed2.EQ.0) ilseed2 = ilseed1
-      IF(ilseed1.EQ.0) go to 665
+C- **      IF(nlseed(1).EQ.0 .OR. nlseed(1).EQ.11) go to 665
+      IF(nlseed(1).EQ.0) go to 665
   667 CONTINUE
-
+C----------------------------------------------------------------------
+c- 13-APR-95 - don't use cells in layer 11 as seeds, loop over
+c- nseedlyr seed layers below
+      nseedlyr = 3
+C- **      IF(nlseed(3).EQ.0 .OR. nlseed(3).EQ.11) nseedlyr  = 2
+C- **      IF(nlseed(2).EQ.0 .OR. nlseed(2).EQ.11) nseedlyr  = 1
+      IF(nlseed(3).EQ.0) nseedlyr  = 2
+      IF(nlseed(2).EQ.0) nseedlyr  = 1
+C----------------------------------------------------------------------
 C- make the first point the vertex position ...
       nlayers = 1
       xpoints(nlayers) = vtxtwr(1)
@@ -118,17 +150,31 @@ C- make the first point the vertex position ...
       zpoints(nlayers) = vtxtwr(3)
       ezpoints(nlayers) = dvtxtwr(3)
 C- loop over all possible seed cells ...
-      DO 770 ilyr=17,ilseed2,-1
+C- **      DO 770 ilyr=17,ilseed2,-1
+      DO 770 jlyr=1,nseedlyr
+        ilyr = nlseed(jlyr)
 C- does the layer exist and if so, does it have zero energy ?
         IF(esum5(ilyr).LT.0.) go to 770
         IF(esum5(ilyr).EQ.0.) go to 770
 C- it exists and it has energy, look for the seed cells ...
-        DO 771 ie2=ittlo,itthi
-          DO 772 ip2=ittlo,itthi
+C- **   DO 771 ie2=ittlo,itthi
+        DO 771 ielp=1,2*itthi+1
+          ie2 = iloop(ielp)
+C- **     DO 772 ip2=ittlo,itthi
+          DO 772 iplp=1,2*itthi+1
+            ip2 = iloop(iplp)
+
             IF(entower(ie2,ip2,ilyr).gt.0.) then
 C- seed layer found, make sure it's not directly below another seed ...
-              IF(ilyr.EQ.ilseed2 .AND. ilseed1.NE.ilseed2 .AND.
-     &           entower(ie2,ip2,ilseed1).ne.0.) go to 772
+C- **              IF(ilyr.EQ.ilseed2 .AND. ilseed1.NE.ilseed2 .AND.
+C- **     &           entower(ie2,ip2,ilseed1).ne.0.) go to 772
+              IF(jlyr.GE.2) THEN
+                DO 781 klyr=jlyr-1,1,-1
+                  IF(entower(ie2,ip2,nlseed(klyr)).gt.0.)
+     &              go to 772
+  781           CONTINUE
+              ENDIF
+
 C- seed layer found
               iseed = iseed + 1
 C- hadronic sum
@@ -196,7 +242,7 @@ C- the seed cell OR an adjacent cell under the seed is hit
                 IF(entower(iemark,ipmark,ilyr2).ge.0.) then
                   lyrexi = .true.
                   icntseed(iseed) = icntseed(iseed) + 1
-                  IF(ilyr2.GE.11) 
+                  IF(ilyr2.GE.11)
      &              icnthseed(iseed) = icnthseed(iseed) + 1
                   IF(ilyr2.GE.8)
      &              icntghseed(iseed) = icntghseed(iseed) + 1
@@ -216,12 +262,12 @@ C- make sure this cell is within the 5x5 defined in /MTC_ETOWERS/
 C- is there energy in this cell ?
                     IF(entower(ie23,ip23,ilyr2).gt.0.) then
 
-C- 2-feb-95 if a cell dne under the seed cell, but energy is seen in 
+C- 2-feb-95 if a cell dne under the seed cell, but energy is seen in
 C- an adjacent cell, then count it now
                       IF(.NOT.lyrexi) THEN
                         lyrexi = .true.
                         icntseed(iseed) = icntseed(iseed) + 1
-                        IF(ilyr2.GE.11) 
+                        IF(ilyr2.GE.11)
      &                    icnthseed(iseed) = icnthseed(iseed) + 1
                         IF(ilyr2.GE.8)
      &                    icntghseed(iseed) = icntghseed(iseed) + 1
@@ -433,57 +479,85 @@ C- Get the energy chi squared for this seed's best track
         END IF
   701 CONTINUE
 
-C- Order the seed track results by number of hadronic layers hit,
-C- number of total layers hit, track chi2, number of possible layers ...
+C- order the tracks best to worst
       DO 903 nseed=1,iseed-1
         DO 905 mseed=nseed+1,iseed
-          IF((ihithseed(mseed).GT.ihithseed(nseed))
-     &      .OR.
-     &      (ihithseed(mseed).EQ.ihithseed(nseed) .AND.
-     &      ihitseed(mseed).GT.ihitseed(nseed) )
-     &      .OR.
-     &      (ihithseed(mseed).EQ.ihithseed(nseed) .AND.
-     &      ihitseed(mseed).EQ.ihitseed(nseed)    .AND.
-     &      chitseed(mseed).LT.chitseed(nseed) )
-     &      .OR.
-     &      (ihithseed(mseed).EQ.ihithseed(nseed) .AND.
-     &      ihitseed(mseed).EQ.ihitseed(nseed)    .AND.
-     &      chitseed(mseed).EQ.chitseed(nseed)    .AND.
-     &      icntseed(mseed).GT.icntseed(nseed) )) THEN
+
+C- **C- Order the seed track results by num of hadronic layers hit,
+C- **C- num of total layers hit, track chi2, num of total layers ...
+
+          lswitch = .false.
+C- do this the old way if the best track currently has less than 3 layers
+          IF(icnthseed(nseed).LT.3 .OR. icnthseed(mseed).LT.3) THEN
+            IF( (ihithseed(mseed).GT.ihithseed(nseed))
+     &        .OR.
+     &        (ihithseed(mseed).EQ.ihithseed(nseed) .AND.
+     &        ihitseed(mseed).GT.ihitseed(nseed) )
+     &        .OR.
+     &        (ihithseed(mseed).EQ.ihithseed(nseed) .AND.
+     &        ihitseed(mseed).EQ.ihitseed(nseed)    .AND.
+     &        chitseed(mseed).LT.chitseed(nseed) )
+     &        .OR.
+     &        (ihithseed(mseed).EQ.ihithseed(nseed) .AND.
+     &        ihitseed(mseed).EQ.ihitseed(nseed)    .AND.
+     &        chitseed(mseed).EQ.chitseed(nseed)    .AND.
+     &        fcnthseed(mseed).GT.fcnthseed(nseed) ) )
+     &        lswitch = .true.
+
+C- if(icntseed).ge.3) fraction hadronic layers, fract all layers,
+C- 13-APR-95 - Order the tracks by frac had layers, fract all layers,
+C- track chi2 (track residual), number of total layers
+          ELSE
+            IF((fcnthseed(mseed).GT.fcnthseed(nseed))
+     &        .OR.
+     &        (fcnthseed(mseed).EQ.fcnthseed(nseed) .AND.
+     &        fcntseed(mseed).GT.fcntseed(nseed) )
+     &        .OR.
+     &        (fcnthseed(mseed).EQ.fcnthseed(nseed) .AND.
+     &        fcntseed(mseed).EQ.fcntseed(nseed)    .AND.
+     &        chitseed(mseed).LT.chitseed(nseed) )
+     &        .OR.
+     &        (fcnthseed(mseed).EQ.fcnthseed(nseed) .AND.
+     &        fcntseed(mseed).EQ.fcntseed(nseed)    .AND.
+     &        chitseed(mseed).EQ.chitseed(nseed)    .AND.
+     &        icnthseed(mseed).GT.icnthseed(nseed) ))
+     &        lswitch = .true.
+          ENDIF
+          IF(.NOT.lswitch) go to 905
+
 C- switch the positions of the mth and nth track
-            CALL mtc_rswap(chitseed(mseed),  chitseed(nseed))
-            CALL mtc_rswap(chieseed(mseed),  chieseed(nseed))
-            CALL mtc_rswap(enetseed(mseed),  enetseed(nseed))
+          CALL mtc_rswap(chitseed(mseed),  chitseed(nseed))
+          CALL mtc_rswap(chieseed(mseed),  chieseed(nseed))
+          CALL mtc_rswap(enetseed(mseed),  enetseed(nseed))
 
-            CALL mtc_rswap(fcntseed(mseed),  fcntseed(nseed))
-            CALL mtc_rswap(fcnthseed(mseed), fcnthseed(nseed))
-            CALL mtc_rswap(fcntghseed(mseed), fcntghseed(nseed))
+          CALL mtc_rswap(fcntseed(mseed),  fcntseed(nseed))
+          CALL mtc_rswap(fcnthseed(mseed), fcnthseed(nseed))
+          CALL mtc_rswap(fcntghseed(mseed), fcntghseed(nseed))
 
-            CALL mtc_iswap(icntseed(mseed),  icntseed(nseed))
-            CALL mtc_iswap(ihitseed(mseed),  ihitseed(nseed))
-            CALL mtc_iswap(icnthseed(mseed), icnthseed(nseed))
-            CALL mtc_iswap(ihithseed(mseed), ihithseed(nseed))
-            CALL mtc_iswap(icntghseed(mseed), icntghseed(nseed))
-            CALL mtc_iswap(ihitghseed(mseed), ihitghseed(nseed))
+          CALL mtc_iswap(icntseed(mseed),  icntseed(nseed))
+          CALL mtc_iswap(ihitseed(mseed),  ihitseed(nseed))
+          CALL mtc_iswap(icnthseed(mseed), icnthseed(nseed))
+          CALL mtc_iswap(ihithseed(mseed), ihithseed(nseed))
+          CALL mtc_iswap(icntghseed(mseed), icntghseed(nseed))
+          CALL mtc_iswap(ihitghseed(mseed), ihitghseed(nseed))
 C- track fit points used ...
-            maxlayers = max(ihitseed(mseed),ihitseed(nseed))
-            DO 906, ilayers=1,maxlayers+1
-            CALL mtc_iswap(ilseed(mseed,ilayers),ilseed(nseed,ilayers))
-            CALL mtc_iswap(ieseed(mseed,ilayers),ieseed(nseed,ilayers))
-            CALL mtc_iswap(ipseed(mseed,ilayers),ipseed(nseed,ilayers))
-            CALL mtc_rswap(xseed(mseed,ilayers),xseed(nseed,ilayers))
-            CALL mtc_rswap(yseed(mseed,ilayers),yseed(nseed,ilayers))
-            CALL mtc_rswap(zseed(mseed,ilayers),zseed(nseed,ilayers))
-            CALL mtc_rswap(ezseed(mseed,ilayers),ezseed(nseed,ilayers))
-  906       CONTINUE
+          maxlayers = max(ihitseed(mseed),ihitseed(nseed))
+          DO 906, ilayers=1,maxlayers+1
+          CALL mtc_iswap(ilseed(mseed,ilayers),ilseed(nseed,ilayers))
+          CALL mtc_iswap(ieseed(mseed,ilayers),ieseed(nseed,ilayers))
+          CALL mtc_iswap(ipseed(mseed,ilayers),ipseed(nseed,ilayers))
+          CALL mtc_rswap(xseed(mseed,ilayers),xseed(nseed,ilayers))
+          CALL mtc_rswap(yseed(mseed,ilayers),yseed(nseed,ilayers))
+          CALL mtc_rswap(zseed(mseed,ilayers),zseed(nseed,ilayers))
+          CALL mtc_rswap(ezseed(mseed,ilayers),ezseed(nseed,ilayers))
+  906     CONTINUE
 C- track fit results (with vertex) ...
-            DO 907 ixyz=1,3
-              CALL mtc_rswap(pntseed(mseed,ixyz), pntseed(nseed,ixyz))
-              CALL mtc_rswap(cosseed(mseed,ixyz), cosseed(nseed,ixyz))
-  907       CONTINUE
-            CALL mtc_rswap(etaseed(mseed), etaseed(nseed))
-            CALL mtc_rswap(phiseed(mseed), phiseed(nseed))
-          END IF
+          DO 907 ixyz=1,3
+            CALL mtc_rswap(pntseed(mseed,ixyz), pntseed(nseed,ixyz))
+            CALL mtc_rswap(cosseed(mseed,ixyz), cosseed(nseed,ixyz))
+  907     CONTINUE
+          CALL mtc_rswap(etaseed(mseed), etaseed(nseed))
+          CALL mtc_rswap(phiseed(mseed), phiseed(nseed))
   905   CONTINUE
   903 CONTINUE
 

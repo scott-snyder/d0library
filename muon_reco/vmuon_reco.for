@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VMUON_RECO()
       VMUON_RECO = ' MUON_RECO'//
-     X                   '  OFFICIAL V2.14'//
-     X                   ' 17-AUG-1995 15:52:48.77'
+     X                   '  TEST V2.14_07'//
+     X                   '  9-APR-1996 13:59:25.31'
       Return
       End

@@ -18,20 +18,22 @@ C     UPDATED  13-AUG-1993      S. ABACHI     MCONST replaced MRDBGE
 C     UPDATED  31-oct-1993 D. Wood : add calls to MUREFIT routines
 C_    Updated  12/93 MF : add RCP params TRIG_LEVEL, DET_REGION
 C     UPDATED  28-apr-1994 D. Wood : add calls to MUREFIT_CLEAN
-C     UPDATED  21-jun-1995 RE Hall : Change name from MUONLY_EVT to 
+C     UPDATED  21-jun-1995 RE Hall : Change name from MUONLY_EVT to
 C              MUFIX_EVT may diverge from muonly from this date forward
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:ZEBCOM.INC'
 C----------------------------------------------------------------------
       INTEGER IERR,SKIP_LEVEL,TRIG_LEVEL,DET_REGION
-      INTEGER IRUN, IEVT
       CHARACTER*32 MESSID,CALLER
       CHARACTER*80 MESSAG
       INTEGER IER,GFIT, FLAG_MUD1, MUREFIT, MAG_DBL, IERR_POL
+      INTEGER GZPMUO, LPMUO
       LOGICAL MURECO_HST,FIRST, OK,MCONST,OLDFIT_SAVE
-      EXTERNAL MURECO_HST
       REAL PWAM,PSAM
+      INTEGER sarefit,gzsatn,gzsats,lsamt,gzsamt,GZMTRH,LMTRH
+      EXTERNAL MURECO_HST
+      EXTERNAL gzsatn,gzsats,gzsamt,GZMTRH
       DATA FIRST/.TRUE./
 C
       MUFIX_EVT=.TRUE.
@@ -53,6 +55,7 @@ C
         CALL EZGET('MAG_DBL',MAG_DBL,IER)
         CALL EZGET('GFIT',GFIT,IER)
         CALL EZGET('MUREFIT',MUREFIT,IER)
+        CALL EZGET('SAREFIT',SAREFIT,IER)
         IF(MUREFIT.GE.10) THEN
           OLDFIT_SAVE = .TRUE.
         ELSE
@@ -75,17 +78,22 @@ C drop appropriate banks for muon/global (re)finding/(re)fitting
 C
 C do track finding/fitting from MUD1 hits
       IF ((MUREFIT.EQ.1).OR.(MUREFIT.EQ.3)) THEN
-        CALL MUANLZ(IERR,SKIP_LEVEL,TRIG_LEVEL,DET_REGION)
+        CALL MUANLZ(IERR,SKIP_LEVEL,TRIG_LEVEL,DET_REGION) 
+C *** above does not work for SAMUS on DST because of absence 
+C     of hits in MUD1
+        IF (sarefit.EQ.0) THEN ! rereco from hits stored in SATN/S
+          CALL saphrf
+          lsamt=gzsamt()
+          LMTRH = GZMTRH(0)
+          CALL ZSHUNT(IXMAIN,LSAMT,LMTRH,-5,0)
+          CALL mutsam(13)
+          CALL mutsam(14)
+        END IF
         IF(IERR.NE.0) THEN
-          IF(IERR.LT.0) THEN
-            MESSID='Fatal Error in MUANLZ'
-          ELSE
-            MESSID='Non-fatal Error in MUANLZ'
-          ENDIF
+          MESSID='Non-fatal Error in MUANLZ'
           CALLER='MUFIX_EVT'
           WRITE(MESSAG,61) IERR
           CALL ERRMSG(MESSID,CALLER,MESSAG,'W')
-          IF(IERR.LT.0) GO TO 800
         ENDIF
         IF(MUREFIT.GE.3) THEN
 C match up MUOT banks and update MFIT and MUON banks
@@ -146,6 +154,15 @@ C
       ENDIF
 C
   800 CONTINUE
+C
+C     -- loop over PMUO banks
+C     -- Add flag bits for trigger info to IFW2 and IFW3 in MUOT and PMUO
+C
+      LPMUO = GZPMUO(0)
+      DO WHILE(LPMUO.GT.0)
+        CALL MUFIX_IFW2_IFW3(LPMUO)
+        LPMUO = LQ(LPMUO)
+      ENDDO
 C
 C     -- Histograms...
 C

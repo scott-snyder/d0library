@@ -41,7 +41,8 @@ C-   Updated   6-JUL-1994   Daria Zieminska  protection against unphysical
 C-                          input 
 C-   Updated  31-JAN-1995   Daria Zieminska  call VXY_BEAM1 instead of
 C-   VXY_BEAM; remove the CDC z0 correction (it is now in the CDC code) 
-C-
+C-   Updated  25-JAN-1996   Daria Zieminska  put 3mm alignment error 
+C-  back in
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:ZEBCOM.INC'
@@ -356,11 +357,11 @@ C
           XVEC(7)=CSEG+DELTAZ1
           XVEC(8)=DSEG
           ERVEC(1,1,2)=COV1(2,2)
-c          ERVEC(1,1,2)=ERVEC(1,1,2)+0.09  ! add 3mm alignment error
+          ERVEC(1,1,2)=ERVEC(1,1,2)+0.09  ! add 3mm alignment error
           ERVEC(1,2,2)=COV1(1,2)
           ERVEC(2,2,2)=COV1(1,1)
           ERVEC(3,3,2)=COV2(2,2)
-c          ERVEC(3,3,2)=ERVEC(3,3,2)+0.09  ! add 3mm alignment error
+          ERVEC(3,3,2)=ERVEC(3,3,2)+0.09  ! add 3mm alignment error
           ERVEC(3,4,2)=COV2(1,2)
           ERVEC(4,4,2)=COV2(1,1)
           NSEGA=NSEGA+1
@@ -371,11 +372,11 @@ c          ERVEC(3,3,2)=ERVEC(3,3,2)+0.09  ! add 3mm alignment error
           XVEC(13)=CSEG+DELTAZ1
           XVEC(14)=DSEG
           ERVEC(1,1,3)=COV1(2,2)
-c          ERVEC(1,1,3)=ERVEC(1,1,3)+0.09  ! add 3mm alignment error
+          ERVEC(1,1,3)=ERVEC(1,1,3)+0.09  ! add 3mm alignment error
           ERVEC(1,2,3)=COV1(1,2)
           ERVEC(2,2,3)=COV1(1,1)
           ERVEC(3,3,3)=COV2(2,2)
-c          ERVEC(3,3,3)=ERVEC(3,3,3)+0.09  ! add 3mm alignment error
+          ERVEC(3,3,3)=ERVEC(3,3,3)+0.09  ! add 3mm alignment error
           ERVEC(3,4,3)=COV2(1,2)
           ERVEC(4,4,3)=COV2(1,1)
           NSEGBC=NSEGBC+1

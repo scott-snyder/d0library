@@ -12,6 +12,9 @@ C-             ETA,PHI
 C-   Outputs : fills /MTC_ETOWERS/ and /MTC_EHTOWERS/
 C-
 C-   Created   9-DEC-1993   Elizabeth Gallas
+C-   Modified 30-OCT-1995   EG - allow adjacent cells in the same
+C-        layer to have a different module type than the module type
+C-        of the central tower cell in that layer.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -35,7 +38,7 @@ cc      INTEGER STATUS,IER_CAEH
 C- direction cosines of input eta,phi
       REAL DIRCIN(3)
 C- do loop and cal location ...
-      INTEGER ICAL, IHERE, ISUB
+      INTEGER IHERE, ISUB
       INTEGER IETA, IPHI, JPHI, ILYR
       INTEGER IE2, IP2, IETA2, IPHI2, IHERE2, ISUB2
       INTEGER ISETA,ICOUNT, ISETA2,ICOUNT2
@@ -112,6 +115,7 @@ C- Find all calor cells hit by a line ...
       CALL CLINPH(VTXTWR,DIRCIN,NCLMAX,NCELL,IETAC,IPHIC,LAYERC,ARGSOK)
       IF(ARGSOK.NE.0)
      &  WRITE(6,*) ' MTC_MUCALEN:  clinph failure flag !!!',ARGSOK,NCELL
+      IF(NCELL.EQ.0) RETURN
 
 C- Look for multiple cells hit in same layer, if there are 2 then do nothing,
 C- if there are 3 then set the first occurance to the average eta and phi.
@@ -222,7 +226,8 @@ cc     &            ET_CAEH,SEX,SEY,CWEIGHT,STATUS,IER_CAEH)
               IF(ENERGY.LT.0.) ENERGY = 0.
             END IF
 
-            IF(IHERE2.EQ.0 .OR. IHERE2.NE.IHERE) GO TO 113
+C- 12-APR-95            IF(IHERE2.EQ.0 .OR. IHERE2.NE.IHERE) GO TO 113
+            IF(IHERE2.EQ.0) GO TO 113
             ITOTCHI(IE2,IP2) = ITOTCHI(IE2,IP2) + 1
             IF(ILYR.GE.11) ITOTCH(IE2,IP2) = ITOTCH(IE2,IP2) + 1
 C- Get the sublayer number within this calorimeter section ...
@@ -241,7 +246,7 @@ C- Get the expected energies ...
             END IF
 
 C- if ier_caep =0 --> we have a pad energy, ier_caep=-5 --> pad energy 0.
-            IF(energy.eq.0.) ier_caep = -5
+            IF(energy.EQ.0.) ier_caep = -5
             IF(IER_CAEP.EQ.0) THEN
               IF(ENERGY.GT.0.) THEN
                 ICNTCHI(IE2,IP2) = ICNTCHI(IE2,IP2) + 1

@@ -39,25 +39,27 @@ C-   Updated  17_May-1994   D. Wood  Update version number to 5
 C-   Updated  29-JUN-1994   D. Wood changes for refitting
 C-   Updated  11-Jul-1994   M. Fortner, use MTRG bank for trig words
 C-   Updated  06-Feb-1995   D. Wood, use IND_MUON in MSCINT_TOF
+C-   Updated  28-Jul-1995   D. Wood, moved call to MUCPLN to work for MUREFIT=3
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:ZEBCOM.INC'
       INCLUDE 'D0$INC:ZLINKA.INC'
       INCLUDE 'D0$INC:MUPHYS.INC'
       INCLUDE 'D0$LINKS:IZMTCA.LINK'
-      INCLUDE 'D0$LINKS:IZMRFT.LINK'
+      INCLUDE 'D0$LINKS:IZMRFT_MUON.LINK'
 C  -- input/output arguments...
       INTEGER IERR
 C  -- local variables...
       INTEGER IMUON,IPMUO,I,LMUON,LPMUO,LMUOT,NS1,NS2
       INTEGER GZMUON,IFLG,LZTRK,LPARH,GZPARH,IFMUOT,IT,LMTCA
       INTEGER GZMUOT,NMUOT,IMUOT,LMUOTX,NDOF,IRC_MUTFLT
-      INTEGER IAPLN,IFPLN
+      INTEGER IAPLN,IFPLN,IVERT_MTC,MTCREFIT
       INTEGER GZMTRG,IL1WA,IL1SA,ISTAT,IPTHI,IPTLO,IXTRA,JERR
       REAL    DELT,EDELT,CHISQ
       REAL SC_TOF,EXPECTED_TOF
       INTEGER MUREFIT,LPMUO_OLD,ND,ND_OLD,ND_NEW,LMRFT,IND_MUON
-      REAL DIMP_BEND,DIMP_NONB
+      REAL DIMP_BEND,DIMP_NONB,ZVERT_MTC
+
 
       INTEGER IER
       LOGICAL FIRST
@@ -71,6 +73,7 @@ C----------------------------------------------------------------------
         FIRST=.FALSE.
         CALL EZPICK('MURECO_RCP')
         CALL EZGET('MUREFIT',MUREFIT,IER)
+        CALL EZGET('MTCREFIT',MTCREFIT,IER)
         CALL EZRSET
       END IF
 C     -- reset the error code...
@@ -140,9 +143,9 @@ C - Fill ZTRK bank with the associated muon track
             LQ(LZTRK - 3) = 0
           ENDIF
         ENDIF
-C for refitting, copy old PMUO information and drop old pmuo
+C for refitting, copy old PMUO information
         IF(MUREFIT.GE.2) THEN
-          LMRFT = LQ(LMUON-IZMRFT)
+          LMRFT = LQ(LMUON-IZMRFT_MUON)
           IF(LMRFT.GT.0) THEN
             LPMUO_OLD = LQ(LMRFT-3)
             IF(LPMUO_OLD.GT.0) THEN
@@ -196,7 +199,6 @@ C - User flag word.
         IQ(LPMUO+45) = 0
 C - Vertex number
         IQ(LPMUO+54) = IQ(LMUON + 63)
-        IQ(LPMUO+55) = IQ(LMUON + 63)
 C - impact parameters.
         CALL MUIMP_BNB(LMUOT,DIMP_BEND,DIMP_NONB)
         Q(LPMUO+56)=DIMP_BEND
@@ -249,20 +251,26 @@ CCCCCCCCCCCCCCCC        Q(LPMUO+24) = Q(LMUON+46)
           LMUOTX = GZMUOT(IMUOT)
           IF(LMUOTX.EQ.LMUOT) THEN
 C               -- float the track
-            CALL MUTFLT(IMUOT,DELT,EDELT,CHISQ,NDOF,IRC_MUTFLT)
+            IF(MUREFIT.LT.3 .OR. BTEST(IQ(LMUOT+5),21)) THEN
+              CALL MUTFLT(IMUOT,DELT,EDELT,CHISQ,NDOF,IRC_MUTFLT)
 C               -- store floated time shift (-9999. if failed)
-            IF(IRC_MUTFLT.GE.0) THEN
-              Q(LPMUO+24) = DELT
-            ELSE
-              Q(LPMUO+24) = -9999.
+              IF(IRC_MUTFLT.GE.0) THEN
+                Q(LPMUO+24) = DELT
+              ELSE
+                Q(LPMUO+24) = -9999.
+              ENDIF
             ENDIF
           ENDIF
         ENDDO                         ! end of loop over MUOT banks
-C - Kink/muon index flag
+C - IFW2 quality flag
+        IF(MUREFIT.GE.2) THEN
+C set refit bit if appropriate
+          IQ(LMUOT+5) = IBSET(IQ(LMUOT+5),22)
+        ENDIF
         IQ(LPMUO+44) = IQ(LMUOT+5)
-        IF(MUREFIT.GE.2) GOTO 500
 C - Hits on track, A,B,C and hits in track fit, A, B, C.
         CALL MUCPLN(LMUOT,IQ(LPMUO+46),IQ(LPMUO+47),IAPLN,IFPLN)
+        IF(MUREFIT.GE.2) GOTO 500
 C - Level 1, L1.5 trigger words
         IF (GZMTRG(0).EQ.0) CALL MUANLZ(JERR,6,0,4)
         CALL MOTWRD(IL1WA,IL1SA,ISTAT,IPTHI,IPTLO,IXTRA)
@@ -293,7 +301,7 @@ C
           Q(LPMUO+92)=Q(LMTCA+24)  ! tres_v
           Q(LPMUO+93)=Q(LMTCA+14)  ! fract
           Q(LPMUO+94)=Q(LMTCA+15)  ! hfract
-          Q(LPMUO+95)=Q(LMTCA+16)  ! ghfract
+C          Q(LPMUO+95)=Q(LMTCA+16)  ! ghfract
           Q(LPMUO+96)=Q(LMTCA+17)  ! echi
           Q(LPMUO+97)=Q(LMTCA+25)  ! en3
           Q(LPMUO+98)=Q(LMTCA+27)  ! efract_h(1)
@@ -301,8 +309,16 @@ C
           Q(LPMUO+100)=Q(LMTCA+34) !  ECHI2
 C- EG added 13-APR-94
           Q(LPMUO+90)=Q(LMTCA+35) !  ETRACK
-C-
         END IF
+C new MTC vertex information
+        IF(MTCREFIT.GT.0) THEN
+          CALL MU_VERTEX_ONE(LPMUO,IVERT_MTC,ZVERT_MTC)
+          IQ(LPMUO+55) = IVERT_MTC
+          Q(LPMUO+95) = ZVERT_MTC
+        ELSE
+          IQ(LPMUO+55) = IQ(LMUON + 63)
+          Q(LPMUO+95) = -202.
+        ENDIF
   998   CONTINUE
 C        -- update the bank pointer...
         LRLINK(IMUON)=LQ(LRLINK(IMUON))

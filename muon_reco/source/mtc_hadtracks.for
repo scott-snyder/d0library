@@ -1,22 +1,33 @@
-      SUBROUTINE MTC_HADTRACKS( PNTMU,DIRMU,
+      SUBROUTINE MTC_HADTRACKS( PNTMU,DIRMU, frac, ntot,
      &  cdist,hfrac,esum,cosmtc,pntmtc,tresid,nhad,np,iflg)
 C----------------------------------------------------------------------
 C-
-C-   Purpose and Methods : Enhanced verson of the mtcl2_c3 routine
-C-    to find a track for a muot candidate in the hadronic calorimeter.
-C-    Use the same fitting routine as in offline MTC, but 
-C-    the cells found in L2 MTC.
+C-   Purpose and Methods : Modified version of mtc_hadtracks
+C-    to find a track for a muot candidate in the calorimeter.
+C-    This version includes all cal cells in the fit plus the muot
+C-    input point using the same fitting routine as offline MTC.
+C-    Cells are chosen which are closest to a line through the
+C-    muot input point and the average position of cells found so far.
+C-    Two output arguments are added:  FRAC and NTOT.
+C-    This version uses the extent of each cell in z as the error
+C-    in the fit - previous versions used 1 or 2 cm uniformly.
 C-
 C-   Inputs  : PNTMU(3) - x,y,z coord of track inside magnet
 C-                        (should correspond to MUOT words 8,9,10)
 C-             DIRMU(3) - x,y,z direction cosines of track
 C-                        (should correspond to MUOT words 14,15,16)
-C-   Outputs : cdist     - closest dist from input track to beamline
+C-   Outputs :
+C-             frac      - the fraction of cal layers hit associated
+C-                         with the best track
+C-             ntot      - the number of total layers traversed by
+C-                         the best track
+C-
+C-             cdist     - closest dist from input track to beamline
 C-             hfrac     - fraction of hadronic layers hit for
 C-                         longest set of contiguously hit cells
 C-             esum      - sum of cal energy in cells assoc with track
 C-             cosmtc(3) - direction cosine of best found crude cal track
-C-                         from the calorimeter cells hit
+C-                         from the calorimeter cells hit and the muot pnt
 C-             pntmtc(3) - the average x,y,z of all cal cells associated
 C-                         with the best track
 C-             tresid    - track residual - sqrt of sum of squares of
@@ -36,6 +47,12 @@ C-                  = +3 - line passes inside central drift chamber
 C-                  = +4 - line passes inside calorimeter (outside CD)
 C-
 C-   Created  17-APR-1995   Elizabeth Gallas
+C-   Modified 14-AUG-1995   Elizabeth Gallas - to use all layers
+C-                          (not just hadronic)
+C-   Modified 14-AUG-1995   Elizabeth Gallas - add the muot point
+C-                          to the final fit
+C-   Modified 6-SEP-1995    Elizabeth Gallas - use extent of the cell
+C-                          in z for cell width
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -45,16 +62,18 @@ C- input
       REAL    pntmu(3),dirmu(3)
 C- output
       REAL    cdist,hfrac,esum,cosmtc(3),pntmtc(3),tresid
+      REAL    frac
       INTEGER nhad,np,iflg
+      INTEGER ntot
 C- program variables for that can be modified - had frac threshold for
 C- best track to pass, half width of tower to look for muons in eta,phi.
 C- I require that IEMAX.LE.IPMAX
       INTEGER iemax,ipmax
       PARAMETER( iemax = 2, ipmax = 2 )
 C- store tower energies(Et), num of layers and their lyr#,eta,phi index
-      REAL    energy(-iemax:iemax,-ipmax:ipmax,11:17)
-      INTEGER nlayer,nlyr(11:17),neta(11:17),nphi(-ipmax:ipmax),
-     &        meta(-iemax:iemax,11:17)
+      REAL    energy(-iemax:iemax,-ipmax:ipmax,1:17)
+      INTEGER nlayer,nlyr(1:17),neta(1:17),nphi(-ipmax:ipmax),
+     &        meta(-iemax:iemax,1:17)
 C- store min,max _eta,_phi of tower and lo,hi eta,phi of cal road
       INTEGER max_eta,min_eta,max_phi,min_phi
 C- for calling clinpl
@@ -74,15 +93,16 @@ c- do loops, eta, phi and lyr indices
       INTEGER ieta,iphi,ieta2,iphi2,jphi, ie2,ip2,ie3
       LOGICAL lyrexi,lyrhit
 C- counts, array for dp
-      INTEGER ncells,nhits,ihits,ipp(7),ipptemp(7)
+      INTEGER nhcells,nhhits,ncells,nhits, ihits,ipp(15),ipptemp(15)
 C-local
-      INTEGER mtcl2_iwhere, ihere
+      INTEGER mtc_iwhere, ihere
       REAL    enrg, x,y,z,
      &        esave, etseed, distmin,dist, hfseed, cosdir(3)
 C----------------------------------------------------------------------
 C- save the positions of the cells in the best track found
-      real    linesave(3,7),line(3,7),
-     &        xpnts(7),ypnts(7),zpnts(7),ezpnts(7), chicalin
+C- A max of 16 points since lyrs 4-6 are = lyr3 (plus 1pnt for muot pnt)
+      REAL    linesave(3,16),line(3,16), ezsave(16),longz,
+     &        xpnts(16),ypnts(16),zpnts(16),ezpnts(16), chicalin
 C----------------------------------------------------------------------
       INTEGER ifirst,iloop(iemax*2+1),ielp,iplp
       DATA    ifirst/0/
@@ -94,6 +114,7 @@ C- To run correctly, IEMAX.LE.IPMAX
           iloop((ie-1)*2+2) = ie
           iloop((ie-1)*2+3) = -ie
     9   CONTINUE
+        CALL MTC_FILL_SUBLYR()
       ENDIF
 C----------------------------------------------------------------------
 C- initialize
@@ -142,7 +163,7 @@ C- out CDC in z direction.  The CDC length is 179.4cm.
       vtx(3) = zvtx
 C----------------------------------------------------------------------
 C- initialize central tower layer numbers
-      DO 10 ilayer=11,17
+      DO 10 ilayer=1,17
         nlyr(ilayer) = 0
    10 CONTINUE
 C----------------------------------------------------------------------
@@ -161,7 +182,7 @@ C- also get min_eta,max_eta, min_phi,max_phi
       max_eta = -100
       IF(ncell.GE.2) THEN
         DO 11 ncl=1,ncell
-          IF(layerc(ncl).LE.10) go to 11
+cc          IF(layerc(ncl).LE.10) go to 11
           IF((ncl.NE.ncell) .AND. layerc(ncl).EQ.layerc(ncl+1)) then
             IF((ncl+1.NE.ncell) .AND. layerc(ncl).EQ.layerc(ncl+2)) then
               ietac(ncl) = ietac(ncl+1)
@@ -191,22 +212,22 @@ C- enter hit layers and their corresponding eta,phi into arrays nlyr,neta,nphi
       IF(nlayer.EQ.0) RETURN
 C----------------------------------------------------------------------
 C- fill in eta,phi of missing layers of central tower
-      DO 13 ilayer=11,17
+      DO 13 ilayer=1,17
         IF(nlyr(ilayer).EQ.0) THEN
-          DO 14 il2=1,6
+          DO 14 il2=1,16
             mlayer = ilayer+il2
             IF(mlayer.LE.17.AND.nlyr(mlayer).NE.0) go to 15
             mlayer = ilayer-il2
-            IF(mlayer.GE.11.AND.nlyr(mlayer).NE.0) go to 15
+            IF(mlayer.GE.1.AND.nlyr(mlayer).NE.0) go to 15
    14     CONTINUE
-          PRINT *, ' MTCL2_C2: error finding layer number'
+          PRINT *, ' MTC_HADTRACKS: error finding layer number'
    15     nlyr(ilayer) = ilayer
           neta(ilayer) = neta(mlayer)
         ENDIF
    13 CONTINUE
 C----------------------------------------------------------------------
 C- fill the meta() array
-      DO 16 ilayer=11,17
+      DO 16 ilayer=1,17
         ie2 = 0
         ie3 = 0
         meta(0,ilayer) = neta(ilayer)
@@ -241,7 +262,9 @@ C- initialize the seed layers
       ilseed(1) = 0
       ilseed(2) = 0
       ilseed(3) = 0
-      DO 31 ilayer=17,11,-1
+      DO 31 ilayer=17,1,-1
+C-      skip last 3 em3 sublayers (included when ilayer=3)
+        IF(ilayer.GE.4.AND.ilayer.LE.6) go to 31
         DO 33 ie=-iemax,iemax
           ieta = meta(ie,ilayer)
 
@@ -250,15 +273,33 @@ C- initialize the seed layers
 
             energy(ie,ip,ilayer) = -2.
 C- does this cell exist ?
-            IHERE = MTCL2_IWHERE(IETA,IPHI,ILAYER)
+            IHERE = MTC_IWHERE(IETA,IPHI,ILAYER)
+C- EM3 includes EM4-EM6 so reset IHERE if neccessary
+            IF(ABS(IETA).LE.26 .AND. ILAYER.EQ.3) THEN
+              IF(IHERE.EQ.0 .AND.
+     &          ABS(IETA).NE.12 .AND. ABS(IETA).NE.14) GO TO 34
+              IF(ABS(IETA).EQ.14) IHERE = 2       ! ECEM
+              IF(ABS(IETA).EQ.12) IHERE = 1       ! CCEM
+            END IF
+
             IF(IHERE.EQ.0) GO TO 34
             energy(ie,ip,ilayer) = 0.
 
-            CALL GTCAEP_ADDR(IETA,IPHI,ILAYER, enrg,ierr)
+C- If we are in the .05x.05 section of EM3,
+C- sum energy over 4 pads (get ENERGY) ...
+            ENRG = 0.
+            IF(ABS(IETA).LE.26 .AND. ILAYER.EQ.3) THEN
+              CALL MTC_EN_EM3(IETA,IPHI,enrg,ierr)
+            ELSE
+C- else (not in EM3) get enrg for this .1x.1 pad ...
+              CALL GTCAEP_ADDR(IETA,IPHI,ILAYER,enrg,ierr)
+            END IF
+            IF(ENRG.LT.0.) ENRG = 0.
 
             IF(ENRG.GT.0.) THEN
               energy(ie,ip,ilayer) = enrg
-              IF(ilseed(3).EQ.0) THEN
+C- look for seed layers in the hadronic section only
+              IF(ilayer.GE.11 .AND. ilseed(3).EQ.0) THEN
                 IF(ilseed(2).EQ.0) THEN
                   IF(ilseed(1).EQ.0) THEN
                     ilseed(1)=ilayer
@@ -269,6 +310,7 @@ C- does this cell exist ?
                   ilseed(3)=ilayer
                 ENDIF
               ENDIF
+
             ENDIF
    34     CONTINUE
    33   CONTINUE
@@ -296,16 +338,22 @@ C- loop over ieta cells, starting from the central tower, working outward
 c- seed cell found
             iemark = ie
             ipmark = ip
-C- count the number of cells above this seed
-            ncells = 0
+C- count the number of cells above this seed (always hadronic)
+            nhcells = 0
+            ncells  = 0
             IF(ilayer.LT.17) THEN
               DO 54 mlayer=ilayer+1,17
                 IF(energy(ie,ip,mlayer).gt.0.) go to 53
-                IF(energy(ie,ip,mlayer).eq.0.) ncells = ncells + 1
+                IF(energy(ie,ip,mlayer).eq.0.) then
+                  nhcells = nhcells + 1
+                  ncells  = ncells + 1
+                ENDIF
    54         CONTINUE
             ENDIF
-            nhits  = 1
-            ncells = ncells + 1
+            nhhits  = 1
+            nhits   = 1
+            nhcells = nhcells + 1
+            ncells  = ncells + 1
 C- get the x,y,z position of the seed cell
             IPHI = NPHI(IP)
             CALL CELXYZ(IETA,IPHI,ILAYER, x,y,z,ierr)
@@ -321,12 +369,18 @@ C- store the seed cell location for final cal fit
             linesave(1,1) = x
             linesave(2,1) = y
             linesave(3,1) = z
+C- Get the extent of this cell in z
+            CALL MTC_GET_CELLEZ(IETA,IPHI,ILAYER, longz,ierr)
+            ezsave(1) = longz/2.
 
 C- store the seed location in phi
             ipptemp(1) = iphi
 
 C- loop over cells below this seed
-            DO 56 mlayer=ilayer-1,11,-1
+            DO 56 mlayer=ilayer-1,1,-1
+C-            skip last 3 em3 sublayers (included when ilayer=3)
+              IF(mlayer.GE.4.AND.mlayer.LE.6) go to 56
+
               lyrexi = .false.
               lyrhit = .false.
               distmin   = 10000.
@@ -334,6 +388,7 @@ C- loop over cells below this seed
 C- if a cell below this seed exists, count this layer now
               IF(energy(iemark,ipmark,mlayer).ge.0.) then
                 lyrexi = .true.
+                if(mlayer.ge.11) nhcells = nhcells + 1
                 ncells = ncells + 1
               ENDIF
 
@@ -349,21 +404,37 @@ C- an adjacent cell in this layer has nonzero energy
 C- count the layer if it hasn't been counted yet
                   IF(.NOT.lyrexi) THEN
                     lyrexi = .true.
+                    if(mlayer.ge.11) nhcells = nhcells + 1
                     ncells = ncells + 1
                   ENDIF
 C- cell has nonzero energy - get ieta2, iphi2 then its x,y,z location
                   IF(.NOT.lyrhit) THEN
                     lyrhit = .true.
+                    if(mlayer.ge.11) nhhits  = nhhits + 1
                     nhits  = nhits + 1
                   ENDIF
                   iphi2 = nphi(ip2)
                   ieta2 = meta(ie2,mlayer)
-                  CALL CELXYZ(IETA2,IPHI2,MLAYER, x,y,z,ierr)
+
+C- If we are in the .05x.05 section of EM3, find the average location
+C- over 4 pads ... if not EM3
+                  IF(MLAYER.NE.3) THEN
+                    CALL CELXYZ(IETA2,IPHI2,MLAYER, X,Y,Z,IERR)
+                  ELSE
+C- if EM3, then energy weight the position of the energy deposition ...
+                    CALL MTC_EXYZEM3(IETA2,IPHI2, X,Y,Z, IERR)
+                  END IF
+                  IF(IERR.NE.0) THEN
+                    PRINT *, ' MTC_HADTRACKS:  problem with xyz',
+     &                ieta2,iphi2,mlayer
+                  ENDIF
                   pnt3(1) = x
                   pnt3(2) = y
                   pnt3(3) = z
-C- get the perp dist from cell to a line from the vtx to avg cells so far
-                  CALL MTC_PERPDIST(PNT3,VTX,PNT2, dist,ierr)
+ccC- get the perp dist from cell to a line from the vtx to avg cells so far
+cc                  CALL MTC_PERPDIST(PNT3,VTX,PNT2, dist,ierr)
+C- get perp dist from cell to a line from the muot pnt to avg cells so far
+                  CALL MTC_PERPDIST(PNT3,PNTMU2,PNT2, dist,ierr)
                   IF(dist.LT.distmin) THEN
                     distmin    = dist
                     pntsave(1) = x
@@ -374,6 +445,9 @@ C- get the perp dist from cell to a line from the vtx to avg cells so far
                     ipnext     = ip2
 C- store this cell location in phi
                     ipptemp(nhits) = iphi2
+C- store the extent of this cell in z
+                    CALL MTC_GET_CELLEZ(IETA2,IPHI2,MLAYER, longz,ierr)
+                    ezsave(nhits) = longz/2.
                   END IF
    58           CONTINUE                  ! loop over candidate ip2 cells
    57         CONTINUE                  ! loop over candidate ie2 cells
@@ -391,43 +465,53 @@ C- if hit cell found in this layer, add its energy and avg in its position
               ENDIF
    56       CONTINUE                    ! loop over layers below seed
 C- is this the best track found so far?
-            hfseed = float(nhits) / float(ncells)
+            hfseed = float(nhhits) / float(nhcells)
             IF(hfseed.GT.hfrac .OR.
-     &         (hfseed.EQ.hfrac .AND. ncells.GT.nhad) ) THEN
-              nhad  = ncells
+     &         (hfseed.EQ.hfrac .AND. nhcells.GT.nhad) ) THEN
+              nhad  = nhcells
               hfrac = hfseed
-              CALL MTC_PNTTOCOS(VTX,PNT2, cosdir)
-              esum  = etseed / sqrt(1 - cosdir(3)**2)
+              ntot  = ncells
+              frac  = float(nhits) / float(ncells)
+CL2- at L2, CAEP stores ET (so convert), offline CAEP is Energy (don't)
+CL2-              CALL MTC_PNTTOCOS(VTX,PNT2, cosdir)
+CL2-              esum  = etseed / sqrt(1 - cosdir(3)**2)
+              esum        = etseed
+
               pntmtc(1)   = pnt2(1)
               pntmtc(2)   = pnt2(2)
               pntmtc(3)   = pnt2(3)
 C- same the x,y,z positions of cells for best track for final fit
-              do 55 ihits=1,nhits
+              DO 55 ihits=1,nhits
                 line(1,ihits) = linesave(1,ihits)
                 line(2,ihits) = linesave(2,ihits)
                 line(3,ihits) = linesave(3,ihits)
-   55         continue
+   55         CONTINUE
 C- save the array of iphi values for the best track
               DO 60 ihits=1,nhits
                 ipp(ihits) = ipptemp(ihits)
    60         CONTINUE
             ENDIF
-            IF(hfrac.EQ.1.0 .AND. nhad.GE.3) go to 888
+C???            IF(hfrac.EQ.1.0 .AND. nhad.GE.3) go to 888
    53     CONTINUE                ! loop over ip looking for seed cells
    52   CONTINUE                ! loop over ie looking for seed cells
    51 CONTINUE                ! loop over ncl, the seed layers
 C----------------------------------------------------------------------
   888 CONTINUE
-      nhits = nint(hfrac*float(nhad))
+      nhits = nint(frac*float(ntot))
 C- get the final fit for the best track
+C- add the muot point first
+      xpnts(1) = pntmu2(1)
+      ypnts(1) = pntmu2(2)
+      zpnts(1) = pntmu2(3)
+      ezpnts(1) = 1.0
       IF(nhits.GE.2) THEN
-        do 59 ihits=1,nhits 
-          xpnts(ihits) = line(1,ihits)
-          ypnts(ihits) = line(2,ihits)
-          zpnts(ihits) = line(3,ihits)
-          ezpnts(ihits) = 1.0
-   59   continue
-        CALL MTC_LINEPNTDIR(nhits,XPNTS,YPNTS,ZPNTS,EZPNTS,
+        DO 59 ihits=1,nhits
+          xpnts(ihits+1) = line(1,ihits)
+          ypnts(ihits+1) = line(2,ihits)
+          zpnts(ihits+1) = line(3,ihits)
+          ezpnts(ihits+1) = ezsave(ihits)
+   59   CONTINUE
+        CALL MTC_LINEPNTDIR(nhits+1,XPNTS,YPNTS,ZPNTS,EZPNTS,
      &                      pnt2,cosdir,chicalin)
         tresid = chicalin
         cosmtc(1) = cosdir(1)

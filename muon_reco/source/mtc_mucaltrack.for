@@ -16,6 +16,9 @@ C-             ETA,PHI direction from the vertex in which to look
 C-             for a MIP-like track
 C-
 C-   Created   3-DEC-1993   Elizabeth Gallas
+C-   Modified 15-APR-1995   Elizabeth Gallas - 
+C-      If caep does not exist, then create it from caeq.
+C-      This change will enable MTC to be run on run 1b dsts.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -26,26 +29,34 @@ C- track fitting stuff
       INTEGER ilyrmin, icntall
 C- local
       REAL vtx_temp(3)
-      INTEGER lcaep, gzcaep
+      INTEGER lcaeq, gzcaeq, lcaep, gzcaep
       INTEGER ifirst
       DATA ifirst/0/
 C----------------------------------------------------------------------
 C- check to see that the uncertainty in zvertex is not zero
       if(dvtx(3).eq.0.) dvtx(3) = 0.1
 C----------------------------------------------------------------------
-C- check for the caep bank, if it's not there, then zero block arrays
+C- if caep exists, use it;  if caeq but no caep, create caep from caeq.
+      lcaeq = gzcaeq()
       lcaep = gzcaep()
-      IF(lcaep.eq.0) THEN
-        WRITE(6,*) ' MTC_MUCALTRACK: error - no CAEP energy bank'
-        vtx_temp(3) = -5000.
-        CALL mtc_mucalen(vtx_temp,dvtx,eta,phi)
-        CALL mtc_mucalen5(vtx_temp,dvtx,eta,phi)
-        ilyrmin = 1
-        CALL mtc_line_stepback(ilyrmin,
-     &    point1, cosdir, chicalin, chiene, flyrhit, icntall)
-        CALL mtc_fill_mtc
-        RETURN
-      END IF
+      IF(  lcaeq.LE. 0 ) THEN
+        IF(lcaep.LE. 0 ) THEN
+C- check for caep or caeq bank, if they're not there, zero output arrays
+          WRITE(6,*) 
+     &      ' MTC_MUCALTRACK: error - no CAEP or CAEQ energy bank'
+          vtx_temp(3) = -5000.
+          CALL mtc_mucalen(vtx_temp,dvtx,eta,phi)
+          CALL mtc_mucalen5(vtx_temp,dvtx,eta,phi)
+          ilyrmin = 1
+          CALL mtc_line_stepback(ilyrmin,
+     &      point1, cosdir, chicalin, chiene, flyrhit, icntall)
+          CALL mtc_fill_mtc
+          RETURN
+        ENDIF
+      ELSE
+        IF(lcaep .LE. 0 ) CALL caeq_to_caep
+        lcaep = gzcaep()
+      ENDIF
 C----------------------------------------------------------------------
 C- fill the arrays containing the MVP for each calorimeter cell
       IF(IFIRST.EQ.0) THEN
