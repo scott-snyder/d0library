@@ -221,6 +221,7 @@ C                     arguments to CTXIN/CTXOUT.
 C
 C  Author:
 C          F.E. Paige, April 1992
+C sss --- compile with g77, Mar 22 2004
 C-----------------------------------------------------------------------
       IMPLICIT NONE
 C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
@@ -377,6 +378,9 @@ C
       REAL VC(MXVC)
       CHARACTER*8 CLIST(290)
       EQUIVALENCE (CLIST(1),PARTYP(1))
+      integer itmp
+      real rtmp
+      equivalence (itmp, rtmp)
 C
 C          Dummy real variables for integers
       REAL VLOOK(MXLOOK+6*MXDKY)
@@ -453,7 +457,8 @@ C          JETLIM
 C          KEYS
       CALL MOVLEV(VC(NC+1),VIKEYS(1),12)
       NC=NC+12
-      CALL CTXI2C(VC(NC+1),REAC,8)
+      rtmp = vc(nc+1)
+      CALL CTXI2C(itmp,REAC,8)
       NC=NC+8
 C          LIMEVL
       CALL MOVLEV(VC(NC+1),ETTHRS,3)
@@ -502,7 +507,8 @@ C          TYPES
       CALL MOVLEV(VC(NC+1),VLOC(1),100)
       NC=NC+100
       DO 100 I=1,290
-        CALL CTXI2C(VC(NC+1),CLIST(I),8)
+        rtmp = vc(nc+1)
+        CALL CTXI2C(itmp,CLIST(I),8)
         NC=NC+8
 100   CONTINUE
 C          WCON
@@ -535,6 +541,7 @@ C                     arguments to CTXIN/CTXOUT.
 C
 C  Author:
 C          F.E. Paige, April 1992
+C sss --- compile with g77, Mar 22 2004
 C-----------------------------------------------------------------------
       IMPLICIT NONE
 C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
@@ -691,6 +698,9 @@ C
       REAL VC(MXVC)
       CHARACTER*8 CLIST(290)
       EQUIVALENCE (CLIST(1),PARTYP(1))
+      integer itmp
+      real rtmp
+      equivalence (itmp, rtmp)
 C
 C          Dummy real variables for integers
       REAL VLOOK(MXLOOK+6*MXDKY)
@@ -767,7 +777,8 @@ C          JETLIM
 C          KEYS
       CALL MOVLEV(VIKEYS(1),VC(NC+1),12)
       NC=NC+12
-      CALL CTXC2I(REAC,VC(NC+1),8)
+      CALL CTXC2I(REAC,itmp,8)
+      vc(nc+1) = rtmp
       NC=NC+8
 C          LIMEVL
       CALL MOVLEV(ETTHRS,VC(NC+1),3)
@@ -816,7 +827,8 @@ C          TYPES
       CALL MOVLEV(VLOC(1),VC(NC+1),100)
       NC=NC+100
       DO 100 I=1,290
-        CALL CTXC2I(CLIST(I),VC(NC+1),8)
+        CALL CTXC2I(CLIST(I),itmp,8)
+        vc(nc+1) = rtmp
         NC=NC+8
 100   CONTINUE
 C          WCON
@@ -840,7 +852,7 @@ C          CALL VAX DATE AND TIME.
       SAVE /ITAPES/
       INTEGER   ITDKY,ITEVT,ITCOM,ITLIS
       CHARACTER*8 BUF
-      CALL IDATE(IMON,IDAY,IYR)
+      CALL IDATE2k(IMON,IDAY,IYR)
       CALL TIME(BUF)
       ID=10000*IYR+100*IMON+IDAY
       READ(BUF,'(I2,1X,I2,1X,I2)') K1,K2,K3
@@ -23798,6 +23810,9 @@ C
       EQUIVALENCE (TIMES(1),TIME1)
       DIMENSION TTT(2)
       INTEGER CPUTIM(2),ITMLST(4),NHSEC
+C&IF LINUX
+C&      times(it) = 0
+C&ELSE
       EXTERNAL JPI$_CPUTIM
 C
 C          DEFAULT IS TO RETURN ZERO.
@@ -23811,6 +23826,7 @@ C          FOLLOWING PROVIDED BY T. KILLIAN
       CALL SYS$GETJPI(,,,ITMLST,,,)
       TNOW=.01*NHSEC
       TIMES(IT)=TNOW
+C&ENDIF
       RETURN
       END
 CDECK  ID>, TWOJET. 

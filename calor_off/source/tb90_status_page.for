@@ -9,6 +9,7 @@ C-   Outputs : none
 C-   Controls: none
 C-
 C-   Created   2-AUG-1990   Chip Stewart
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -117,8 +118,12 @@ C
       TB90_STATUS_PAGE = .FALSE.
 
       DAYTIME= ' '
+C&IF LINUX
+C&      call fdate (daytime)
+C&ELSE
       CALL DATE (DAYTIME(1:15))
       CALL TIME (DAYTIME(17:26))
+C&ENDIF
       CALL STRINT('RUN',RUN,FILENAME,I)
       FILENAME='USR$OUT:'//FILENAME(1:I)//'_STATUS.SUM'
       CALL GTUNIT(77,NUNIT,IER)

@@ -13,6 +13,7 @@ C-   Updated  21-DEC-1990   Harrison B. Prosper
 C-      Added optional mass smearing
 C-   Updated  22-DEC-1990   Harrison B. Prosper
 C-      Added optional mass check
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -53,7 +54,7 @@ C
       CALL EZGET('NUMBER_OF_EVENTS',NUMEVT,IER)
 C
       IWRT = 0
-      TYPE 12, NUMEVT
+      write (*,12), NUMEVT
       DO 11 IEVTS = 1 ,NUMEVT
 C
         IF ( DO_MASS_DISTRIBUTION ) THEN
@@ -70,9 +71,9 @@ C
               CALL WREVNT(ITEVT)            ! Write output event
               IWRT = IWRT + 1
               IF(MOD(IWRT,PRINT_EVENT).EQ.0)
-     &          TYPE 13, IEVT,IWRT, NUMEVT, IEVTS, ' '
+     &          write (*,13), IEVT,IWRT, NUMEVT, IEVTS, ' '
             ELSE
-              TYPE 13, IEVT,IWRT, NUMEVT, IEVTS, 'CUT'
+              write (*,13), IEVT,IWRT, NUMEVT, IEVTS, 'CUT'
             END IF
           ENDIF
         ELSE

@@ -9,6 +9,7 @@ C-   Outputs : none
 C-   Controls: ISARCP_RCP bank
 C-
 C-   Created  13-FEB-1990   Chip Stewart
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       INTEGER MAXVAL,MAXDEP
@@ -104,7 +105,7 @@ C
           ELSE IF (INDEX(C(4),'GT').GT.0) THEN
             COMPA = 6
           ELSE
-            TYPE *, ' NO OTHER COMPARISON SCHEME IN ISARCP_EDIT YET'
+            write (*,*),' NO OTHER COMPARISON SCHEME IN ISARCP_EDIT YET'
           END IF
         END IF
       END IF

@@ -21,6 +21,7 @@ C-   Outputs : on unit PRUNIT
 C-   Controls: none
 C-
 C-   Created  11-JAN-1990 16:49:35.86  Chip Stewart
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -73,14 +74,14 @@ C
 C  *** Error : Linear without bank pointer
 C
   990 WRITE( PRUNIT, 2000 ) LISRC
- 2000 FORMAT(/' ** PRISRC ** called for LINEAR without valid bank '
+ 2000 FORMAT(/' ** PRISRC ** called for LINEAR without valid bank ',
      &        'pointer, LISRC =',I10/)
       GOTO 999
 C
 C  *** Error : One bank, but neither pointer nor number
 C
   980 WRITE( PRUNIT, 2100 ) LISRC, NISRC
- 2100 FORMAT(/'  ** PRISRC ** called for ONE without bank pointer and '
+ 2100 FORMAT(/'  ** PRISRC ** called for ONE without bank pointer and ',
      &        'bank number, LISRC =',I10,' NISRC =', I10/)
       GOTO 999
       END

@@ -8,6 +8,7 @@ C-    INPUT:
 C-    CHIO = character IO control: 'I' for input, 'O' for output
 C-
 C-     SDP  Dec.,1985
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C---------------------------------------------------------------
       IMPLICIT NONE
@@ -47,6 +48,7 @@ C
         STOP
       ENDIF
       RETURN
-  101 FORMAT(//'  CHIO='A4' IS NOT A RECOGNIZABLE COMMAND FOR ISAZEB,'
-     $ /' JOB STOPPED')
+ 101  FORMAT(//'  CHIO=',A4,
+     &       ' IS NOT A RECOGNIZABLE COMMAND FOR ISAZEB,'
+     &       ,/' JOB STOPPED')
       END

@@ -11,6 +11,7 @@ C-
 C-   Created   2-AUG-1990   Chip Stewart 
 C-   Updated  19-JUL-1991   Kathy Hodel Updated RCP files for load2  
 C-                                      put ini stage into begin hook
+C-   Updated  22-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
       IMPLICIT NONE
       LOGICAL TB90L2_STATUS_PAGE
@@ -148,8 +149,12 @@ C
       TB90L2_STATUS_PAGE = .FALSE.
 
       DAYTIME= ' '
+C&IF LINUX
+C&      call fdate(daytime)
+C&ELSE
       CALL DATE (DAYTIME(1:15))
       CALL TIME (DAYTIME(17:26))
+C&ENDIF
       CALL STRINT('RUN',RUN,FILENAME,I)
       FILENAME='USR$OUT:'//FILENAME(1:I)//'_STATUS.SUM'
       CALL GTUNIT(77,NUNIT,IER)

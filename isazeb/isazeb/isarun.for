@@ -1,6 +1,7 @@
       PROGRAM ISARUN
 C   
 C          MAIN PROGRAM FOR THE INTERACTIVE VERSION OF ISAJET.  
+C-   Updated  22-MAR-2004   sss - compile with g77
 C   
       IMPLICIT NONE
       INCLUDE 'D0$INC:ZEBCOM.INC'
@@ -27,7 +28,7 @@ C&IF VAXVMS
    1  FILDKY='D0$ISAJET:DECAY.DAT'
       PRINT *,' The program will use D0$ISAJET:DECAY.DAT as default.'
 C&ENDIF
-C&IF SIUNIX,ALFOSF
+C&IF SIUNIX,ALFOSF,LINUX
 C&   1  FILDKY='/nlib/isajet/decay.dat'
 C&      PRINT *,' The program will use DECAY.DAT as default.'
 C&ENDIF

@@ -15,6 +15,7 @@ C-                                       write the pedestal bank for runs
 C-                                       without any inspill ped events
 C-   Updated  21-JAN-1991   Jan Guida  Skip this routine if no pedestal file
 C-                                      was read from the DBL3 data base
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -48,7 +49,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       TB90_INSPILL_FINISH =  .TRUE.
 C
-      CALL IDATE(I,J,K)
+      CALL IDATE2k(I,J,K)
       JDATE=I*10000+J*100+K
       CALL TIME(STIME)
       READ(STIME,'(I2,1X,I2,1X,I2)')I,J,K

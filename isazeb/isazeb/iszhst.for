@@ -8,6 +8,7 @@ C-  start with ISZUSR example provided in D0$ISAZEB$SOURCE
 C-
 C-     SDP May,1986
 C-     DH 8/87 Allow read of multiple files
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-----------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:ISABNK.INC'
@@ -58,7 +59,7 @@ C                                     ! see example in ISAZEB
         GOTO 10
       ENDIF
       PRINT 41,NF,NT
- 41   FORMAT(' Number on run =, 'I6,'  number total = ',I7)
+ 41   FORMAT(' Number on run =, ',I6,'  number total = ',I7)
       NT=0
       NF=0
       IF(IOS.LT.3) GOTO 10

@@ -27,7 +27,8 @@ C-
 C-    ENTRY ISADIA: user dialog to change defaults in ISANAL
 C-
 C-   Created   6-NOV-1988   Serban D. Protopopescu
-C-   Updated  18-MAY-1994   Serban Protopopescu  simplified 
+C-   Updated  18-MAY-1994   Serban Protopopescu  simplified
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -82,7 +83,7 @@ C
         NANAL=NANAL+1
         ISANAL=.TRUE.
         LISAE=LQ(LHEAD-IZISAE)
-        IF(LISAE.EQ.0) CALL ABORT(' Not ISAJET data')
+        IF(LISAE.EQ.0) CALL d0_ABORT(' Not ISAJET data')
         WEIGHT=Q(LISAE+12)*1000.      ! in nanobarn
         NPJETS=IQ(LISAE+7)
 C

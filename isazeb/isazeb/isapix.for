@@ -15,10 +15,11 @@ C-
 C-   Returned value  : always .TRUE.
 C-
 C-   Created   8-MAR-1989   Serban D. Protopopescu
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
-      LOGICAL ISAPIX,PLZEXE,ISZGEX
+      LOGICAL ISAPIX,PLZEXE
 C----------------------------------------------------------------------
       IF(.NOT.PLZEXE()) CALL ISZGEX
   999 RETURN
