@@ -8,6 +8,7 @@ C-   Outputs :
 C-   Controls: Calibration parameters are held in L2JETS_CONT.INC
 C-
 C-   Created  14-AUG-1990   Richard V. Astur
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -28,6 +29,7 @@ C----------------------------------------------------------------------
       INTEGER ESUM_CONESIZE_TO_JET
 C&IF VAXVMS,VAXELN
       INTEGER IBSET
+C&ELSEIF LINUX
 C&ELSE
 C&      EXTERNAL IBSET
 C&ENDIF

@@ -54,7 +54,7 @@ C----------------------------------------------------------------------
       INTEGER*2 ISHORT(2)
       EQUIVALENCE (ISHORT,IWORD)
       INCLUDE 'D0$PARAMS:BYTE_ORDER.PARAMS'
-      INTEGER IAND,ISHFT,IER
+      INTEGER IAND,IER
       INCLUDE 'D0$INC:PI.DEF'
       INCLUDE 'D0$INC:CL2_ETMISS_GEOM.INC'
       INTEGER ICOARSE

@@ -57,6 +57,7 @@ C-            IETA, IPHI, LYR  coordinates of potential member
 C-  Outputs : ET_MEMBER   current estimate of minimum Et for membership
 C-
 C-   Created  23-OCT-1992   James T. Linnemann
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -110,9 +111,9 @@ C...find a place on the list
 C
 C...full list; locate lowest energy member as candidate insertion point (SLOW)
         IN = 1
-        DO J = 2,MAXBIG
-          IF (ET_BIG(J).LT.ET_BIG(IN)) IN = J
-        ENDDO
+c$$$        DO J = 2,MAXBIG ! avoid g77 warning; this is a null loop
+c$$$          IF (ET_BIG(J).LT.ET_BIG(IN)) IN = J
+c$$$        ENDDO
         ETMIN_CURRENT = ET_BIG(IN) !raise membership level to lowest existing Et
       ENDIF
 C

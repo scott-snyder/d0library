@@ -12,6 +12,7 @@ C-
 C-   Created  10-SEP-1992   James T. McKinley
 C-   Updated   8-FEB-1993   James T. McKinley - Add controls for progress
 C-                          report from RCP file.
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -29,7 +30,7 @@ C
       INTEGER num_of_events             ! total number of events processed
       INTEGER ier                       ! error flag
       INTEGER i,gzesum,lesum,repfreq
-      DATA num_of_events/0/,repfreq/0/
+      DATA repfreq/0/
 c
       COMMON/nevt/num_of_events
 C----------------------------------------------------------------------
@@ -49,7 +50,7 @@ C
 C
 C ****  Format statements
 C
- 1301 FORMAT(' L2EM_NTUPLE > ',i5,' EVENTS, '
+ 1301 FORMAT(' L2EM_NTUPLE > ',i5,' EVENTS, ',
      &    ' RUN ',i7)
       RETURN
 C#######################################################################

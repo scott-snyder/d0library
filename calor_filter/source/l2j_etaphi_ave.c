@@ -26,13 +26,19 @@
          Created           : 22-AUG-1993 by Richard V. Astur
   		 updated 18-Dec-95 by D Owen. fixed energy weighted possition calc
   		 updated  5-Jan-96 by N Varelas. protect division by zero energy
+C-   Updated  22-MAR-2004   sss - compile with g77
 -------------------------------------------------------------------------
 */
  
 #include <stdio.h>                   /* I/O definitions                       */
 #include <math.h>
+#if D0FLAVOR==LINUX
+#include "params/l1_params.h"	 /* l1 cal parameters */
+#include "inc/l2j_etaphi_util.h"	 /* Lookup arrays to accesss L1C FADC's */
+#else
 #include "d0$params:l1_params.h"	 /* l1 cal parameters */
 #include "d0$inc:l2j_etaphi_util.h"	 /* Lookup arrays to accesss L1C FADC's */
+#endif
 
 void l2j_etaphi_util_init();		 /* initialization routine for lo arrays*/
 

@@ -9,6 +9,7 @@ C-   Controls: None
 C-
 C-   Created 25-APR-1991   James T. Linnemann   
 C-   Updated  14-NOV-1993   James T. Linnemann  add energy offsets 
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -47,7 +48,7 @@ C
 C
 C ****  Get date and time and pack into CGEH data
 C
-      CALL IDATE(I,J,K)
+      CALL IDATE2k(I,J,K)
       JDATE = K + J*100 + I*10000
       CALL TIME(STIME)
       READ(UNIT=STIME,FMT='(I2,2(1X,I2))') I,J,K

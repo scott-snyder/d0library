@@ -12,11 +12,16 @@
    Controls: Set initialization flag to TRUE when done
    
          Created           : 13-OCT-1993 by Richard V. Astur
+C-   Updated  22-MAR-2004   sss - compile with g77
 ---------------------------------------------------------------------------
    */
  
 #include <stdio.h>                   /* I/O definitions                       */
+#if D0FLAVOR==LINUX
+#include "params/l1_params.h"	 /* l1 cal parameters */
+#else
 #include "d0$params:l1_params.h"	 /* l1 cal parameters */
+#endif
 
 		/* #include "d0$inc:l2j_etaphi_util.h"	*/
 		/* Lookup arrays to accesss L1C FADC's */
