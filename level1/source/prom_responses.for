@@ -80,6 +80,7 @@ C-                      Philippe Laurens, Steven Klocek,
 C-                      L1C -> L1SIM, and major upgrade to use LSM, COOR_sim
 C-                            - Made IMPLICIT NONE statement recognizable by
 C-                              D0FLAVOR
+C-   Updated  22-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
       IMPLICIT NONE 
 C      
@@ -110,13 +111,14 @@ C
      &       (PHI .GT. PHI_MAX))          .OR.
      &      ((L0_BIN .LT. L0_BIN_MIN) .OR.
      &       (L0_BIN .GT. L0_BIN_MAX))) THEN
-          CALL ABORT( 'ERROR: Parameter out of range in PROM_RESPONSES')
+          CALL d0_ABORT
+     &         ( 'ERROR: Parameter out of range in PROM_RESPONSES')
         ENDIF
         IF ((EM_ADC_BYTE .GT. 255) .OR. 
      &      (EM_ADC_BYTE .LT. 0) .OR.
      &      (HD_ADC_BYTE .GT. 255) .OR.
      &      (HD_ADC_BYTE .LT. 0)) THEN
-          CALL ABORT( 'ERROR: Byte out of range in PROM_RESPONSES')
+          CALL d0_ABORT( 'ERROR: Byte out of range in PROM_RESPONSES')
         ENDIF
       ENDIF
 C

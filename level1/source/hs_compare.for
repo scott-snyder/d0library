@@ -9,6 +9,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created  15-FEB-1992   Jussara Miranda (from TRGR_FILL GL's original)
+C-   Updated  22-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
 
       IMPLICIT NONE
@@ -169,8 +170,8 @@ C-- Use L1BITS to compare
           ENDDO
         ENDIF
    10   CONTINUE
-  130   FORMAT(1X ' >>>> BAD L1_BITS EVENT STRIPPED ',/,
-     &    1X,'L1BITS SIM: '16L1,/,1X,'LIBITS HDW: '16L1)
+  130   FORMAT(1X ,' >>>> BAD L1_BITS EVENT STRIPPED ',/,
+     &    1X,'L1BITS SIM: ',16L1,/,1X,'LIBITS HDW: ',16L1)
 
 C-- Compare hardware and simulator through relevant information on CCT_LATCH
         IF ( MOD(STRIPMODE,2).EQ.0)THEN

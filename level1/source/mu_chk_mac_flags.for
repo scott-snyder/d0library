@@ -11,6 +11,7 @@ C-   Controls:
 C-
 C-   Created   9-APR-1993   Guilherme Lima, Gilvan Alves
 C-   Updated  22-OCT-1993   Guilherme,Jussara   Upgrade for MUD1_1B format 
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -90,6 +91,6 @@ C__ Check samus
 
   124 FORMAT('TOO_MANY_HITS_',I3)
   125 FORMAT(' Too many hits flag set in module ',I3,
-     &              ', (flag='I2')')
+     &              ', (flag=',I2,')')
 
       END

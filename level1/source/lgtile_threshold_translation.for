@@ -62,6 +62,7 @@ C-                         passing the threshold.
 C-                         
 C-   Created 30-JUN-1993 Philippe Laurens
 C-                      Derived from TOWER_THRESHOLD_TRANSLATION.FOR
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE 
@@ -89,7 +90,7 @@ C
      &          .OR.  (PHI .GT. PHI_MAX) ) 
      &     .OR. (     (PHI - 1) .NE. 
      &                (TT_PHI_PER_LT * ((PHI-1) / TT_PHI_PER_LT)) ))THEN
-          CALL ABORT( 
+          CALL d0_ABORT( 
      &  'ERROR: Parameter out of range in LGITLE_THRESHOLD_TRANSLATION')
         ENDIF
       ENDIF

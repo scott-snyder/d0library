@@ -11,6 +11,7 @@ C-                                 than 32 hits ==> No hits read out.
 C-   Controls: 
 C-
 C-   Created   9-APR-1993   Guilherme Lima, Gilvan Alves
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -53,7 +54,7 @@ C.. Loop over MAC's for this crate
             TOO_MANY_HITS=.TRUE.
 	    WRITE(MSG,125) MODNO,IFLAG
   125       FORMAT(' Too many hits flag set in module ',I3,
-     &              ', (flag='I2')')
+     &              ', (flag=',I2,')')
             CALL INTMSG(MSG)
             WRITE(MSG,124) MODNO
   124       FORMAT('TOO_MANY_HITS_',I3)

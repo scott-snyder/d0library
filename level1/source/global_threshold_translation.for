@@ -51,6 +51,7 @@ C-   Updated  31-OCT-1991   Level 1 Simulator, Michigan State University,
 C-                      Philippe Laurens, Steven Klocek,
 C-                      L1C -> L1SIM, and major upgrade to use LSM, COOR_sim
 C-                     - Made IMPLICIT NONE statement recognizable by D0FLAVOR
+C-   Updated  22-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
       IMPLICIT NONE 
 C      
@@ -73,7 +74,7 @@ C
      &    (THRSH_TYPE .GT. GL_TOTL2_THRTYP) .OR. 
      &    ((THRSH_TYPE .LT. GL_EMET_THRTYP) .AND. 
      &     (THRSH_TYPE .GT. TOT_L2_QUANT))) THEN
-          CALL ABORT(
+          CALL d0_ABORT(
      &'ERROR: Invalid threshold type in GLOBAL_THRESHOLD_TRANSLATION')
         ENDIF
       ENDIF

@@ -88,6 +88,7 @@ C-   Updated  26-NOV-1991   Philippe Laurens, Steven Klocek
 C-                      Fixed bug in TOT Et threshold calculation. Now uses
 C-                      scales for HD_ET_QUANT rather than TOT_ET_QUANT and
 C-                      EM_ET_QUANT.
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE 
@@ -112,7 +113,7 @@ C
      &       (PHI .GT. PHI_MAX))          .OR.
      &      ((THRSH_TYPE .LT. TT_EMET_THRTYP) .OR.
      &       (THRSH_TYPE .GT. TT_TOTET_THRTYP))) THEN
-          CALL ABORT( 
+          CALL d0_ABORT( 
      &   'ERROR: Parameter out of range in TOWER_THRESHOLD_TRANSLATION')
         ENDIF
       ENDIF

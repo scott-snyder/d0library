@@ -15,6 +15,7 @@ C-   Updated  13-MAY-1993   Philippe Laurens - MSU L1 Trigger
 C-                        update call to L1EXTRACT_L15_STATUS to match the 
 C-                        routine arguments from ZEBRA_UTIL
 C-                        Add entry L1DMP_L1EXTRACT_DEFDUMP 
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -277,8 +278,8 @@ C
      &  ST_L15_ANSWER
       WRITE(LUN, 320) 'L15 Term Done', L15_TERM_DONE
       WRITE(LUN, 320) 'L15 Term Answer', L15_TERM_ANSWER
-  310 FORMAT(' ', A, T36, ':', 16L)
-  320 FORMAT(' ', A, T15, ':', 32L)
+  310 FORMAT(' ', A, T36, ':', 16L7)
+  320 FORMAT(' ', A, T15, ':', 32L7)
 C
   500 FORMAT(' ETA=', SP, I3, SS, '  TOT', 8(' ', F6.2))
   510 FORMAT(' PHI=', I2, ':', I2,  ' EM', 8(' ', F6.2))

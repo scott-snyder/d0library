@@ -59,6 +59,7 @@ C-   Updated  28-SEP-1992   Philippe Laurens, Steven Klocek
 C-                      Add code for Trigger Tower Energy Saturation. 
 C-                      Fix pointers to CAD banks to use links in HEAD bank and 
 C-                        protect from banks moved during garbage collection.
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
 C
@@ -85,7 +86,7 @@ C
       LOGICAL  SUCCESS 
       INTEGER  GZISAE, GZISV1, GZCAD1, GZCAD2, GZCAEP, GZTRGR, TRULEN
       INTEGER  GZFIND_CRATE
-      REAL     CAD_GAIN, NORRAN
+      REAL     CAD_GAIN
 C
       INTEGER ERR, LUN
       INTEGER ICH ,BITS

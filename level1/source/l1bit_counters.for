@@ -15,6 +15,7 @@ C-
 C-   Original    JUN-1992   Kamel Bazizi
 C-   Created  30-AUG-1992   Guilherme Lima
 C-   Updated       jan-94   Jussara - include hardware statistics
+C-   Updated  22-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
       IMPLICIT NONE
       LOGICAL S_L1BIT(16), H_L1BIT(16),HFW_L1BIT(16)
@@ -171,10 +172,10 @@ C- SAMUS S. multiplicity
       IF(IPRSTAT) THEN
 
         WRITE(6,910) NCCT,(NTRIG_S(I),I=1,7)
-  910   FORMAT(' *** This event SIM : TOTAL,CF,WN,WS,ON,OS,SN,SS '
+  910   FORMAT(' *** This event SIM : TOTAL,CF,WN,WS,ON,OS,SN,SS ',
      &    2X,8I3)
         WRITE(6,912) NCCTW,(NTRIG_H(I),I=1,7)
-  912   FORMAT(' *** This event HARD: TOTAL,CF,WN,WS,ON,OS,SN,SS '
+  912   FORMAT(' *** This event HARD: TOTAL,CF,WN,WS,ON,OS,SN,SS ',
      &    2X,8I3)
 
         WRITE(6,911) NOMU,ONEMU,TWOMUS,THREEMUS

@@ -9,6 +9,7 @@ C-   Outputs :
 C-   Controls: 
 C-
 C-   Created  19-AUG-1990   Serban D. Protopopescu
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -37,6 +38,6 @@ C----------------------------------------------------------------------
       WRITE(MSG,113) PATH
       CALL INTMSG(MSG)
   999 RETURN
-  111 FORMAT(' Chose PATH (RECO, FAKE or GEAN), ['A4']:>')
+  111 FORMAT(' Chose PATH (RECO, FAKE or GEAN), [',A4,']:>')
   113 FORMAT(' Default PATH is now ',A4,'.')
       END

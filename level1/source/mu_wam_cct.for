@@ -16,6 +16,7 @@ C  ICCT:        LOCATION:
 C   1-8           Central Octant 0-7
 C  11,13,15,17    North Quadrant 0,2,4,6
 C  12,14,16,18    South Quadrant 0,2,4,6
+C-   Updated  22-MAR-2004   sss - compile with g77
 C---------------------------------------------------------------
       IMPLICIT NONE
       INTEGER ICCT,ACRS(16,3),BCRS(16,5),CCRS(16,5),JTRIG,JBITS(12)
@@ -105,15 +106,15 @@ C--
           I = ICCT
           IF (ICCT.LT.10) I=ICCT-1
           WRITE (6,100) I
-  100     FORMAT (/' Checking octant # 'I5)
+  100     FORMAT (/' Checking octant # ',I5)
           WRITE (6,101) C
-  101     FORMAT (' C:   '20I3)
+  101     FORMAT (' C:   ',20I3)
           WRITE (6,102) B
-  102     FORMAT (' B:   '20I3)
+  102     FORMAT (' B:   ',20I3)
           WRITE (6,103) A
-  103     FORMAT (' A:               '12I3)
+  103     FORMAT (' A:               ',12I3)
           WRITE (6,104) JBITS
-  104     FORMAT ('  CCT OUTPUT :    '12I3)
+  104     FORMAT ('  CCT OUTPUT :    ',12I3)
         ENDIF
       ENDIF
 

@@ -3,6 +3,7 @@ C-            LEVEL 1 TRIGGER TOWER ENERGIES
 C-              For local DSP clustering
 C-
 C-   Created   9-MAY-1994   sFahey
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
 C   This is the raw data, i.e. the bytes received by the Local DSP's
@@ -26,4 +27,4 @@ C
       EQUIVALENCE (TOTET(-ETA_MAX,PHI_MIN),
      &             L15CT_TT_ENERGY(-ETA_MAX,PHI_MIN,L15C_TOT_TWR))
 C
-      COMMON /L15_LOCAL_DSP/ EMET,TOTET,L15CT_TT_RAW
+      COMMON /L15_LOCAL_DSP_cm/ EMET,TOTET,L15CT_TT_RAW

@@ -12,10 +12,10 @@ C-             OK       Indicates whether an Andor Term was found
 C-   Controls: none
 C-
 C-   Created   8-NOV-1991   Philippe Laurens, Steven Klocek
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
-      LOGICAL L1UTIL_PICK_RESOURCE_RCP
 C
       CHARACTER*(*) NAME
       INTEGER TERM_NUM
