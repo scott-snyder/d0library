@@ -57,6 +57,7 @@ C      INCLUDE 'D0$INC:GTRHLN.INC/LIST'
       INCLUDE 'D0$LINKS:IZISP1.LINK/LIST'
       INCLUDE 'D0$INC:GCSETS.INC/LIST'
       LOGICAL FIRST,FIRST1
+      logical xflag
       REAL R1,R2,RM,TGEND,TGENX,X1,Y1,Z1,RXEN,SM,VIN(6),VCYL(6)
       INTEGER IERR,NDEBM
       INTEGER I,IFOIS,ISM,IZOFS,IZSTAR,NLOOP
@@ -125,9 +126,11 @@ C
  4732 FORMAT(' ---ENTER STPTRD WITH P=',G10.4,'  RADIUS',G10.4,' Z',
      +G10.4,' INWVOL',I2,' ISTOP',I2,' ISTAK',I3,' ITRA',I4)
 C                          !---------------
-      IF(INWVOL.EQ.1)THEN  !ENTERING VOLUME
+      xflag = .false.
+ 180  continue
+      IF(INWVOL.EQ.1 .or. xflag)THEN  !ENTERING VOLUME
 C                          !---------------
-  180   CONTINUE
+        xflag = .false.
         NLOOP=0
         ITRAI=0
         LENGTH=0.
@@ -312,7 +315,10 @@ C  FIRST SORT IN DESCENDING ORDER
         END IF  ! cathodes
         CALL TIMEX(TIM)
         DT=TIM-TIM0
-        IF(INWVOL.EQ.0)GO TO 180
+        IF(INWVOL.EQ.0) then
+          xflag = .true.
+          goto 180
+        endif
         IF(TRHIST)THEN
           I=7004
           IF(ISTAK.NE.0)I=7005

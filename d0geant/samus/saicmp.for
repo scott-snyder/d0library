@@ -17,7 +17,7 @@ C----------------------------------------------------------------------
 C&IF VAXVMS,IBMAIX,ULTRIX,ALFOSF
       INTEGER SAICMP
 C&ENDIF
-C&IF SIUNIX
+C&IF SIUNIX,LINUX
 C&      INTEGER*2 SAICMP
 C&ENDIF
       INTEGER I(3), J(3), II, JJ

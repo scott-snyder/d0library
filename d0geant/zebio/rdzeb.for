@@ -46,6 +46,7 @@ C&ENDIF
       DATA BINTIM/2*0/
       LOGICAL FIRST,OK
       DATA    FIRST/.TRUE./
+      external time
 C-----------------------------------------------------------------------
 C
 C ****  Do we need to open input?
