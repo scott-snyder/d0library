@@ -87,10 +87,6 @@
       CHARACTER*32 tglb(100),tmuon(100),tphot(100),tmuisa(70)
       CHARACTER*32 tl2mu(100),tl2jt(100),xtags(100),tbbisa(70)
       CHARACTER*32 tz_fit(100),tfilt(50)
-      REAL  evt_geninfo_tags,met_tags,elec_tags,jets_tags,phot_tags
-      REAL  muon_tags, muisa_tags, l2muon_tags, l2jet_tags
-      REAL  evt_glbinfo_tags, bbisa_tags, evt_z_fit_tags
-      REAL  evt_filtinfo_tags
       REAL    metx,mety,meterx,metery,meterxy,mets,metc,metc_phi,zvert
       REAL    yem(20),htej,ht(4)
       INTEGER nparticle_jets

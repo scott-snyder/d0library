@@ -1,12 +1,13 @@
 C----------------------------------------------------------------------
 C-
 C-   Created  18-JUL-1993   Brent J. May
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       INTEGER MAXH
       PARAMETER (MAXH = 100)
       INTEGER IHOT_CELLS(3,MAXH), NHOT
-      LOGICAL*4 LHOT(2,2000,-32:32,0:1)
+      integer*4 LHOT(2,2000,-32:32,0:1)
       INTEGER LRUN(2000), NLRUN
       COMMON /HOTCOM/IHOT_CELLS,NHOT,LHOT,LRUN,NLRUN
 C----------------------------------------------------------------------

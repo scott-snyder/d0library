@@ -1,20 +1,24 @@
 C----------------------------------------------------------------------
 C-
 C-   Created  24-MAR-1994   Rajendran Raja
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       INTEGER NJTMX
       PARAMETER( NJTMX = 5 )
       INTEGER NELMX
       PARAMETER( NELMX = 2 )
-      COMMON /QCD_SMEAR_EVENT/ NELE,ELE(3,NELMX),NEUT(2),NJETS,
+      COMMON /QCD_SMEAR_EVENT_com/ 
      &  JET(3,NJTMX),ELEC(7,NELMX),JETS(7,NJTMX),ELE_SMEAR(3,NELMX),
      &  REST(2),JET_SMEAR(3,NJTMX),ELEC_SMEAR(7,NELMX),
      &  REST_SMEAR(2),JETS_SMEAR(7,NJTMX),
      &  NEUT_SMEAR(2),SIG_ELE(3,NELMX),SIG_JET(3,NJTMX),SIG_RESTP(2),
-     &  SIG_REST_PT,
-     &  NSMEAR,MET_SMEAR_RANGE(2),WMTC_SMEAR,METC1_SMEAR,
-     &  REST_PT,REST_PT_SMEAR,MET_CUT,TRMS_CUT,ZERO_MET,ZMASS
+     &  SIG_REST_PT,WMTC_SMEAR,METC1_SMEAR,REST_PT,REST_PT_SMEAR,
+     &  zmass,
+     &  ELE(3,NELMX),NEUT(2),nele,NJETS,
+     &  NSMEAR,MET_SMEAR_RANGE(2),
+     &  MET_CUT,TRMS_CUT,ZERO_MET
+
       INTEGER NELE,NJETS
       DOUBLE PRECISION    ELE,NEUT,JET,ELEC,JETS
       DOUBLE PRECISION    ELE_SMEAR,REST,JET_SMEAR,ELEC_SMEAR
