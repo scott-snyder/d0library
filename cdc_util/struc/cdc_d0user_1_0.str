@@ -1,0 +1,53 @@
+.LITERAL
+
+
+
+ Structure Chart for :CDC_D0UUSER Event Analysis                 Version  1.0 ,  21-MAR-1988
+ Page : CDC.D0USER.1.0        Hitfinding                         Author : Rod Engelmann
+                                                                                                           NOTATIONS
+                                                                                                          o-->   data
+                                                                                                          *-->   control
+                                                                                                          @-->   Zebra banks
+
+                               from page 1
+
+                                     |
+                                     |
+                                     |
+                'RECO'               |            layer
+                  or                 |            sector       +---------------------+
+++--------++     <--o    +---------------------+  o-->         |       CDGETZ        |     ( associate with
+||BKCDCH  ||-------------|        CDHITS       |---------------| find z hits in cell |       sw 0 and 6 only)
+||book til||     'GEAN'  | hit finding control |               |  and update DSEC    |----------------- o delayline
+|| CDC    ||             +---------------------+               +---------------------+                | | resolution
+++--------++                      |       |      o-->   layer,sector                           ---------V------
+                               o  |  ^    |_________________________                                 CDRESF
+                      cell #   |  |  |                             |                           ----------------
+                      wire #   V  |  o  pulse quants as in         |
+                                  |               DCDA             |
+                       +----------------------+   (HITLST)         |      o--> # hits                   ++--------++
+                       |      CDPULS          |                    |____________________________________|| BKDSEC ||
+                       | find pulses in FADC  |                    |      <--o    pointer               ++--------++
+                       +----------------------+                    |                                    ++--------++
+                       layer    o |  ^                             |____________________________________|| BKDCDA ||
+                       sector   | |  | unpacked data               |      o--> # pulses                 ++--------++
+                       wire     V |  o                             |
+                     +--------------------------+                  |  o-->  pulse quantities            ++--------++
+                     |        CDUNPK            |                  |____________________________________|| ZFDSEC ||
+                     |  sets labels for all     |                  |                                    ++--------++
+                     |  wires ( once per run )  |                  |                                    ++--------++
+                     +--------------------------+                  |____________________________________|| ZFDCDA ||
+                               o  |  ^                             |                                    ++--------++
+                      wire     |  |  |  unpacked data              |                                    ++--------++
+                      label    V  |  o                             |____________________________________|| PRDSEC ||
+                +------------------------------+                   |                                    ++--------++
+                |             CDEXPD           |                   |                                    ++--------++
+                |        unpacks FADC data     |                   |____________________________________|| PRDCDA ||
+                |(calc. pointers into CDDx once|                                                        ++--------++
+                |       per event )            |
+                +------------------------------+
+
+----------------------------------------------------------------------------------------------------------------------------------
+            note: layer,sector,wire often via CDLOCA.INC
+
+.END LITERAL

@@ -39,6 +39,9 @@ C-                          errors: stat high, stat low, syst high, syst low
 C-                                        VERSION 9
 C-                          Also added ENTRY BKJETS_UPDATE to bring an old bank
 C-                          to current size and update the version
+C-   Updated  16-JUL-1997   Bob Hirosky - Add extra links for uncorrected jet
+C-                                        and qcd_jet_correction QUANS words
+C-                                        VERSION 10
 C----------------------------------------------------------------------
       IMPLICIT NONE
 C
@@ -48,13 +51,14 @@ C
 C--   ZEBRA BANKS
       INCLUDE 'D0$INC:ZEBCOM.INC/LIST'
       INCLUDE 'D0$LINKS:IZJETS.LINK/LIST'
+      INCLUDE 'D0$LINKS:IZUJET.LINK/LIST'
 C
 C--   INTERNAL VARIABLES
       INTEGER IFORM, LCAPH, GZCAPH, LJETSP, IDN, VERSION
       INTEGER NDATA, NLINKS
-      PARAMETER (VERSION =  9)              ! Current bank version
+      PARAMETER (VERSION =  10)              ! Current bank version
       PARAMETER (NDATA   = 51)
-      PARAMETER (NLINKS  =  7)
+      PARAMETER (NLINKS  =  9)
       INTEGER ND_OLD,NL_OLD,DND,DNL
       INTEGER HJETS,IERR
       LOGICAL FIRST

@@ -1,0 +1,893 @@
+                                                                Dale Ross
+                                                                MSU
+                                                                Sept, 1990
+
+                        Level 2 Conversion Routines
+                                Version 1.25
+
+modifications this version (V 1.25):
+    CGPHTT, CPHTT: two 1-dimension tables, not one 2-dimensional ones
+    CGTTPH, CTTPH: extend range to the the trigger tower not read out by trigger
+    CL1RING added (code presently in CALOR_FILTER)
+    CL1PHET had its arguments changed
+
+                              INTRODUCTION 
+
+    The point of thease routines is to facilitate the access and manipulation of
+information from the D0 Calorimeter in various ways for trigger Level-2
+processing.  As you probably already know the D0's event processing involves at
+least three major steps beyond the primal 0-level trigger. The first level
+trigger, a hardware trigger and known appropriately enough as the Level-1
+Trigger, looks at the calorimetry data with course resolution, or Trigger Tower
+(TT) resolution. The second level, or Level-2, the software trigger looks at the
+data with finer resolution at the Read Out Tower (ROT) scale. In other words
+there are different scales and/or a different index systems through which the
+data can be had. For example if you are interested in looking for a jet you are
+most probably interested in looking at the energies for wide areas of the
+calorimeter. To do this you might want to think in level-1 resolution and you
+will most likely want to use the energies in the level-1 trigger data block. If
+you are more interested in electron showers surely, you will want to examine the
+energies of an area of the calorimeter with a finer resolution, the physics or
+"level-2" indices. Data at this fine resolution is not in the L-1 trigger data
+block but in the CADx Zebra banks; and here one will need to know the
+"hexadecimal" address to find the data. What ever the case you will start the
+examination, the analysis, with a look-see in the list of canadates provided by
+the level-1 trigger data block. What you retrieve from this data block is a
+number that has to be converted to an an index that tells you where in the
+calorimeter the trigger took place. What ever the case be thease routines are to
+help find the information at the diffrent points of processing.
+
+
+    If you are to the point where you need some of the routines described here
+then you probably already have some knowledge of the layout of the D0 detector
+and its calorimetry. If you skip the rest of this introduction and go directly
+to the next and remaining sections you will have to rely heavily on this
+knowledge. In the remaining paragraphs of this section I will explain why the
+routines listed below have been created and how they should be used, and you
+will need only a light understanding of the D0 calorimeter and the data
+processing subsystems.
+
+
+              -- The relationship between the TT and ROT --
+
+
+    And what is the relation between the ROT and TT? The ROT is the finest
+resolution one can examine an event in just (eta,phi) terms. As a generality a
+TT is composed of four ROT's organized contiguously in eta and phi. The signal
+from a TT is the sum signal from the four towers. The generalization holds for
+for all the TT's in the central calorimeter region, but is not rigorous for the
+the end-cap region. In the EC region, for IETAC>32 there is one TT for every
+ROT. (For the ultimate in gory details, see Jim Linnemann's D0 Note 774,
+Calorimetry Addressing, which, incidently, can be found in D0$DOCS.)
+
+
+     -- Conversion between L-1 Data Block Indices and L-1 (IETAC,IPHIC) -- 
+
+
+    The L-1 trigger processor builds a trigger block that contains ADC values of
+the TT's, and a list of those towers that caused a trigger. The list contains
+indices into the First Level Trigger Data Block to the locations that holds the
+ADC values of the TT's that generated the trigger. The index is unique. That is,
+for every index there is a TT.  (From here on this index will be referred to as
+the L-1 Data Block Index, or L1DBI, or DBI,) The mapping between this index, and
+the indices that describe the TT locations are also one-to-one, though not a
+simple relationship. Routines CDBITT and CTTDBI, described below, convert
+between these two "coordinate"/index systems. Further understanding can be
+had by reading D0 Note #967, First Level Trigger Data Block Description.
+
+
+               -- The TT to ROT Index Conversion Convention --
+
+
+    As that each L1DBI matches up with a L-1 (eta,phi) index there is _no_
+unique  way to match a TT to a ROT. (The inverse problem of identifying a ROT
+with a TT is easier since one has only to find out which TT the ROT is in.)
+However, such a transformation can be defined under a convention. 
+
+
+From the point of view of the electronics each of the ROT is a series of read
+out channels, each with an unique address. The address of each channel in a  ROT
+may not be contiguous, but they are continuous within a range. So, any channel
+address in a ROT will not be in the range of addresses of any other ROT. Of
+course this will be true for any of the ROT's in a TT. We can make the same
+statements for any two TT's; that the range of addresses for one TT will not
+internumerate with the range of addresses for another TT. (This is shown in D0
+Note 774.) In transforming from (L1ETAC,L1PHIC) (L-1 coordinates) to
+(IETAC,IPHIC) (L-2 coordinates) we choose the ROT that has the smallest
+electronic hexadecimal address of the possible ROT's in the TT. We have done
+this so that when we go looking in either CAD1 or CAD2 zebra banks for the ADC
+values of the individual ROT modules we can simply search from one end of the
+range to another. In fact many of the routines below that generate tables supply
+in the table the low and high address, defining the range, of addresses in the
+TT. Of course we could have picked the tower with the largest hex value; it
+seemed tidier to work with an ascending range of numbers in a loop.
+
+
+              -- Of Massless Gaps and Inter Crack Detectors --
+(These routines are not recommended; they take up a lot of storage and have in
+the end not proven useful to the CL2 fast unpacking).
+
+    The coverage of the calorimeter is not continuous between the "central"
+(0<|eta|<1~1.3 or 1<|IETAC|<10~13) region and the "end-cap" (1~1.3<|eta| or
+10~13<|IETAC|) region. That is, there is discontinuities in the calorimetry in
+thease regions. To fill in some of the physic that would otherwise be lost there
+are the Massless Gap (MG) detectors and the Inter-Crack Detectors (ICD's) to
+fill in the space and collect some of the calorimetric information. As does the
+rest of the calorimeter each of the gap/crack detectors (the MG's or ICD's) each
+has a locaion in L-1, L-2 or hexdecimal coordinate systems. Unfortunately the
+mapping in hex is not orderly. For MG or ICD that would be formally part of a TT
+or ROT, its address would not be found in the hex range that would define the
+address range of a tower and its constituent calorimetry modules. In fact their
+address have been mapped to the last ROT/BLS, specifically the one corrosponding
+to the tower at IETAC=44. (Once again, Calorimter_Addressing contains the
+bloody details.) One of the consequeces of this organization is that if one
+would like to add up all the energy for a particular TT or ROT as the values are
+given in the CADx banks one would have to search in two distincly different
+block locations for the information.
+
+
+    Anologous to such routines as CEXIST and CHEXXST, or routines that give the
+hex address corrosponding to the L-2 indices there is code such as CL2_GAPXST
+and CL2_GAP_ADR. CL2_GAPXST simply tells if there is a gap detector at the
+specified (IETAC,IPHIC) position, and what kind. There is a corrosponding
+routine for L-1 indices. CL2_GAP_ADR and its table building companion CGGAPAD
+give the hexdecimal address for a specific MG or ICD at some L-2 location.
+
+
+                             -- Summary --
+
+
+    Below are several sections that document the extent of the library. The
+headers  of all the routines are contained in the next section. Routines
+depended on from the larger body of the D0 library were excluded to save room
+and to focus more on this subset. For aid in developing, and to make debugging
+easier, a cross-  reference guide of which routine calls which routines is
+provided. As that finding which routines will convert between which coordinate
+or index systems- and in which directions- can be confusing there is a map that
+shows which routines will facilitate the highest level of conversion between the
+index systems. Again, in the spirit of development, the include headers have
+been added to this document.
+
+
+
+
+
+                 +------------------------+
+                 |                        |
+                 | Conversion Routine Map |
+                 |                        |
+                 |    And Relationship    |
+                 |                        |
+                 +------------------------+
+
+The routines listed here are used directly for translating from one
+indices/coordinate system to another. Most of the routines are not stand-alones
+and rely on other routines. The service routines that the module below rely on
+are listed in the CALL CROSS-REFERENCE chart above.
+
+            ............................
+            . Level-1 Data Block Index .---------->----------+
+            ............................                     |
+              ^                     |                        |
+              |                     |                        |
+              |                     |                        |
+            CTTDBI                CDBITT                   CDBIPH
+            CGTTDBI (table)       CGDBITT (table)          CGL1PHT (table)
+              |     /TTDBI/         |     /DBITT/            |     /L1OL/
+              |                     |                        | (converts to ROT
+              |                     |                        |  indices and HEX)
+              |                     v                        |
+          ................................                   |  
+          . Level-1 (eta,phi) TT Indices .                   |
+          ................................                   |
+              ^                     |                        |
+              |                     |                        |
+              |                     |                        |
+            CPHTT                 CTTPH                      |
+            CGPHTT (table)        CGTTPH (table)             v
+              |    /PHTT/           |    /TTPH/              |
+              |                     |                        |
+              |                     v                        |
+      .........................................              |
+   +--. Level-2 (eta,phi) ROT/physics Indices .------<-------+
+   |  .........................................              |
+   |          ^                     |                        :
+   |          |                     |                        |
+   v          |                     |                        :
+   |          |                  CPHHEX (For calorimetry     |
+   |          |                     |    only)               :
+CGGAPAD     CADPH/ routines    CL2_GAP_ADR (For gaps/cracks  v
+(table)    CADUPAK by Andy          |       only)            :
+/PHGP/        |    White         CGGAPAD (table for cracks)  |
+for gaps      |                     |     only) /PHGP/       :
+ only         |                     |                        |
+   |          |                     v                        :
+   |       ..............................                    |
+   +--->---. Hex (CRATE,IADDR) Adresses .:-:-:-:-:-<-:-:-:-:-+
+           ..............................
+
+
+
+                         -------------------------
+                        |                         |
+                        | Routine Summary Headers |
+                        |                         |
+                         -------------------------
+
+
+
+    Following are copies of the headers, sans the comment lines, of the programs
+in this 'library'. Some of what what was explained above is encapsulated in the
+headers. The headers are supposed to be self-explanatory. The details of
+operation are left to the body of the code. 
+
+
+
+
+CDBIPH (L1INX,IETAC,IPHIC,CRATE,IADDRL,IADDRH,ITSOK)
+
+  ---------------------------------------------------------------------
+  
+     CDBIPH = Convert level-1 Data Block Index to Physics and Hex vars.
+                        (range of L1INX is [0,2*NPHIL1*NETAL1-1] )
+  
+     Purpose and Methods : ...to convert an index into a physics (ietac,iphic)
+                           index. Since there is often more than one conversion
+                           possibility the one that is selected is that one 
+                           which has the minimal crate,iaddr address.
+  
+     Inputs  : L1INX passes the level-1 trigger table index.
+ C-                        (range of L1INX is [0,2*NPHIL1*NETAL1-1] )
+              (See D0 note 706)
+  
+     Outputs : IETAC, IPHIC gives Readout tower (ROT) in physics indices
+               (See D0 note 774). CRATE is the crate number; IADDRL, IADDRH
+               are the low and high, respectively, hex address- modulo
+               the last six bits which contain layer+ information- of
+               RO towers. In other words, after incorporating bits 2-5
+               into IADDR IADDRL and IADDRH can be used as loop limit
+               indices to look at all the towers in the TT.
+  
+     Controls: ITSOK returns .TRUE. if the conversion was without problems.
+  
+  ---------------------------------------------------------------------
+
+
+CDBITT (L1INX,L1ETAC,L1PHIC,ITSOK)
+
+  ---------------------------------------------------------------------
+  
+     Purpose and Methods : It is here that that we convert L-1 trigger block
+                           index to L-1 (L1ETAC,L1PHIC) indices. The routine
+                           relies heavily on the properties of integer
+                           arithmatic in the algorithm. See D0 Note 967 on how
+                           the trigger block index indexes into the ADC tables.
+                           It is this method of mapping that dictates the
+                           method of conversion here.
+  C-                        (range of L1INX is [0,2*NPHIL1*NETAL1-1] )
+
+     Inverse Routine:      CTTDBI
+  
+     Inputs  : L1INX is the l-1 trigger block index.
+  C-                        (range of L1INX is [0,2*NPHIL1*NETAL1-1] )
+
+     Outputs : L1ETAC and L1PHIC are the TT index pairs converted to.
+               ITSOK returns .TRUE. if the conversion went w/o problems.
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CGDBITT 
+
+  ---------------------------------------------------------------------
+  
+     CGDBITT = (Calorimeter) Generate Data Block Index to Trigger Tower table.
+  
+     Purpose and Methods : Fills in common block/table /DBITT/DBITT.
+                           DBITT is a 1-D X 2 lookup table that 
+                           given a DBI will give the corrosponding 
+                           (L1ETAC,L1PHIC).
+  C-                        (range of DBI is [0,2*NPHIL1*NETAL1-1] )
+
+     Inputs  : None.
+  
+     Outputs : Fills in /DBITT/DBITT
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+
+CGGAPAD
+
+  ---------------------------------------------------------------------
+  
+     CGGAPAD = (Calorimeter) Generate GAP ADdresses
+  
+     Purpose and Methods : Here we fill in PHGP, a 2 x 3 lookup table
+                           whose inputs are (IETAC,IPHIC), which gives
+                           the hex address of the ICD and MG's at that
+                           location.
+  
+     Inputs  : None.
+  
+     Outputs : Fills in PHGP in the common block /PHGP/
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CGL1HXR (L1INX,RINGN,NTOWRS,LIST,ITSOK)
+
+  ---------------------------------------------------------------------
+  
+     CGL1HXR = (Calorimeter) Generate L-1 HeX Ring list.
+  
+     Purpose and Methods : This routine builds the list of hex addresses
+                           corrosponding to the ring of L-1 trigger towers
+                           surrounding a tower. The list sent back is a
+                           string of hex addresses, increasing numericaly,
+                           that contain all of the good addresses for the
+                           readout towers. There are as many addresses as
+                           towers (1-1). If the center of the ring lies
+                           close to an eta edge then those towers that lie
+                           over the edge are not included in the list. As
+                           that the number of elements in a ring is a well
+                           known function (if r=0 n=1, else n=8r, where r
+                           is RINGN) if NTOWRS<n then clearly the ring is
+                           outside the bounds of the calorimeter.
+  
+     Inputs  : L1INX gives the L-1 data-block index; RINGN gives the number
+               of rings worked with; and common block L1OL is employed.
+  
+     Outputs : NTOWRS = the # of address pairs in the string; 
+               vector LIST gives NTOWRS addresses.
+               ITSOK returns false if the ring is so big it overlaps
+               itself in the phi-direction.
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+
+CGL1PHT
+
+  ---------------------------------------------------------------------
+  
+     CGL1PHT = (Calorimeter) Generate L-1 dbi to PHysics Table.
+  
+     Purpose and Methods : Fills the common block /L1OL/ with the required
+                           IETAC, IPHIC values. /L1OL/ is a table relating
+                           level-1 trigger table index values to their
+                           IETAC, IPHIC counterparts. CDBIPH does the work.
+  
+     Inputs  : None.
+  
+     Outputs : The common block table /L1OL/
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CGPHTT
+
+  ---------------------------------------------------------------------
+  
+     CGPHTT = (Calorimeter) Generate PHysics (IETAC,IPHIC) 
+              indices to Trigger Tower table.
+  
+     Purpose and Methods : With this routine common block/table PHTT is
+                           filled in. PHTT is two 1-D tables that accept
+                           (IETAC,IPHIC) and gives (L1ETAC,L1PHIC).
+  
+     Inputs  : None.
+  
+     Outputs : Fills in /PHTT/PHTTETA(-NETAL:NETAL),PHTTPHI(NPHL1)
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CGTTDBI
+
+  ---------------------------------------------------------------------
+  
+     CGTTDBI = (Calorimeter)Generate Trigger Tower to 
+               Data Block Index table.
+  
+     Purpose and Methods : The above line says most all. The table,
+                           common block /TTDB/TTBI, is a 2-D table
+                           which accepts (L1ETAC,l1PHIC) and equivalent
+                           L-1 DBI. The mapping is one-to-one
+C-                        (range of DBI is [0,2*NPHIL1*NETAL1-1] )
+
+     Inputs  : None.
+  
+     Outputs : Fills in common block /TTDB/TTBI.
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CGTTPH
+
+  ---------------------------------------------------------------------
+  
+     CGTTPH = (Calorimeter) Generate Trigger Tower to 
+              PHysics and hex conversion table.
+  
+     Purpose and Methods : Here we fill in common block/table
+                           /TTPH/TTPH. TTPH is a 2-D X 5 table that
+                           given (L1ETAC,L1PHIC) will give a vector of
+                           (IETAC,IPHIC,CRATE,IADDRL,IADDRH), where
+                           IADDRL-H are the high and low, modulo the
+                           lowest 6 bits, hex addresss in the TT.
+  
+     Inputs  : None.
+  
+     Outputs : Fills in /TTPH/TTPH
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CHEXXST (CRATE,ADC,BLS,ROTOW,DEPTH)
+
+  ---------------------------------------------------------------------
+  
+     CHEXXST = Calorimeter HEX address eXiST.
+  
+     Purpose and Methods : Anologous to CEXIST only that input
+                           arguments are the hex-componet addresses.
+  
+     Returned value  : .TRUE. if exist, else .FALSE.
+  
+     Inputs  : CRATE: the crate number      NCRATE*10+BANK where
+                                            NCRATE=[0:5] and BANK=[7:8]
+                      In the old system CRATE was: [96:101 112:117]
+               ADC:   ADC number            [0:1]  |
+               BLS:   BLS number            [0:7]  |_ CAL_ADC_NO.PARAMS
+               ROTOW: Readout Tower number  [0:3]  |  specify the range of
+               DEPTH: Radial index in tower [0:11] |  validity.
+  
+     Outputs : CHEXXST is a LOGICAL FUNCTION.
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CL1PHET (L1IPHI,L1IETA,EMET,TOTET)
+
+  ---------------------------------------------------------------------
+  
+     Purpose and Methods : Get FADC ET for this Trigger Tower from
+                           the TRGR block.
+  
+     Inputs  : L1IPHI,L1IETA 
+     Outputs : EMET = Transverse Energy in EM part of tower
+               TOTET = EMET + ET in Fine Hadronic part of tower 
+     Controls:
+  
+  ---------------------------------------------------------------------
+
+
+CL1_GAPXST (L1ETAC,L1PHIC,CCMGXST,ECMGXST,ICDXST,OR)
+
+  ---------------------------------------------------------------------
+  
+     Purpose and Methods : Returns if there is a MG or ICD anywhere
+                           within the region of the TT specified by
+                           (L1ETAC,L1PHIC). 
+  
+     Inputs  : L1ETAC,L1PHIC give the location of the TT.
+  
+     Outputs : CCMGXST,ECMGXST,ICDXST individualy return .TRUE. if there
+               are CCmg's,ECmg's,or ICD's in the trigger tower (otherwise
+               .FALSE.). "OR" = ccmgxst.OR.ecmgxst.OR.icdxst.
+  
+     Controls: NONE.
+  
+  ---------------------------------------------------------------------
+
+
+CL2_GAPXST (IETAC,IPHIC,CCMGXST,ECMGXST,ICDXST,OR)
+
+  ---------------------------------------------------------------------
+  
+     CL2_GAPXST = (Calorimeter) L-2 GAP eXiST
+  
+     Purpose and Methods : For a given (IETAC,IPHIC) we return whether
+                           if there is a MG or ICD at the location.
+                           Useage is similar to CL1_GAPXST. Depends on
+                           SP's routine CEXIST
+  
+     Inputs  : IETAC,IPHIC give the L-2 location.
+  
+     Outputs : CCMGXST,ECMGXST,ICDXST are true if there is a CC MG,
+               EC MG, or ICD here. OR is the .OR. of these three
+               values.
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CL2_GAP_ADR (TYPE,IETAC,IPHIC,CRATE,IADDR,ITSOK)
+
+  ---------------------------------------------------------------------
+  
+     CL2_GAP_ADR = (Calorimeter) L-2 Central Calorimeter 
+                   massless/icd  GAP ADdRess
+  
+     Purpose and Methods : For a paticular (IETAC,IPHIC) location we
+                           return the hex address of the Gap
+                           there.
+  
+     Inputs  : IETAC,IPHIC specifies the location.
+  
+     Outputs : CRATE and IADDR give the full hex address of the MG or ICD.
+               ITSOK returns status .FALSE. if there is no gap here.
+  
+     Controls: TYPE specifies the type of address to return.
+                        These codes are defined as parameters in 
+                        D0$PARAMS:CAL_LEVEL2.PARAMS
+               TYPE = 1 for the "first massless gap layer" as defined
+                        in CAL_OFF$PARAMS:CAL_OFFLINE.PARAMS. Currently it
+                        is for the CCMG.
+               TYPE = 2 for the ICD which, according to
+                        CAL_OFF$PARAMS:CAL_OFFLINE.PARAMS is LYICD.
+               TYPE = 3 for the "last massless gap layer" as defined
+                        in CAL_OFF$PARAMS:CAL_OFFLINE.PARAMS. Currently it
+                        is for the ECMG.
+  
+  ---------------------------------------------------------------------
+
+
+CMNMXHX (IETACL,IPHICL,IETAC,IPHIC,CRATE,IADDRL,IADDRH,ITSOK)
+
+  ---------------------------------------------------------------------
+  
+     Purpose and Methods : ...is to determine which (IETAC,IPHIC) 
+                           combination from the IETACL, IPHICL lists
+                           will translate to the smallest and largest
+                           hex address values (sans the last 6 bits).
+  
+     Inputs  : IETACL and IPHICL provide lists of ofline eta and phi
+               indexs.
+  
+     Outputs : IETAC and IPHIC give the offline eta,phi index that 
+               has the smallest hex address translation;
+               CRATE and IADDRL is the corosponding hex address that begins the
+               the tower. IADDRH is the beginning address of the last ROT 
+               in the trigger tower. ITSOK reports if there was an error in the 
+               determination. Note that a TT lies entirely within a crate.
+               Thus only one crate number has to be returned.
+  
+     Controls: None
+  
+  ---------------------------------------------------------------------
+
+
+CPHHEX (IETAC,IPHIC,CRATE,IADDR,ITSOK)
+
+  ---------------------------------------------------------------------
+  
+     CPHHEX = Convert PHysics indicies to HEX format
+  
+     Purpose and Methods : It takes offline (IETAC,IPHIC) indexes
+                           and converts them to the hex address
+                           format, modulo DEPTH (Ie bits 2-5 are 0).
+                           However, most of the work done right in
+                           this routine does nothing more than select a
+                           layer that will insure a PH to HEX conversion 
+                           for an *ARBITRAY* IETA  IPHIC pair.
+  
+     Inputs  : IETAC and IPHIC are the offline indexes.
+  
+     Outputs : CRATE and IADDR give the crate number and hex address.
+               ITSOK flags an incomplete conversion error.
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CPHTT (IETAC,IPHIC,L1ETAC,L1PHIC,ITSOK)
+
+  ---------------------------------------------------------------------
+  
+     CPHTT = Convert PHysics (IETAC,IPHIC) to Trigger Tower (L1ETAC,L1PHIC)
+             indices.
+  
+     Purpose and Methods : This routine converts ofline IETAC,IPHIC index
+                           pairs to level-1 eta,phi trigger tower pairs.
+                           From the view of the code the mapping is straight
+                           forward for IETAC thru 32. After IETAC=32 the
+                           mapping becomes more special case like. Because of
+                           this the code does not depend on parameters and is
+                           hard-wired.
+  
+                                         +++IMPORTANT NOTE+++
+  
+                           IETAC=37 is a ROT with TT resolution, but it does
+                           not contribute to the L-1 trigger. If this tower
+                           were to be a part of the L-1 map it would corrospond
+                           to L1ETAC=21, and there is no 21st trigger tower. As
+                           such for IETAC=37 CPHTT will return L1ETAC=0, as it
+                           does for all other invalid IETAC values.
+  
+     Inputs  : IETAC, and IPHIC are supplied and are susquently converted...
+  
+     Outputs : ...to L1ETAC and L1PHIC, the L-1 TT pair. ITSOK returns 
+               .TRUE. if the conversion is without error; otherwise .FALSE.
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CTTDBI (L1ETAC,L1PHIC,L1DINX)
+
+  ---------------------------------------------------------------------
+  
+     CTTDBI = Convert Level-1 Trigger Data Block Index
+  
+     Purpose and Methods : ...to convert Level-1 eta, phi indices to an 
+                           equivalent index in the Level-1 trigger data
+                           block, as spelled out in D0 note 706.
+  
+     Inverse Routine: CDBITT
+  
+     Inputs  : L1ETAC and L1PHIC are the level-1 indices, and...
+  
+     Outputs : ...L1DINX is the Level-1 Data block INdeX.
+  C-                        (range of L1INX is [0,2*NPHIL1*NETAL1-1] )
+
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+CTTPH (L1ETAC,L1PHIC,IETAC,IPHIC,CRATE,IADDRL,IADDRH,ITSOK)
+
+  ---------------------------------------------------------------------
+  
+     CTTPH : Convert Trigger Tower (L-1 indices) to level-2 PHysics 
+             indices.
+  
+     Purpose and Methods : Here we convert trigger tower 2-dimensional 
+                           indices to IETAC,IPHIC indices. As an added 
+                           benifit the corrosponding (crate,iaddr) 
+                           hex addresses are returned as well. Since the 
+                           transform is not unique by nature we choose
+                           as the condition of tranform that IADDR be
+                           the MINIMUM address (modulo the last 6 bits)
+                           of the ROT's in the TT.
+  
+                                    ++++ Special Note ++++
+  
+                           NETAL1 defines the total number of towers at TT
+                           resolution that contribute to the L-1 trigger.
+                           However, at this time, there is one more tower with
+                           TT resolution but does not contribute to the
+                           L-1 trigger. Its energy is only avialable in the
+                           CADx banks.  This routine DOES return the indices for
+                           this tower, even though it is nominally out of range.
+
+     Inputs  : L1ETAC, L1PHIC are the inputs.
+  
+     Outputs : IETAC,IPHIC,CRATE,IADDR are the long sought after results.
+  
+     Controls: None.
+  
+  ---------------------------------------------------------------------
+
+
+                    ----------------------
+                   |                      |
+                   | Call Cross-Reference |
+                   |                      |
+                    ----------------------
+
+  
+
+
+The following is a crossreference guide to which routines in the L2_CONV package
+call which. That is, which subrouines or functions are called by which
+subroutines or functions. 
+
+Those in () are routines found not in this package. Most found elssewhere are in
+DO$CALOR_UTIL. Those with a <f> after them are functions. Cernlib and Fortran
+intrinsic and built-in routines are suppressed in this list.
+
+
+               CDBIPH         |  CDBITT, CMNMXHX
+                              |
+               CDBITT         |
+                              |
+               CGDBITT        |  CDBITT
+                              |
+               CGGAPAD        |  CL2_GAP_ADR, CL2_GAPXST
+                              | 
+               CGL1HXR        |  CTTDBI
+                              | 
+               CGL1PHT        |  CDBIPH, CL2_GAPXST, CPHTT, CTTDBI
+                              |
+               CGPHTT         |  CPHTT
+                              |
+               CGTTDBI        |  CTTDBI
+                              |
+               CGTTPH         |  CTTPH
+                              |
+               CHEXXST<f>     |  CADPH
+                              |
+               CL1PHET        |
+                              |
+               CL1_GAPXST     |  (CEXIST<f>)
+                              |
+               CL2_GAPXST     |  (CEXIST<f>)
+                              |
+               CL2_GAP_ADR    |  (CADPAK), CL2_GAPXST, CPHAD
+                              |
+               CMNMXHX        |  CPHHEX
+                              |
+               CPHAD          |  (CLYRDP)
+                              |
+               CPHHEX         |  (CEXIST<f>), (CPHAD), (CADPAK)
+                              |
+               CPHTT          | 
+                              |
+               CTTDBI         |
+                              |
+               CTTPH          |  (CEXIST<f>), MNMXHX
+
+
+
+                       +---------------+
+                       |               |
+                       | Include files |
+                       |               |
+                       +---------------+
+
+
+
+Excluding the comment lines, the folowing lines are what is in the INClude files
+the routines above rely on. In that many of the above routines fill lookup
+tables you wil need to consult the include files to learn how to access the data
+in the tables.
+
+
+DBITT.INC
+  
+  ---------------------------------------------------------------------
+  
+     Conversion table between the Data Block Index and the L-1
+     (L1ETAC,L1PHIC) indices.
+  
+      COMMON /DBITT/ DBITT
+ &IF  VAXVMS,VAXELN
+      BYTE           DBITT(0:(NETAL1*NPHIL1*2)-1,2)
+                                                 BYTE is used to save
+                                                 space in an ELN node.
+ &ELSE
+      INTEGER        DBITT(0:(NETAL1*NPHIL1*2)-1,2)
+ &ENDIF
+
+  
+                     DBITT(dbi,1) <--- L1ETAC
+                     DBITT(dbi,2) <--- L1PHIC
+  
+C-                        (range of dbi is [0,2*NPHIL1*NETAL1-1] )
+
+L1OL.INC
+
+  ---------------------------------------------------------------------
+  
+     ** Common Block L1OL **
+  
+     This common block is used to keep the lookup table used in converting 
+     level-1 trigger data block index values into (IETAC,IPHIC) index
+     values, hex addresses and to signal detector cracks. The first index 
+     in this array is given by the DBI; The locations of the second index 
+     are assigned as follows:
+  
+                          L1OL(*,1) <-- IETAC
+                          L1OL(*,2) <-- IPHIC
+                          L1OL(*,3) <-- CRATE
+                          L1OL(*,4) <-- first calorimeter IADDR
+                          L1OL(*,5) <-- last calorimeter IADDR
+                          L1OL(*,6) <-- CRACK (to be used as a logical, where
+                                        any nonzero number is true and 0
+                                        is false.
+C-                        (range of L1INX is [0,2*NPHIL1*NETAL1-1] )
+
+     FINDBI (FINal Data Block Index) marks the last good entry in the table.
+  
+      INTEGER*4    L1OL(0:(NETAL1*NPHIL1*2),6),FINDBI
+      COMMON /L1OL/L1OL,FINDBI
+  
+
+PHGP.INC (not recommended)
+
+  ---------------------------------------------------------------------
+  
+      PHGP is a conversion table that for an IETAC,IPHIC indices gives
+      the base hex address, to w/i a ROT, of an area in the calorimeter,
+      and the individual addresses of all the gaps (MG's,ICD,..?)
+      --The parameters the dimensioning depend on are found in 
+      Cal_offline.params.
+  
+      COMMON /PHHX/PHHX
+      INTEGER*4 PHHX(-NETAL:NETAL,NPHIL,2,(1+MXLYMG-MNLYMG+1))
+                                        ^  ^ |             |
+                  1:CRATE 2:IADDR_______|  | |             |
+                                           | |_____________| 
+                  For the address of the___|        |
+                  first calorimeter cell,     The number of
+                  modulo bits 0-5.            indiv. gap addrs.
+ 
+                PHHX(IETAC,IPHIC,1 for CRATE,CCGPTP   for CC MG)  
+                                 2 for IADDR,ICDGPTYP for ICD
+                                             ECGPTP   for EC MG
+                    ----> the HEX address of the gap there.
+                CCGPTP,ICDGPTP,ECGPTP, are parameters defined
+                in D0$PARAMS:CAL_LEVEL2.PARAMS
+
+
+
+PHTT.INC
+
+  ---------------------------------------------------------------------
+      COMMON /PHTT/ PHTTETA,PHTTPHI
+      INTEGER     PHTTETA(-NETAL:NETAL)
+      INTEGER     PHTTPHI(NPHIL)
+C                   PHTTETA(IETAC) <-- L1ETAC
+C                   PHTTPHI(IPHIC) <-- L1PHIC
+C
+C     --- Gives the L-1 (L1ETAC,L1PHIC) indices of the TT the ROT, --- 
+C         specified by (IETAC,IPHIC), is apart of.                     
+  
+
+TTDBI.INC
+
+  ---------------------------------------------------------------------
+      COMMON /TTDBI/ TTDBI
+ &IF  VAXELN,VAXVMS
+      INTEGER*2      TTDBI(-NETAL1:NETAL1,NPHIL1)
+                            Thease parameters can be found in 
+                            L1PHP.PARAMS
+ &ELSE
+      INTEGER        TTDBI(-NETAL1:NETAL1,NPHIL1)
+ &ENDIF
+  
+                     TTDBI(IETAL1,IPHIL1) --gives--> L-1 DBI
+C-                        (range of L1INX is [0,2*NPHIL1*NETAL1-1] )
+
+
+
+TTPH.INC
+
+  ---------------------------------------------------------------------
+  
+      COMMON /TTPH/ TTPH
+      INTEGER*4     TTPH(-NETAL1:NETAL1,NPHIL1,5)
+  
+                    TTPH(l1eta,l1phi,1) <-- IETAC
+                    TTPH(l1eta,l1phi,2) <-- IPHIC
+                    TTPH(l1eta,l1phi,3) <-- CRATE
+                    TTPH(l1eta,l1phi,4) <-- IADDRL
+                    TTPH(l1eta,l1phi,5) <-- IADDRH (not used)
+  
+      -- where IADDRL and IADDRH are the Low and High 16 bit hex addresses -- 
+         that define the range of hex address for the ROT.             
+

@@ -1,0 +1,148 @@
+\START          HMATRIX_RCP  ! control file for HMATRIX package
+\SIZE        232       104
+
+!------------------------------------------------------------------------------
+!   Name:       HMATRIX.RCP
+!   Purpose:    Control file for HMATRIX package
+!   Created:    02-OCT-1990     Rajendran Raja
+!   Updated:    11-OCT-1994     Johannes V. (Djoko) Wirjawan for tau_hmatrix
+!    Updated:     8-DEC-1995    Johannes V. (Djoko) Wirjawan add use_hmatrix
+!   Version:    V1.0
+!------------------------------------------------------------------------------
+!   HMATRIX definition quantities
+!------------------------------------------------------------------------------
+!
+\ARRAY VISIBLE_QUANTITIES
+ 'EMFR1'    ! em energy in layer 1 / total energy
+ 'EMFR2'    ! em energy in layer 2 / total energy
+ 'EMFR3'    ! em energy in layer 3 / total enery
+ 'EMFR4'    ! em energy in layer 4 / total energy
+ 'FHFR'     ! fine hadronic energy / total energy
+ 'LOGE'     ! log of the total energy
+ 'ZVSIG'    ! z vertex / resolution
+ 'W3FR'     ! fraction of total energy in the 3x3 window
+ 'W5FR'     ! fraction of total energy in the 5x5 window
+ 'ETHFR'    ! Et of (hottest+next-hottest) towerw / total Et
+\END
+!
+\ARRAY INVISIBLE_QUANTITIES     !These will be predicted.
+! 'DEL PHI'   !distance of closest aproach
+! 'DEL Z'
+! 'DEL R'
+\END
+
+!
+!------------------------------------------------------------------------------
+!   H matrix control
+!------------------------------------------------------------------------------
+FLAG                 1       ! if 0 will use Et, otherwise will use E
+THE_PHI_CUT          0.1     !
+DST_DATA             F       ! If DST_DATA is true, CAEQ_TO_CAEP will be called
+MC_SGN               F       ! set both MC_SGN and REAL_BKG to F if
+REAL_BKG             F       !          .NOT.ACCUMULATE
+CENTRAL              F       ! set to F for accumulating forward ptau
+DO_SELECTION         T       ! T means requiring PTAU
+DO_TAU_HMATRIX_ANAL  T       ! IF TRUE DO ANALYSIS
+SEL_EVT_WRITE        F       ! IF TRUE WILL CONTROL OUTPUT EVENT SELECTION
+!
+\ARRAY ZETA_CUT
+ 37*9999.0                   ! Accept all with chisquared below this
+\END
+MAXIMUM_VISIBLE_ET   50.0    ! Will accept all clusters with ET
+                             ! greater than this regardless
+USE_DEAD_ENERGY     F        ! use MC dead/crack energy
+USE_ENERGY_RATIO    T        ! use energy ratios for matrix elements
+USE_POSITION_INFO   T        ! train matrix with position information
+USE_COOR_SYSTEM     'CYL'    ! CYL or 'CART' ==>coordinate sys for pos info
+Z_VERTEX_SPREAD     30.0     ! SIGMA OF Z VERTEX FOR NORMALIZATION
+ADD_CRYOSTAT_ENERGY F        ! T will correct cluster for cryostat en. losses
+ADD_CRACK_ENERGY     F       ! T will correct cluster for crack energy losses
+AVERAGE_PHI         180.0    ! AVERAGE PHI OF BEAM
+AVERAGE_RAD         91.66    ! EM3 RADIUS
+USE_CASH_INFO       F        ! use CASH BANK to compute quan vectors
+REWORK_CLUSTER_CENTROID  T   ! Will rework cluster centr. by imposing window
+USE_LOG_REWORK           T   ! Use log weighted center while reworking
+WINDOW_CLUSTER_CENTROID  1.0 ! Use all cells +/- eta,phi of this about highcell
+WINDOW_CNEIGH1_HMATRIX   3.0 ! Use cells +/- eta phi of this about high cell
+!
+\ARRAY USE_EIGEN_VECTORS
+! 1 2 3 4    ! THESE EIGEN VECTORS WILL BE USED IN CALCULATING
+\END         ! TRUNCATED CHISQUARED
+!
+\ARRAY EIGEN_VALUE_MAX_MAP
+25*1000000.0   12*50000.0     ! THIS WILL BE LOADED AS A FUNCTION OF RAPIDITY
+\END                          ! INTO EIGEN_VALUE_MAX
+EIGEN_VALUE_MAX 100000.0      ! MAXIMUM EIGEN VALUE PERMITETD FOR H MATRIX
+!
+\ARRAY TRANS_MATRIX16
+      11  10  9  12  0  8  13  14  7
+\END
+!
+ HMATRIX_USER            327     ! User number for GTUNIT
+ ACCUMULATE_HMATRIX        F     ! IF FALSE, WILL USE H MATRIX ALREADY STORED.
+!------------------------------------------------------------------------------
+!   RZ FILE SETUP
+!------------------------------------------------------------------------------
+NEW_RZ                    F      ! will open new RZ file
+RZ_LOG_LEVEL              1      ! LOG LEVEL OF RZ
+LIST_RZ_DIRECTORY         T      ! Will list RZ directory
+\ARRAY RZ_FILE_NAME
+  'D0$CALOR_UTIL:TAU_HMATRIX_SAVE'
+\END
+\ARRAY RZ_FILE_MODE
+ ' '                                ! Mode for opening old data base
+\END
+\ARRAY TOP_DIRECTORY
+ 'HMATRIX'
+\END
+\ARRAY SUB_DIRECTORY
+! 'W_TAU_CENT'                      ! give the correct entry when ACCUMULATE
+\END
+\ARRAY USE_HMATRIX                  ! THE FOLLOWING H MATRICES WILL BE USED
+ 'W_TAU_CENT'                       ! list sub_directories in RZ file
+ 'LJQCD_CENT'                       ! that you want to use in this array
+ 'W_TAU_FRWD'
+ 'LJQCD_FRWD'
+\END
+\ARRAY RAPIDITY_MAP                 ! USE FILE N FOR RAPIDITY MOD(N) ETC
+! 'W_TAU_CENT'
+\END
+\ARRAY KEY_DESCR
+ 'I'
+\END
+\ARRAY CHTAG
+  'HMATRIX'
+\END
+!
+PRIMARY_ALLOCATION   64000
+RECORD_LENGTH         8191
+NUMBER_OF_WARNINGS   99999  ! Error messages
+!
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+!\ARRAY HBOOK_OPEN
+!Filename      TOPdirectory       NEWFILE   RECORDlength
+!  'HMATRIX_NTUPLE'   'HMATRIX_NTUPLE'          TRUE      8191
+! \END
+ \ARRAY HBOOK_DIRECTORY
+      'HMATRIX_NTUPLE'
+ \END
+NTUPLE_PRIMARY_ALLOCATION 200000    ! PRIMARY ALLOCATION FOR NTUPLE
+DO_NTUPLE             T
+NTUPLE_ID             1    ! ID of QUAN ntuple
+PLOT_MATRIX           F    ! IF TRUE WILL PLOT MATRIX AND AVERAGES FOR LEGO
+\ARRAY NTUPLE_FILE
+ 'HMATRIX_NTUPLE'
+\END
+!------------------------------------------------------------------------------
+!   Analysis Cuts
+!------------------------------------------------------------------------------
+ HMATRIX_DUMP_EVENTS  2    ! DUMP 1ST N EVENTS
+ TEST_UMAT            F    ! IF TRUE, UMAT AND HVIS WILL BE MULTIPLIED AND DUMPED.
+ DO_CHIS_VECTOR       T    ! WILL CALCULATE CHISQUARED VECTOR
+ DIAGONALIZE          T    ! IF TRUE WILL DIAGONALIZE QUANTITIES IN USAGE MODE
+\ARRAY ALGORITHM
+ 'ELECTRON'
+\END
+\STOP

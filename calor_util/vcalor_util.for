@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VCALOR_UTIL()
       VCALOR_UTIL = ' CALOR_UTIL'//
-     X                   '  OFFICIAL V1.44'//
-     X                   ' 14-JUL-1997 09:34:13.42'
+     X                   '  TEST V1.44_02'//
+     X                   ' 24-OCT-1997 11:07:13.43'
       Return
       End

@@ -1,0 +1,256 @@
+      FUNCTION JET_VERTEX_WORD(LJETS)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :  DETERMINES THE NUMBER OF TRACKS POINTING
+C-       TO EACH VERTEX FOR A JET.  RETURNS THE NUMBER OF TRACKS IN
+C-       A JET AND THE NUMBER OF TRACKS POINTING TO THE FIRST 3
+C-       VERTICES.
+C-
+C-   Inputs  : POINTER TO JETS BANK
+C-   Outputs : NONE
+C-   Controls: NONE
+C-
+C-   Created  20-Oct-93      Brad Abbott
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$PARAMS:BYTE_ORDER.PARAMS'
+      INCLUDE 'D0$INC:PI.DEF'
+      INTEGER GZDTRK, LDTRK, NVER
+      REAL INFO(3,10)
+      REAL ZVER(10),DZVER(10),TRACK_DETA(200),TRACK_DPHI(200)
+      REAL TTHETA,TPHI,DIR(3),VTX(3)
+      REAL ETAJT,PHIJT,DET_ETA,DET_PHI
+      REAL XYIMPACT,DELTA_PHI,DIFF_PHI
+      REAL PETA_TO_DETA,DR,M,TRACK_IMPACT(200)
+      REAL ZDIST(10,200),ZMIN
+      REAL CHIRZ,CHIXY,NHITS,NZ
+      REAL RO,TRACK_RADIUS,ETAC,PHIC,JET_SIZE, ETAC2, PHIC2
+      REAL CONE_RADIUS,BEAMX,BEAMY,XO,YO
+      REAL Z_DIR, ETA_DIR
+      INTEGER VTX_TRK_CNTR(10),I,K,TRK_CNTR
+      INTEGER ICC,ARGSOK,TRACK_VERT
+      INTEGER LFDCT,ITRK,GZFDCT
+      INTEGER IER,JET_COUNTER,LJETS,LCAPH
+      INTEGER TRACK_COUNTER
+      INTEGER LVERH,GZVERH,LVERT,OLD_RUN_NUM,RUN_NUM,RUNNO
+      INTEGER IWORD,JET_VERTEX_WORD,EVENT_NUM,EVONUM
+      INTEGER OLD_EVENT_NUM,MAX_VERT,MAX_TRACKS
+
+      BYTE BVERT(4)
+      EQUIVALENCE (BVERT,IWORD)
+
+      LOGICAL FIRST, OK
+      DATA FIRST/.TRUE./
+      DATA MAX_VERT/10/
+      DATA MAX_TRACKS/200/
+
+C---------------------------------------------------------------------
+
+      IF(FIRST) THEN
+        FIRST=.FALSE.
+        OLD_EVENT_NUM=-999
+        OLD_RUN_NUM=-999
+      ENDIF
+
+      TRK_CNTR=0                      ! NUMBER OF TRACKS IN JET
+      CALL UZERO(VTX_TRK_CNTR,1,10)   ! VTX_TRK_CNTR(I) NUMBER OF TRACKS
+                                      ! THAT POINT TO VERTEX I
+C     Get vertex info
+      CALL VERTEX_INFO( 10, NVER, INFO, OK)
+      IF ( .NOT. OK ) NVER=0
+      DO I = 1, 10
+        ZVER(I) = INFO(1,I)
+        DZVER(I)= INFO(2,I)
+      ENDDO
+C        CALL ZVERTE(NVER,ZVER,DZVER)   ! Vertex
+
+C     GET JET ETA AND PHI AND CONVERT TO DETECTOR ETA
+
+      ETAJT=Q(LJETS+9)
+      PHIJT=Q(LJETS+8)
+      DET_ETA=PETA_TO_DETA(ETAJT,ZVER(1))
+      DET_PHI=PHIJT
+
+C     DETERMINE RADIUS AROUND JET CENTER TO LOOK FOR TRACKS
+
+      LCAPH=LQ(LJETS+1)
+      TRACK_RADIUS=0.
+      JET_SIZE=0.
+      IF(LCAPH.GT.0) JET_SIZE=Q(LCAPH+6)     ! IF LCAPH=0 TRACK RADIUS=0
+      IF(JET_SIZE.GT.0) TRACK_RADIUS=JET_SIZE+0.1  ! FIXED CONE
+      IF(JET_SIZE.LT.0) TRACK_RADIUS=0.6           ! NEAREST NEIGHBOR
+
+C  DETERMINE IF SAME EVENT
+
+      EVENT_NUM=EVONUM()
+      RUN_NUM=RUNNO()
+      IF((EVENT_NUM.NE.OLD_EVENT_NUM).OR.
+     &    (RUN_NUM.NE.OLD_RUN_NUM)) THEN   ! GET TRACKS ONLY ONCE PER EVENT
+        OLD_EVENT_NUM=EVENT_NUM
+        OLD_RUN_NUM=RUN_NUM
+        TRACK_COUNTER=0                 ! NUMBER OF TRACKS IN EVENT
+
+C GET Vertex/MI info
+
+        LVERH=GZVERH()
+        IF(LVERH.LE.0) GOTO 995
+        LVERT=LQ(LVERH-1)
+        IF(LVERT.LE.0) GOTO 995
+        BEAMX=Q(LVERT+3)
+        BEAMY=Q(LVERT+4)
+        IF(NVER.LE.0) GOTO 995
+        IF(NVER.GE.MAX_VERT) THEN
+          CALL ERRMSG('TOO MANY','JET_VERTEX_WORD',
+     &               'TOO MANY VERTICES','W')
+          GOTO 995
+        ENDIF
+c
+C Loop over CDC Tracks
+C
+        LDTRK = GZDTRK(0)
+        DO WHILE (LDTRK.GT.0)
+          TTHETA = Q(LDTRK+9)
+          TPHI = Q(LDTRK+6)
+          VTX(1)=Q(LDTRK+7)    ! XO
+          VTX(2)=Q(LDTRK+8)    ! YO
+          VTX(3)=Q(LDTRK+11)   ! ZO
+          RO=    Q(LDTRK+10)
+
+C    THROW AWAY "BAD" TRACKS
+
+          IF (TTHETA .LT. 0.0001) GOTO 100
+          NHITS = IQ(LDTRK+2)
+          NZ = IQ(LDTRK+5)
+          IF (NHITS.LE.2..OR.NZ.LE.2.) GOTO 100
+          CHIRZ = Q(LDTRK+12)/(Nhits-2)
+          CHIXY = Q(LDTRK+13)/(Nz-2)
+          IF(CHIRZ.GT.100..OR.CHIXY.GT.100.) GOTO 100
+          YO=VTX(2)-BEAMY
+          XO=VTX(1)-BEAMX
+          XYIMPACT=(YO-XO*TAN(TPHI))*COS(TPHI)
+          IF(ABS(XYIMPACT).GT.2.5) GOTO 100
+
+C Direction cosines
+
+          DIR(1) = SIN(TTHETA)*COS(TPHI)
+          DIR(2) = SIN(TTHETA)*SIN(TPHI)
+          DIR(3) = COS(TTHETA)
+
+C GET DETECTOR ETA AND PHI FOR CDC TRACKS
+          ETA_DIR   = -ALOG( TAN( TTHETA/2.0 ) )
+          IF ( ABS(SIN( TTHETA )) .LT. .001 ) THEN
+            Z_DIR   = VTX(3)
+          ELSE
+            Z_DIR   = VTX(3) - SQRT(VTX(2)**2+VTX(1)**2)/TAN( TTHETA )
+          ENDIF
+          ETAC =  PETA_TO_DETA( ETA_DIR, Z_DIR )
+          PHIC =  TPHI
+          M=1/TAN(TTHETA)
+          TRACK_COUNTER=TRACK_COUNTER+1
+          TRACK_DETA(TRACK_COUNTER)=ETAC
+          TRACK_DPHI(TRACK_COUNTER)=PHIC
+          TRACK_IMPACT(TRACK_COUNTER)=VTX(3)-RO*M
+
+          IF(TRACK_COUNTER.GE.MAX_TRACKS) THEN
+            CALL ERRMSG('TOO MANY','JET_VERTEX_WORD',
+     &                  'TOO MANY TRACKS','W')
+            GOTO 300
+          ENDIF
+
+  100     LDTRK=LQ(LDTRK)
+        ENDDO
+
+C      LOOP OVER FDC TRACKS
+
+        LFDCT = GZFDCT(0)
+        DO WHILE (LFDCT.GT.0)
+          TTHETA = Q(LFDCT+22)
+          TPHI = Q(LFDCT+6)
+          VTX(1) = Q(LFDCT+4)       ! XO
+          VTX(2) = Q(LFDCT+5)       ! YO
+          ITRK=IQ(LFDCT-5)
+          CALL FGETZ0(ITRK,VTX(3))  ! ZO
+          RO=SQRT(VTX(1)**2+VTX(2)**2)
+
+C Throw away "bad" tracks
+
+          IF (TTHETA .LT. 0.0001) GOTO 200
+          YO=VTX(2)-BEAMY
+          XO=VTX(1)-BEAMX
+          XYIMPACT=(YO-XO*TAN(TPHI))*COS(TPHI)
+          IF(ABS(XYIMPACT).GT.5.0) GOTO 200
+
+C Direction cosines
+
+          DIR(1) = SIN(TTHETA)*COS(TPHI)
+          DIR(2) = SIN(TTHETA)*SIN(TPHI)
+          DIR(3) = COS(TTHETA)
+
+C FIND DETECTOR ETA AND PHI OF FDC TRACKS
+          ETA_DIR   = -ALOG( TAN( TTHETA/2.0 ) )
+          IF ( ABS(SIN( TTHETA )) .LT. .001 ) THEN
+            Z_DIR   = VTX(3)
+          ELSE
+            Z_DIR   = VTX(3) - SQRT(VTX(2)**2+VTX(1)**2)/TAN( TTHETA )
+          ENDIF
+          ETAC =  PETA_TO_DETA( ETA_DIR, Z_DIR )
+          PHIC =  TPHI
+
+C          CALL CLINPH_FAST(VTX,DIR,ETAC,PHIC,IETAC,IPHIC,ICC,ARGSOK)
+C          IF(ARGSOK.EQ.0) THEN
+            M=1/TAN(TTHETA)            ! slope of track
+            TRACK_COUNTER=TRACK_COUNTER+1
+            TRACK_DETA(TRACK_COUNTER)=ETAC
+            TRACK_DPHI(TRACK_COUNTER)=PHIC
+            TRACK_IMPACT(TRACK_COUNTER)=VTX(3)-RO*M
+C          ENDIF
+
+          IF(TRACK_COUNTER.GE.MAX_TRACKS) THEN
+            CALL ERRMSG('TOO MANY','JET_VERTEX_WORD',
+     &                 'TOO MANY TRACKS','W')
+            GOTO 300
+          ENDIF
+
+  200     LFDCT=LQ(LFDCT)
+        ENDDO
+
+      ENDIF
+
+
+C     DETERMINE TRACKS THAT ARE WITHIN EACH JET
+
+  300 DO I=1,TRACK_COUNTER
+        DELTA_PHI=DIFF_PHI(TRACK_DPHI(I),DET_PHI)
+        DR=SQRT((TRACK_DETA(I)-DET_ETA)**2+(DELTA_PHI)**2)
+        IF (DR.LE.TRACK_RADIUS) THEN
+          TRK_CNTR=TRK_CNTR+1
+          DO K=1,NVER
+            ZDIST(K,TRK_CNTR)=TRACK_IMPACT(I)-ZVER(K)
+          ENDDO
+        ENDIF
+      ENDDO
+
+C     FIND NUMBER OF TRACKS WHICH POINT TO EACH VERTEX
+
+      DO I=1,TRK_CNTR
+        ZMIN=100
+        DO K=1,NVER
+          IF(ABS(ZDIST(K,I)).LT.ZMIN) THEN
+            ZMIN=ABS(ZDIST(K,I))
+            TRACK_VERT=K
+          ENDIF
+        ENDDO
+        IF(ZMIN.LT.10) VTX_TRK_CNTR(TRACK_VERT)=
+     &        VTX_TRK_CNTR(TRACK_VERT)+1
+      ENDDO
+
+  995 BVERT(BYTE1)=TRK_CNTR        ! NUMBER OF TRACKS IN JET
+      BVERT(BYTE2)=VTX_TRK_CNTR(1) ! NUMBER OF TRACKS POINTING TO PRIMARY VERTEX
+      BVERT(BYTE3)=VTX_TRK_CNTR(2) ! NUMBER OF TRACKS POINTING TO SECOND VERTEX
+      BVERT(BYTE4)=VTX_TRK_CNTR(3) ! NUMBER OF TRACKS POINTING TO THIRD VERTEX
+      JET_VERTEX_WORD=IWORD
+C
+  999 RETURN
+      END

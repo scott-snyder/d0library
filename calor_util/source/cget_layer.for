@@ -1,0 +1,182 @@
+      SUBROUTINE CGET_LAYER(RADIUS,Z,IETAC,ETA_LO_HI,IPHIC,
+     & PHI_LO_HI,LAYERC,LYRERR)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Return the LAYER by sequential look-up
+C-
+C-   Inputs  : RADIUS,Z,ZMAXCC,IETAC,ETA_LO_HI,
+C-             IPHIC,PHI_LO_HI
+C-   Outputs : LAYERC
+C-   Controls: LYRERR 0 => all's well
+C-
+C-   Created  27-NOV-1990   John M.Balderston
+C-   Modified  7-FEB-1991   J.B. 
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C----------------------------------------------------------------------
+      INCLUDE 'D0$INC:PI.DEF'
+      INCLUDE 'D0$PARAMS:CAL_OFFLINE.PARAMS'
+      REAL RADIUS,Z,ZMAXCC
+      REAL CENRAD,DELRAD,CENZED,DELZED,RMIN,RMAX
+      REAL DELPHI,CENPHI,DELETA,CENETA,TILT,RT,ZT
+      INTEGER IETAC,IPHIC,LAYER,LAYERC
+      INTEGER INDETA,INDLYR
+      INTEGER IETAA
+      INTEGER ETA_LO_HI,PHI_LO_HI,LYRERR,AROKIN
+      LOGICAL CEXIST
+      REAL CCLYR_BDRY(NETAL+1,MNLYCH,4)
+      INTEGER CCLYR_ERR(NETAL+1,MNLYCH)
+      REAL ECLYR_BDRY(NETAL+1,NLYRL,5)
+      INTEGER ECLYR_ERR(NETAL+1,NLYRL)
+      INTEGER MNLYOH(8:14)
+      DATA MNLYOH/5*15,16,17/
+      LOGICAL FIRST
+      DATA FIRST/.TRUE./
+C
+      IF(FIRST) THEN
+       CALL CALRAD(1,1,CENRAD,DELRAD,CENZED,DELZED,AROKIN)
+       IF(AROKIN.NE.0) CALL ERRMSG('BAD CALRAD','CGET_LAYER',
+     &'CPOSPH BAD CALRAD','F')
+       ZMAXCC=CENZED+DELZED/2.
+       DO 20 INDETA=1,NETAL
+        DO 10 INDLYR=1,MNLYCH
+          CALL CALRAD(INDETA,INDLYR,CENRAD,DELRAD,CENZED,DELZED,AROKIN)
+          CCLYR_BDRY(INDETA,INDLYR,1)=CENRAD
+          CCLYR_BDRY(INDETA,INDLYR,2)=DELRAD
+          CCLYR_BDRY(INDETA,INDLYR,3)=CENZED
+          CCLYR_BDRY(INDETA,INDLYR,4)=DELZED
+          CCLYR_ERR(INDETA,INDLYR)=AROKIN
+   10   CONTINUE
+   20  CONTINUE
+       INDETA=NETAL+1
+       DO 30 INDLYR=1,MNLYCH
+          CALL CALRAD(-12,INDLYR,CENRAD,DELRAD,CENZED,DELZED,AROKIN)
+          CCLYR_BDRY(INDETA,INDLYR,1)=CENRAD
+          CCLYR_BDRY(INDETA,INDLYR,2)=DELRAD
+          CCLYR_BDRY(INDETA,INDLYR,3)=CENZED
+          CCLYR_BDRY(INDETA,INDLYR,4)=DELZED
+          CCLYR_ERR(INDETA,INDLYR)=AROKIN
+   30  CONTINUE
+       DO 40 INDETA=1,NETAL
+        DO 50 INDLYR=1,NLYRL  
+         CALL CALZED(INDETA,INDLYR,CENZED,DELZED,CENRAD,DELRAD,
+     &   TILT,AROKIN)
+         ECLYR_BDRY(INDETA,INDLYR,1)=CENRAD
+         ECLYR_BDRY(INDETA,INDLYR,2)=DELRAD
+         ECLYR_BDRY(INDETA,INDLYR,3)=CENZED
+         ECLYR_BDRY(INDETA,INDLYR,4)=DELZED
+         ECLYR_BDRY(INDETA,INDLYR,5)=TAN(TILT)
+         ECLYR_ERR(INDETA,INDLYR)=AROKIN
+   50   CONTINUE
+   40  CONTINUE
+       INDETA=NETAL+1
+       DO 60 INDLYR=1,NLYRL  
+        CALL CALZED(-14,INDLYR,CENZED,DELZED,CENRAD,DELRAD,
+     &  TILT,AROKIN)
+        ECLYR_BDRY(INDETA,INDLYR,1)=CENRAD
+        ECLYR_BDRY(INDETA,INDLYR,2)=DELRAD
+        ECLYR_BDRY(INDETA,INDLYR,3)=CENZED
+        ECLYR_BDRY(INDETA,INDLYR,4)=DELZED
+        ECLYR_BDRY(INDETA,INDLYR,5)=TAN(TILT)
+        ECLYR_ERR(INDETA,INDLYR)=AROKIN
+   60  CONTINUE
+       FIRST=.FALSE.
+      ENDIF
+C
+      LYRERR=2
+      IETAA=ABS(IETAC)
+      IF(ABS(Z).LE.ZMAXCC) THEN
+C
+C ****  Point may be in CC
+C
+        IF (IETAC.EQ.-12) IETAA=NETAL+1
+        DO 100 LAYER=1,MNLYCH
+          IF(CCLYR_ERR(IETAA,LAYER).NE.0) GO TO 100
+          IF( (ABS(RADIUS-CCLYR_BDRY(IETAA,LAYER,1)).LT.
+     &      CCLYR_BDRY(IETAA,LAYER,2)/2.).AND.
+     &      (ABS(ABS(Z)-CCLYR_BDRY(IETAA,LAYER,3)).LT.
+     &       CCLYR_BDRY(IETAA,LAYER,4)/2.) ) THEN
+            LAYERC=LAYER
+            GO TO 300
+          ENDIF
+  100   CONTINUE
+      ELSE
+C
+C ****  Point may be in EC
+C
+        IF (IETAC.EQ.-14) THEN
+          IETAA=NETAL+1
+          DO 150 LAYER=1,NLYRL  
+           IF(ECLYR_ERR(IETAA,LAYER).NE.0) GO TO 150
+            IF(ECLYR_BDRY(IETAA,LAYER,5).NE.0.) THEN
+              RT=ECLYR_BDRY(IETAA,LAYER,1)-
+     &           ECLYR_BDRY(IETAA,LAYER,2)/2.
+              ZT=Z+(RADIUS-RT)*ECLYR_BDRY(IETAA,LAYER,5)
+            ELSE
+              ZT=Z
+            ENDIF
+            IF(ABS(ZT-ECLYR_BDRY(IETAA,LAYER,3)).LT.
+     &         ECLYR_BDRY(IETAA,LAYER,4)/2..AND.
+     &         ABS(RADIUS-ECLYR_BDRY(IETAA,LAYER,1)).LT.
+     &         ECLYR_BDRY(IETAA,LAYER,2)/2.) THEN
+               LAYERC=LAYER
+               GO TO 300
+            ENDIF
+  150     CONTINUE
+        LAYERC=17
+        LYRERR=3
+        GO TO 999
+        ENDIF
+        DO 200 LAYER=1,NLYRL  
+          IF(ECLYR_ERR(IETAA,LAYER).NE.0) GO TO 200
+           IF(ECLYR_BDRY(IETAA,LAYER,5).NE.0.) THEN
+             RT=ECLYR_BDRY(IETAA,LAYER,1)-
+     &          ECLYR_BDRY(IETAA,LAYER,2)/2.
+             ZT=ABS(Z)+(RADIUS-RT)*ECLYR_BDRY(IETAA,LAYER,5)
+           ELSE
+             ZT=ABS(Z)
+           ENDIF
+           IF(ABS(ZT-ABS(ECLYR_BDRY(IETAA,LAYER,3))).LT.
+     &        ECLYR_BDRY(IETAA,LAYER,4)/2..AND.
+     &        ABS(RADIUS-ECLYR_BDRY(IETAA,LAYER,1)).LT.
+     &        ECLYR_BDRY(IETAA,LAYER,2)/2.) THEN
+              LAYERC=LAYER
+              GO TO 300
+            ENDIF
+  200     CONTINUE
+      ENDIF
+      LAYERC=17
+      LYRERR=3
+      GO TO 999
+  300 CONTINUE
+C
+C ****  For IETAA .LE. 26 EM3 is subdivided in eta and phi
+C
+      IF (ABS(IETAC) .LE. 26) THEN
+        IF (LAYERC .GE. 3 .AND. LAYERC .LE. 6 ) THEN
+          IF (ETA_LO_HI.EQ.0) THEN  !LOWER HALF OF ETA
+            IF (PHI_LO_HI.EQ.0) THEN
+              LAYERC=LYEM3A
+            ELSE
+              LAYERC=LYEM3B
+            ENDIF
+          ELSE
+            IF (PHI_LO_HI.EQ.0) THEN
+              LAYERC=LYEM3C
+            ELSE
+              LAYERC=LYEM3D
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+C
+C ****  For IETAA .GE. 33 only odd values of IPHIC exist
+C
+      IF(ABS(IETAC).GE.33 .AND. MOD(IPHIC,2).EQ.0) IPHIC=IPHIC-1
+      IF(.NOT.CEXIST(IETAC,IPHIC,LAYERC)) THEN
+        LYRERR=5
+      ELSE
+        LYRERR=0
+      ENDIF
+  999 RETURN
+      END

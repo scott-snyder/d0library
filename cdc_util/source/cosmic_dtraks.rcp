@@ -1,0 +1,334 @@
+\START     DTRAKS_RCP        ! Name of DTRAKS package control file
+\SIZE        593       260
+!------------------------------------------------------------------------------
+!   Name:       DTRAKS.RCP
+!   Purpose:    Control file for DTRAKS package (CDC)
+!   Created:    27-JUN-1989     Qizhong Li-Demarteau
+!
+!    ***** This RCP file is for D0 COLLIDER DATA *****
+!
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+\ARRAY HBOOK_DIRECTORY
+      'DTRAKS'
+\END
+!------------------------------------------------------------------------------
+!   Banks to dump
+!------------------------------------------------------------------------------
+NUM_DUMPS     6
+\ARRAY DUMP_BANKS
+  'CDCH'
+  'DSEC'
+  'DCDA'
+  'DTRH'
+  'DTRK'
+  'DTSG'
+\END
+!------------------------------------------------------------------------------
+!   Banks to drop from standard output stream
+!------------------------------------------------------------------------------
+NUM_DROPS_STA     2
+\ARRAY DROPS_STA_BANKS
+  'DSEC'
+  'DCDA'
+\END
+!------------------------------------------------------------------------------
+!   redo reconstruction control (mainly for the users who wants to redo
+!                                reconstruction from STA file)
+!------------------------------------------------------------------------------
+REDOCDC   false    ! true: redo reconstruction from scratch again
+IFULL        12    ! bit # in the status word DTRH to indicate if full
+!                  ! reconstruction in CDC is done
+!
+!------------------------------------------------------------------------------
+!  Compressed hits bank control
+!------------------------------------------------------------------------------
+BUILD_DHIT  true   ! true: build the compressed hits bank DHIT
+!
+!------------------------------------------------------------------------------
+!   Zebra bank path from GEAN or RECO
+!------------------------------------------------------------------------------
+DPATH  'RECO'
+!
+!------------------------------------------------------------------------------
+!   default STP file:
+!           D0$STP:CDC_STPFILE.DAT     for Monte Carlo data
+!           D0$STP:CDC_D0STPFILE.DAT   for real data
+!------------------------------------------------------------------------------
+\ARRAY CDC_STPFILE
+       'D0$STP:CDC_D0STPFILE.DAT'
+\END
+READ_DFLSTP   TRUE   ! true:  read the default STP file for non-MC data
+!                    ! false: read STP_nnnnnnn.DAT to STP banks
+!                    ! (nnnnnnn is the run number)
+MDFSTG     FALSE     ! true: modifies staggering according to EFFSTG value
+EFFSTG     0.015     ! new stagging value if MDFSTG is true
+!
+!------------------------------------------------------------------------------
+!   default DBL3 file for calibration data
+!------------------------------------------------------------------------------
+\ARRAY DBCALIB$CDC
+       'DBL3$CDC:DBCALIB$CDC.DAT'
+\END
+BYPASS_DBL3_ERROR    FALSE  ! true: bypass DBL3 errors
+!
+!------------------------------------------------------------------------------
+!    ****** paremeters for using DBL3 data to update STP banks ******
+!------------------------------------------------------------------------------
+PD_INI     true    ! true: update pedestal values with DBL3 data
+TM_INI     true    ! true: update T0 values with DBL3 data
+GN_INI    false    ! true: update gain values with DBL3 data
+MAX_CDCRT    5     ! number of crates used for CDC (count from 0 to 5)
+DBL3T0     true    ! true: T0 = DBL3 T0 + global T0 offset
+SWOFSET     0.0    ! a global T0 offset for Sense Wire T0s from DBL3
+DLOFSET     0.0    ! a global T0 offset for Delay Line T0s from DBL3
+ADDT0DL    true    ! true(with DBL3T0): DL_T0=T0_in_STP_FILE+DBL3_T0+DLOFSET
+GN_PROC_INI false  ! Only meaningful when GN_INI is true.
+!                  ! true: using DBL3 values from offline calibration;
+!                  ! false: using DBL3 values from CALIB
+TM_PROC_INI false  ! Only meaningful when TM_INI is true.
+!                  ! true: using DBL3 values from offline calibration;
+!                  ! false: using DBL3 values from CALIB
+PD_PROC_INI false  ! Only meaningful when PD_INI is true.
+!                  ! true: using DBL3 values from offline calibration;
+!                  ! false: using DBL3 values from CALIB
+DBG_OFF     false  ! true: using test database specified by DBCALIB$CDC
+!------------------------------------------------------------------------------
+!    ****** processing paremeters ******
+!------------------------------------------------------------------------------
+MAXLAY       3     ! maximum layer number
+MAXSEC      31     ! maximum sector number
+CDCTYP       1     ! 1: subdetector type is on for CDC label at bit 13; 0: no
+RUNTYP       0     ! 0: D0 hall test and MC data; 1: 88 cosmics; 2: 89 cosmics
+DCDTYP       0     ! 0: decode all CDDn bank; 2: decode CDD2 bank
+BADSEC      -1     ! sector # for swapped SW cable correction
+!                  ! (-1: no correction,
+!                  !  26: for the first cosmic commissioning runs)
+CDCRECO      3     ! 0: skip reconstruction; 1: reconstruct hits only
+!                  ! 2: reconstruct hits and segments; 3: full rconstruction
+!
+!------------------------------------------------------------------------------
+!    ****** pulse parameters ******
+!------------------------------------------------------------------------------
+! (array(1) for sense wire; array(2) for delay line)
+\ARRAY  PULTH1     ! threshold 1
+     5       3
+\END
+\ARRAY  PULTH2     ! threshold 2
+    10      10
+\END
+\ARRAY  PULTH3     ! threshold 3
+    10      10
+\END
+\ARRAY  PULMAX     ! maxmum width of pulse tail
+    10      20
+\END
+\ARRAY  PULWEI     ! weight factor for the center of gravity method
+   1.2     1.2
+\END
+!
+MAXCNT     255      ! maxmum count for a FADC channel
+SBTRCT   false      ! pulse height = heighest counts - first channel counts
+FFRQCY   106.0      ! frequecy of FADC clock system (in MHZ)
+!
+TERRSW    12.0      ! errors on the drift time
+TERRDL     2.2      ! errors on the delay line time
+!
+BILFLG   false      ! flag to request bilinear convertion in FADC
+BILIPT   192.0      ! the break point for bilinear conversion
+BILIRT     8.6      ! the ratio of the slopes in bilinear conversion
+!
+BINCHK   false      ! flag to check bad FADC bins
+BINDIF      10      ! amplitude of bin diffrences for "bad FADC"
+BADLMT       1      ! limit of bad bin differences
+!
+!------------------------------------------------------------------------------
+!    ****** hits parameters ******
+!------------------------------------------------------------------------------
+TRGFLG    TRUE      ! flag to request trigger time subtraction
+TRGLAY       0      !
+TRGSEC       0      !  logic address of the trigger time signal
+TRGWIR      12      !
+TRGOFF   585.0      ! time offset
+DLTZR1     0.0      ! time offset for delay line (left side)
+DLTZR2     0.0      ! time offset for delay line (right side)
+GFACTR     1.0      ! scale factor for gains
+VFACTR     1.0      ! scale factor for drift velocities
+SWDERR   FALSE      ! true: use drift distance dependent errors on SW hits.
+ERRISW    .013      ! Drift error (cm) ISWs at 1cm (sets scale if SWDERR true)
+ERROSW    .018      ! Drift error (cm) OSWs at 1cm (sets scale if SWDERR true)
+D0CFUN   false      ! true: use nonlinearity corrections for SW hits
+DLERRS   false      ! true: use DLERR1 and DLERR2 below as 1 side and 2 side
+!                   ! for DL hits errors and use it for the RZ Chi**2/df
+DLERR1     .65      ! DL error for 1 side hits at THETA = 90 degrees (cm)
+DLERR2     .31      ! DL error for 2 side hits at THETA = 90 degrees (cm)
+\ARRAY  GLBLT0      ! run-dependent time offset
+  585.0    585.0    585.0    585.0
+\END
+\ARRAY  TRUNNO      ! run numbers for run-dependent time offset
+  38310    51132   55853   60372
+\END
+!
+!------------------------------------------------------------------------------
+!    ****** tracking parameters ******
+!       The numbers in the brackets are the suggested values
+!------------------------------------------------------------------------------
+CDLTOL    10.0      ! delay line (5.0)
+CDMINL       3      ! minimum number of layers (3)
+CDTDPH    0.08      ! delta phi between layers (0.05)
+CDTDIS    0.30      ! distance between layers (0.30)
+CDTCH2    40.0      ! maximum chisq/degf for R-Phi tracks (10.0)
+CDZCH2   200.0      ! maximum chisq/degf for R-Z tracks (30.0)
+CDZCHI    50.0      ! maximum chisq/degf for keeping the R-Z hits
+TRUNCT    0.66      ! dE/dx truncated mean for D0 data
+TRUNMC    0.66      ! dE/dx truncated mean for MC data
+NORMAL_FACTOR  483.7! dE/dx normalization factor for MC data
+MINNMZ       3      ! minimum number of Z on a track (4)
+EDGE_TRACKING  true ! true: do tracking in the edge region of the chamber
+CDMINL_EDGE  2      ! minimum number of layers (2) for edge tracks
+MINZ_EDGE    3      ! minimum number of Z on a edge track (3)
+DLTHSL  -.3724      ! Slope of linear function for theta dependence of Zerror,
+!                   ! Zerror = DLERR1(2)*(1+DLTHSL*ABS(THETA-PI/2))
+METHOD       2      ! Tracking method: 1 => Link&Tree ; 2 => Road (2)
+!
+!  following are parameters for building segments by the road method
+!
+CDINFM       2      ! number of missing wires per segment (2)
+CDMXPH    0.02      ! maximum phi diff in a segment (0.02)
+CDTRTO    0.12      ! road width for segments (0.10)
+CDMXCH   10.00      ! maximum chisq/degf for segments (5.00)
+!
+!  following are parameters for building segments by the link-tree method
+!
+\ARRAY DSLMAX        !Maximum slope difference between two links to make a tree
+ 0.240    0.125    0.046    0.015
+\END
+\ARRAY NSEC          !Number of sectors in each layer
+31 31 31 31
+\END
+\ARRAY DISTBG        !Dist from wire not to make crosswire links
+    1.00000     2.00000    3.00000    4.00000
+\END
+INEFF    2          !Maximum number of missing hits for a track segment
+MXNEXT   7          !Used in JDSEGLT
+MAXLNK 300          !Used in JDSEGLT
+MAXCHN  20          !Used in JDSEGLT
+NMXCHN 100          !Safety to keep from overwriting Zebra banks...
+BIGSLP 0.040        !Phi differences acceptable for two hits to create a link
+MEDSLP 0.015        !Big is for less than (number of wires) hits in a cell
+LILSLP 0.002        !Med is for Wires<hits<41  Lil is hits>40
+CHIMAX  5.0         ! max CHISQ/d.f.  for track segment fit in x-y
+CHIMXZ  4.0         ! max CHISQ/d.f.  for track segment fit in s-z
+!
+!------------------------------------------------------------------------------
+!    ****** Debugging parameters ******
+!------------------------------------------------------------------------------
+LUNDBG      70     ! debug unit
+NEVDBG       0     ! number of events to be debugged
+\ARRAY  LVLDBG     ! debug level(0: no print;1: mini print;10: maxim print)
+ 0    0    0    0    0    0    0    0    0    0
+\END
+!       LVLDBG(1) : Output constants ( CDINIT )
+!       LVLDBG(2) :
+!       LVLDBG(3) : Pulse finding    ( CDPULS )
+!       LVLDBG(4) : Hits             ( CDHITS )
+!       LVLDBG(5) : Delay line       ( CDGETZ )
+!       LVLDBG(6) : Track segment    ( CDTSEG )
+!       LVLDBG(7) : Space track      ( CDTFIT,CDTRAK )
+!       LVLDBG(8) : SRCP bank        ( DRDDBG )
+!   following flags for Monte Carlo data only
+!       LVLDBG(9) : Build DITR bank  ( ISAJET tracks)
+!       LVLDBG(10): Print DITR bank  ( ISAJET tracks)
+!
+!------------------------------------------------------------------------------
+!    ****** alignment control parameters ******
+!------------------------------------------------------------------------------
+CDSURV        0    ! starting step (0 is no alignment)
+CDNSTP     2000    ! number of events per step
+PDALGN    FALSE    ! pedestal alignment when CDSURV = 1, 2
+GNALGN    FALSE    ! gain alignment when CDSURV > 0
+MXHIGH    500.0    ! maximum pulse hight for gain alignment
+TWALGN    FALSE    ! T0 for sense wires alignment when CDSURV > 0
+TDALGN    FALSE    ! T0 for delay lines alignment when CDSURV > 0
+!
+!------------------------------------------------------------------------------
+!    ****** histograms ******
+!  ID numbers of your own histograms: 2 - 999
+!  ID numbers of histograms booked through User Dialog: 1 and 1000 - 5000
+!  ID numbers of histograms listed below: 1000 - 8300
+!  (Please don't book the histograms listed below when you also book
+!  histograms through the User Dialog)
+!------------------------------------------------------------------------------
+\ARRAY  HISPAR      ! ( nbins     X_low    X_high )
+ 100.000     1.000  2001.000      !  Time (ns)
+ 100.000     1.000  3001.000      !  Area
+  10.000     1.000   101.000      !  Width
+ 100.000     1.000   801.000      !  Amplitude
+  20.000    -1.500    18.500      !  # of hits
+  20.000    -1.500    18.500      !  # of tracks in the layer
+ 100.000   -50.000    50.000      !  Residual for first Delay Line
+ 100.000   -50.000    50.000      !  Residual for second Delay line
+\END
+\ARRAY HISTON       ! validate histograms
+ 0    0    0    0    0    0    0    0    1    0
+\END
+! HISTON(I) = 0: no histograms;
+!             1: histogram on 1st hit;
+!             2: histogram on all hits;
+!             3: histogram on the hits used to build segments
+!             4: histogram on the hits used to build full track
+! I is the hitogram group number (I=1,4)
+! HISTON(5) = 1: wire hits efficiency histograms
+!           > 1: wire hits efficiency histograms + # of hits per wire
+!                histograms
+! For histogram group 1-5, if MAXSEC < 5, histograms are separated by sectors
+! otherwise the histograms are not separated by sectors
+!
+! HISTON(9) is used for trigger time signal histograms
+!
+!------------------------------------------------------------------------------
+!    ****** parameters for NWA data ******
+!------------------------------------------------------------------------------
+!
+TBLFLG   true  ! use table to convert FADC data instead of bilinear conversion
+\ARRAY  TABLE     ! duel slope buffer mapping array (from M. Martin)
+      0        1       2       3       4      5      6      7
+      7        8       8       9      10     11     12     14
+     15       16      17      18      19     20     21     22
+     23       24      25      26      27     28     29     30
+     31       33      34      35      36     37     38     39
+     40       41      42      43      44     45     46     47
+     48       49      50      51      52     53     54     55
+     56       57      58      59      60     61     62     63
+     64       65      66      67      69     70     71     72
+     73       74      75      76      77     78     79     80
+     81       82      83      84      85     86     87     88
+     89       90      90      91      92     93     94     95
+     96       97      98      99     100    101    102    103
+    104      105     106     107     108    109    110    111
+    112      113     114     115     117    118    119    120
+    121      121     122     123     124    125    126    127
+    128      129     130     131     132    133    134    135
+    136      137     138     139     140    141    142    143
+    144      145     146     147     148    149    150    151
+    152      153     154     155     156    157    158    159
+    160      161     162     163     164    165    166    167
+    168      169     170     171     172    173    174    175
+    176      177     177     178     179    180    181    182
+    183      184     185     186     188    189    191    193
+    195      198     201     205     210    215    220    227
+    233      240     247     254     261    268    276    284
+    292      301     309     316     325    332    341    350
+    358      367     375     383     392    400    407    416
+    423      433     441     450     457    466    476    485
+    493      502     510     518     527    537    546    554
+    562      570     578     586     595    603    611    619
+    627      635     643     652     660    668    676    684
+\END
+!
+!------------------------------------------------------------------------------
+!     ****** user's control parameters can be added below ******
+!------------------------------------------------------------------------------
+!
+\STOP

@@ -1,0 +1,348 @@
+   
+
+
+                      COMPACK Version 2.0 Update.                      COMPACK Version 2.0 Update.
+
+
+                             J. S. Hoftun
+                           Brown University
+                            4 December 1986
+
+
+     Introduction1    Introduction
+
+  Described in this note is the changes to COMPACK  as  implemented  in
+version 2.0, recently released from the central D0LIBRARY.  There are a
+few changes to calling sequences, in  particular  to  MENUDO,  and  the
+versions   are  therefore  NOT  backwards  compatible.   It  should  be
+realtively straight-forward  to  convert  an  existing  program,  using
+version 1.0 (1.2) to use version 2.0.
+
+
+     Changed Calling Sequences2    Changed Calling Sequences
+
+2.1    MENUDO
+
+  Purpose:  Starting menu dialog on a new menu level.
+
+  Calling sequence:   CALL MENUDO(TOPS,USENAM,DISPAT,COMOUT)
+
+  Argument(s):  TOPS:    Character string containing the title line for
+                         the main menu.
+                USENAM:  Character string corresponding to one  of  the
+                         names used in a call to MENSET.
+                DISPAT:  Name   of   dispatching   routine   for   this
+                         menu-level.
+                COMOUT:  Character  variable  for   returning   command
+                         string.
+
+  Notes:  See note below about dispatching routines.
+          COMOUT is set to 'BLANK' on  entry,  changed  to  the  unique
+          command  identifer  from the setup file if it does NOT have a
+          'CALL' in it, or to 'EXIT' if exit was given as the command.
+
+
+2.2    GETPAR
+
+  The call itself is identical to the one in Version 1, but  a  feature
+to  be  able  to  call GETPAR more than once within the same command is
+added.  This is accomplished by using a NEGATIVE argument count  (first
+argument  in  the  call to GETPAR) for the second and later calls.  The
+internal counter is then not reset, and a  complete  command  typed  in
+line mode will be parsed correctly.
+
+
+
+
+
+                                  1
+     New Routines3    New Routines
+
+3.1    CANMEN
+
+  Purpose:  Cancel an interrupt mode menu setup.
+
+  Calling sequence:   CALL CANMEN
+
+  Notes:  Must be called when the task issuing the INTMEN call
+          finishes.
+
+
+3.2    EXIMEN
+
+  Purpose:  Exit from program with screen restored to "normal".
+
+  Calling sequence:   CALL EXIMEN(STATUS,LEVEL)
+
+  Argument(s):  STATUS:  An integer VAX status message.
+                LEVEL:   Integer to indicate which menu level the  call
+                         was issued from.
+
+  Notes:  STATUS=1 indicates normal exit.
+          Use LEVEL=1 to indicate the top level menu.
+
+
+3.3    INTMEN
+
+  Purpose:  Set up a menu for interrupt mode menu interactions.
+
+  Calling sequence:   CALL INTMEN(TOPS,USENAM,DISPAT)
+
+  Argument(s):  TOPS:    Character string containing the title line for
+                         the main menu.
+                USENAM:  Character string corresponding to one  of  the
+                         names used in a call to MENSET.
+                DISPAT:  Name   of   dispatching   routine   for   this
+                         menu-level.
+
+  Notes:  See note below about dispatching routines.
+
+          A QIO is issued for the terminal and control is  returned  to
+          the  calling  routine.   When  anything  is  entered  on  the
+          keyboard, the main task is interrupted, the action  indicated
+          by  the  key(s)  are taken, a new QIO is issued, and the main
+          task is started up again.
+
+
+3.4    MSGSCR
+
+  Purpose:  Interpret a VAX status message and output it to the screen.
+
+  Calling sequence:   CALL MSGSCR(STATUS,STRING)
+
+  Argument(s):  STATUS:  Integer VAX status message.
+
+
+                                  2
+                STRING:  Character string containing a SHORT message to
+                         be  written  to  the  screen  in  front of the
+                         actual VAX message.
+
+  Notes:  STATUS is normally returned from a VAX System Service or
+          Run Time Library function call.   It  is  also  in  the  IOSB
+          argument to the QIO system service.
+
+
+3.5    OUTMSG
+
+  Purpose:  Output messages to the screen in an orderly fashion.
+
+  Calling sequence:   CALL OUTMSG(STRING)
+
+  Argument(s):  STRING:  Character string containing the message to  be
+                         written to the screen.
+
+  Notes:  The first character in STRING is used for carriage control.
+          In full screen mode the display will stay on lines  4-20  and
+          scroll  if  more  than  16  lines are used within one command
+          level (screen erased when going back to menu).  A screen  may
+          be  cleared by using '1' as the first character in STRING.  A
+          '$' works correctly as used in connection with a prompt,  but
+          not always like a FORTRAN write.
+
+
+3.6    PFLABL
+
+  Purpose:  Output labels for the 4 PF keys on bottom of screen.
+
+  Calling sequence:   CALL PFLABL(PFL1,PFL2,PFL3,PFL4)
+
+  Argument(s):  PFL1-4:  Character strings containing  the  labels  for
+                         each of the four PF keys.
+
+  Notes:  The labels are output on the bottom line of the screen.
+          Use this routine in connection with  READPF  if  you  want  a
+          special use of the PF keys.
+
+
+3.7    PFNUM
+
+  Purpose:  Access the variable PF without including the common blocks.
+
+  Declaration:    INTEGER PFNUM
+
+  Calling sequence:   I=PFNUM()
+
+  Return value:   The current value of PF.
+
+  Notes:  Should be used after a call to GETPAR to see if a PF key
+          was struck while a list of  parameters  were  being  prompted
+          for.   Actions  should  NOT be taken if PF.NE.0 since not all
+          parameters will be available then.
+
+
+                                  3
+3.8    SETMOD
+
+  Purpose:  Access the variable  SETUP  without  including  the  common
+blocks.
+
+  Declaration:    LOGICAL SETMOD
+
+  Calling sequence:   L=SETMOD()
+
+  Return value:   The current value of SETUP.
+
+  Notes:  Should be used after a call to GETPAR to see if in the
+          program  is  setting  up  a  command  file.   Actions  should
+          normally  NOT  be  taken  when  in  this  mode.   The entered
+          parameters have already been written to the command file.
+
+          See PFNUM as well.
+
+
+     How To Use DISPAT Routines4    How To Use DISPAT Routines
+
+  Each menu level now has its own DISPAT routine.   The  name  must  be
+declared  EXTERNAL  in  the  routine  calling MENUDO for that level and
+included in the actual call to MENUDO.  The different  DISPAT  routines
+must  therefore  have  different names to make them unique.  The DISPAT
+routines no longer have direct access to PF and other variables in  the
+common blocks, and all commands are expected to be terminated with a PF
+key in full screen mode.  A message is typed on the screen telling  the
+operator when a PF key is expected.  This may change if it is desirable
+to be able to tell the system to go back to the menu without a  PF  key
+being hit first.
+
+  To indicate whether a command should go through a DISPAT  routine  or
+the  identifier  should be returned to the caller, the specifier in the
+menu setup file is used.  If it has a 'CALL' in it, the DISPAT  routine
+will be called.
+
+  In order to make the use of some "system" like commands as uniform as
+possible,  and to avoid having to include those commands explicitely in
+every DISPAT routine, a routine SYSDSP is included in the  system.   It
+may  be  used  as the "last resort" in your own DISPAT when none of the
+commands matches the current  one,  or  if  only  system  commands  are
+desired, as the DISPAT routine in your call to MENUDO.  If it is called
+from a DISPAt routine, it must be called  with  the  same  argument  as
+originally passed to the DISPAT routine.  See TYPDSP at the end of this
+note for an example.  Notice that  if  any  of  the  system  calls  are
+desired,  they  must  still  be include in the Menu Setup file for that
+menu level.  This allows the programmer to select which of the commands
+in the SYSDSP routine will be supported in his/her program.
+
+
+
+
+
+
+
+
+                                  4
+  The current system commands are:
+
+     1.  Menu Control             (for controlling menu parameters)
+
+     2.  Run Command File
+
+     3.  Setup Command File
+
+     4.  Add Menu Item            (for adding VMS commands to the menu)
+
+     5.  Executing any added VMS command
+
+
+
+     General Comments5    General Comments
+
+  When setting up command files, the file name  is  tied  to  the  menu
+level  which  started  the  setup, and one cannot get to a higher level
+while still in setup mode.  But it now works  correctly  going  down  a
+menu  tree, the EXIT from each level is written to the command file and
+read in when the command file is being used for input.
+
+  Also notice the description of a setup file in the Programmers Guide,
+this  allows  a general use of assignments to menu files and the use of
+the program as a foreign command in VMS.  It is possible to  start  the
+program  with  a  startup  command file and to execute only one command
+directly and never see the command prompt when this  symbol  definition
+is made.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  5
+     Examples6    Examples
+
+
+
+
+      SUBROUTINE TYPDSP(COMIN)
+      IMPLICIT NONE
+      CHARACTER*(*) COMIN
+      EXTERNAL MENDSP      
+C
+C-------------------------------------------------------------------------
+C     Dispatching routine for menu system.
+C
+C  Argument:
+C
+C     COMIN  : Character variable with the command matched from the list 
+C              of available commands.
+C
+C  Method of operation:
+C
+C       This routine has a long list of IF-ELSEIF-ELSE statements for 
+C       matching COMIN to the commands it knows about. It then performs 
+C       the work or calls a separate subroutine to actually do the work 
+C       for a given command.
+C---------------------------------------------------------------------------
+C    
+C     Start the search for predefined commands
+C
+      IF(INDEX(COMIN,'CALL TYPGET').GT.0) THEN
+         CALL TYPGET
+      ELSEIF(INDEX(COMIN,'CALL TYPGO').GT.0) THEN
+         CALL TYPGO
+      ELSE
+C
+C     Not one of the predefined SPECIFIC commands, try to call the 
+C     system dispatch routine.
+C
+         CALL SYSDSP(COMIN)
+      ENDIF
+      RETURN
+      END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  6

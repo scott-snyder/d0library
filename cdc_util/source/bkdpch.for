@@ -1,0 +1,39 @@
+      SUBROUTINE BKDPCH(LBANK)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Create CDC Pedestal Electronic Header Bank
+C-
+C-   Inputs  : none
+C-   Outputs : LBANK = Address of the created bank
+C-   Controls: none
+C-
+C-   Created  14-JUN-1989   Srini Rajagopalan
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$INC:ZEBSTP.INC'
+      INCLUDE 'D0$LINKS:IZDPDH.LINK'
+      INCLUDE 'D0$LINKS:IZDPCH.LINK'
+C
+      INTEGER LBANK,LDPCH
+      INTEGER NL,NS,ND,NIO
+      DATA NL,NS,ND,NIO /4,4,10,2/
+C
+C     NL = Number of Links
+C     NS = Number os Structural Links
+C     ND = Number of data words
+C     NIO = Data Type (Integer)
+C----------------------------------------------------------------------
+C
+      LDPDH = LC(LSCDC - IZDPDH)
+      IF (LDPDH.EQ.0) THEN
+        LBANK = 0                       ! Supporting bank does not exist
+        GO TO 999
+      ENDIF
+C
+      CALL MZBOOK(IDVSTP,LDPCH,LDPDH,-IZDPCH,'DPCH',NL,NS,ND,NIO,0)
+      LBANK = LDPCH
+C
+  999 RETURN
+      END

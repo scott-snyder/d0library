@@ -1,0 +1,290 @@
+   
+
+
+                            COMPACK Version 3.1 Update.                            COMPACK Version 3.1 Update.
+
+
+                                    J. S. Hoftun
+                                  Brown University
+                                    8 March 1987
+
+
+              Introduction         1    Introduction
+
+           Described in this note is the changes to COMPACK as  implemented
+         in  version  3.1  (V3.0  was  used as a test release of this major
+         upgrade).  There are  a  few  changes  to  calling  sequences,  in
+         particular to MENUDO, and the versions are therefore NOT backwards
+         compatible.  It should be realtively straight-forward  to  convert
+         an  existing  program,  using  version 2.4 (latest release) to use
+         version 3.1.  The major change in this version is the introduction
+         of  the  SMG  screen managment routines which are the standard VAX
+         system screen managment procedures  in  V4.0  and  higher.   These
+         changes  are mostly transparent to the user; the split screen mode
+         and the ability to recall the previous command on the  same  line,
+         are  about  the  only directly visible changes.  But the system is
+         more coherent internally,  and  it  is  easier  to  make  upgrades
+         involving  fancier screen management.  Besides, the interrupt menu
+         mode seems to work better using the SMG  routines.   There  should
+         now also be very little chance of getting any recursive subroutine
+         calls, this will make the transport of  these  programs  to  other
+         machines a lot safer.
+
+
+              Changed Calling Sequences         2    Changed Calling Sequences
+
+         2.1    MENUDO
+
+           Purpose:  Starting menu dialog on a new menu level.
+
+           Calling sequence:   CALL MENUDO(TOPS,USENAM,COMOUT)
+
+           Argument(s):  TOPS:    Character  string  containing  the  title
+                                  line for the main menu.
+                         USENAM:  Character string corresponding to one  of
+                                  the names used in a call to MENSET.
+                         COMOUT:  Character variable for returning  command
+                                  identifier.
+
+           Notes:  COMOUT is set to 'BLANK' on entry, changed to the unique
+                   command identifer from the setup file  if  it  does  NOT
+                   have  a  'CALL' in it, or to 'EXIT' if the user wants to
+                   leave  the  current  level.   See  below  about   'CALL'
+                   identifiers.
+
+                   If TOPS is given as ' ' (one space), the system will use
+
+
+                                  1
+                   the  command  line  which  gave rise to this menu as the
+                   title.  The program name will also be added to the right
+                   side of the title.
+
+
+         2.2    GETPAR
+
+           The call itself is identical to the one  in  Version  2,  but  a
+         feature to be able to maintain the current value of a parameter as
+         the default when a <CR> is struck has been added.   This  is  only
+         true  for  numeric  parameters ('I','R','L'), Getpar does NOT move
+         anything into the parameters in this case.
+
+
+              New Routines         3    New Routines
+
+         3.1    FULMOD
+
+           Purpose:  Access  the  variable  FULSCR  without  including  the
+         common blocks.
+
+           Declaration:    LOGICAL FULMOD
+
+           Calling sequence:   L=FULMOD()
+
+           Return value:   The current value of FULSCR.
+
+           Notes:  Should be used if special action like calling PFLABL is
+                   needed when the system is in full screen mode (FULSCR is
+                   true).
+
+
+         3.2    GOTOP
+
+           Purpose:  Check a flag indicating direct jump to the top menu.
+
+           Declaration:    LOGICAL GOTOP
+
+           Calling sequence:   L=GOTOP()
+
+           Notes:  ALL routines doing dispatching tasks at lower menu
+                   levels MUST check this flag  if  a  "Go  to  Top  Level"
+                   command is implemented.
+
+
+         3.3    INTMSG
+
+           Purpose:  Output messages to the top half of a split screen.
+
+           Calling sequence:   CALL INTMSG(STRING)
+
+           Argument(s):  STRING:  Character string containing  the  message
+                                  to be written to the screen.
+
+
+
+
+                                  2
+           Notes:  The first character in STRING is used for carriage
+                   control.
+
+                   If split screen has been set up either directly or by  a
+                   call  to  INTMEN,  these  messages  will  appear  in the
+                   special display on the top half of  the  screen.   These
+                   messages are saved and output again if the split display
+                   is removed and then restored again.  If split screen has
+                   NOT  been  established,  this routine works identical to
+                   OUTMSG.
+
+
+         3.4    LIBREP
+
+           Purpose:  Refresh the screen if NON-SMG output has been used.
+
+           Declaration:    INTEGER LIBREP
+
+           Calling sequence:   I=LIBREP()
+
+           Return value:   The return status of a SMG routine.
+
+           Notes:  Should be used if the programmer suspect that NON_SMG
+                   output may have over-written the screen.  A return of  1
+                   means success.
+
+
+         3.5    PFWAIT
+
+           Purpose:  Wait for a PF key to be struck in full screen mode.
+
+           Calling sequence:   CALL PFWAIT
+
+           Argument(s):  NONE
+
+           Notes:  This routine should be used in all action routines which
+                   may have produced output the user have  to  read  before
+                   the  menu  is  redisplayed.   In line mode this routines
+                   does nothing.
+
+
+         3.6    SETFLG
+
+           Purpose:  Tell the system NOT to display menu before going on.
+
+           Calling sequence:   CALL SETFLG
+
+           Argument(s):  NONE
+
+           Notes:  This  routine  should be  used in  all action routines
+                   called from  an  interrupt  dispatch  routine  when  the
+                   interrupt  menu  will  be terminated as soon as the main
+                   code gets control again.  This  prevents  the  interrupt
+                   menu from flashing on the screen for a brief moment just
+                   to be taken away by a call to CANMEN shortly afterwards.
+
+
+                                  3
+                   See the example in TYPEND as used in TYPROG.
+
+
+              How to Perform DISPAT Tasks         4    How to Perform DISPAT Tasks
+
+           The EXTERNAL DISPAT routine used in V2 no longer is part of  the
+         system.  Instead, MENUDO now ALWAYS returns the command identifier
+         for a non-system command.  Only  system  commands  (listed  below)
+         should now have a 'CALL' in their identifier in the .SET file.  It
+         is still recommended that the section of code which is  doing  the
+         dispatching  task,  be well separated from the action code itself.
+         This also makes the change from V2 to V3 easier.  One  just  moves
+         the  call  to  MENUDO  inside  a loop in the dispatch routine, and
+         calls the dispatch  routine  from  the  higher  level  instead  of
+         calling MENUDO.  For VAX-only programs this is easiest done with a
+         DO WHILE (also handled by ASPIRIN).
+
+           EXAMPLE:
+
+               SUBROUTINE SUBLV1
+         C
+         C-------------------------------------------------------
+         C     Dispatching type routine for menu system.
+         C-------------------------------------------------------
+         C
+               IMPLICIT NONE
+               CHARACTER*80 COMIN
+               LOGICAL GOTOP
+               COMIN=' '          ! Must be used to prevent old EXIT from
+                                  ! being acted upon again
+               DO WHILE (COMIN.NE.'EXIT'.AND..NOT.GOTOP())
+                  CALL MENUDO(' ','SUBLV1_MENU',COMIN)
+                  IF(INDEX(COMIN,'TYPGET').GT.0) THEN
+                     CALL TYPGET
+                  ELSEIF(INDEX(COMIN,'SUBLV2').GT.0) THEN
+                     CALL SUBLV2
+                  ENDIF
+               ENDDO
+               RETURN       
+               END
+
+
+           Such a loop must NOT be used in a DISPAT routine used in a  call
+         to INTMEN.
+
+           Notice the use of COMIN=' ' above, it is  needed  to  make  sure
+         that  a  second  time  this dispatch routine is called, the 'EXIT'
+         from the previous time is not used again.
+
+           In order to make the use  of  some  "system"  type  commands  as
+         uniform as possible, and to avoid having to include those commands
+         explicitely  in  every  dispatch  routine,  a  routine  SYSDSP  is
+         included  in  the  system.   It  is  called automatically when the
+         command identifier is prefixed with 'CALL'
+
+
+
+                                  4
+           The current system commands are:
+
+         1.  Menu Control             (for controlling menu parameters)
+
+         2.  Run Command File
+
+         3.  Setup Command File
+
+         4.  Start Logging to File
+
+         5.  Stop Logging to File
+
+         6.  Split Screen             (to split screen in two regions)
+
+         7.  Single Screen            (to go back to single screen mode)
+
+         8.  Go to Top Level          (to go back directly to the top menu)
+
+         9.  Add Menu Item            (for adding VMS commands to the menu)
+
+
+           The definitions and help information for these  commands  should
+         be  copied  from  one  of the example .SET files provided with the
+         system.  Look in D0$COMPACK$SOURCE.
+
+
+              General Comments         5    General Comments
+
+           LOGGING mode is different from SETUP  mode  in  the  sense  that
+         actions should still be taken in LOGGING mode.  This mode is meant
+         to be a record of what was going on in a session, and the file may
+         be  used  as  a  command  file  later.  The names overlap with the
+         command files set up using SETUP mode.  In logging mode one may in
+         principle move up and down the menu tree, but the file may only be
+         invoked as a command file at the level where logging  was  started
+         in the first place.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  5

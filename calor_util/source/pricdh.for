@@ -1,0 +1,92 @@
+      SUBROUTINE PRICDH(PRUNIT,LICDH,NICDH,CFL,IFL)
+C
+C******************************************************************************
+C
+C     PURPOSE: PRICDH prints out the contents of the ICDH bank
+C
+C     INPUT: PRUNIT is the unit number for the printout
+C            LICDH is the link to the ICDH bank
+C            NICDH is the bank number, not used
+C            CFL is a flag to control printout, not used, no linear chain
+C            IFL is a flag giving the type of printout, not used
+C
+C     CREATED: Nov. 8, 1988 by Z. Wolf
+C
+C******************************************************************************
+C
+      IMPLICIT NONE
+C
+C--   I/O
+      INTEGER PRUNIT,LICDH,NICDH,IFL
+      CHARACTER CFL*(*)
+C
+C--   ZEBRA
+      INCLUDE 'D0$INC:ZEBCOM.INC/LIST'
+C
+C--   GEANT UNITS
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+      INCLUDE 'D0$PARAMS:BYTE_ORDER.PARAMS'
+C
+C--   INTERNAL VARIABLES
+      INTEGER NWTRK,NTRK,ITRK,POINTR
+      INTEGER PKADDR,ITRA,ISTAK,IPART,CHARGE,NMVERT
+      REAL ETILE,LTILE,GEKIN,SLENG,TOFG
+      BYTE BYTES(4)
+      EQUIVALENCE (BYTES,PKADDR)
+      INTEGER IE,IP
+      CHARACTER*4 CHAR4
+      INTEGER ICHAR4
+      EQUIVALENCE (ICHAR4,CHAR4)
+      DATA     CHAR4 /'ICDH'/
+C
+C--   CHECK LINK
+      IF(IQ(LICDH-4).NE. ICHAR4)THEN
+        WRITE(LOUT,*)'PRICDH--> PROBLEM WITH LICDH, WILL PRINT ANYWAY'
+      END IF
+C
+C--   WRITE HEADER
+1     WRITE(PRUNIT,10)LICDH
+10    FORMAT(//' ','ICDH BANK'
+     +  /' ','(Output of PRICDH, LICDH= ',I10,')'/)
+C
+C--   WRITE BANK CONTENTS
+      WRITE(PRUNIT,20)IQ(LICDH-5)
+20    FORMAT(' ','BANK NUMBER = ',I5)
+      WRITE(PRUNIT,21)IQ(LICDH-4)
+21    FORMAT(' ','BANK NAME = ',A4)
+      WRITE(PRUNIT,22)IQ(LICDH-3),IQ(LICDH-2),IQ(LICDH-1)
+22    FORMAT(' ','NL= ',I5,5X,'NS= ',I5,5X,'ND= ',I5)
+      WRITE(PRUNIT,31)IQ(LICDH+1)
+31    FORMAT(' ','BANK VERSION NUMBER = ',I5)
+      WRITE(PRUNIT,32)IQ(LICDH+2)
+32    FORMAT(' ','NUMBER OF WORDS PER TRACK = ',I5)
+      WRITE(PRUNIT,33)IQ(LICDH+3)
+33    FORMAT(' ','NUMBER OF TRACKS = ',I5)
+C
+      WRITE(PRUNIT,*)'IE,IP,ETILE,LTILE,ITRA,ISTAK,IPART,
+     +CHARGE,GEKIN,NMVERT,SLENG,TOFG'
+      NWTRK=IQ(LICDH+2)
+      NTRK=IQ(LICDH+3)
+      DO 40 ITRK=1,NTRK
+      POINTR=3+NWTRK*(ITRK-1)
+      PKADDR=IQ(LICDH+POINTR+1)
+      ETILE=IQ(LICDH+POINTR+2)/1.E6
+      LTILE=IQ(LICDH+POINTR+3)/1.E6
+      ITRA=IQ(LICDH+POINTR+4)
+      ISTAK=IQ(LICDH+POINTR+5)
+      IPART=IQ(LICDH+POINTR+6)
+      CHARGE=IQ(LICDH+POINTR+7)
+      GEKIN=IQ(LICDH+POINTR+8)/1.E6
+      NMVERT=IQ(LICDH+POINTR+9)
+      SLENG=IQ(LICDH+POINTR+10)
+      TOFG=IQ(LICDH+POINTR+11)/1.E9
+      IE=BYTES(BYTE4)
+      IP=BYTES(BYTE3)
+      WRITE(PRUNIT,41)IE,IP,ETILE,LTILE,ITRA,ISTAK,IPART,
+     +  CHARGE,GEKIN,NMVERT,SLENG,TOFG
+41    FORMAT(' ',I3,2X,I3,2X,F7.4,2X,F7.4,2X,I3,2X,I3,2X,I3,
+     +2X,I2,2X,F8.4,2X,I3,2X,F4.0,2X,F8.3)
+40    CONTINUE
+C
+      RETURN
+      END

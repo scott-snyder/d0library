@@ -1,0 +1,429 @@
+.!   RUNOFF file.      Change margins and page size if needed
+.!
+.PAGE SIZE 58,90     .LEFT MARGIN  5        .RIGHT MARGIN  85
+.FLAGS SPACE `       .FLAGS HYPHENATE |  
+.LAYOUT  3,2
+.NO HEADERS
+.BLANK 3
+.RIGHT ; 9 May 1988
+.RIGHT ; Updated 5 August 1988
+.BLANK 10       !------------------- begin (underlined) title
+.CENTER ; ^& CDC_ data_ processing \&
+.BLANK 3
+.CENTER ;  " From raw FADC data to tracks in the Central Drift Chamber "
+.BLANK 5
+.CENTER ; Olivier Callot
+.BLANK 2
+.CENTER ; SUNY, Stony-Brook
+.CENTER ; and
+.CENTER ; LAL, Orsay ( France )
+.BLANK 10
+.!------------ main text start here.
+.NOTE Abstract
+This document is a description of the CDC data processing as implemented
+in D0USER, i.e. the piece of software which will transform the FADC data
+in the bank CDD2 to tracks in the CDC. This software is distributed in the
+D0_$TRACKING__UTIL_$CDC directory. It is working on cosmic ray data taken
+at Stony-Brook and on GEANT output. It also contains a display package to
+display FADC and events, and an alignment package to generate a new set
+of constants.
+.END NOTE
+ 
+.page
+.HEADER LEVEL 1 How to run it
+ 
+.HEADER LEVEL 2 Build and executable image 
+In order to run this package, you have first to build an executable image. For
+that, you have to run the Program__Builder in the D0USER framework. You will
+have "CDC" as an option in the Library Package list. Choose it, and build
+the program. You will then have to run the link file with DI3000 option,
+and you will have your executable image.
+.HEADER LEVEL 2 Define Logical names 
+You then need to define two logicals : 
+.LIST "o"
+.LIST ELEMENT ; D0_$CDC__GEO points on a directory where you have the Static
+Parameter files for the run you are working on or the default file. The
+file names are STP__xxxx.ZEB, where "xxxx" is the run number. The default
+file is STP__0000.ZEB. A default value for the default file can be found
+as D0$ROOT:[D0GEANT.DATA]CDC__STPFILE.DAT . This program is able to produce
+new versions of this parameter files, using the ALIGNMENT option, see later. 
+.LIST ELEMENT ; CDC__CTRL points on the Control File, an ASCII file which
+defines the debug options, tracking tolerances and histogram choices. A
+default one is in D0_$TRACKING__UTIL_$CDC:CDC__CTRL.EXAMPLE, see appendix
+A.
+.END LIST
+.HEADER LEVEL 2 Choose a data file 
+Last, you have to have data files... Either you produced them using GEANT
+CDC with CDD2 output option ( SCDC(1) = 1 in GEANT data cards), or you use
+SBHEP::USR2:[ONLINE]COS__xxxx.ZEB, the data file produced at Stony-Brook by the
+Cosmic station. 
+.HEADER LEVEL 2 Other useful documentation
+If you want to understand the program, it is useful to read the bank
+descriptions. You will find in D0_$DOCS the following files: 
+.LIST "o"
+.LIST ELEMENT ; CDCFADC__ZEBANKS.MEM is a description of the CDD2 input
+bank, and is useful to understand the unpacking part of the program
+.LIST ELEMENT ; CDCHITS__ZEBANKS.MEM is a description of the Pulse and Hit
+banks, result of the unpacking and hit finding parts of the program.
+.LIST ELEMENT ; CDCTRACK__ZEBANKS.MEM is a description of the track segment
+and track banks, final results of this program.
+.LIST ELEMENT ; CDCCON__ZEBANKS.MEM is a description of the static parameter
+banks ( pedestals, gains, geometry and alignment ). These banks are used
+at various places in the program, whenever a "static" constant is needed.
+.END LIST
+ 
+.page
+.HEADER LEVEL 1 Description of the program
+ 
+.HEADER LEVEL 2 General Structure 
+ 
+The program is mainly an event processing routine CDCEVT, which in fact
+calls 4 routines : 
+.BLANK 1
+.LIST 0 "-";
+.LIST ELEMENT ; CDHITS is the pulse and hit finding routine.
+.LIST ELEMENT ; CDTSEG is the segment finding routine. A segment is the
+portion of track which is in a layer.
+.LIST ELEMENT ; CDTRAK is the segment matching, i.e. the linking of the
+4 layers to build and fit the complete track.
+.LIST ELEMENT ; CDHFIL is the hitogram filling routine.
+.END LIST
+Of course, we need some initialisations ( CDCPAR, CDCINI ) and we can write
+some results ( CDCUSM ). 
+ 
+.HEADER LEVEL 2 Unpacking
+ 
+When searching for a pulse in a FADC, we first have to unpack the raw data
+in a more user-friendly way. This is done by CDUNPK, which calls the CDEXPD
+routine to expand the packed bytes and words in a FORTRAN standard array.
+CDEXPD expect as argument the label of the FADC as it is in CDD2 bank.
+CDUNPK is then mainly an interface to build this label from the 'coordinates'
+( layer, sector, wire number ) of the channel.  CDEXPD relies on the change of
+event number to build only once per event the list of pointers on each FADC.
+This list is then used for a fast access to the data. The actual value used
+as label in the FADC is LAYER*512 + SECTOR*16 + WIRE
+ 
+.HEADER LEVEL 2 Pulse Finding ( CDPULS )
+ 
+Hits are searched independently in each FADC. We look for leading edges
+using threshold on the derivative of the signal. We require 3 consecutive
+derivatives to be over THR1 or 2 over THR1 and their sum over THR2. From
+this point, we look for first negative derivative. This is the end of the
+leading edge, and we compute the time of the pulse by a weighted barycenter
+of the leading edge's derivative. Then we look for a trailing edge, which
+occurs when one of the following condition is met:  
+if the derivative becomes too small,
+if a new leading edge occurs, 
+after a fixed ( PULMAX ) number of bins if the previous conditions are not met,
+or if we reach
+the end of FADC data. We then compute the integral, and store the pulse.
+In order to avoid too much ZEBRA overhead, we store the pulses in a local
+array, and book the DCDA bank only when the final size is known.
+ 
+.HEADER LEVEL 2 Hits and Z coordinates ( CDGETZ )
+ 
+The building of the DSEC banks is mostly a conversion from the DCDA bank,
+using the time to position banks ( DTMx ) for the time and the gain banks
+( DGNx ) for the area. But in fact DSEC contains also the Z coordinate,
+and this is a delicate processing in routine CDGETZ. The basic of the method
+is to compute the possible Z values for each end of the Delay line, and
+to match the two ends. We actually retain only one Z per sense wire hit,
+the one with best right-left match if within tolerance, or the only solution
+if no solution on one side and only one on the other. No Z measurements in the
+other cases. The Z value is added to the DSEC bank.
+ 
+.HEADER LEVEL 2 Segment finding ( CDTSEG ) 
+ 
+A "segment" is a portion of track seen in one layer.
+    The segment finding is done  using a "road" method, and is based on the
+algorithm    developed  for  NA3   experiment  at  CERN. We define a road
+by a hit in the 'first' and 'last' wire, and search for hits in the
+intermediate planes. 'first' and 'last' are not always 0 and 6, to allow
+inefficiencies in these planes.
+.PARAGRAPH  3   ! arg = horizontal indentation
+The steps are the following: We work one layer at a time, but all the sectors
+at once. First, we process the DSEC banks to build, for each wire ( 0 to 6 ), a
+list, ordered in phi, of the possible hits ( each hit is used twice in the
+list, due to the drift direction  ambiguity ). We
+then try to find straight lines in  the R-Phi plane. Even if  mathematically a
+straight line in X-Y is not a  straight line in R-Phi,  this is sufficiently
+true in one layer ( thickness = 4.2 cm, radius > 60 cm ) and for tracks coming
+from the interaction region. The  discontinuity around phi = pi is suppressed
+by copying the [-pi,-pi+CDMXPH] phi range at position [pi,pi+CDMXPH], CDMXPH
+being the tolerance in phi difference between hits on a segment ( see appendix
+A ). These lists are the result of the CDHITL routine.
+.PARAGRAPH  3   ! arg = horizontal indentation
+These 7 lists ( one per wire ) are then used to search for segments. We perform
+a loop on the hits on the first wire, a loop on the hits on the last wire. We
+apply a tolerance cut CDMXPH in the phi difference of these two hits. Due to
+the order in phi, we can make some speed improvements: If a hit in the "last"
+wire has a phi value smaller than the minimum ( phi(first)-CDMXPH ), then this
+hit will no more be a candidate for this First-Last wire pair. And we stop
+scanning when phi(last) > phi(first)+CDMXPH. 
+.PARAGRAPH  3   ! arg = horizontal indentation
+For the pair candidate, we search 
+for all intermediate wires, for the hit closest to the prediction. 
+This hit is retained if it is within a road ( in phi, but defined in
+CDC__CTRL by the distance CDTRTO ). We go to the
+next First-Last hit pair as soon as we missed more than the maximum number of
+missing hits CDINFM.
+Due also to the order in phi, we scan each intermediate wire from the
+previous tested hit on this wire: The tracks being mainly parallel in the
+R-Phi plane, that's a way to find very fast the correct hit. In all this
+processing, we process the same way the two possible hits due to drift
+direction ambiguity.
+.PARAGRAPH  3   ! arg = horizontal indentation
+When we have found a sufficient number of hits on the candidate, we perform
+an X-Y fit, using errors, and then a Chisquare cut ( in fact chisquare/degree
+of freedom, CDMXCH ). If the segment fulfills this cut, we keep it. We
+store it in the DTSG bank, pushing the bank if necessary. All the
+participating hits are tagged ( if not already tagged ) by the  number of
+hits on the segment. This means that the hit AND the mirror image are tagged,
+and that they will not be used as a seed for track with lower efficiency. Then
+we go to the next hit pair for this First-Last wire combination.
+.PARAGRAPH  3   ! arg = horizontal indentation
+We first do all this search for first=0, last=6. 
+Then, we change the First-Last wires, keeping the number of external wires
+( inefficient by definition ) compatible with the requested efficiency and
+we perform again the search. When all the possible first-last wire combination
+have been done, we increase the number of allowed missing wires ( up to
+the value of CDINFM ), and start again. But we don't use as starting point for
+a track, a hit used in a track obtained with higher efficiency. This is
+mandatory to avoid finding again the same track ( or part of it ). In order to
+be more specific, the order of the search is the following:
+.BLANK 1
+.LIST 0 ' ';
+.LIST ELEMENT ; for 0 missing :  0-6
+.LIST ELEMENT ; for 1 missing :  0-6, 0-5, 1-6
+.LIST ELEMENT ; for 2 missing :  0-6, 0-5, 0-4, 1-6, 1-5, 2-6
+.END LIST
+This means that the number of loops is mainly defined by the maximum allowed
+inefficiency, but that we have to skip quickly the already used solutions...
+That's the main use of the tagging.
+ 
+ 
+.HEADER LEVEL 2 Segment matching ( CDTRAK )
+ 
+This routine is then called to match the segments on the 4 layers. Starting
+from the external layer ( 3 ), for each segment, we try to find in the
+preceding layer a segment with angle phi compatible, and whose distance
+( computed in the medium plane between the two segment ) is smaller than
+a cut. We try again up to the layer 0. We also allow one missing layer,
+and then have to start also from layer 2. Each time we have a full track
+candidate, we perform a full space track fit, including the Z coordinate.
+A chisquare cut is applied on the track, which is mainly to reject very
+low momentum tracks. Resulting track is stored in a linear structure of
+banks DTRK, and track to hit relation ( i.e. list of hits and residuals
+of the fit ) are stored in the DTTH bank. And processing is over !
+ 
+.HEADER LEVEL 2 Filling histograms ( CDHFIL )
+ 
+There are "hard wired" histograms, mainly for online monitoring purpose,
+in the program. We can histogram the 4 quantities in DCDA ( pulse time,
+pulse height, pulse area, and pulse width ), and the number of pulse, for
+each wire of each layer ( all sector of the same layer in the same histogram
+to limit the number of histograms ), and then for each "layer" the number
+of track segments, and the residuals on the two delay-lines. We can fill
+the histograms for each hit, for the first one, for those on segments, for
+those on the first segment. These options and the binnings are chosen in 
+CDC__CTRL control file. See appendix A.
+ 
+.HEADER LEVEL 2 Initialisations
+ 
+CDCINI is called at job initialization to give some space for HBOOK. CDCPAR
+is called when starting a run, to read the run parameters. This calls CDINIT
+to read the CDC__CTRL control file, and the D0$CDC__GEO:STP__xxxx.ZEB static
+parameter file for the processed run. If this file is not found, the default
+file ( xxxx = 0000 ) is used. We abort if this default file is not found.
+On request, we print on the debug unit the parameters for this job. Then,
+we book the requested histograms, with the requested binning.
+ 
+.HEADER LEVEL 2 Summaries
+ 
+CDCUSM is called for User Summary. If we run an alignment run, we write
+on USER.OUT the new set of constants, and create a new static parameter
+file D0$CDC__GEO:STP__xxxx.ZEB, where xxxx is the run number. Then, for
+every kind of run, we print the histogram statistic, one line per histogram,
+with title, number of entries, mean, sigma, median, etc... 
+ 
+.PAGE
+.HEADER LEVEL 1 The alignment package
+ 
+.HEADER LEVEL 2 Methods
+ 
+During the processing, we can sum, in reserved arrays, the number, sum,
+sum of squares of some variables ( mainly in routine CDSRES ). Then, at fixed
+interval, we compute the 
+mean and sigma of these quantities, and from these values compute a new
+set of 'alignment' parameters, in routine CDALGN. The quantities are the
+following : 
+.LIST '-'
+.LIST ELEMENT ; Pedestal. We decide that the two first FADC value of each
+transmitted list of values is a pedestal ( that's the job of the zero
+suppression hard/software to extract non-pedestal values, and to transmit
+4 bins before the first non-zero bin ). We then take the mean value of these
+two FADC digitizations, and accumulate ( routine CDPULS ) for each layer,
+sector and FADC the sum and sum of squares. Then we compute the 
+mean and sigma. This is done for CDSURV=1, and with a cut at
+3 sigmas around the previous pedestal value for CDSURV=2. The new pedestal
+values ( bank DPDL ) is just the mean, and sigma, of this quantity. We work on
+pedestal only for CDSURV = 1 or 2. 
+.LIST ELEMENT ; Gain. We compute the mean value and sigma of the pulse area,
+in the DCDA bank. The gain is the coefficient used to transform FADC area
+to ionization in Minimum Ionizing Particle ( MIP ) unit. This is just the
+inverse of the mean value of the pulse area, if we assume that the mean
+value of the ionization is 1. So we do, and the DGNL banks are updated.
+.LIST ELEMENT ; Sense wire T0. This is the offset in time used in the
+relation 
+.LITERAL
+                Position = Velocity * ( Time - T0 )
+.END LITERAL
+and is mainly related to cable length and trigger offset. The value is
+extracted from the residuals of the full track fit. One problem not solved
+is that the velocity is assumed to be constant and known. If we make some
+error on the velocity, we will change the T0 to correct them, and that's
+not a final solution. But now in the program, we just compute the mean value
+of the residual ( multiplied by +1/-1 depending on drift direction, to obtain
+a time residual ) and the sigma, and then convert this mean value ( in cm
+) to a time error. Convergence of this process requires many iterations.
+.LIST ELEMENT ; Delay line T0. This contains two parts: the residual of
+the R-Z fit gives the error on TL-TR, the distance between the Right and
+Left Z solutions in GETZ gives the error on TL+TR. Remember also that any
+change in the corresponding sense wire has to be propagated here, because
+the T0 of the delay line is the observed time for a hit at Z=0 and with
+no drift time. If T0(sense) changes, T(delay) must change by the same amount.
+We then compute the mean value of the Z residual, and the mean value of
+the right-left difference, and correct the two ( right, left ) T0 of the
+delay line.
+.END LIST
+ 
+.PAGE
+.HEADER LEVEL 1 Event display 
+ 
+The event display software can be found in D0$PIXIE$SOURCE:CDxxxx.FOR.
+The interface routine here is CDCEDS, which calls various utilities and
+CDC specific routines. The main part is a MENU, with 9 items as follows:
+.LIST 
+.LIST ELEMENT ; EVENT: Displays the full detector in XY view, and plot (
+as defined in the options ) the cells, wires, hits, and segments. See point
+7 for details
+.LIST ELEMENT ; COSMIC: The same display, but restricted to 3 sectors around
+a selected one ( see point 7 ).
+.LIST ELEMENT ; SECTOR: displays the content of the FADC of one sector,
+including delay lines. You are prompted for Layer number and Sector number.
+.LIST ELEMENT ; ONE FADC: Display one FADC and his derivative. You are prompted
+for the Layer, Sector, FADC you want to look at.
+.LIST ELEMENT ; ZOOM: Make a zoom of the current display, using DI3000 retained
+segments. You have to ( graphicaly ) input the corners of the new window,
+and you see your zoomed picture. RESTRICTION: you can not zoom again on
+the zoomed display.
+.LIST ELEMENT ; HARDCOPY: Copy on the second DI3000 unit the actual picture
+( including zoom ). If you defined it as a laser printer, this is a hardcopy.
+.LIST ELEMENT ; SET OPTIONS: Select what you want to display in menu items
+1 or 2 ( default between brackets ) :
+.LIST 0 '-'
+.LIST ELEMENT ; Display ISAJET tracks ( Geant only...) 0=no, 1=yes  [1]
+.LIST ELEMENT ; Display sector limits. 0=no, 1=yes  [1]
+.LIST ELEMENT ; Display wire position in the sectors. 0=no, 1=yes [0]
+.LIST ELEMENT ; Display hits ( two solutions per hit ) 0=no, 1=yes [1]
+.LIST ELEMENT ; Display track segments: 0=no, 1=all, 2=on full track, 3=
+not on full tracks [1]
+.LIST ELEMENT ; Select central sector for COSMIC display [0]
+.END LIST
+.LIST ELEMENT ; NEXT EVENT: keep the display flag active up to the next
+processed event. Don't restore the screen to ASCII mode.
+.LIST ELEMENT ; EXIT: clear the event display flag, and restore ( or try
+, it works on HDS and VT240 terminals ) the screen to ASCII mode. 
+.END LIST
+ 
+.APPENDIX Description of the CDC__CTRL control file
+ 
+Here is a copy ( with line numbers and arrow in front ) of the CDC__CTRL
+file. The position of each field is important, so the easiest way to have
+a correct file is to copy one, and edit it. Notice that all the numbers
+are in I5, I10 or F10.x formats.
+.LITERAL
+ 
+     1---> Debugging parameters
+     2---> unit nb events  lvl  lvl  lvl  lvl  lvl  lvl  lvl  lvl  lvl  lvl
+     3--->   70         0    0    0    0    0    0    0    0    0    0    0
+     4--->    CDSURV    CDNSTP
+     5--->         0      2000
+     6--->    MAXLAY    MAXSEC            Processing parameters
+     7--->         3        31
+     8--->    PULTH1    PULTH2    PULTH3    PULMAX    PULWEI ===== PULS params.
+     9--->         5        10        10        10      1.20
+    10--->         3        10        10        20      1.20
+    11--->    CDLTOL      2.00    - delay line
+    12--->    CDINFM         2    - Number of missing wires
+    13--->    CDMXPH    0.0200    - Maximum phi diff in a segment
+    14--->    CDTRTO    0.0700    - road width for segments
+    15--->    CDMXCH    5.0000    - Maximum chisq/degf
+    16--->    CDMINL         3    - minimum number of layers
+    17--->    CDTDPH  0.050000    - delta phi between layers
+    18--->    CDTDIS    0.3000    - distance between layers 
+    19--->    CDTCH2   10.0000    - Maximum chisq/degf in R-phi
+    20---> Histogram    valid|    nbins|     low |    high | 
+    21--->         1         0   100.000     1.000  2001.000 
+    22--->         2         0   100.000     1.000  1001.000 
+    23--->         3         0    10.000     1.000   101.000 
+    24--->         4         0   100.000     1.000   301.000 
+    25--->         5         0    20.000    -1.500    18.500 
+    26--->         6         0    20.000    -1.500    18.500 
+    27--->         7         0   100.000   -50.000    50.000 
+    28--->         8         0   100.000   -50.000    50.000 
+ 
+ 
+.END LITERAL
+.LIST 'o'
+.LIST ELEMENT ; The first set of value ( line 3 ) gives the debugging unit
+number (  output will be  on FOR0xx.DAT  if no  assignement is performed to
+this unit ),  the number of  events to be  debugged, and 10  flags, whose value
+controls the  amount of debug  you will  have: 0 is no  print, 1 is minimum, 10
+gives the maximum output available. These flags correspond to: 
+.BLANK 1
+.LIST 0;
+.LIST ELEMENT ; Print on debug unit the constants used for the run (CDINIT)
+.LIST ELEMENT ; Display the event after processing (CDCEVT)
+.LIST ELEMENT ; Debug the pulse finding (CDPULS)
+.LIST ELEMENT ; Debug the Hit finding (CDHITS)
+.LIST ELEMENT ; Debug the delay line processing (CDGETZ)
+.LIST ELEMENT ; Debug the segment finding (CDTFIT)
+.LIST ELEMENT ; Debug the track matching  (CDTRAK)
+.LIST ELEMENT ; Unused
+.LIST ELEMENT ; Uses GEAN DSEC banks instead of processing the FADC datas
+.LIST ELEMENT ; Debug the DITR bank ( ISAJET tracks )
+.END LIST
+.LIST ELEMENT ; Line 5 controls the Alignment, with starting step ( 0 is no
+alignment ) and number of event per step.
+.LIST ELEMENT ; line 7 gives the maximum layer number and sector number
+to be processed. Main use is to put 0 for MAXSEC for cosmic datas
+.LIST ELEMENT ; lines 9 and 10 are the parameters for pulse finding, first
+for sense wires, then for delay lines. Use of these parameters have to be
+looked for in CDPULS source.
+.LIST ELEMENT ; Lines 11 to 19 are the tolerances: For delay line matching
+( maximum distance in cm of the right and left solutions ), for segment
+finding ( 12-15 ) and for segment matching ( 16-19 )
+.LIST ELEMENT ;Lines 21-28 describe the histograms. Value for 'valid' can be: 
+.BLANK 1
+.LIST 0 ' ';
+.LIST ELEMENT ; 0 = no histogram
+.LIST ELEMENT ; 1 = histogram the first hit in the bank
+.LIST ELEMENT ; 2 = histogram all hits in the bank
+.LIST ELEMENT ; 3 = histogram the hits used to build segments.
+.LIST ELEMENT ; 4 = histogram the hits used to build full tracks.
+.END LIST
+The histograms are
+.BLANK 1
+.LIST 0 '-'
+.LIST ELEMENT ; 1000 + 100*layer + ADC : Measured time (ns)
+.LIST ELEMENT ; 2000 + 100*layer + ADC : Pulse area ( FADC counts )
+.LIST ELEMENT ; 3000 + 100*layer + ADC : Pulse width ( multiple of 10 ns
+)
+.LIST ELEMENT ; 4000 + 100*layer + ADC : Peak amplitude ( FADC counts )
+.LIST ELEMENT ; 5000 + 100*layer + ADC : number of hits
+.LIST ELEMENT ; 6000 + 100*layer       : number of tracks in the layer
+.LIST ELEMENT ; 7000 + 100*layer       : residual on delay line wire 0
+.LIST ELEMENT ; 8000 + 100*layer       : residual on delay line wire 6
+.END LIST
+.END LIST

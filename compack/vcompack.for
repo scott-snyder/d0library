@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VCOMPACK()
+      VCOMPACK = ' COMPACK'//
+     X                   '  OFFICIAL V4.33'//
+     X                   ' 15-JUL-1997 11:57:46.16'
+      Return
+      End

@@ -1,0 +1,2250 @@
+.ap
+.p 2 1 2
+.style headers 3,0,6,3,7,4,2,18,3
+.layout 1,3
+.no headers
+##
+.b 1
+.lm 6
+.rm 75
+.c
+COMPACK,
+.b
+.C
+A Command Input Package for Interactive Programs.
+.b 1
+.C
+Programmers Manual. 
+.b
+.c
+Software Version 4.20
+.b 1
+.c
+J. S. Hoftun
+.c
+Brown University
+.c ;31 May 1989
+.noflags substitute
+.no number
+ ##Introduction.
+ The command input package COMPACK described in this manual, consists of a set
+of utility routines used to input commands and data in a selfconsistent way. In
+addition, command parsing routines and screen manipulation routines are built
+into the package. 
+ All the setup information is read in from a file at program startup; this
+makes it easier for an application programmer to change the order of commands,
+to add commands or to delete commands. A utility (written in COMPACK) exists 
+to facilitate easy change of this setup information. 
+ The commands currently implemented are mostly separate tasks to be performed
+on request. In some cases (under VAX/VMS) a subprocess is spawned to perform
+a completely independent task; in other cases submenus are presented for further
+choice. Template routines for creating such tasks also exist. An appllication
+programmer adds a new command by including an ELSEIF block usually 2-3 lines
+long in a dispatching type routine. This makes sure that the name of the
+subroutine performing the task is included in the linking of the program.
+The utility which makes up the setup files (MENU__MAKER) may also be used to
+make a first version of the 'dispatch' routine.
+ Under VAX/VMS the user of the program has the choice of whether to use a full
+screen MENU MODE or a line oriented input mode. The mode may be selected at the
+start of the program or by switching when a
+menu or command prompt line is displayed.  The program will also run in batch
+mode and is able to read commands from an external file. 
+The full screen mode is currently only available on a terminal known to VMS as
+a VT100 compatible terminal (including the VT200 series and VAXstations).
+The  program gets this terminal identification from VMS. 
+ The package is written in VAX-11 FORTRAN, but in standard FORTRAN-77 as
+much as possible. The MENU MODE part uses VAX Run Time Library routines very
+extensively (especially the SMG screen manipulation routines), but it should be
+possible to transport the LINE MODE part to other operating systems. 
+.pg
+.!require 'COMPACK_MANUAL.RNT'       
+.SAVE
+.NO FLAGS ALL
+.FLAGS COMMENT !
+.! DSRTOC version V3.2-01
+.! RUNOFF/CONT COMPACK_MANUAL.BRN 
+.NO FLAGS BREAK		.NO FLAGS CAPITALIZE	.NO FLAGS ENDFOOTNOTE
+.NO FLAGS HYPHENATE	.NO FLAGS INDEX		.NO FLAGS PERIOD
+.NO FLAGS SPACE		.NO FLAGS SUBSTITUTE
+.FLAGS ACCEPT _		.FLAGS BOLD *
+.FLAGS LOWERCASE \	.FLAGS OVERSTRIKE %	.FLAGS UNDERLINE &
+.FLAGS UPPERCASE ^
+.FLAGS ALL
+.NO FILL		.NO JUSTIFY
+.LEFT MARGIN 8		.RIGHT MARGIN 70	.PAGE SIZE , 70
+.CENTER;CONTENTS
+.BLANK
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 1       GUIDE TO PROGRAMMING 
+.BLANK
+1_.1     Overview of the Package  . . . . . . . . . . . . . 1-1
+1_.2     Main Program . . . . . . . . . . . . . . . . . . . 1-2
+1_.3     The Dispatching Loop_.  . . . . . . . . . . . . . . 1-3
+1_.4     System Commands_. . . . . . . . . . . . . . . . . . 1-3
+1_.5     Adding a New Command . . . . . . . . . . . . . . . 1-4
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 2       DESCRIPTION OF ROUTINES AND FUNCTIONS_.
+.BLANK
+2_.1     ABOMEN . . . . . . . . . . . . . . . . . . . . . . 2-1
+2_.2     BROADC . . . . . . . . . . . . . . . . . . . . . . 2-2
+2_.3     CANMEN   . . . . . . . . . . . . . . . . . . . . . 2-2
+2_.4     CONHEX . . . . . . . . . . . . . . . . . . . . . . 2-2
+2_.5     CONINT . . . . . . . . . . . . . . . . . . . . . . 2-3
+2_.6     CONREA . . . . . . . . . . . . . . . . . . . . . . 2-3
+2_.7     DEFCOL . . . . . . . . . . . . . . . . . . . . . . 2-4
+2_.8     DEFSPA . . . . . . . . . . . . . . . . . . . . . . 2-4
+2_.9     DISABL . . . . . . . . . . . . . . . . . . . . . . 2-4
+2_.10    DMPMSG . . . . . . . . . . . . . . . . . . . . . . 2-5
+2_.11    ENDDMP . . . . . . . . . . . . . . . . . . . . . . 2-5
+2_.12    ENDSPL . . . . . . . . . . . . . . . . . . . . . . 2-5
+2_.13    ENDSTA . . . . . . . . . . . . . . . . . . . . . . 2-6
+2_.14    EVEFIL . . . . . . . . . . . . . . . . . . . . . . 2-6
+2_.15    EVESAV . . . . . . . . . . . . . . . . . . . . . . 2-6
+2_.16    EXIMEN . . . . . . . . . . . . . . . . . . . . . . 2-7
+2_.17    FILLST . . . . . . . . . . . . . . . . . . . . . . 2-7
+2_.18    FNDFIL . . . . . . . . . . . . . . . . . . . . . . 2-8
+2_.19    FULMOD . . . . . . . . . . . . . . . . . . . . . . 2-8
+2_.20    GETARR . . . . . . . . . . . . . . . . . . . . . . 2-9
+2_.21    GETDEV . . . . . . . . . . . . . . . . . . . . .  2-10
+2_.22    GETDIS . . . . . . . . . . . . . . . . . . . . .  2-11
+2_.23    GETOPT . . . . . . . . . . . . . . . . . . . . .  2-12
+2_.24    GETPAR   . . . . . . . . . . . . . . . . . . . .  2-13
+2_.25    GETSCR . . . . . . . . . . . . . . . . . . . . .  2-14
+2_.26    GETSPL . . . . . . . . . . . . . . . . . . . . .  2-14
+2_.27    GETSTA . . . . . . . . . . . . . . . . . . . . .  2-14
+2_.28    GETSYI . . . . . . . . . . . . . . . . . . . . .  2-15
+2_.29    GETWTA . . . . . . . . . . . . . . . . . . . . .  2-15
+2_.30    GOTOP  . . . . . . . . . . . . . . . . . . . . .  2-15
+2_.31    GTUNIT   . . . . . . . . . . . . . . . . . . . .  2-16
+2_.32    INPCMD . . . . . . . . . . . . . . . . . . . . .  2-16
+2_.33    INPTRM . . . . . . . . . . . . . . . . . . . . .  2-16
+2_.34    INTAST . . . . . . . . . . . . . . . . . . . . .  2-17
+2_.35    INTMEN . . . . . . . . . . . . . . . . . . . . .  2-17
+2_.36    INTMSG . . . . . . . . . . . . . . . . . . . . .  2-18
+2_.37    LENINT . . . . . . . . . . . . . . . . . . . . .  2-18
+2_.38    LIBREP . . . . . . . . . . . . . . . . . . . . .  2-19
+2_.39    LINGET . . . . . . . . . . . . . . . . . . . . .  2-19
+2_.40    LSPAWN . . . . . . . . . . . . . . . . . . . . .  2-20
+2_.41    MENADD . . . . . . . . . . . . . . . . . . . . .  2-20
+2_.42    MENMAI . . . . . . . . . . . . . . . . . . . . .  2-21
+2_.43    MENNEW . . . . . . . . . . . . . . . . . . . . .  2-21
+2_.44    MENSET . . . . . . . . . . . . . . . . . . . . .  2-21
+2_.45    MENUDO . . . . . . . . . . . . . . . . . . . . .  2-22
+2_.46    MSGSCR . . . . . . . . . . . . . . . . . . . . .  2-22
+2_.47    OUTMSG . . . . . . . . . . . . . . . . . . . . .  2-23
+2_.48    OUTSAV   . . . . . . . . . . . . . . . . . . . .  2-23
+2_.49    PARSFI . . . . . . . . . . . . . . . . . . . . .  2-24
+2_.50    PFGET  . . . . . . . . . . . . . . . . . . . . .  2-24
+2_.51    PFLABL . . . . . . . . . . . . . . . . . . . . .  2-25
+2_.52    PFNUM  . . . . . . . . . . . . . . . . . . . . .  2-25
+2_.53    PFWAIT . . . . . . . . . . . . . . . . . . . . .  2-25
+2_.54    READPF . . . . . . . . . . . . . . . . . . . . .  2-26
+2_.55    REASAV   . . . . . . . . . . . . . . . . . . . .  2-26
+2_.56    RLUNIT . . . . . . . . . . . . . . . . . . . . .  2-27
+2_.57    SETCHK . . . . . . . . . . . . . . . . . . . . .  2-27
+2_.58    SETCOM . . . . . . . . . . . . . . . . . . . . .  2-28
+2_.59    SETDMP . . . . . . . . . . . . . . . . . . . . .  2-28
+2_.60    SETFLG   . . . . . . . . . . . . . . . . . . . .  2-29
+2_.61    SETLIN   . . . . . . . . . . . . . . . . . . . .  2-29
+2_.62    SETMOD . . . . . . . . . . . . . . . . . . . . .  2-30
+2_.63    SETQIO . . . . . . . . . . . . . . . . . . . . .  2-30
+2_.64    SETSTA . . . . . . . . . . . . . . . . . . . . .  2-31
+2_.65    SPAWIT . . . . . . . . . . . . . . . . . . . . .  2-31
+2_.66    SPLSTA . . . . . . . . . . . . . . . . . . . . .  2-31
+2_.67    SPLTIT . . . . . . . . . . . . . . . . . . . . .  2-32
+2_.68    STAMSG . . . . . . . . . . . . . . . . . . . . .  2-32
+2_.69    TABDIS . . . . . . . . . . . . . . . . . . . . .  2-33
+2_.70    TIMDIS . . . . . . . . . . . . . . . . . . . . .  2-33
+2_.71    TRALOG . . . . . . . . . . . . . . . . . . . . .  2-34
+2_.72    TRANUP . . . . . . . . . . . . . . . . . . . . .  2-34
+2_.73    TRULEN . . . . . . . . . . . . . . . . . . . . .  2-35
+2_.74    WAIBIT . . . . . . . . . . . . . . . . . . . . .  2-35
+2_.75    WAITIT . . . . . . . . . . . . . . . . . . . . .  2-35
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 3       DESCRIPTION OF USER-SUPPLIED ROUTINES_.
+.BLANK
+3_.1     EXIUSR . . . . . . . . . . . . . . . . . . . . . . 3-1
+3_.2     USRCHK . . . . . . . . . . . . . . . . . . . . . . 3-1
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 4       DESCRIPTION OF QUALIFIER PARSING ROUTINES
+.BLANK
+4_.1     GCOMND . . . . . . . . . . . . . . . . . . . . . . 4-2
+4_.2     GCONFI . . . . . . . . . . . . . . . . . . . . . . 4-2
+4_.3     GFULSC . . . . . . . . . . . . . . . . . . . . . . 4-2
+4_.4     GINCOM . . . . . . . . . . . . . . . . . . . . . . 4-3
+4_.5     GJOURN . . . . . . . . . . . . . . . . . . . . . . 4-3
+4_.6     GNOSMG . . . . . . . . . . . . . . . . . . . . . . 4-3
+4_.7     GSPLIT . . . . . . . . . . . . . . . . . . . . . . 4-4
+4_.8     GSTATU . . . . . . . . . . . . . . . . . . . . . . 4-4
+4_.9     GUSERM . . . . . . . . . . . . . . . . . . . . . . 4-4
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 5       EXAMPLES
+.BLANK
+5_.1     Main Program   . . . . . . . . . . . . . . . . . . 5-1
+5_.2     Typical Dispatch Type Routine_.   . . . . . . . . . 5-3
+5_.3     Typical Command Interface Routine  . . . . . . . . 5-4
+5_.4     Typical Setup Input File . . . . . . . . . . . . . 5-5
+5_.5     Typical Definitions for a Program  . . . . . . . . 5-7
+5_.6     Typical VMS-HELP File for a Program  . . . . . . . 5-8
+.RESTORE
+.CH Guide to Programming 
+.number page
+.lm 8
+.rm 75
+ Following is a description of the method of building a program using this 
+package, how to add commands and a description of the standard routines and
+functions used to do I/O in a selfconsistent way.
+.hl Overview \of \the package
+ The package consists of the following main parts:
+.list 1 "*"
+.le;A set of routines used by an application program to do menu manipulations
+as well as other I/O operations.
+.le;A set of routines to perform system type commands which may be
+included in the program. 
+.le;A set of library routines called from the above routines to do lower
+level I/O.
+.le;A set of files with menu and help information to be read in when the 
+program starts up.
+.le;A menu-driven facility to change the above setup information.
+.end list
+ A program starts up by (possibly) reading one or more of the setup files
+by calling the routine MENSET. Each call to MENSET defines one menu level
+(the level is identified uniquely by a label of up to 32 characters). The
+order of the calls to MENSET does not matter, the program will use the
+first call to MENUDO to find the main menu level. The routine MENMAI may
+be used to override this assignment of main level.
+The combination MENNEW and MENADD may also be used to define menu levels
+and add menu items to a level. 
+ Inside a command-interpretation loop the routine MENUDO is called to get
+the next command. If the command-parser determines that the command is of
+a system type, it will call a dispatching routine internally without
+returning to the application level. It will only return when it has a
+command to perform or when EXIT or BACK is indicated.
+ The program will determine what kind of a terminal is being used and
+look at the command line for qualifiers. The menu or the command prompt line
+is then presented and commands will be executed as the user enters them.
+Under VMS the standard type-ahead is in effect in line mode, as is recalling 
+previously entered commands by using the "up-arrow" or "down-arrow" keys.
+ To avoid problems with screen operations while using the debugger, a special 
+qualifier /NOSMG has been implemented. See the USERS_GUIDE for information.
+ Processing tasks may be performed (under VMS) by setting
+up an Asynchronous System Trap (AST) structure for the command interpretation.
+Routines to handle this AST structure are included in the package.
+.hl Main program
+ A typical main program for a new application using this package consists of
+calls to MENSET or MENNEW to set up menu levels, possibly calls to MENADD
+to add menu items and either a call to a dispatching
+type routine or a dispatching loop with a call to MENUDO for the top
+level menu. Other kinds of initialization etc. should be done before the
+call to the dispatching routine.
+ Setup of COMPACK may also be done separately by a call to SETCHK. It may
+be called several times, but will keep track internally such that the
+actual initialization is done only once. SETCHK is also useful in programs
+which needs some of the COMPACK utilities (like GETPAR), but does not need
+menus, and therefore does not call MENSET. There is a way for the
+programmer to check for special qualifiers on the original command line by
+adding a special version of the USRCHK routine. See below for details.
+ Exit type processing may be done after the command
+interpreter has indicated EXIT, the dispatching loop MUST end when EXIT
+is returned as the command string. The program should always exit by
+calling the EXIMEN routine. Since EXIMEN may be called from other places
+in the program, a hook for exit processing is included there. See EXIUSR
+below for details.
+ The examples at the end of this manual includes a typical main program.
+.hl  The dispatching loop.
+ The programmer should provide a loop, preferably in its own subroutine,
+for getting the next command and dispatching to the task indicated by the
+command. In order to avoid "cluttering up" this routine, it should basically be
+a series of ELSEIF statements followed by one call statement to make sure the
+action routines get called. The utility program MENU__MAKER may be used to
+make a first version of such a dispatch routine. 
+ See the examples for an exaple of such a routine generated with MENU__MAKER.
+.hl  System commands.
+ A number of commands are available to do standard operations like
+manipulating indirect command files (set them up, edit them and run them),
+changing attributes of the menu display (split screen, line spacing,
+number of columns etc.), automatic spawn of a subprocess, adding of VMS
+commands to a menu and others. For now the setup information for any of these
+commands has to included in the .SET file by copying it from an existing file.
+ The number of commands in a single menu may become quite large. To reduce 
+this number, a standard submenu of the above system type commands has been implemented.
+You get that menu by just including the entry for it in the .SET file for the 
+menu level which needs to use it.
+ See the examples for how this submenu is defined in the .SET file. Notice 
+that it does NOT use the CALL in front of MENCTR even though it is really a 
+system command. This is to return the command as far as possible before MENCTR
+is actually called to avoid recursive calling of routines.
+.hl Adding \a new command
+ Here are step-by-step instructions of how to add a new command to a program:
+.list
+.le;Write the subroutine that will ultimately be called to perform the task.
+The routines GETPAR, GETDIS, GETARR or GETOPT must be used to get
+parameters for the command. GETPAR gets the parameters either from the
+command line or by prompting. Prompting is turned off while reading from an
+indirect command file. GETDIS gets the parameters the user selects to
+change from either a full screen type display very similar to the normal
+MENU MODE screen or by the user typing the number of the parameter and the
+new value in the LINE MODE case. GETOPT lets the user choose an option from
+a predetermined set for each parameter. In MENU MODE this is done withe the
+'arrow'-keys, in line mode by typing the number of the parameter and the
+number of chosen option. .le;Run the MENU__MAKER program to edit the setup
+information and possibly produce a new dispatch routine. The dispatching
+routine may be edited afterwards to change the action defined for each
+command. A VMS command MENU should be set up for running this program.
+Notice that the symbol in this case points to a command file which uses the
+first parameter as the name of the file to be edited and starts the program
+in full screen mode. Any standard COMPACK qualifiers (like /NOFULL and
+/NOSMG) may be added as the second parameter when running the command file.
+This program will either translate the setup file to a direct access file
+(of type .MENU) which is read in at the start of the program, or writes a
+FORTRAN subroutine which uses MENADD to enter the menu information. If such
+a routine is made, the call may be automatically included in the dispatch
+routine (before the actual dispatch loop).
+ MENNEW and MENADD may be used as an alternate way to add the setup information.
+.le;Compile the changed routine(s) and link the program including the libraries
+needed. COMPACK is self-contained, it does not need any other libraries.
+.end list
+.CH Description of routines and functions.
+.lm 8
+.rm 75
+ Following are descriptions of the subroutines and functions which may be used
+to do the input of parameters in a standard way as well as the subroutines the
+programmer should call to communicate with the package and some of the utility
+routines used in the package.
+.hl ABOMEN
+.lm +12
+.i -10;Purpose: Abort a program by only reporting error (without traceback).
+.lm -12
+ Calling sequence:##CALL#ABOMEN(ISTAT,EXVAR)
+.b
+.lm +24
+.i -22;Argument(s):##ISTAT:###Status to report and take action on. (INTEGER)
+.i -8;EXVAR:##String to be used to indicate where error ocurred. (CHARACTER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Only when ISTAT is EVEN will the program actually exit.
+.b
+Normal exit processing is done.
+.lm -10
+.hl BROADC
+.lm +12
+.i -10;Purpose: Turn off or on trapping of braodcast messages.
+.lm -12
+ Calling sequence:##CALL#BROADC(ONOFF)
+.b
+.lm +24
+.i -22;Argument(s):##ONOFF:##Flag to decide whether to turn broadcast
+trapping on (ONOFF=.TRUE.) or off.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This routine must be called before a spawn can work. It is
+done automatically for LSPAWN and SPAWIT.
+.b
+It may also be useful to call this routine when the non-split mode is
+important to maintain, since the trapping of broadcast messages will force
+a split screen mode.
+.lm -10
+.hl CANMEN                                
+.lm +12
+.i -10;Purpose: Cancel an interrupt mode menu setup.
+.lm -12
+ Calling sequence:##CALL CANMEN
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Must be called when the task issuing the INTMEN call finishes.
+It may be called from inside the dispatch routine for the interrupt menu.
+.lm -10
+.hl CONHEX
+.lm +12
+.i -10;Purpose: Convert a character string in hexadecimal form to an integer.
+.lm -12
+ Declaration: ##INTEGER*4 CONHEX
+ Calling sequence:##I=CONHEX(TXT)###(I is any integer variable)
+ Return value:##The integer corresponding to TXT.
+.b
+.lm +24
+.i -22;Argument(s):##TXT:###Character string to be converted.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The validity of the string as an hexadecimal integer will be
+checked, if a character other than digits (0-9,A-F) or signs (+,-) is found, an
+error message is typed. 
+.lm -10
+.hl CONINT
+.lm +12
+.i -10;Purpose: Convert a character string to an integer.
+.lm -12
+ Declaration: ##INTEGER*4 CONINT
+ Calling sequence:##I=CONINT(TXT)###(I is any integer variable)
+ Return value:##The integer corresponding to TXT.
+.b
+.lm +24
+.i -22;Argument(s):##TXT:###Character string to be converted.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The validity of the string as an integer will be checked, 
+if a character other than digits (0-9) or signs (+,-) is found,
+an error message is typed.
+.lm -10   
+.hl CONREA
+.lm +12
+.i -10;Purpose: Convert a character string to a real number.
+.lm -12
+ Declaration: ##REAL*4 CONREA
+ Calling sequence:##X=CONREA(TXT)###(X is any REAL*4 variable)
+ Return value:##The real number corresponding to TXT.
+.b 
+.lm +24
+.i -22;Argument(s):##TXT:###Character string to be converted.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The validity of the string as a real number will be checked, 
+if a character other than digits (0-9), signs (+,-) or decimal point
+(.) is found, an error message is typed. An error is also issued if two 
+decimal points are found. The returned value in case of error is -999999.99.
+.lm -10
+.hl DEFCOL
+.lm +12
+.i -10;Purpose: Set number of columns in menu display.
+.lm -12
+ Calling sequence:##CALL DEFCOL(NUMCOL)
+.b                                                                
+.lm +24
+.i -22;Argument(s):##NUMCOL:#Number of columns to use.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Only 1 or 2 columns work well for a normal screen.
+This routine may be called before a call to INTMEN to set the column number
+to 1, it will then be easier for the user to move around in a short menu.
+.lm -10
+.hl DEFSPA
+.lm +12
+.i -10;Purpose: Set the line spacing in menu display.
+.lm -12
+ Calling sequence:##CALL DEFSPA(NUMSPA)
+.b                                                                
+.lm +24
+.i -22;Argument(s):##NUMSPA:#Spacing of menu lines.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Only 1, 2 or 3 (single, double and triple spacing) are
+currently allowed.
+.b
+This routine may be called before a call to SPLTIT to set the spacing 
+to 1, it will then be easier for the user to move around in a short menu.
+.lm -10
+.hl DISABL
+.lm +12
+.i -10;Purpose: Disable unsolicited input from terminal.
+.lm -12
+ Calling sequence:##CALL DISABL
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10                                                    
+.i -8;Notes:##Should ONLY be called if you have to call LSPAWN or SPAWIT to
+perform a special VMS command from within the interrupt menu part of
+a program. LSPAWN and SPAWIT will NOT work unless unsolicited input has been
+disabled. Use SETQIO to re-enable unsolicited input after the call to
+LSPAWN or SPAWIT. 
+.lm -10
+.hl DMPMSG
+.lm +12
+.i -10;Purpose: Write a line to a dump file.
+.lm -12
+ Calling sequence:##CALL DMPMSG(IUNI,LINOUT)
+.b                                                                
+.lm +24
+.i -22;Argument(s):##IUNI:###Unit number to dump to. (INTEGER)
+.i -8;LINOUT:#Line to write out. (CHARACTER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##See SETDMP for how to open IUNI.
+.lm -10
+.hl ENDDMP
+.lm +12
+.i -10;Purpose: End dumping to file. 
+.lm -12
+ Calling sequence:##CALL ENDDMP(IUNI)
+.b                                                                
+.lm +24
+.i -22;Argument(s):##IUNI:###Unit having been used for dump.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##If IUNI=6, EVESAV will be called to edit the dump file.
+.b 
+See SETDMP for how to start such a dump, and DMPMSG for how to write to it.
+.lm -10
+.hl ENDSPL
+.lm +12
+.i -10;Purpose: Go back to single display mode. 
+.lm -12
+ Calling sequence:##CALL ENDSPL
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10                     
+.i -8;Notes:##Use SPLTIT to set up split screen mode.
+.b
+Single Screen is also available as a system command.
+.lm -10
+.hl ENDSTA
+.lm +12
+.i -10;Purpose: Take away status display on top of screen.
+.lm -12
+ Calling sequence:##CALL ENDSTA
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10                     
+.i -8;Notes:##Use SPLSTA to set up status display.
+.lm -10
+.hl EVEFIL
+.lm +12
+.i -10;Purpose: Edit a file from inside a program.
+.lm -12
+ Calling sequence:##CALL EVEFIL(FILNAM)
+.b                                                                
+.lm +24
+.i -22;Argument(s):##FILNAM:#Name of file to edit. (CHARACTER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Currently this is a VAX specific routine, calling the TPU
+editor internally. The standard EVE+ interface will be used if the section
+file is defined properly.
+.lm -10
+.hl EVESAV
+.lm +12
+.i -10;Purpose: Edit information written to unit 6 while in SAVE mode.
+.lm -12
+ Calling sequence:##CALL EVESAV
+.b                                                                
+.lm +24
+.i -22;Argument(s):##None.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Calls EVEFIL internally.
+.b
+See OUTSAV for how to start saving output.
+.lm -10
+.hl EXIMEN
+.lm +12
+.i -10;Purpose: Exit from program with screen restored to "normal".
+.lm -12
+ Calling sequence:##CALL EXIMEN(STATUS,LEVEL)
+.b
+.lm +24
+.i -22;Argument(s):##STATUS:#An integer VAX status message.
+.i -8;LEVEL:##Integer to indicate which menu level the call was issued from.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##STATUS=1 indicates normal exit. 
+.br
+Use LEVEL=1 to indicate the top level menu.
+.b
+A call to the routine EXIUSR is made inside this routine. Replace the dummy one
+supplied with a special one if clean-up, timing print-out etc. is needed.
+.lm -10
+.hl FILLST
+.lm +12
+.i -10;Purpose: Return a list of files satisfying a given name criterion.
+.lm -12
+ Calling sequence:##CALL FILLST(FILTYP,MAXITM,MAXFIL,ITEMS)
+.b
+.lm +24                           
+.i -22;Argument(s):##FILTYP:#String giving the filename criterion. (CHARACTER)
+.i -8;MAXITM:#Maximum number of files to look for. (INTEGER)
+.i -8;MAXFILS:#Number of files actually found. (INTEGER)
+.i -8;ITEMS:##Array of character strings returning the file names.
+.lm -24
+.b                
+.lm +10
+.i -8;Notes:##ITEMS must be declared with at least MAXITM elements.
+.b
+Use TABDIS to display this list if needed or possibly GETOPT to select
+from the set. See also FNDFIL below for how to select from such a list.
+.lm -10
+.hl FNDFIL
+.lm +12
+.i -10;Purpose: Present a list of files satisfying a given name criterion and
+let the user choose a file from the list. 
+.lm -12
+ Calling sequence:##CALL FNDFIL(POSI,MAXITM,FILTYP,TOPS,ITEMS)
+.b
+.lm +24                           
+.i -22;Argument(s):##POSI:###Number of the file within the list which was
+chosen. (INTEGER)
+.i -8;MAXITM:#Maximum number of files to look for. (INTEGER)
+.i -8;FILTYP:#Character string giving the filename criterion.
+.i -8;TOPS:###Character string giving the title line for the 
+display.
+.i -8;ITEMS:##Array of character strings returning the file names.
+.lm -24
+.b                
+.lm +10
+.i -8;Notes:##ITEMS must be declared with at least MAXITM elements.
+If POSI.eq.0 on return, no choice was entered and the function 
+PFNUM should be used to determine further action. Only PNUM().EQ.2 or
+PFNUM().EQ.3 should be acted upon, one with HELP and the other with a
+list of the files.
+.b
+Calls FILLST internally to get the actual list of files.
+.lm -10
+.hl FULMOD
+.lm +12
+.i -10;Purpose: Access the variable FULSCR without including the common blocks.
+.lm -12
+ Declaration: ##LOGICAL FULMOD
+ Calling sequence:##L=FULMOD()
+ Return value:##The current value of FULSCR.
+.b
+.lm +10
+.i -8;Notes:##Should be used if special action like calling PFLABL is 
+needed when the system is in full screen mode (FULSCR is true).
+.lm -10                                                           
+.hl GETARR
+.lm +12
+.i -10;Purpose:##Get parameters for a command selectively from a screen
+display using an array for returning the parameters. 
+.lm -12
+ Calling sequence:
+.br
+########CALL#GETARR(NUMPAR,LABELS,TYPARR,LIMITS,PARAM)
+.b
+.lm +24
+.i -22;Argument(s):##NUMPAR:#Number of parameters needed. (INTEGER)
+.i -8;LABELS:#Array of label strings 
+.br
+(using NUMPAR elements).
+.i -8;TYPARR:#Array of CHARACTER*1 type identifiers.
+.i -8;LIMITS:#Array of limits for variables.
+.br
+(INTEGER (2,NUMPAR))
+.i -8;PARAM:#The parameters to be returned (array of at least NUMPAR
+elements).
+.lm -24                                                
+.b
+.lm +10
+.i -8;Notes:##The valid types are: 'R' for real.
+.i 22;'I' for integer.
+.i 22;'L' for logical.
+.b
+The LIMITS array MUST be present, and should be equivaleneced to a REAL
+array if limit checking is needed for type 'R'. Only when lower limit is
+different from upper limit is the range checked. A message is issued if
+the parameter entered is outside the limits.
+.b
+Validity of the entered values is checked for types 'I' and 'R',
+and a message issued if a "bad" character is found.
+.b
+See GETDIS for a way to get individual parameters from such a screen
+display, it is also able to get CHARACTER parameters.
+.pg
+.lm -10
+.hl GETDEV
+.lm +12
+.i -10;Purpose: Get the device type of the user's terminal from VMS.
+.lm -12
+ Declaration: ##LOGICAL*1 GETDEV
+ Calling sequence:##L=GETDEV()####(L is any logical variable)
+ Return value: #.TRUE. if a VT100-series or a VT200-series 
+.i 18;terminal is found, .FALSE. otherwise.
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The device type is as defined by SET TERMINAL/DEVICE or equivalent.
+.b
+A VAXstation with a VT200 window will also return .TRUE.
+.lm -10            
+.pg       
+.hl GETDIS
+.lm +12
+.i -10;Purpose:##Get parameters for a command by selectively from a screen
+display.
+.lm -12
+ Calling sequence:
+.br
+########CALL#GETDIS(NUMPAR,LABELS,TYPARR,LIMITS,PAR1,PAR2._._.PARN)
+.b
+.lm +24
+.i -22;Argument(s):##NUMPAR:#Number of parameters needed. (INTEGER)
+.i -8;LABELS:#Array of label strings 
+.br
+(using NUMPAR elements).
+.i -8;TYPARR:#Array of CHARACTER*1 type identifiers.
+.i -8;LIMITS:#Array of limits for variables.
+.br
+(INTEGER (2,NUMPAR))
+.i -8;PAR1._._._PARN:#The individual parameters (must specify NUMPAR of them).
+.lm -24                                                
+.b
+.lm +10
+.i -8;Notes:##The valid types are: 'R' for REAL.
+.i 22;'I' for INTEGER.
+.i 22;'L' for LOGICAL.
+.i 22;'C' for CHARACTER variable.
+.i 22;'U' for upper-case CHARACTER variable.
+.b
+The LIMITS array MUST be present, and should be equivaleneced to a REAL
+array if limit checking is needed for type 'R'. Only when lower limit is
+different from upper limit is the range checked. A message is issued if
+the parameter entered is outside the limits.
+.b
+Character variables are handled correctly internally in this routine.
+.b
+Currently 30 parameters are possible. 
+.b
+Validity of the entered values is checked for types 'I' and 'R',
+and a message issued if a "bad" character is found.
+.b
+See GETARR for an alternate way to get parameters in this way but by using
+an array for returning the parameters.
+.pg
+.lm -10
+.hl GETOPT
+.lm +12
+.i -10;Purpose:##Get parameters for a command from a screen display of
+predefined options.
+.lm -12
+ Calling sequence:
+.br
+########CALL#GETOPT(NUMPAR,LABELS,OPTNUM,OPTION,OUTNUM)
+.b
+.lm +24
+.i -22;Argument(s):##NUMPAR:#Number of parameters needed. (INTEGER)
+.i -8;LABELS:#Array of label strings 
+.br
+(using NUMPAR elements).
+.i -8;OPTNUM:#Array with the number of options
+.br
+for each parameter. (INTEGER (NUMPAR))
+.i -8;OPTION:#Two dimensional array of the actual options.
+.br
+(CHARACTER(MAX(OPTNUM's),NUMPAR))
+.i -8;OUTNUM:#Array with the number of the chosen option
+.br
+for each parameter. (INTEGER (NUMPAR))
+.lm -24                                                
+.b
+.lm +10
+.i -8;Notes:##When NUMPAR=1 the display in full screen mode will behave
+very much like a normal menu display. 
+.b
+When NUMPAR>1, the number of options (OPTNUM) for each parameter should be
+relatively small to make the display readable.
+.lm -10
+.pg       
+.hl GETPAR             
+.lm +12
+.i -10;Purpose:##Get parameters for a command, doing all the checks etc. needed.
+.lm -12
+ Calling sequence:
+.br
+##########CALL GETPAR(NUMPAR,PROMPT,TYPARR,PAR1,PAR2._._.PARN)
+.b
+.lm +24
+.i -22;Argument(s):##NUMPAR:#Number of parameters needed. (INTEGER)
+.i -8;PROMPT:#Array of prompt strings (using NUMPAR elements).
+.i -8;TYPARR:#Array of 1 character type identifiers.
+.i -8;PAR1._._._PARN:#The individual parameters (must specify NUMPAR of them).
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The valid types are: 'R' for REAL.
+.i 22;'I' for INTEGER.
+.i 22;'H' for hexidecimal INTEGER.
+.i 22;'L' for LOGICAL.
+.i 22;'C' for CHARACTER variable.
+.i 22;'U' for upper-case CHARACTER.
+.i 22;'A' for rest of the line.
+.b
+Currently only 10 parameters are possible. If more is needed, one should
+use GETDIS instead.
+.b
+Character variables are handled correctly internally in this
+routine.
+.b
+Type 'U' uses the function TRANUP to translate the entered string to
+uppercase before returning.
+.b
+Validity of the entered values is checked for types 'I' , 'H' and 'R',
+and prompt issued again if a "bad" character is found.
+.b
+GETPAR may be called more than once within the same command action routine.
+This is accomplished by using a NEGATIVE number in NUMPAR for the second and
+later calls. The internal counter is then not reset, and a complete command
+typed in line mode will be parsed correctly. 
+.b
+When a <CR> is struck, the current value of a parameter is kept as the
+default. This is only true for numeric parameters
+('I','H','R','L'), GETPAR does NOT move anything into the parameters in this
+case. 
+.lm -10
+.hl GETSCR
+.lm +12
+.i -10;Purpose: Get the number of rows and columns in display.
+.lm -12
+ Calling sequence:##CALL GETSCR(ROWS,COLUMS)
+.b                                                                
+.lm +24
+.i -22;Argument(s):##ROWS:###Number of rows in display. (INTEGER)
+.i -8;COLUMS:#Number of columns in display. (INTEGER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This routine is useful before a call to SETLIN to decide how
+to split the screen.
+.lm -10
+.hl GETSPL
+.lm +12
+.i -10;Purpose: Access the flag SPLFLG without including the common blocks.
+.lm -12
+ Declaration: ##LOGICAL GETSPL
+ Calling sequence:##L=GETSPL()
+ Return value:##The current value of SPLFLG.
+.b
+.lm +10
+.i -8;Notes:##Should be used if special action is 
+needed when the system is in split screen mode (SPLFLG is .TRUE.).
+.lm -10
+.hl GETSTA
+.lm +12
+.i -10;Purpose: Access the flag STAFLG without including the common blocks.
+.lm -12
+ Declaration: ##LOGICAL GETSTA
+ Calling sequence:##L=GETSTA()
+ Return value:##The current value of STAFLG.
+.b
+.lm +10
+.i -8;Notes:##Should be used if special action is 
+needed when the system has a status area (STAFLG is .TRUE.).
+.lm -10
+.hl GETSYI
+.lm +12
+.i -10;Purpose: Get system information.
+.lm -12
+ Calling sequence:##CALL GETSYI(NODNAM,HWTYPE,AREA,NODNUM,VMSVER)
+.b                                                                
+.lm +24
+.i -22;Argument(s):##NODNAM:#Name of DECNET node. (CHARACTER*15 at least)
+.i -8;HWTYPE:#CPU type. (CHARACTER*4)
+.i -8;AREA:###DECNET area. (INTEGER)
+.i -8;NODNUM:#DECNET node number. (INTEGER)
+.i -8;VMSVER:#Version of VMS being run. (CHARACTER*8)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This is a very VAX specific routine, calling the GETSYI
+system service internally.
+.lm -10
+.hl GETWTA
+.lm +12
+.i -10;Purpose: Find if program is being run on a VAXstation.
+.lm -12
+ Declaration: ##LOGICAL GETWTA
+ Calling sequence:##L=GETWTA()
+ Return value:##TRUE if running on a VAXstation in VT200 mode.
+.b
+.lm +10
+.i -8;Notes:##VAX specific routine using the fact that the device name for
+a VAXstation window in VT200 mode starts with WTA.
+.lm -10
+.hl GOTOP             
+.lm +12
+.i -10;Purpose: Check a flag indicating direct jump to the top menu.
+.lm -12
+ Declaration: ##LOGICAL GOTOP
+ Calling sequence:##L=GOTOP()
+.b
+.lm +10
+.i -8;Notes:##ALL routines doing dispatching tasks at lower menu 
+levels MUST check this flag if a "Go to Top Level" command is implemented.
+.lm -10
+.hl GTUNIT                        
+.lm +12
+.i -10;Purpose: Get a FORTRAN unit number for use without conflict.
+.lm -12
+ Calling sequence:##CALL GTUNIT(IUSER,IUNIT,IERR)
+.b
+.lm +24
+.i -22;Argument(s):##IUSER:##User id of the calling routine. Used
+to resolve conflicts. (INTEGER)
+.i -8;IUNIT:##Next available unit number. 
+.i -8;IERR:###Error code (0 if OK) (INTEGER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##ALL routines doing FORTRAN I/O should use this routine
+to get the next available unit number to use. This will avoid conflicts
+when routines from different libraries are included in the same program.
+.lm -10
+.hl INPCMD
+.lm +12
+.i -10;Purpose: Change input source to be an already opened command file.
+.lm -12
+ Calling sequence:##CALL INPCMD()
+.b
+.lm +10
+.i -8;Notes:##To be used when you need to toggle between getting input from
+terminal and command file. If no command file is active then current input 
+source is not changed. Repeated calls are screened out.
+.lm -10
+.hl INPTRM
+.lm +12
+.i -10;Purpose: Change input source to be the terminal.
+.lm -12
+ Calling sequence:##CALL INPTRM()
+.b
+.lm +10
+.i -8;Notes:##To be used when you need to toggle between getting input from
+terminal and command file. Repeated calls are screened out.
+.lm -10
+.hl INTAST
+.lm +12
+.i -10;Purpose: Check a flag indicating that an interrupt menu is active.
+.lm -12
+ Declaration: ##LOGICAL INTAST
+ Calling sequence:##L=INTAST()
+.b
+.lm +10
+.i -8;Notes:##To be used when you need to know that the interrupt menu is
+active to take special action. 
+.br
+The flag is .FALSE. when the program is in a submenu of the interrupt menu
+(the main task is paused at that point).
+.lm -10
+.hl INTMEN
+.lm +12
+.i -10;Purpose: Set up a menu for interrupt mode menu interactions.
+.lm -12
+ Calling sequence:##CALL INTMEN(TOPS,USENAM,DISPAT)
+.b
+.lm +24
+.i -22;Argument(s):##TOPS:###Character string containing the title line for
+the main menu.
+.i -8;USENAM:#Character string corresponding to one of the 
+names used in a call to MENSET.
+.i -8;DISPAT:#Name of dispatching routine for this menu-level.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The DISPAT routine here must NOT have a loop in it, just
+dispatch to the single command which appears as the only argument to
+this routine.
+.b
+An input request is issued to the terminal and control is returned to the
+calling routine. When anything is entered on the keyboard, the main task is
+interrupted, the action indicated by the key(s) are taken, after which the main
+task continues from where it was interrupted. 
+.lm -10                                                 
+.hl INTMSG
+.lm +12
+.i -10;Purpose: Output messages to the top half of a split screen. 
+.lm -12
+ Calling sequence:##CALL INTMSG(STRING)
+.b
+.lm +24
+.i -22;Argument(s):##STRING:#Character string containing the message to be 
+written to the screen.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The first character in STRING is used for carriage control.
+.b
+If split screen has been set up either directly or by use of the ENTER key, 
+these messages will appear in the special display on the top half
+of the screen. These messages are saved and output again if the split
+display is removed and then restored again. If split screen has NOT
+been established, this routine works identical to OUTMSG.
+.lm -10
+.hl LENINT
+.lm +12
+.i -10;Purpose: Find number of characters needed to print an integer.
+.lm -12
+ Declaration: ##INTEGER LENINT
+ Calling sequence:##I=LENINT(INT)
+ Return value:##The number of characters needed to print integer.
+.b                                                                
+.lm +24
+.i -22;Argument(s):##INT:##Integer to find length of.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Meant to be used in FORMAT statments to print integers
+exactly filling the space wanted. In VAX-FORTRAN one may use 
+<INTEGER-expression> anywhere a number of digits etc. is allowed in a FORMAT
+statement. This is particularly useful in writing default or current values
+into a prompt string before passing it to GETPAR. 
+.lm -10
+.hl LIBREP
+.lm +12
+.i -10;Purpose: Refresh the screen if NON-SMG output has been used.
+.lm -12
+ Declaration: ##INTEGER LIBREP
+ Calling sequence:##I=LIBREP()
+ Return value:##The return status of an SMG routine. 
+.b
+.lm +10
+.i -8;Notes:##Should be used if the programmer suspect that NON-SMG 
+output may have over-written the screen. A return of 1 means success.
+.lm -10
+.hl LINGET
+.lm +12
+.i -10;Purpose: Get what is written to a line in the display.
+.lm -12
+ Declaration: ##INTEGER LINGET
+ Calling sequence:##I=LINGET(LINNUM,OUTSTR)
+ Return value:##The return status of the SMG routine used.
+.b
+.lm +24
+.i -22;Argument(s):##LINNUM:#The line to get the information from. (INTEGER)
+.i -8;OUTSTR:#String corresponding to the LINNUM line in the display.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##VAX specific routine, use FULMOD to check if in full screen
+mode before using this function.
+.b
+This function is useful if the content of a line needs to be saved such
+that it can easily be restored later.
+.lm -10
+.hl LSPAWN
+.lm +12
+.i -10;Purpose: Spawn subprocess to perform operating system command.
+.lm -12
+ Declaration: ##INTEGER LSPAWN
+ Calling sequence:##I=LSPAWN(CMDLIN,INFILE)
+ Return value:##The return status of the spawn process.
+.b
+.lm +24
+.i -22;Argument(s):##CMDLIN:#Character string containing the command to be 
+performed in subprocess.
+.i -8;INFILE:#Character string corresponding to the file used for input of 
+commands to the subprocess.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##If CMDLIN is empty, commands will be read from INFILE.
+.br
+If both CMDLIN and INFILE are empty strings, the user's terminal will be used 
+for input.
+.br
+See SPAWIT for a similar spawn with the output saved for display via INTMSG.
+.lm -10
+.hl MENADD
+.lm +12
+.i -10;Purpose: Add setup information for one item.
+.lm -12
+ Calling sequence:##CALL MENADD(MENNAM,NOTITL,ITMNAM,ACTION,HLPTXT)
+.b
+.lm +24
+.i -22;Argument(s):##MENNAM:#Character string containing the name of 
+the menu level.
+.i -8;NOTITL:#Flag indicating whether main title should be displayed or not.
+(LOGICAL)
+.i -8;ITMNAM:#Name of item for menu display. (CHARACTER)
+.i -8;ACTION:#Action name which is returned when command is to be
+executed. (CHARACTER)
+.i -8;HLPTXT:#Help information for the item. (CHARACTER)
+.lm -24
+.b
+.lm +10                                       
+.i -8;Notes:##The MENNAM argument must correspond to a defined menulevel.
+(See MENNEW below.)
+.b
+To make a new paragraph in the help information, use two 'blank' spaces
+after the period of the previous sentence.
+.lm -10
+.hl MENMAI
+.lm +12
+.i -10;Purpose: Set up main menu level.
+.lm -12
+ Calling sequence:##CALL MENMAI(MENNAM)
+.b
+.lm +24
+.i -22;Argument(s):##MENNAM:#Character string containing the logical name
+of the file of setup information to be read in. 
+.lm -24
+.b
+.lm +10                                       
+.i -8;Notes:##The MENNAM must have been used in a call to MENSET or
+MENNEW, the program will exit otherwise.
+.b
+.lm -10
+.hl MENNEW
+.lm +12
+.i -10;Purpose: Define a new menu level.
+.lm -12
+ Calling sequence:##CALL MENNEW(MENNAM)
+.b
+.lm +24
+.i -22;Argument(s):##MENNAM:#String containing the name of the menu level.
+(CHARACTER)
+.lm -24
+.b
+.lm +10                                       
+.i -8;Notes:##The MENNAM argument must be unique, a fatal error will be
+issued if the name already exists.
+.lm -10
+.hl MENSET
+.lm +12
+.i -10;Purpose: Read in a setup information file and create a new menu level.
+.lm -12
+ Calling sequence:##CALL MENSET(MENNAM)
+.b
+.lm +24
+.i -22;Argument(s):##MENNAM:#Character string containing the logical name
+of the file of setup information to be read in. 
+.lm -24
+.b
+.lm +10                                       
+.i -8;Notes:##The MENNAM must be a logical name for a file. This is both
+because the name is used internally as an identifier of the menu level and
+because it is then possible to change the real file without recompiling the
+program. This is also very important for offline programs to be used on
+machines other than a VAX. 
+.b
+For offline programs the length of this string should be 8 characters or less.
+.b
+The order of the calls to MENSET does NOT matter, the first call to MENUDO
+will determine the main menu level. MENMAI may also be used to set the main
+menu level.
+.b
+The MENNAM argument must be unique, a fatal error will be issued if the
+name already exists. 
+.lm -10
+.hl MENUDO
+.lm +12
+.i -10;Purpose: Get the next command at a given menu level.
+.lm -12
+ Calling sequence:##CALL MENUDO(TOPS,USENAM,COMOUT)
+.b
+.lm +24
+.i -22;Argument(s):##TOPS:#Character string containing the title line for
+the main menu.
+.i -8;USENAM:#Character string corresponding to one of the 
+names used in a call to MENSET.
+.i -8;COMOUT:#Character variable for returning command string.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##COMOUT is set to 'BLANK' on entry and is changed to the unique
+command identifer from the setup file if it does NOT have a 'CALL' in it or
+to 'EXIT' if exit or BACK was entered as the command. 
+.b
+If TOPS is given as ' ' (one space), the system will use the command line
+which gave rise to this menu as the title. The program name will also be
+added to the right side of the title.
+.lm -10
+.hl MSGSCR
+.lm +12
+.i -10;Purpose: Interpret a VAX status message and output it on the screen.
+.lm -12
+ Calling sequence:##CALL MSGSCR(STATUS,STRING)
+.b
+.lm +24
+.i -22;Argument(s):##STATUS:#Integer VAX status message.
+.i -8;STRING:#Character string containing a SHORT message to be 
+written to the screen in front of the actual VAX message.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##STATUS is normally returned from a VAX System Service or 
+Run Time Library function call.
+.lm -10
+.hl OUTMSG
+.lm +12
+.i -10;Purpose: Output messages to the screen in an orderly fashion.
+.lm -12
+ Calling sequence:##CALL OUTMSG(STRING)
+.b  
+.lm +24
+.i -22;Argument(s):##STRING:#Character string containing the message to be 
+written to the screen.
+.lm -24
+.b  
+.lm +10
+.i -8;Notes:##The first character in STRING is used for carriage control.
+In MENU MODE the display will stay in the middle part of the screen
+and scroll if more 
+than the number of lines which will fit on the screen are used
+(screen erased when going back to menu). The scrolling part of the screen may be
+cleared by using '1' as the first character in STRING. A '$' works correctly
+as used in connection with a prompt, but not always like a FORTRAN write. 
+.lm -10
+.hl OUTSAV 
+.lm +12
+.i -10;Purpose: Save all output to FORTRAN unit 6 in a temporary file.
+.lm -12
+ Calling sequence:##CALL OUTSAV
+.b
+.lm +24
+.i -22;Argument(s):##None 
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The use of FORTRAN unit 6 (SYS$OUTPUT) in WRITE or PRINT
+statements is STRONGLY discouraged. But if a program uses library routines
+which write to unit 6, this routine may be used to avoid strange screen behaviour.
+It should be called BEFORE any use of unit 6 is expected, and then the
+routine REASAV should be called to display the text on the screen AFTER
+the use of unit 6 has ended. See also EVESAV on how to edit this information.
+.lm -10
+.hl PARSFI
+.lm +12
+.i -10;Purpose:##Get a complete file description for a VAX/VMS file.
+.lm -12
+ Declaration: ##INTEGER PARSFI
+ Calling sequence:##I=PARSFI(FILSPC,NODSPC,NODLEN,DEVSPC,DEVLEN,
+.br
+###################*####DIRSPC,DIRLEN,NAMSPC,NAMLEN,TYPSPC,TYPLEN)
+ Return value:##The status return of the $PARSE system service.
+.b
+.lm +24
+.i -22;Argument(s):##FILSPC:##File specification to be expanded. (CHARACTER)
+.i -8;NODSPC:#Node name. (CHARACTER)
+.i -8;NODLEN:#Length of node name. (INTEGER)
+.i -8;DEVSPC:#Device name. (CHARACTER)
+.i -8;DEVLEN:#Length of device name. (INTEGER)
+.i -8;DIRSPC:#Directory name. (CHARACTER)
+.i -8;DIRLEN:#Length of directory name. (INTEGER)
+.i -8;NAMSPC:#File name. (CHARACTER)
+.i -8;NAMLEN:#Length of file name. (INTEGER)
+.i -8;TYPSPC:#File type. (CHARACTER)
+.i -8;TYPLEN:#Length of file type. (INTEGER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Useful when the full file specification is needed in the program.
+The call to $PARSE is complicated from FORTRAN. This is a very VAX-specific 
+routine, use it with caution. It will just return 0 on other machines.
+.lm -10
+.hl PFGET
+.lm +12
+.i -10;Purpose: Get current PF-labels.
+.lm -12
+ Calling sequence:##CALL PFGET(LABELS)
+.b                                                                
+.lm +24
+.i -22;Argument(s):##LABELS:#Current labels. (CHARACTER array (4))
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This routine is useful before a call to PFLABL to be able to
+restore the old labels at a later time.
+.lm -10
+.hl PFLABL
+.lm +12
+.i -10;Purpose: Output labels for the 4 PF keys on bottom of screen.     
+.lm -12
+ Calling sequence:##CALL PFLABL(PFL1,PFL2,PFL3,PFL4)
+.b
+.lm +24
+.i -22;Argument(s):##PFL1-4:#Character strings containing the labels for each 
+of the four PF keys.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The labels are output on the bottom line of the screen.
+.br
+Use this routine in connection with READPF if you want a special use of the 
+PF keys.
+.lm -10
+.hl PFNUM
+.lm +12
+.i -10;Purpose: Check if a PF-key was entered. 
+.lm -12
+ Declaration: ##INTEGER PFNUM
+ Calling sequence:##I=PFNUM()
+ Return value:##The number of the PF-key if any, 0 otherwise.
+.b
+.lm +10
+.i -8;Notes:##Should be used after a call to GETPAR to see if a PF key 
+was struck while a list of parameters were being prompted for. Actions should 
+NOT be taken if PFNUM().NE.0 since not all parameters will be available then.
+.lm -10
+.hl PFWAIT
+.lm +12
+.i -10;Purpose: Wait for a PF key to be struck in full screen mode.
+.lm -12
+ Calling sequence:##CALL PFWAIT
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This routine should be used in all action routines which 
+may have produced output the user have to read before the menu
+is redisplayed. In line mode this routines does nothing.
+.lm -10
+.hl READPF
+.lm +12
+.i -10;Purpose: Read keyboard input and check for any PF key entered.
+.lm -12
+ Declaration: ##INTEGER*4 READPF
+ Calling sequence:##I=READPF()
+ Return value:##The number of the PF key struck.
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Only returns when a PF key is struck.
+.lm -10
+.hl REASAV 
+.lm +12
+.i -10;Purpose: Display output which has been saved in a temporary file.
+.lm -12
+ Calling sequence:##CALL REASAV
+.b
+.lm +24
+.i -22;Argument(s):##None 
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The use of FORTRAN unit 6 (SYS$OUTPUT) in WRITE or PRINT
+statements are STRONGLY discouraged. But if a program uses library routines
+which use unit 6, the routine OUTSAV may be used to open unit 6 as a
+temporary file. This routine closes unit 6 and reads in, line by line,
+what has been written to it. It displays each line on the screen using
+INTMSG.
+.lm -10
+.pg
+.hl RLUNIT
+.lm +12
+.i -10;Purpose: Release a FORTRAN unit number gotten from GTUNIT.
+.lm -12
+ Calling sequence:##CALL RLUNIT(IUSER,IUNIT,IERR)
+.b
+.lm +24
+.i -22;Argument(s):##IUSER:##User id of the calling routine. Must
+be the same as the one who reserved IUNIT. (INTEGER)
+.i -8;IUNIT:##Next available unit number. 
+.i -8;IERR:###Error code (0 if OK) (INTEGER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This is a companion routine to GTUNIT.
+.b
+ALL routines doing FORTRAN I/O should use GTUNIT 
+to get the next available unit number to use. This will avoid conflicts
+when routines from different libraries are included in the same program.
+.lm -10
+.hl SETCHK
+.lm +12
+.i -10;Purpose: Initialization routine for all of COMPACK.
+.lm -12
+ Calling sequence:##CALL SETCHK
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This routine is called internally at the time of the first
+call to MENSET or MENNEW (also used when menu setup is done from routine
+made by the MENU__MAKER program). If the initialization has already been
+done, it will not be done again. 
+.b
+This routine should be called explicitly if a call to a COMPACK routine
+(like GETPAR) is needed before the first call to MENSET, or in a program
+which does not need menus and therefore does not call MENSET. 
+.lm -10
+.hl SETCOM
+.lm +12
+.i -10;Purpose: Initialization routine for all of COMPACK.
+.lm -12
+ Calling sequence:##CALL SETCOM
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This routine is an alternate way of doing the initialization
+without parsing any commmand qualifiers etc. entered on the original
+command lined. Any subsequent calls to SETCHK will also be ignored.
+.b
+This routine should be used if the program does its own parsing for
+qualifiers etc. A set of interface routines for standard COMPACK
+qualifiers is available, see CHAPTER 4 for details.
+.b
+It may also be used in a very simple program without menus etc. which
+needs some COMPACK routines for screen based I/O.
+.lm -10
+.hl SETDMP
+.lm +12
+.i -10;Purpose: Set up dumping output to a file.
+.lm -12
+ Calling sequence:##CALL SETDMP(IUNI,FILNAM)
+.b                                                                
+.lm +24
+.i -22;Argument(s):##IUNI:###Unit to dump to.
+.i-8;FILNAM:#Name of file to to dump to. (CHARACTER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Use GTUNIT to get IUNI when not using unit 6.
+.b
+When IUNI=6 the special dump initiated by OUTSAV is used, and FILNAM is
+not used (must be in call).
+.b
+See DMPMSG for how to actually write to this file, and ENDDMP for how to
+stop such a dump.
+.lm -10
+.hl SETFLG 
+.lm +12
+.i -10;Purpose: Tell the system NOT to display menu after a command. 
+.lm -12
+ Calling sequence:##CALL SETFLG
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The flag stays active for only ONE call to the menu display
+routine.
+.b
+This routine should be used in all action routines called from an interrupt
+dispatch routine when the interrupt menu will be terminated as soon as the main
+code gets control again. This prevents the interrupt menu from flashing on the
+screen for a brief moment just to be taken away by a call to CANMEN shortly
+afterwards. See the example in TYPEND as used in TYPROG. It may also be used 
+in action routines called from in interrupt mode when you do not want the menu 
+to appear immendiately. A label line will appear to tell the user how to get 
+the menu back. 
+.lm -10
+.hl SETLIN 
+.lm +12
+.i -10;Purpose: Set number of lines to be used in split screen mode.
+.lm -12
+ Calling sequence:##CALL SETLIN(NUMLIN)
+.b
+.lm +24
+.i -22;Argument(s):##NUMLIN:#Number of lines INCLUDING border
+to be used for the split screen.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Because of the border, 3 lines is the minimum useful 
+number of lines to ask for. 
+.lm -10
+.hl SETMOD
+.lm +12
+.i -10;Purpose: Access a flag indicating SETUP MODE.
+.lm -12
+ Declaration: ##LOGICAL SETMOD
+ Calling sequence:##L=SETMOD()
+ Return value:##.TRUE. if in SETUP MODE.
+.b
+.lm +10
+.i -8;Notes:##Should be used after a call to GETPAR to see if in the
+program is setting up a command file. Actions should NOT be taken when in
+this mode. The entered parameters have already been written to the command
+file. 
+.b
+See PFNUM as well.
+.lm -10
+.hl SETQIO
+.lm +12
+.i -10;Purpose: Enable unsolicited input from keyboard.
+.lm -12
+ Calling sequence:##CALL SETQIO(DSPNAM)
+.b
+.lm +24
+.i -22;Argument(s):##DSPNAM:#Dispatch routine name. (EXTERNAL)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The routine DSPNAM has to be declared EXTERNAL in the calling
+routine.
+.br
+The calling sequence for DSPNAM is: CALL#DSPNAM(COMAND) where COMAND
+is the unique command identifier from the .SET file. It should perform
+the task of that command and nothing else. 
+.br
+Use this call explicitely ONLY if DISABL has to be called. 
+.lm -10
+.hl SETSTA
+.lm +12
+.i -10;Purpose: Set number of lines to be used in status display.
+.lm -12
+ Calling sequence:##CALL SETSTA(NUMLIN)
+.b
+.lm +24
+.i -22;Argument(s):##NUMLIN:#Number of lines INCLUDING border
+to be used for the status display.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Because of the border, 3 lines is the minimum useful 
+number of lines to ask for. 5 is currently the maximum. Only important
+status messages should be put on this part anyway.
+.lm -10
+.hl SPAWIT
+.lm +12
+.i -10;Purpose: Spawn subprocess to perform a single operating system command, 
+with output saved and displayed via INTMSG.
+.lm -12
+ Declaration: ##INTEGER SPAWIT
+ Calling sequence:##I=SPAWIT(CMDLIN)
+ Return value:##The return status of the spawn process.
+.b
+.lm +24
+.i -22;Argument(s):##CMDLIN:#Character string containing the command to be 
+performed in subprocess.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##If CMDLIN is empty, commands will be read from the user terminal.
+.br
+See LSPAWN for a similar spawn with the output NOT saved. 
+.lm -10
+.hl SPLSTA
+.lm +12
+.i -10;Purpose: Set up status display mode. 
+.lm -12
+ Calling sequence:##CALL SPLSTA
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The routine SETSTA may be called before the call to this routine
+to set up the number of lines in the status display.
+.b
+Use STAMSG to output messages to this display.
+.b
+Use ENDSTA or Kypad 0 to take away the status display again.
+.b
+Status Screen is also available as a system command.
+.lm -10            
+.hl SPLTIT
+.lm +12
+.i -10;Purpose: Set up split screen mode. 
+.lm -12
+ Calling sequence:##CALL SPLTIT                    
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The routine SETLIN may be called before the call to this routine
+to set up the number of lines in the message display.
+.b
+Use INTMSG to output messages to this part of the screen.
+.b
+Use ENDSPL or ENTER key to go back to a single display again.
+.b
+Split Screen is also available as a system command.
+.lm -10            
+.hl STAMSG
+.lm +12
+.i -10;Purpose: Output messages to the status area on top of screen. 
+.lm -12
+ Calling sequence:##CALL STAMSG(STRING)
+.b
+.lm +24
+.i -22;Argument(s):##STRING:#Character string containing the message to be 
+written to the screen.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The first character in STRING is used for carriage control.
+In particular use a '+' to overwrite the last message on the bottom of the
+display if the top line should be left intact.
+.b
+If status screen has been set up either directly or by use of the Keypad 0
+key, these messages will appear in the special display on the top half of
+the screen. These messages are saved and output again if the status
+display is removed and then restored again. If status screen has NOT been
+established, this routine works identical to INTMSG. 
+.lm -10
+.hl TABDIS
+.lm +12
+.i -10;Purpose:##Display an array of integers or reals on screen.
+.lm -12
+ Calling sequence:
+.br
+########CALL#TABDIS(ARRAY,NUMENT,NUMSPA,NMBCOL,TYPE,LABEL,FMTSTR)
+.b
+.lm +24
+.i -22;Argument(s):##ARRAY:##Array to be displayed. (INTEGER or REAL)
+.i -8;NUMENT:#Number of elements to display. (INTEGER)
+.i -8;NUMSPA:#Vertical spacing of display (1..n). (INTEGER)
+.i -8;NMBCOL:#Number of columns in display (1..n). (INTEGER)
+.i -8;TYPE:###Type of array ('I' or 'R').
+.i -8;LABEL:##Label for top of display.
+.i -8;FMTSTR:#FORTRAN format descriptor for each element (ex: 'I10').
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The valid types are: 'R' for real.
+.i 22;'I' for integer.
+.i 22;'C' for character.
+.b
+The FMTSTR and NMBCOL variables MUST be chosen such that the line doesn't
+become wider than the screen (usually 78 characters available).
+.b
+For type 'C', the  FMTSTR should be 'A' and NMBCOL usually 1.
+.lm -10            
+.hl TIMDIS
+.lm +12
+.i -10;Purpose:##Redo a specific display (or other operation) with a
+specified time interval.
+.lm -12
+ Calling sequence:###CALL#TIMDIS(DISPIT,TIMDEF)
+.b
+.lm +24
+.i -22;Argument(s):##DISPIT:##Name of routine to be called 
+.br
+at the end of each interval. (EXTERNAL)
+.i -8;TIMDEF:#Default time interval in 
+.br
+'DD HH:MM:SEC.HUND' format.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This is a VAX specific routine and should only be used in
+'online' programs.
+.lm -10
+.hl TRALOG
+.lm +12
+.i -10;Purpose:##Translate a VAX/VMS logical name.
+.lm -12
+ Declaration: ##INTEGER TRALOG
+ Calling sequence:##I=TRALOG(LOGIN,LOGOUT,OUTLEN)
+ Return value:##The status return of the $TRNLM system service.
+.b
+.lm +24
+.i -22;Argument(s):##LOGIN:##Logical name to be translated. (CHARACTER)
+.i -8;LOGOUT:#Translated name. (CHARACTER)
+.i -8;OUTLEN:#Length of translated name. (INTEGER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Useful when the translated name is needed in the program.
+The call to $TRNLM is complicated from FORTRAN. This is a very VAX-specific 
+routine, use it with caution.
+.lm -10
+.hl TRANUP
+.lm +12
+.i -10;Purpose: Translate a character string to upper case.
+.lm -12
+ Declaration: ##CHARACTER*(*) TRANUP
+ Calling sequence:##CH=TRANUP(INTXT)
+ Return value:##The translated string.
+.b
+.lm +24
+.i -22;Argument(s):##INTXT:##Character string containing the characters to 
+be translated.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Useful for making parameters and commands case insensitive.
+.b
+The length of the string should be less than or equal to the declaration
+of TRANUP in the routine calling it.
+.lm -10
+.hl TRULEN
+.lm +12
+.i -10;Purpose:##Find the length of a character string.
+.lm -12
+ Declaration: ##INTEGER TRULEN
+ Calling sequence:##I=TRULEN(INTXT)
+ Return value:##The number of characters in the string, excluding 
+.i 17;trailing blanks.
+.b
+.lm +24
+.i -22;Argument(s):##INTXT:##Character string to find the length of.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Useful when actual length of a string is needed.
+.lm -10
+.hl WAIBIT
+.lm +12
+.i -10;Purpose:##Wait a certain number of seconds before going on with the 
+.lm -12
+program.
+ Calling sequence:##CALL WAIBIT(SEC)
+.b
+.lm +24
+.i -22;Argument(s):##SEC:####Number of seconds to wait. (INTEGER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Must use:##0#<#SEC#<#60
+.br 
+It is recommended to use WAITIT for more accurate wait periods.
+.lm -10
+.hl WAITIT
+.lm +12
+.i -10;Purpose:##Wait a certain number of seconds before going on with the 
+program.
+.lm -12
+ Calling sequence:##CALL WAITIT(RSEC)
+.b
+.lm +24
+.i -22;Argument(s):##RSEC:####Number of seconds to wait. (REAL)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##RSEC may be as small as .01 and as large as 100000.0 sec.
+.lm -10            
+.CH Description of user-supplied routines.
+.lm 8
+.rm 75
+ Following are detailed descriptions of routines which the
+programmer may supply to do special processing. Default (do-nothing)
+routines are included in the library to avoid undefined names at link time.
+.hl EXIUSR
+.lm +12
+.i -10;Purpose:##Do exit processing.
+.lm -12
+ Declaration: ##SUBROUTINE EXIUSR
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##Useful when processing time or other types of summaries are needed.
+.lm -10
+.hl USRCHK
+.lm +12
+.i -10;Purpose:##Parse special qualifiers entered on original command line.
+.lm -12
+ Declaration: ##SUBROUTINE USRCHK(NUMQ,CHRQUA)
+.b
+.lm +24
+.i -22;Argument(s):##NUMQ:###Number of different qualifiers found.
+.i -8;CHRQUA:#Array (NUMQ elements used) of the qualifier strings. (CHARACTER)
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This routine is called from SETCHK when the /USER= qualifier
+was entered on the original command line in VMS. 
+.b
+More than one qualifier may be entered by separating the inividual ones by
+commas and enclosing the whole set in parenthesis '()'.
+.b
+A dummy version which types each qualifier on the screen, is included in
+the package and may be used as a template.
+.lm -10
+.CH Description of Qualifier Parsing Routines
+.lm 8
+.rm 75
+ Most programs will be able to use the standard set of qualifiers
+described in the USERS__GUIDE and in the HELP information for TYPROG. But
+it may be desirable for special programs to use other/more qualifiers than
+the standard COMPACK ones. In such a case the programmer should write a
+section of code which does the parsing for qualifiers. The routine SETCHK
+in the COMPACK library is an example of how this should be done. For each
+of the standard qualifiers there is a routine described below which will check
+for the presence of the qualifier on the command line. Every qualifier
+from the standard set have to be included in the .CLD file for the program.
+The definitions for the COMPACK qualifiers which should be included MUST
+be copied from the file COMPACKCLD.CLD in the COMPACK source library.
+Notice that some of the routines (GFULSC, GNOSMG and GINCOM) should be
+called BEFORE the call to SETCOM (must be used instead of SETCHK in such a
+program). This is in order for the setup of the terminal to be done
+correctly. The rest of the set should be called AFTER the call to SETCOM
+such that the terminal is already set up when they are called. 
+ See the examples for how to set up a HELP file for a program using some
+of the standard qualifiers. 
+.hl GCOMND
+.lm +12
+.i -10;Purpose:##Check for the /COMMAND=file__name qualifier.
+.lm -12
+ Calling sequence:##CALL GCOMND
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This qualifier will make the program read a command file
+before going to normal menu mode.
+.lm -10
+.hl GCONFI
+.lm +12
+.i -10;Purpose:##Check for the /CONFIRM__END qualifier.
+.lm -12
+ Calling sequence:##CALL GCONFI
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This qualifier will make the program ask for confirmation
+before exiting from full-screen mode. It is useful to use /NOCONFIRM when
+a program is run in a subprocess spawned form inside another program.
+Default is /CONFIRM__END.
+.lm -10 
+.hl GFULSC
+.lm +12
+.i -10;Purpose:##Check for the /FULLSCREEN qualifier.
+.lm -12
+ Calling sequence:##CALL GFULSC
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This qualifier will make the program start up in FULL-SCREEN
+mode. This is useful when defining symbols for running programs where the
+user may not remember the commands. Default is /NOFULLSCREEN.
+.lm -10
+.hl GINCOM
+.lm +12
+.i -10;Purpose:##Check for a command entered directly.
+.lm -12
+ Calling sequence:##CALL GINCOM(COMAND)
+.b
+.lm +24
+.i -22;Argument(s):##COMAND:#Character string with the whole original
+command line as gotten from LIB$GET_FOREIGN.
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##If a command is found this way, a flag will be set such that
+the program will ONLY perform this one command and immediately exit.
+.lm -10
+.hl GJOURN
+.lm +12
+.i -10;Purpose:##Check for the /JOURNAL=[file__name] qualifier.
+.lm -12
+ Calling sequence:##CALL GJOURN
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This qualifier will make the program start up in LOGGING
+mode where all commands and parameters are written to a file which later
+may be used as a command file. The file__name part is optional and will
+default to LAST__JOURNAL if not included. When the file is actually
+opened, the name of the menu plus a '$' is added before the file__name to
+uniquely identify the file. Default is /NOJOURNAL.
+.lm -10
+.hl GNOSMG
+.lm +12
+.i -10;Purpose:##Check for the /NOSMG__MODE qualifier.
+.lm -12
+ Calling sequence:##CALL GNOSMG
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##If /NOSMG__MODE is found, the screen I/O via the SMG library
+of routines will be disabled. This is useful when debugging a program to
+avoid interference on the screen between the debugger and the output from
+the program. Default is /SMG__MODE
+.lm -10
+.hl GSPLIT
+.lm +12
+.i -10;Purpose:##Check for the /SPLITMODE qualifier.
+.lm -12
+ Calling sequence:##CALL GSPLIT
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This qualifier will start the program in a split-screen
+mode, where the upper half is used for message displays. This qualifier
+should only be used when SPLTIT is not called in the program.
+.lm -10
+.hl GSTATU
+.lm +12
+.i -10;Purpose:##Check for the /STATUSPART qualifier.
+.lm -12
+ Calling sequence:##CALL GSTATU
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##This qualifier will start the program with a small status
+display on top of the screen. Messages which should be displayed for a
+long time may be written to this display. This qualifier should only be
+used when SPLSTA is not called in the program. 
+.lm -10
+.hl GUSERM
+.lm +12
+.i -10;Purpose:##Check for the /USER=(par1...parn) qualifier.
+.lm -12
+ Calling sequence:##CALL GUSERM
+.b
+.lm +24
+.i -22;Argument(s):##None
+.lm -24
+.b
+.lm +10
+.i -8;Notes:##The parts of this qualifier will be split apart and the
+routine USRCHK described in the previous chapter will be called.
+.lm -10
+.CH EXAMPLES
+.lm 8
+.rm 75
+ Following is a set of examples for setting up a prototypical program using
+this package. The program understands 4 commands at the top level, and has
+one sublevel. 
+.hl Main Program                                  
+.literal
+
+
+      PROGRAM TYPROG
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Demonstrate and test COMPACK facilities
+C-
+C-   Created  20-SEP-1988   Jan S. Hoftun
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INTEGER STALIN
+      DATA STALIN/3/
+C----------------------------------------------------------------------
+C
+C     Set up menus -- the rest of them are set up as needed internally
+C
+      CALL MENSET('MENUDEF')
+      CALL MENSET('ASTMODE')
+      CALL MENSET('ASTMODE1')
+C
+C     Test STATUS screen
+C
+      CALL SETSTA(STALIN)
+      CALL SPLSTA
+      CALL STAMSG(' Welcome to the COMPACK Protoype Program',.TRUE.)
+      CALL SPLTIT
+C
+C     Put user initialization here
+C
+      CALL MENGET         !Call menu dispatching routine
+      CALL EXIMEN
+      STOP
+      END
+
+.end literal
+.pg
+.hl Typical dispatch type routine. 
+.literal 
+
+
+      SUBROUTINE MENGET
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Dispatch routine for TYPROG
+C-
+C-   Inputs :  None
+C-   Outputs : None
+C-
+C-   Created   23-MAY-89   by MENU_MAKER
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      CHARACTER*40 COMAND
+      LOGICAL GOTOP
+      LOGICAL FIRST
+      DATA FIRST/.TRUE./
+C----------------------------------------------------------------------
+      IF(FIRST) THEN
+        FIRST=.FALSE.
+        CALL TYPDEF
+      ENDIF
+      COMAND=' '
+    1 CONTINUE
+      IF (COMAND.NE.'EXIT') THEN
+        CALL MENUDO('Prototype COMPACK Program ','TYPROG',COMAND)
+        IF(COMAND.EQ.'TYPDIS') THEN
+          CALL TYPDIS
+        ELSEIF(COMAND.EQ.'TYPGO') THEN
+          CALL TYPGO
+        ELSEIF(COMAND.EQ.'TYPOPT') THEN
+          CALL TYPOPT
+        ELSEIF(COMAND.EQ.'SUBLV1') THEN
+          CALL SUBLV1
+        ELSEIF(COMAND.NE.'EXIT'.AND.COMAND.NE.'BLANK') THEN
+          CALL OUTMSG('0No ACTION defined for that command'//CHAR(7))
+        ENDIF
+        GOTO 1
+      ENDIF
+      RETURN
+      END
+
+.end literal
+.pg
+.hl Typical Command Interface Routine
+.literal
+
+
+
+	SUBROUTINE TYPGET
+	 
+C	 
+C      FUNCTIONAL DESCRIPTION:	
+C
+C              Get a TYPICAL set of parameters for a command.
+C
+	IMPLICIT NONE
+	INTEGER NUMPAR
+	PARAMETER (NUMPAR=5)
+	CHARACTER*40 PROMPT(NUMPAR)
+	CHARACTER*1 TYPARR(NUMPAR)
+	CHARACTER*40 CHARS,ACHAR
+	CHARACTER*80 CHROUT
+	REAL*4 XIN
+        LOGICAL LIN,GETDEV
+	INTEGER I,TRULEN,NEX,IN,PFNUM,LENINT
+        LOGICAL SETMOD
+        DATA TYPARR/'U','R','H','L','A'/
+        DATA XIN/100.0/,IN/999/,LIN/.TRUE./
+	WRITE(PROMPT(1),1) 
+1       FORMAT(' Enter characters > ')
+	WRITE(PROMPT(2),2) XIN 
+2       FORMAT(' Enter a real number [',F<LENINT(INT(XIN))+4>.3,
+     *         '] > ')
+	WRITE(PROMPT(3),3) IN 
+3       FORMAT(' Enter an integer in HEX [',I<LENINT(IN)>,'] > ')
+	WRITE(PROMPT(4),4) LIN 
+4       FORMAT(' Enter a logical flag [',L1,'] > ')
+	WRITE(PROMPT(5),5) 
+5       FORMAT(' Enter characters for rest of line > ')
+	CALL GETPAR(NUMPAR,PROMPT,TYPARR,CHARS,XIN,IN,LIN,ACHAR)
+        IF(.NOT.SETMOD().AND.PFNUM().EQ.0) THEN
+           WRITE(CHROUT,100) CHARS
+100        FORMAT('0Returned parameters:   CHARS: ',A40)
+           CALL INTMSG(CHROUT)
+           CHROUT=' '
+           WRITE(CHROUT,101) XIN,IN,LIN
+101        FORMAT(' XIN=',F<LENINT(INT(XIN))+4>.3,
+     *           '   IN=',I<LENINT(IN)>,'    LIN=',L3)
+           CALL INTMSG(CHROUT)
+           WRITE(CHROUT,102) ACHAR
+102        FORMAT(' ACHAR: ',A40)
+           CALL INTMSG(CHROUT)
+           CALL PFWAIT
+        ENDIF
+	RETURN
+   	END
+
+.end literal
+.pg
+.hl Typical Setup Input File
+.literal 
+
+Item #   1.000
+Get Typical Parameters
+TYPDIS
+ This command will prompt for the four possible types of parameters and print 
+them on the screen for inspection.                                              
+Item #   2.000
+Do Typical Computation
+TYPGO
+ This command will prompt for a number of calculations to do. It then sets up a 
+submenu for user interaction and starts a calculation loop in the foreground. 
+Use End Calculation in the submenu to stop the loop.                            
+Item #   3.000
+Option Display
+TYPOPT
+ This command will display a set of parameters in option-format, where one of 
+the options may be chosen from the list.                                        
+Item #   4.000,NO TITLE
+Go to Second Level
+SUBLV1
+ This command will go down to the second level of menus.                        
+Item #   5.000,NO TITLE
+Run Command File
+CALL RUNCOM
+ This command will prompt for the name of a command file to be run. The file 
+must contain commands spelled out enough to be unique and the required input 
+for each command as separate lines.  See SET UP COMMAND FILE for help on how to 
+create such a file.  If the file is not found or cannot be opened for some 
+other reason, a message will be typed, including the IOSTAT number.             
+Item #   6.000,NO TITLE
+Edit Command File
+CALL EVECOM
+ This command will prompt for the name of a command file to be edited.  The 
+standard D0 editor, EVE+, will be used.                                         
+Item #   7.000
+Set up Command File
+CALL RUNSET
+ This command will prompt for the name of a command file to be set up.  The 
+program will then go into a normal menu mode, but instead of actually doing the 
+commands it will save each input line in the command file.  You finish this 
+input mode by using BACK as usual.                                              
+Item #   8.000
+Start Logging to File
+CALL RUNLOG
+ This command will prompt for the name of a command file for the  commands to 
+be saved in.  Each command will then be saved in this file which may be used as 
+a command file later.  You finish this logging mode by using the END LOGGING 
+command.                                                                        
+Item #   9.000,NO TITLE
+Stop Logging to File
+CALL ENDLOG
+ This command will end the logging of commands to a file.                       
+Item #  10.000
+Add Menu Item
+CALL ADDITM
+ This command will let you add a VMS one-line command as a menu item. You will 
+be prompted for the name of the command. The name will appear in the menu list. 
+You will then be prompted for the command to be executed. A complicated command 
+may be performed by using a command file.  The same restrictions as under SPAWN 
+above are valid here as well.                                                   
+Item #  11.000,NO TITLE
+Control of Menu
+MENCTR
+ This command will produce a secondary menu for controlling the layout of the 
+menu and adding new commands etc.  You go back up to the main menu by using 
+EXIT as usual.                                                                  
+
+
+.end literal
+.pg         
+.hl Typical Definitions \for \a Program
+ Here are two .COM files used in setting up a program. The first one is
+used to define the logical names for the menu files
+and the second one (which calls the first one) is used to define a program as a
+new VMS command. HELP information about the new command in should also be
+put into a site-specific help library. 
+.literal
+
+
+$! To set up menu definitions for TYPROG
+$!
+$ ASSIGN D0$COMPACK$MENU:ASTMODE.MENU ASTMODE
+$ ASSIGN D0$COMPACK$MENU:ASTMODE1.MENU ASTMODE1
+
+
+
+
+$! To set up TYPROG as a know command
+$!
+$ @D0$COMPACK$SOURCE:TYPROG_MENUS
+$ TYPROG :== $D0$COMPACK:TYPROG
+
+
+.end literal
+.pg         
+.hl Typical VMS-HELP File \for \a Program
+ Below is an example for how to set up a VMS-HELP file for a typical
+program. It must be inserted into an appropriate _.HLB library in order to
+be available to users.
+
+.literal
+
+
+1 TYPROG
+
+      This program is a prototype of a program using the COMPACK
+command-menu package. It is mainly used to test out new features, but
+is also useful for demonstration purposes as well as for examples of
+the interfaces to COMPACK. 
+
+2 Parameters
+
+   Any valid command for this program. The given command (which may be
+   running a command file) will then be the ONLY executed command and
+   the program will exit directly. 
+
+2 Qualifiers
+
+/COMMAND=file_name
+
+   Run the command file FILE_NAME before getting into the normal menu
+   mode. 
+
+/CONFIRM_END (D)
+  /NOCONFIRM_END
+
+   Program will ask for confirmation before exiting when in
+   FULL-SCREEN mode. 
+
+/FULLSCREEN
+  /NOFULLSCREEN (D)
+
+   Program should be started in FULL-SCREEN mode if possible.
+   Incompatible with /NOSMG 
+
+/JOURNAL[=file_name]
+
+   Program will go directly to LOGGING mode where all commands and
+   parameters entered are saved in the file given by FILE_NAME. If no
+   name is given, LAST_LOGFILE will be used. The name of the menu
+   level is added to the front of the file_name to identify the file. 
+
+/SMG_MODE (D)
+  /NOSMG_MODE
+
+   Program will use the SMG package of routines for handling screen
+   I/O. NOSMG_MODE is useful when debugging a program to avoid
+   interference between the debugger and the SMG output. 
+
+/SPLITMODE
+
+   Start the program in SPLIT-SCREEN mode where an upper part is used
+   for message reporting. 
+
+/STATUSPART
+
+   Start the program with a small STATUS part for displaying
+   long-lasting status messages. 
+
+/USER=(part1,part2,....partn)
+
+   Special qualifiers for passing to a user part of the program. Will
+   just type out the PART1...PARTn parameters here. 
+
+
+.end literal

@@ -1,0 +1,118 @@
+      SUBROUTINE CSF_FIX(RCP_FILE)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :  CHECK CSF_STPFILE string for consistency 
+C-                 with DATATYPE (D0,MC,TBL1,TBL2,PLT,MIX) and re-build
+C-                 CSF banks if needed. 
+C-   Inputs  : [C] RCP_FILE (CAHITS.RCP usually) 
+C-   Outputs : none
+C-   Controls: RCP_FILE
+C-
+C-   Created   6-APR-1992   Chip Stewart
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$PARAMS:CAL_OFFLINE.PARAMS'
+      INCLUDE 'D0$PARAMS:CAL_ADC_NO.PARAMS'
+      INCLUDE 'D0$PARAMS:BYTE_ORDER.PARAMS'
+      INCLUDE 'D0$INC:ZEBSTP.INC'
+      INCLUDE 'D0$INC:STP_ZLINKA.INC'
+      INCLUDE 'D0$INC:CUNFLG.INC'
+C
+      LOGICAL FIRST,EZERR
+      LOGICAL DO_ADC_TO_GEV,BUILD_CSF
+      LOGICAL TB,D0,MC,PLT,MIX,L1,L2,BTEST
+      CHARACTER*(*) RCP_FILE
+      CHARACTER MSG*80,CSF_STPFILE*132,CDATA*12,CSF_RCP*132,RCPF*132
+      CHARACTER CSF_RCPFILE*132
+      INTEGER LCGEV, GZCGEV, LOC,IER,LENF,S1,S2,S3,R1,R2,R3,LFILE
+      INTEGER GZCSFH,LCSFH,TRULEN
+      SAVE FIRST
+      DATA FIRST/.TRUE./
+C----------------------------------------------------------------------
+      IF (.NOT.FIRST ) GOTO 999
+      FIRST = .FALSE.
+      CDATA = ' '
+      CSF_RCP = 'CSF_RCP'
+C
+C ****  READ RCP_FILE (CAHITS_RCP)
+C
+      CALL EZLOC(RCP_FILE,LOC)
+      IF(LOC.EQ.0) CALL INRCP(RCP_FILE,IER)
+      CALL EZPICK(RCP_FILE)
+      IF(EZERR(IER)) THEN
+        CALL ERRMSG('NO_RCP_FILE','CSF_FIX',RCP_FILE,'W')
+      ELSE
+        CALL EZGETS('CSF_STPFILE',1,      CSF_STPFILE,LENF,IER)
+        CALL EZGET ('BUILD_CSF',          BUILD_CSF,IER)
+      END IF
+      CALL EZRSET
+      IF( BUILD_CSF) GOTO 500
+      TB = BTEST(D0VSN,6)
+      D0 = .NOT.TB
+      MC = BTEST(D0VSN,5)
+      IF(TB) THEN
+        L1 = CALVSN.EQ.1
+        L2 = CALVSN.EQ.2
+      END IF
+      IF(MC) THEN
+        PLT = BTEST(CALVSN,2)
+        MIX = .NOT.PLT
+C
+C ****   NOTHING IN CAD HEADER TO INDICATE PLATE OR MIXTURE GEOMETRY
+C ****   ASSUME TB PLATES and D0 MIXTURE FOR NOW
+C
+        IF(TB) THEN
+          PLT = .TRUE.
+          MIX = .FALSE.
+        END IF
+      END IF
+C
+C ****  CHECK CSF_STPFILE STRING FOR CONSISTENCY
+C
+      IF(D0.AND.(.NOT.MC)) GOTO 999
+      IF(D0.AND.MC.AND.MIX) CDATA = 'D0_MIX'
+      IF(D0.AND.MC.AND.PLT) CDATA = 'D0_PLT'
+      IF(TB.AND.MC.AND.PLT) CDATA = 'TB_PLT'
+      IF(TB.AND.MC.AND.MIX) CDATA = 'TB_MIX'
+      IF(TB.and.CDATA(1:1).EQ.' ') CDATA = 'TB'
+      IF(CDATA(1:1).EQ.' ') THEN
+        WRITE(MSG,110) D0VSN,CALVSN,SFTVSN
+  110   FORMAT(' D0VSN = ',Z8.8,' CALVSN =',Z8.8,' SFTVSN =',I5)
+        CALL ERRMSG('UNKNOWN CAD DATA','CSF_FIX',MSG,'W')
+        GOTO 999
+      END IF
+      CALL EZPICK(RCP_FILE)
+      IF(EZERR(IER)) THEN
+        CALL ERRMSG('NO_RCP_FILE','CSF_FIX',RCP_FILE,'W')
+      ELSE
+        CSF_RCPFILE = 'CSF_RCP_'//CDATA(1:TRULEN(CDATA))
+        CALL EZGETS(CSF_RCPFILE,1,      CSF_RCP,LENF,IER)
+      END IF
+      CALL EZRSET
+  500 CALL SWORDS(CSF_STPFILE,S1,S2,S3)
+      CALL ERRMSG('OVERWRITE_CSFSTPFILE','CSF_FIX',
+     &  CSF_STPFILE(S1:S2),'W')
+      CALL TRNLNM(CSF_RCP,RCPF,LFILE)
+      CSF_RCP = RCPF(1:LFILE)
+      CALL SWORDS(CSF_RCP,R1,R2,R3)
+      MSG = CDATA//' USE '//CSF_RCP(R1:R2)
+      CALL ERRMSG('REBUILD_CSF','CSF_FIX',MSG,'W')
+C
+C ****  DROP CSF BANKS IF THEY EXIST
+C
+      LCSFH = GZCSFH ()
+      IF(LCSFH.GT.0) CALL MZDROP(IXSTP,LCSFH,' ')
+C
+C ****  BUILD CSF BANKS
+C
+      CALL CSFBUILD(CSF_RCP,IER)
+      IF (IER.NE.0) THEN
+        MSG = ' Cannot build CSF Structure '//CSF_RCP(1:60)
+        CALL ERRMSG('BAD CSFBUILD','CSF_FIX',MSG,'W')
+      END IF
+  999 RETURN
+      ENTRY CSF_FIX_RESET
+      FIRST = .TRUE.
+      END
