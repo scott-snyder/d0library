@@ -1,0 +1,142 @@
+MACRO GM_MUON 1=B 2=!
+*****************************************************************************
+*** Name:       GM_MUON.KUMAC
+*** Purpose:    Muon Analysis
+*** Inputs: 1   B=BOOK, R=RESET, U=UPDATE, P=PLOT
+***         2   Number of Objects to loop over     
+*** Created:    20-Jan-1993 K. Wyatt Merritt
+*****************************************************************************
+SWIT    = $UPPER([1])
+NEVENT  = [2]
+*****************************************************
+*   BOOK/RESET/UPDATE/PLOT HISTOGRAMS
+*****************************************************
+IF  [SWIT]=P GOTO PLOT_ONLY
+*
+IF  [SWIT]=B THEN
+    message 'GM_MUON: BOOK Histograms'
+*
+    1d 1001 'IFW4 of All Muons'             11 -0.5 10.5
+    1d 1002 'IFW2 of All Muons'             11 -0.5 10.5
+    1d 1003 'IFW1 of All Muons'             11 -0.5 10.5 
+    1d 1004 'IBDL of All Muons'             40  0.  2.4
+    1d 1005 'NCDTRK of All Muons'           11 -0.5 10.5
+    1d 1115 'NCDTRK of Clean Muons'         11 -0.5 10.5
+    1d 1006 'DPHI of All Muons'             100 0. 100.
+    1d 1007 'DTHETA of All Muons'           100 0. 100.
+    1d 1008 'IMPACT of All Muons'           100 0. 100.
+    1d 1009 'CAL E of All Muons'            100 0. 5.
+    1d 1119 'CAL E of Clean Muons'            100 0. 5.
+    1d 1100 'E?T! of All Muons'             100 0. 100.
+    1d 1101 '[c] of All Muons'               60 -3.  3.
+    1d 1102 '[f] of All Muons'               25 0. 7.5
+    1d 1110 'E?T! of Clean Muons'           100 0. 100.
+    1d 1111 '[c] of Clean Muons'               60 -3.  3.
+    1d 1112 '[f] of Clean Muons'               25 0. 7.5
+    1D 1200 'No. of Clean Muons'            11 -0.5 10.5
+    1d 1300 'Missing E?T! with High p?T! Clean Muon'  100 0. 100.
+    1d 1400 'M?T! of W ([m], [n]) pair'        60 0. 120.
+    1d 1500 'Mass of clean ([m], [m]) pair'        60 0. 120.
+ENDIF
+*
+IF  [SWIT]=R THEN
+    message 'GM_MUON: RESET Histograms'
+*
+    reset 1001
+    reset 1002
+    reset 1003
+    reset 1004
+    reset 1005
+    reset 1115
+    reset 1006
+    reset 1007
+    reset 1008
+    reset 1009  
+    reset 1119
+    reset 1100
+    reset 1101
+    reset 1102
+    reset 1110
+    reset 1111
+    reset 1112
+    reset 1200
+    reset 1300
+    reset 1400
+    reset 1500
+ENDIF
+*
+IF  [SWIT]=U THEN
+    message 'GM_MUON: UPDATE Histograms'
+ENDIF
+*****************************************************
+*   COMPUTE MEAN AND RMS WHILE FILLING
+*****************************************************
+    idopt 1001 STAT
+    idopt 1002 STAT
+    idopt 1003 STAT
+    idopt 1004 STAT
+    idopt 1005 STAT
+    idopt 1115 STAT
+    idopt 1006 STAT
+    idopt 1007 STAT
+    idopt 1008 STAT
+    idopt 1009 STAT
+    idopt 1119 STAT
+    idopt 1100 STAT
+    idopt 1101 STAT
+    idopt 1102 STAT
+    idopt 1110 STAT
+    idopt 1111 STAT
+    idopt 1112 STAT
+    idopt 1200 STAT
+    idopt 1300 STAT
+    idopt 1400 STAT
+    idopt 1500 STAT
+*****************************************************
+*   FILL HISTOGRAMS
+*****************************************************
+message '   '
+message 'Start Time: ' $TIME
+message '   '
+TRACE ON
+NT/LOOP 1 GM_MUON.FOR(0) [NEVENT]
+TRACE OFF
+message '   '
+message 'End   Time: ' $TIME
+message '   '
+*****************************************************
+*   PLOT HISTOGRAMS
+*****************************************************
+PLOT_ONLY:
+message 'GM_MUON: PLOT Histograms'
+TRACE ON
+opt stat
+set stat 1111111
+exec w3by2
+zone 3 2
+exec side2
+h/plot 1100
+h/plot 1101
+h/plot 1102
+h/plot 1110
+h/plot 1111
+h/plot 1112
+exec w2by2
+zone 2 2
+set csiz 0.25
+exec side1
+h/plot 1200
+h/plot 1500
+h/plot 1300
+h/plot 1400
+exec w2by2
+ZONE 2 2
+EXEC SIDE2
+H/PL 1005
+h/pl 1115
+H/PL 1009
+h/pl 1119
+TRACE OFF
+*****************************************************
+DONE:
+RETURN

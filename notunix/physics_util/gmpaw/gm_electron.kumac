@@ -1,0 +1,114 @@
+MACRO GM_ELECTRON 1=B 2=!
+*****************************************************************************
+*** Name:       GM_ELECTRON.KUMAC
+*** Purpose:    Electron Analysis
+*** Inputs: 1   B=BOOK, R=RESET, U=UPDATE, P=PLOT
+***         2   Number of Objects to loop over     
+*** Created:    4-Dec-1992 Boaz Klima, Harrison B. Prosper
+*****************************************************************************
+SWIT    = $UPPER([1])
+NEVENT  = [2]
+*****************************************************
+*   BOOK/RESET/UPDATE/PLOT HISTOGRAMS
+*****************************************************
+IF  [SWIT]=P GOTO PLOT_ONLY
+*
+IF  [SWIT]=B THEN
+    message 'GM_ELECTRON: BOOK Histograms'
+*
+    1d 100 'E?T! of All Electrons'             100 0. 100.
+    1d 110 'E?T! of Clean Electrons'           100 0. 100.
+    1d 200 'E?T! of All Photons'               100 0. 100.
+    1d 210 'E?T! of Clean Photons'             100 0. 100.
+    1d 300 'Missing E?T! with Clean Electron'  100 0. 100.
+    1d 400 'M?T! of (e, [n]) pair'              60 0. 120.
+    1d 500 'Mass of (e,(e,[g])) pair'           60 0. 120.
+    1d 600 'Mass of ([g],[g]) pair'             60 0. 120.
+ENDIF
+*
+IF  [SWIT]=R THEN
+    message 'GM_ELECTRON: RESET Histograms'
+*
+    reset 100
+    reset 110
+    reset 200
+    reset 210
+    reset 300
+    reset 400
+    reset 500
+    reset 600
+ENDIF
+*
+IF  [SWIT]=U THEN
+    message 'GM_ELECTRON: UPDATE Histograms'
+ENDIF
+*****************************************************
+*   COMPUTE MEAN AND RMS WHILE FILLING
+*****************************************************
+    idopt 100 STAT
+    idopt 110 STAT
+    idopt 200 STAT
+    idopt 210 STAT
+    idopt 300 STAT
+    idopt 400 STAT
+    idopt 500 STAT
+    idopt 600 STAT
+*****************************************************
+*   FILL HISTOGRAMS
+*****************************************************
+message '   '
+message 'Start Time: ' $TIME
+message '   '
+TRACE ON
+NT/LOOP 1 GM_ELECTRON.FOR(0) [NEVENT]
+TRACE OFF
+message '   '
+message 'End   Time: ' $TIME
+message '   '
+*****************************************************
+*   PLOT HISTOGRAM 400 in update mode
+*****************************************************
+IF  [SWIT]=U THEN
+    zone
+    opt stat
+    set stat 1111111
+    h/plot 400
+ENDIF
+IF  [SWIT]=U GOTO DONE
+*****************************************************
+*   PLOT HISTOGRAMS
+*****************************************************
+PLOT_ONLY:
+message 'GM_ELECTRON: PLOT Histograms'
+TRACE ON
+opt stat
+set stat 1111111
+exec w2by2
+exec side2
+zone 2 2
+h/plot 100
+h/plot 110
+h/plot 200
+h/plot 210
+exec w2by2
+exec side1
+h/plot 300
+h/plot 400
+h/plot 500
+h/plot 600
+TRACE OFF
+IF  [SWIT]=U GOTO DONE
+IF  [SWIT]=P GOTO DONE
+*****************************************************
+*   WRITE OUT W COUNT
+*****************************************************
+RN  = RUNNO(1)
+F   = USR$OUT:W_COUNT_[RN].OUT
+message 'GM_ELECTRON: Writing W-count to file ' [F]
+*
+FORTRAN/FILE    80  [F]
+CALL GM_STATS.FOR(400)
+FORTRAN/CLOSE   80
+*
+DONE:
+RETURN

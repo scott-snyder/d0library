@@ -1,0 +1,63 @@
+MACRO GM_JET 1=B 2=!
+*****************************************************************************
+*** Name:       GM_JET.KUMAC
+*** Purpose:    Jet Analysis
+*** Created:    15-Dec-1992 Harrison B. Prosper
+*****************************************************************************
+SWIT    = [1]
+NEVENT  = [2]
+*****************************************************************************
+IF  [SWIT]=B THEN
+    message 'GM_JET: BOOK Histograms'
+*
+    1d 5000 'E?T! of Jet-1'                     50 0. 200.
+    2d 5010 'E?T!(Jet-1) vs E?T!(Jet-2)'        50 0. 200. 50 0 200
+    1d 5020 'Cos([q]) between Jet-1 and Jet-2'  50 -1.0 1.0
+    1d 5030 'Invariant mass of Jet-1 and Jet-2' 50 0. 200.
+ENDIF
+IF  [SWIT]=R THEN
+    message 'GM_JET: RESET Histograms'
+*
+    reset 5000
+    reset 5010
+    reset 5020
+    reset 5030
+ENDIF
+IF  [SWIT]=U THEN
+    message 'GM_JET: UPDATE Histograms'
+ENDIF
+*****************************************************
+*   COMPUTE MEAN AND SIGMA WHILE FILLING
+*****************************************************
+    idopt 5000 STAT
+    idopt 5010 STAT
+    idopt 5020 STAT
+    idopt 5030 STAT
+*****************************************************
+*   FILL HISTOGRAMS
+*****************************************************
+message '   '
+message 'Start Time: ' $TIME
+message '   '
+TRACE ON
+NT/LOOP 1 GM_JET.FOR(0) [NEVENT]
+TRACE OFF
+message '   '
+message 'End   Time: ' $TIME
+message '   '
+TRACE ON
+*****************************************************
+*   PLOT HISTOGRAMS
+*****************************************************
+opt stat
+set stat 1111
+zone 2 2
+h/plot 5000
+set stat 10
+h/plot 5010
+set stat 1111
+h/plot 5020
+h/plot 5030
+*
+TRACE OFF
+RETURN

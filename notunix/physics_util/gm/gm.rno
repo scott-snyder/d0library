@@ -1,0 +1,666 @@
+.ENABLE BAR
+.LAYOUT 
+.AUTOPARAGRAPH
+.SET PARAGRAPH 5
+.STYLE HEADERS 4
+.DATE
+.HEADERS
+.TITLE Object Oriented Ntuples
+.NO AUTOSUBTITLE
+.SUBTITLE Version 1.0
+.FILL
+.NO JUSTIFY
+.INDENT 50;D0 Note 1613
+.FLAG BOLD
+.!
+.! Create Title Page
+.!
+.BLANK
+.CENTER;^*Event Analysis with\*
+.CENTER;^*Object Oriented Ntuples\*
+.BLANK 2
+.CENTER;Harrison B. Prosper
+.BLANK 
+.CENTER;Seung Ahn
+.BLANK 
+.CENTER;D0 Construction Department
+.CENTER;Research Division
+.CENTER;Fermilab
+.!
+.! Create Table Of Contents
+.!
+.IF TOC
+.DISPLAY NUMBER RL;.NUMBER PAGE 1
+.PAGE
+.REQUIRE "GM.RNT"
+.PAGE
+.ENDIF TOC
+.DISPLAY NUMBER RL;.NUMBER PAGE 1
+.HEADER LEVEL 1 ^*ACKNOWLEDGEMENTS\*
+I would like to thank Shahriar Abachi, Jeff Bantly, 
+Qizhong Li-Demarteau, Norm Graf, Wyatt Merritt,
+Boaz Klima, Stan Krzywdzinski, Marc Paterno 
+and Serban Protopopescu for their help in building and
+testing the GM program. 
+
+.HEADER LEVEL 1 ^*RELEASE NOTES\*
+.HEADER LEVEL 2 ^*VERSION 1.00\*
+The GM program creates an object-oriented ntuple from DSTs using the
+standard ntuple routines from CERN. 
+The GM program is so-called because its major application is the
+Global Monitoring of physics data using the EXPRESS stream. However, it
+is a general utility which can be used for regular event analysis.
+.NOTE
+The GM program is available in a beta version only. Please type
+.LITERAL
+
+            LIBBETA PHYSICS_UTIL
+
+.END LITERAL
+to put PHYSICS__UTIL in beta mode.
+.END NOTE
+
+.DISPLAY NUMBER D;.NUMBER PAGE 1
+.!
+.!
+.CHAPTER ^*INTRODUCTION\*
+
+
+.HEADER LEVEL 1 ^*THE BASIC IDEA\*
+
+^*HBOOK\* ntuples provide a simple way of creating micro-DSTs which can be
+analysed using
+the Physics Analysis Workstation program, ^*PAW\*, developed at CERN.
+CERN will soon release (in version V93 of CERNLIB) a new set of ntuple routines 
+which will allow for variable
+length ntuples and, therefore, 
+allow the use of a more object-oriented approach to
+micro-DSTs. When this happens the appropriate changes will be made
+to the GM program; however, as explained here one can go a long way toward that
+goal with the currently available routines.
+
+Usually,
+one writes  out one  long ntuple  vector per  event.  The  disadvantage of this
+technique  is the  need to  create a  vector  which is big  enough  to hold the
+largest anticipated event; this wastes a lot of space. One might also
+argue that a
+large ntuple vector, say with 300 fields, is a bit unwieldy to use.
+On the other hand, 
+the advantage of having an entire event in one large vector
+is that simple correlations
+between reconstructed objects can be studied without the use
+of ^*COMIS\*, the powerful FORTRAN interpreter used in PAW.
+
+    In contrast the GM program writes out one (30-word) vector for every
+reconstructed object; for example, an electron candidate. This clearly
+is a general technique and here I describe only a particular application of it.
+
+One advantage of
+this technique is that the space used is now proportional to the average number
+of  objects per  event.  Moreover,  there is no   restriction on the  number of
+objects which can be stored per event. In the particular application 
+described in this note an event is delimited by a VERTEX
+object at the start, and, at the end, by an END-OF-EVENT
+object (with object identifier = -1).  
+
+Another advantage is the ease with which, within PAW,
+one can analyse  specific object  types, for example, the highest Et
+electrons. The
+disadvantage  of this approach  is that one is  forced to use  COMIS to analyse
+correlations   between  objects. 
+It turns out, however, 
+that writing these
+routines is no  more  difficult  than writing
+regular  FORTRAN routines, subject to the mild restrictions imposed by
+COMIS. 
+
+A typical COMIS routine would consist
+of two parts: 1) a part which accumulates the objects into local buffers
+and 2) an analysis/histogramming part. 
+
+.HEADER LEVEL 1 ^*STRUCTURE OF OBJECT\*
+
+An ^*object\* is simply a data structure with ^*N\* fields, here
+implemented as an HBOOK ntuple.
+Each object is of fixed length; however, an event, being a set of 
+reconstructed objects, can be of variable length. An object consists of
+3 kinds of field: 
+
+.NOAUTOPARAGRAPH
+.LIST 
+.LIST ELEMENT; Fields (RUN, EVENT, TRIGGER, OBJECT)
+whose meaning is identical across all objects;
+
+.LIST ELEMENT; Fields (COUNT, NUMBER, PX,.., QUALITY)
+whose meaning is identical across a sub-set of objects, for example,
+objects which pertain to reconstructed particles;
+
+.LIST ELEMENT; Fields (X1,.., X15) whose meaning depends upon the type
+of object.
+.END LIST
+
+.AUTOPARAGRAPH
+In the jargon of the object-oriented paradigm one can say that
+the RCP structure
+.LITERAL
+
+\ARRAY NTUPLE
+    'NDIM'                              ! This is an ntuple
+    1                                   ! Id of ntuple
+    'Provide Global View of DST data'   ! Title
+    30                                  ! Size of ntuple
+    'NTUPLE'                            ! Top directory of ntuple file
+!----------------------------------------------------------------------
+    'RUN'       'EVENT'     'TRIGGER'   'OBJECT'    'COUNT'
+    'NUMBER'    'PX'        'PY'        'PZ'        'E'
+    'ET'        'ETA'       'PHI'       'DETA'      'QUALITY'
+    'X1'        'X2'        'X3'        'X4'        'X5'
+    'X6'        'X7'        'X8'        'X9'        'X10'
+    'X11'       'X12'       'X13'       'X14'       'X15'
+\END
+
+.END LITERAL
+serves to define the ^*CLASS\* of objects,
+while a specific object type is defined by
+the value of the field ^*OBJECT\*. An ^*instance\* of an object, of
+a specific type, is defined by the value of the field ^*NUMBER\*. The
+latter field takes values in the range (1,..,^*COUNT\*). The fields
+are described below.
+
+.NOAUTOPARAGRAPH
+.LIST "o"
+.LIST ELEMENT; RUN and EVENT - are self-explanatory.
+.LIST ELEMENT; TRIGGER -  is a  bit-string  indicating  the Level2 filters
+           associated with  the object (and,  of course, the  event). 
+           The meaning of each bit is determined by the list of filter names
+           given in the RCP file GB__TRIGGER.RCP.
+           NOTE: the
+           current  version  of HBOOK  requires  that all  fields be  stored as
+           floating  point numbers;  therefore,  the field  TRIGGER needs to be
+           equivalenced to an integer inside a COMIS routine.
+
+.LIST ELEMENT; OBJECT - is the object identifier (for their values refer to
+           the file D0$PARAMS:ESUM.PARAMS). The End-Of-Event object has object
+           ID = -1.
+.LIST ELEMENT; COUNT - is the object count per event.
+
+.LIST ELEMENT; NUMBER - is  the object counter  within an event. The object
+           with NUMBER = 1 is the one with the highest Et.
+
+.LIST ELEMENT; PX...PHI - are self-explanatory.
+
+.LIST ELEMENT; DETA - is the detector eta.
+
+.LIST ELEMENT; QUALITY - is a  bit-string  indicating the quality of
+           the object.  NOTE: the  current version  of HBOOK  requires that all
+           fields be  stored as  floating point  numbers;  therefore, the field
+           QUALITY needs to be equivalenced to an integer inside a COMIS
+           routine.
+
+.LIST ELEMENT; The meaning of the fields  X1...X15 is object-dependent. Please
+        refer to the chapter OBJECT DESCRIPTION for a definition of these
+        fields.
+
+.END LIST
+.AUTOPARAGRAPH
+
+.CHAPTER THE GM PROGRAM
+
+.HEADER LEVEL 1 ^*HOW TO SET UP THE PROGRAM\*
+
+.NOAUTOPARAGRAPH
+.LIST
+.LIST ELEMENT; Type
+.LITERAL
+
+        D0SETUP GM "" DataFileArea    OutputArea
+
+.END LITERAL
+           where DataFileArea and OutputArea are, respectively, 
+    logical names pointing to
+           the area containing the DSTs and the area to receive the ntuples
+           and other output. These logical names will be used to define 
+           respectively, the logical names USR$IN and USR$OUT.
+    Also defined are the
+           logical names D0$GM and D0$GM$PAW. The area D0$GM$PAW contains
+           examples of KUMAC and COMIS routines.
+
+.LIST ELEMENT; Type
+.LITERAL
+
+        COPY/LOG D0$GM$PAW:PAWLOGON.KUMAC []
+
+.END LITERAL
+to get a KUMAC file to set up your PAW session correctly. This KUMAC file
+will open the file defined by the logical name NTUPLE, as well as 
+define several
+aliases.
+.END LIST
+.AUTOPARAGRAPH
+
+.HEADER LEVEL 1 ^*HOW TO RUN THE PROGRAM\*
+
+.NOAUTOPARAGRAPH
+.LIST
+.LIST ELEMENT; Type
+.LITERAL
+
+        CREATE_LIST
+
+.END LITERAL
+to create a datafile list from  DST files in the area pointed to by the
+logical name USR$IN.
+
+.LIST ELEMENT; Type
+.LITERAL
+
+        DEFINE_LIST
+
+.END LITERAL
+           to define which  datafile list  is to be used by  the program, to
+           define the name of the corresponding 
+            ntuple file and to define the name of a postscript
+            output file, that is, to define the logicals
+.LIST 
+.LIST ELEMENT; DATAFILE__LIST
+.LIST ELEMENT; NTUPLE
+.LIST ELEMENT; POSTS
+.END LIST
+
+.LIST ELEMENT; Type
+.LITERAL
+
+        CREATE_NTUPLE
+
+.END LITERAL
+to run the ntuple creation program.
+.END LIST
+.AUTOPARAGRAPH
+
+.CHAPTER OBJECT DESCRIPTION
+Every object inherits the fields:
+
+.NOAUTOPARAGRAPH
+.LIST "o"
+.LIST ELEMENT;RUN
+.LIST ELEMENT;EVENT
+.LIST ELEMENT;TRIGGER
+.LIST ELEMENT;OBJECT
+.END LIST
+.AUTOPARAGRAPH
+The fields
+
+.NOAUTOPARAGRAPH
+.LIST "o"
+.LIST ELEMENT;COUNT
+.LIST ELEMENT;NUMBER
+.LIST ELEMENT;PX
+.LIST ELEMENT;PY
+.LIST ELEMENT;PZ
+.LIST ELEMENT;E
+.LIST ELEMENT;ET
+.LIST ELEMENT;ETA
+.LIST ELEMENT;PHI
+.LIST ELEMENT;DETA
+.LIST ELEMENT;QUALITY
+.END LIST
+.AUTOPARAGRAPH
+have the same meaning for all particle objects.
+Each object is described in detail below.
+
+.TEST PAGE 20 !MODULE=VERTEX
+.HEADER LEVEL 1 VERTEX
+.LITERAL
+        Object Id   0
+
+        Fixed Fields
+
+        COUNT, NUMBER
+
+        Ntuple
+        Field   Description
+
+        PX      X of the vertex
+        PY      Y of the vertex
+        PZ      Z of the vertex
+        E       DX
+        ET      DY
+        ETA     DZ
+        PHI     WEIGHT -- percentage of track number for this vertex
+        DET_ETA Flag word: 1.0 -- vertex constructed by CDC tracks
+                           2.0 -- vertex constructed by FDC tracks
+                           3.0 -- vertex constructed by VTX hits
+        QUALITY Quality_flag  1.0 -- main primary vertex
+                             >1.0 -- additional primary vertex
+
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=PHOTON
+.HEADER LEVEL 1 PHOTON
+.LITERAL
+        Object Id   1
+
+        Fixed Fields
+
+        COUNT, NUMBER,
+
+        PX, PY, PZ, E, ET, ETA, PHI, DET_ETA, QUALITY
+
+        Ntuple
+        Field   Description
+
+        X1      Var(Ex)
+        X2      Var(Ey)
+        X3      EM energy in cluster outside central tower
+        X4      Total energy in core cone
+        X5      Total energy in isolation cone
+        X6      EM energy in core cone
+        X7      EM energy in isolation cone
+        X8      CHISQ
+        X9      TRUNCATED CHISQ
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=ELECTRON
+.HEADER LEVEL 1 ELECTRON
+.LITERAL
+        Object Id   2
+
+        Fixed Fields
+
+        COUNT, NUMBER,
+
+        PX, PY, PZ, E, ET, ETA, PHI, DET_ETA, QUALITY
+
+        Ntuple
+        Field   Description
+
+        X1      Var(Ex)
+        X2      Var(Ey)
+        X3      EM energy in cluster outside central tower
+        X4      Total energy in core cone
+        X5      Total energy in isolation cone
+        X6      EM energy in core cone
+        X7      EM energy in isolation cone
+        X8      CHISQ
+        X9      TRUNCATED CHISQ
+        X10     Number of central tracks in cluster road
+        X11     Distance of closest approach of central track
+        X12     CDC MIP
+        X13     FDC MIP
+        X14     VTX MIP
+        X15     TRD Likelihood
+
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=MUON
+.HEADER LEVEL 1 MUON
+.LITERAL
+        Object Id   3
+
+        Fixed Fields
+
+        COUNT, NUMBER,
+
+        PX, PY, PZ, E, ET, ETA, PHI, DET_ETA, QUALITY
+
+        Ntuple
+        Field   Description
+
+        X1      ISOL1 
+        X2      ISOL2 
+        X3      ISOL4 
+        X4      NCD 
+        X5      ANGCD 
+        X6      IMPT
+        X7      IFW4
+        X8      IFW1
+        X9      BDL
+        X10     DPHI
+        X11     DTHETA
+        X12     CAL_EN
+        X13     TRK_HITS
+        X14     FIT_HITS
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=TAU
+.HEADER LEVEL 1 TAU
+.LITERAL
+        Object Id   4
+
+        Fixed Fields
+
+        COUNT, NUMBER,
+
+        PX, PY, PZ, E, ET, ETA, PHI, DET_ETA, QUALITY
+
+        Ntuple
+        Field   Description
+
+        X1      RMS width
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=JET
+.HEADER LEVEL 1 JET
+.LITERAL
+        Object Id   5
+
+        Fixed Fields
+
+        COUNT, NUMBER,
+
+        PX, PY, PZ, E, ET, ETA, PHI, DET_ETA, QUALITY
+
+        Ntuple
+        Field   Description
+
+        X1      Var(Ex)
+        X2      Var(Ey)
+        X3      RMS Eta width
+        X4      RMS Phi width
+        X5      Fraction of EM Et
+        X6      Flag for merging/splitting
+        X7      Number of cells above threshold (1GeV def)
+        X8      Fraction of ICD/MG Et(EtICD+EtMG/TOTAL_ET)
+        X9      Fraction of CH Et (Et CH/TOTAL_ET)
+        X10     Ratio of hottest to next-hottest cell
+        X11     Number of CDC tracks in jet cone
+        X12     Number of TOWERS comprising 90% of jet Et
+        X13     ConeSize (-1.0 for Nearest Neighbor)
+        X14     Phi Difference between MET and JET (PNUT(2))
+        
+        NOTE:   These are jets with electrons/photons REMOVED
+
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=ETMISS
+.HEADER LEVEL 1 ETMISS
+.LITERAL
+        Object Id   6
+
+        Fixed Fields
+
+        COUNT, NUMBER,
+
+        PX, PY, PZ, E, ET, ETA, PHI, DET_ETA, QUALITY
+
+        Ntuple
+        Field   Description
+
+        X1      Var(Ex)
+        X2      Var(Ey)
+        X3      Sig(Et)
+        X4      EtScalar
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=ALLJET
+.HEADER LEVEL 1 ALLJET
+.LITERAL
+        Object Id   7
+
+        Fixed Fields
+
+        COUNT, NUMBER,
+
+        PX, PY, PZ, E, ET, ETA, PHI, DET_ETA, QUALITY
+
+        Ntuple
+        Field   Description
+
+        X1      Var(Ex)
+        X2      Var(Ey)
+        X3      RMS Eta width
+        X4      RMS Phi width
+        X5      Fraction of EM Et
+        X6      Flag for merging/splitting
+        X7      Number of cells above threshold (1GeV def)
+        X8      Fraction of ICD/MG Et(EtICD+EtMG/TOTAL_ET)
+        X9      Fraction of CH Et (Et CH/TOTAL_ET)
+        X10     Ratio of hottest to next-hottest cell
+        X11     Number of CDC tracks in jet cone
+        X12     Number of TOWERS comprising 90% of jet Et
+        X13     ConeSize (-1.0 for Nearest Neighbor)
+        X14     Phi Difference between MET and JET (PNUT(2))
+
+        NOTE:   These are jets with electrons/photons INCLUDED
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EVENT
+.HEADER LEVEL 1 EVENT
+.LITERAL
+        Object Id   -1
+
+        Ntuple
+        Field   Description
+
+        COUNT   Number of objects in event
+
+        NUMBER  DATE_TIME          (standard VAX 64 bit format)  
+        PX   
+
+        PY      INPUT_EVENT #      (40 bit Level 1 trigger number;
+        PZ                          word 7 is lower 24 bits;    
+                                    word 8 is upper 16 bits
+                                    Both words are therefore positive.)
+                   
+        E       OUTPUT_EVENT #     (counts accepted events; 
+                                    assigned by logger)
+                                   
+        ET      EVENT_TYPE         (assigned in Level_2 or Monte Carlo)
+        ETA     TRIGGER BITS       (Specific Trigger Fired from Level_1)
+        PHI     CODE VERSION   
+        DETA    HEADER VERSION 
+        QUALITY FILTER BITS  31-0  (L2 "ON" bits ==> WRITE event)
+        X1      FILTER BITS  63-32 (See D0$OFFLINE_UTIL:L2BITS.DOC)
+        X2      FILTER BITS  95-64 (these bits control which streams)
+        X3      FILTER BITS  127-96(the event is written to)
+        X4-X13  RECO BITS
+        X14     ERROR CODE         (put on by Level-2 framework)
+        X15     FLAG word          (Bits used: 0: Set=Micro-blanking ON)
+
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=GLOBAL
+.HEADER LEVEL 1 GLOBAL
+.LITERAL
+        Object Id     8
+
+        Ntuple
+        Field   Description
+
+        NUMBER  Bank Version Number
+        PX      Bit-string indicating event quality
+        PY      Total number of tracks in CD
+        PZ      Number of CC cells E>0.3 EM+FH
+        E       Total scalar Et in Calorimeter
+        PT      Total scalar Et in EC
+        ETA     Total scalar Et in CC
+        PHI     Total energy in Calorimeter
+        DETA    Total energy in South EC
+        QUALITY Total energy in Upper CC
+        X1      Total energy in Lower CC
+        X2      Total energy in North EC
+        X3      Total energy along Main Ring
+        X4      Total scalar Et along Main Ring
+        X5      Total energy of HOT cells
+        X6      Magnitude of Total vectorial sum of Et of HOT cells
+
+.END LITERAL
+
+
+.TEST PAGE 20 !MODULE=PARTON
+.HEADER LEVEL 1 PARTON
+.LITERAL
+        Object Id   101
+
+        Fixed Fields
+
+        COUNT, NUMBER,
+
+        PX, PY, PZ, E, ET, ETA, PHI, DET_ETA, QUALITY
+
+        Ntuple
+        Field   Description
+
+        X1      Parton ID           (ISAJET)
+        X2      Ordinal Number of Parent
+        X3      Parton ID of Parent (ISAJET)
+        X4      Ordinal Number of Family
+        X5      Parton ID of Family (ISAJET)
+
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=PETMISS
+.HEADER LEVEL 1 PETMISS
+.LITERAL
+        Object Id   102
+
+        Fixed Fields
+
+        COUNT, NUMBER,
+
+        PX, PY, PZ, E, ET, ETA, PHI, DET_ETA, QUALITY
+
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=PEVENT
+.HEADER LEVEL 1 PEVENT
+.LITERAL
+        Object Id   103
+
+        Fixed Fields
+
+        Ntuple
+        Field   Description
+
+        NUMBER  EventId(1)
+        PX      EventId(2)
+        PY      EventNumber
+        PZ      ReactionType
+        E       NumberPrimaryJets
+        PT      NumberStablePartons (final+initial)
+        ETA     NumberPJETs
+        PHI     NumberParticles   
+        DETA    NumberVertexBanks
+        QUALITY NumberLeptons
+        X1      CrossSection (MicroBarns)
+        X2      Weight
+        X3      Q**2
+        X4      s
+        X5      t
+        X6      u
+        X7      SeedPart1
+        X8      SeedPart2
+
+.END LITERAL
+
+.CHAPTER TUTORIAL EXAMPLE
+    To be written. See, however, GM__ELECTRON.KUMAC and GM__ELECTRON.FOR in
+D0$GM$PAW for a complete example.
+
+.CHAPTER READING GM NTUPLES WITH GB__READ
+    The package GB__READ loads an event (that is, a set of objects) into
+the buffer DSTEVENT.INC. The buffer is a set of STRUCTURE arrays, one for 
+each object. The field names of each structure are given in the documents:
+Object-Name.DOC. The documents are available
+in D0$PHYSICS_UTIL$GM.
+

@@ -1,0 +1,66 @@
+MACRO GM_MERGE 1=GM_ELECTRON 2=!
+*****************************************************************************
+*** Name:       GM_MERGE.KUMAC
+*** Purpose:    Merge histograms from many runs
+*** Created:    14-Dec-1992 Harrison B. Prosper
+*****************************************************************************
+PROC    = [1]
+NEVENT  = [2]
+*****************************************************************************
+message '   '
+message 'GM_MERGE: Start Time: ' $TIME
+message '   '
+*****************************************************************************
+*   READ RUN LIST
+*****************************************************************************
+message 'GM_MERGE: Reading RUN.LIST'
+VECTOR/READ     RUN RUN.LIST
+*
+MAXNUM = $VLEN(RUN,1)
+MINRUN = RUN(1)
+MAXRUN = RUN([MAXNUM])
+*
+message '   '
+message 'GM_MERGE: Merge runs' [MINRUN] 'to ' [MAXRUN]
+message '   '
+message 'GM_MERGE: Using procedure: ' [PROC]
+message '   '
+*****************************************************************************
+*   LOOP OVER RUNS
+*****************************************************************************
+*
+CLOSE 1
+I = 0
+LOOP:
+*
+    I = [I] + 1
+    R = RUN([I])
+    VECTOR/INPUT RUNNO(1) [R]
+*
+    IF [R] <= 0 GOTO DONE
+*
+    F = USR$OUT:EXPRESS_[R].NTUP
+*
+    message 'GM_MERGE: Processing file: ' [F]
+*
+    H/FILE 1    [F] 0
+    IF [I] = 1 THEN
+        EXEC [PROC] B [NEVENT]
+    ELSE
+        EXEC [PROC] U [NEVENT]
+    ENDIF
+    CLOSE 1
+*
+    IF [I] < [MAXNUM] GOTO LOOP
+*
+DONE:
+***********************************************************
+*   PLOT ALL HISTOGRAMS
+***********************************************************
+        EXEC [PROC] P [NEVENT]
+message '   '
+message 'End   Time: ' $TIME
+message '   '
+TRACE OFF
+VECTOR/DELETE RUN
+RETURN
