@@ -36,6 +36,7 @@
 
   Date:         Changes:
   02-14-94      Coded by R. Robert Hentzel and ported to ULTRIX and IRIX
+  16-03-04      sss - fix return type.
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 */
@@ -54,7 +55,7 @@
 #include <strings.h>
 #endif
 
-void main (int argc, char *argv[]) {
+int main (int argc, char *argv[]) {
 
   char z[160],fzfile[160],test[160],outfile[160];
   int i,j,a,b;
@@ -160,5 +161,6 @@ void main (int argc, char *argv[]) {
     printf("  <range> space-delimited list of numbers and ranges to concatenate.\n");
     printf("Example:  make_rcp /scratch/d0 t2bx160.gean ~/output 1-5 10 12-16\n");
   }
+  return 0;
 }
 

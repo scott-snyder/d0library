@@ -1,5 +1,7 @@
 %{
+#if 0
 #include "unix.h"
+#endif
 #include <stdlib.h>
 #include <string.h>
 char    cndx[256];
@@ -11,7 +13,9 @@ char    *d0log;
 char    tmp[40];
 char    *parens ="()";
 char    *incroot;
+#if 0
 context_t *context;
+#endif
 int     flag = 0;
 int     n1, n2, i;
 char    *s;
@@ -46,9 +50,27 @@ s                       [ \t]*
                           svdx = strchr(cndx,'\'');
                           if(svdx != NULL)
                             *svdx = '\0';
+#if 0
                           context = NULL;
                           lib_find_file(cndx, d0log, &context);
                           find_file_end(&context);
+#endif
+                          {
+                            char* p;
+                            int offs = 0;
+                            if (tolower (cndx[0]) == 'd' &&
+                                cndx[1] == '0' &&
+                                cndx[2] == '$')
+                            {
+                              offs = 3;
+                            }
+                            strcpy (d0log, cndx+offs);
+                            for (p = d0log; *p != '\0'; ++p) {
+                              *p = tolower (*p);
+                              if (*p == ':' || *p == '$')
+                                *p = '/';
+                            }
+                          }
                           if(*d0log == '\0')
                             strcpy(d0log, cndx);
                           strcat(outbuf,"\'");
@@ -110,7 +132,7 @@ s                       [ \t]*
                           yyleng--;}
                         strcat(outbuf,parens);
                         printf("%s",outbuf);}
-^{S}[Cc][Aa][Ll][Ll]{S}[Ee][Zz][Pp][Ii][Cc][Kk]{s}\([^()]*\,[^()]*\).*$ {
+^{S}[Cc][Aa][Ll][Ll]{S}[Ee][Zz][Pp][Ii][Cc][Kk]{s}\(.*\,.*\).*$ {
  
 /* Fix up EZPICK calls with two or more arguments.  */
  

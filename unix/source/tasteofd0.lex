@@ -1,3 +1,5 @@
+/* sss -- selectf was colliding with stuff from the library?
+   renamed to xselect */
 %{
 #include "string.h"
 #include <stdio.h>
@@ -14,7 +16,7 @@ FILE    *fp;
 int     i,c;
 int     incflag = 0;
 int     inblock = 0;
-int     selectf = 0;
+int     xselect = 0;
 int     ignore = 0;
 %}
 %%
@@ -40,13 +42,13 @@ int     ignore = 0;
                    REJECT;
                  }
 ^C\&ELSEIF.*$   { if( !ignore ) {
-                    if( selectf ) {
-                      selectf = 0;
+                    if( xselect ) {
+                      xselect = 0;
                       ignore = 1;
                     }
                     else {
                       for(i=0 ; i < argd ; i++ ) {
-                        if(strstr(yytext,argw[i])!=NULL)  selectf = 1;
+                        if(strstr(yytext,argw[i])!=NULL)  xselect = 1;
                       }
                       printf("%s",yytext);
                     }
@@ -54,30 +56,30 @@ int     ignore = 0;
                   printf("%s",yytext);
                 }
 ^C\&ELSE.*$     { if( !ignore ) {
-                    if( selectf ) {
-                      selectf = 0;
+                    if( xselect ) {
+                      xselect = 0;
                       ignore = 1;
                     }
                     else
-                      selectf = 1;
+                      xselect = 1;
                   }
                   printf("%s",yytext);
                 }
 ^C\&ENDIF.*$    { inblock = 0;
-                  selectf = 0;
+                  xselect = 0;
                   ignore = 0;
                   printf("%s",yytext);
                 }
 ^C\&IF.*$       { inblock = 1;
                   for(i=0 ; i < argd ; i++ ) {
-                    if(strstr(yytext,argw[i])!=NULL)  selectf = 1;
+                    if(strstr(yytext,argw[i])!=NULL)  xselect = 1;
                   }
                   printf("%s",yytext);
                 }
 ^..             { if(!inblock) {
                     printf("%s",yytext);
                   }else{
-                    if(selectf) {
+                    if(xselect) {
                       if(strcasecmp(yytext,"C&") != 0) printf("%s",yytext);
                     }else{
                       if(strcasecmp(yytext,"C&") == 0) {

@@ -69,6 +69,8 @@ static char sccsid[] = "@(#)glob.c	5.12 (Berkeley) 6/24/91";
  * 5.  Defined samecase macro in glob.h to be case sensitive.
  */
 
+/* sss - need to include this with recent glibc. */
+#include <stdlib.h>
 #define notdef 1
 
 #ifdef notdef

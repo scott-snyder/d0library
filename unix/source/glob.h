@@ -39,6 +39,10 @@
 #ifndef _GLOB_H_
 #define	_GLOB_H_
 
+/* sss - redefine this to prevent collisions with the version of
+   glob in glibc */
+#define glob d0glob
+
 typedef struct {
 	int gl_pathc;		/* count of total paths so far */
 	int gl_matchc;		/* count of paths matching pattern */
@@ -65,7 +69,9 @@ typedef struct {
 
 /* Added by H. Greenlee for D0 */
 
+#ifndef __P /* sss --- don't redefine __P */
 #define __P(args)       args
+#endif
 #define xmalloc(i)      malloc(i)
 #define xrealloc(p, i)  realloc(p, i)
 #define xfree(i)        free(i)
