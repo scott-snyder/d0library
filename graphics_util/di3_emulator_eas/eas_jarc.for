@@ -32,6 +32,7 @@ CH      10-JAN-89  ATV  Corrected step algorithm for smoothness.
 CH      15-AUG-88  ATV  Rename NSEGx to NSTEP to avoid conflicts with
 CH                      the overhauled segments
 CH      30-JUN-88  ATV  Initial entry.
+C  Updated 24-MAR-2004 sss - compile with g77.
 C
       IMPLICIT NONE
 C
@@ -56,6 +57,7 @@ C
       INCLUDE 'D0$INC:GRFPAR.INC/LIST'
       INCLUDE 'D0$INC:SEGINF.INC/LIST'
       INCLUDE 'D0$INC:PRIMVR.INC/LIST'
+      INCLUDE 'D0$INC:pi.def'
 C
 C    Then executable code follows
 C
@@ -81,14 +83,14 @@ C
       AEND  = A1
       STEP = DANG / FLOAT(NSTEPS)
       ZPT = ZCEN
-      XPT = RAD * COSD(ASTRT) + XCEN
-      YPT = RAD * SIND(ASTRT) + YCEN
+      XPT = RAD * COS(ASTRT*pi/180) + XCEN
+      YPT = RAD * SIN(ASTRT*pi/180) + YCEN
       CALL KQUEV(XPT, YPT, ZPT, 'MOVE')
       THETA = ASTRT
       DO 10 I=1,NSTEPS + 1
         THETA = THETA + STEP
-        XPT = RAD * COSD(THETA) + XCEN
-        YPT = RAD * SIND(THETA) + YCEN
+        XPT = RAD * COS(THETA*pi/180) + XCEN
+        YPT = RAD * SIN(THETA*pi/180) + YCEN
         CALL KQUEV(XPT, YPT, ZPT, 'DRAW')
    10 CONTINUE
       CPX = XCEN

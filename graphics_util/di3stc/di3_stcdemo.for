@@ -5,6 +5,7 @@ C-   Purpose and Methods :  Example to exercise and demonstrate the
 C-        capabilities of the STC strip chart package.
 C-
 C-   Created  28-MAY-1990   Michael A. Shupe
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
 C  TITLE FOR TOP (1).  IF TITLES 2-4 ARE BLANK, TIME LABELLING IS
@@ -57,10 +58,14 @@ C  MISCELLANEOUS LOCAL STUFF
       DATA JJ/0,3,5,8/
       DATA NPTS/3*135,7*250/
 C----------------------------------------------------------------------
-      TYPE 555
+      write (*,555)
   555 FORMAT(' TRACES FULL SPEED (0) OR SLOW MODE (1)?:',$)
+C&IF LINUX
+C&      read (*,*) islow
+C&ELSE
       ACCEPT 556,ISLOW
   556 FORMAT(I)
+C&ENDIF
 C
 C  BOOK THE CHARTS--UP TO TEN ALLOWED, WITH ID'S 1 THROUGH 10 IN ANY ORDER.
       NTRACES=10
@@ -192,7 +197,7 @@ C  DELETE PLOTS FROM SCREEN BETWEEN PASSES
     8 CONTINUE
 C
       IF(NOTREADY.EQ.0) STOP
-      TYPE 777
+      write (*,777)
   777 FORMAT(' MAKING HARDCOPY OF 8,9,10')
       CALL STC_HARDCOPY(8)
       CALL STC_HARDCOPY(9)

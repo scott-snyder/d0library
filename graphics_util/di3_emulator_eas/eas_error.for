@@ -16,6 +16,7 @@ CH   History:
 CH      26-OCT-88  ATV  Define local variables
 CH      21-Jun-88  ATV  Changed logical unit number to 6.
 CH      10-Jun-88  ATV  Initial entry.
+C  Updated 24-MAR-2004 sss - compile with g77.
 C
       IMPLICIT NONE
 C
@@ -56,7 +57,7 @@ C    Echo the error message
 C
       LUNERR = 99
       OPEN(UNIT=LUNERR,FILE='TT:',STATUS='UNKNOWN',FORM='FORMATTED')
-      WRITE (LUNERR,*)' **** '//EMSG//' ****'
+      WRITE (LUNERR,*)' **** ',EMSG,' ****'
       CLOSE(UNIT=10)
 C
 C    Terminate with system abort message.

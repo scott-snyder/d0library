@@ -23,12 +23,14 @@ C-  08-MAR-89  S. ABACHI   Correct Z windows were replaced
 C-  07-MAR-89  S. ABACHI   Formula for the eye point coordinates corrected.
 C-  06-MAR-89  S. ABACHI   XMIN, XMAX, YMIN, YMAX corrected.
 C-  03-MAR-89  S. ABACHI   Depth clipping parameters were corrected.
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:GRFPAR.INC/LIST'
       INCLUDE 'D0$INC:SEGINF.INC/LIST'
       INCLUDE 'D0$INC:LINATT.INC/LIST'
       INCLUDE 'D0$INC:NEWDI3.INC/LIST'
+      INCLUDE 'D0$INC:pi.def'
       REAL VUPN(3), EYEP(3), UPV(3), WIDEV, HCLP, YCLP
       LOGICAL CLIP
       REAL D0, D1
@@ -67,7 +69,7 @@ C
 C
 C   3D Perspective orthographic view.
 C
-      D1 = 2.0 * ATAND( WIDEV / (2.0 * PERSP) )
+      D1 = 2.0 * ATAN( WIDEV / (2.0 * PERSP) )*180/pi
       CALL PFOV('"', D1, HCLP, YCLP, '"', ERRHND)
       CALL PLOOKA('"', VUPN, EYEP, UPV, '"', ERRHND)
       GOTO 9900

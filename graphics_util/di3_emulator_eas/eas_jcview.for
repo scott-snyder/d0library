@@ -19,6 +19,7 @@ CH      14-MAR-89  SA   The third component of vupnt and norml were corrected.
 CH      09-MAR-89  SA   Direction of normal vector was correctly set.
 CH      09-JAN-88  ATV  Correct window scaling problem.
 CH      19-DEC-88  ATV  Initial entry.
+C    Updated  24-MAR-2004   sss - compile with g77.
 C
       IMPLICIT NONE
 C
@@ -44,6 +45,7 @@ C    Then common block declarations.
 C
       INCLUDE 'D0$INC:GRFPAR.INC/LIST'
       INCLUDE 'D0$INC:SEGINF.INC/LIST'
+      INCLUDE 'D0$INC:pi.def'
 C
 C    Then executable code follows
 C
@@ -69,7 +71,7 @@ C
       NORML(2) = DY / RHO
       NORML(3) = (DZ / RHO)
       IF (VANG .GT. 0.0) THEN
-         WSF = RHO * TAND(VANG / 2.0)
+         WSF = RHO * TAN(VANG / 2.0 * pi/180)
          DO 10 I=1,3,2
             UWIND(I)     = -WSF
             UWIND(I + 1) =  WSF

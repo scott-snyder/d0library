@@ -15,6 +15,7 @@ CH      19-DEC-88  ATV  Corrected cursor definition.
 CH      05-DEC-88  ATV  Defined local variables.
 CH      18-NOV-88  ATV  Define a dynamic cursor.
 CH      15-NOV-88  ATV  Initial entry.
+C    Updated  24-MAR-2004   sss - compile with g77.
 C
       IMPLICIT NONE
 C
@@ -67,9 +68,13 @@ C
          CALL ERROR ('DEVICE ALREADY INITIALIZED')
       ELSEIF (SEGOPN) THEN
          CALL ERROR ('A SEGMENT IS OPEN')
-      ELSE
+       ELSE
+C&IF LINUX
+C&         OPEN (UNIT=1,FILE='PS390',STATUS='OLD',ERR=1000)
+C&ELSE
          OPEN (UNIT=1,FILE='PS390',STATUS='OLD',ERR=1000,
      +         READONLY)
+C&ENDIF
          READ (1,100,END=1010) ATINFO
   100    FORMAT(A60)
          CLOSE (UNIT=1)

@@ -11,6 +11,7 @@ C-              MAT : the output 4X4 transformation matrix.
 C-
 C-
 C-   Created   8-AUG-1989   SHAHRIAR ABACHI
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -24,6 +25,7 @@ C----------------------------------------------------------------------
       DATA CNV, EPS/0.017453292, 1.0E-9/
 C
       INCLUDE 'D0$INC:GRFPAR.INC/LIST'
+      INCLUDE 'D0$INC:pi.def'
 C
       IF (TRCODE .LT. 1 .OR. TRCODE .GT. 11) THEN
         CALL ERROR('JTRANS: TRCODE OUT OF RANGE (1..11)')
@@ -127,7 +129,7 @@ C
       ENDIF
 C   Perform the general rotation about a line.
       IF (ABS(DY) .GT. EPS) THEN
-        ALPHA = ATAND(DX / DY)
+        ALPHA = ATAN(DX / DY)*180/pi
         IF (DY .LT. 0.) ALPHA = ALPHA + 180.
       ELSE IF (DX .GT. EPS) THEN
         ALPHA = 90.
@@ -136,38 +138,38 @@ C   Perform the general rotation about a line.
       ELSE
         ALPHA = 0.
       ENDIF
-      BETA = ACOSD(DZ / RHO)
+      BETA = ACOS(DZ / RHO)*180/pi
       TMAT1(1,4) = -P1
       TMAT1(2,4) = -P2
       TMAT1(3,4) = -P3
-      TMAT2(1,1) = COSD(ALPHA)
-      TMAT2(1,2) = -SIND(ALPHA)
-      TMAT2(2,1) = SIND(ALPHA)
-      TMAT2(2,2) = COSD(ALPHA)
+      TMAT2(1,1) = COS(ALPHA*pi/180)
+      TMAT2(1,2) = -SIN(ALPHA*pi/180)
+      TMAT2(2,1) = SIN(ALPHA*pi/180)
+      TMAT2(2,2) = COS(ALPHA*pi/180)
       CALL KMMUL(TMAT2, TMAT1, TMAT1)
       CALL KMTID(TMAT2)
-      TMAT2(2,2) = COSD(BETA)
-      TMAT2(2,3) = -SIND(BETA)
-      TMAT2(3,2) = SIND(BETA)
-      TMAT2(3,3) = COSD(BETA)
+      TMAT2(2,2) = COS(BETA*pi/180)
+      TMAT2(2,3) = -SIN(BETA*pi/180)
+      TMAT2(3,2) = SIN(BETA*pi/180)
+      TMAT2(3,3) = COS(BETA*pi/180)
       CALL KMMUL(TMAT2, TMAT1, TMAT1)
       CALL KMTID(TMAT2)
-      TMAT2(1,1) = COSD(UPS)
-      TMAT2(1,2) = -SIND(UPS)
-      TMAT2(2,1) = SIND(UPS)
-      TMAT2(2,2) = COSD(UPS)
+      TMAT2(1,1) = COS(UPS*pi/180)
+      TMAT2(1,2) = -SIN(UPS*pi/180)
+      TMAT2(2,1) = SIN(UPS*pi/180)
+      TMAT2(2,2) = COS(UPS*pi/180)
       CALL KMMUL(TMAT2, TMAT1, TMAT1)
       CALL KMTID(TMAT2)
-      TMAT2(2,2) = COSD(-BETA)
-      TMAT2(2,3) = -SIND(-BETA)
-      TMAT2(3,2) = SIND(-BETA)
-      TMAT2(3,3) = COSD(-BETA)
+      TMAT2(2,2) = COS(-BETA*pi/180)
+      TMAT2(2,3) = -SIN(-BETA*pi/180)
+      TMAT2(3,2) = SIN(-BETA*pi/180)
+      TMAT2(3,3) = COS(-BETA*pi/180)
       CALL KMMUL(TMAT2, TMAT1, TMAT1)
       CALL KMTID(TMAT2)
-      TMAT2(1,1) = COSD(-ALPHA)
-      TMAT2(1,2) = -SIND(-ALPHA)
-      TMAT2(2,1) = SIND(-ALPHA)
-      TMAT2(2,2) = COSD(-ALPHA)
+      TMAT2(1,1) = COS(-ALPHA*pi/180)
+      TMAT2(1,2) = -SIN(-ALPHA*pi/180)
+      TMAT2(2,1) = SIN(-ALPHA*pi/180)
+      TMAT2(2,2) = COS(-ALPHA*pi/180)
       CALL KMMUL(TMAT2, TMAT1, TMAT1)
       CALL KMTID(TMAT2)
       TMAT2(1,4) = P1

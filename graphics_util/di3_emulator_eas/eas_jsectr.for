@@ -20,6 +20,7 @@ C-
 C-   Created  30-JUN-1988   A. VIRGO
 C-   UPDATED  15-MAR-1989   S. ABACHI    Algorithm for NSTEPS modified.
 C-   UPDATED  10-MAy-1990   S. ABACHI    Real polygons were used
+C    Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -33,6 +34,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:PRIMVR.INC/LIST'
       INCLUDE 'D0$INC:LINATT.INC/LIST'
       INCLUDE 'D0$INC:PLGATT.INC/LIST'
+      INCLUDE 'D0$INC:pi.def'
 C
       IF (.NOT. SEGOPN) THEN
          CALL ERROR('JSECTR: NO SEGMENT IS OPEN')
@@ -64,8 +66,8 @@ C
       THETA = ASTRT
       DO 10 I=1, NSTEPS + 1
          NVERT = NVERT + 1
-         XPT = RAD * COSD(THETA) + XCEN
-         YPT = RAD * SIND(THETA) + YCEN
+         XPT = RAD * COS(THETA*pi/180) + XCEN
+         YPT = RAD * SIN(THETA*pi/180) + YCEN
          VERTIC(1,NVERT) = XPT
          VERTIC(2,NVERT) = YPT
          VERTIC(3,NVERT) = ZPT

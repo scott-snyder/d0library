@@ -14,6 +14,7 @@ C-   UPDATED   15-JUN-1990   SHAHRIAR ABACHI   Traslation bug fixed
 C-   UPDATED   11-AUG-1992   SHAHRIAR ABACHI   fine scale added to knob 8
 C-   UPDATED   02-DEC-1992   NOBUAKI  OSHIMA   
 C-      Use RLIST(10) to adjust the coarse scale knob.
+C    Updated  24-MAR-2004   sss - compile with g77. (fix bug)
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -120,7 +121,7 @@ CC      CALL PSNREA(0.0, 2, 'ACCM1', ERRHND)
       CALL PSNREA(100000.0, 5, 'ACCM5', ERRHND)
       CALL PSNREA(-100000.0, 6, 'ACCM5', ERRHND)
 C
-      IF(ABS(RLIST(2)) .GT. EPS .OR. ABS(RLIST(3) .GT. EPS)) THEN
+      IF(ABS(RLIST(2)) .GT. EPS .OR. ABS(RLIST(3)) .GT. EPS) THEN
         DW = ( RLIST(3) - RLIST(2) ) / 2.0
       ELSE
         DW = ( UWIND(2) - UWIND(1) ) / 2.

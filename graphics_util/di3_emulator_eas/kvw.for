@@ -10,6 +10,7 @@ C-   Controls:
 C-
 C-   Created  26-JUN-1989   SHAHRIAR ABACHI
 C-   updated  10-JUN-1990   SHAHRIAR ABACHI     KVIEWP was introdued.
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -17,6 +18,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:SEGINF.INC/LIST'
       INCLUDE 'D0$INC:LINATT.INC/LIST'
       INCLUDE 'D0$INC:NEWDI3.INC/LIST'
+      INCLUDE 'D0$INC:pi.def'
       REAL D0, D1, WIDEV
       REAL HCLP, YCLP, ZMIN, ZMAX
       REAL VUPN(3), NORM(3), UPV(3), EYEP(3), DIST
@@ -70,7 +72,7 @@ C
 C
 C   3D Perspective orthographic view.
 C
-      D1 = 2.0 * ATAND( WIDEV / (2.0 * PERSP) )
+      D1 = 2.0 * ATAN( WIDEV / (2.0 * PERSP) )*180/pi
       CALL PSNREA(D1, 2, 'FOVU"', ERRHND)
       CALL PSNREA(HCLP, 3, 'FOVU"', ERRHND)
       CALL PSNREA(YCLP, 4, 'FOVU"', ERRHND)

@@ -22,6 +22,7 @@ CH      14-MAR-89  SA   Direction of NORML was corrected.
 CH      14-MAR-89  SA   Third component of vupnt and norml were corrected.
 CH      09-JAN-88  ATV  Correct window scaling.
 CH      20-DEC-88  ATV  Initial entry.
+C    Updated  24-MAR-2004   sss - compile with g77.
 C
       IMPLICIT NONE
 C
@@ -47,6 +48,7 @@ C    Then common block declarations.
 C
       INCLUDE 'D0$INC:GRFPAR.INC/LIST'
       INCLUDE 'D0$INC:SEGINF.INC/LIST'
+      INCLUDE 'D0$INC:pi.def'
 C
 C    Then executable code follows
 C
@@ -59,10 +61,10 @@ C
       IF (DIST .LT. EPS) THEN
          CALL ERROR ('JSVIEW: DISTANCE BETWEEN EYE & VIEW NOT > 0')
       ENDIF
-      RHO = DIST * COSD(XZAN)
-      XP = RHO * SIND(YANG) * RIGHT  ! CAUTION: Remains in left handed system.
-      YP = DIST * SIND(XZAN)
-      ZP = RHO * (-COSD(YANG))
+      RHO = DIST * COS(XZAN*pi/180)
+      XP = RHO * SIN(YANG*pi/180) * RIGHT  ! CAUTION: Remains in left handed system.
+      YP = DIST * SIN(XZAN*pi/180)
+      ZP = RHO * (-COS(YANG*pi/180))
       DX = XVRP - XP
       DY = YVRP - YP
       DZ = (ZVRP * RIGHT - ZP) * RIGHT
@@ -75,7 +77,7 @@ C
       PRJTYP   = PTPERS
       PERSP    = DIST
       IF (VANG .GT. 0.0) THEN
-         WSF = DIST * TAND(VANG / 2.0)
+         WSF = DIST * TAN(VANG / 2.0 *pi/180)
          DO 10 I=1,3,2
             UWIND(I)     = -WSF
             UWIND(I + 1) =  WSF

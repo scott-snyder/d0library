@@ -18,6 +18,7 @@ C-
 C-   Created  09-JAN-1989   A. VIRGO, S. ABACHI
 C-   UPDATED  18-JAN-1989   S. ABACHI      Step algorthm modified
 C-   UPDATED  11-JUN-1990   S. ABACHI      Real polygons were used
+C    Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -31,6 +32,7 @@ C
       INCLUDE 'D0$INC:LINATT.INC/LIST'
       INCLUDE 'D0$INC:PLGATT.INC/LIST'
       INCLUDE 'D0$INC:PRIMVR.INC/LIST'
+      INCLUDE 'D0$INC:pi.def'
       DATA MAXN /50/
 C
       IF (.NOT. SEGOPN) THEN
@@ -51,8 +53,8 @@ C
       THETA = 0.0
       DO 10 I=1, NSTEPS + 1
         NVERT = NVERT + 1
-        XPT = RAD * COSD(THETA) + XCEN
-        YPT = RAD * SIND(THETA) + YCEN
+        XPT = RAD * COS(THETA*pi/180) + XCEN
+        YPT = RAD * SIN(THETA*pi/180) + YCEN
         VERTIC(1,NVERT) = XPT
         VERTIC(2,NVERT) = YPT
         VERTIC(3,NVERT) = ZPT

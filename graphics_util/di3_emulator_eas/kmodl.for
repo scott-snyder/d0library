@@ -8,10 +8,12 @@ C-   Outputs :
 C-   Controls: 
 C-
 C-   Created  DEC-1988   SHAHRIAR ABACHI
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:GRFPAR.INC/LIST'
+      INCLUDE 'D0$INC:pi.def'
       REAL DX, DY, DZ, XSQ, YSQ, ZSQ
       REAL P1, P2, P3, P4, P5, P6, P7, CNV
       REAL ALPHA, BETA, RHO, UPS, EPS
@@ -122,7 +124,7 @@ C
 C   Perform the general rotation about a line.
 C
         IF (ABS(DY) .GT. EPS) THEN
-          ALPHA = ATAND(DX / DY)
+          ALPHA = ATAN(DX / DY)*180/pi
           IF (DY .LT. 0.) ALPHA = ALPHA + 180.
         ELSE IF (DX .GT. EPS) THEN
           ALPHA = 90.
@@ -132,7 +134,7 @@ C
           ALPHA = 0.
         ENDIF
 C
-        BETA = ACOSD(DZ / RHO)
+        BETA = ACOS(DZ / RHO)*180/pi
 C
         CALL PROTZ('"', -ALPHA, '"', ERRHND)
         CALL PROTX('"', -BETA, '"', ERRHND)

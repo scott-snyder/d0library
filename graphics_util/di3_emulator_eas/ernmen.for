@@ -8,6 +8,7 @@ C-   Outputs
 C-            ILIST(NINTEG+1) ; if .ne. -1, then stop
 C-
 C-   Created   2-MAY-1990   SHAHRIAR ABACHI
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -24,21 +25,25 @@ C
      &        10X,'SOLID  ',5X,'SURFACE      ',5X,'WASH-SCREEN  ',/
      &        10X,'TURN ON',5X,'STOP         ',//
      &        10X,'OPTION ? ---->   ', $)
+C&IF LINUX
+C&      read (*,'(A2)'), ANS
+C&ELSE
       ACCEPT '(A2)', ANS
+C&ENDIF
 C
       IF(ANS(1:2) .EQ. 'ST') THEN
         ILIST(NINTEG+1) = 0
-        GOTO 99
+        GOTO 97
       ENDIF
 C
       IF(ANS(1:2) .EQ. 'WA') THEN
         CALL PSNFIX(2, 7, 'SHADINGENVIRONMENT', ERRHND)
-        GOTO 99
+        GOTO 97
       ENDIF
 C
       IF(ANS(1:2) .EQ. 'TU') THEN
         CALL PSNFIX(0, 1, 'TURNONDISPLAY', ERRHND)
-        GOTO 99
+        GOTO 97
       ENDIF
 C
 C----------------------------------------------------------------
@@ -150,6 +155,7 @@ C          CALL PSNFIX(0, 1, 'TURNONDISPLAY', ERRHND)
       CALL PPURGE(ERRHND)
 C
    99 CONTINUE
+ 97    continue
 C      ENDIF
 C
       CALL PPURGE(ERRHND)
