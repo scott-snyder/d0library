@@ -1,0 +1,204 @@
+      SUBROUTINE TEST(CH1, CH2)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : This file is a test case for D0FLAVOR/CHECK
+C-
+C-   Inputs  : 
+C-   Outputs : 
+C-   Controls: 
+C-
+C-   Created  31-JAN-1992   Herbert Greenlee
+C-   Updated  26-FEB-1992   Harrison B. Prosper  
+C-      Add some complications 
+C-   Updated  13-MAR-1992   Harrison B. Prosper  
+C-      Add more complications 
+C-
+C----------------------------------------------------------------------
+C-
+C- IMPLICIT NONE is OK.
+C-
+      IMPLICIT NONE
+C-
+C- This INCLUDE statement is OK.
+C-
+      INCLUDE 'D0$INC:ZEBCOM.INC/LIST'
+C-
+C? ERROR -- INCLUDE from TLB not allowed.
+C-
+      INCLUDE '(FORTRAN$IDENT)/LIST'
+C-
+C? ERROR -- COMMON with same name as subroutine
+C-
+      INTEGER TEST1, TEST2, TEST3
+      COMMON /TEST/ TEST1, TEST2, TEST3
+C-
+C- This COMMON is OK
+C-
+      REAL ATEST1, ATEST2, ATEST3
+      COMMON /ATEST/ ATEST1, ATEST2, ATEST3
+C-
+C? ERROR -- Initializing data in common with DATA statement.
+C-
+      DATA ATEST1, ATEST2, ATEST3/3*0./
+C-
+C- 31 character symbols are allowed.
+C-
+      REAL A_123456789_123456789_123456789
+C-
+C- A lower case fortran statement and variable.
+C-
+      integer lower_case
+C-
+C- Standard types.
+C-
+      INTEGER THIS_CRATE_ID, LOWER_16_BITS
+      INTEGER A_LONG_NAME, ANOTHER_LONG_NAME, YET_ANOTHER_LONG_NAME
+      INTEGER I, J, K, L, M
+      REAL A, B, C, D
+      DOUBLE PRECISION DA, DB, DC, DD
+      LOGICAL LA, LB, LC, LD, OPENED
+      COMPLEX CA, CB, CC, CD
+      CHARACTER*10 CHA, CHB, CHC, CHD
+      CHARACTER*(*) CH1, CH2
+C-
+C- Allowed non-standard types.
+C-
+      byte I1, J1, K1, L1
+      integer*2 I2, J2, K2, L2, M2
+      integer*4 I4, J4, K4, L4
+C-
+C? ERROR -- Illegal non-standard types.
+C-
+      REAL*4 A4, B4, C4, D4
+      REAL*8 A8, B8, C8, D8
+      REAL*16 A16, B16, C16, D16
+      LOGICAL*1 LA1, LB1, LC1, LD1
+      LOGICAL*2 LA2, LB2, LC2, LD2
+      LOGICAL*4 LA4, LB4, LC4, LD4
+      COMPLEX*8 CA8, CB8, CC8, CD8
+      COMPLEX*16 CA16, CB16, CC16, CD16
+      DOUBLE COMPLEX DCA, DCB, DCC, DCD
+      CONTINUE
+C-
+C- END DO is OK.
+C-
+      J = 0
+      DO A_LONG_NAME = ANOTHER_LONG_NAME, YET_ANOTHER_LONG_NAME
+        J = J + 1
+      END DO
+      CONTINUE
+
+      J = 0
+      DO I = 1, 10
+        J = J + 1
+      END DO
+      CONTINUE
+C-
+C- DO WHILE ok OK.
+C-
+      DO WHILE (J.GT.0)
+        J = J - 1
+      END DO
+      CONTINUE
+C-
+C- O and Z format OK
+C-
+      PRINT 100,I,J
+100   FORMAT(O11,2X,Z8)
+C
+C ****  Legal VMS utilities
+C
+      CALL LIB$DAY(I,,)
+      CALL SMG$ERASE_DISPLAY(I,,,,)
+C
+C ****  Illegal VMS utilities
+C
+      CALL LIB$DELETE_FILE
+      CALL SMG$SELECT_FROM_MENU
+C-
+C- Legal use of bit manipulation routines.
+C-
+      THIS_CRATE_ID = IAND ( THIS_CRATE_ID, LOWER_16_BITS )
+C
+      I = IAND
+     &  (
+     &  J, 
+     &  K
+     &  )
+C
+      I = IOR(J, K)
+      I = IEOR(J, K)
+      I = NOT(J)
+      I = ISHFT(J, K)
+      I = ISHFTC(J, K, L)
+      I = IBITS(J, K, L)
+      I = IBSET(J, K)
+      I = IBCLR(J, K)
+      LA = BTEST(J, K)
+      CALL MVBITS
+     &  (I, 
+     &  J, 
+     &  K, 
+     &  L, 
+     &  M)
+      CONTINUE
+C-
+C? ERROR -- Illegal use of bit manipulation routines (wrong type arguments).
+C-
+      I = IAND(J2, K2)
+      I = IOR(J2, K2)
+      I = IEOR(J2, K2)
+      I = NOT(J2)
+      I = ISHFT(J2, K2)
+      I = ISHFTC(J2, K2, L2)
+      I = IBITS(J2, K2, L2)
+      I = IBSET(J2, K2)
+      I = IBCLR(J2, K2)
+      LA = BTEST(J2, K2)
+      CALL MVBITS(I2, J2, K2, L2, M2)
+      CONTINUE
+C-
+C? ERROR -- Illegal use of specific bit manipulation routines.
+C-
+      I = JIAND(J, K)
+      I = JIOR(J, K)
+      I = JIEOR(J, K)
+      I = JNOT(J)
+      I = JISHFT(J, K)
+      I = JISHFTC(J, K, L)
+      I = JIBITS(J, K, L)
+      I = JIBSET(J, K)
+      I = JIBCLR(J, K)
+      LA = BJTEST(J, K)
+      CONTINUE
+C-
+C% WARNING -- Standard OPEN
+C-
+      IF ( .NOT. OPENED ) THEN
+      OPEN(10, FILE='TEMP.DAT', STATUS='UNKNOWN')
+      CONTINUE
+      ENDIF
+C-
+C? ERROR -- Non-standard OPEN
+C-
+      OPEN(20, FILE='TEMP.DAT', READONLY, STATUS='OLD')
+      CONTINUE
+C-
+C- Legal concatenations
+C-
+      CHA = CHB//CHC
+      CHA = CH1//CH2
+      CONTINUE
+C-
+C? ERROR -- Illegal concatenations (require implicit temporary variable).
+C-
+      CALL OUTMSG(CH1//CH2)
+      IF(CH1//CH2 .EQ. ' ')STOP
+      CONTINUE
+C-
+C% WARNING -- Not enough flavors specified.
+C-
+C&IF VAXVMS
+      CONTINUE
+C&ENDIF
+      END

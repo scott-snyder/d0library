@@ -1,0 +1,94 @@
+!-------------------------------------------------------------------------------
+!
+! Command Language Definition file defining the "grammar" of the verb CHART2
+!
+! CHART2 - Use LINK/MAP/CROSS_REFERENCE to form a .MAP file
+!          From this we can create a call tree (abeit organized in alphabetical
+!          order rather than the more traditional static call order)
+!
+!  CHART2 [/qualifiers] input-filespec-list
+!
+!  default  qualifiers - description
+!   10      /DEPTH=n         - Tree depth before trucation (and continuation)
+!                              "n" in range [1:20]
+!   *       /[NO]TRIM        - Trim the tree of duplicate sub-trees
+!   *       /[NO]COMPRESS    - squeeze some extra stuff out of printout
+!           /TIGHT           - squeeze real hard (implies compress)
+!   [no]    /[NO]HANG        - [don't] print hanging bars on levels that 
+!                              aren't continued
+!   *       /[NO]PROCESS     - actually process trees,
+!                              use NO to just list what would be done
+!           /SHOWOPTIONS     - show the options after processing qualifiers
+!   *       /[NO]LINENUMBERS - label every 5th line; make references to
+!                              line numbers when cutting a tree
+!
+!   [no]    /NORTL           - don't print calls to Run-Time-Libraries
+!           /RTL=NONE          same as NORTL
+!           /RTL=(p1,p2...)    pn = FOR,LIB,MTH,SYS,OTS,STR,SMG,DTK,PPL
+!           /RTL=ALL           enable all above prefixes
+!
+!   * = default enabled,  [no] = default disabled
+!
+!-------------------------------------------------------------------------------
+!
+! define the MODULE that will be linked to the main source code:
+! specify VERB that it will use
+!
+Module CHART2_TABLES
+Define Verb CHART2
+!
+!-------------------------------------------------------------------------------
+!
+! PARAMETERS:
+!
+! The first parameter be referred to as INPUT_FILE in the source code.
+! It will be a required parameter of type $file; if the user does not enter
+! it on the command line then he/she will be prompted for it using the string
+! "Input File :".
+! Parameter   P1  Label=MAP_FILE,Value(type=$file,required,list),Prompt="Map File ?"
+!!
+! CHART2 now deals with 
+!       (1) no file name given     - acts as *.MAP
+!       (2) wildcards in file spec - in directory path, name, extension, version
+!                                  - (what the .ext -- currently no check for true .MAP file)
+!       (3) lists of files separated by "," (comma) or "+" (plus)
+!       (4) files not found        - not a horrible death here, just a warning
+!!
+Parameter   P1  Label=MAP_FILE,Value(type=$file,list)
+!
+!-------------------------------------------------------------------------------
+!
+! QUALIFIERS:
+!
+Qualifier DEPTH,    Default,Nonnegatable,Value(type=$number,default="10")
+Qualifier TRIM,     Default
+Qualifier COMPRESS, Default
+Qualifier TIGHT,            Nonnegatable
+Qualifier HANG
+Qualifier RTL,                           Value(type=Legal_RTL,list)
+Qualifier PROCESS,  Default
+Qualifier SHOWOPTIONS
+Qualifier LINENUMBERS, Default
+!
+Define Type Legal_RTL
+    Keyword All, Default
+!    Keyword All
+    Keyword None
+    Keyword FOR
+    Keyword LIB
+    Keyword MTH
+    Keyword SYS
+    Keyword OTS
+    Keyword STR
+    Keyword SMG
+    Keyword DTK
+    Keyword PPL
+!
+i
+
+                                Robert W. Hatcher
+                                256D Physics-Astronomy, MSU    _ _ /| 
+                                msuhep::hatcher  (HEPnet)      \'o.O' 
+                                hatcher@msupa    (Bitnet)      =(___)=
+                                hatcher@msupa.pa.msu.edu    Ack   U   
+

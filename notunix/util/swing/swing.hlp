@@ -1,0 +1,213 @@
+!=======================================================================
+! THIS IS THE HELP LIBRARY FOR SWING
+!=======================================================================
+!
+!   This is the help file for the program SWING
+!   To add this to the standard help library on the VAX type:
+!   $ LIBRARY/HELP  SYS$HELP:HELPLIB  SWING.HLP
+!
+!   Note that the processed version of this file (.HLB)
+!   is used by the SWING executable and must be located in D0$UTIL
+!
+1 SWING
+ SWING is a VAX/VMS utility for displaying the graphical representation
+ of directory trees on a VT100 or VT200 type terminal.  It can be used to
+ move to a directory or subdirectory, as is done with the SET DEFAULT
+ command, and it can rename, move and delete subdirectories.  SWING can
+ also create hardcopy listings of a directory structure.
+     
+ SWING takes one optional qualifier - START.  This sets the root of the
+ directory tree to any directory that the user desires.  The directory
+ is entered with the square brackets as with the SET DEFAULT command.
+ START may also be set to CURRENT in which case the default directory
+ is the root directory.
+     
+ Simply type SWING[/START=directory] at the VMS prompt.
+     
+2 Command_Definition
+ To use, define SWING as a foreign command:
+
+	$ SWING :== $D0$UTIL:SWING
+ 
+2 Limitations
+ SWING cannot handle directory trees with more than 3500 directories,
+ more than 8 levels deep, or that require more than 500 lines to display.
+2 Moving_around
+ Once SWING has drawn a picture of the default directory structure the
+ cursor will be positioned at the current directory and it will be
+ highlighted.  The arrow keys can be used to move from one subdirectory
+ to another.  As you travel around you are "setting default" to that
+ directory.  To exit simply type X, E, CONTROL-Z or ENTER and you will
+ return to VMS in the new directory location.
+     
+ As you move around with the arrow keys notice that the RIGHT, UP and
+ DOWN arrows take you to the first directory available in that direction
+ and that the LEFT arrow takes you to the parent of the current directory.
+ Typing B will take you to the bottom of the tree and typing T will take
+ you to the top (root directory).
+     
+ Other commands can be entered to create, rename and move subdirectories,
+ as well as delete entire directory trees and get a hardcopy listing of
+ the current directory structure.  To get help on these various commands
+ enter the section of help called COMMANDS.
+2 Save_file
+ Every time SWING displays a directory tree it gets its information from
+ either searching the disk or from a save file called SWING.SAV located
+ in the main directory.  If SWING is going to be used on a regular basis
+ it is advisable that the structure be saved in such a file.  The SAVE
+ command will create a SWING.SAV file and from that point on SWING will
+ attempt to keep that file up-to-date.  Having the save file will speed
+ up initialization so much that it might be tempting to use SWING for
+ "setting default" all of the time.
+     
+ If the directory structure is changed in any way by SWING the save file
+ will be updated automatically, but if a change has occurred without the
+ use of SWING it will be necessary to do a manual SAVE on the new
+ directory tree.
+     
+ NOTE: SWING does purge the save files located in the main directory,
+       provided the current process has enough privilege.
+2 Commands
+ Commands can be entered by either hitting the first letter of the
+ commands located on the menu at the top of the screen or by hitting the
+ CONTROL-P or DO keys and using the menu bar like a pulldown menu.  The
+ pulldown menu is operated by using the arrow keys to go to a selection
+ and then hitting the ENTER key to choose that item.  CONTROL-Z will exit
+ the pulldown menu without making a choice. Although the pulldown menu is
+ cute, hitting the first letter of the commands is by far a faster
+ method.
+3 Create
+ CREATE prompts the user for the name of a new subdirectory to be created.
+ The display will be updated and an actual directory is created.
+3 Rename
+ RENAME prompts for a new name to be given to the current directory.  The
+ display may change since the directories are in alphabetical order.
+3 Move
+ MOVE initiates the move operation by blinking the current subdirectory
+ and then the user is asked to move to the a new parent directory.  When
+ either RETURN or ENTER is hit the move takes place.  Both the new parent
+ and the directory being moved can have other subdirectories attached to
+ them as well.  While moving to the new parent directory the operation
+ can be canceled by hitting any key besides the arrow keys, ENTER and
+ RETURN.
+3 Delete
+ DELETE causes the current directory and all subdirectories below it to
+ be deleted automatically.  The user is asked to enter YES before any
+ delete operation takes place and the word YES must be spelled out
+ completely.  The deletion starts at the lowest subdirectory in the tree
+ and works its way back to the current directory.  As files are being
+ deleted from a subdirectory that node will blink on the screen.  If the
+ subdirectory is successfully deleted the node name will blank out, so you
+ can watch the directory tree being deleted graphically.
+     
+ IMPORTANT: IF A FILE DOES NOT HAVE DELETE ACCESS FOR THE USER, SWING
+            WILL ATTEMPT TO CHANGE THE PROTECTION ON IT SO THAT IT CAN
+            DELETE THE FILE (GIVEN THE PRIVILEGE OF THE USER ONLY)
+     
+ If a particular subdirectory or file still can't be deleted then the
+ deletion process will continue anyway, leaving the protected files.
+ A message will be given stating the problem.
+3 Print
+ PRINT creates a file for printing that contains a hardcopy version of
+ the directory structure.  One of two file types can be created.  The
+ normal output is for any printer and the LQP input file is for running
+ through the LQP utility on a laser printer for a clean line drawn
+ representation of the directory tree.  The file is called SWING.LIS and
+ it will be placed in the current directory.
+3 Save
+ SAVE causes a new save file to be created in the main directory.  The
+ save file is for speeding up the initialization of SWING.  See the
+ section called SAVE_FILE on the level of help above this level.
+3 Option
+ OPTION lists addition facilities available in SWING.  The desired option
+ is selected by using the up- and down-arrows to position the cursor over
+ the option then pressing RETURN.
+4 DCL Command
+ This option allows the user to execute any DCL at the prompt.  SWING
+ WILL NOT reflect changes made to the directory structure by these
+ commands.  This option is non-interactive and should not be used for
+ commands that do not return to the DCL prompt after completion.  The
+ output is printed in the DCL Command window and reverse scrolling is
+ not possible.
+     
+ WARNING: THIS OPTION IS PRONE TO RANDOM BUGS.  THE OUTPUT MAY NOT
+ MATCH THE OUTPUT SEEN AT COMMAND LEVEL.  THIS OPTION MAY ALSO CAUSE
+ SWING TO HANG.  THIS CAN BE OVERCOME WITH A CTRL-Y BUT THE SUBPRO-
+ CESS 'SWING_DCL_PROC' MUST BE STOPPED FOR FURTHER USE OF SWING.
+4 Display Directory
+ DISPLAY DIRECTORY causes an optional full directory specification to be
+ displayed at the top of the screen.  The directory name will be modified
+ each time the user moves to a new directory location.
+4 FILER
+ This is the file-management portion of the SWING utility.  It can be
+ used to delete, edit, move, print, or rename files in the current
+ directory.
+     
+ Limitations: The filer can only handle 500 files.  If a directory
+ contains more than 500 files, the first 500 are displayed and the
+ rest are not available.
+5 Commands
+ Commands can be entered by either hitting the first letter of the
+ commands located on the menu at the top of the screen or by hitting
+ the control-P or DO keys and using the menu bar like a pulldown menu.
+ The pulldown menu is operated by using the arrow keys to go to a
+ selection and then hitting the ENTER key to choose that item.
+ Control-Z will exit the pulldown menu without making a choice.
+ Although the pulldown menu is cute, hitting the first letter of the
+ commands is by far a faster method.
+6 Delete
+ DELETE causes the current file to be deleted.  The user is asked to
+ enter YES before any delete operation takes place and the word YES
+ must be spelled out completely.
+6 Edit
+ EDIT invokes an editor with the current file as input.  The editor
+ invoked is that specified in the logical name, SWING$EDIT.  SWING
+ looks for translations in the following tables, in the following
+ order: LNM$PROCESS, LNM$JOB and LNM$SYSTEM.  If this logical name
+ is not defined, the default is TPU.  When the user exits the editor,
+ control returns to the filer.  Any new files created by the editor
+ will be displayed in the filer window.
+
+ The editor is invoked by spawning a command line made up from either
+ the translation of the SWING$EDIT logical name or TPU with the
+ current file as the parameter on the command line.
+6 Move
+ MOVE allows the user to move the current file to another directory.
+ The user is asked to move the cursor to the new host directory
+ using the arrow keys.  When either RETURN or ENTER is hit the file
+ is moved.  The operation may be aborted at any time by hitting any
+ key besides the arrow keys, RETURN, or ENTER.
+6 Print
+ PRINT causes the current file to be sent to the printer defined by
+ SWING$PRINT.  SWING looks for translations in the following tables,
+ in the following order: LNM$PROCESS, LNM$JOB, and LNM$SYSTEM.  If
+ this logical name is not defined, the default is PRINT (i.e., the
+ SWING$PRINT logical name is taken to be a PRINT command, with any
+ qualifiers, not just a queue name).
+6 Rename
+ RENAME prompts the user for a new name to be given to the current
+ file.  The display will reflect the change and keep the files
+ listed in alphabetical order.
+6 Option
+ This command allows for expansion of the filer.  Available options
+ are listed in the pulldown menu and a selection is made by using
+ the arrow keys to highlight the desired option then hitting RETURN.
+7 DCL Command
+ This option allows the user to execute any DCL at the prompt.
+ SWING WILL NOT reflect changes made to the directory struc-
+ ture by these commands.  This option is non-interactive and
+ should not be used for commands that do not return to the DCL
+ prompt after completion.  The output is printed in the DCL
+ Command window and reverse scrolling is not possible.
+     
+ WARNING: THIS OPTION IS PRONE TO RANDOM BUGS.  THE OUTPUT MAY
+ NOT MATCH THE OUTPUT SEEN AT COMMAND LEVEL.  THIS OPTION MAY
+ ALSO CAUSE SWING TO HANG.  THIS CAN BE OVERCOME WITH A CTRL-Y
+ BUT THE SUBPROCESS 'SWING_DCL_PROC' MUST BE STOPPED FOR
+ FURTHER USE OF SWING.
+6 Quit
+ QUIT causes the filer to be stored and returns control to SWING.  The keys
+ Q, control-Z and ENTER quit the filer.
+3 Exit
+ EXIT causes the SWING to exit to the currently selected subdirectory or
+ directory.  The keys E, X, CONTROL-Z and ENTER exit SWING.

@@ -1,0 +1,99 @@
+\START    MAC_INSTRUCTIONS_RCP
+\SIZE        183        79
+!----------------------------------------------------------------------
+!    Name:       MAC_INSTRUCTIONS.RCP
+!    Package:
+!    Library:
+!    Purpose:
+!    Version: beta
+!    Created:    21-APR-1993   R. J. Genik II
+!    Updated:    21-APR-1993   R. J. Genik II  Shortened bank name
+!    Updated:    29-APR-1993   R. J. Genik II  added comments
+!    Updated:    29-APR-1993   R. J. Genik II  optional commands
+!     '\REFERENCE_FILE', '\DATA_FILE', '\Bin_Codes_Begin'...'\End_Bin_Codes'
+!     now in working order. see below for examples and notes at end of file.
+!    Updated:    23-MAY-1993   R. J. Genik II  for beta release: real and
+!     integer values now need no quotes.
+!    Updated:    26-JAN-1994   R. J. Genik II  Renamed to MAC_INSTRUCTIONS
+!
+!   NOTE: This file is an example to explain syntax, it is not a working
+!   demonstration.
+!----------------------------------------------------------------------
+!
+\ARRAY MAC_INSTRUCTIONS
+    '\BEGIN_INSTRUCTIONS' ! REQUIRED starting statement
+    '\REFERENCE_FILE'     ! sets the reference file
+          'msu6:[data.genik.hst]RUN61819.HST'
+    '\DATA_FILE'          ! sets the data file
+          'msu6:[data.genik.hst]RUN61820.HST'
+    '\HISTOGRAM_BEGIN'    !begin describing one comparison
+! Directory ID# Test{'S' or 'B'}  Options Stat_tol pct_tol
+    '/L2EM'  6  'B' 'CD'  0.999999  1.e-6
+    '\Bin_Codes_Begin'    ! Name the bins (optional)
+!   Bin code (= histogram channel-1 )   Bin_code_name (max=32), see below
+! 'XXX' |                               |
+     0  'Bin 1'
+     4  'the are not required in order'
+     2  'Bin 3 '
+     1  'Unlabel? NOT'
+    '\End_Bin_Codes'! End of info
+!
+    '\END_HISTOGRAM'      ! end description of this comparison
+! next comparison using a shape ('S') comparison instead of bin to bin
+    '\HISTOGRAM_BEGIN'
+    '/L2EM'  7  'S' 'D'  0.99
+    '\END_HISTOGRAM'
+! next comparison
+    '\HISTOGRAM_BEGIN'
+    '/L2EM'  4  'S' 'D'  0.99
+    '\END_HISTOGRAM'
+    '\END_INSTRUCTIONS'   ! end of instructions
+\END
+!
+!
+! Some notes:
+!   - Mega_Autocompare is not set up to handle R,L,T,B options of HDIFF and
+!HDIFFB
+!
+!   - Test='B' is bin by bin comparison with HDIFFB. Test = 'S' is a shape
+!comparison with HDIFF. (must be uppercase, HDIFF called by default if no
+!'B' is present.)
+!
+!   - All commands must be enclosed within single quotes, as all strings
+!   must be. Real and integers need not be in quotes, but are accepted.
+!   Real may be in 'E' format.
+!
+!   - stat_tol and pct_tol can be either in real, or real E-format.
+!
+!   - For 'B', The next SIX parameters, after '\HISTOGRAM_BEGIN',must be
+!the directory name, the ID#, the 'B', the test options to be sent to HDIFFB
+!(see HDIFFB.DOC), the statistical tolerance to be sent to HDIFFB (see
+!HDIFFB.DOC), then the percent difference tolerance. Then either optional
+!commands or '\END_HISTOGRAM'.
+!
+!   - For 'S', The next FIVE parameters, after '\HISTOGRAM_BEGIN', must be
+!the directory name, the ID#, the 'S', the test options to be sent to HDIFF
+!(see HBOOK ), then the statistical tolerance to be sent to HDIFF (see
+!HBOOK manual). Then either optional commands or '\END_HISTOGRAM'.
+!
+!   - The comparison is done when an '\END_HISTOGRAM' is reached
+!
+!   - '\END_INSTRUCTIONS' must be the last instruction. Attempts are made
+!   to exit softly when the logical end-of-file is reached, but this is an
+!   abnormal exit and the last comparison requested in the instructions may
+!   have been skipped.
+!
+!   - '\REFERENCE_FILE', '\DATA_FILE' will change the files used to read in
+!the histograms wherever they are placed, and will remain set to those files
+!until changed by another issue of the command
+!
+!   - for two dimesnional histograms, the bin codes are
+!    bin code for bin x,y = x - 1 + xbins*(y - ymin)
+!    where xmin and ymin are either 1, or 0 for underflow option
+!    and xbins is the number of x bins + 1 or 2, depending on over and
+!    underflow.
+!
+!
+!    - Many output options are also available and will be documented
+!    shortly.
+\STOP    !   MAC_INSTRUCTIONS_RCP

@@ -1,0 +1,63 @@
+                                                                 Olivier Callot
+                                                                 15 August 1988
+
+
+                 D0SOURCES , A D0 Utility To Print Source Files
+                 ____________________________________________
+
+
+    D0SOURCES is an utility to build listings  of source  files. It produces an
+Index of file  names and  entry points, and  pages are  numbered. A banner page
+with optional comment is produced on QMS/TALARIS printers. 
+
+                             ===== FUNCTION =====
+
+    D0SOURCES reads the file specification(s) given  as argument to the command,
+and read all the files corresponding to these specifications. For each file, we
+add an entry in the Index, with file  name and first page number. Then, we read
+the  file,  to  look  for  ENTRIES:   these are   defined  for  FORTRAN files (
+SUBROUTINE,  FUNCTION,  ENTRY, PROGRAM  ), PASCAL  files (  PROGRAM, PROCEDURE,
+FUNCTION ), MACRO files ( .TITLE,  .ENTRY ) and VAXTPU files ( PROCEDURE ). For
+each of these  entries, a line is  added in the Index,  with the entry text and
+page number. When  all the files are  processed, we read  them a second time to
+build the real output  file ( defined as  SOURCES.LIS in the current directory,
+or SYS$LOGIN:SOURCES.LIS if we can not open the previous one ). Then, this file
+is sent to the printer, and automatically deleted after printing. 
+
+                         ===== CALLING SEQUENCE =====
+
+    At the DCL level, you call D0SOURCES like any other DCL command: 
+
+    $ D0SOURCES {/qual}  file_specs
+
+    where  "file_specs" is a  file  specification ( can  contain wildcards, and
+many items  separated by  a comma,  like for the  PRINT command  ). You will be
+prompted for if you don't give one. We never process the .DIR, .EXE, .OBJ and
+.OLB files. The QUALIFIERs are: 
+
+    /QUEUE=queue_name  to send the output to another queue ( default SYS$PRINT)
+    /[NO]BANNER        to define if you ( don't ) want a QMS/TALARIS banner
+    /COMMENT="text"    The text to be put on the banner page, if any. You will
+                       be prompted for if a BANNER was requested.
+    /CHAR_PER_LINE=nnn defines the number of characters per line ( 132 )
+    /LINE_PER_PAGE=nnn defines the number of lines per page ( 64 )
+    /FONT=nnn          defines the QMS/TALARIS font number ( no default )
+    /FORM=name         defines the FORM to be used in the PRINT command
+    /QMS               defines the QMS values: char=100, line=80, font=10
+    /TALARIS           defines the TALARIS values: char=100, line=80, font=1217
+    /KEEP              Don't print the file SOURCES.LIS, and keep it.
+    /SETUP=name        On TALARIS only, to preset the font, char_per_line and
+                       line_per_page using one of the standard FNAL setup, e.g. 
+                       S814L or R610P...
+
+    The default values are installation dependant: The symbol D0SOURCES is
+defined with some default qualifiers, depending on the available printers.
+E.g., FNAL definition will be SOUR*ces :== $D0$UTIL:D0SOURCES/TALARIS
+
+                           ===== LIMITATIONS =====
+
+    The number of  files and of entries  is limited to  1000, which is generaly
+enough. If  the file  contains  Form-Feed,  they are  replaced by  "$" to avoid
+problem with page numbering. 
+
+    Any comment or suggestions for improvement ? Send a mail to FNAL::CALLOT

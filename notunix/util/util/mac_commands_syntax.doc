@@ -1,0 +1,173 @@
+
+    MAC Commands Syntax:
+
+    MAC Currently has 25 commands in it's language. They are described
+    below. This document is written for persons who have already
+    successfully written their own working instruction file and wish to
+    customize the output for their application.
+    
+    Send comments or corrections to FNALD0::GENIK
+    
+    General Syntax:
+    The syntax is similar to RCP, except that MAC commands must be enclosed
+    by single quotes. This prevents interference between the two command
+    interpreters. (As with RCP, all character input must also be ''ed.)
+    The MAC interpreter responds to commands between '\BEGIN_INSTRUCTIONS',
+    and '\END_INSTRUCTIONS'. Instructions which are required (not optional)
+    are described in the rcp file in more detail. Only the first ten
+    characters in a command are required (for some it is less, depending on
+    ambiguity), extra characters, up to 80 total, are ignored; for example,
+    '\SET_OUTPU' is the same as '\SET_OUTPUT_FILE_TO:'. This allows the
+    user to add as much English (or French, or Spanish...) starting at
+    character 11.
+    
+    General Commands:
+
+    '\HISTOGRAM_BEGIN'
+    Begin describing one comparison. Must be followed by the 5 (or 6) 
+    parameters which describe the technical details of the comparison.
+
+    '\END_HISTOGRAM'
+    Ends the comparison description. The machinery which does the
+    comparison and produces the output is activated by this command, so
+    optional issued commands before this command will apply to the current
+    comparison.
+    
+    '\REFERENCE_FILE' filename
+    '\DATA_FILE' filename
+    Immediately closes the previous reference or data file and opens the
+    indicated file. The new filename is immediately written to the output
+    file. If the filename is a logical, it is translated by one step before
+    output.
+    
+    '\SET_OUTPUT_FILE' filename
+    Immediately closes the previous output file and opens the indicated
+    one. The default output file (this command not present) is sys$output.
+
+    Output Switches and commands:
+
+    These were added at various development stages of the command
+    interpreter and come in two syntaxes:
+    
+    '\SWITCH_NAME', '\NO_SWITCH_NAME'
+    and
+    '\SWITCH_NAME'  position 
+    where position is .TRUE. or .FALSE.
+    
+    '\SHOW_BIN_CONTENTS'
+    '\NO_SHOW_BIN_CONTENTS'
+    Controls whether for each failure (bin comparison only), the contents
+    of the bin are printed on the line after the test results.
+
+    '\USE_BIN_CODES'
+    '\NO_USE_BIN_CODES' [default]
+    This is a historical compatibility switch. There are a class of
+    applications (for which this package was first developed) where
+    histogram channels are referred to by their channel number minus one
+    (there is some logic to this, especially if one books 100 channels from
+    0.0 to 101.0). Note: for two dimesnional histograms, the bin codes are:
+
+        bin code for bin x,y = x - 1 + xbins*(y - ymin)
+        where ymin is either 1, or 0 for underflow option
+        and xbins is the number of x bins + 1 or 2, depending on over and
+        underflow.
+
+    See Below for description of bin names.
+    (The author recommends using the channel numbers :-)
+
+    '\OUTPUT_ALL_FAILURES'  position
+    MAC will print each bin which fails EITHER the percent difference cut
+    OR the statistical cut if .TRUE. .FALSE. will only consider bins which
+    do not pass both tests as 'failures'.
+
+    '\SUMMARIZE_ALL' position
+    .TRUE. will print the 4 line summary of each comparison. .FALSE. will
+    print "Histogram xxx OK" if no failures are found.
+
+    '\CONFIRM_OK' position
+    .TRUE. [default] will print "Histogram xxx OK" if no failures are
+    found. .FALSE. will produce no output unless failures are present. (The
+    author does not recommend using .FALSE. until stable instruction files
+    are produced; after all, no output is the same as forgetting to put the
+    comparison in the instruction file...)
+
+    Bin Names:
+    
+    The user may associate a 32 character name with each bin in a
+    histogram. The default is to label each bin as 'Unlabeled Bin' and
+    reset to this label after each comparison.
+
+    '\Bin_Codes_Begin'
+    '\End_Bin_Codes'
+    Allows the user to insert the bin names from the instruction file. See
+    rcp file for syntax. Note that the default is to use the histogram
+    channel number and not the 'bin code' described above when assigning
+    names.
+    
+    '\READ_BIN_CODE_FILE' filename
+    The bin codes will be read from the external file. The same syntax is
+    used.
+
+    '\RESET_BIN_NAMES' position
+    .TRUE. [default] will reset the bin names to 'Unlabeled Bin' after each
+    comparison. .FALSE. will keep the last specified bin names. Note that
+    the names are stored in only one array; this can provide confusion when
+    switching between one and two dimensional histograms. One of the
+    advantages of setting this .FALSE. is an increase in speed as
+    MAC doesn't have to fill this array (currently 40k elements of 32
+    characters each) at the end of each comparison.
+
+    Miscellaneous commands:
+
+    '\COMMENT' 'text'
+    Appears between '\HISTOGRAM_BEGIN' and '\HISTOGRAM_END'. Will add
+    'text', up to 80 characters, inside the histogram summary if present.
+
+    '\WRITE_DESCRIPTION' filename
+    This command will write the entire contents of text file filename into
+    the current output file, ignoring all lines where the first column
+    character is "!" (Note the "!" must be in the first column.)
+
+    Expert Commands:
+
+    This class of commands exist because MAC originally was driven by two
+    RCP files: the instruction file, and an "Expert RCP". To simplify the
+    final product, the expert rcp, which determined the defaults for user
+    set switches and also set some non-user oriented parameters, was
+    eliminated and the defaults were hard coded; what remained was hard
+    coded to default values and allowed to change by the following five
+    commands. They are included here for completeness but need not concern
+    casual users.
+
+    '\SET_GTUNIT_ID' integer
+    Sets the GTUNIT User id.
+
+    '\SET_REFERENCE_ID_OFFSET' integer
+    Sets the offset from the data histogram ID number which the reference
+    is stored in \PAWC\. Default is 10000. (Internal Ref_ID = Data_ID +
+    Ref_ID_Offset)
+
+    '\SET_TMP_ID_OFFSET' integer
+    MAC makes a temporary histogram in \PAWC\ to do the percent difference
+    calculation, it is offset from the data ID number by this amount.
+    default is 20000.
+
+    '\DELETE_AFTER_COMPARE' .TRUE.
+    Possible future use. Histograms are deleted from the \PAWC\ common
+    block at the end of the comparison. Setting to .FALSE. may consume all
+    available memory and cause a plethora of HBOOK errors.
+
+    '\PCT_OPTION' char_string
+    This controls the option string sent to HDIFFB (or MAC_2D_PCT_DIFF).
+    It's default value is 'AZ'. See HBOOK manual or D0 Note 1916 for
+    information about HDIFFB option strings. The effect in MAC_2D_PCT_DIFF
+    only relates to the presence of a "Z" in the string. Z_option here will
+    set percent differences to zero if there is zero entries in the
+    Reference histogram bin. Also, if either the reference or the data
+    histogram is empty (defined by the sum of the entries equal zero) an
+    error message is written to HBUG which (without excessive intervention)
+    will print this error message to the current output file; however,
+    under the Z_option, the percent differences will be set to zero,
+    instead of -999.0%. One consequence of using the default (Z option
+    active) is that zeros in the reference are ignored, this is because no
+    percent difference can be determined. 
