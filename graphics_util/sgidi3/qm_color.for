@@ -1,0 +1,16 @@
+      SUBROUTINE QM_COLOR(IC)
+C  Change the color index
+      INCLUDE 'D0$GRAPHICS_UTIL$SGIDI3:DI3GL.INC'
+      SAVE
+      IF(ICLR.EQ.0) RETURN
+      IF(IC.EQ.ICCURR) RETURN
+      ICCURR=IC
+      CALL QM_FORCE
+      INDX=IC+1
+      R=RVEC(INDX)/255.
+      G=GVEC(INDX)/255.
+      B=BVEC(INDX)/255.
+c      WRITE(IDRUNI,10) R,G,B
+c   10 FORMAT(' ',3F8.6,' /rgb')
+C!!!!ALSO GRAYSCALES
+      END

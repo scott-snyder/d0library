@@ -1,0 +1,16 @@
+      SUBROUTINE JMARK(X,Y)
+      INCLUDE 'D0$GRAPHICS_UTIL$SGIDI3:DI3GL.INC'
+      CHARACTER*1 MARK(5)
+      DATA MARK/'.','+','*','O','X'/
+      IMRK=MOD(IMARK-1,5)+1
+      VPOSN(1)=X
+      VPOSN(2)=Y
+      VPOSN(3)=0.
+      IF(HCPY) THEN
+        CALL DEV_MARK(X,Y,0.)
+        RETURN
+      ELSE
+        CALL CMOV2(VPOSN(1)-.5*XSIZE,VPOSN(2)-.5*YSIZE)
+        CALL CHARST(MARK(IMRK),1)
+      ENDIF
+      END

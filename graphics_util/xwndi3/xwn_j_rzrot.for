@@ -1,0 +1,14 @@
+      SUBROUTINE J_RZROT(V1,V2,ANG)
+C  UNIT VECTORS V1,V2
+C  ROTATE V1 AND V2 INTO EACH OTHER BY ANGLE ANG (DEGREES)
+      REAL V1(3),V2(3)
+      ANGR=ANG*3.1415927/180.
+      CS=COS(ANGR)
+      SN=SIN(ANGR)
+      DO I=1,3
+        VTEM1 = V1(I)*CS + V2(I)*SN
+        VTEM2 =-V1(I)*SN + V2(I)*CS
+        V1(I)=VTEM1
+        V2(I)=VTEM2
+      ENDDO
+      END

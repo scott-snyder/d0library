@@ -1,0 +1,19 @@
+      SUBROUTINE JDRAW(X,Y)
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      IF(HCPY) THEN
+        CALL DEV_DRAW(X,Y,0.)
+      ELSE
+        CALL J_TR2XY(XPOSN,YPOSN,XOLD,YOLD)
+        CALL J_TR2XY(X,Y,XPR,YPR)
+        IATB=ILINE
+        IF(IDEBUG.GT.20) TYPE *,' JDRAW - X,Y,XOLD,YOLD,XPR,YPR:',
+     &                                    X,Y,XOLD,YOLD,XPR,YPR
+        CALL J_LINE2(XOLD,YOLD,XPR,YPR)
+      ENDIF
+      XPOSN=X
+      YPOSN=Y
+      IF(.NOT.PUTS)RETURN
+      CALL J_PUTSG(I2DRAW,X)
+      CALL J_PUTSG(-I2DRAW,Y)
+      RETURN
+      END

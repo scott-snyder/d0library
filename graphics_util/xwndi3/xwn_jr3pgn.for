@@ -1,0 +1,65 @@
+      SUBROUTINE JR3PGN(X,Y,Z,N)
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      REAL X(*),Y(*),Z(*)
+      LOGICAL PUTSV
+      PUTSV=PUTS
+      PUTS=.FALSE.
+      ICSAVE=ICOLOR
+      XSAVE=XPOSN
+      YSAVE=YPOSN
+      ZSAVE=ZPOSN
+      IF(HCPY) THEN
+        PARRAY(1,1)=XSAVE
+        PARRAY(2,1)=YSAVE
+        PARRAY(3,1)=ZSAVE
+        DO I=2,N
+          PARRAY(1,I)=PARRAY(1,I-1)+X(I)
+          PARRAY(2,I)=PARRAY(2,I-1)+Y(I)
+          PARRAY(3,I)=PARRAY(3,I-1)+Z(I)
+        ENDDO
+        IF(IPSTYL.NE.0) THEN
+          CALL JCOLOR(IPCOLO)
+          CALL DEV_POLF(N,PARRAY)
+          IF(IPEDGE.EQ.0) THEN
+            CALL JCOLOR(0)
+            CALL DEV_POLY(N,PARRAY)
+          ENDIF
+        ELSE
+          CALL DEV_POLY(N,PARRAY)
+        ENDIF
+        GO TO 620
+      ENDIF
+      NN=N+1
+      DO I=1,N
+        IF(I.EQ.1) THEN
+          XI=XPOSN+X(I)
+          YI=YPOSN+Y(I)
+          ZI=ZPOSN+Z(I)
+          CALL J_TR3XYZ(XI,YI,ZI,XPOLY(NN),YPOLY(NN),ZPOLY(NN))
+        ELSE
+          XI=XI+X(I)
+          YI=YI+Y(I)
+          ZI=ZI+Z(I)
+        ENDIF
+        CALL J_TR3XYZ(XI,YI,ZI,XPOLY(I),YPOLY(I),ZPOLY(I))
+      ENDDO
+      IF(IPSTYL.EQ.0)GO TO 630
+      CALL JCOLOR(IPCOLO)
+      IATB=IPLGN
+      CALL J_PLOT_ARRAY(NN,XPOLY,YPOLY)
+      IF(IPEDGE.GT.0) GO TO 620
+      CALL JCOLOR(0)
+  630 IATB=ILINE
+      CALL J_PLOT_ARRAY(NN,XPOLY,YPOLY)
+  620 XPOSN=XSAVE
+      YPOSN=YSAVE
+      ZPOSN=ZSAVE
+      CALL JCOLOR(ICSAVE)
+      IF(.NOT.PUTSV)RETURN
+      PUTS=.TRUE.
+      IF(.NOT.PUTS) RETURN
+      CALL J_PUTSGN(IR3PGN,1,N)
+      CALL J_PUTSGN(IR3PGN,N,X)
+      CALL J_PUTSGN(IR3PGN,N,Y)
+      CALL J_PUTSGN(-IR3PGN,N,Z)
+      END

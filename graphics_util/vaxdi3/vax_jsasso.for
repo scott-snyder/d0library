@@ -1,0 +1,5 @@
+      SUBROUTINE JSASSO
+CPIXNO
+      COMMON/DI3PR/JUNIT
+      WRITE(JUNIT,*)'JSASSO dummied'
+      END

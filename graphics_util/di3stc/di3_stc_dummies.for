@@ -1,0 +1,7 @@
+      SUBROUTINE OUTMSG(STRING)
+      CHARACTER*(*) STRING
+      TYPE 10,STRING
+   10 FORMAT(A)
+      RETURN
+      END
+

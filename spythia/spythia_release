@@ -1,0 +1,67 @@
+#!/bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#
+#  Build spythia and the Michigan model maker
+#
+#
+set sys = `uname -s`
+
+if ( $sys == IRIX ) then
+  echo 'Must recompile pysigh on sgi'
+  f77 -c $f77flags -Nn100000 source/pysigh.f
+  ar rv spythia.a `archive_name pysigh`
+  f77 -g -c $f77flags -Nn100000 source/pysigh.f
+  ar rv deb_spythia.a `archive_name pysigh`
+endif
+
+#  Build spythia
+foreach pfx ( '' deb_ )
+
+  echo "Building ${pfx}spythia"
+
+  d0module run_spythia ${pfx}spythia.a
+  d0module pydata ${pfx}spythia.a
+  d0module ludata ${pfx}spythia.a
+  d0module pdfset `uff $d0cernlib/pdflib.a`
+  d0module structm `uff $d0cernlib/pdflib.a`
+
+  set ldeb = ''
+  if ( "$pfx" == "deb_" ) then
+    set ldeb = '-g'
+  endif
+
+  $f77 $ldeb $ldflags -o ${pfx}spythia.x run_spythia.o ludata.o pydata.o \
+     pdfset.o structm.o `uff $d0cernlib/pdflib.a` \
+     ${pfx}spythia.a `uff $d0isazeb/${pfx}isazeb.a` \
+     `uff $d0general/${pfx}general.a` `uff $d0unix/${pfx}unix.a` \
+     `uff $d0cernlib/packlib.a` `uff $d0cernlib/kernlib.a` \
+     `uff $d0cernlib/mathlib.a`
+
+  rm -f *.o
+
+end
+#
+# Build the model maker
+#
+foreach pfx ( '' deb_ )
+
+  echo "Building ${pfx}michmodel"
+
+  d0module michsugra ${pfx}michmodel.a
+
+  set ldeb = ''
+  if ( "$pfx" == "deb_" ) then
+    set ldeb = '-g'
+  endif
+
+  $f77 $ldeb $ldflags -o ${pfx}michmodel.x michsugra.o \
+     ${pfx}michmodel.a \
+     `uff $d0general/${pfx}general.a` `uff $d0unix/${pfx}unix.a` \
+     `uff $d0cernlib/packlib.a` `uff $d0cernlib/mathlib.a`
+
+  rm -f *.o
+
+end
+
+exit 0
+

@@ -1,0 +1,28 @@
+      SUBROUTINE JPOLY(X,Y,N)
+C  PLOT A POLYLINE
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      REAL X(*),Y(*)
+      IF(N.GT.1999) RETURN
+      IF(HCPY) THEN
+        DO I=1,N
+          PARRAY(1,I)=X(I)
+          PARRAY(2,I)=Y(I)
+          PARRAY(3,I)=0.
+        ENDDO
+        CALL DEV_PLIN(N,PARRAY)
+        GO TO 10
+      ENDIF
+      CALL J_TR2XY(XPOSN,YPOSN,XPOLY(1),YPOLY(1))
+      DO I=1,N
+        CALL J_TR2XY(X(I),Y(I),XPOLY(I+1),YPOLY(I+1))
+      ENDDO
+      NN=N+1
+      IATB=ILINE
+      CALL J_PLOT_ARRAY(NN,XPOLY,YPOLY)
+   10 XPOSN=X(N)
+      YPOSN=Y(N)
+      IF(.NOT.PUTS)RETURN
+      CALL J_PUTSGN(I2POLY,1,N)
+      CALL J_PUTSGN(I2POLY,N,X)
+      CALL J_PUTSGN(-I2POLY,N,Y)
+      END

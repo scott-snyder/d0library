@@ -1,0 +1,7 @@
+      SUBROUTINE JDSIZE(X,Y)
+      REAL X,Y,XTEM,YTEM
+      INCLUDE 'D0$INC:DI3INC.INC'
+      XSIZED=X
+      YSIZED=Y
+      CALL JSIZE(X,Y)
+      END

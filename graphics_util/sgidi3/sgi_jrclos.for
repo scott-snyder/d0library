@@ -1,0 +1,20 @@
+C DEC/CMS REPLACEMENT HISTORY, Element JRCLOS.FOR
+C *1     3-JUN-1992 14:32:58 LUPE "Release of DI3GL after split"
+C DEC/CMS REPLACEMENT HISTORY, Element JRCLOS.FOR
+      SUBROUTINE JRCLOS
+      INCLUDE 'D0$GRAPHICS_UTIL$SGIDI3:DI3GL.INC'
+      ISEGNM=-1
+      PUTS=.FALSE.
+      if(idebwr.gt.0) then
+        write(idebwr,8008)
+ 8008   format(' JRCLOS called')
+      endif
+      IF(HCPY) THEN
+        CALL DEV_FORCE
+C  CLOSE CURRENT OBJECT (SEGMENT)
+      ELSE
+        CALL CLOSEO
+C  CALL IT TO THE SCREEN
+        CALL CALLOB(IDNOW)
+      ENDIF
+      END

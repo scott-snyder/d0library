@@ -1,0 +1,123 @@
+
+                                                    N.A. Graf
+                                                    Created   25-Feb-1991
+                                                    Version   V0.1
+                                                    PYTHIA    V5.4
+                                                    JETSET    V7.3
+                                                    Updated   20-Nov-1995
+                                                    PYTHIA    V5.7
+                                                    JETSET    V7.4
+
+                        A guide to using PYTHRA
+                        =======================
+
+                    (The D0 PYTHIA-ZEBRA Interface)
+
+      This document is intended as a primer to guide the user through
+     the steps required to set up and run the current version of PYTHRA.
+     It is hoped that this document will evolve as the program evolves.
+     The pace of documentation improvement will, to some degree, be driven
+     by the amount and type of response from the community of users. 
+     Therefore, comments and criticisms should be substantive and 
+     to-the-point. Please direct suggestions to NGRAF@fnalv.com .
+
+     Documentation of PYTHIA and JETSET is available on the WWW at:
+
+         http://thep.lu.se/tf2/staff/torbjorn/Welcome.html
+    
+     For the D0 ZEBRA structure of events see:
+                        
+                        D0$ISAZEB:ISAZEB.MEM
+    
+     This structure of the ISAJET event banks has been maintained for 
+     reasons of compatibility. Conforming to this structure causes 
+     somewhat arbitrary decisions to be made, especially in the structure 
+     and links between the ISAQ and ISAJ banks. The structure of final 
+     state particles (ISV1 and ISP1) is, however, unambiguous.
+
+     The file D0$PYTHIA:DECAY_PARTICLES.TXT provides a listing
+     of the particles and partons and their branching ratios used in
+     PYTHIA.  This can be used (via the MDME command) to supress decays
+     of intermediate states into certain channels.
+
+    GENERATING EVENTS
+    ~~~~~~~~~~~~~~~~~    
+
+    An executable version of PYTHIA currently resides in:
+
+                D0$PYTHIA:PYTHIA.EXE
+                D0$PYTHIA:DEB_PYTHIA.EXE
+
+    To run this program:
+
+    (1) Copy the file SETUP_USER.COM from the D0$PYTHIA area to 
+        your local area and modify the logicals which define the 
+        various output files.
+
+    (2) Copy the file PYTHIA.RCP from the D0$PYTHIA area to your 
+        area. Modify this file to customize the event generation. More 
+        about this later.
+
+    (3) Execute the command
+
+        $@D0$PYTHIA:SETUP_PYTHIA
+
+    (4) Run D0$PYTHIA:PYTHIA.EXE
+
+    To create your own executable:
+
+    (1) Copy the file PYTHIA_USER.FOR from D0$PYTHIA$SOURCE and
+        modify it accordingly.
+
+
+    (1) Copy the file PYTHIA.LNK from D0$PYTHIA and include the
+        above routine (and any others needed for your analysis)
+        into it. Executing this command file (with the optional 
+        parameter DEBUG) will result in an executable which can
+        be run instead of the default one. It should be emphasized
+        that the cross sections derived from such an executable 
+        should be used with some caution since the effects of any
+        additional cuts will not automatically be accounted for.
+
+    The RCP file
+    ~~~~~~~~~~~~
+    The program is controlled by run-time parameters read in from a
+    Run Control Parameter (RCP) file (defined as PYTHIA_RCP). A brief 
+    glance at the PYTHIA manual will suffice to convince the user that 
+    the number of variables under his control is quite large. Therefore,
+    the structure of the RCP control is somewhat modified. Normally 
+    one finds a list of variables with default values (and occasionally
+    comments explaining the variable) and one changes these values.
+    However, for the control of the PYTHIA variables, commands involving
+    both the variable name and values are invoked. The user should provide 
+    the commands in single quotes in the array USER_LIST_OF_COMMANDS. A 
+    nominal amount of checking is done on the commands at this point but 
+    the user is advised to consult the PYTHIA manual for full details of 
+    command selection. Please consult to default RCP file for examples
+    of the command implementation.
+
+    For a description of the various MSEL and ISUB codes please refer to        
+    Section 8 of the PYTHIA57 manual.
+
+    The remaining parameters in the RCP file control such things as the number
+    of events to generate, the number to print to the .LOG file, the extent
+    of the printing, etc. The variables for PJET calculations are also set
+    here. 
+
+    Shortcomings and known problems
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+     The ZEBRA structure for the final state particles (ISV1,ISP1) is believed
+    to be correct. Some "partons" are currently included in the ISAJ and ISAQ
+    banks, but no guarantee for their accuracy is given. The links pointing
+    between the banks are also not filled at this time. The results of applying
+    the PJETS algorithm to the ISAQ and ISP1 banks have been compared and they
+    appear to be in agreement. However, selecting multiple interactions causes
+    PJETFL to crash, so it is advised that one set NUMBER_ALGORITHMS to 0
+    when doing so. (It is not clear to me how PJET should be defined in such a
+    case anyway.)
+     Despite these and other shortcomings it is felt that a "release" at this
+    point is warranted. Many studies can be commenced at this point using
+    only the distributions of final state particles and do not rely on the
+    exact structure of the event history. Response from users is welcomed.
+

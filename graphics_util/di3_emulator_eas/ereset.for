@@ -1,0 +1,75 @@
+       SUBROUTINE ERESET (NINTEG, ILIST, NREAL, RLIST)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : To reset transformations
+C-
+C-   Inputs  : NINTEG, ILIST, NREAL, RLIST
+C-   Outputs : NONE
+C-   Controls: NONE
+C-
+C-   Created   8-JUN-1990   SHAHRIAR ABACHI
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INTEGER  NINTEG, NREAL, ILIST(*), I, ISEG
+      REAL RLIST(*)
+      CHARACTER*4 TRNSF(50)
+      COMMON /ESCAPC/ TRNSF
+      INCLUDE 'D0$INC:GRFPAR.INC/LIST'
+      INCLUDE 'D0$INC:SEGINF.INC/LIST'
+      INCLUDE 'D0$INC:NEWDI3.INC/LIST'
+      INCLUDE 'D0$INC:GDIVWT.INC/LIST'
+      REAL DN
+      EXTERNAL ERRHND
+C- Local variables
+      REAL  EYEPN(3), UPV(3), VUPN(3), TVEC(3), DIST
+      CHARACTER*4 SEGN, SSTR
+      LOGICAL COUNT
+C
+      IDIVWT = 1
+C
+      CALL PSNREA(0.0, 2, TRNSF(1), ERRHND)
+      CALL PSNREA(0.0, 1, TRNSF(1), ERRHND)
+C
+      CALL PSNREA(0.0, 2, TRNSF(2), ERRHND)
+      CALL PSNREA(0.0, 1, TRNSF(2), ERRHND)
+C
+      CALL PSNREA(0.0, 2, TRNSF(3), ERRHND)
+      CALL PSNREA(0.0, 1, TRNSF(3), ERRHND)
+C
+      CALL PSNREA(1.0, 2, TRNSF(4), ERRHND)
+      CALL PSNREA(1.0, 3, TRNSF(4), ERRHND)
+      CALL PSNREA(0.0, 1, TRNSF(4), ERRHND)
+C
+      DIST = RLIST(1)
+      IF(DIST .LE. 0.) DIST = 1.0E5
+      DO 4 I=1,3
+        DN = SQRT(NORML(1)**2 + NORML(2)**2 + NORML(3)**2 )
+        EYEPN(I) = VUPNT(I) - DIST * NORML(I) / DN
+        UPV(I)   = UPVEC(I)
+        VUPN(I)  = VUPNT(I)
+        TVEC(I)  = 0.0
+    4 CONTINUE
+      EYEPN(3) = EYEPN(3) * RIGHT
+      UPV(3)   = UPV(3) * RIGHT
+      VUPN(3)  = VUPN(3) * RIGHT
+C
+      CALL PSNV3D(EYEPN, 2, TRNSF(6), ERRHND)
+      CALL PSNV3D(UPV, 3, TRNSF(6), ERRHND)
+      CALL PSNV3D(VUPN, 1, TRNSF(6), ERRHND)
+C
+      CALL PSNREA(45.0, 2, TRNSF(5), ERRHND)
+      CALL PSNREA(DIST-180.0, 3, TRNSF(5), ERRHND)
+      CALL PSNREA(DIST+180.0, 4, TRNSF(5), ERRHND)
+      CALL PSNBOO(.TRUE., 1, TRNSF(5), ERRHND)
+C
+      CALL PSNV3D(TVEC, 2, 'ACCM5', ERRHND)
+      CALL PSNV3D(TVEC, 1, TRNSF(7), ERRHND)
+      CALL PSNV3D(TVEC, 1, TRNSF(8), ERRHND)
+      CALL PSNV3D(TVEC, 1, TRNSF(9), ERRHND)
+C
+CC      CALL PSNST('RESET', 1, 'FLABEL1', ERRHND)
+C
+      CALL PPURGE(ERRHND)
+  999 RETURN
+      END

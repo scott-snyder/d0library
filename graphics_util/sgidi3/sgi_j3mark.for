@@ -1,0 +1,11 @@
+      SUBROUTINE J3MARK(X,Y,Z)
+      INCLUDE 'D0$GRAPHICS_UTIL$SGIDI3:DI3GL.INC'
+      VPOSN(1)=X
+      VPOSN(2)=Y
+      VPOSN(3)=Z
+      IF(HCPY) THEN
+        CALL DEV_MARK(X,Y,Z)
+        RETURN
+      ENDIF
+      CALL JMARK(X,Y)
+      END

@@ -1,0 +1,13 @@
+C DEC/CMS REPLACEMENT HISTORY, Element JPERSP.FOR
+C *1     3-JUN-1992 14:14:23 LUPE "Release of DI3GL after split"
+C DEC/CMS REPLACEMENT HISTORY, Element JPERSP.FOR
+      SUBROUTINE JPERSP(DN)
+      INCLUDE 'D0$GRAPHICS_UTIL$SGIDI3:DI3GL.INC'
+C!!!!
+      call jparal
+      if(.true.) return
+      IPROJ=3
+      VDIST=DN
+      IF(DI3DIN.GT.0) CALL J_PROJS
+      IF(IDEBUG.GT.0) TYPE *,' >>>>> JPERSP'
+      END

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VNEURAL()
+      VNEURAL = ' NEURAL'//
+     X                   '  OFFICIAL V1.01'//
+     X                   ' 17-JUL-1997 20:44:04.17'
+      Return
+      End

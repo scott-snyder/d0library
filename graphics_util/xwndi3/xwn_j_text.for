@@ -1,0 +1,25 @@
+      SUBROUTINE J_TEXT(STRING,X,Y)
+      INCLUDE 'SYS$LIBRARY:DECW$XLIBDEF.FOR'
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      CHARACTER*(*) STRING
+      COMMON/SCRSIZ/SCRX,SCRY
+      SAVE
+C----------------------------
+      IF(YSIZE.NE.YSZOLD) THEN
+        CALL J_SETFON(IFONTC)
+        YSZOLD=YSIZE
+      ENDIF
+      IX=X
+      IY=HEIGHT-Y
+C  Justify
+C      IW=X$TEXT_WIDTH(X$FONT_STRUCT,STRING)
+C!!!???IH related to font ascent (see cern_x11)
+      IW1CHR=SCRX*XSIZE/(UMAX-UMIN)
+      IW=IW1CHR*LEN(STRING)
+      IH=SCRY*YSIZE/(VMAX-VMIN)
+      IX=IX-(IHJUST-1)*IW/2
+      IY=IY+(IVJUST-1)*IH/2
+C  Do the string
+      CALL X$DRAW_STRING(VD_ID,WD_ID,ATB(IFONT),
+     &                   IX,IY,STRING)
+      END

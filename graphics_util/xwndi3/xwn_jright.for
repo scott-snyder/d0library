@@ -1,0 +1,11 @@
+      SUBROUTINE JRIGHT(IRIGH)
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      LOGICAL IRIGH
+      IF(IRIGH) THEN
+        IRIGHT=1
+        ARL=-1.
+      ELSE
+        IRIGHT=0
+        ARL=1.
+      ENDIF
+      END

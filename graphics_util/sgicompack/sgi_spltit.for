@@ -1,0 +1,3 @@
+      SUBROUTINE SPLTIT
+      RETURN
+      END

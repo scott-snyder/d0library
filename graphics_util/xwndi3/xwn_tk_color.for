@@ -1,0 +1,14 @@
+      SUBROUTINE TK_COLOR(IC)
+C  Change the color index
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      SAVE
+      IF(ICLR.EQ.0) RETURN
+      IF(IC.EQ.ICCURR) RETURN
+      ICCURR=IC
+      CALL TK_FORCE
+      INDX=IC+1
+      R=RVEC(INDX)/255.
+      G=GVEC(INDX)/255.
+      B=BVEC(INDX)/255.
+C!!!!!PROVIDE THIS (AND GRAY)
+      END

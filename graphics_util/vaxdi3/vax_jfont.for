@@ -1,0 +1,5 @@
+      SUBROUTINE JFONT(I)
+      INCLUDE 'D0$INC:DI3INC.INC'
+      IFONT=I
+      CALL J_SETFON(IFONT)
+      END

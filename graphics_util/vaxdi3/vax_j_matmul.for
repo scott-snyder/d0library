@@ -1,0 +1,19 @@
+      SUBROUTINE J_MATMUL(MAT,MAT2)
+C  FORMS MAT2 X MAT AND PUTS RESULTS INTO MAT
+      REAL*4 MAT(4,4),MAT2(4,4),MAT3(4,4)
+C
+      DO 10 I=1,4
+        DO 20 J=1,4
+          DO 30 K=1,4
+            MAT3(I,J)=MAT3(I,J)+MAT2(K,J)*MAT(I,K)
+   30     CONTINUE
+   20   CONTINUE
+   10 CONTINUE
+C
+      DO 40 I=1,4
+        DO 50 J=1,4
+          MAT(I,J)=MAT3(I,J)
+          MAT3(I,J)=0.
+   50   CONTINUE
+   40 CONTINUE
+      END

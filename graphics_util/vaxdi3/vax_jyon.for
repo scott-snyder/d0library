@@ -1,0 +1,4 @@
+      SUBROUTINE JYON(ZVAL)
+      INCLUDE 'D0$INC:DI3INC.INC'
+      RJ3(3,10)=ZVAL
+      END

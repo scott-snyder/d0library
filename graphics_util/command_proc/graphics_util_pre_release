@@ -1,0 +1,52 @@
+#! /bin/csh -f
+###############################################################################
+#
+# Name:  graphics_util_pre_release
+#
+# Purpose: UNIX release script for graphics_util d0library section.  This 
+#          script performs the following actions:
+#
+#          1.  Deletes graphics_util.mms
+#
+#          2.  Builds the sgidi3 di3000 emulator library and sgicompack
+#              compack emulator.
+#
+# Usage Notes:
+#
+# 1.  This script should be executed from the top directory of the 
+#     graphics_util library section.
+#
+# 2.  This script should be released via the VMS d0library release procedures
+#     so that is gets to the top directory of the graphics_util library 
+#     section.
+#
+# 3.  This script does nothing (except delete the .mms file) on non-SGI UNIX
+#     machines.
+#
+# Created 20-Apr-1992  Herbert Greenlee
+#
+##############################################################################
+#
+# Delete graphics_util.mms to disable usual build phase.  This scipt 
+# supersedes.
+#
+rm -f graphics_util.mms >& /dev/null
+#
+# If this is not SGI, the exit.
+#
+if( $D0FLAVOR != SIUNIX )exit
+#
+# Generate makefile
+#
+ufl 'sgidi3/*.for' | \
+  userlib -c $d0root -l sgidi3.a -o sgidi3.makefile -
+ufl 'sgicompack/*.for' | \
+  userlib -c $d0root -l sgicompack.a -o sgicompack.makefile -
+#
+# Build libraries.
+#
+foreach makefile ( *.makefile )
+  make -f $makefile pre
+  make -f $makefile debug
+  make -f $makefile opt
+end

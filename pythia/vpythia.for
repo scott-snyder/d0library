@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VPYTHIA()
+      VPYTHIA = ' PYTHIA'//
+     X                   '  OFFICIAL V0.01'//
+     X                   ' 22-NOV-1995 13:20:01.12'
+      Return
+      End

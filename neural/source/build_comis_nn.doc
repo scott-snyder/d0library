@@ -1,0 +1,98 @@
+                                                    Jeff McDonald
+                                                    Created     28-Jun-1995
+                                                    Version     V1.1
+
+
+                     A Guide to the Usage of Build_Comis_nn
+               =================================================
+        
+    The procedure  Build_Comis_NN creates a COMIS  routine that, for appropriate
+inputs,  computes  the output  of a  neural  network  defined by the  parameters
+specified in  a JETNET  weight file.  The weight  file is created  by training a
+network with JETNET as implemented in the program NEURAL. This document provides
+detailed information about how this DCL procedure creates the COMIS routine that
+can be run  from PAW.  The  package is  dependent upon a  number of  files where
+source  code and file  definition  language  are stored.  There are  a number of
+inputs to render Build_Comis_NN as flexible as possible.
+
+(1) WHAT ARE THE DEPENDENCIES:
+
+    1. The procedure  depends upon two  files from which it  gets FORTRAN source
+       code. The first  file is  JNFEED_FORWARD.FOR. This is  a subroutine which
+       uses  code  from  the   package  JETNET   version  3.0.  This  file is in
+       D0$NEURAL$SOURCE. The second piece  of code required is the function GJN.
+       This function is contained in the file GJNFUNC.FOR. It is also located in
+       D0$NEURAL$SOURCE.       Build_Comis_NN  looks  for   specific  strings in
+       JNFEED_FORWARD.FOR in order to make  the final output file. Specifically,
+       the header and some declarations are removed. 
+
+               IMPORTANT WARNING: If these  files are changed significantly, the
+               operation of Build_Comis_NN may be adversely affected.
+
+    2. In order  to make  the files  of the  same type,  an FDL file  is used to
+       convert the files written by DCL to files of the same type as the FORTRAN
+       files. This information is contained in the file BUILD_COMIS_NN.FDL. This
+       file is located in D0$NEURAL$SOURCE.
+
+(2) INPUTING THE PARAMETERS:
+
+    There are TWO required parameters and ONE optional parameter.  
+
+    REQUIRED PARAMETERS:
+    
+    1. ComisFuncName      the name of the output COMIS function.  (The output
+                          file will have the name: ComisFunctName.F.)
+
+    2. Weightfile         the name of the neural network weight file to be 
+                          used.
+
+    OPTIONAL PARAMETER:
+
+    6. RcpFile            the procedure can get the  network input variables by
+                          reading  the   NEURAL RCP  file  used  to  create the
+                          ntuple.  These  variables will  be  inserted properly
+                          into the output file.  Otherwise, the EVE editor will
+                          be spawned to afford you  the opportunity to edit the
+                          (incomplete) output file by hand.
+
+
+(3) HOW TO RUN BUILD_COMIS_NN:
+
+    1. Type D0SETUP NEURAL and the following logicals will be defined:
+
+       NEURAL_RCP       - Your Neural Network RCP file (mostly for training).
+
+       NEURAL_WEIGHTS   - Neural Network  file that contains the weights.
+
+       TRAIN_HSAVE_FILE - The ntuple that contains the result of the training.
+
+       and the symbols (commands)
+
+       NEURAL   - Run NEURAL program
+       NBUILD   - Run NEURAL_BUILD program to create a neural network function
+  ---> NMAKE    - Run BUILD_COMIS_NN to do likewise for use in PAW
+
+    2. Run the BUILD_COMIS_NN procedure:
+
+        $ NMAKE ComisFuncName WeightFile [RcpFile]
+
+            -----OR-----
+
+        $ NMAKE
+
+       and answer the  prompts, to produce a COMIS  function that can be used 
+       in PAW. 
+
+(4) OUTPUT FROM BUILD_COMIS_NN:
+
+    A COMIS function file containing:
+
+        1. A UwFunc function with a call to the routine 
+           Compute'ComisFuncName'(OIN,OUT).
+
+        2. The subroutine Compute'ComisFuncName' produced by NEURAL_BUILD.
+
+        3. The function GJN.
+
+        HAVE FUN!
+

@@ -1,0 +1,204 @@
+\START          NEURAL_RCP
+\SIZE        234       183
+!------------------------------------------------------------------------------
+!   Name:       NEURAL.RCP
+!   Purpose:    Control file for NEURAL Frame
+!   Version:    V1.01   30-Jan-1991     Chip Stewart, Harrison B. Prosper
+!               Modified 5-Feb-1991     Pushpa Bhat
+!    Updated:    29-OCT-1991  Harrison B. Prosper
+!                    Add  READ_WEIGHTS, NWRITE_ERRORS, NDUMP_WEIGHTS
+!    Updated:    4-NOV-1991  Boaz Klima, Harrison B. Prosper
+!                    Add  PATTERNS
+!    Updated:    20-Jan-1993  Harrison B. Prosper
+!                   Add NTUPLE_ID
+!    Updated:    26-JAN-1994   Chip Stewart  JETNET 3.0
+!    Updated:     7-MAR-1995   Harrison B. Prosper
+!                   Remove desired outputs; tidy up
+!------------------------------------------------------------------------------
+!   TRAIN/TEST SWITCHES
+!------------------------------------------------------------------------------
+  DO_TRAIN        T
+  DO_TEST         F
+!----------------------------------------------------------------------
+! INPUT PATTERN CONTROL
+!----------------------------------------------------------------------
+!   List only the variables to be used in training/testing. If, however,
+!   a variable is prefixed with a * then that variable is NOT used for
+!   training/testing but is simply written out to the output ntuple
+!----------------------------------------------------------------------
+ \ARRAY PATTERNS_INPUTS
+ '*RUN'
+ '*EVENT'
+ 'X1/400'           ! Divide variable X1 by 400 before input to network
+ 'X2/400'
+ 'HTELE/400'
+ 'MET4/400'
+ \END
+!----------------------------------------------------------------------
+! GIVE NAME OF OUTPUT VARIABLE(S)
+!----------------------------------------------------------------------
+ \ARRAY PATTERNS_OUTPUTS
+   'TOP'
+ \END
+!----------------------------------------------------------------------
+! EVENT WEIGHT TAG
+!----------------------------------------------------------------------
+! EVENT_WEIGHT_TAG  'MUWT'
+!----------------------------------------------------------------------
+!   NTUPLE IDs for INPUT and OUTPUT ntuples
+!----------------------------------------------------------------------
+ INP_NTUPLE_ID      1       ! ID of INPUT NTUPLE
+ OUT_NTUPLE_ID      1       ! ID of OUTPUT NTUPLE
+ OUTPUT_NTUPLE_EXTENSION '_NN'
+ OUTPUT_CUT         0.7     ! Defines signal region of NN output
+!------------------------------------------------------------------------------
+!   INPUT Ntuples for TRAINING
+!----------------------------------------------------------------------
+!   The first number is the weight to be assigned to the patterns of
+!   the corresponding file. The other numbers are the desired outputs for
+!   these patterns.
+!------------------------------------------------------------------------------
+ NUMBER_OF_TRAIN_PATTERNS  7000 !Total number of patterns (or min(sig,bkg))
+ \ARRAY TRAINING_SET
+    'TOP140 1.0 0.0'
+    'TOP150 1.0 0.0'
+    'TOP160 1.0 0.0'
+    'TOP170 1.0 0.0'
+    'TOP180 1.0 0.0'
+    'TOP190 1.0 0.0'
+    'TOP200 1.0 1.0'
+ \END
+!------------------------------------------------------------------------------
+!   INPUT Ntuples for TESTING
+!------------------------------------------------------------------------------
+ NUMBER_OF_TEST_PATTERNS    50000 !Number of patterns/file
+ \ARRAY TEST_SET
+    'TOP200'
+ \END
+!------------------------------------------------------------------------------
+!   General parameters to define NETWORK STRUCTURE
+!------------------------------------------------------------------------------
+ \ARRAY NETWORK_STRUCTURE       !must be consistent with PATTERNS_INPUTS/OUTPUTS
+    4                           !Number of nodes in the input layer
+    5                           !Number of Nodes in 1st hidden layer
+    1                           !Number of OUTPUT nodes
+ \END
+!------------------------------------------------------------------------------
+!   General parameters to define NETWORK TRAINING schedule
+!------------------------------------------------------------------------------
+ NUMBER_OF_TRAINING_CYCLES      1500   !BIG TRAINING LOOP (EPOCHS)
+ READ_WEIGHTS F     ! = TRUE will read in weights from file
+ NREPORT                50     !Report progress every NREPORT cycles
+ NDUMP_WEIGHTS          2       !Number of times to dump weights during training
+ PATTERNS_PER_UPDATE    10       !Number of patterns to sum over before update
+ UPDATES_PER_EPOCH      50     !number of updates per epoch
+!------------------------------------------------------------------------------
+!   General parameters to define NETWORK PERFORMANCE
+!------------------------------------------------------------------------------
+ ETA                    0.01    !Learning rate
+ ALPHA                  0.8     !Momentum term
+ BETA                   1.0     !Inverse temperature
+ SIGMOID_FUNCTION_TYPE  1       !1 --> g(x) = 1/(1+exp(-2x))
+                                !2 -> g(x)=tanh(x)
+                                !3 -> g(x)=exp(x) (only used for Potts-nodes)
+                                !4 -> g(x)=x
+                                !5 -> g(x)=1/(1+exp(-2x)) (only entropy error)
+ ERROR_MEASURE_TYPE     0       !-1 -> log-squared error:  E = -log(1-(o-t)**2)
+                                !0 -> summed square error:   E = 0.5*(o-t)**2
+                                !1 -> entropy error: E=-t*log(o)+(1-t)*log(1-o)
+                                !>=2 -> Kullback measure, E = t*log(t/o)
+ UPDATING_PROCEDURE     0        !0 -> standard Back-Propagation updating
+                                !1 -> Manhattan updating
+                                !2 -> Langevin updating
+                                !3 -> Quickprop
+                                !4-7 -> Conjugate Gradient search - See doc.
+                                !8 -> Terminate Conjugate Gradient search
+                                !9 -> No updating
+                                !10-13 -> Scaled Conjugate Gradient - See doc.
+                                !14 -> Terminate Scaled Conjugate Gradient
+                                !15 -> Rprop
+ WEIGHT_WIDTH           0.1     !Width of initial random weights (gaussian)
+                                ! > 0 -> [-width,+width] ; < 0 -> [0,+width]
+ FORGETFULNESS          0.0     !forgetting parameter for updating (doc?)
+ NOISE_WIDTH            0.0001  !noise width in Langevin updating (~UPD=2)
+ SATURATION_MEASURE       0     !saturation measure (<>0 -> on)
+                                ! <0 -> update temperature to give measure ~0.5
+ SIGMOID_ANTI_FLAT        0.0   ! constant added to g'(x) to avoid 'flat spot'
+ \ARRAY  BIT_PRECISION          ! precision in bits (0 -> machine precision)
+        0 0 0                   ! sigmoid functions, thresholds, weights
+ \END
+!----------------------------------------------------------------------
+! RECEPTIVE FIELD CONTROL
+!----------------------------------------------------------------------
+ \ARRAY RECEPTIVE_FIELD_GEOMETRY_IN
+    0  0                        ! geometry of input nodes for receptive fields
+ \END
+ \ARRAY RECEPTIVE_FIELD_GEOMETRY
+    0  0                        ! geometry of receptive fields
+ \END
+ RECEPTIVE_FIELD_HIDDEN      1  ! number of hidden nodes per receptive field
+!----------------------------------------------------------------------
+! PARAMETER CHANGE CONTROL (scale factor per epoch)
+!----------------------------------------------------------------------
+ ETA_CHANGE_SCALE           1.0 ! change in eta
+                                ! > 0 -> Geometric with "bold driver" dynamics
+                                ! < 0 -> Geometric decrease of eta
+ ALPHA_CHANGE_SCALE         1.0 !change in alpha
+ BETA_CHANGE_SCALE          1.0 !change in beta
+ NOISE_CHANGE_SCALE         1.0 ! decrease in Langevin noise
+!----------------------------------------------------------------------
+! PRUNING CONTROL   (to eliminate useless weights)
+!----------------------------------------------------------------------
+ PRUNING                   -1   ! > 0 -> pruning turned on
+ LAMBDA                     0   ! pruning parameter lambda
+ LAMBDA_CHANGE_SCALE   0.000001 ! change in lambda
+ GAMMA                    0.9   ! parameter gamma used for PRUNING
+ PRUNING_CUT              0.9   ! pruning "cut-off"
+ PRUNING_SCALE            1.0   ! scale parameter W(0), used in pruning
+ PRUNING_TARGET_ERROR     0.0   ! target error when pruning
+!----------------------------------------------------------------------
+! QUICK_PROP updating parameters
+!----------------------------------------------------------------------
+ QUICKPROP_SCALE         1.75   ! maximum scale for Quickprop updating
+ QUICKPROP_MAX_WEIGHT   1000.   ! maximum allowed size of weights in Quickprop
+!----------------------------------------------------------------------
+! LINE SARCH CONTROL
+!----------------------------------------------------------------------
+ LINE_SEARCH_MAX_ITERATIONS 10  ! Max. iterations allowed in line search
+ LINE_SEARCH_MAX_RESTARTS   10  ! Max. restarts allowed in line search
+ LINE_SEARCH_CONVERGENCE   0.1  ! line search convergence parameter (0 - 1)
+ LINE_SEARCH_TOLERANCE    0.05  ! tolerance of minimum in line search
+ LINE_SEARCH_MIN_CHANGE   0.001 ! minimum allowed change in error in line search
+ LINE_SEARCH_MAX_STEP     2.0   ! maximum allowed step size in line search
+!----------------------------------------------------------------------
+! SCG PARAMETERS
+!----------------------------------------------------------------------
+ SCG_SIGMA_ZERO          1.0E-4 ! constant sigma_0 used in SCG
+ SCG_LAMBDA_ZERO         1.0E-6 ! initial value for lambda in SCG
+!----------------------------------------------------------------------
+! RPROP PARAMETERS
+!----------------------------------------------------------------------
+ RPROP_SCALE_UP          1.2    ! scale-up factor used in Rprop
+ RPROP_SCALE_DOWN        0.5    !scale-down factor used in Rprop
+ RPROP_SCALE_UP_MAX     50.0    ! maximum scale-up factor in Rprop
+ RPROP_SCALE_DOWN_MIN   1.0E-6  ! minimum scale-down factor in Rprop
+!----------------------------------------------------------------------
+! JETNET PROGRAM ERROR WARNING CONTROL
+!----------------------------------------------------------------------
+ WARNING_PROCEDURE           1  ! 0 -> No action is taken after a warning
+                                ! 1 -> The execution is stopped after
+ WARNING_MAX                10  !      WARNING_MAX warnings
+!------------------------------------------------------------------------------
+!   NTUPLE/HISTOGRAM parameters
+!------------------------------------------------------------------------------
+  TRAIN_HSAVE_FILE     'TRAIN_SAVE_FILE'
+  TEST_HSAVE_FILE      'TEST_SAVE_FILE'
+  WRITE_OUT_EVENTS  FALSE
+  HISTO_BINS        300
+  HPRINT_TO_SCREEN    F
+  INPUT_NODE_OFFSET   1
+  WEIGHT_ID_OFFSET   10
+  FILE_OFFSET       100
+  SCALE_OFFSET     1000
+  CYCLE_OFFSET    10000
+\STOP

@@ -1,0 +1,7 @@
+      SUBROUTINE J4RGET(ICOD,V1,V2,V3,V4)
+      INCLUDE 'D0$INC:DI3INC.INC'
+      V1=RJ4(1,ICOD)
+      V2=RJ4(2,ICOD)
+      V3=RJ4(3,ICOD)
+      V4=RJ4(4,ICOD)
+      END

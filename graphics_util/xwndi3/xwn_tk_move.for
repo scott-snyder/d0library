@@ -1,0 +1,9 @@
+      SUBROUTINE TK_MOVE(X,Y,Z)
+C  World coordinates
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      COMMON/TKTEM/X1,Y1,X2,Y2
+      CALL DEV_TRANSF(X,Y,Z,X1,Y1)
+      XPOSN=X
+      YPOSN=Y
+      ZPOSN=Z
+      END

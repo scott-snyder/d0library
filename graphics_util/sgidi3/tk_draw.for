@@ -1,0 +1,12 @@
+      SUBROUTINE TK_DRAW(X,Y,Z)
+C  World coordinates
+      INCLUDE 'D0$GRAPHICS_UTIL$SGIDI3:DI3GL.INC'
+      COMMON/J_TKTEM/X1,Y1,X2,Y2
+      CALL DEV_TRANSF(X,Y,Z,X2,Y2)
+      CALL TK_LINE2(X1,Y1,X2,Y2)
+      X1=X2
+      Y1=Y2
+      XPOSN=X
+      YPOSN=Y
+      ZPOSN=Z
+      END

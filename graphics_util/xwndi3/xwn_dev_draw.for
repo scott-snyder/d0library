@@ -1,0 +1,8 @@
+      SUBROUTINE DEV_DRAW(X,Y,Z)
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      IF(IDV.EQ.1) THEN
+        CALL PS_DRAW(X,Y,Z)
+      ELSE
+        CALL TK_DRAW(X,Y,Z)
+      ENDIF
+      END

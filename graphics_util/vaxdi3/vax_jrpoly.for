@@ -1,0 +1,28 @@
+      SUBROUTINE JRPOLY(X,Y,N)
+      INCLUDE 'D0$INC:DI3INC.INC'
+      REAL X(*),Y(*)
+      IF(N.GT.1999) GO TO 1000
+      CALL J_TR2XY(XPOSN,YPOSN,XPOLY(1),YPOLY(1))
+      DO 500 I=1,N
+        IF(I.EQ.1) THEN
+            XI=XPOSN+X(I)
+            YI=YPOSN+Y(I)
+            CALL J_TR2XY(XI,YI,XPOLY(2),YPOLY(2))
+           ELSE
+            XI=XI+X(I)
+            YI=YI+Y(I)
+            CALL J_TR2XY(XI,YI,XPOLY(I+1),YPOLY(I+1))
+        ENDIF
+      IF(IPICID.NE.0) CALL J_PIKDO(XI,YI,0.)
+  500 CONTINUE
+      NN=N+1
+      CALL J_PLOT_ARRAY(VD_ID,ATB,NN,XPOLY,YPOLY)
+      XPOSN=XI
+      YPOSN=YI
+      IF(.NOT.PUTS)RETURN
+      CALL J_PUTSGN(IRPOLY,1,N)
+      CALL J_PUTSGN(IRPOLY,N,X)
+      CALL J_PUTSGN(-IRPOLY,N,Y)
+ 1000 RETURN
+      END
+C

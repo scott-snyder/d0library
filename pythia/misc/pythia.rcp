@@ -1,0 +1,365 @@
+\START  PYTHIA_RCP
+\SIZE        289       193
+!----------------------------------------------------------
+!
+! D0$PYTHIA:PYTHIA.RCP
+!
+! When changing values yourself, please refer to the documentation,
+! available on the WWW at:
+!
+!     http://thep.lu.se/tf2/staff/torbjorn/Welcome.html
+!
+!  Questions or suggestions relating to the D0 implementation
+!  should be directed to NGRAF@FNALV.COM .
+!
+!                  SHORT GUIDE
+!
+! This RCP file provides Run-time Control Parameters for the
+! D0 implementation of PYTHIA with output in standard ZEBRA
+! format.
+!
+! Due to the large number of available switches in PYTHIA this
+! RCP file differs from the standard D0 RCP file in which all
+! possible variables are listed along with some default values.
+! In the array USER_LIST_OF_COMMANDS it is possible for the user
+! to customize the PYTHIA setup by listing the commands in
+! single quotes. An abridged list of available processes (MSEL) and
+! subprocesses (MSUB) is appended to enable the user to figure out
+! what has been selected. One can select a menu of subprocesses using
+! 'MSEL=N' where N is one of the available options listed below.
+! With 'MSEL=0', one has to then explicitly list which subprocesses
+! are to be selected, using 'MSUB(M)=1', where M again refers to the
+! options listed below.
+!
+! To enable or disable specific particle decays, use is made of
+! 'MDME(IDC,1)=0' where IDC can be found in:
+!
+!       D0$PYTHIA:DECAY_CHANNELS.TXT
+!
+!    = 0 : channel is switched off.
+!    = 1 : channel is switched on.
+!    = 2 : channel is switched on for a particle but off for an
+!        antiparticle. It is also on for a particle its own antiparticle,
+!        i.e. here it means the same as =1.
+!    = 3 : channel is switched on for an antiparticle but off for a
+!        particle. It is off for a particle its own antiparticle.
+!    = 4 : in the production of a pair of equal or charge conjugate
+!        resonances in PYTHIA, say H0 -> W+ W-, either one of the
+!        resonances is allowed to decay according to this group of
+!        channels, but not both. If the two particles of the pair
+!        are different, the channel is on.
+!        Within JETSET, this option only means that the channel is
+!        switched off.
+!    = 5 : as =4, but an independent group of channels, such that in
+!        a pair of equal or charge conjugate resonances the decay of
+!        either resonance may be specified independently. If the two
+!        particles in the pair are different, the channel is off.
+!        Within JETSET, this option only means that the channel is
+!        switched off.
+!
+!    Remark: all the options above may be freely mixed. The difference,
+!        for those cases where both make sense, between using values
+!        2 and 3 and using 4 and 5 is that the latter automatically
+!        include charge conjugate states, e.g. H0 -> W+ W- ->
+!        e+ nue d ubar or dbar u e- nuebar, but the former only one
+!        of them. In calculations of the joint branching ratio, this
+!        makes a factor 2 difference.
+!
+!   For convenience, the decay IDCs of W and Z are listed here:
+!
+!KC  particle antiparticle                    mass       width
+!23    Z0                                    91.18700     2.47997
+!
+!          IDC  ON/OFF     Br.rat.    decay products
+!
+!          156    1        0.15407    d               d~
+!          157    1        0.11948    u               u~
+!          158    1        0.15407    s               s~
+!          159    1        0.11934    c               c~
+!          160    1        0.15219    b               b~
+!          161    1        0.00000    t               t~
+!          164    1        0.03355    e-              e+
+!          165    1        0.06676    nu_e            nu_e~
+!          166    1        0.03355    mu-             mu+
+!          167    1        0.06676    nu_mu           nu_mu~
+!          168    1        0.03347    tau-            tau+
+!          169    1        0.06676    nu_tau          nu_tau~
+!
+!KC  particle antiparticle                    mass       width
+!24    W+         W-                        80.25000     2.06784
+!
+!          IDC  ON/OFF     Br.rat.    decay products
+!
+!          172    1        0.32150    d~              u
+!          173    1        0.01650    d~              c
+!          174    1        0.00000    d~              t
+!          176    1        0.01651    s~              u
+!          177    1        0.32077    s~              c
+!          178    1        0.00000    s~              t
+!          180    1        0.00001    b~              u
+!          181    1        0.00059    b~              c
+!          182    1        0.00000    b~              t
+!          188    1        0.10807    e+              nu_e
+!          189    1        0.10807    mu+             nu_mu
+!          190    1        0.10799    tau+            nu_tau
+!
+!
+!   Information on and examples of selecting PDFS, changing default
+!   masses and selecting random number seeds are included below.
+!
+!----------------------------------------------------------
+ RUN_NUMBER                 1       ! Run number for current generation
+ NUMBER_OF_EVENTS           100     ! Number of events to generate
+ DO_WRITE                   .TRUE.  ! If true will write out banks
+ NUMBER_OF_EVENTS_TO_PRINT  20      ! # to print to log file
+ LEVEL_OF_PRINT             1       ! Argument of LULIST
+                                    ! 1 is recommended
+                                    ! 2 is more comprehensive
+                                    !12 lists all particle data and decay
+                                    !   channels
+ USER_EDIT                  .FALSE. ! Allows user to control which events will
+                                    ! be written out. PYTHIA_USER must be coded.
+                                    !
+                                    !**All warranties voided if set .TRUE.**
+                                    !
+ DO_EDIT                    .FALSE. ! If true call LUEDIT
+ LEVEL_OF_EDIT              1       ! Argument of LUEDIT, affects print only
+                                    ! 1 removes all decayed partons/particles
+                                    ! 2 removes neutrinos as well
+                                    ! 3 leaves only stable, charged particles
+ DO_STAT                    .TRUE.  ! If true call PYSTAT
+ LEVEL_OF_STAT              1       ! Argument of PYSTAT
+!
+!    = 1 : prints a table of how many events of the different kinds that
+!        have been generated and the corresponding cross-sections. All
+!        numbers already include the effects of cuts required by the user
+!        in PYKCUT.
+!    = 2 : prints a table of the resonances defined in the program, with
+!        their particle codes (KF), and all allowed decay channels.
+!        (If the number of generations in MSTP(1) is 3, however, channels
+!        involving fourth generation particles are not displayed.)
+!        For each decay channel is shown the sequential channel number
+!        (IDC) of the JETSET decay tables, the partial decay width,
+!        branching ratio and effective branching ratio (in the event
+!        some channels have been excluded by the user).
+!    = 3 : prints a table with the allowed hard interaction flavours
+!        KFIN(I,J) for beam and target particles.
+!    = 4 : prints a table of the kinematical cuts CKIN(I) set by the user
+!        in the current run, and a table of the cuts on variables used in
+!        the actual generation as derived from these user-defined cuts.
+!    = 5 : prints a table with all the values of the status codes
+!        MSTP(I) and the parameters PARP(I) used in the current run.
+!
+ GTUNIT_ID                  725
+!
+!----------------------------------------------------------
+! PYTHIA CONTROL
+!----------------------------------------------------------
+!
+ EVENT_FRAME             'CMS '
+ BEAM_1_TYPE             'P   '
+ BEAM_2_TYPE             'PBAR'
+ SYSTEM_ENERGY           1800.
+ \ARRAY USER_LIST_OF_COMMANDS
+!
+!   Proton Structure Function selection from PDFLIB
+!
+!   Set MSTP(52) = 2 for PDFLIB choice
+!   Set MSTP(51) = 1000 * NGROUP + NSET
+!  Examples:
+!  MRSD-'=3031 ; MRSG=3041
+!  CTEQ2M=4018 ; CTEQ2PM=4024 ; CTEQ3M=4030
+!  GRVH0=5002 ; GRV94H0=5006
+!
+    'MSTP(51)=3031'
+    'MSTP(52)=2'
+!
+! Changing random number generator seed
+!
+    'MRLU(1) = 19780503'
+!
+! Setting top mass to 180GeV
+!
+    'PMAS(6,1)=180.0'
+!
+! Selecting PYTHIA processes
+!
+    'MSEL=0'          !Turn off default selection
+    'MSUB(12)=1'      !Enable f_i f_i~  ->  f_k f_k~
+!
+! Selecting PYTHIA kinematic cuts
+!
+    'CKIN(3)=10'     !Select minimum Pt for 2 -> 2
+    'MSTP(81)=0'     !Turn off multiple interactions
+!
+! Suppressing particle decays (This example allows only W-> e nu_e)
+!
+    'MDME(172,1)=0'   !d~              u
+    'MDME(173,1)=0'   !d~              c
+    'MDME(174,1)=0'   !d~              t
+    'MDME(176,1)=0'   !s~              u
+    'MDME(177,1)=0'   !s~              c
+    'MDME(178,1)=0'   !s~              t
+    'MDME(180,1)=0'   !b~              u
+    'MDME(181,1)=0'   !b~              c
+    'MDME(182,1)=0'   !b~              t
+    'MDME(189,1)=0'   !mu+             nu_mu
+    'MDME(190,1)=0'   !tau+            nu_tau
+ \END
+ \ARRAY DEFAULT_LIST_OF_COMMANDS
+    'MDCY(C111,1)=0'    !Sets pi zero stable (limits size of output)
+    'MSTJ(22)=4'        !A particle is decayed only if the decay
+                        !vertex is within a  cylindrical volume
+                        !with radius PARJ(73) in the xy-plane and
+                        !extent to +-PARJ(74) in the z direction.
+    'PARJ(73)=12.5'     !in mm
+    'PARJ(74)=1000.'    !in mm
+ \END
+!------------------------------------------------------------------------------
+! HBOOK PARAMETERS
+!------------------------------------------------------------------------------
+ HBOOK_SAVE   .TRUE.    !If true save histograms to file
+ HBOOK_PRINT  .TRUE.    !If true print histograms in log file
+\ARRAY  HBOOK_SAVE_FILE
+ 'HBOOK_SAVE'           !Histogram output file, define in setup
+\END
+\ARRAY  HBOOK_DIRECTORY
+ 'PYTHIA'
+\END
+!------------------------------------------------------------------------------
+!               PJET ALGORITHM PARAMETERS
+!------------------------------------------------------------------------------
+NUMBER_ALGORITHMS         1     ! number of PJET algorithms to try
+!------------------------------------------------------------------------------
+\ARRAY ALGORITHM_01
+ 0.4           ! cone for finding p-jets
+10.0            ! minimum ET for a p-jet
+   2            ! maximum number of iterations
+   0            ! 1 - DONT INCLUDE INITIAL RADIATION - 0 INCLUDE ALL PARTONS
+   0            ! 1 - INCLUDE MUONS                  - 0 DONT INCLUDE MUONS
+ 'PART'         ! ALGORITHM TPYE 'CONE' OR 'ANGLE' OR 'PART'
+\END
+!------------------------------------------------------------------------------
+!  I/O PARAMETERS
+!------------------------------------------------------------------------------
+ PRINT_UNIT     0               !these unit numbers will be set by program
+ OUTPUT_UNIT    0
+\ARRAY PRINT_FILE
+ 'PRINT_FILE'                   !Print file name, define in setup
+\END
+\ARRAY OUTPUT_FILE
+ 'OUTPUT_FILE'                  !Output file name, define in setup
+\END
+\STOP
+\START   PYTHIA_RCP
+\SIZE        120       120
+!****************
+! Processes MSEL
+!****************
+!8.2.1 QCD Jets
+!MSEL = 1,2
+!MSUB = 11,12,13,28,53,68
+!
+!8.2.2 Heavy Flavours
+!MSEL=4,5,6,7,8
+!MSUB = 81,82,(83)
+!
+!8.2.4 Minimum Bias
+!MSEL = 1,2
+!MSUB = 91,92,93,94,95
+!
+!8.3.1 Prompt Photons
+!MSEL = 10
+!MSUB = 14,18,29,114,115
+!
+!8.3.4 Single Z/W Production
+!MSEL = 11,12,13,14,15,(21)
+!MSUB = 1,2,15,16,19,20,30,31,35,36,131,(141)
+!
+!8.3.5 W/Z Pair Production
+!MSEL = 15
+!MSUB = 22,23,25,69,70
+!
+!***********************
+!Subprocess MSUB
+!***********************
+!a) 2 -> 1, tree
+!
+!+      1     f_i f_i~  -> gamma*/Z0
+!+      2     f_i f_j~  ->  W+
+!+      3     f_i f_i~  ->  H0
+!+      5     Z0 Z0  ->  H0
+!+      8     W+ W-  ->  H0
+!
+!b) 2 -> 2, tree
+!
+!+     10     f_i f_j(~)  ->  f_i f_j(~) (QFD)
+!+     11     f_i f_j(~)  ->  f_i f_j(~) (QCD)
+!+     12     f_i f_i~  ->  f_k f_k~
+!+     13     f_i f_i~  ->  g g
+!+     14     f_i f_i~  ->  g gamma
+!+     15     f_i f_i~  ->  g Z0
+!+     16     f_i f_j~  ->  g W+
+!+     18     f_i f_i~  ->  gamma gamma
+!+     19     f_i f_i~  ->  gamma Z0
+!+     20     f_i f_j~  ->  gamma W+
+!+     22     f_i f_i~  ->  Z0 Z0
+!+     23     f_i f_j~  ->  Z0 W+
+!+     24     f_i f_i~  ->  Z0 H0
+!+     25     f_i f_i~  ->  W+ W-
+!+     26     f_i f_j~  ->  W+ H0
+!+     28     f_i g  ->  f_i g
+!+     29     f_i g  ->  f_i gamma
+!+     30     f_i g  ->  f_i Z0
+!+     31     f_i g  ->  f_k W+
+!+     33     f_i gamma  ->  f_i g
+!+     34     f_i gamma  ->  f_i gamma
+!+     35     f_i gamma  ->  f_i Z0
+!+     36     f_i gamma  ->  f_k W+
+!+     53     g g  ->  f_k f_k~
+!+     54     g gamma  ->  f_k f_k~
+!+     58     gamma gamma  ->  f_k f_k~
+!+     68     g g  ->  g g
+!+     69     gamma gamma  ->  W+ W-
+!+     70     gamma W+  ->  gamma W+
+!+     71     Z0 Z0  ->  Z0 Z0
+!+     72     Z0 Z0  ->  W+ W-
+!+     73     Z0 W+  ->  Z0 W+
+!+     76     W+ W-  ->  Z0 Z0
+!+     77     W+ W+(-)  ->  W+ W+(-)
+!
+!c) 2 -> 2, tree, massive final quarks
+!
+!+     81     f_i f_i~  ->  Q_i Q_i~
+!+     82     g g       ->  Q_i Q_i~
+!+     83     q_i f_j   ->  Q_k f_l
+!+     84     g gamma   ->  Q_k Q_k~
+!+     85     gamma gamma   ->  F_k F_k~
+!+     86     g g  -> J/Psi g
+!+     87     g g  -> Chi_0c g
+!+     88     g g  -> Chi_1c g
+!+     89     g g  -> Chi_2c g
+!
+!d) "minimum bias"
+!
+!+     91     elastic scattering
+!+     92     single diffraction
+!+     93     double diffraction
+!+     94     central diffraction
+!+     95     low-pT production
+!
+!e) 2 -> 1, loop
+!
+!+    102     g g  ->  H0
+!+    103     gamma gamma  ->  H0
+!
+!f) 2 -> 2, box
+!
+!+    110     f_i f_i~  ->  gamma H0
+!+    111     f_i f_i~  ->  g H0
+!+    112     f_i g  ->  f_i H0
+!+    113     g g  ->  g H0
+!+    114     g g  ->  gamma gamma
+!+    115     g g  ->  g gamma
+!
+\STOP

@@ -1,0 +1,7 @@
+      SUBROUTINE JDBASE(X,Y,Z)
+      INCLUDE 'D0$INC:DI3INC.INC'
+      XBASED=X
+      YBASED=Y
+      ZBASED=Z
+      CALL JBASE(X,Y,Z)
+      END

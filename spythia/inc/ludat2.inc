@@ -1,0 +1,6 @@
+* ludat2.inc
+      integer kchg
+      real pmas,parf,vckm
+      COMMON/LUDAT2/KCHG(500,3),PMAS(500,4),PARF(2000),VCKM(4,4)
+      SAVE /LUDAT2/
+*

@@ -1,0 +1,59 @@
+      SUBROUTINE J_DUMMIES
+C
+C------------------------------------------------
+      INCLUDE 'D0$INC:DI3INC.INC'
+      ENTRY   J16GET
+      ENTRY   JBEAM
+      ENTRY   JCEFLG
+      ENTRY   JCESUB
+      ENTRY   JCESUP
+      ENTRY   JCONCT
+      ENTRY   JCP
+      ENTRY   JCRLF
+      ENTRY   JDATTR
+      ENTRY   JDEFLG
+      ENTRY   JDESUB
+      ENTRY   JDESUP
+      ENTRY   JDGAP
+      ENTRY   JDPATH
+      ENTRY   JDPLAN
+      ENTRY   JDSGPR
+      ENTRY   JEVSEG
+      ENTRY   JF2PLN
+      ENTRY   JFTOPN
+      ENTRY   JGAP
+      ENTRY   JHSXTN
+      ENTRY   JHXTNT
+      ENTRY   JINESC
+      ENTRY   JIQ2AL
+      ENTRY   JIQ2TR
+      ENTRY   JIQERR
+      ENTRY   JMARGN
+      ENTRY   JMFDAT
+      ENTRY   JMFFMT
+      ENTRY   JMGET
+      ENTRY   JMINTR
+      ENTRY   JMREAD
+      ENTRY   JMTEXT
+      ENTRY   JPATH
+      ENTRY   JPEN
+      ENTRY   JRENAM
+      ENTRY   JRESET
+      ENTRY   JSAPND
+      ENTRY   JSCEFL
+      ENTRY   JSCOPY
+      ENTRY   JSDASS
+      ENTRY   JSDEFL
+      ENTRY   JSREST
+      ENTRY   JSSAVE
+      ENTRY   JSTROK
+      ENTRY   JSTXTN
+      ENTRY   JSYSTM
+      ENTRY   JT2TRA
+      ENTRY   JUPDAT
+CPIXYES, BUT NOT REQUIRED
+      ENTRY   JVALUE
+      ENTRY   JVSALL
+CPIXNO
+C      WRITE(JUNIT,*)'DUMMY ROUTINE IN DI3M CALLED'
+      END

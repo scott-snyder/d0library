@@ -1,0 +1,9 @@
+      SUBROUTINE D_MATCPY(MATIN,MATOUT)
+C  COPY MATIN INTO MATOUT
+      REAL MATIN(4,4),MATOUT(4,4)
+      DO I=1,4
+        DO J=1,4
+          MATOUT(I,J)=MATIN(I,J)
+        ENDDO
+      ENDDO
+      END

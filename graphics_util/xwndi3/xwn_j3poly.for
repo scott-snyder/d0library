@@ -1,0 +1,32 @@
+      SUBROUTINE J3POLY(X,Y,Z,N)
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      REAL X(2000),Y(2000),Z(2000)
+      INTEGER I,N
+C
+      IF(N.GT.1999) RETURN
+      IF(HCPY) THEN
+        DO I=1,N
+          PARRAY(1,I)=X(I)
+          PARRAY(2,I)=Y(I)
+          PARRAY(3,I)=Z(I)
+        ENDDO
+        CALL DEV_PLIN(N,PARRAY)
+        GO TO 10
+      ENDIF
+      CALL J_TR3XYZ(XPOSN,YPOSN,ZPOSN,XPOLY(1),YPOLY(1),ZPOLY(1))
+      DO I=1,N
+        CALL J_TR3XYZ(X(I),Y(I),Z(I),XPOLY(I+1),YPOLY(I+1)
+     &         ,ZPOLY(I+1))
+      ENDDO
+      NN=N+1
+      IATB=ILINE
+      CALL J_PLOT_ARRAY(NN,XPOLY,YPOLY)
+   10 XPOSN=X(N)
+      YPOSN=Y(N)
+      ZPOSN=Z(N)
+      IF(.NOT.PUTS)RETURN
+      CALL J_PUTSGN(I3POLY,1,N)
+      CALL J_PUTSGN(I3POLY,N,X)
+      CALL J_PUTSGN(I3POLY,N,Y)
+      CALL J_PUTSGN(-I3POLY,N,Z)
+      END

@@ -1,0 +1,97 @@
+      PROGRAM QCD_NTUPLE_ANAL
+C----------------------------------------------------------------------
+C-
+C-   Purpose : General template for doing stand-alone analysis directly
+C-             on a NTUPLE. Adapted from a program by Marc Paterno and
+C-             with many thanks to him!
+C-
+C-             This routine will open a NTUPLE ( defined by the logical
+C-             name: QCD_NTUP, and allow you to do
+C-             analysis on it just like you would in a PAW fortran file
+C-             which is created using UWFUNC.
+C-
+C-             To use this routine you must:
+C-              a) Define the logical QCD_NTUP to point to your ntuple
+C-              b) Change RECL to the record length of your ntuple if needed
+C-              c) Change NTID to the ID of your ntuple if needed
+C-              d) Change NTNAME to point to the subdirectory where your
+C-                 NTUPLE is in the file
+C-              e) Change NWORDS to be the number of words in your ntuple
+C-
+C-   Created (originally) by Marc Paterno
+C-   Changed and warped for the QCD group by Richard Astur
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      CHARACTER*4  TOPNAME                ! Name of top directory
+      CHARACTER*80 NTNAME                 ! Ntuple Name
+      CHARACTER*1  READONLY
+      PARAMETER    (READONLY = ' ')
+      INTEGER   RECL                      ! Set this to your Ntuple record
+      PARAMETER ( RECL = 8191 )           ! length
+      INTEGER   NTID
+      PARAMETER ( NTID = 1    )           ! Set this to your Ntuple ID
+      INTEGER  IER, I, NEVENTS, IGNORE
+      INTEGER NWORDS                      ! Set this to the number of
+      PARAMETER ( NWORDS = 16  )          ! words in your Ntuple
+      INTEGER IDNEVT, VIDN1, VIDN2, VIDN3 ! For PAWIDN common
+C
+C---------  The following common you get from your UWFUNC fortran file --
+C----------------------------------------------------------------------
+      REAL
+     +EVENTNUM,EVT_FLAG,CH_FRACT,EM_FRACT,L12_EM  ,HOT_CELL,
+     +N1GEV   ,ICD_FRAC,JET_E   ,L12_HD  ,MPF     ,JET_ETA ,
+     +JET_ET  ,JET_PHI ,BAD_FLAG,NJ90
+      COMMON/PAWIDN/IDNEVT,VIDN1,VIDN2,VIDN3,
+     +EVENTNUM,EVT_FLAG,CH_FRACT,EM_FRACT,L12_EM  ,HOT_CELL,
+     +N1GEV   ,ICD_FRAC,JET_E   ,L12_HD  ,MPF     ,JET_ETA ,
+     +JET_ET  ,JET_PHI ,BAD_FLAG,NJ90
+C-----------------------------------------------------------------------
+      REAL      X(-3:NWORDS)
+      EQUIVALENCE ( IDNEVT, X(-3) )
+C---------------------------------------------------------------------------
+C
+C ****  ZEBRA and HBOOK initialization
+C
+      CALL INZBRA
+      CALL INPAWC
+
+C
+      TOPNAME = 'QCDN'        ! Just a name
+      NTNAME  = '//QCDN'      ! Put your subdirectory name here.
+C                             ! e.g. //QCDN/CAJETS
+
+C
+C ****  Open the ntuple file
+C
+      CALL HROPEN (1, TOPNAME, 'QCD_NTUP', READONLY, RECL, IER)
+      IF ( IER .NE. 0 ) THEN
+        STOP 'Failed to open file QCD_NTUP'
+      ENDIF
+      CALL HCDIR( NTNAME, ' ')            ! Get directory with ntuple
+C
+C ****  Loop over all entries in ntuple and read the ST and MET
+C ****  values.
+C
+      IER   = 1
+      I     = 1
+      NEVENTS = 0
+
+      CALL HGN(NTID, IGNORE, I, X(1), IER )
+      IF ( IER .EQ. 0 ) PRINT *, ' Read first event from ntuple!'
+      DO WHILE ( IER .EQ. 0 )
+        NEVENTS = NEVENTS + 1
+C **************  All user code goes after this line *********************
+C *************   Loop over all events in ntuple: *********************
+
+
+
+
+C **************  All user code goes above this line ********************
+        I = I + 1
+        CALL HGN(NTID, IGNORE, I, X(1), IER )
+      ENDDO                             ! while ier .ne. 0
+
+      CALL HDELET(1)                    ! delete the Ntuple from memory
+
+      END

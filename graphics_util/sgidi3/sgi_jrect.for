@@ -1,0 +1,16 @@
+C DEC/CMS REPLACEMENT HISTORY, Element JRECT.FOR
+C *1     3-JUN-1992 14:36:48 LUPE "Release of DI3GL after split"
+C DEC/CMS REPLACEMENT HISTORY, Element JRECT.FOR
+      SUBROUTINE JRECT(X0,Y0,X1,Y1)
+      INCLUDE 'D0$GRAPHICS_UTIL$SGIDI3:DI3GL.INC'
+      REAL XXX(4),YYY(4)
+      XXX(1)=X0
+      XXX(2)=X0
+      XXX(3)=X1
+      XXX(4)=X1
+      YYY(1)=Y0
+      YYY(2)=Y1
+      YYY(3)=Y1
+      YYY(4)=Y0
+      CALL JPOLGN(XXX,YYY,4)
+      END

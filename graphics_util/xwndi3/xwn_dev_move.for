@@ -1,0 +1,8 @@
+      SUBROUTINE DEV_MOVE(X,Y,Z)
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      IF(IDV.EQ.1) THEN
+        CALL PS_MOVE(X,Y,Z)
+      ELSE
+        CALL TK_MOVE(X,Y,Z)
+      ENDIF
+      END

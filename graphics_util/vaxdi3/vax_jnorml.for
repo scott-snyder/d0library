@@ -1,0 +1,17 @@
+      SUBROUTINE JNORML(X,Y,Z)
+C
+      REAL X,Y,Z
+      REAL R2
+      INCLUDE 'D0$INC:DI3INC.INC'
+      R2 = X*X + Y*Y + Z*Z
+      IF(R2.LE.0)THEN
+        WRITE(JUNIT,*)'JNORML CALLED WITH ZERO VECTOR'
+        RETURN
+      ENDIF
+      R2=1./SQRT(R2)
+      VNORMX=X*R2
+      VNORMY=Y*R2
+      VNORMZ=Z*R2
+C  RECALC VIEWING VECTORS
+      CALL J_VUVECTS
+      END

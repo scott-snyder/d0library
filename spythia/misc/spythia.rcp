@@ -1,0 +1,143 @@
+\START  SPYTHIA_RCP
+\SIZE        175       103
+!----------------------------------------------------------
+!
+! D0$SPYTHIA:SPYTHIA.RCP
+!
+! When changing values yourself, please refer to the documentation,
+! available on the WWW at:
+!
+!     http://thep.lu.se/tf2/staff/torbjorn/Welcome.html
+!
+!   NOTE: There are SUSY processes not mentioned in the above manual.  Check
+!         D0$SPYTHIA:[DOC]SPYTHIA_MRENNA.PS for changes in KF codes,
+!         ISUB and MSEL values.  Read D0$SPYTHIA:[DOC]SPYTHIA.DOC for
+!         general information.
+!
+!--------------------------------------------------------
+! SPYTHIA CONTROL
+!----------------------------------------------------------
+ GTUNIT_ID                  725
+ NUMBER_OF_EVENTS           1    ! Number of events to generate
+ DO_WRITE                   .TRUE.  ! If true will write out banks
+ NUMBER_OF_EVENTS_TO_PRINT  2       ! # to print to log file
+ LEVEL_OF_PRINT             1       ! Argument of LULIST
+                                    ! 1 is recommended
+                                    ! 2 is more comprehensive
+                                    !12 lists all particle data and decay
+                                    !   channels
+ DO_EDIT                    .FALSE. ! If true call LUEDIT
+ USER_EDIT                  .FALSE. ! Allows user to control which events will
+                                    ! be written out. PYTHIA_USER must be coded.
+                                    !
+                                    !**All warranties voided if set .TRUE.**
+                                    !
+ LEVEL_OF_EDIT              1       ! Argument of LUEDIT, affects print only
+                                    ! 1 removes all decayed partons/particles
+                                    ! 2 removes neutrinos as well
+                                    ! 3 leaves only stable, charged particles
+ DO_STAT                    .TRUE.  ! If true call PYSTAT
+ LEVEL_OF_STAT              1       ! Argument of PYSTAT
+!
+!    = 1 : prints a table of how many events of the different kinds that
+!        have been generated and the corresponding cross-sections. All
+!        numbers already include the effects of cuts required by the user
+!        in PYKCUT.
+!    = 2 : prints a table of the resonances defined in the program, with
+!        their particle codes (KF), and all allowed decay channels.
+!        (If the number of generations in MSTP(1) is 3, however, channels
+!        involving fourth generation particles are not displayed.)
+!        For each decay channel is shown the sequential channel number
+!        (IDC) of the JETSET decay tables, the partial decay width,
+!        branching ratio and effective branching ratio (in the event
+!        some channels have been excluded by the user).
+!    = 3 : prints a table with the allowed hard interaction flavours
+!        KFIN(I,J) for beam and target particles.
+!    = 4 : prints a table of the kinematical cuts CKIN(I) set by the user
+!        in the current run, and a table of the cuts on variables used in
+!        the actual generation as derived from these user-defined cuts.
+!    = 5 : prints a table with all the values of the status codes
+!        MSTP(I) and the parameters PARP(I) used in the current run.
+!
+!----------------------------------------------------------
+! PYTHIA CONTROL
+!----------------------------------------------------------
+!
+ EVENT_FRAME             'CMS '
+ BEAM_1_TYPE             'P   '
+ BEAM_2_TYPE             'PBAR'
+ SYSTEM_ENERGY           1800.
+!
+!
+ SUSY_ALPHA_S            FALSE    ! Use alpha_s running with SUSY
+ SUSY_ALPHA_S_THRESH     200.0    !   SUSY threshold for alpha_s running
+ SUSY_ALPHA_S_OFFSET     -0.05    !   Offset for alpha_s
+!
+!
+ \ARRAY USER_LIST_OF_COMMANDS
+12   ! If you add or delete commands, change this number accordingly
+'MSTP(51)=3031'  ! Use MRSD-minus-prime Structure Function
+'MSTP(52)=2'     ! Get struct function from PDFLIB
+'MSEL=0'         ! Direct process control (Squark,gluino production ONLY)
+'MSUB(188)=1'    ! Turn on        g g -> gluino gluino
+'MSUB(189)=1'    ! Turn on    q_i q_i -> gluino gluino
+'MSUB(190)=1'    ! Turn on    q_i q_j -> squark_i squark_j
+'MSUB(191)=1'    ! Turn on q_i qbar_j -> squark_i squarkbar_j
+'MSUB(192)=1'    ! Turn on q_i qbar_i -> squark_j squarkbar_j
+'MSUB(193)=1'    ! Turn on        g g -> squark_i squarkbar_i
+'MSUB(194)=1'    ! Turn on      q_i g -> squark_i gluino
+'CKIN(3)=10'   ! Minimum Pt for 2 -> 2
+'MSTP(81)=0'   ! No multiple interactions
+ \END
+!
+ \ARRAY DEFAULT_LIST_OF_COMMANDS
+     6                  ! PROBABLY BEST TO LEAVE THESE ALONE
+    'MDCY(C111,1)=0'    ! Sets pi zero stable (limits size of output)
+    'MSTJ(22)=4'        !A particle is decayed only if the decay
+                        !vertex is within a  cylindrical volume
+                        !with radius PARJ(73) in the xy-plane and
+                        !extent to +-PARJ(74) in the z direction.
+    'PARJ(73)=12.5'     !in mm
+    'PARJ(74)=1000.'    !in mm
+    'MSTP(122)=1'       ! Don't print init stuff
+    'MSTP(127)=1'       ! Don't print header
+ \END
+!------------------------------------------------------------------------------
+! HBOOK PARAMETERS
+!------------------------------------------------------------------------------
+ HBOOK_SAVE   .TRUE.    !If true save histograms to file
+ HBOOK_PRINT  .TRUE.    !If true print histograms in log file
+\ARRAY  HBOOK_SAVE_FILE
+ 'HBOOK_SAVE'           !Histogram output file, define in setup
+\END
+\ARRAY  HBOOK_DIRECTORY
+ 'PYTHIA'
+\END
+!------------------------------------------------------------------------------
+!               PJET ALGORITHM PARAMETERS
+!------------------------------------------------------------------------------
+NUMBER_ALGORITHMS         1     ! number of PJET algorithms to try
+!------------------------------------------------------------------------------
+\ARRAY ALGORITHM_01
+ 0.4           ! cone for finding p-jets
+10.0            ! minimum ET for a p-jet
+   2            ! maximum number of iterations
+   0            ! 1 - DONT INCLUDE INITIAL RADIATION - 0 INCLUDE ALL PARTONS
+   0            ! 1 - INCLUDE MUONS                  - 0 DONT INCLUDE MUONS
+ 'PART'         ! ALGORITHM TPYE 'CONE' OR 'ANGLE'
+\END
+!------------------------------------------------------------------------------
+!  I/O PARAMETERS
+!------------------------------------------------------------------------------
+ PRINT_UNIT     0               !these unit numbers will be set by program
+ OUTPUT_UNIT    0
+\ARRAY PRINT_FILE
+ 'PRINT_FILE'                   !Print file name, define in setup
+\END
+\ARRAY SUSYPARAM_FILE
+ 'susyparams.out'
+\END
+\ARRAY OUTPUT_FILE
+ 'OUTPUT_FILE'                  !Output file name, define in setup
+\END
+\STOP

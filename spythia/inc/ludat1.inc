@@ -1,0 +1,4 @@
+      integer mstu,mstj
+      real paru,parj
+      COMMON/LUDAT1/MSTU(200),PARU(200),MSTJ(200),PARJ(200)
+      SAVE /LUDAT1/

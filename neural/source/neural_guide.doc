@@ -1,0 +1,97 @@
+
+                                                    B. Klima, H. B. Prosper
+                                                    Created     18-Nov-1991
+                                                    Version     V1.1
+
+                                                    Chip Stewart
+                                                    Harrison Prosper
+                                                    Pushpa Bhat
+                                                    Jeff McDonald
+
+                                                    Updated     27-Jun-1995
+                                                    Version     V2.0
+
+
+               A Short Guide to using the Neural Network Program
+               =================================================
+
+    This document provides a very brief, but we hope useful, description of  how
+to run  the   University of  Lund  Neural   Network  program,  JETNET,  as it is
+implemented in D0. For a full description of the JETNET V3.0 please refer to the
+manual D0$NEURAL:JETNET_30_MANUAL.PS.
+
+    The  basic idea  is to  train a  network to  separate  events,  specified as
+row-wise   ntuples, into  two or  more  classes; for   example, into  signal and
+background.  The  result of the  training is  a file  containing  the parameters
+(weights and thresholds)  that encode the mapping  from the input of the network
+to its output(s). From the weight file one can, optionally, create automatically
+a FORTRAN  function  that  computes the  network output  for a  given input. The
+function can be used  either in PAW or in other  applications. (See the document
+D0$NEURAL:BUILD_COMIS_NN.DOC
+
+    If the program is  run in TEST mode  (DO_TEST T;  DO_TRAIN F) on one or more
+row-wise ntuples then the network  specified by the logical  NEURAL_WEIGHTS will
+be run and new ntuples will be created containing  the results.
+
+
+(1) DEFINING D0 LOGICALS:
+
+    Make sure that you have executed the following commands (we recommend
+    that you include them in your LOGIN.COM file):
+
+    @D0$DISK:[D0LIBRARY]D0LOCAL
+    LIBTEST NEURAL
+
+
+(2) DEFINING NEURAL LOGICALS:
+
+    1. Type D0SETUP NEURAL to define the following logicals:
+
+       NEURAL_RCP       - Your Neural Network RCP file (mostly for training).
+
+       NEURAL_WEIGHTS   - Neural Network  file that contains the weights.
+
+       TRAIN_HSAVE_FILE - The ntuple that contains the result of the training.
+
+
+       and the symbols (commands)
+
+       NEURAL   - Run NEURAL program
+       NBUILD   - Run NEURAL_BUILD program to create a neural network function
+       NMAKE    - Run BUILD_COMIS_NN to do likewise for use in PAW
+
+    2. Copy  D0$NEURAL:NEURAL.RCP to your area. You  will modify it according to
+       your application.
+
+(3) TRAINING THE NET:
+
+    1. Modify the NEURAL.RCP  file according to the  way you would like to train
+       the Network. If you use  a file called  SETUP_USER.COM to define logicals
+       pointing to your  row-wise ntuples  then that  procedure will be executed
+       automatically when you perform the D0SETUP operation.
+
+    2. Run the NEURAL executable:
+
+        $ NEURAL
+
+
+(4) USING THE NET WEIGHTS FROM NEURAL_WEIGHTS FILE TO ANALYZE DATA:
+
+    1. Run the NEURAL_BUILD program:
+
+        $ NBUILD  WeightFile RoutineName
+
+       and use the newly  created subroutine  "RoutineName" in your application.
+       You must link to the  NEURAL object library  D0$NEURAL:NEURAL.OLB to link
+       in JNFEED_FORWARD, which is called by "RoutineName". *** OR ***
+
+    2. Run the BUILD_COMIS_NN procedure:
+
+        $ NMAKE ....
+
+       and answer the  prompts, to produce a COMIS  function that can be used in
+       PAW. For more information see the document D0$NEURAL:BUILD_COMIS_NN.DOC.
+
+
+        HAVE FUN!
+

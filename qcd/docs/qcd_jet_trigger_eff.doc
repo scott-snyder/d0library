@@ -1,0 +1,189 @@
+                                                                   Rich Astur
+                                                                   QCD group
+                                                                   2/22/93
+
+This document is in D0$BETA:[QCD]QCD_JET_TRIGGER_EFF.DOC
+
+
+                QCD Jet Trigger Efficiency Routine
+
+                    I) OVERVIEW - What you need to know
+                   II) EXAMPLE OF USE - Shows you what to do
+                  III) METHOD USED- If you really want to know how
+                       the efficiencies were calculated.
+                   IV) MODIFICATIONS
+                    V) Definition of QCD Jet triggers
+
+I) OVERVIEW:
+    Routines have been written to aid the user in determining jet trigger
+efficiencies.  The routines use results from real data and return trigger
+efficiencies as a function of FILTER_NAME, Jet detector eta and Jet 
+reconstructed Et.  Two routines are provided:
+    
+    1) A subroutine (QCD_JET_TRIGGER_EFF) allows the user to determine
+the jet efficiency for a particular range of jet Et and Eta. Both the
+efficiency and a binomial error are returned. (NOTE: You must use the
+uncalibrated  Et returned by CAJETS. Dont use corrected ET values).
+
+    2) A stand alone program (QCD_JET_EFFICIENCY) allows the user to 
+get a list of jet trigger efficiencies versus Et or Eta for a given 
+trigger.  Located in D0$BETA:[QCD].
+
+    Both of these routines require access to the D0$BETA:[QCD] area.
+
+II) EXAMPLES OF USE:
+
+    1) SUBROUTINE QCD_JET_TRIGGER_EFF
+
+        a) Remember (as with all QCD routines) you must have 
+       D0$BETA:[QCD]'DEB'BETA_RELEASE.OPT/OPT in your link file. 
+
+        b) Assume we want to know the trigger efficiency for 'JET_MAX'
+       for jets in the forward region (eta from 2.0 to 3.0 for example)
+       and with ET in the range 90. to 100. GeV
+
+        REAL ETMIN,ETMAX,ETAMIN,ETAMAX  ! Kinematic range of jets
+        REAL EFFIC                      ! Trigger efficiency to be returned
+        REAL ERR_EFFIC                  ! Binomial error on efficiency
+        INTEGER IMASK                   ! Set this to 0
+        INTEGER IER                     ! Error code 0=ok
+        INTEGER IVERS                   ! version number (see end of this note)
+C----------------------------------------------------------------------
+        ETMIN = 90.
+        ETMAX = 100.
+        ETAMIN= 2.0                     ! Eta is absolute
+        ETAMAX= 3.0                     ! (this covers [2.,3.] & [-3.,-2.]
+        IMASK = 0                       ! Dont ask why. Just do this.
+
+        CALL QCD_JET_TRIGGER_EFF(ETMIN, ETMAX, ETAMIN, ETAMAX,
+       &  'JET_MAX', IMASK, EFFIC, ERR_EFFIC, IER, IVERS )
+
+        IF (IER .EQ. 0 ) THEN           ! IER=0 means OK
+         PRINT 12,EFFIC, ERR_EFFIC, IVERS
+12      FORMAT(' Efficiency is ',F5.2, ' Error is ',F5.2,' under version, I3)
+
+
+    2) Stand alone program QCD_JET_EFFICIENCY
+
+$ RUN D0$BETA:[QCD]QCD_JET_EFFICIENCY
+1)  JET_MIN
+2)  JET_END_LOW
+3)  JET_END_MED
+4)  JET_LOW
+5)  JET_MEDIUM
+6)  JET_HIGH
+7)  JET_MAX
+Enter the number of the desired trigger: 5
+1) ETA
+2) ET
+Plot trigger efficiency versus which quantity? [1/2]:1
+ENTER ETAMIN,ETAMAX
+0. 3.
+ENTER ETMIN ETMAX
+80. 100.
+How many bins in ETA ? 15
+Plot of Efficiency versus ETA  for JET_MEDIUM
+in the ETA region from eta=0.0 to 3.0
+ETA   EFFICIENCY  ERROR   IER
+  0.0     1.00     0.000       0
+  0.2     1.00     0.004       0
+  0.4     1.00     0.004       0
+  0.6     1.00     0.000       0
+  0.8     0.97     0.009       0
+  1.0     0.95     0.011       0
+  1.2     0.96     0.012       0
+  1.4     0.99     0.007       0
+  1.6     1.00     0.000       0
+  1.8     1.00     0.000       0
+  2.0     1.00     0.000       0
+  2.2     1.00     0.000       0
+  2.4     1.00     0.000       0
+  2.6     1.00     0.000       0
+  2.8     1.00     0.000       0
+
+III) METHOD:  
+    Trigger efficiencies can be returned for the following filters:
+    1) JET_MIN
+    2) JET_END_LOW
+    3) JET_END_MED
+    4) JET_LOW
+    5) JET_MEDIUM
+    6) JET_HIGH
+    7) JET_MAX
+
+    The method used to determine trigger efficiencies is as follows:
+    
+    1) Efficiencies for a particular filter is determined by using real data
+taken with a less restrictive filter:
+
+    FILTER              LESS RESTRICTIVE FILTER USED
+------------------------------------------------------
+    JET_MIN                 MIN_BIAS, SPECIAL*
+    JET_END_LOW             JET_MIN 
+    JET_END_MED             JET_END_LOW
+    JET_LOW                 JET_MIN
+    JET_MEDIUM              JET_LOW
+    JET_HIGH                JET_MEDIUM
+    JET_MAX                 JET_HIGH
+
+    2) Assume we are interested in the efficiency for triggering on an 
+OFFLINE (Defined by CAJETS cone algorithm R=.7) jet in a certain ET and
+ETA bin using a particular FILTER.  We then restrict ourselves to the data
+sample which satisfied the LESS RESTRICTIVE FILTER (see table above). We
+look only at events with no indication of a hot cell (BAD_FLAG=0, see
+BAD_FLAG documentation in D0$BETA:[QCD] ). We also require at least 2 jets.
+We only look at the two leading jets of each event.
+
+    3) Define NBASE(ET,ETA,FILTER) as the number of these offline jets
+which fell in the ET-ETA bin.
+
+    4) Now we look at the subset of the LESS RESTRICTIVE FILTER data set
+which satisfies the trigger requirements of the FILTER. (We are essentially
+reconstructing the trigger decision using stored Level 1 and Level 2 
+information.) Define NTRIG(ET,ETA,FILTER) as the number of offline jets
+in this sample which fell in the ET-ETA bin.
+
+    5) Define 
+    EFFICIENCY(ET,ETA,FILTER) = NTRIG(ET,ETA,FILTER)/NBASE(ET,ETA,FILTER)
+
+    6) Note that this is simply the relative trigger efficiency. The full
+efficiency is found by multiplying by the efficiency for all the LESS
+RESTRICTIVE TRIGGERS.
+    example: The absolute efficiency for 'JET_MAX' is found as follows:
+    ABSOLUTE_EFFICIENCY(ET,ETA,'JET_MAX') = EFFICIENCY(ET,ETA,'JET_MAX')*
+        EFFICIENCY(ET,ETA,'JET_HIGH')*EFFICIENCY(ET,ETA,'JET_MEDIUM')*
+        EFFICIENCY(ET,ETA,'JET_LOW')*EFFICIENCY(ET,ETA,'JET_MIN')
+
+    Note that the trigger efficiency for JET_MIN is absolute.
+
+    7) Special note about the efficiency for JET_MIN:
+    Ideally the efficiency for JET_MIN should be done by using MIN BIAS events
+as the LESS RESTRICTIVE TRIGGER. This would provide absolute efficiencies
+for this trigger. However, problems with the MIN BIAS sample have forced
+a different method to be used.  Instead of calculating the EVENT efficiency
+for JET_MIN, the JET trigger efficiency was calculated. This is the probability
+for the jet in the ET,ETA bin to DIRECTLY cause the trigger.  All of the other
+efficiencies calculated are EVENT efficiencies, this is the probability for
+the jet in the ETA,ETA bin to be in a triggered event (that is either the jet
+DIRECTLY causes the trigger or some other jet in the event does).
+Thus the calcuated efficiencies for JET_MIN are underestimates.
+
+
+
+IV)     Updates: Here we list changes/updates to the routines. Each major
+        change will be accompanied by a change in version number
+
+2-22-93 Version 1   : First version of program
+
+
+V)      Definition of jet triggers
+
+FILTER NAME     L1 REQUIRE      L2 REQUIRE      ET where becomes efficient
+---------------------------------------------------------------------------
+JET_MIN         JT1(1,3)        JT2(1,20.,R=.7)          ~35 GeV   y<.4
+JET_END_LOW     JT1(1,7,y>2.)   JT2(1,30.,R=.7)ETA(1J,2)  40 GeV   y>2.2
+JET_END_MED     JT1(2,7,y>2.)   JT2(1,50.,R=.7)ETA(1J,2) ~80 GeV   y>2.2
+JET_LOW         JT1(1,7)        JT2(1,30.,R=.7)           40 GeV   y<.4
+JET_MEDIUM      JT1(2,7)        JT2(1,50.,R=.7)           65 GeV   y<.4
+JET_HIGH        JT1(3,7)        JT2(1,80.,R=.7)           95 GeV   y<.4
+JET_MAX         JT1(4,5)        JT2(1,115.,R=.7)          140 GeV  y<.4

@@ -1,0 +1,15 @@
+      SUBROUTINE JPLANE(X,Y,Z)
+      INCLUDE 'D0$GRAPHICS_UTIL$SGIDI3:DI3GL.INC'
+      R2=X*X+Y*Y+Z*Z
+      IF(R2.LE.0)THEN
+        WRITE(JUNIT,*)'JPLANE CALLED WITH ZERO VECTOR'
+        RETURN
+      ENDIF
+      XPLANE=X
+      YPLANE=Y
+      ZPLANE=Z
+      R=SQRT(R2)
+      XPLANN=X/R
+      YPLANN=Y/R
+      ZPLANN=Z/R
+      END

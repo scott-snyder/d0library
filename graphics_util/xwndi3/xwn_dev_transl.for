@@ -1,0 +1,12 @@
+      SUBROUTINE DEV_TRANSL(X,Y,Z)
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      REAL TTRN(4,4)
+      CALL D_MATUNI(TTRN)
+      TTRN(1,4)=-X
+      TTRN(2,4)=-Y
+      TTRN(3,4)=-Z
+      CALL D_MATMUL(TMODEL,TTRN)
+      CALL D_MATCPY(TTOTAL,TDEVIC)
+      CALL D_MATMUL(TTOTAL,TMODEL)
+c      type *,' DEV_transl-TTOTAL - ',ttotal
+      END

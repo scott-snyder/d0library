@@ -1,0 +1,650 @@
+
+    This file is D0$QCD$DOCS:QCD_JET_USERS_GUIDE.DOC
+
+                                                                Richard Astur
+                                                                Gerald Blazey
+                                                                Andrew Brandt
+                                                                Andrew Milder
+                                                                QCD GROUP
+                                                                March 20, 1993
+                        
+                          QCD JET USERS GUIDE
+                        ( Revised for Run IB )
+
+        This guide is intended to familiarize the user with the tools
+and utilities available for doing QCD Jet analysis.  Some other, more
+general tools, are also described. Although this document lives in
+the D0$QCD$DOCS area. If a more current version exists, it will be in
+the QCD beta area: D0$BETA:[QCD].
+
+
+****************************************************************************
+
+                                TABLE OF CONTENTS
+
+        1>>) General information for analysis using QCD software/files.
+
+        2>>) QCD Micro-DST description/routines
+
+        3>>) QCD NTUPLE making routines
+
+        4>>) QCD Trigger Mask
+
+        5>>) QCD BAD Word
+
+        6>>) QCD Jet Efficiencies
+
+        7>>) QCD Jet Calibration
+
+        8>>) Luminosity tool
+    
+        9>>) Analyizing ntuples outside of PAW
+
+       10>>) QCD Stream names for 1B
+
+
+    (Feature borrowed from YSN, do a search for "i>>" where i is the
+number of the topic you are interested in to get there fast!)
+
+*********************************************************************
+1>>                GENERAL INFORMATION
+
+    A) Most QCD jet analysis is done with data which satisfied one
+    of the Level 2 filters requested by the QCD group. This list is
+    different between run 1A and run 1B.
+
+Run 1A: ( we had 12 filters - OTHER is a dummy )
+
+                                    NAME                    BIT
+-----------------------------------------------------------------------
+        QCD_BIT_NAME( IQCD_BIT ) = 'OTHER'                  0
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_MIN'                1
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_END_LOW'            2
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_END_MED'            3
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_LOW'                4
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_MEDIUM'             5
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_HIGH'               6
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_3_HIGH'             7
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_MAX'                8
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_MULTI'              9
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_MULTI_X'            10
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_MED'            11
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_4_MED'              12
+
+Run 1B: ( 39 filters - list may grow : QNT stands for non-tracking runs )
+
+                                    NAME                    BIT
+-----------------------------------------------------------------------
+        QCD_BIT_NAME( IQCD_BIT ) = 'MU_1_EM_JET'            ! 0
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_MIN'                ! 1
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_FAR_END'            ! 2
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_50'                 ! 3
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_85'                 ! 4
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_MAX'                ! 5
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_LOW'            ! 6
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_HIGH'           ! 7
+        QCD_BIT_NAME( IQCD_BIT ) = 'ZERO_BIAS_QNT'          ! 8
+        QCD_BIT_NAME( IQCD_BIT ) = 'MIN_BIAS_QNT'           ! 9
+        QCD_BIT_NAME( IQCD_BIT ) = 'MINBIAS_MI_QNT'         ! 10
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_10_QNT'             ! 11
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_INV_QNT'            ! 12
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_30_QNT'             ! 13
+        QCD_BIT_NAME( IQCD_BIT ) = 'ALWAYS_SET1'            ! 14
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_50_QNT'             ! 15
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_50_NMI_QNT'         ! 16
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_END_15_QNT'         ! 17
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_END_25_QNT'         ! 18
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_FAR_END_QNT'        ! 19
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_85_QNT'             ! 20
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_115_QNT'            ! 21
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_ASM_QGP'        ! 22
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_MIN_QGP'        ! 23
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_MNO_QGP'        ! 24
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_DIFF_QDF'           ! 25
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_DPOM_QDF'           ! 26
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_2CEN_QDF'           ! 27
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_DGAP_QDF'           ! 28
+        QCD_BIT_NAME( IQCD_BIT ) = 'MIN_BIAS_QGP'           ! 29
+        QCD_BIT_NAME( IQCD_BIT ) = 'MINBIAS_MI_QGP'         ! 30
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_LHE'            ! 31
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_LME'            ! 32
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_HHE'            ! 33
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_HME'            ! 34
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_MHE'            ! 35
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_MNHE_QGP'       ! 36
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_MNME_QGP'       ! 37
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_GAP_NMI'            ! 38
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_30'                 ! 39
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_20_BADF'            ! 40
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_20_BADS'            ! 41
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_12'                 ! 42
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET2_12'                ! 43
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET_END_12'             ! 44
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET2_END_12'            ! 45
+        QCD_BIT_NAME( IQCD_BIT ) = 'ALWAYS_SET2'           ! 46
+        QCD_BIT_NAME( IQCD_BIT ) = 'JET2_END_12B'           ! 47
+
+    B) Analysis code:
+        QCD analysis code can be found in D0$QCD or D0$PHYSICS_UTIL and
+    sometimes CALOR_UTIL.
+    You should add D0$QCD:QCD/LIB to your .opt files when using QCD routines.
+    (PHYSICS_UTIL is added automatically in most D0 .lnk files )
+    Most of the most recent QCD analysis code will be in the local CMS 
+    area in
+
+            D0$BETA:[QCD]
+
+    This area is accessable from FNALD0 or D0SFT.  When using these routines 
+    you must modify your analysis link file to include the following objects:
+
+        D0$BETA:[QCD]BETA_RELEASE.OPT/OPT
+            or
+        D0$BETA:[QCD]DEB_BETA_RELEASE.OPT/OPT
+
+
+    *** NOTE *** : The QCD beta area is not a substitute for the QCD library
+                   itself. They should be used together. If only one is used,
+                   that one should be the QCD library :
+
+                    e.g. LINK MYPROG,D0$BETA:[QCD]BETA_RELEASE/OPT,D0$QCD:-
+                            QCD/LIB
+
+    C) Data format:
+       
+        1) In Run IA, we put our data in a special compressed format
+    called microdst's (mdst's).  These files are of the form
+    *.*QMD*. Traditionally, they have been located on D0FS in the
+    area pointed to by D0$DATA$DST. However, we are now putting some
+    on QCD disks. (See D0NEWS meesge by TLGELD in QCD folder on this)
+
+        2) In Run IB, our data will be in the form of the official
+    D0 microdst (udst's).  These udst's can be expanded to form
+    normal DST's, so that your analysis code does not have to be
+    specific to udst for the most part.
+
+
+
+    
+************************************************************************
+2>>            USING QCD MICRODST'S  (mdst's)                  Milder/Astur
+
+                    IA Data mostly
+
+    Microdst's are compressed forms of D0 DST files that we are using.
+They can be read in by any analysis program like any other data file
+and are written in exchange (X) mode just like all D0 data files. They
+contain events which satisfied the following filters: JET_MIN, JET_END_LOW,
+JET_END_MED, JET_LOW, JET_MEDIUM, JET_HIGH, JET_MAX, JET_3_HIGH, JET_GAP_MED,
+JET_MULTI and JET_MULTI_X.
+            
+            --- CONTENTS OF MICRODST'S ---
+    MDST bank
+    1) All the contents of the PELC,PPHO,PMUO,JETS,CAPH,PNUT and PTAU banks.
+        ( also added JTCS + assorted auxialiary PELC/PPHO quality/tracking
+          words )
+    
+    CATD bank
+    2) Readout tower Et values for the EM and HAD portion of all the
+    readout towers (after a 400 MeV suppression for HAD towers and 200 MeV
+    for EM  towers). This is in the form of the CATD bank.
+
+    JUTL bank
+    3) Tracking vertices, triggers fired, L0 information, L1 jet seeds and
+    L2 Jet information are all stored in the JUTL bank. (Recently added:
+    L1,L2 MET,Scalar ET information + Large Tile candidates )
+    See D0$ZEBLST:JUTL.ZEB
+
+
+            --- HOW TO ACCESS INFORMATION IN THE MICRODST'S ---
+
+    1) You must call the following subroutine at the start of your program:
+
+                CALL PATHST('MDST')     ! Sets the path to MDST
+
+    2) To access info normally stored in PELC,PPHO.... bank, you can use
+    the normal GTPELC, GTPPHO... routines as well as some extra GTXXXX routines
+    provided in the D0$QCD:[SOURCE] area. (See other documentation listed below
+
+    3) In the microdst, the CATD bank hangs below the ANLS bank (in regular
+    DST's it hangs some place else!). The link can be retrieved with the
+    following FORTRAN:
+
+            INCLUDE 'D0$INC:ZEBCOM.INC'
+            INTEGER LANLS, GZANLS, LCATD
+            LANLS = GZANLS()
+            IF ( LANLS .GT. 0 ) LCATD = LQ( LANLS - 2 )
+
+    4) The JUTL bank can be accessed by using the normal GZJUTL routine to
+    find the link to JUTL.  See D0$ZEBLST:JUTL.ZEB for a description
+    of this bank.
+            
+                    --- Further documentation ---
+
+                    D0$QCD:[DOCS]MICRO_DST.DOC
+
+************************************************************************
+3>>            QCD NTUPLE MAKING ROUTINES                  Andrew Brandt
+    
+    A facility exists for converting micro-dst's (or normal DST's) into
+user-defined ntuples!! The user modifies an RCP file to select what he
+wants his ntuple to contain.  Documentation can be found:
+PRJ$ROOT281:[QCD_4.NTUPEXE.DOCS]QCD_NTUP.DOC
+
+*****************************************************************************
+4>>                QCD TRIGGER MASK
+
+    The QCD trigger mask is used to determine which QCD triggers fired on the
+event you are looking at.  Each bit of this mask refers to a particular
+filter name (e.g. 'JET_MAX'). Although it is true that D0 filter bit numbers
+change their definition from time to time, the QCD mask always has the
+same definition. Thus you can restrict your analysis to only the events
+that pass the filter you are interested in.
+
+
+        --- DEFINITION OF QCD MASK  ---
+            
+        Each bit of the mask corresponds to a QCD trigger. If the bit
+is set, that triggered fired in that event.
+
+
+            For Run IA:                     For Run IB:
+                            
+    Filter name         Bit              see list above
+    -----------------------
+    RESERVED             0
+    JET_MIN              1
+    JET_END_LOW          2
+    JET_END_MED          3
+    JET_LOW              4
+    JET_MEDIUM           5
+    JET_HIGH             6
+    JET_3_HIGH           7
+    JET_MAX              8
+    JET_MULTI            9
+    JET_MULTI_X         10
+    JET_GAP_MED         11
+    JET_4_MED           12
+
+NOTE: For run 1B, there are two QCD Mask words. The first word covers
+bits 0-31 and the second covers bits 32-63. You can get the first mask
+by calling QCD_GET_MASK and the second by calling QCD_GET_MASK2
+
+
+            ---  EXAMPLE ---
+
+    Example: to see if the current event passed 'JET_MAX' you should use
+    the following FORTRAN
+    
+    INTEGER QCD_MASK
+    CALL QCD_GET_MASK( QCD_MASK )
+    IF ( BTEST( QCD_MASK, 8 ) ) THEN        ! Yes it did. BTEST uses bit 0-31
+    ENDIF
+            or
+    IF ( JBIT( QCD_MASK, 8+1) .EQ. 1 ) THEN ! CERNLIB bit number goes from 1-32
+    ENDIF
+
+            --- USEFUL ROUTINES  ---
+
+    ( NOTE: All bit variables are INTEGER, all NAME variables are CHARACTER.
+            When using a filter name, use UPPERCASE only!! )
+                NAME = 'JET_MAX'        ! OK
+                NAME = 'JeT_MAX'        ! Error!!
+
+    CALL QCD_GET_MASK( QCD_MASK )
+        : QCD_MASK [I]  - is the QCD trigger mask for bits 0-31 this event
+    CALL QCD_GET_MASK2( QCD_MASK )
+        : QCD_MASK2 [I]  - is the QCD trigger mask for bits 32-63 this event
+
+    LOGICAL FUNCTION QCD_BIT_PASSED( NAME, IDUM )
+        : NAME =   [C*] - name of trigger, e.g. 'JET_MASK'
+        : IDUM =   [I]  - dummy integer word
+        : example
+            INTEGER IDUM
+            IF ( QCD_BIT_PASSED( 'JET_50', IDUM ) ) THEN
+                TYPE *, ' JET_50 passed this event '
+            ENDIF
+
+    CALL QCD_NAME_TO_BIT( NAME, QCDBIT )
+        : NAME [C*] - character string with name of filter
+        : QCDBIT [I]- returned qcd bit number
+        : example: CALL QCD_NAME_TO_BIT('JET_MAX', QCDBIT) returns
+        : QCDBIT=8.
+
+    CALL QCD_BIT_TO_NAME( QCDBIT, NAME )
+        : QCDBIT [I] - input qcd bit number
+        : NAME  [C*] - output qcd trigger name.
+        : example: CALL QCD_BIT_TO_NAME( 8, NAME ) returns
+        : NAME='JET_MAX'
+
+    CALL QCD_BIT_FROM_D0( D0BIT1, QCDBIT1 )
+        : Convert D0 bit number to QCD bit number. This routine can only
+        : be used on DST's or STA's or RAW. 
+        : QCDBIT1= -1 if this filter is not one of those listed above.
+
+    CALL QCD_BIT_TO_D0( QCDBIT, D0BIT )
+        : Convert QCD bit number to the one that D0 used in this event.
+        : This will only work if the corresponding D0 event fired on this
+        : event or any prior ones in which you made the call.
+        : -1 means this trigger has not fired on any of your calls/ or was
+        : note defined in this run.
+
+
+    LOGICAL FUNCTION QCDJETS - TRUE if this event is a QCD Jet event
+
+
+*************************************************************************
+5>>            QCD BAD WORD
+
+    The QCD group wanted to have a way of determining whether any of the
+jets in an event might have come from some non-physics source (e.g. hot
+cell, main ring losses, pedestal shift, etc...).  Each jet in an event
+is tested to see that it passes a series of cuts which are designed to keep
+'good' jets and 'reject' jets which came from a non-physics source. The results
+are put in the QCD BAD_WORD. BAD_WORD=0, if nothing was found to be wrong.
+
+        --- BAD conditions for BAD_WORD ---
+
+        Bit set             Cut which failed
+        -------------------------------------
+            0               CH FRACTION     CH fraction should be < .40
+            1               HOT CELL CUT    2nd max cell/max cell > .10
+            2               L1-L2 cut       L1 energy and offline energy
+                                            didnt agree.
+            3               EM Fraction     EM fraction should be in range
+                                            [.05,.95]
+
+    Note: L1-L2 cut is not applied on Micro-DST's 
+
+
+            --- USEFUL ROUTINES --- 
+** For DST's use these routines, but the Level1-Level2 cut cannot be applied
+    CALL QCD_BAD_DST_EVENT( BAD_FLAG, N_BAD )
+        : BAD_FLAG [I] - Integer mask containing error conditions for any
+        :       jet in the event.  Thus if bit 1 is set, than some jet in the
+        :       event failed the CH FRACTION cut.
+        : N_BAD [I] - Number of bad jets found in the event
+        : If you call this routine, the algorithm used will be Nearest
+        : Neighbor
+    CALL QCD_BAD_DST( IJET, BAD_FLAG )
+        : IJET [I] - Number of jet you wish to test. Note you must first
+        : call SET_CAPH to set the jet algorithm. If there are 4 jets, IJET
+        : can be any value from 1 to 4.
+        : BAD_FLAG [I] - Output BAD_FLAG for this jet.
+** For STA's in a program where you run CAHITS, you CAN get the Level1-Level2
+    cut. These routines are similar to those used above.
+    CALL QCD_BAD_JET_EVENT( BAD_FLAG, N_BAD )
+    CALL QCD_BAD_JET( IJET, N_BAD )
+
+
+            --- EXAMPLE OF USE --- 
+
+    C
+    C: Test if this event is okay
+    C
+        INTEGER IBAD
+        CALL PATHST('MDST')
+        CALL QCD_BAD_DST_EVENT( IBAD )
+        IF ( IBAD .EQ. 0 ) THEN
+            TYPE *, ' This event is okay! '
+        ELSE IF ( BTEST( IBAD, 0 ) ) THEN
+            TYPE *, 'This event had a jet which had a CH fraction > .4!!'
+        ENDIF
+        
+                --- MORE DOCUMENTATION ---
+
+                D0$BETA:[QCD]QCD_BAD_WORD.DOC
+
+LATEST UPDATE:
+************************************************************************
+Standard cuts for a 'good' jet.
+************************************************************************
+
+    a) The standard cuts eliminate 'noisy' jets from most of the jet ET
+spectrum and are from 91% to 96% efficient for real jets.  For jets above
+200 GeV ET, however, the cross section is small enough that a sizeable
+fraction of 'pathological' noise and cosmic events are present.  Also,
+in all ET ranges, there are surviving noise contributions from various
+hardware problems  which resulted in multiple noisy towers  and thus are
+hard to cut. However, these are usually localized in eta-phi space and can be
+identified this way. See D0Note 1763 for more information.
+
+        The EM FRACTION of jet must be between .05 and .95 inclusive
+
+        The HOT CELL RATIO of the jet must be less than 10.
+
+        The CH FRACTION of the jet must be less than .40
+
+
+        where the
+            EM FRACTION is the fraction of the jet ET contained in EM depths
+            1-7 and is defined by word 14 in the JETS bank
+
+            HOT CELL RATION is the ratio of hottest to next-hottest cell
+            and is defined by word 19 in the JETS bank
+
+            CH FRACTION is the fraction of the jet ET contained in the CH
+            and is defined by word 18 in the JETS bank
+
+
+        The efficiency of these cuts (under the .7 cone) has been
+thoroughly investigated by Daniel Elvira. See D0Note 1763.  The efficiency
+ranges between 96% at 11 GeV ET to 91% at 400 GeV and can be
+parameterized by Eff = .978 - .019*ET.
+
+        Efficiency for these cuts under the nearest neighbor from the
+montecarlo seem to be flat at 96%.
+
+
+        To determine whether a jet passes these cuts or not you can call
+the routine: QCD_BAD_DST.  This routine returns a bit mask which describes
+what was wrong with the jet if anything. See documentation in D0$BETA:[QCD]
+An example of use follows:
+
+    INTEGER IBAD, IJET
+
+    TEMPLATE(1) = 1.
+    TEMPLATE(2) = 6.
+    TEMPLATE(3) = .7    ! Or whatever cone size you are using
+    CALL SET_CAPH('CONE_JET',TEMPLATE,IER)
+    DO IJET = 1, NJET
+       CALL QCD_BAD_DST( IJET, IBAD )
+       IF ( IBAD .EQ. 0 ) THEN
+        PRINT *, ' This jet passes all standard cuts'
+       ELSE
+        PRINT *, ' This jet failed one or more cuts'
+       ENDIF
+    ENDDO
+    CALL RESET_CAPH
+
+       To get this routine you must link with D0$BETA:[QCD]BETA_RELEASE.OPT/OPT
+
+
+******************************************************************************
+6>>                QCD JET TRIGGER EFFICIENCIES
+
+?
+
+***************************************************************************
+7>>              JET CALIBRATION                             
+
+
+    Corrections for Jets
+
+    A) There is now an official D0 package for correcting Jets, electrons,
+    photons and Missing ET. It is called CAFIX. You can include it in 
+    your analysis by including CAFIX in your list of packages:
+
+    e.g.    PBD/FRAME=D0USER/NAME=TEST/PACK=(CAFIX, MYANALYSIS )
+
+    Note it should go before your analysis code if you want to use
+    corrected values. CAFIX will correct JETS banks (only cone algorithms
+    for now), PELC/PPHO banks. And make a corrected PNUT4 and PNUT5
+    (corrected versions of PNUT2 and PNUT3 )
+
+    See D0$CALOR_OFF:CAFIX.DOC
+
+    B) Jet energy correction in NTUPLE's. You need a DST file use CAFIX.
+    If you want just jet correction values for use in things like
+    NTUPLES or other stand-alone programs you can use QCD_JET_CORRECTION.
+    In cases where the jet does not contain electrons/photons the results
+    of using QCD_JET_CORRECTION and of using CAFIX are the same.
+
+        QCD_JET_CORRECTION code is in D0$PHYSICS_UTIL$GENERAL. You must:
+
+        a)$ DEFINE QCD_JET_CORRECTION_RCP D0$PHYSICS_UTIL$GENERAL:-
+            QCD_JET_CORRECTION.RCP
+
+        b) Call the routine in one of two ways:
+
+            If you have a zebra pointer to the jet, you can use the
+routine like this:
+----------------------------------------------------------------
+        LJETS = GZJETS()            ! Pointer to jet you want to calibrate
+        DO_ZSP_CORR = .TRUE.        ! Toggle on/off various corrections
+        DO_UNDEVT_CORR = .TRUE.
+        DO_OUTOFCONE_CORR = .TRUE.
+        ISYS = 0                    ! 0 = nominal correction
+        Z_VERTEX = Z(1)             ! Z of vertex
+C
+          CALL QCD_JET_CORRECTION( LJETS, DO_ZSP_CORR, DO_UNDEVT_CORR,
+     &  DO_OUTOFCONE_CORR, Z_VERTEX, ISYS, NEW_JET_E, NEW_JET_ET,
+     &  NEW_JET_ETA,IER )
+-----------------------------------------------------------------
+            The routine will then use the LJETS pointer to determine the
+        uncorrected Energy, eta and Et of the jet as well as the cone size
+        you are using.
+
+                        OR
+
+            If you dont have a zebra pointer, first call
+------------------------------------------------------------------
+        OLDE = 100.             ! Jet Energy
+        OLDET= 100.             ! Jet ET
+        OLDETA= 0.              ! Jet physics eta
+        OLDEMF = .5             ! Not currently used
+        OLDSIZ = 1.2            ! Not currently used
+        OLDCONE = .7            ! Cone size
+        CALL QCD_JET_CORRECTION_2( OLDE, OLDET, OLDETA, OLDEMF, OLDSIZ,
+     &  OLDCONE )
+-------------------------------------------------------------------
+            Then you must set LJETS=0 and call the correction routine
+normally:
+-----------------------------------------------------------------------
+        LJETS = 0
+        DO_ZSP_CORR = .TRUE.
+        DO_UNDEVT_CORR = .TRUE.
+        DO_OUTOFCONE_CORR = .TRUE.
+        ISYS = 0                    ! 0 = nominal correction
+        Z_VERTEX = Z(1)             ! Z of vertex
+          CALL QCD_JET_CORRECTION( LJETS, DO_ZSP_CORR, DO_UNDEVT_CORR,
+     &  DO_OUTOFCONE_CORR, Z_VERTEX, ISYS, NEW_JET_E, NEW_JET_ET,
+     &  NEW_JET_ETA,IER )
+---------------------------------------------------------------------
+
+
+***************************************************************************
+8>>                LUMINOSITY TOOL                                 Jerry Blazey
+
+The most recent instructions for this tool are in
+qcd_6$root:[qcd_6.luminosity]luminosity-vxx.txt (xx=version number).
+                                                        April 19, 1993
+
+This file can be found in qcd_6$root:[qcd_6.luminosity]luminosity-v31.txt
+The program lumin_sp.exe calculates the multiple interaction and z
+vertex corrected luminosity for a specific trigger and filter.  The 
+calculation is based on information from the tape log database, our 
+own measured estimate of the rejection for the various z cuts, an 8%
+correction for microblanking and an analytic correction for multiple 
+interactions.  The database is current through run 63245, if you need
+luminosity for higher numbered runs contact FNALD0::BLAZEY.  
+
+To run the program:
+1) ACCESS QCD_6
+2) SET DEF QCD_6$ROOT:[QCD_6.LUMINOSITY]
+3) Define the logical name run_list to be a file of run numbers located
+   in your area.  For example:  DEFINE RUN_LIST USR$ROOT3:[ZIPPY]RUN.LIST.
+4) Edit the file run_list so that it contains the run numbers in which
+   you are interested.  The file format is just one run number per line.
+   See the example 'example_run.list'
+5) RUN LUMIN_SP
+6) The program will ask if you want luminosity for all runs or corresponding
+   to a run list/range.  Answer: A,a,R or r.
+7) If you answered 'R' or 'r', you'll next be be asked if you'd like
+   a run list or range.  Answer: L,l,R,r
+8) If you answered 'L' or 'l', you'll next be asked for the starting
+   and end run numbers.
+9) The program will ask you for the UPPERCASE names of the trigger
+   and the filter in which you are interested.
+   WARNING:  BE SURE OF YOUR TRIGGER AND FILTER NAMES.  VERSION 7.0 AND 
+   ABOVE MIXES NAMES AND FILTERS FROM THE EARLIER TRIGGER VERSIONS.
+   YOU CAN OVERCOUNT IF YOU ARE NOT CAREFUL!  THE PROGRAM DOESN'T KNOW
+   WHICH TRIGGERS AND FILTERS BELONG TOGETHER.  YOU DO THAT WHEN YOU
+   SPECIFY THE NAMES.
+10)Wait a minute and you'll get the 1)raw luminosity, 2)multiple interaction
+   corrected luminosity, 3)the multiple interaction and z corrected
+   luminosity, and 4)the multiple, z and microblanking corrected luminosity
+   for your trigger and filter.  You'll also get a second list of numbers
+   based on the official list maintained by the software group.  As a bonus 
+   you'll get the number of events logged to tape for your filter.
+   For now just use 12% as the error on our luminosity.  If you have
+   problems or requests contact FNALD0::BLAZEY.
+
+**************************************************************************
+9>>         Analyzing ntuples outside of Paw                F. Nang
+
+    Program exists to analyzie ntuples by linking and running a standard
+fortran .exe.  The advantage of this is that your analysis code can then
+be debugged using the DEBUGGER, you can link with all library software
+and the execution speed is much faster.
+
+    See D0$QCD:NTFRAME.DOC
+*************************************************************************
+10>>            QCD STREAMS IN RUN 1B
+
+    Below is listed the various QCD streams, their definitions and the
+corresponding logical function which decides if an event belongs it that
+stream or not. Streaming code is in D0$PHYSICS_UTIL$FILTERS:QCD*.FOR
+
+QCD triggers (event with a QCD trigger fired ) are defined by the
+logical function: QCDJETS.FOR. This routine and others checks the
+run number to decide whether the data is for run 1A or run 1B. 
+Run number 80000 is the dividing point.
+
+
+For STA:
+
+QCM stream (QCD_STA.FOR ) consisting of following triggers:
+
+EM1_GIS_HIGH
+JET_MAX
+JET_GAP_HHE
+JET_GAP_HME
+JET_GAP_MHE
+
+For DST:
+
+1) QCR stream ( QCD_GAP.FOR) 
+
+Rapidity gap triggers - all triggers with the word 'JET_GAP' contained
+within it.
+
+2) QCJ stream ( QCD_JJJ.FOR )
+
+All QCD triggers which are not in QCR
+
+For WDF:
+
+1) QCR stream ( QCD_GAP.FOR )
+   
+Rapidity gap triggers - same as above
+
+2) QCN stream ( QCD_NTR.FOR )
+
+QCD triggers that are not in QCR and were taken without tracking
+(contain string '_QNT'
+
+3) QJT stream ( QCD_QJT.FOR )
+
+QCD triggers which are not in QCR or QCN ( jet triggers with tracking )
+
+Also see PRJ$ROOT282:[QCD_7.BRANDTA.TRIGGER]QCD_TRIGGER_STRATEGY.DOC

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VQCD()
+      VQCD = ' QCD'//
+     X                   '  OFFICIAL V1.04'//
+     X                   ' 17-JUL-1997 21:46:31.16'
+      Return
+      End

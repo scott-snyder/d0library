@@ -1,0 +1,14 @@
+      SUBROUTINE JASAVE(IARRAY)
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      INTEGER IARRAY(23)
+      DO I=1,10
+        IARRAY(I)=IJ1(I+4)
+      ENDDO
+      DO I=1,10
+        IARRAY(I+10)=IJ1(I+15)
+      ENDDO
+      DO I=1,3
+        IARRAY(I+20)=IJ1(I+31)
+      ENDDO
+      RETURN
+      END

@@ -1,0 +1,445 @@
+                                                                 Andy Milder
+                                                                  12/20/92
+
+                           A Guide to the Micro DST
+
+
+                                 Introduction
+
+        The Micro DST is a compressed format that tries to keep the most 
+    pertinent information for jet analysis in as compact a form as
+    possible. It consists of several zebra banks, the MDST and the JUTL
+    as well as the optional banks CATD and CAEQ. All of these banks
+    are described here.
+
+        The MDST bank is a single zebra bank that contains all the data
+    normally held in a much larger number of zebra banks. By reducing the
+    overhead from the use of zebra banks, a sizable savings in data
+    storage space is achieved. The MDST bank contains information from 
+    the following zebra banks in the standard DST:
+
+      i)  CAPH: algorithms and cuts used to generate JETS banks.
+     ii)  JETS: jet information.
+     iv)  PMUO: muon information.
+      v)  PNUT: neutrino info.
+     vi)  PELC: electron info.
+    vii)  PTAU: tauon info.
+   viii)  PPHO: photon info.
+    The MDST bank contents are shown in Appendix II
+
+        The JUTL bank contains miscellaneous words including level 0
+    vertex information, number of tracks, and sum of E and Et in the
+    various calorimeters. It also contains a list of level 1 hit towers
+    and level 2 jet candidates. The contents are shown in Appendix III.
+
+        The CATD bank (stands for "calorimeter tower display") was 
+    originally designed for display purposes, but can be used to study
+    calorimeter energy distributions as well. It contains EM and hadronic 
+    tower Et's with a threshold of 200 (400) MeV for EM (hadronic) towers.
+    The Et is stored in a discrete fashion, in steps of 100 MeV.
+
+    The CAEQ contains all the information in the CAEP bank, but it is bit-
+    packed into 1 word instead of CAEP's 2, so it is half the size.
+
+        In an effort to save space, there are only 6 zebra banks present per
+    event. It has the following structure:
+
+            +------+
+            |      |
+            | HEAD |
+            |      |
+            +------+
+               |
+               |
+               |
+            +-------+
+            | ANLS  |
+            | -11   |
+            |       |
+            +-------+
+                |
+         +---------+----------+----------+---------+----+
+         |         |          |          |       (2 EXTRA LINKS FOR 
+     +------+  +------+   +------+   +-------+     EXPANSION)
+     | MDST |  | CATD |   | JUTL |   |       |
+     |  -1  |  | /CAEQ|   |  -3  |   |  -4   |
+     |      |  |  -2  |   |      |   |       |
+     +------+  +------+   +------+   +-------+
+
+    See Appendix II for the MDST bank description.
+    See Appendix III for the JUTL bank description.
+    See Appendix IV for the JUTL bank description.
+
+
+    1.) Using Micro DST files.
+       Accessing MDST data
+
+         Using Micro DST files is straightforward. Adding the line:
+
+         CALL PATHST('MDST')
+
+    to your analysis code before any analysis is done, setting the input file
+    to a Micro DST file, and using the GTXXXX routines is all that is required.
+    Note that one may replace the 'MDST' with a variable -- say PATH-- then
+    query the user at runtime as to whether the path is to be MDST, RECO, GEAN
+    or whatever. In this way, you can conduct your analysis on different types
+    of files without having to recompile. An effort was made to ensure
+    compatibility with the standard DST format, and as long as the user
+    retrieves the bank information using only the GTXXXX routines (where XXXX
+    can be JETS, JTSH, PMUO, PNUT, PELC, PTAU, and PPHO) there are no
+    differences. Also, the use of SET_CAPH and SHOW_CAPH is the same.
+        A list of the GTXXXX routines and their arguments is given in
+    Appendix I.
+
+
+                                  Appendix I
+
+                        How to use the GTXXXX routines.
+
+    *) GTJETS_ALL(IJETS,IVERS,E,THETA,PHI,ETA,SIG,EMFRAC,ISPL,NCELL,HOT,IER)
+   Inputs  : IJETS    [I]    JETS bank number in linear chain (begins at 1.)
+   Outputs : IVERS    [I]    Bank version,
+             E(5)     [R]    Ex,Ey,Ez,E,Et
+             THETA    [R]    Theta of jet centre
+             PHI      [R]    Phi of jet centre
+             ETA      [R]    Eta of jet centre
+             SIG(4)   [R]    SigmaX,SigmaY,EtaWidth,PhiWidth,
+             EMFRAC   [R]    EMfraction
+             ISPL     [I]    split/merge flag
+             NCELL    [I]    Num Cells > 1 GeV
+             HOT(3)   [R]    ICDfrac,CHfrac,CellRatio
+             IER      [I]    Error code;
+                              0 --- OK
+                             -4 --- No JETS bank.
+                             -5 --- IJETS jet bank nonexistent
+
+    *) GTJETS (IJETS,IVERS,E,THETA,PHI,ETA,IER)
+   Inputs  : IJETS    [I]    JETS bank number in linear chain (begins at 1.)
+   Outputs : IVERS    [I]    Bank version,
+             E(7)     [R]    Ex,Ey,Ez,E,Et,sig**2(Ex),sig**2(Ey)
+                             Ex,Ey,Ez,E,Et,sigma, EMfrac for IVERS > 1
+             THETA    [R]    Theta of jet centre
+             PHI      [R]    Phi of jet centre
+             ETA      [R]    Eta of jet centre
+             IER      [I]    Error code;
+                              0 --- OK
+                             -4 --- No JETS bank.
+                             -5 --- IJETS jet bank nonexistent
+    *) GTJETS_TOTAL (NJETS,IER)
+   Inputs  : None
+   Outputs : NJETS    [I]    Number of JETS banks in linear chain
+             IER      [I]    Error code;
+                              0 --- OK
+                             -4 --- No JETS banks (also returns NJETS = 0.)
+
+****  For the previous 3 routines, you must first call SET_CAPH to pick ****
+****  which CAPH bank ( algoritm type, cone size, etc.) will be used.   ****
+
+    *) SET_CAPH (ALGORITHM,TEMPLATE,IER)
+   Inputs  :ALGORITHM [C]     Name of algorithm: "ELECTRON","CONE_JET",
+                                                  "NN_JET"
+          TEMPLATE(*) [R]     Specify offset/value of word(s) to be checked.
+                              Format:  
+                              TEMPLATE(1)  Number of words to check in CAPH
+                              TEMPLATE(2)  Offset of word in CAPH
+                              TEMPLATE(3)  Value of word in CAPH
+                              Words 2,3 are repeated TEMPLATE(1) times.
+                              If TEMPLATE(1) = 0.0 the template is NOT used.
+   Outputs :  IER     [I]     Error code; > = 0 if OK.
+
+    *) RESET_CAPH     Must be called after GTJETS calls are done.
+                Note: Repeated calls to SET_CAPH without corresponding
+                      calls to RESET_CAPH will cause SET_CAPH to stop
+                      working!
+
+    *) SHOW_CAPH (ALGORITHM,VERSION,IER)
+   Outputs :ALGORITHM [C]     Name of algorithm (see SET_CAPH above.)
+              VERSION [I]     Version number of selected CAPH bank.
+              IER     [I]     Error flag; > = 0 if OK.
+
+    *) GTPELC (IELC,E,ET,SIG,THETA,ETA,PHI,CONE_NRG,DIST,NUM_TRCKS,IER)
+   Inputs  :  IELC    [I]     Which electron candidate you want
+   Outputs :  E(4)    [R]     Px, Py, Pz, Etot
+              ET      [R]     Transverse energy
+              SIG(4)  [R]     PXSIG**2, PYSIG**2, PTSIG, H-matrix chi-sq.
+              THETA   [R]     theta of electron
+              ETA     [R]     eta of electron
+              PHI     [R]     phi of electron
+           CONE_NRG(5)[R]     1 -- EM energy outside central tower
+                               2 -- total energy in core cone
+                               3 -- total energy in isolation cone
+                               4 -- EM energy in core cone
+                               5 -- EM energy in isolation cone
+              DIST    [R]     distance of closest approach of central track
+             NUM_TRCKS[I]     number of central tracks in cluster road
+              IER     [I]     error code; > = 0 if OK.
+
+    5) GTPELC_TOTAL (NUM_ELC,IER)
+   Inputs  :  None
+   Outputs :  NUM_ELC [I]     Total number of electrons in this event
+              IER     [I]     Error code; 0 -- OK, -4 -- no PELC banks
+
+    *) GTPMUO (IMUO,IVER,ID,IFLG,E,ET,THETA,ETA,PHI,SIG,CHISQ,TOF,XYZ,
+               R_ISO,CAL_E_LOSS,ANGLES,CONE,IMP,MU_LOSS,IER)
+   Inputs  :  IMUO    [I]     Number of muon desired
+   Outputs :  IVER    [I]     Version number
+              ID      [I]     MU+/MU-
+              IFLG(8) [I]     dedx,method of calculation,track vec,
+                              number of CD tracks in cone,quad,
+                              method of fit,quality flag,track quality
+              E(4)    [R]     (PX,PY,PZ,ENERGY)
+              ET      [R]
+              THETA   [R]     theta of muon
+              ETA     [R]     eta of muon
+              PHI     [R]     phi of muon
+              SIG(5)  [R]     error on the Ith E(I), ET
+              CHISQ   [R]     chi**2 of muon track fit
+              TOF     [R]     Time of flight
+              XYZ     [R]     X, Y AND Z WHERE TRACK DEFINED
+              R_ISO(J)[R]     various isolation values:
+                              J=1 isolation parameter (based on cells hit only)
+                              J=2 isolation parameter (based on cells
+                                  hit+neighbors)
+                              J=3 isolation parameter (cells + 2 neighbors)
+                              J=4 isolation parameter (based on cone size 0.4)
+                              J=5 isolation parameter (based on cone size 0.6)
+        CAL_E_LOSS(J) [R]     calorimeter energy associated with muon
+                              J=1 expected loss
+                              J=2 in cells + 2 neighbors
+                              J=3 in cone .4
+                              J=4 in cone .6
+            ANGLES(3) [R]     between muon and nearest CD track,D_phi,D_theta
+              CONE    [R]     cone size considered for CD track finding
+              IMP(2)  [R]     impact parameter from vertex, global fit
+              MU_LOSS [R]     E loss in muon system
+              IER     [I]     Error flag; 0 -- OK
+
+    *) GTPMUO_TOTAL (NUM_MUO,IER)
+   Inputs  :  None
+   Outputs :  NUM_MUO [I]     Total number of muons in this event
+              IER     [I]     Error code; 0 -- OK, -4 -- no PMUO banks
+
+    *) GTPNUT (INUT,ENUT,ET,TH,ETA,PHI,SIG,IER)
+   Inputs  :  INUT    [I]      particle number
+   Outputs :  ENUT(5) [R]      energy 4-vector,scalar Et
+              ET      [R]      transverse energy
+              TH      [R]      theta
+              ETA     [R]      eta (pseudo-rapidity)
+              PHI     [R]      phi
+              SIG(3)  [R]      (sigEx)**2, (sigEy)**2, sigEt
+              IER     [I]     Error flag; 0 -- OK
+
+    *) GTPNUT_TOTAL (NUM_NUT,IER)
+   Inputs  :  None
+   Outputs :  NUM_NUT [I]     Total number of nuetrinos in this event
+              IER     [I]     Error code; 0 -- OK, -4 -- no PNUT banks
+
+    *) GTPPHO (IPHO,E,ET,SIG,THETA,ETA,PHI,CONE_NRG,IER)
+   Inputs  :  IPHO    [I]     which photon candidate you want
+   Outputs :  E(4)    [R]     Px, Py, Pz, Etot
+              ET      [R]
+              SIG(4)  [R]     PXSIG**2, PYSIG**2,PTSIG, H-matrix chi-sq.
+              THETA   [R]     theta of photon
+              ETA     [R]     eta of photon
+              PHI     [R]     phi of photon
+           CONE_NRG(5)[R]     1 -- EM energy outside central tower
+                               2 -- total energy in core cone
+                               3 -- total energy in isolation cone
+                               4 -- EM energy in core cone
+                               5 -- EM energy in isolation cone
+              IER     [I]     Error flag; 0 -- OK
+
+    *) GTPPHO_TOTAL (NUM_PHO,IER)
+   Inputs  :  None
+   Outputs :  NUM_PHO [I]     Total number of photons in this event
+              IER     [I]     Error code; 0 -- OK, -4 -- no PPHO banks
+
+    *) GTPTAU (ITAU,E,ET,THETA,ETA,PHI,RMS_WIDTH,IER)
+   Inputs  :  ITAU    [I]     number of tau selected
+   Outputs :  E(4)    [R]     the Tau's 4-vector  E(1)=Px,...,E(4)=energy )
+              ET      [R]     TRANSVERSE ENERGY
+              THETA   [R]     theta
+              ETA     [R]     eta
+              PHI     [R]     phi
+             RMS_WIDTH[R]     width of the tau jets calorimeter hits
+              IER     [I]     Error flag; 0 -- OK
+
+    *) GTPTAU_TOTAL (NUM_TAU,IER)
+   Inputs  :  None
+   Outputs :  NUM_PHO  [I]     Total number of taus in this event
+              IER      [I]     Error code; 0 -- OK, -4 -- no PTAU banks
+
+
+                                  Appendix II
+
+C=======================================================================
+C
+C  Bank Name : MDST
+C  Author    : Geoff Forden
+C  Date      : 23-APR-1991
+C  Modified  : 20-DEC-1992  Andy Milder - Keep words in same order as
+C                                         original bank.
+C  Tree description :
+C
+C  Bank description :
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to
+C     +1          Up     link to
+C     +2          Origin link to
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'MDST'
+C             -3         NL = 5
+C             -2         NS = 3
+C             -1         ND = Variable
+C              0         Status
+C             +1        I        BANK VERSION NUMBER (3)
+C             +2        I        CAPH REPETITION NUMBER 
+C             +3        I        NUMBER OF CAPH BANKS
+C             +4        I        START OF CAPH INFO (LCAPH)
+C             +5        I        MUON REPETION NUMBER
+C             +6        I       # OF MUONS
+C             +7        I       START OF MUON INFO (LPMUO)
+C             +8        I       PNUT REPETITION NUMBER
+C             +9        I       NUMBER OF PNUT BANKS
+C             +10       I       START OF PNUT INFO (LPNUT)
+C             +11       I       ELECTRON REP. NUMBER
+C             +12       I       NUMBER OF ELECTRONS
+C             +13       I       START OF ELECTRON INFO (LPELC)
+C             +14       I       TAU REP. NUMBER
+C             +15       I       NUMBER OF TAUS
+C             +16       I       START OF TAU INFO (LPTAU)
+C             +17       I       PHOTON REP. NUMBER
+C             +18       I       NUMBER OF PHOTONS
+C             +19       I       START OF PHOTON INFO (LPPHO)
+C             +20       R       Z VERTEX
+C             +21       R       ERROR ON Z VERTEX
+C             +22       R       SPARE
+C CAPH INFO, CAPH AND JETS REPEATED NUM_CAPH TIMES
+C         LCAPH-1       R       JET REPETITION NUMBER
+C               0       R       START OF JET INFO (FOR THIS CAPH) (LJETS)
+C              +1-      R       CAPH BANK WORDS (SEE CAPH.ZEB)
+C  JETS INFO, REPEATED NUM JETS TIMES
+C         LJETS+1-      R       JETS BANKS WORDS (SEE JETS.ZEB)
+C  MUON INFO, REPEATED NUM PMUO TIMES
+C         LPMUO+1-      R       PMUO BANK WORDS (SEE PMUO.ZEB)
+C  NEUTRINO INFO, REPEATED NUM_PNUT TIMES
+C         LPNUT+1-      R       PNUT BANK WORDS (SEE PNUT.ZEB)
+C  ELECTRON INFO, REPEATED NUM_ELC TIMES
+C         LPELC+1-      R       PELC BANK WORDS (SEE PELC.ZEB)
+C    LPELC+PELC_REP+1   R       ELECTRON H-MATRIX CHI-SQ. (FROM HMTE)
+C  TAUON INFO, REPEATED NUM_TAU TIMES
+C         LPTAU+1-      R       PTAU BANK WORDS (SEE PTAU.ZEB)
+C  PHOTON INFO, REPEATED NUM_PHOT TIMES
+C         LPPHO+1-      R       PPHO BANK WORDS (SEE PPHO.ZEB)
+C    LPPHO+PPHO_REP+1   R       PHOTON H-MATRIX CHI-SQ. (FROM HMTP)
+C=======================================================================
+C VERSION 3:
+C    H-MATRIX CHI-SQ word for both PPHO and PELC is now truncated chi-square
+C            (word 7 of PELC/PPHO)
+C    Add 8 words for each PELC/PPHO candidate:
+C    +1  Byte 1 of Clean EM status word ( PELC + 30 ) 
+C    +2  Byte 2 "   "   "       "   " 
+C    +3  Byte 3 
+C    +4  Byte 4 "   "   "       "   "
+C    +5  N cells from CASH  ( CASH + 2 )
+C    +6  ET IN CONE .4      ( CACL + 29)
+C    +7  ET IN CONE .4      ( CACL + 30)
+C    +8  ET IN CONE .4      ( CACL + 31)
+C    Add additional 13 words for PELC only
+C    +9  Phi trk            ( ZFIT + 10 )
+C    +10 theta trk          ( ZFIT + 13 )
+C    +11 xcog trk           ( ZFIT + 11 )
+C    +12 ycog trk           ( ZFIT + 12 )
+C    +13 zcog trk           ( ZFIT + 15 )
+C    +14 cdcmip              ( DTRK + 20 )
+C    +15 fdcmip             ( FDCT + 20 )
+C    +16 vtxmip             ( TRDT + 6 )
+C    +17 likelihood         ( TRDT + 16 )
+C    +18 efficiency         ( VTXT + 20 )
+C    +19 trd info         from ( TRDT + 2 )
+C    +20 trd truncated mean           ( TRDT + 5 )
+C    +21 cal eta             ( PELC/PPHO + 19 )
+C---------------------------------------------------------------
+                            Appendix III
+C=======================================================================
+C
+C  Bank Name : JUTL
+C  Author    : Richard V. Astur
+C  Date      : 15-DEC-1992
+C  Tree description : Jets Utility Bank - for QCD DST/STA
+C
+C  Bank description : mother=ANLS
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to
+C     +1          Up     link to
+C     +2          Origin link to
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'JUTL'
+C             -3         NL = 1
+C             -2         NS = 1
+C             -1         ND = variable
+C              0         Status
+C             +1    version number (=1)
+C             +2    QCD filter bit mask
+C             +3    L0 slow vertex z
+C             +4    L0 SLOW_GOOD_Z 1/0 = T/F
+C             +5    Multiple interaction flag (1-4)
+C             +6    L0 fast vertex z
+C             +7    L0 FAST_GOOD_Z 1/0 = T/F
+C             +8    Total # of CDC tracks found
+C             +9    Sum ET in CC
+C             +10   Sum ET in EC's
+C             +11   Sum E in CC
+C             +12   Sum E in EC's
+C             +13-ND List of L1 and L2 jet candidates
+C=======================================================================
+
+
+
+                            Appendix IV
+C=======================================================================
+C
+C  Bank Name : CAEQ
+C  Author    : Andrew J. Milder
+C  Date      : 29-APR-1992
+C  Tree description : 
+C
+C  Bank description : COMPRESSED CAEP
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   none
+C     +1          Up     link to ANLS 
+C     +2          Origin link to ANLS
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'CAEQ'
+C             -3         NL = 1
+C             -2         NS = 1
+C             -1         ND = variable
+C              0         Status
+C              1         Version number
+C              2         Header length (6)
+C              3         EM       Energy threshold in MeV 
+C              4         Hadronic Energy threshold in MeV
+C              5         ICD/MG   Energy threshold in MeV
+C              6         Number of channels (NCH)
+C              7         Bit-packed eta, phi, layer and energy for 1st
+C                          channel.
+C             6+NCH      last channel
+C=======================================================================
+C                   Bit-packing in bank
+C                   1-7   : ieta ( 1 to 37 => -37 to -1)
+C                                (38 to 74 => 1 to 37  )
+C                   8-13  : iphi - 1
+C                  14-18  : ilyr
+C                     19  : iscale ( 0 -> scale of 1 MeV )
+C                                  ( 1 -> scale of 50 MeV )
+C                  20-32  : energy offset -50 MeV to keep negative E cells
+C

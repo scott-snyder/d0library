@@ -1,0 +1,22 @@
+      SUBROUTINE JPLANE(X,Y,Z)
+C
+      REAL R2,X,Y,Z
+      INCLUDE 'D0$INC:DI3INC.INC'
+      R2 = X*X + Y*Y + Z*Z
+      IF(R2.LE.0)THEN
+        WRITE(JUNIT,*)'JPLANE CALLED WITH ZERO VECTOR'
+        RETURN
+      ENDIF
+      XPLANE=X
+      YPLANE=Y
+      ZPLANE=Z
+      R=SQRT(R2)
+      XPLANN=X/R
+      YPLANN=Y/R
+      ZPLANN=Z/R
+      IF(.NOT.PUTS)RETURN
+      IF(PUTSUP)RETURN
+      CALL J_PUTSG(IPLANE,X)
+      CALL J_PUTSG(IPLANE,Y)
+      CALL J_PUTSG(-IPLANE,Z)
+      END

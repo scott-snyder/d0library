@@ -1,0 +1,7 @@
+      SUBROUTINE JVUPNT(X,Y,Z)
+      REAL X,Y,Z,R2
+      INCLUDE 'D0$GRAPHICS_UTIL$XWNDI3:XWNEMU.INC'
+      XVW=X
+      YVW=Y
+      ZVW=Z
+      END

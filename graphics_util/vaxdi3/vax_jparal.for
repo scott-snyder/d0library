@@ -1,0 +1,4 @@
+      SUBROUTINE JPARAL
+      INCLUDE 'D0$INC:DI3INC.INC'
+      IPROJ=1
+      END

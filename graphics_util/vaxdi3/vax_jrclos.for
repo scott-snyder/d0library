@@ -1,0 +1,6 @@
+      SUBROUTINE JRCLOS
+      INCLUDE 'D0$INC:DI3INC.INC'
+      ISEGNM=-1
+      PUTS=.FALSE.
+      CALL J_FORCE
+      END

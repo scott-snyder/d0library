@@ -1,0 +1,52 @@
+                                                                Rich Astur
+                                                                8/5/92
+
+    We are using the following routine to determine whether any given EVENT
+(not jet or electron) might be contaminated by 'hot' cells or main ring.
+
+
+    CALL QCD_BAD( BAD_WORD, N_BAD, ETA_BAD, PHI_BAD, LAY_BAD )
+
+Where: [R] BAD_WORD = 0 -> event is okay
+                    = 1 -> failed CH fraction cut
+                    = 2 -> failed max cell cut
+                    = 4 -> failed level 1/ level 2 cut
+
+        (Note, that events that fail more than one cut will be flagged by
+         the binary representation of these numbers (e.g. 6= 4+2 ) )
+         Also, the following 4 words depend on BAD_WORD
+
+       [R] N_BAD = # of 'bad' conditions (e.g. # of trig towers that fail
+                                            the L1/L2 cut )
+       [R] ETA_BAD= eta of jet        BAD_WORD=1
+                    ieta of max cell  BAD_WORD=2
+                  lv1 ieta of tower   BAD_WORD=3
+
+       [R] PHI_BAD= Same as above, but phi
+       [R] LAY_BAD= ilayer of max cell BAD_WORD=2
+
+        I have already modified the L1-L2 ntuple to include these 5 words.
+
+The cuts are currently set at 
+    CH FRACTION CUT                 CH/TOT     < .4                     
+    HOT CELL CUT                    EMAX2/EMAX > .10
+    LEVEL1/LEVEL2 CUT done as follows:
+
+    L1_EM_ET = L1 EM ET of trigger tower
+    L1_HD_ET = L1 Hadronic ET of trigger tower
+    CAL_EM_ET= ET calculated from adding the ET values (according to CAEH bank)
+        of all EM cells in that trigger tower.
+    CAL_HD_ET= ET calculated from adding the ET values (according to CAEH bank)
+        of all Fine Hadronic cells in that trigger tower.
+
+    Require L1_EM_ET > SLOPE_EM(TT)* CAL_EM_ET - OFFSET_EM(TT)
+            L2_HD_ET > SLOPE_HD(TT)* CAL_HD_ET - OFFSET_HD(TT)
+
+    Where both the SLOPE and the OFFSET depend on which trigger tower
+    eta is being tested.  These numbers were recently released by Kathy
+    Streets.
+    This EM cut is only applied for trigger towers in which 
+    L1_EM_ET > 3 GeV .AND. CAL_EM_ET > 3 GeV
+    and, similarly, the HD cut is only applied for trigger towers in which
+    L1_HD_ET > 3 GeV .AND. CAL_HD_ET > 3 GeV
+

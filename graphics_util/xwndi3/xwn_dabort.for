@@ -1,0 +1,3 @@
+      LOGICAL FUNCTION DABORT()
+      DABORT=.FALSE.
+      END

@@ -1,0 +1,4 @@
+      SUBROUTINE JIESCP
+      INCLUDE 'D0$INC:DI3INC.INC'
+C       WRITE(JUNIT,*)'JIESCP dummied'
+      END

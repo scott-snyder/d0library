@@ -1,0 +1,177 @@
+C----------------------------------------------------------------------
+C
+C                   DDDDDDDD           0000   0
+C                   D       D         0    0 0
+C                   D        D       0      0
+C                   D         D     0      0 0
+C                   D         D     0     0  0
+C                   D         D     0    0   0
+C                   D         D     0   0    0
+C                   D         D     0  0     0
+C                   D        D       00     0
+C                   D       D        00    0
+C                   DDDDDDDD        0  0000
+C
+C
+C----------------------------------------------------------------------
+C
+C#######################################################################
+      PROGRAM NTFRAME
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : General template for doing stand-alone analysis
+C-                         directly on a NTUPLE.  Adapted from a program
+C-                         by Marc Paterno and with many thanks to him!
+C-
+C-                         This routine will open a NTUPLE and allow you to do
+C-                         analysis on it just like you would in a PAW fortran
+C-                         file which is created using UWFUNC.  It is designed
+C-                         so that the user has a list of ntuple files in a
+C-                         RCP file to be read out by this program.
+C-
+C-                         To use this program you must:
+C-                          a) Define the logical NTUP_RCP to point to the RCP
+C-                             file containing the NTUPLES.
+C-                          b) Change RECL to the record length of the
+C-                             NTUPLE(s) if needed
+C-                          c) Change NTUPLE_ID to the ID of the NTUPLE if
+C-                             needed
+C-                          d) Change NTNAME to point to the subdirectory
+C-                             where the NTUPLE is in the file
+C-                          e) Change NWORDS to be the number of words in the
+C-                             NTUPLE in question
+C-   Inputs  : NONE
+C-   Outputs : ANALYSIS.HST
+C-   Controls: NTUP_RCP
+C-
+C-   Created   Marc Paterno
+C-   Updated   Rich Astur, Terry Geld, Freedy Nang
+C-   Updated  27-SEP-1993   Freedy Nang  handles sudirectories now!
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      CHARACTER*5 TOPNAME               ! Name of top directory
+      CHARACTER*80 NTNAME               ! Ntuple name
+      CHARACTER*1 READONLY
+      PARAMETER( READONLY = ' ' )
+      INTEGER RECL                      ! This is the NTUPLE record length,
+      PARAMETER( RECL = 8191 )          ! change it if necessary
+      INTEGER NTUPLE_ID
+      PARAMETER( NTUPLE_ID = 1 )        ! NTUPLE ID, replace if necessary
+      INTEGER IER, IER2, NEVENTS, COUNT, ICYCLE
+      INTEGER NWORDS                    ! Set this to the number of
+      PARAMETER( NWORDS = 181 )         ! WORDS in the NTUPLE
+      LOGICAL NEWFILE
+      PARAMETER( NEWFILE = .FALSE. )
+      INTEGER IDNEVT, VIDN1, VIDN2, VIDN3 ! For PAWIDN common
+
+      INTEGER NFILES, INF, MAXFILES, IGNORE
+      PARAMETER( MAXFILES = 99 )          ! Maximum number of files
+      CHARACTER*80 FNAMES(MAXFILES)
+C
+C ****  NTUPLE VARIABLES
+C
+C     **** Get list of NTUPLE variables from PAW and put them here  ***
+C
+C ****  USER VARIABLES
+C
+C     *** Define variables needed for personal analysis
+C
+C----------------------------------------------------------------------
+      REAL    X(-3:NWORDS)
+      EQUIVALENCE ( IDNEVT, X(-3) )
+C----------------------------------------------------------------------
+C
+C ****  OPEN OUTPUT FILES
+C
+      OPEN (68, FILE='ANALYSIS.HST', FORM='UNFORMATTED', RECL=1024,
+     &  ACCESS= 'DIRECT', STATUS = 'NEW') ! Histogram file
+      OPEN (69, FILE='ANALYSIS.OUT', FORM='FORMATTED', STATUS= 'NEW')
+C
+C ****  ZEBRA and HBOOK initialization
+C
+      CALL INZBRA
+      CALL INZSTP
+      CALL INPAWC
+      CALL INRCP('NTUP_RCP',IER)
+      IF ( IER.EQ.0 ) THEN
+        CALL EZPICK ('NTUP_RCP')
+        CALL EZ_GET_CHARS('NTUPLE_FILES', NFILES, FNAMES, IER)
+        IF ( NFILES.LE.0 ) THEN
+          STOP ' NO FILES SPECIFIED '
+        ELSE IF ( NFILES.GT.MAXFILES) THEN
+          STOP ' TOO MANY FILES SPECIFIED '
+        ENDIF
+        CALL EZRSET
+      ELSE
+        STOP 'Could not read NTUP_RCP'
+      ENDIF
+C
+C ****  Loop over NTUPLE files
+C
+C     TOPNAME = 'LUN1'                    ! Just a name
+
+      NEVENTS = 0
+      DO INF =  1, NFILES
+        IF ( INF.LT.10 ) THEN
+          WRITE(TOPNAME,FMT='(''LUN'',I1)')INF
+        ELSE
+          WRITE(TOPNAME,FMT='(''LUN'',I2)')INF
+        ENDIF
+
+        COUNT = 1
+
+        CALL NTUPLE_FILE_OPEN(NTUPLE_ID,NEWFILE,FNAMES(INF),RECL,
+     &    TOPNAME,IER)
+        IF ( IER.NE.0 ) THEN
+          STOP 'FAILED to open NTUPLE'
+        ENDIF
+C
+C ****  Change to subdirectory if needed
+C
+C        NTNAME  = '//LUN1/CALORIMETER/CAJETS' ! Put subdirectory name here
+C        CALL HCDIR(NTNAME,' ')
+
+C
+C ****  Book them
+C
+C   **** BOOK HISTOGRAMS HERE
+
+C
+C ****  Loop over all entries in NTUPLE
+C
+        IER = 1
+        CALL HGN ( NTUPLE_ID, IGNORE, COUNT, X(1), IER)
+        IF ( IER.EQ.0 ) PRINT *,' Read first event from NTUPLE!'
+        DO WHILE ( IER.EQ.0 )
+          NEVENTS = NEVENTS + 1
+          IF ( MOD(NEVENTS,10000).EQ.0 ) WRITE(*,*) 'Events: ', NEVENTS
+C
+C ****  USER'S CODE GOES AFTER THIS LINE
+C
+C#######################################################################
+
+C       *******  USER'S CODE TO BE CONFINED WITHING THESE     *******
+C       *******  BORDERS.  ALL VIOLATORS WILL BE PROSECUTED   *******
+C       *******      TO THE FULLEST EXTEND OF THE LAW!        *******
+C       *******           THIS IS YOUR ONLY WARNING           *******
+
+C#######################################################################
+C
+C ****  ALL USER'S CODE GOES ABOVE THIS LINE
+C
+          COUNT = COUNT + 1
+          CALL HGN ( NTUPLE_ID, IGNORE, COUNT, X(1), IER)
+        ENDDO
+        WRITE (*,*) ' Total number of events processed: ', NEVENTS
+        CALL NTUPLE_CLOSE (TOPNAME,IER2)  ! delete the NTUPLE from memory
+        WRITE (*,*) ' Current counts: ', COUNT-1, NEVENTS
+      ENDDO
+
+      CALL HRFILE(68, 'QCD', 'N')
+      CALL HROUT (0, ICYCLE, ' ')
+      CALL HREND ('QCD')
+      CLOSE (68)
+      CLOSE (69)
+C----------------------------------------------------------------------
+      END

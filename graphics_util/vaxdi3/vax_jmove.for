@@ -1,0 +1,9 @@
+      SUBROUTINE JMOVE(X,Y)
+      REAL X,Y
+      INCLUDE 'D0$INC:DI3INC.INC'
+      XPOSN=X
+      YPOSN=Y
+      IF(.NOT.PUTS)RETURN
+      CALL J_PUTSG(I2MOVE,X)
+      CALL J_PUTSG(-I2MOVE,Y)
+      END

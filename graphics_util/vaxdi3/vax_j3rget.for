@@ -1,0 +1,6 @@
+      SUBROUTINE J3RGET(ICOD,V1,V2,V3)
+      INCLUDE 'D0$INC:DI3INC.INC'
+      V1=RJ3(1,ICOD)
+      V2=RJ3(2,ICOD)
+      V3=RJ3(3,ICOD)
+      END

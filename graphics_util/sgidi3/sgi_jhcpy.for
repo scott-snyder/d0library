@@ -1,0 +1,7 @@
+C DEC/CMS REPLACEMENT HISTORY, Element JHCPY.FOR
+C *1     3-JUN-1992 13:55:54 LUPE "Release of DI3GL after split"
+C DEC/CMS REPLACEMENT HISTORY, Element JHCPY.FOR
+      SUBROUTINE JHCPY
+C routine to generate hardcopy from screen
+      INCLUDE 'D0$GRAPHICS_UTIL$SGIDI3:DI3GL.INC'
+      END

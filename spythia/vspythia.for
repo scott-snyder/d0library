@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VSPYTHIA()
+      VSPYTHIA = ' SPYTHIA'//
+     X                   '  OFFICIAL V0.02'//
+     X                   ' 17-JUL-1997 22:12:26.37'
+      Return
+      End

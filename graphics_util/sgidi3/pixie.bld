@@ -1,0 +1,68 @@
+#! /bin/csh -f
+#--------------------------------------------------
+#
+# Name:     pixie.bld
+#
+# Purpose:  Standard link script for PIXIE using 
+#           SGIDI3 emulator.
+# 
+# Arguments: None
+#
+# Created 03-DEC-1992 Herb Greenlee and Lupe Howell
+#
+#--------------------------------------------------
+source `uff $d0unix/d0local.cshrc`
+#
+# Include gamma release of graphics_util
+#
+#libtest -g graphics_util
+#
+# Include in the link the beta release of pixie
+#
+libtest -b pixie
+libtest -b graphics_util
+make pre
+make debug
+#
+# Force the main program pixie out of the library
+#
+ar xl deb_userlib.a pixie.o
+if(! -f pixie.o )ar x `ff $d0pixie/deb_pixie.a` pixie.o
+#
+# Compile and link
+#
+f77  -o pixie_display -Wl,-U -Wl,-u,dbank_ $d0pixie/source/pixie.f \
+  `force_load -c deb_userlib.a` `ff deb_userlib.a` \
+  `ff $d0graphics_util/deb_sgicompack.a` \
+  `ff $d0graphics_util/deb_sgidi3.a` \
+  `ff $d0pixie/deb_pixie.a` \
+  `ff $d0graphics_util/deb_sgicompack.a` \
+  `ff $d0graphics_util/deb_sgidi3.a` \
+  `ff $d0d0user/deb_physics.a` \
+  `ff $d0calor_off/deb_calor_off.a` \
+  `ff $d0muon_reco/deb_muon_reco.a` \
+  `ff $d0muon_reco/deb_mureco_geant.a`\
+  `ff $d0calor_util/deb_calor_util.a` \
+  `ff $d0cd_util/deb_cd_util.a` \
+  `ff $d0trd_util/deb_trd_util.a` \
+  `ff $d0cdc_util/deb_cdc_util.a` \
+  `ff $d0fdc_util/deb_fdc_util.a` \
+  `ff $d0vtx_util/deb_vtx_util.a` \
+  `ff $d0cd_util/deb_cd_util.a` \
+  `ff $d0muon_util/deb_muon_util.a` \
+  `ff $d0dbl3/deb_d0dbl3.a` \
+  `ff $d0dbl3/deb_dbl3.a` \
+  `ff $d0dbl3/cpc_dummy.o` \
+  `ff $d0general/deb_general.a` \
+  `ff $d0graphics_util/deb_sgicompack.a`  \
+  `ff $d0unix/deb_unix.a` \
+  `ff $d0cernlib/graflib.a` \
+  `ff $d0cernlib/grafDI3.a` \
+  `ff $d0graphics_util/deb_sgidi3.a` \
+  `ff $d0cernlib/packlib.a` \
+  `ff $d0cernlib/genlib.a` \
+  `ff $d0cernlib/kernlib.a` \
+  -lcurses \
+  -lfgl \
+  -lgl_s \
+  -lm

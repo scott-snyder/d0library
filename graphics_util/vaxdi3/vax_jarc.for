@@ -1,0 +1,23 @@
+      SUBROUTINE JARC(X0,Y0,Z0,R,NSEG,A0,A1)
+      INCLUDE 'D0$INC:DI3INC.INC'
+      IF(NSEG.GE.1)THEN
+        NS=NSEG
+      ELSE
+        NS=100
+      ENDIF
+      DPHI=(3.14159/180.)*(A1-A0)/NS
+      PHI=(3.14159/180.)*A0
+      CSD=COS(DPHI)
+      SND=SIN(DPHI)
+      CS=COS(PHI)
+      SN=SIN(PHI)
+      CALL J3MOVE(X0+R*CS,Y0+R*SN,Z0)
+      DO 111 I=1,NS
+        CSPR=CS*CSD-SN*SND
+        SNPR=SN*CSD+CS*SND
+        CALL J3DRAW(X0+R*CSPR,Y0+R*SNPR,Z0)
+        CS=CSPR
+        SN=SNPR
+  111 CONTINUE
+      CALL J3MOVE(X0,Y0,Z0)
+      END

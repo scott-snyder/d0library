@@ -1,0 +1,9 @@
+C DEC/CMS REPLACEMENT HISTORY, Element JPMARK.FOR
+C *1     3-JUN-1992 14:19:34 LUPE "Release of DI3GL after split"
+C DEC/CMS REPLACEMENT HISTORY, Element JPMARK.FOR
+      SUBROUTINE JPMARK(X,Y,N)
+      REAL X(2),Y(2)
+      DO I=1,N
+        CALL JMARK(X(I),Y(I))
+      ENDDO
+      END

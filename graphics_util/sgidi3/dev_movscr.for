@@ -1,0 +1,20 @@
+      SUBROUTINE DEV_MOVSCR(XX,YY)
+      INCLUDE 'D0$GRAPHICS_UTIL$SGIDI3:DI3GL.INC'
+      IF(IDV.EQ.1) THEN
+        CALL PS_MOVSCR(XX,YY)
+      ELSEIF(IDV.EQ.4) THEN
+        CALL QM_MOVSCR(XX,YY)
+      ELSE
+        CALL TK_MOVSCR(XX,YY)
+      ENDIF
+      RETURN
+C--------------------------------------
+      ENTRY DEV_DRASCR(XXX,YYY)
+      IF(IDV.EQ.1) THEN
+        CALL PS_DRASCR(XXX,YYY)
+      ELSEIF(IDV.EQ.4) THEN
+        CALL QM_DRASCR(XXX,YYY)
+      ELSE
+        CALL TK_DRASCR(XXX,YYY)
+      ENDIF
+      END

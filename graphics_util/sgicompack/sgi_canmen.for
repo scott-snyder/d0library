@@ -1,0 +1,12 @@
+      SUBROUTINE CANMEN
+C-   Purpose and Methods : Cancel an interrupt menu.
+C-   Controls: ASTFLG is set to .FALSE. as is QIOFLG
+      INCLUDE 'D0$GRAPHICS_UTIL$SGICOMPACK:MAINPACK.INC'
+      IF(.NOT.ASTFLG) RETURN
+C      QIOFLG=.FALSE.
+      CANFLG=.TRUE.
+      ASTFLG=.FALSE.
+C  PICK UP THE CURRENT INTERRUPT MENU AND DELETE IT
+      IF(VD_IDI.NE.0) CALL DELE_DISP(VD_IDI)
+      IRNOW=0
+      END

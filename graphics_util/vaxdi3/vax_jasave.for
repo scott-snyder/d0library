@@ -1,0 +1,16 @@
+      SUBROUTINE JASAVE(IARRAY)
+      INCLUDE 'D0$INC:DI3INC.INC'
+      INTEGER IARRAY(23)
+      DO 100 I=1,10
+  100 IARRAY(I)=IJ1(I+4)
+      DO 60 I=1,10
+        IARRAY(I)=IJ1(I+4)
+   60 CONTINUE
+      DO 61 I=1,10
+        IARRAY(I+10)=IJ1(I+15)
+   61 CONTINUE
+      DO 63 I=1,3
+        IARRAY(I+20)=IJ1(I+31)
+   63 CONTINUE
+      RETURN
+      END

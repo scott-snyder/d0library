@@ -1,0 +1,83 @@
+    RGSEARCH    1-May-1995
+    Harrison B. Prosper
+    Chip Stewart
+
+    Updated    25-Oct-1995  HBP
+    
+
+    (A) INTRODUCTION
+
+    Conventional analyses  separate signal from  background by applying a set of
+cuts  z1>x1,  z2>x2,...,  which we  shall here  refer to as  a  cut-point, in an
+n-dimensional  feature  space. The cuts  are usually  arrived at  by a laborious
+process of trial and error and common sense. Ideally, the cuts should be arrived
+at by performing a grid  search. However, a regular  grid search can spend a lot
+of time  scanning regions of  feature space  that have few  points and spend the
+same amount of time scanning regions  that are dense in points. It would be more
+efficient to put most of the computing cycles where there are most points. 
+
+    The best way to do that is to use  the Monte Carlo generated distribution of
+points X=(x1,...,xn) as the set of cut points. This is what the program RGSEARCH
+does. Actually, there is  absolutely *no*  restriction on how the cut-points are
+distributed. They could, for example,  be distributed on a regular n-dimensional
+grid. When we use, for  example, the distribution of  the signal as the supplier
+of  cut-points we  refer to the  search as  an  "importance-sampled  random-grid
+search". (PS: If you can find a  catchier phrase than this we would be delighted
+to hear of it!)
+
+    (B) HOW IT WORKS
+
+    RGSEARCH, which is controled by the  RCP file RGSEARCH.RCP, loops over every
+cut-point---supplied in a row-wise  ntuple, and for every cut-point computes the
+number of events that pass the  cut-point and the relative efficiency (and error
+thereof)  for  the  data-set of  interest.  The  latter is  also  required to be
+supplied as a row-wise  ntuple. The relative error  is just the number of events
+that pass the  cut-point divided by the  total number of  events in the searched
+file. The error is computed assuming a binomial distribution.
+
+    The program requires one ntuple file  (the CUT_NTUPLE) to provide the set of
+possible   cut-points and one  or more  input  ntuple files   (INP_NTUPLE) to be
+searched. The ntuples  need *not* be structurally  identical. However, they must
+contain  the the  same  sub-set of   identically  named  fields that  define the
+n-dimensional space to be searched. The sub-set of fields need *not* be arranged
+the same way in the ntuples.
+
+    The  sub-set of  fields,  called  patterns,  must be  specified  in your own
+RGSEARCH.RCP file in the array  PATTERNS_INPUTS. The ntuple defining the cuts is
+given in the array CUT_NTUPLE; the list  of input ntuples to be processed (which
+can  contain the  ntuple  specified as  the cut  ntuple) is  given in  the array
+INP_NTUPLE and OUT_NTUPLE contains the  name of the output ntuple. The syntax of
+the INP_NTUPLE array variable is
+
+        \ARRAY INP_NTUPLE
+        !   FILE        LABEL   NPATTERNS   CATEGORY    [WEIGHT]
+            'DATA       DAT'
+            'BACKGROUND QCD     2000        BKG'
+            'SIGNAL     TOP     2000        SIG'
+        \END
+
+        FILE     lists the input row-wise ntuples
+        LABEL    is used to denote the event count passing a cut (3-chars max.)
+        NPATTERN is the maximum number of events to be used from the file.
+                    If NPATTERN=0 all the events in the file will be used.
+        CATEGORY is the string BKG for background and SIG for anti-background
+        [WEIGHT] is an optional parameter giving each file a characteristic
+                 event weight.
+
+    (C) RUNNING IT 
+
+        1. Type     LIBTEST NEURAL
+                    D0SETUP NEURAL   and select option 2
+    
+        2. Copy     COPY/LOG D0$NEURAL:RGSEARCH.RCP []
+
+        3. Edit     RGSEARCH.RCP as appropriate
+
+        4. Type     RGS to run the program
+
+
+    (D) PERFORMANCE 
+
+    A run with 2400 cut-points and an ntuple containing 2600 patterns takes
+tens of seconds on D0SFA.
+

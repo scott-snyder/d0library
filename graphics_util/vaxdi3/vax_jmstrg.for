@@ -1,0 +1,5 @@
+      SUBROUTINE JMSTRG
+C
+      INCLUDE 'D0$INC:DI3INC.INC'
+C       WRITE(JUNIT,*)'JMSTRG dummied'
+      END
