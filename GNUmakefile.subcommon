@@ -3,6 +3,12 @@ TMP_OPT := $(THISDIR)/tmp_opt
 TMP_DEB := $(THISDIR)/tmp_deb
 TMP_SRC := $(THISDIR)/tmp_src
 
+ifeq (,$($(PACKAGE)_EXCEPT_DIR))
+ EXCEPT_DIR_PATS :=
+else
+ EXCEPT_DIR_PATS := $(foreach d,$($(PACKAGE)_EXCEPT_DIR),$(THISDIR)/$(d)/%)
+endif
+
 ifeq (,$(wildcard $(TMP_OPT)))
   $(shell mkdir -p $(TMP_OPT))
 endif
@@ -20,6 +26,7 @@ else
 SOURCE_FOR := $(filter-out $(THISDIR)/tmp_src/%.for,\
                  $(wildcard $(THISDIR)/*/*.for))
 endif
+SOURCE_FOR := $(filter-out $(EXCEPT_DIR_PATS), $(SOURCE_FOR))
 ifneq (,$($(PACKAGE)_EXCEPT_FOR))
 EXCEPT_FOR := $(foreach s,$($(PACKAGE)_EXCEPT_FOR),\
                 $(wildcard $(THISDIR)/*/$(s)))
@@ -37,6 +44,7 @@ else
 SOURCE_F := $(filter-out $(THISDIR)/tmp_src/%.f,\
                  $(wildcard $(THISDIR)/*/*.f))
 endif
+SOURCE_F := $(filter-out $(EXCEPT_DIR_PATS), $(SOURCE_F))
 ifneq (,$($(PACKAGE)_EXCEPT_F))
 EXCEPT_F := $(foreach s,$($(PACKAGE)_EXCEPT_F),\
                 $(wildcard $(THISDIR)/*/$(s)))
@@ -60,6 +68,7 @@ EXCEPT_C := $(foreach s,$($(PACKAGE)_EXCEPT_C),\
                 $(wildcard $(THISDIR)/*/$(s)))
 SOURCE_C := $(filter-out $(EXCEPT_C),$(SOURCE_C))
 endif
+SOURCE_C := $(filter-out $(EXCEPT_DIR_PATS), $(SOURCE_C))
 OBJECT_C := $(patsubst %.c,%.o,$(notdir $(SOURCE_C)))
 OBJECT_C_OPT := $(addprefix $(TMP_OPT)/,$(OBJECT_C))
 OBJECT_C_DEB := $(addprefix $(TMP_DEB)/,$(OBJECT_C))

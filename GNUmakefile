@@ -1,5 +1,8 @@
 TOPDIR := .
 BINDIR := $(TOPDIR)/bin
+ifeq (,$(wildcard $(BINDIR)))
+  $(shell mkdir -p $(BINDIR))
+endif
 
 F77 := g77
 F77_DEB_FLAGS := -g
