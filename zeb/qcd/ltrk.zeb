@@ -1,0 +1,83 @@
+C=======================================================================
+C
+C  Bank Name : LTRK
+C  Author    : Brent J. May
+C  Date      :  8-JUL-1993
+C  Tree description : 
+C
+C  Bank description : Packed CDC/FDC Tracking Bank for QCD micro DST/STA
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to none
+C     +1          Up     link to MDST 
+C     +2          Origin link to MDST
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'LTRK'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = NR*(NCDC+NFDC)+4     (variable)
+C              0         Status
+C=======================================================================
+C             +1         NV = 1    version number
+C             +2         NR = 6    repetion number
+C             +3         NCDC      number of CDC tracks
+C             +4         NFDC      number of FDC tracks
+C             +5    F    X0    x CDC track center of gravity
+C             +6    F    Y0    y CDC track center of gravity
+C             +7    F    Z0    z CDC track center of gravity
+C             +8    B    Packed THETA, PHI of CDC track
+C                           bits  0-15:  Theta * 1e4
+C                           bits 16-32:  Phi * 1e4
+C             +9    B    Packed CDC: NHIT, CHI_XY, NZ, CHI_RZ
+C                           Byte(1) = NHIT  number of xy wire hits 
+C                           Byte(2) = chi square on xy fit
+C                           Byte(3) = NZ    number of rz wire hits
+C                           Byte(4) = chi square on rz fit
+             +10    B    Packed Ionization  Byte(1)-Byte(3)
+C
+C              .
+C              .  (words 5-10 repeated NCDC times)
+C              .
+C
+C     +NR*NCDC+5    F    X0    x track center of gravity
+C          "  +6    F    Y0    y track center of gravity
+C          "  +7    F    Ionization of track 
+<C          "  +8    B    Packed THETA, PHI of track
+C                           bits  0-15:  Theta * 1e4
+C                           bits 16-32:  Phi * 1e4
+C          "  +9    B    Packed NFIT, CHI2, NHIT
+C                           Byte(1) = NFIT  number used in fit 
+C                           Byte(2) = normalized chi square
+C                           Byte(3) = NHIT  number of xy wire hits 
+C          "  +10    B    Status Word
+C                          = 0 or 1 Perfect, clean track.
+C                       bit  0: 1 if track in half 1, else 0
+C                       bit  1: 1 if track was built using only a theta
+C                              segment and the primary vertex
+C                       bit  2: Layer 0 missing
+C                       bit  3: Layer 1 missing
+C                       bit  4: Layer 2 missing
+C                       bit  5: Layer 0 Sector crowded (ave hits/wire > 4.)
+C                       bit  6: Layer 1 Sector crowded
+C                       bit  7: Layer 2 Sector crowded
+C                       bit  8: Layer 0 segment used twice
+C                       bit  9: Layer 1 segment used twice
+C                       bit 10: Layer 2 segment used twice
+C                       bit 11: Layer 0 segment is X-sector
+C                       bit 12: Layer 1 segment is X-sector
+C                       bit 13: Layer 2 segment is X-sector
+C                       bit 14: Layer 0 segment Has large slope ( > 1.0 )
+C                       bit 15: Layer 1 segment Has large slope
+C                       bit 16: Layer 2 segment Has large slope
+C                       bit 17: Track doesn't point to beam line (del phi>0.1)
+C                       bit 18: Track impact parameter large (r_impact >3.0 cm)
+C                       bit 19: Track doesn't point to vertex (del_z >10. cm)
+C              .
+C              .  (words NR*NCDC+5 -> NR*NCDC+10 repeated NFDC times)
+C              .
+C
+C             +NR*(NCDC+NFDC)+4
+C=======================================================================
+C To get FDC Z0 call FGETZ0(ITRK,Z0) where ITRK = IQ(LFDCT-5)

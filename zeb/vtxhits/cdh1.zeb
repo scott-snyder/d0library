@@ -1,0 +1,93 @@
+C=======================================================================
+C
+C  Bank Name : CDH1
+C  Author    : Liang-ping Chen, from Grudberg's original version of VCHT  
+C  Date      : 11-FEB-1994
+C  Tree description : Filter_results_tree.ZEB (to be written)
+C
+C  Bank description : VTX hits found on Level 2 in compressed format, 
+C                     to replace CDD1 bank of raw FADC data.
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to 
+C     +1          Up     link to CDHT
+C     +2          Origin link to CDHT 
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'CDH1'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = variable
+C              0         Status: bits 13-17 = bank version
+C             +1    I    Bank Version (=0)
+C             +2    I    Bank header length (NBANKH=9)
+C             +3    I    Total number of hits
+C             +4    I    Number of words stored per hit, NWDSHT (=2)
+C             +5    I    Hitfinding info word:
+C
+C                 |...|Weight(5)|Thr1(5)|Thr2(5)|Thr3(5)|Table(4)|
+C                 MSB                                           LSB
+C           where
+C                   Weight (5 bits) = Weight parameter used for finding time
+C                               least count = 0.05 (max = 1.55)
+C                   Thr1 (5 bits) = Hitfinding threshold 1
+C                   Thr2 (5 bits) = Hitfinding threshold 2
+C                   Thr3 (5 bits) = hitfinding threshold 3
+C                   Table (4 bits) = bilinear table version
+C               
+C             +6    I    Number of FADC bins before peak that are stored (M)
+C             +7    I    Number of FADC bins after peak that are stored (N)
+C                           Note that M+N _MUST_ equal 3.  By default, M=2 and
+C                           N=1 (ie, store 2 bins before and 1 bin after the
+C                           peak are stored).
+C             +8    F    Least count value in time word (Least_count below)
+C                           (=0.25 ns in original scheme)
+C             +9    I    crate mask (=3F Hex if all FADC crates present)
+C
+C
+C   For each sector encountered in this crate, the following information is 
+C   stored (OFFSET is the number of words used so far):
+C       +OFFSET+1   B   SecId (8) | N_VsecHit (11) | WordCount(13) (LSB)
+C                           SecId (8 bits) = Layer*32 + Sector
+C                           N_VsecHit (11 bits) = number of raw hits in
+C                               the current sector.
+C                           WordCount (13 bits) = Number of words stored for
+C                               the current sector, including the sector
+C                               header word (this word).  The total number of
+C                               words equals NWDSHT*N_tot + 1, where N_tot is
+C                               the total number of end-hits found in this
+C                               sector
+C
+C   For the IHIT'th hit in the current crate, NWDSHT(=2) words are stored.   
+C   Below, J = NBANKH + 4 + 2*(IHIT-1), the number of words used so far, 
+C   the number in parentheses is the number of bits used:
+C
+C           +J+1    B   |Time(15)|Addr(4)|PeakHeight(10)|STAT(3)|  (LSB)
+C           +J+2    B   |Peak-M(8)|...|Peak(8)|...|Peak+N(8)    |
+C                                                            M+N=3 (LSB)
+C
+C   where TIME       is non-Tzero-subtracted drift time
+C                    Max Value = 32767*Least_count 
+C                      (=8191.75 ns with Least_count = 0.25 ns)
+C                    To calculate drift time:
+C                     Itime = Ibits(iq(lvcht+j+1),17,15)
+C                     Drift_time = Itime*Least_count - Tzero (from VTMW bank)
+C           Addr        = 2*WIRE + END
+C                      LAYER and SECTOR are known from crate ID below
+C           PeakHeight  = peak height of pulse, evaluated by
+C               subtracting the ped-subtracted and linearized fadc value of
+C               the first bin of the hit from that of the peak bin.
+C         STAT(3)   
+C                       bit 0: 1 if saturated, 0 otherwise.
+C                       bit 1: 1 if peak in bilinear region
+C                       bit 2: 1 if there is overlap on leading edge
+C
+C
+C       The second word is used to store 4 bins of raw fadc data (not
+C       ped-subtracted or linearized):  M bins before the peak, the peak bin
+C       itself, and N bins after the peak (M+N=3).  In the original scheme, M=2
+C       and N=1.  Eight bits are used for each bin.
+C
+C
+C=======================================================================

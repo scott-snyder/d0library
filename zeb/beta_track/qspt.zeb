@@ -1,0 +1,43 @@
+C=======================================================================
+C
+C  Bank Name : QSPT
+C  Author    : Jadzia Warchol
+C  Date      : 24-FEB-1992 16:45:15:04
+C  Tree description : SIHITS_TREE
+C
+C  Bank description : Silicon Clustered Space Points for One 
+C  Detector-Phi Group
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to
+C     +1          Up     link to QGRP
+C     +2          Origin link to QGRP
+C.......................................................................
+C             -5         Bank number = GROUP * 16 + Plane # for disks
+C                                    = GROUP * 16 + SECTOR for barrels
+C             -4         Bank name, 'QSPT'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = variable
+C              0         Status
+C=======================================================================
+              +1   I     Bank version number = 1
+              +2   I     NHQSPT = Length of fixed part of bank
+              +3   I     NWQSPT = # words/cluster = Length of repeated part
+              +4   I     NQSPT = total # clustered space points 
+                         = # of repeated parts
+        Then, for each clustered hit IHIT (numbered from 0) the following
+        NWQSPT words, where
+                         J = NHQSPT + NWQSPT * IHIT
+            J+1    F     Radius(cm)
+            J+2    F     Phi(rad)
+            J+3    F     Z
+            J+4    F     errPhi
+            J+5    F     cov(phi,z)(barrels), cov(Phi,R) (disks)
+            J+6    F     errZ(barrels), errRadius(disks)
+            J+7    F     Pointer to QCLS hit
+            barrels:     (Group*16+Sector)*10000+cluster #
+            disks  :     (Group*16+Sector)*100000+
+                         v cluster # *1000 + u cluster #
+            disks  :     - above if
+                         if u and v not from the same track

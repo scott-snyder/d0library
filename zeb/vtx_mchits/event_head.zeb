@@ -1,0 +1,116 @@
+C=======================================================================
+C             HEADER TYPE # 5
+C
+C  Bank name: HEAD
+C  Author   : SDP
+C  Date     : August 30,1986       
+C  Modified : October 3, 1988, Jan S. Hoftun, add more data words
+C  Modified : April 22, 1988, Tom Trippe, fix CDDn numbering.
+C  Modified : December 12, 1991, James T. Linnemann, better defs of bit words
+C  Modified : March 22, 1992, James T. Linnemann, update meaning of words 7,8
+C  Modified : March 25, 1992, Serban D. Protopopescu, added RECO BITS
+C  Modified : August 24, 1992, Jan S. Hoftun, added ERROR CODE
+C  Modified : December 1, 1992, Jan S. Hoftun, added FLAG word 
+C  Modified : December 20, 1993, J. Linnemann, J. Hoftun, added description
+C                                of error codes
+C  Modified : May 17, 1995, Lee Lueking, added description of words 31, 32
+C
+C  Tree description: EVENT_HEAD_TREE
+C
+C                Event header bank
+C
+C    LQ     Q/IQ
+C ___________________________________________________________________________
+C     -1            str. link to TRGR trigger raw data 
+C     -2            str. link to MUD1 muon      "      
+C     -3            str. link to CDD1 central detector raw data bank 1
+C     -4            str. link to CDD2 central detector  "    "   "   2
+C     -5            str. link to CDD3 central detector  "    "   "   3
+C     -6            str. link to CDD4 central detector  "    "   "   4
+C     -7            str. link to CAD1 calorimeter raw data bank 1  
+C     -8            str. link to CAD2 calorimeter  "    "    "  2
+C     -9            str. link to FILT (filtering results)
+C    -10            str. link to RECO (reconstruction results)
+C    -11            str. link to ANLS (analysis )
+C    -12            str. link to ZDST (data compression routines)
+C    -13            str. link to HSUM (event sumary header)
+C    -14            str. link not assigned
+C    -15            str. link to FAKE (fake montecarlo)
+C    -16            str. link to GEAN (GEANT banks)
+C    -17            str. link to ISAE  (ISAJET banks)
+C    -18            str. link to USER (free for all)
+C     +0            next     =0, no linear structures
+C     +1            up       =0, top level bank
+C     +2            origin   =0, top level bank
+C ............................................................................
+C            I-5             5 (for event type record)
+C             -4             bank name,  'HEAD'
+C             -3             NL=18
+C             -2             NS=18
+C             -1             ND=30
+C              0             STATUS
+C              1       I  RECORD_TYPE=   5- 999 for real event data
+C                                    =1005-1999 for Montecarlo data
+C            2-3       H  MICRONAME  (maximum 6 characters on DECNET)
+C            4-5       I  DATE_TIME (standard VAX 64 bit format)  
+C              6       I  LOCAL RUN# (loaded in host; in micro same as global)  
+C            7-8       I  INPUT_EVENT # (40 bit Level 1 trigger number) 
+C                           word 7 is lower 24 bits;    word 8 is upper 16 bits
+C                               Thus, both words are guaranteed positive
+C              9       I  OUTPUT_EVENT # (counts accepted events; 
+C                                                       assigned by logger)
+C             10       I  EVENT_TYPE (assigned in Level_2 or Monte Carlo)
+C             11       I  TRIGGER BITS  (Specific Trigger Fired from Level_1)
+C             12       I  GLOBAL RUN NUMBER (entered by micro)
+C             13       I  CODE VERSION   
+C             14       I  HEADER VERSION 
+C             15       I  FILTER BITS  31-0   (L2 "ON" bits ==> WRITE event)
+C             16       I  FILTER BITS  63-32  (See D0$OFFLINE_UTIL:L2BITS.DOC)
+C             17       I  FILTER BITS  95-64  (these bits control which streams)
+C             18       I  FILTER BITS  127-96 (the event is written to)
+C          19-28       I  RECO BITS
+C             29       I  ERROR CODE put on by Level-2 framework
+C                           1: ok 
+C                           2: bad trigger bank in MPM
+C                           3: good event, host sending OFF
+C                           5: failed all filters
+C                           6: some (non-trigger) MPM with bad data
+C                           8: no L1 bits on which node handles
+C                           12: missing raw data: end_run before MPM ready
+C                           14: data format errors during filtering
+C                           16: missing raw data: MPM reset
+C                           18: error when trying to send event via
+C                               high-speed output channel
+C             30       I  FLAG word
+C                           Bits used: 0: Set=Micro-blanking ON 
+C             31       I  Omni_filter Filter bits 1-32
+C                       1.QCD_GAMMA,        2.MU1_B,        3.MU_B,     
+C                       4.MU2_B,            5.NP_LQ_2EM,    6.NP_LQ_ENU,
+C                       7.NP_LSS_SELECT,    8.NP_SCALAR,    9.NP_SQGL,      
+C                       10.NP_MSP,          11.NP_TAU,      12.NP_MUNU,
+C                       13.NP_MET,          14.NP_WRIGHT,   15.TOP_EE, 
+C                       16.TOP_EJET,        17.TOP_EMU,     18.TOP_JETS,
+C                       19.TOP_MUJET,       20.TOP_MUMU,    21.TOP_TOP_EE,  
+C                       22.TOP_TOP_EJET,    23.TOP_TOP_EMU, 24.TOP_TOP_JETS,
+C                       25.TOP_TOP_MUJET,   26.TOP_TOP_MUMU,27.FAKE_E_CANDIDATE,
+C                       28.ELF_W,           29.ELF_Z,       30.MU1_WZT, 
+C                       31.MU2_WZT,         32.WZ_ELF_MU
+C                   
+C             32       I  Omni_filter Filter bits 33-64
+C                       33.ELF_MED,         34.QCD_STA,     35.QCD_GAP, 
+C                       36.QCD_JJJ,         37.QCD_QJT,     38.QCD_NTR, 
+C                       39.TOP_BKG,         40.NP_CLEAN_TAU,41.NP_SCALAR_TIGHT,
+C                       42.NP_SQGL_TIGHT,   43.NP_LQ_2EM_TIGHT,44.LQNUE,
+C                       45.LQNN,            46.NP_LSS_TIGHT,47.NP_WRIGHT_TIGHT,
+C                       48.NP_MULQ_TIGHT,   49.ELF ,        50.MINBIAS, 
+C                       51.MU1_FILT,        52.PI0_FILTER,  53.TWOJET_FILTER,
+C                       54.THREEJET_FILTER, 55.EMAG_JETS,   56.NP_MULQ,
+C                       57.TAU_FILTER,      58.TOP_SGL,     59.TOP_TOP_SGL,
+C                       60.NEW_GAM_JET,     61.SPR8,        62.SPR9,    
+C                       63.SPR0,            64.PASS_ALL
+C=======================================================================
+C  version #6 same as 5 but words 31 and 32 have been added
+C  version #4 same as 5 but no FLAG word (word 30, was spare)
+C  version #3 same as 5 but no ERROR code and only 4 words for RECO BITS
+C  version #2 same as 5 but only 22 words and no RECO BITS
+C  version #0,1 same as 5 but only 14 words (no RECO or FILTER BITS)

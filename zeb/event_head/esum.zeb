@@ -1,0 +1,107 @@
+C=======================================================================
+C
+C  Bank Name : ESUM
+C  Author    : James T. Linnemann
+C  Date      : 22-DEC-1991
+C  Tree description : HSUM
+C
+C  Bank description : Event SUMmary bank
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to        ESUM (linear chain, various STYP's)
+C     +1          Up     link to        HSUM (Header for Summary banks)
+C     +2          Origin link to        HSUM
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'ESUM'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = NR*NUM_OBJ + NFIX
+C              0         Status
+C=======================================================================
+C             +1         Bank version number (=4)
+C             +2         NFIX = 30
+C             +3    I    NR = 6
+C             +4    I    NUM_OBJ = # of objects stored
+C             +5    I    NUM0   Number of objects of type 0    
+C             +6    I    NUM1   Number of objects of type 1
+C             +7    I    NUM2   Number of objects of type 2
+C             +8    I    NUM3   Number of objects of type 3
+C             +9    I    NUM4   Number of objects of type 4
+C             +10   I    NUM5   Number of objects of type 5
+C             +11   I    NUM6   Number of objects of type 6
+C             +12   I    NUM7   Number of objects of type 7
+C             +13   I    NUM8   Number of objects of type 8
+C             +14   I    NUM9   Number of objects of type 9
+C             +15   I    NUM10  Number of objects of type I-5
+C                                           .
+C                                           .
+C                                           .
+C             +29   I    NUM24  Number of objects of type 24
+C             +30   H    STYP   Summary type:
+C                        TRIG   Summary of objects from Level 1 trigger
+C                        FILT   Summary of objects from Level 2 trigger
+C                        RECO   Summary of objects from reconstruction
+C                        ISAE   Summary of objects from event generator
+C      Repeat 31-36 NUM_OBJ times
+C             +31    I   IDOBJ  type of object:
+C                           0 = ID_VERTEX   vertex 
+C                                     x,y,z instead of phys_eta, det_eta, phi
+C                               if no vertex object, all angles from z=0
+C                               otherwise, angles corrected to this vertex
+C                               ONLY 1 VERTEX OBJECT ALLOWED in this format
+C                               See ESUM.PARAMS and ESUM_INIT for ID codes and
+C                               names.
+C                           1 = ID_PHOTON   photon
+C                           2 = ID_ELECTRON electron
+C                           3 = ID_MUON     muon
+C                           4 = ID_TAU      tau
+C                           5 = ID_JET      jet
+C                           6 = ID_ETMISS   Missing Et
+C                           7 = ID_ETSUM    Sum Et
+C                           8 = ID_JET_1
+C                               .
+C                           7+NUM_JET_OBJECTS = ID_JET_NUM_JET_OBJECTS
+C             +32   I    IQUAL  32-bit string of bits defined by user
+C                               meant to have bits set for each cut passed
+C                               cuts defined now only for L2 tools
+C             +33   F    Pt     or Et of object in GeV
+C             +34   F    eta    (physics) of object
+C             +35   F    eta    (detector) of object
+C             +36   F    phi    of object (0 to twopi)
+C=======================================================================
+C         VERSION 3: same format as 4, except name of +32 changed
+C         VERSION 2:
+C             +34   F    eta    of object (frame unspecified)
+C             +35   F    theta  of object
+C=======================================================================
+C Notes on ESUM ID's for jets:
+C
+C For 'RECO'
+C       R=.7    == ID_JET   (5)
+C       R=.5    == ID_JET_1 (8)
+C       R=.3    == ID_JET_2 (9)
+C 
+C For 'TRGR'
+C      Trigger Towers fired == ID_JET   (5)
+C      Large Tiles fired    == ID_JET_1 (8)
+C
+C For 'FILT'
+C   Cone size assigment varies run by run. Also there have been two different
+C   ways of storing this information. To determine which ESUM id is the
+C   cone size you want, you must loop over all the ESUM jet ID's (except 5)
+C   and check the IQUAL word:
+C   
+C   ID_JET (5) is undefined. It can be any conesize.
+C   
+C   Loop over ID's 8,9,10,...ID_JET_NUM_JET_OBJECTS and look at IQUAL word:
+C   
+C   IF IQUAL has ONLY one bit set, then take this bit number and divide by
+C   10 to get the conesize.
+C   (e.g. if IQUAL=8, then only bit 3 is set, so this is R=.3)
+C   OTHERWISE take IQUAL and divide by 10 to get the conesize.
+C   (e.g. if IQUAL=3 (more than one bit set), conesize = 3/10 = .3
+C   
+C   There is software to do this for you, see D0$CALOR_FILTER:L2JETS.DOC
+C   

@@ -1,0 +1,83 @@
+C==========================================================================
+C    BANK MTRH    --     MUON TRACK HEADER BANK
+C    ==== ====
+C    Author D. Hedin  8-31-86
+C    S. Abachi Nov-2-1991  Link to muon added
+C    A.Efimov  Nov-1992    Link to SAMT added
+C    D.Wood,K.Johns May-1994    Add words for SAMUS truncation flags and
+C                               OTC (L 1.5) information
+C    M. Fortner Sep-1994   Extend bank for trig words and mag polarity
+C    D. Wood    Oct-1994   Add description of Level 1.0 words
+C    D. Wood    Sep-1995   Add link for MRFT chain
+C
+C    Tree description MUDAT_TREE
+C
+C   10 INTEGER WORDS
+C
+C  LQ    Q/IQ
+C____________________________________________________________________________
+C  L-5   struc  to old SAMT banks during refitting
+C  L-4   struc  to refitting banks for MUFIX (MRFT)
+C  L-3   struc  to SAMUS tracks (SAMT)
+C  L-2   struc  to muon bank (MUON)
+C  L-1   struc  to muon tracks (MUOT)
+C   +1   UP     TO PROC
+C............................................................................
+C         1  I  NUMBER OF FOUND MUON TRACKS
+C         2  I  STP version number for MC generation, copy from MUD1
+C         3  I  STP version number for MC generation, copy from MUD1
+C         4  I  STP version number for MURECO
+C         5  I  STP version number for MURECO
+C    words 6-10 are filled for V12.12 onward as follows:
+C         6  I  hit truncation word for SAMUS North (see note 2)
+C         7  I  hit truncation word for SAMUS South (see note 2)
+C-        8  I  L1.5 mgr states/mgr errors               \
+C-        9  I  L1.5 high pt octants (run 1a and run 1b)  >(see note 3)
+C-       10  I  L1.5 low pt octants (run 1b only)        /
+C    words 11-15 are new for V12.15 onward as follows:
+C-       11  I  L1.0 WAMUS bits as in PMUO\ 
+C-       12  I  L1.0 SAMUS bits as in PMUO/ (see note 4)
+C-       13  I  Spare
+C-       14  F  WAMUS Magnet polarity
+C-       15  F  SAMUS Magnet polarity
+C========================================================================
+C  Note. All STP version number information is same structure. Each word
+C        is divided 4 part, 8bit each.
+C          MSB                                                  LSB
+C     1st  | Beam pipe | SAMUS MAGNET | SAMUS GEOMETRY | WAMUS GEOMETRY |
+C     2nd  ! Reserved  | Reserved     | SCINTILLATOR   | WAMUS MAGNET   |
+C
+C  Note 2: bits indicating that hits have been truncated in SAMUS sections
+C          are decoded as follows:
+C
+C                       section     1   2   3   4   5   6
+C              layer
+C                A                  0   1   2   3   4   5
+C                B                  6   7   8   9  10  11
+C                C                 12  13  14  15  16  17
+C
+C  Note 3:  See AZ05:[USER.JOHNS.OTC.RECO] for the bit assigment in word 8.
+C           The bit assignments for the L1.5 octants in words 9 and 10 is:
+C                bits 00-07  : CF octants (0,1,2,3,4,5,6,7)
+C                bits 08-11  : WN octants (11,13,15,17)
+C                bits 12-15  : ON octants (21,23,25,27)
+C                bits 16-19  : WS octants (12,14,16,18)
+C                bits 20-23  : OS octants (22,24,26,28)
+C                bits 24-27  : SN octants (31,33,35,37)
+C                bits 28-31  : SS octants (32,34,36,38)
+C
+C  Note 4: The bit assignment for words 11 and 12 (CCT trigger states) are:
+C           bit meaning             bit numbers
+C           -----------             -----------
+C
+C          /octant bits             0-7=CF  10,12,14,16=WN  11,13,15,17=WS
+C  word 11 |region bits             8=CF  18=WN  19=WS
+C          \2-bit counters          20-21=CF  24-25=WN  26-27=WS
+C       
+C          /octant bits             0,2,4,8=ON  1,3,5,7=OS  10,12,14,16=SN  
+C          |                         11,13,15,17=SS
+C  word 12 |region bits             8=ON  9=OS  18=SN  19=SS
+C          |2-bit counters          20-21=ON  22-23=OS  24-25=SN  26-27=SS
+C          \mult. veto bits         28=ON  29=OS  30=SN  31=SS
+C       
+C========================================================================

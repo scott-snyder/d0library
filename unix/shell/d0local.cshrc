@@ -115,13 +115,13 @@ else if( $sys == IRIX )then
   set cc = cc
   set f77flags = "-o32 -nocpp -static -col72 -backslash -G $G"
   if( $syslv < 65 )set f77flags = "$f77flags -Nn15000 -Wb,-force_branch_fixup -Olimit 3000 -Wo,-loopunroll,2"
-#  if( $syslv >= 65 )set f77flags = "$f77flags -OPT:Olimit=3000"
+  if( $syslv >= 65 )set f77flags = "$f77flags -Wl,-LD_MSG:off=84"
   set ccflags = "-o32 -dollar -G $G -DD0FLAVOR=SIUNIX"
   if( $syslv < 65 )set ccflags = "$ccflags -woff 275 -Wf,-XNl8192"
-  if( $syslv >= 65 )set ccflags = "$ccflags -woff 1172"
+  if( $syslv >= 65 )set ccflags = "$ccflags -woff 1172 -Wl,-LD_MSG:off=84"
   set lccflags = '-o32 -dollar -DD0FLAVOR=SIUNIX'
   if( $syslv < 65 )set lccflags = "$lccflags -woff 275 -Wf,-XNl8192"
-  if( $syslv >= 65 )set lccflags = "$lccflags -woff 1167,1172,1116,1110"
+  if( $syslv >= 65 )set lccflags = "$lccflags -woff 1167,1172,1116,1110 -Wl,-LD_MSG:off=84"
   set debflags = '-O0 -g2'
   set optflags = '-O2'
   set arflags = 'crsl'

@@ -1,0 +1,58 @@
+C-------------------------------------------------------------------------
+C [FTSC]--------HIT BANK FOR SECTOR IN THETA UNIT
+C Author:           DZ, updated JB
+C Date:             May 1987, updated Sept 1988
+C Updated:          18-MAR-1990  Jeffrey Bantly  use logical format
+C Updated:          16-JUL-1991  Susan K. Blessing  Correct status word
+C Tree description: FDCHITS_TREE
+C
+C       LQ   IQ/Q TYPE
+C
+C       L-1            STRUCT. TO DATA BANK FOR SECTOR IN THETA UNIT
+C         0
+C        +1            UP TO FTQD
+C        +2            ORIG. TO FTQD
+C             -5       Bank Ident = Logical Channel Address using FCODER.FOR
+C             -4       BANK NAME 'FTSC'
+C              |
+C              0   B   STATUS word
+C                       bit 12 - Hit compression has been done on this bank
+C             +1   I   Total number of hits in this sector
+C             +2   I   number NSW of sense wires (  8, = IQ(FDCH+3) )
+C             +3   I   Number of words per hit.  ( 12, = IQ(FDCH+2) )
+C             +4   I   Number NHITS of hits on wire 0
+C             +5   I   Number NHITS of hits on wire 1
+C              |   |
+C         +NSW+4   I   Pointer to first hit on wire 0
+C         +NSW+5   I   Pointer to first hit on wire 1
+C              |   |
+C
+C        ----"hits" are coordinates derived from "data".
+C        --- Then for each hit, the following information.
+C        --- J = IQ(ftsc+NSW+4+nwire) + IQ(ftsc+3) * (I-1) - 1
+C        --- where I = 1, NHITS
+C
+C             J+1   B   Identification = Bank_Ident + WIRE   (WIRE=0-7)
+C             J+2   F   X/YLOC (cm) [assum. X/YLOC>0)] SECTOR<3: drift distance
+C             J+3   F   X/YLOC (cm) [assum. X/YLOC<0)] SECTOR<3: 0.
+C             J+4   F   Y/X position from delay line ( cm )
+C             J+5   F   Error on the drift distance ( cm )
+C             J+6   F   Error on Y/X position, = 9999. if no Y/X for this hit
+C             J+7   F   Ionisation of the hit in M.I.P. units
+C             J+8   F   Error on the previous value
+C             J+9   B   STATUS word
+C   Bit  0       set if one -Y/X delay line hit is associated with wire 0 hit
+C   Bit  1       set if one +Y/X delay line hit is associated with wire 0 hit
+C   Bit  2       set if hit is on a segment
+C   Bits 3-7     are unused 
+C   Bits 8-15    segment number if used on segment
+C   Bits 16-23   track number if used on track
+C   Bit  24      set equal to 0,1 depending on L/R ambiguity if on segment
+C             J+10  I   Pointer on first PULSE hit  ( sense wire )
+C             J+11  I   Pointer on second PULSE hit ( Delay -Y/X )
+C             J+12  I   Pointer on third  PULSE hit ( Delay +Y/X )
+C
+C              For GEANT direct HIT banks, word J+10 contains the Track
+C              number, and there are no PULSE pointers ( 10 words/hit )
+C
+C---------------------------------------------------------------------------

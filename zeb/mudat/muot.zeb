@@ -1,0 +1,87 @@
+C==========================================================================
+C    BANK MUOT    --     MUON TRACK BANK
+C    ==== ====
+C    Author D. Hedin  8-31-86
+C        DH 11-88 add quad doc
+C        DH 9-89 add a-layer point  DH 9/90 IFW1,IFW2
+C   DH 1-91 add SAMUS info  DH 3-91 minor change, DH 9-91 IFW1 CHANGE
+C   DH 10-91, change IFW1,IFW2,IFW3; 5-92 ifw4,bdl,ct; DH 10-92 IFW1 change
+C    Tree description MUDAT_TREE
+C   DH 1-93 add info to IFW@
+C   A seperate back for each muon track. 23 words: 2 integer, 2 bit strings
+C   19 floating point
+C   AT 02-94 add bit 16-19 to Flag word 2 for scintillator use
+C   AT 02-04 add MSTH link
+C  LQ    Q/IQ
+C____________________________________________________________________________
+C  L-3   struc  to scint hits on track  (MSHT)
+C  L-2   struc  to SAMUS hits on track  (STTH)
+C  L-1   struc  to wide angle hits on track (MHTT)
+C    0   next   to next MUOT
+C   +1   UP     TO MTRH
+C   +2   origin to MTRH for first; previous MUOT for others
+C............................................................................
+C         1  I  NUMBER OF wide angle POINTS ON TRACK
+C         2  I  NUMBER OF small angle POINTS ON TRACK
+C         3  I  Quadrant (see below)
+C         4  I  FLAG WORD 1 0=3 mod,1=miss A,2=miss B,3=miss C,4=miss AB
+C                           5 = A-stub
+C               if vertex used in bend view fit, add 10 to this word
+C         5  I  FLAG WORD 2
+C               bit 0=bad bend fit;            bit 1=bad nonbend fit
+C               bit 2=bad bend vertex;         bit 3=bad nonbend vertex
+C               bit 4=missing A-layer module;  bit 5=missing B/C layer
+C               bit 6=cosmic (opposite track); bit 7=cosmic (opposite hits)
+C               bit 8=crossing octants;        bit 9=poor hit combination
+C               bit 10=SASBWC track;           bit 11=SAWBWC track marker 
+C               bit 12=A-Stub duplicate track; bit 13-15=reserved for A-stubs
+C               bit 16 Track points to active scintillator  
+C               bit 17 matched scintillator hit exist   
+C               bit 18 Scint. algorithm. 0 for C-hit, 1 for track
+C               bit 19 0 - single scint. hit, 1 multiple scint hit.
+C               bit 20 reserved for scintillator
+C               bit 21 "new" MUOT from MUFIX
+C               bit 22 MUFIXed muon
+C               bit 23 "unrefittable" MUOT (old MUOT recovered from DST
+C                       without hits or MSEG)
+C         6  I  FLAG WORD 3 
+C               for lower 16 bits: 
+C               =0 if not mixed orientation. first fit: 1=ABC,2=BC,3=AC,4=AB
+C               for fitted mixed orientation tracks, the secondary fit will
+C               add to the above: 10-ABC, 20-BC, 30-AC, 40 AB
+C               bits 16-19: match to trigger in ABC layers (AB, AC in central)
+C               bits 20-23: match to trigger in AB, AC, or BC layers
+C                    16,20: match to any modules in level 1 octant
+C                    17,21: match to any modules in level 1.5 octant
+C                    18,22: match specific level 1.5 low pt modules
+C                    19,23: match specific level 1.5 high pt modules
+C         7  I  FLAG WORD 4 sum of number of 'bad' track qualities. 0=golden
+C     IFW2 bits 1-4 are summed over. for theta<40, bits 5 and 6 are summed
+C     if it is a 2 layer track; for theta<20, a 2 layer tracks add 1 (if
+C     SAMUS included in the reconstruction) 
+C         8  F  X inside magnet: this will be at the closest a-layer hit to
+C         9  F  Y inside       : the calorimeter. if there are no a layer
+C        10  F  Z inside       : hits in the fit, the vertex point is used
+C        11  F  X outside magnet: NOMINALLY AT CENTER OF MAGNET
+C        12  F  Y outside
+C        13  F  Z outside
+C        14  F  X DIRECTION COSINE INSIDE MAGNET
+C        15  F  Y DIRECTION COSINE
+C        16  F  Z DIRECTION COSINE
+C        17  F  X DIRECTION COSINE OUTSIDE MAGNET
+C        18  F  Y DIRECTION COSINE
+C        19  F  Z DIRECTION COSINE
+C        20  F  BEND VIEW QUALITY OF FIT (in CM=RMS of drift residuals)
+C        21  F  NONBEND VIEW QUALITY OF FIT (in CM=RMS of pad and delta T)
+C        22  F  BDL used in MUPQCK for momentum calculation
+C        23  F  MOMENTUM (signed)
+C        24  F  MOMENTUM ERROR
+C        25  F  Eloss in calorimeter
+C        26  F  Eloss in iron
+C        27  F  TIME DIVISION QUALITY OF FIT (in CM=RMS of delta T points)
+C========================================================================
+C    quadrants are: 1-4 for central (+X,+Y,-X,-Y)  QUAD=(iq+3)/2
+C     where IQ is the first digit of the module address (7->-1)
+C    the north ends adds 4 and the south end adds 8 to this
+C    SAMUS "quadrants" are 13,14 for north,south ends
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC

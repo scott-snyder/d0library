@@ -1,0 +1,49 @@
+C BANK NAME : DCDA
+C AUTHOR    : Olivier Callot
+C DATE      :  6-AUG-87
+C Revised   : 30-MAY-1989      Qizhong Li-Demarteau
+C Updated   : 19-JUL-1989 Qizhong Li-Demarteau   added bank version number in 
+C                         top 5 user bits of Zebra status word
+C Tree Descr. : CDCHITS_TREE
+C
+C               Central Drift chamber Datas ( hits )
+C               ====================================
+C    7 sense wires per cell ( 0-6 ), and 2 delay lines read on both sides.
+C
+C        LQ   Q/IQ
+C
+C        +1             Up to DSEC
+C              -5       Bank_Ident = LAYER * 2**9 + SECTOR * 2**4
+C              -4       Name of bank 'DCDA'
+C
+C               0       Status word
+C                       Bits 13-17:  Bank version number
+C              +1   I   Total number of pulses in this sector
+C              +2   I   Number NEL of FADC (11 = IQ(CDCH+5))
+C              +3   I   Number of words per hit (8 = IQ(CDCH+4), GEANT: 9)
+C              +4   I   Number of pulses on wire 0
+C              +5   I   Number of pulses on wire 1
+C               |
+C          +NEL+4   I   Pointer to first pulse on wire 0
+C          +NEL+5   I   Pointer to first pulse on wire 1
+C               |   |                                  |
+C
+C      -- Then for each hit, the following information
+C                        J = IQ( dcda+NEL+nwire+4) + IQ(dcda+3) * (I-1)
+C
+C             J+1   B   Identification : Bank_Ident + WIRE
+C             J+2   F   DRIFT_TIME  ( ns )
+C             J+3   F   PULSE_AREA  ( FADC counts )
+C             J+4   F   PULSE_WIDTH ( ns )
+C             J+5   F   PEAK_HEIGHT ( FADC counts )
+C             J+6   F   DRIFT_TIME_ERROR (ns)
+C             J+7   F   PULSE_AREA_ERROR ( FADC counts )
+C             J+8   B   Status BYTE:
+C                       bit 0 = saturation ,  1 if saturated, 0 otherwise.
+C                       bit 1 = overlap    ,  1 if hit overlaps another.
+C                       bit 2 = pulse area correction from database, 
+C                               1 if corrected.
+C                       bits 3 - 7 are unused as yet.
+C ( GEANT :   J+9   B   Number of the GEANT track generating this signal )
+C
+C---------------------------------------------------------------------------

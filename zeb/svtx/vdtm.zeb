@@ -1,0 +1,73 @@
+C=======================================================================
+C
+C  Bank Name : VDTM
+C  Author    : Ed Oltman
+C  Date      : 26-JUL-1990
+C  Tree description : 
+C
+C  Bank description : Distance-time maps used by VTX_DRIFT.FOR (Look at listing
+C                     for description of look-up tables.  The VDTM banks are
+C                     linear structures -- the bank number -  C(LVDTM-5) is the
+C                     instantaneous luminosity in units of 10**28 /(cm**2 sec)
+C                     The routine VTX_LUMDTM moves the correct bank to the
+C                     front of the chain as the luminosity changes. USE BANK 0 
+C                     AFTER DYNAMIC ADJUSTMENT OF HV STARTED -- begining
+C                     with run 57496 (14-Dec-1992)
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to 
+C     +1          Up     link to 
+C     +2          Origin link to 
+C.......................................................................
+C             -5         NINT( LUMIN/10**28 )
+C             -4         Bank name, 'VDTM'
+C             -3         NL = 
+C             -2         NS = 
+C             -1         ND = 
+C              0         Status
+C             +1    I    LRUN Lower limit of validity range
+C             +2    I    HRUN Upper limit of validity range
+C             +3    I    ITEMS (4) number of parametrers for isochrones
+C             +4    I    NWIRES (8)
+C             +5    I    SIZE total number of pts in lookup tables
+C             +6    F    SCALE multiplicitive factor for v_drift vs. E/P
+C             +7    F    W_X(0)  x-coord of wire0 w/VTX centered at origin
+C             +8    F    W_X(1)    "     "  wire1  "       "     "    "
+C              .    .      .                  .
+C              .    .      .                  .
+C            +14    F    W_X(7)    "     "  wire7  "       "     "    "
+C            +15    F    W_Y(0)  y-coord of wire0 w/VTX centered at origin
+C              .    .      .                  .
+C              .    .      .                  .
+C            +22    F    W_Y(7)    "     "  wire7  "       "     "    "
+C
+C--> Next comes pointers and word counts: for wire W (=0,...,7) and side 
+C    S (=0,1 for -PHI and +PHi respectively),
+C    
+C               J = LVDTM + 6 + 2*NWIRES + 2*ITEMS*(W + NWIRES*S)
+C  
+C             J+1   I    Pointer to beginning of param. 1's look up table
+C             J+2   I    Total number of words in param. 1's look up table
+C              .    .                               .
+C              .    .                               .
+C             J+5   I    Pointer to beginning of param. 3's look up table
+C             J+6   I    Total number of words in param. 3's lool up table
+C              .    .                               .
+C              .    .                               .
+C
+C--> Next comes look up tables: K = LVDTM + 22 + 2*ITEMS*2*NWIRES (ie, the
+C--> number of words used in the bank before the actual lookup tables)
+C
+C         K+IC(J+1) F    First word in param. 1's table: depend. var.
+C         K+IC(J+3) F     "     "    "   "    2's   "      "      "
+C         K+IC(J+5) F     "     "    "   "    3's   "      "      "
+C              .    .                                .
+C              .    .                                .
+C
+C    K+IC(J+1)+SIZE F     First word in param. 1's table: indep. var.
+C    K+IC(J+3)+SIZE F     First word in param. 2's table: indep. var.
+C    K+IC(J+5)+SIZE F     First word in param. 3's table: indep. var.
+C              .    .                                .
+C              .    .                                .
+C=======================================================================

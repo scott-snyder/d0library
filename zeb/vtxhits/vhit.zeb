@@ -1,0 +1,59 @@
+
+C=======================================================================
+C
+C  Bank Name : VHIT
+C  Author    : Peter M. Grudberg
+C  Date      : 20-AUG-1991
+C Updated  25-OCT-1991 Change status word to allow 8 bits for ZTRK #
+C  Tree description : VTXHITS
+C
+C  Bank description : VTX compressed hits bank.  Stores reconstructed hit data
+C                     in a compact form so it is possible to store hits on STA
+C                     tapes.  Currently, only wire hit info will be stored, but
+C                     strip hit info can be added later if needed with no
+C                     problem and no change in format.
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to 
+C     +1          Up     link to VTXH
+C     +2          Origin link to VTXH
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'VHIT'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = 3 + IQ(LVHIT+2)*IQ(LVHIT+3)
+C              0         Status
+C             +1    I    Version number
+C             +2    I    Total number of hits in this bank
+C             +3    I    Number of words per hit (3)
+C              |    |
+C
+C       --- Then for each hit, the following information:
+C               (J = 3 + IQ(LVHIT+3)*(I-1) for the Ith hit)
+C
+C           +J+1    B    Status word
+C                       bit       0:  side (only used for hits on tracks)
+C                       bit     1-7:  hit number
+C                       bit    8-10:  wire number (0-7)
+C                       bit   11-15:  sector number (0-15)
+C                       bit   16-18:  layer number
+C                       bit      19:  1 if end 0 hit present
+C                       bit      20:  1 if end 1 hit present
+C                       bit      21:  1 if saturated (either end)
+C                       bit      22:  1 if overlap hit (either end)
+C                       bit      23:  1 if hit on VTX track (VTXT)
+C                       bit   24-31:  ZTRK number, if applicable
+C           +J+2    I    Hit data:
+C                       bit    0-15:  Drift distance (+ PHI solution)
+C                                     (unit: 5 microns)
+C                                     (interpreted as INTEGER*2)
+C                       bit   16-31:  Drift distance (- PHI solution)
+C                                     (unit: 5 microns)
+C                                     (interpreted as INTEGER*2)
+C           +J+3    I    More hit data:
+C                       bit 0-15: Zee from charge division
+C                                     (unit: .1 mm)
+C                       bit 16-31: Pulse Area
+C=======================================================================

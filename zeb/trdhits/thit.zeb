@@ -1,0 +1,77 @@
+=======================================================================
+C
+C  Bank Name : THIT
+C  Author    : A. Zylberstejn
+C  Date      : 22-JUL-1991 16:29:49.47
+C  Tree description : TRDHITS_TREE
+C
+C  Bank description : TRD compressed hits banks which contains all the coded
+C                     TRD cells
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to
+C     +1          Up     link to TRDH
+C     +2          Origin link to TRDH
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'THIT'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = 
+C              0     I   Status
+C             +1     I   Version number (=2 after Nov 93)
+C             +2     I   Total number of hits
+C             
+C       For each hit i the following information  :
+C          for  J=2+(i-1)*Number of words per hit (2,4 or 6 depending on the 
+C                                                  number of clusters)
+C     For version 1
+C     -------------
+C             
+C            J+1     B   Status word
+C                        Bit     1 :=0 anode,=1 cathode
+C                        Bit  2- 9 :Wire Number  (0 to 255)
+C                        Bit 10-11 :Layer number (0 to 2)
+C                            12-14 :Number of clusters
+C                            15-24 :Spare
+C                            25-32 :ZTRK number (if any)
+C             +2     I   Total energy deposit*10
+C             +3     I   Packed position of 4 more energetic clusters
+C                         (8 bits per cluster)
+C             +4     I   Packed energy of 4 more energetic clusters
+C                         (8 bits per cluster)
+C                                            
+C Note1:   The number of words per hit varies according to the number of
+C ----    reconstructed clusters:
+C         If there are          no cluster :4 words are needed for a hit
+C                   any number of clusters :6  ""          ""     
+c         Only the 4 most energetic clusters are encoded
+
+C Note2: The  energy is computed   on the full FADC range  regardless of the 
+C        T zero.Thus the energy recorded here for a on-track wire may differ
+c        for the energy being defined in TPRL  (for  which the T zero of the
+C        event has been taken into account)
+C
+C     For version 2
+C     -------------
+C            J+1     B   Status word
+C                        Bit     1 :=0 anode,=1 cathode
+C                        Bit  2-10 :Wire Number  (0 to 511)
+C                        Bit 11-12 :Layer number (0 to 2)
+C                            13-16 :Number of clusters
+C                            17    :=1 IF 5 info. per cluster
+C                            18-24 :spare
+C                            25-32 :ZTRK number (if any)
+C             +2     I   Total energy deposit*10
+C             
+C  FOR CLUSTER NUMBER i (2 words per cluster)  J=(i-1)*2
+C       
+C             +3+J   I  Cluster energy and central position
+C                        Bit  1- 13 :Energy (cluster area in FADC counts)
+C                        Bit 14- 20 :Central position of the peak
+C             +4+J   I
+C                        Bit  1- 8 :Left Position (in bins of FADC)
+C                        Bit  9-16 :Right Position
+C                        Bit 17-25 :Value of the FADC at the peak
+C=======================================================================

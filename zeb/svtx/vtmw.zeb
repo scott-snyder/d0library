@@ -1,0 +1,88 @@
+C *********************
+C VERSION 0 ***********
+C-----------------------------------------------------------
+C BANK NAME     : VTMW   Version:   0
+C AUTHOR        : Ghita Rahal_Callot
+C DATE          : 30-SEP-88
+C Updated       : 19-JUN-1989 Peter Grudberg - added bank version number
+C                             in top 5 user bits of Zebra status word
+C TREE DESCR.   : VTXGEO_ZEBANKS
+C
+C    Header for VTX Time_to_space for one layer of sense wires
+C
+C    LC       IC/C
+C     1                 Up   to VTMH
+C     2                 Orig to VTMH
+C               -5      
+C               -4      Bank name 'VTMW'
+C
+C                0      Status
+C                       Bits 13-17:  Bank version number
+C               +1  I   Lower valid run number
+C               +2  I   Upper valid run number
+C               +3  I   Number of information per wire ( 2 )
+C               +4  I   Number of wires per sector ( 8 )
+C               +5  I   Number of sectors per layer (16,32,32)
+C
+C--- then, for sector IS [0:15 or 31] and wire IW [0:7], the parameters address
+C--- is    J = KVTMW + (IS * IC(KVTMW+4) + IW) * IC(KVTMW+3) + 5
+C
+C               J+1  F  Time offset ( also called T0 )
+C               J+2  F  Drift velocity
+C
+C   If T is the measured FADC time, the position is  
+C               X = ( T - C(J+1) ) * C(J+2)
+C
+C-----------------------------------------------------------
+C**********************
+C VERSION 1 ***********
+C-----------------------------------------------------------
+C BANK NAME     : VTMW   Version:   1
+C AUTHOR        : PETER GRUDBERG
+C DATE          : 30-SEP-88
+C Updated       : 19-JUN-1989 Peter Grudberg - added bank version number
+C                             in top 5 user bits of Zebra status word
+C TREE DESCR.   : VTXGEO_ZEBANKS
+C
+C    Header for VTX Time_to_space for one layer of sense wires
+C
+C    LC       IC/C
+C   -32(-16 for layer 0) Struc to VDTM for CATEG 31 (15 FOR LAYER 0)
+C     |          
+C     |          
+C     |          
+C    -2                 Struc to VDTM for CATEG 1
+C    -1                 Struc to VDTM for CATEGory 0
+C     0                 Next (no next bank)
+C     1                 Up   to VTMH
+C     2                 Orig to VTMH
+C               -5      
+C               -4      Bank name 'VTMW'
+C
+C                0      Status
+C                       Bits 13-17:  Bank version number
+C               +1  I   Lower valid run number
+C               +2  I   Upper valid run number
+C               +3  I   Number of information per wire ( NITEMS=5 )
+C               +4  I   Number of wires per sector ( NWIR=8 )
+C               +5  I   Number of sectors per layer (NSEC=16,32,32)
+C
+C--- then, for sector IS [0:15 or 31] and wire IW [0:7], the parameters address
+C--- is    J = KVTMW + (IS * IC(KVTMW+4) + IW) * IC(KVTMW+3) + 5
+C
+C               J+1  F  Time offset for end 0
+C               J+2  F  Sigma for end 0 time offset
+C               J+3  F  Time offset for end 1
+C               J+4  F  Sigma for end 1 time offset
+C               J+5  F  Distance time scale factor for this wire
+C
+C       After all these words are a set of integers (one per sector) that
+C       identify the DTM category for each sector.
+C               J = KVTMW + NWIR*NITEMS*NSEC + 5
+C               
+C               J+1  I  DTM CATEGory for sector 0
+C               J+2  I  DTM CATEGory for sector 1
+C                 |  |
+C            J+NSEC  I  DTM CATEGory for sector NSEC-1
+C
+C-----------------------------------------------------------

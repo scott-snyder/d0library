@@ -1,0 +1,74 @@
+C=======================================================================
+C
+C  Bank Name : TRFT
+C  Author    : John D. Skeens
+C  Date      : 17-FEB-1992
+C  Modified  : 18-FEB-1992 J. Warchol
+C  Modified  : 23-MAR-1992 John Skeens  added missed superlayer pointers
+C  Modified  : 31-jan-1993 Jadzia Warchol
+C  Tree description : TRFTRACK_TREE.ZEB
+C
+C  Bank description : Track bank contains tracks for upgrade central
+C                     tracking system.
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to next TRF track (TRFT)
+C     +1          Up     link to ZTRH
+C     +2          Origin link to ZTRH
+C.......................................................................
+C             -5         Bank number = TRF track number
+C             -4         Bank name, 'TRFT'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = VAR
+C              0         Status
+C=======================================================================
+
+        Fixed length part,
+               1  I      Version number = 2
+               2  I      Length of fixed part = NF
+               3  I      Number of Coordinates used in track fit = NC
+               4  I      Status of IFIX, LFIXC, tells variables fixed in fit
+                         if bit set to off then variable fixed in track fit
+                           1st bit 0 = r
+                           2nd bit 1 = phi
+                           3rd bit 2 = Z
+                           4th bit 3 = alpha
+                           5th bit 4 = lambda
+                           6th bit 5 = Curvature 
+                           8th bit 7 = set on, more than one variable fixed
+               5  I      MC Track # 
+
+               6  F      Radius
+               7  F      Phi
+               8  F      Z
+               9  F      alpha  ( tan(alpha+phi) = dy/dx )
+              10  F      lambda ( tan(lambda) = dz/dst = Pz/Pt
+              11  F      C     transverse curvature
+
+              12  F      t = time
+              13  F      dt/ds = 1/v
+              14  F      Chi Square, spatial from reconstructed track
+              15  F      Chi Square, time
+
+            16-30 F      upper triangle errors on the variables 6-11 that 
+                         varied in the track finding
+
+            31-35 F      these are spares for later use
+
+            36    F      ChiSquare from MC-reco matching
+
+            37-39 F      upper triangle of errors on variables 12,13
+              40  F      Candidate Chi-Square from TRFTRE 
+              41  I      Number of missed layers in track
+
+        Variable length part,
+            NF+I  I      pointer to Ith coordinate used in track fit
+                           contains, IM, IV, IL ICO
+                             IM  = module / shape number - bits 27-31
+                             ISHP= shape                 - bits 20-26
+                             ISL = superlayer number     - bits 13-19
+                             ICO = channel number        - bits  0-12
+
+         NF+NC+I  I      missed superlayer number

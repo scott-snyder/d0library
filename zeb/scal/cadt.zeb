@@ -1,0 +1,60 @@
+C=======================================================================
+C
+C  Bank Name : CADT
+C  Author    : Chip Stewart
+C  Date      : 25-APR-1991 18:10:16.41
+C  Tree description : SCAL_TREE.ZEB
+C
+C  Bank description : CADT is a lookup table which maps CAD bank addresses
+C                     (See D0$DOCS:ADC_DATA_FORMAT.DOC: DATACABLE,CRATE and
+C                     upper 14 bits of CAD bank data word)
+C                     to ETA,PHI,LYR physics addresses.
+C                     The most signifcant byte is package dependent and 
+C                     is not currently used in CAHITS but will be used as a 
+C                     pointer (to CAGS bank) in Level 2 code to pick up gains.
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C     -1          Structural Link to SPARE
+C      0          Next   link to
+C     +1          Up     link to CGEH
+C     +2          Origin link to CGEH
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'CADT'
+C             -3         NL = 1
+C             -2         NS = 1
+C             -1         ND = 61500
+C              0         Status
+C              1         Version number = 1
+C              2         CRATE numbers from 7 to 58
+C              N+3       IC(LCADT+N+3) = packed ETA,PHI,LAYER,PTR
+C                          where
+C                          N = INDEX + (MAX_INDEX+1)*(10*ICRATE+6*(ICAD-1))
+C                           INDEX = most significant 14 bits of CAD data word
+C                           MAX_INDEX = 6144
+C
+C                        Upper 16 bits of CAD DATA word (upper 14 are INDEX):
+C
+C                            27           24     22               18  17   16
+C            |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+C            |        ADC CARD   |    BLS    | ROTOW |     DEPTH     |SCL|NEG|
+C            |                   |           |       |               |   |LIM|
+C            |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+C            |<----------------------INDEX-------------------------->| 
+C
+C                        and ETA PHI LYR (and PTR) are packed as:
+C
+C                       |-------|-------|-------|-------|
+C                       |  PTR     LYR     PHI     ETA  |
+C                       |                               |
+C                       |-------|-------|-------|-------|
+C                      32      24      16      8       1
+C
+C                        PTR can be filled and used by a package. 
+C                        For example Level 2 will use PTR and a pointer
+C                        to the CAGS bank to look-up gains. 
+C                        The CAHITS package does not use PTR for anything yet. 
+C                       
+C
+C=======================================================================

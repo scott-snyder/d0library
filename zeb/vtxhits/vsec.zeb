@@ -1,0 +1,82 @@
+C------------------------------------------------------------------------------
+C
+C BANK NAME : VSEC    Version:  0
+C AUTHOR    : C. Klopfenstein, T. Trippe
+C DATE      : 16-MAY-88
+C Updated   : 19-JUN-1989 Peter Grudberg - added bank version number in
+C                         top 5 user bits of Zebra status word
+C Updated   : 04-JUN-1992 Peter Grudberg - change definition of hit status word
+C Updated   : 03-NOV-1992 P. G. - correct description of hit id word
+C TREE DESCR. : VTXHITS_TREE
+C
+C                       Vertex chamber Sense wire Hits
+C                       =====================================
+C         LQ   Q/IQ
+C
+C         +1            UP TO VLAY
+C
+C              -5       Bank_Ident = LAYER * 2**9 + SECTOR * 2**4
+C              -4       Bank name 'VSEC'
+C
+C               0       Status
+C                       Bits 13-17:  Bank version number
+C              +1   I   Total number of hits in the sense wires
+C              +2   I   Number NEL of sense wires
+C              +3   I   Number of words per hit NWORDS ( 10 or 11 here ).
+C              +4   I   Number of hits on wire 0
+C              +5   I   Number of hits on wire 1
+C               |   |
+C The following pointers are relative to the beginning of the bank (when using
+C them, remember to add LVSEC).  They point to the first word of the first hit
+C on a wire; NOT TO THE WORD JUST BEFORE THE FIRST WORD.
+C          +NEL+4   I   Pointer to first word of first hit on wire 0
+C          +NEL+5   I   Pointer to first word of first hit on wire 1
+C               |   |
+C
+C           To address the IHITth hit of a wire (IHIT starts with 1; remember
+C           to add LVSEC to this offset!):
+C               J = IQ(LVSEC+4+NEL+WIRE) + (IHIT-1)*NWORDS - 1
+C
+C             J+1   I   Identification = Bank_Ident + 2*WIRE + closest END
+C             J+2   F   Position of the +phi solution in the cell frame (cm)
+C             J+3   F   Position of the -phi solution in the cell frame (cm)
+C             J+4   F   Z position ( cm )
+C             J+5   F   Error on the position ( cm )
+C             J+6   F   Error on Z position
+C             J+7   F   Ionization of the hit (in M.I.P. units)
+C             J+8   F   Error on ionization
+C             J+9   F   Drift Time (ns)
+C            J+10   I   Status word: byte 0 (bits 0 - 7) contains information
+C                       concerning the matched pair of hits.
+C                       bit 0: 1 if (-z) hit present, else 0.
+C                       bit 1: 1 if (+z) hit present, else 0.
+C                       bit 2: used to indicate that a hit is on a track
+C                       bit 3: 1 if hit in cathode region on +phi side
+C                       bit 4: 1 if hit in cathode region on -phi side
+C                       bits 5 - 7: unused (yet).
+C
+C                       byte 1 (bits 8-15):
+C                           bits 8-11: copy of the low order nibble (bits 0-3)
+C                           of the status word for the end 0 VWDA hit
+C
+C                           bits 12-15: copy of the low order nibble (bits 0-3)
+C                           of the status word for the end 1 VWDA hit
+C
+C                       byte 2 (bits 16 - 23): Hit number of the end 0 VWDA
+C                           hit.  Information (drift time, for example) for
+C                           the end 0 VWDA hit can be found using the
+C                           following procedure, where STATUS is this
+C                           status word (see VWDA.ZEB):
+C                               HITNUM = IBITS(STATUS,16,8)
+C                               LVWDA = GZVWDA(LAY,SEC)
+C                               POINT = LVWDA + IQ(LVWDA+20+2*WIRE+END)
+C                               POINT = POINT + 8*(HITNUM-1) ! 8 WORDS/HIT
+C                               TIME = Q(POINT+1)
+C
+C                       byte 3 (bits 24 - 31): Hit number of the end 1 VWDA
+C                           hit.
+C
+C
+C           ( J+11   I  Monte Carlo track ID. Nonexistent word for real data. )
+C
+C------------------------------------------------------------------------------

@@ -1,0 +1,313 @@
+C-------------------------------------------------------------------------
+C Bank name       : TPRL: PROCESSED HIT BANK FOR TRD LAYER 1  (LTRDT-1)
+C                                                          2  (LTRDT-2)
+C                                                          3  (LTRDT-3)
+C Author:         : A. ZYLBERSTEJN
+C Date:           : 12-OCT-89
+C Updated         : A. ZYLBERSTEJN:26-FEB-91
+C Updated         : A. ZYLBERSTEJN:10-SEP-92
+C Updated         : Alain PLUQUET 15-DEC-1992 Corrects description of version 1
+C                                             Creates version 2.
+C Updated         : Alain PLUQUET 05-JUL-1993 Updates description
+C Updated         : A. ZYLBERSTEJN:15-Dec-1993 Creates version 3
+C Updated         : M. ADAMS 22-Jan-1994 Correct desription of version 3
+C                                             clusters
+C Updated         : L.T. Goss 31-Jan-1995 Put in uranium correction factor
+C                                       
+C Tree description: TTRH_TREE
+C        Booked in BKTPRL
+C-------------------------------------------------------------------------
+LQ IQ/Q TYPE
+ 0         NEXT
++1         UP TO TRDT
++2         ORIG. TO TRDT
+-5         BANK NUMBER= TRD track number
+-4         BANK NAME 'TPRL'
+-3         NL=1
+-2         NS=0
+-1         ND=VARIABLE
+     0     STATUS
+-------------------------------------------------------------------------------
+                                 VERSIONS >=2
+-------------------------------------------------------------------------------
+LQ IQ/Q TYPE
+    +1  F  Version number (2.0   after 2/1/93 and befor Dec 93)
+                           3.256 for nb of wire in layer 3= 256
+                           3.512 for nb of wire in layer 3= 512
+                           4.256 if uranium corrections have been
+                           4.512 performed.
+    +2  F  T min on wire with E max.
+    +3  I  Distance of closest anode wire (cm)
+           |Sin(theta)| track.
+             ----> PACKED WORD  : see note below. 
+    +4  I  Status word
+            bit  1 (LSB) : electronic gain         (0=none,1=done)
+            bit  2       : epicor calibration      (0=none,1=done)
+            bit  3       : APC pedestal correction (0=none,1=done)
+            bit  4       : pedestal substraction   (0=none,1=done)
+            bit  5       : sector correction       (0=none,1=done)
+            bit  6       : wire correction         (0=none,1=done)
+            bit  7       : hv correction           (0=none,1=done)
+            bit  8       : angular correction      (0=none,1=done)
+            bit  9       : gas correction          (0=none,1=done)
+            
+    +5  I  Calibration factor EPICOR and pedestal correction B. 
+           EPICOR is in FADC counts/MIP. B is in FADC counts.  
+             ----> PACKED WORD  : see note below. 
+
+    +6  I  | 
+    +7  I  | HV in volts (anode, window, potential) for the 4 first hit anodes.
+    +8  I  | ----> PACKED WORDS : see note below.   
+    +9  I  | 
+
+    +10 I  | Pedestals (in FADC counts) for the 4 first hit anodes.
+    +11 I  | ----> PACKED WORDS : see note below.     
+    +12 F  Total energy anodes (in MIP,with corrections and calibration).
+    +13 F  Total energy cathodes (in MIP,with corrections and calibration).
+    +14 I  Energies on adjacent wires (in MIP,with corrections and calibration).
+            ----> PACKED WORD  : see note below. 
+    +15 I  Gas and High voltage corrections
+            ----> PACKED WORD  : see note below. 
+    +16 I  Coded words for multiplicity in TRD cells
+            ----> PACKED WORD  : see note below. 
+    +17 I  Multiplicity for the four first hit anodes (1=1 track)
+            ----> PACKED WORD  : see note below. 
+    +18 I  Sector correction for the four first hit anodes.
+            ----> PACKED WORD  : see note below. 
+    +19 I  Wire correction for the four first hit anodes.
+            ----> PACKED WORD  : see note below. 
+    +20 I  Electronic gain for the four first hit anodes.
+            ----> PACKED WORD  : see note below. 
+    +21 I  Total nb. of hit anodes+1000*total nb. of hit cathodes
+    +22 I  local density of TRD hits (4+4 surrounding wires)
+    +23 I  Packed word containing phi,r,z of the track in the layer
+    +24 I  (Z computed from hit cathodes)*100.
+    +25 I  Number of hit anodes NA                           
+           Number of hit cathodes NC                      
+           Number of reconstructed anode clusters   NCLA  
+           Number of reconstructed cathode clusters NCLC  
+            ----> PACKED WORD  : see note below.         
+    +26 I  
+     |     Hit anode numbers                               |
+     |     Hit anode energies in MIP                       |
+     |          (with corrections and calibration)         |
+     |     Hit cathode numbers                             | PACKED WORDS  
+     |     Hit cathode energies in MIP                     | see note below
+     |          (with corrections and calibration)         |
+     |     Energies of cluster on anode in MIP             |
+     |          (with corrections and calibration)         |
+     |     Positions of cluster on anode in FADC bin       |
+     |     Energies of cluster on cathode in MIP           |
+     |          (with corrections and calibration)         |
+     |     Positions of cluster on cathode in FADC bin     |
+    +N
+--------------------------------------------------------------------------------
+NOTE : to pack and unpack the packed information in TPRL, please use the
+       following subroutines :
+       PACK_TPRL (LTPRL,VERSION,REAL_WORD,INTEGER_WORD,IER)
+       UNPACK_TPRL (LTPRL,VERSION,REAL_WORD,INTEGER_WORD,IER)
+C-   REAL_WORD is an array of 300 reals, that contains
+C-         REAL_WORD(1) =EPICOR in FADC counts/MIP
+C-         REAL_WORD(2) =APC in FADC counts
+C-         REAL_WORD(3) =HV anode     1st hit anode in volts (>0)
+C-         REAL_WORD(4) =HV window    1st hit anode in volts (<0)
+C-         REAL_WORD(5) =HV potential 1st hit anode in volts (>0)
+C-         REAL_WORD(6) =HV anode     2nd hit anode in volts (>0)
+C-         REAL_WORD(7) =HV window    2nd hit anode in volts (<0)
+C-         REAL_WORD(8) =HV potential 2nd hit anode in volts (>0)
+C-         REAL_WORD(9) =HV anode     3rd hit anode in volts (>0)
+C-         REAL_WORD(10)=HV window    3rd hit anode in volts (<0)
+C-         REAL_WORD(11)=HV potential 3rd hit anode in volts (>0)
+C-         REAL_WORD(12)=HV anode     4th hit anode in volts (>0)
+C-         REAL_WORD(13)=HV window    4th hit anode in volts (<0)
+C-         REAL_WORD(14)=HV potential 4th hit anode in volts (>0)
+C-         REAL_WORD(15)=pedestal 1st hit anode in FADC counts
+C-         REAL_WORD(16)=pedestal 2nd hit anode in FADC counts
+C-         REAL_WORD(17)=pedestal 3rd hit anode in FADC counts
+C-         REAL_WORD(18)=pedestal 4th hit anode in FADC counts
+C-         REAL_WORD(19)=energy of adjacent wire inf
+C-         REAL_WORD(20)=energy of adjacent wire sup
+C-         REAL_WORD(21)=sector correction for 1st hit anode
+C-         REAL_WORD(22)=sector correction for 2nd hit anode
+C-         REAL_WORD(23)=sector correction for 3rd hit anode
+C-         REAL_WORD(24)=sector correction for 4th hit anode
+C-         REAL_WORD(25)=wire correction for 1st hit anode
+C-         REAL_WORD(26)=wire correction for 2nd hit anode
+C-         REAL_WORD(27)=wire correction for 3rd hit anode
+C-         REAL_WORD(28)=wire correction for 4th hit anode
+C-         REAL_WORD(29)=electronic gain for 1st hit anode
+C-         REAL_WORD(30)=electronic gain for 2nd hit anode
+C-         REAL_WORD(31)=electronic gain for 3rd hit anode
+C-         REAL_WORD(32)=electronic gain for 4th hit anode
+C-         REAL_WORD(33)=0. (other corrections later)
+C-                   |   |   |        |         |
+C-         REAL_WORD(40)=0. (other corrections later)
+C-         REAL_WORD(41)=Distance of closest anode wire (cm)
+C-         REAL_WORD(42)=|sin(theta)| track
+C-         REAL_WORD(43)=gas correction
+C-         REAL_WORD(44)=high voltage correction
+C-         REAL_WORD(45)=T min on wire with E max
+C-         REAL_WORD(46)=total energy hit anodes in this layer
+C-         REAL_WORD(47)=total energy hit cathodes in this layer
+C-         REAL_WORD(48)=uranium correction factor for this layer ! 01/31/95
+C-         REAL_WORD(49)=spare
+C-         REAL_WORD(50)=spare
+C-         REAL_WORD(51)                =energy for 1st  hit anode
+C-                   |                              |
+C-         REAL_WORD(50+NA)             =energy for NAth hit anode
+C-         REAL_WORD(51+NA)             =energy for 1st  hit cathode
+C-                   |                              |
+C-         REAL_WORD(50+NA+NC)          =energy for NCth hit cathode
+C-         REAL_WORD(51+NA+NC)          =energy for 1st    anode cluster
+C-                   |                              |
+C-         REAL_WORD(50+NA+NC+NCLA)     =energy for NCLAth anode cluster
+C-         REAL_WORD(51+NA+NC+NCLA)     =energy for 1st    cathode cluster
+C-                   |                              |
+C-         REAL_WORD(50+NA+NC+NCLA+NCLC)=energy for NCLAth cathode cluster
+C- (all energies in REAL_WORD are in MIP and take into account corrections and
+C- calibration).
+C-   INTEGER_WORD is an array of 100 integers, that contains
+C-         INTEGER_WORD(1)=coded word for hit anode cells 
+c-           bit I is set to 1 if Ieme anode cell is crossed by the track
+C-         INTEGER_WORD(2)=coded word for hit cathode cells (...)
+c-           bit I is set to 1 if Ieme cathode cell is crossed by the track
+c-         INTEGER_WORD(3)=local density of TRD hits (4+4 surrounding wires)
+C-         INTEGER_WORD(4)=NA   number of hit anodes
+C-         INTEGER_WORD(5)=NC   number of hit cathodes
+C-         INTEGER_WORD(6)=NCLA number of anode clusters
+C-         INTEGER_WORD(7)=NCLC number of cathode clusters
+C-         INTEGER_WORD(8) =Nb. of tracks crossing 1st hit anode
+C-         INTEGER_WORD(9) ="        "      "      2nd hit anode
+C-         INTEGER_WORD(10)="        "      "      3rd hit anode
+C-         INTEGER_WORD(11) "        "      "      4th hit anode
+C-         INTEGER_WORD(12)=0
+C-                   |      | 
+C-         INTEGER_WORD(50)=0
+C-         INTEGER_WORD(51)      =anode number in [1..256] for 1st  hit anode
+C-                      |                                      |
+C-         INTEGER_WORD(50+NA)   =anode number in [1..256] for NAth hit anode
+C-         INTEGER_WORD(51+NA)   =cathode number in[1..256] for 1st  hit cathode
+C-                      |                                       |
+C-         INTEGER_WORD(50+NA+NC)=cathode number in[1..256] for NAth hit
+C-         cathode
+C-  Version 2
+C-         INTEGER_WORD(51+NA+NC)          =position of 1st anode cluster
+C-                   |                                 |
+C-         INTEGER_WORD(50+NA+NC+NCLA)     =position of NCLAth anode cluster
+C-         INTEGER_WORD(51+NA+NC+NCLA)     =position of 1st cathode cluster
+C-                   |                                 |
+C-         INTEGER_WORD(50+NA+NC+NCLA+NCLC)=position of NCLAth cathode cluster
+C-         INTEGER_WORD(51+NA+NC+NCLA+NCLC)=0
+C-                   |                     |
+C-         INTEGER_WORD(100)               =0
+C-
+C   Version >=3
+C    ----------
+C   clusters anodes          J=50+na+nc 
+C-         REAL_WORD(j+1)             =energy of 1st anode cluster
+C-         INTEGER_WORD(j+1)          =Left edge of the cluster
+C-         INTEGER_WORD(j+2)          =Center of the cluster
+C-         INTEGER_WORD(j+3)          =Right edge of the cluster
+C-         INTEGER_WORD(j+4)          =Peak height of the cluster
+C-         INTEGER_WORD(j+5)          =spare
+C-                   |                                 |
+C-         REAL_WORD   (j+1+5*(NCLA-1))  =energy of NCLAth anode cluster
+C-         INTEGER_WORD(j+1+5*(NCLA-1)   =left edge
+C-                   |                                 |
+C-         INTEGER_WORD(J+4+5*(NCLA-1))  =Peak height of NCLAth anode cluster
+C-         INTEGER_WORD(J+5+5*(NCLA-1))  =spare
+C-         
+c-  Clusters cathodes       J=50+na+nc+5*ncla
+c- 
+C-         REAL_WORD   (j+1)          =energy of 1st cathode cluster
+C-         INTEGER_WORD(j+1)          =Left edge of the cluster
+C-         INTEGER_WORD(j+2)          =Center of the cluster
+C-         INTEGER_WORD(j+3)          =Right edge of the cluster
+C-         INTEGER_WORD(j+4)          =Peak height of the cluster
+C-         INTEGER_WORD(j+5)          =spare
+C-                   |                     |
+C-         INTEGER_WORD(J+4+5*(NCLC-1)) =Peak height of NCLAth cathode cluster
+C-         INTEGER_WORD(J+5+5*(NCLC-1)) =spare
+C
+C-------------------------- j=50+na+nc+5*(ncla+nclc)-------------------
+C-         INTEGER_WORD(J+1) = Nb of clusters on first hit anodes
+C-                                     |
+C-         INTEGER_WORD(J+NA) = Nb of clusters on NA th  hit anodes
+c
+C----------------------------- j=50+na+nc+5*(ncla+nclc)+NA--------------
+C
+C-         INTEGER_WORD(J+1) = Nb of clusters on first hit cathodes
+C-                                     |
+C-         INTEGER_WORD(J+NC) = Nb of clusters on NC th  hit cathodes
+C-
+C-    INTESECTION OF THE TRACK WITH THE TRD
+C-         real_word(297)     = PHI (IN TRD FRAME)
+C-                   298      = R ANODE
+C-                   299      = Z
+C-                   300      = Z COMPUTED WITH CATHODES
+C-
+C-
+C- (All positions in INTEGER_WORD are in FADC bin number).
+-------------------------------------------------------------------------------
+                                 VERSIONS <2
+-------------------------------------------------------------------------------
+C       LQ   IQ/Q TYPE
+C                    0.
+C                    1.1   after 4/18/91
+C                    1.2   after 6/30/92
+C                    1.3   after 7/23/92
+C                    1.4   after 9/23/92 If dbmon values written
+C             +2              F  T min on wire with E max
+C             +3              F  Phi track (in TRD ref. frame)
+C             +4              F  Corection factor of the energy (22-JUL-92)
+C             +5              F  Coded word for pedes
+C                                To decode:  ii=q(l+5)
+C                                Ped_avt-ped used =JBYT(II,1,8)/128.
+C                                ped dbl3-ped_used=JBYT(II,9,8))/128.
+C                                ped_aft-ped used =JBYT(II,17,8)/128.
+C             +6              F  HV anode 1st hit wire + 
+C                                            +1000 * HV anode hit wire 2
+C             +7              F HV pot 1st hit wire + 1000 * HV pot hit wire 2
+C             +8              F HV window 1st hit wire 
+C                                               + 1000 * HV window hit wire 2
+C             +9              F  Spare
+C             +10             F  Energy on adjacent wire inf. (26-2-91)
+C             +11             F  Energy on adjacent wire sup.     ""
+C             +12             F  Etot anodes
+C              13             F  Etot cathodes
+C              14             I  Number of hit anodes: Na
+C              15             I  Number of hit cathodes: Nc  
+C              16             I  Number of reconstructed anode clusters:NCLa
+C              17             I  Number of reconstructed cath. clusters:NCLc
+C              18             F <---
+C              |                    | list of hit anodes
+C             18+Na-1         F <---
+C             18+Na           F <---
+C              |                    | list of energies on anodes
+C             18+2Na-1        F <---
+C
+C             18+2*Na         F <---
+C              |                    | list of hit cathodes
+C             18+2*Na+Nc-1    F <---
+C             18+2*Na+Nc      F <---
+C              |                    | list of energies on  cathodes
+C             18+2*(Na+Nc)-1  F <---
+C           a=18+2*(Na+Nc)-1
+C              a+1            F  Energy of first cluster on anode
+C              a+2            F  Position of the first cluster (in FADC
+C                                   bin nb.) on anode 
+C              |              F  .............
+C              |              F  .............
+C              a+2*NCLa-1     F  Energy of last cluster
+C              a+2*NCLa       F  Position of the last cluster (in FADC
+C                                   bin nb.)
+C            b=a+2*NCLa
+C              b+1            F  Energy of first cluster on cath. 
+C              b+2            F  Position of the first cluster (in FADC
+C                                   bin nb.) on cath. 
+C              |              F  .............
+C              |              F  .............
+C              b+2*NCLc-1     F  Energy of last cluster
+C              b+2*NCLc       F  Position of the last cluster (in FADC
+C                                   bin nb.)
+--------------------------------------------------------------------------------

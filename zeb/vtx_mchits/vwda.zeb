@@ -1,0 +1,59 @@
+C------------------------------------------------------------------------------ 
+C
+C BANK NAME : VWDA   Version:   0
+C AUTHOR    : C. Klopfenstein, T. Trippe
+C DATE      : 16-MAY-88
+C Updated   : 19-JUN-1989 Peter Grudberg - added bank version number in
+C                         top 5 user bits of Zebra status word
+C Updated   : 25-OCT-1993 Peter Grudberg - replace time error word with 
+C                                          some raw data
+C TREE DESCR. : VTXHITS_TREE
+C
+C               Vertex chamber Wire Data 
+C               ====================================
+C    8 sense wires per cell ( 0-7 ) read out on both ends.
+C
+C        LQ   Q/IQ
+C
+C        +1             Up to VSEC
+C              -5       Bank_Ident = LAYER * 2**9 + SECTOR * 2**4
+C              -4       Name of bank 'VWDA'
+C
+C               0       Status
+C                       Bits 13-17:  Bank version number (=1)
+C              +1   I   Total number of pulses in this sector
+C              +2   I   Number NEL of elements ( 16 here)
+C              +3   I   Number of words per pulse NWORDS
+C                              ( 8 for RECO; 9 for GEAN; in IQ(LVTXH+7) )
+C              +4   I   Number of pulses on wire 0, end 0
+C              +5   I   Number of pulses on wire 0, end 1
+C              +6   I   Number of pulses on wire 1, end 0
+C              +7   I   Number of pulses on wire 1, end 1
+C               |
+C          +NEL+4   I   Pointer to first pulse on wire 0, end 0
+C          +NEL+5   I   Pointer to first pulse on wire 0, end 1
+C               |   |                                |
+C
+C      -- Then for each hit, the following information
+C                   J = (2 * NEL) + (IHIT * NWORDS) + 3
+C                       
+C             J+1   I   Identification : Bank_Ident + WIRE*2 + END
+C             J+2   F   Drift Time  ( ns )
+C             J+3   F   Pulse Area  ( FADC counts )
+C             J+4   F   Pulse Width ( ns )
+C             J+5   F   Peak Height ( FADC counts )
+C             J+6   B   Raw data for this pulse (not ped-subtracted or
+C                       linearized, i.e., raw)(8 bits/bin):
+C                       |Peak-2|Peak-1|Peak bin|Peak+1|
+C                       (The bins were chosen for this word so that it can be
+C                       directly copied into the compressed hit bank VCHT)
+C             J+7   F   Pulse Area Error ( FADC counts )
+C             J+8   I   Status word: 
+C                       bit 0: 1 if saturated, 0 otherwise.
+C                       bit 1: 1 if peak in bilinear region
+C                       bit 2: 1 if there is overlap on leading edge
+C                       bit 3: 1 if there is overlap on trailing edge
+C                       bits 4-31: unused (yet)
+C    (GEAN:   J+9   I   Mont Carlo track ID.)
+C
+C-------------------------------------------------------------------------------

@@ -1,0 +1,149 @@
+C===============================================================
+C
+C  Bank name: CAD1
+C  Author   : Chip Stewart
+C  Date     : March 6 1990
+C  VERSION  : 1
+C  Tree Description:
+C
+C           Calorimeter Raw Data Bank
+C           =========================
+C              ******* CAD1 *******
+C
+C      For NORTH section of calorimeter system (DATA CABLE 7)
+C      i.e. crates X*10+7 X=0,1,2,3,4,5
+C
+C       NOTE: FOR FULL DETAILS OF BIT STRUCTURE OF WORDS
+C        see D0$DOCS:ADC_DATA_FORMAT.DOC
+C        To unpack data from this bank use GTCAD* routines in CALOR_UTIL
+C
+C    LQ      Q/IQ
+C
+C_______________________________________________________________
+C    -1             Struct.   (free)
+C     0             next      (free)
+C    +1             up        to HEAD
+C    +2             origin    to HEAD
+C...............................................................
+C        I-5             bank number
+C         -4             bank name,  'CAD1'
+C         -3             NL=1
+C         -2             NS=1
+C         -1             ND
+C          0             STATUS
+C ........ Repeated for each crate ...............................        ___
+C         +1             NH = HEADER LENGTH  (NH =4 or 5 for PULSER data)   |
+C         +2             SYNC word                                          |
+C                             16 bits (most sig.) Level 1 ID code           |
+C                             16 bits (least sig) all bits ON               |
+C         +3             CONTROLLER WORD                                    |
+C                             16 bits (most sig.) Crate ID, subdivided:     |
+C                                 8 bits (most sig.) crate no.              |
+C                                 8 bits (least sig) no. ADC cards - 1      |
+C                             16 bits (least sig.) Crate control:           |
+C                                 8 bits (most sig.) BLS mode control       |
+C                                 8 bits (least sig) ADC mode control       |
+C         +4             NV = SOFTWARE VERSION NUMBER                       |
+C                             8 bits (most sig.) DATA TYPE                  |
+C                               bit 2**30 - D0/NWA SWITCH  (1 = NWA)        |
+C                               bit 2**29 - MONTE CARLO GENERATED IF SET    |
+C                             8 bits   USER INDEX:  System the data is from |
+C                               D0                              NWA         |
+C                                0 - D0                                     |
+C                                1 - quadrant test               TB load 1  |E
+C                                2 - 5000 channel test           TB load 2  |
+C                                3,4 Cosmic ray commissioning               |
+C                                5 - D0 Collider commissioning              |
+C                               MC                                          |
+C                                0 - TB load 1                              |A
+C                                1 - TB load 2                              |
+C                                2 - plate geometry (1=PLT,0=MIXT)          |
+C                                4 - noise bit 1                            |
+C                                5 - noise bit 2                            |C
+C                             16 bits (least sig) INCREMENTED VERSION NUMBER|
+C                                SFTVSN = 3 (MC), 2 (D0), 1 (NWA TB90)      |
+C         +5             STATUS/VERTEX                                      |
+C                             16 bits (most sig.) STATUS information        |
+C                             16 bits (least sig) VERTEX information        |H
+C         +6 (if NH=5)   PULSER PATTERN                                     |
+C ........ Repeated for each card in crate .......................          |
+C         +NH+2          N = LENGTH of data for                      __ E   |
+C                        this card in crate                            |A   |
+C                             16 bits (most sig.) spare ( =0)          |C   |
+C                             16 bits (least sig) no. data/addr. words |H   |C
+C ........ Repeated N times for each channel in card .............     |    |
+C         +NH+3          DATA/ADDRESS                            --    |C   |R
+C                             16 bits (least sig) Pulse height     |   |A   |
+C                             16 bits (most sig.) Channel address  |   |R   |A
+C          .             .                                       __| __|D   |
+C ........ Trailer which occurs at the end of each crate ..........         |T
+C         +1             Total word count (including four word trailer)     |
+C         +2             Event number/crate number                          |E
+C         +3             Token value                                        |
+C         +4             Checksum (Complement of the sum of all             |
+C                        preceeding 32 bit words in this crate              |
+C                        ignoring sign and overflow,                        |
+C                        not including itself)                              |
+C ........ Trailer which occurs only at end of CAD1 bank                  ___
+C         +1-16          (Defined and used by Level 2)
+C
+
+C===============================================================
+C
+C  Bank name: CAD1
+C  Author   : A.WHITE
+C  Date     : Jan. 25,1988
+C  VERSION  : 0
+C  Tree Description:
+C
+C           Calorimeter Raw Data Bank
+C           =========================
+C              ******* CAD1 *******
+C
+C      For NORTH section of calorimeter system (DATA CABLE 7)
+C      i.e. crates 7xZ(i.e. a hexadecimal number), x=0,...,4
+C
+C       (FOR FULL DETAILS OF BIT STRUCTURE OF WORDS
+C        see D0$DOCS:ADC_DATA_FORMAT.DOC)
+C
+C    LQ      Q/IQ
+C
+C_______________________________________________________________
+C    -1             Struct.   (free)
+C     0             next      to next CAD1 (free)
+C    +1             up        to HEAD
+C    +2             origin    to HEAD
+C...............................................................
+C        I-5             bank number
+C         -4             bank name,  'CAD1'
+C         -3             NL=1
+C         -2             NS=1
+C         -1             ND
+C          0             STATUS
+C         +1             HEADER LENGTH  ( =3)                               _
+C         +2             SYNC word                                          |
+C                             16 bits (most sig.) Level 1 ID code           |
+C                             16 bits (least sig) all bits ON               |
+C         +3             CONTROLLER WORD                                    |
+C                             16 bits (most sig.) Crate ID, subdivided:     |
+C                                 8 bits (most sig.) crate no.              |
+C                                 8 bits (least sig) no. ADC cards - 1      |E
+C                             16 bits (least sig.) Crate control:           |
+C                                 8 bits (most sig.) BLS mode control       |A
+C                                 8 bits (least sig) ADC mode control       |
+C         +4             STATUS/VERTEX                                      |C
+C                             16 bits (most sig.) STATUS information        |
+C                             16 bits (least sig) VERTEX information        |H
+C         +5             LENGTH of data for                           -     |
+C                        this card in crate                            |E   |
+C                             16 bits (most sig.) spare ( =0)          |A   |C
+C                             16 bits (least sig) no. data/addr. words |C   |
+C         +6             DATA/ADDRESS                                  |H   |R
+C                             16 bits (least sig) Pulse height         |    |
+C                             16 bits (most sig.) Channel address      |C   |A
+C          .             .                                             |A   |
+C          .             .                                             |R   |T
+C          .                                                           |D   |
+C                                                                      -   - E
+C          .             TOTAL WORD COUNT (not inc.  self)
+C

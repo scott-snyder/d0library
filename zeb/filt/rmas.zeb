@@ -1,0 +1,86 @@
+C      RMAS.ZEB
+C=======================================================================
+C
+C  Bank Name : RMAS
+C  Author    : Kathy Fatyga
+C  Date      : 20-DEC-1993
+C  Tree description : FILT
+C
+C  Bank description : Stores results of invariant mass filter
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to NONE
+C     +1          Up     link to FRES  (Tool Result Bank)
+C     +2          Origin link to FRES
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'RMAS'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = NUM_REP_WORDS*NUM_IND_PARAM_SETS
+C              0         Status
+C=======================================================================
+C             +1    I    Bank version number = 1
+C             +2    I    Number of parameter sets
+C             +3    I    Number of repeated words
+C             +4    I    Pass/Fail status of pair
+C             +5    I    Object type
+C             +6    I    Number of objects in the event
+C             +7    F    Mass of pair
+C             +8    F    Etaboost of the pair
+C             +9    F    Et of first object
+C             +10   F    Eta of first object
+C             +11   F    Phi of first object
+C             +12   F    Et of second object
+C             +13   F    Eta of second object
+C             +14   F    Phi of second object
+C             
+C             4 to 14 are repeated for each parameter set in an
+C             event. The blocks are in order of their parameter 
+C             set number.
+C               
+C               
+C             More detailed definitions:
+C
+C             One pair of objects is recorded for each parameter set.
+C
+C             When the parameter set looks at the leading pair 
+C             in Et only: that pair is stored. The status word
+C             can then be used to determine if the pair passed
+C             or failed and why.
+C 
+C             When the parameter set looks at all possible pairs:
+C             If the event passes the parameter set, then the pair 
+C             recorded is the first one that passed the event. If the event
+C             fails the parameter set, then the pair recorded is the 
+C             pair with the maximum mass.  The status word can only
+C             store 99 pairs. So if, in the unusual case, that there are
+C             more than 99 pairs in a failed event, then the first 99
+C             are stored in the status word.
+C             
+C             +4  status      -1 if pair passed event
+C                              0 if param set never looked at event
+C                        1000000 if # of objects to few
+C                       -1000000 if # of objects beyond limit(event is passed)
+C             Otherwise to determine how many objects failed each cut, the
+C             status word is the sum of the following:
+C                            A*1 + B*100 + C*10000 = STATUS
+C             Where A is the number of pairs that failed the
+C             eta range cut,
+C                   B is the number of pairs that failed the
+C             eta boost cut,
+C                   C is the number of pairs that failed the
+C             mass cut.
+C             EXAMPLE:  STATUS=30205  3 pairs failed the mass cut
+C                                     2 pairs failed the eta boost cut
+C                                     5 pairs failed the eta range cut
+C 
+C             +5 object type  1=jet, 2=electron or photon, 3 = muon
+C             +6 number of objects in the event that passed the L2 
+C                object filter done before L2_MASSCUT(such as L2JETS).
+C             +7 mass of the pair recorded
+C             +8 etaboost of the pair recorded
+C             +9 to +14 are the Et, Eta, and Phi of each object in the
+C                recorded pair
+C                

@@ -1,0 +1,68 @@
+C=======================================================================
+C
+C  Bank Name : DHIT
+C  Author    : Qizhong Li-Demarteau
+C  Date      : 10-JUL-1991
+C  Updated   : 8-APR-1994  Qizhong Li-Demarteau   changed pulse area to
+C                                                 ionisation of hit (MIP)
+C  Tree description : CDCHITS
+C
+C  Bank description : CDC compressed hits bank which contains the hits
+C                     information for the already reconstructed hits
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link 
+C     +1          Up     link to CDCH
+C     +2          Origin link to CDCH
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'DHIT'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = 3 + IQ(LDHIT+2) * IQ(LDHIT+3)
+C              0         Status
+C                        bit 0: set by CDHITS if z position "corrected" 
+C             +1    I    Version number
+C             +2    I    Total number of hits in this bank
+C             +3    I    Number of words per hit ( 3 )
+C              |    |
+C
+C
+C        --- Then for each hit, the following information.
+C        --- (J = LDHIT + 3 + IQ(LDHIT+3) * (I-1)   for the Ith hit)
+C
+C
+C            J+1    B     status word
+C                       bit    0: side (only used for the hits on tracks)
+C                       bit  1-7: hit number
+C                       bit  8-10: wire number
+C                       bit 11-15: sector number
+C                       bit 16-17: layer number
+C                       (the bit 0-17 are exactly the HIT LABEL in DTSG
+C                        and DTTH bank)
+C                       bit 18: saturation (SW),  1 if saturated, 0 otherwise
+C                       bit 19: overlap (sense wire), 1 if hit overlaps another
+C                       bit 20: Delay Line-1 quality word (see below)
+C                       bit 21: Delay Line-2 quality word (see below)
+C                       bit 22: hits on DTRK (CDC track), 1 if on, 0 not
+C                       bit 23-31: ZTRK number (Central Detector Track) 
+C            J+2    I   bit  0-15:  drift time (Time on Sense Wire - T0) 
+C                                   (unit: 0.1ns)
+C                       bit 16-31:  Z position for outer Sense Wire(unit:0.1mm)
+C                                   (9999 if no Z information for the outer SW)
+C                                   Ionisation of hit for inner Sense Wire 
+C                                   (unit: 0.01MIP)
+C
+C            J+3    I   bit  0-15:  Ionisation of hit for outer Sense Wire 
+C                                   (unit: 0.01MIP)
+C                                   
+C                       bit 16-31:  error on Z (0.01 mm) for outer SW
+C
+C=======================================================================
+C Note: Delay line quality word 1 and 2 refer to the two ends of the delay line
+C for a given hit. The quality word bit is set (=1) only if the following
+C conditions are satisfied: The DL hit exists AND it is not saturated AND it is
+C not overallped with another pulse. If ANY of the condition fail, this bit is
+C set to 0.
+C=======================================================================

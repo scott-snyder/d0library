@@ -1,0 +1,186 @@
+C *********************
+C VERSION 0 ***********
+C=======================================================================
+C
+C  Bank Name : VCHT
+C  Author    : Peter Grudberg
+C  Date      : 25-OCT-1993
+C  Tree description : VTXHITS_TREE.ZEB
+C
+C  Bank description : Low-level compressed hits bank for VTX.  Allows
+C                     reprocessing of hits even if raw data bank is dropped.
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to 
+C     +1          Up     link to VTXH
+C     +2          Origin link to VTXH (IZVCHT = 9)
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'VCHT'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = variable
+C              0         Status: bits 13-17 = bank version
+C             +1    I    Bank Version (=0)
+C             +2    I    Bank header length (=8)
+C             +3    I    Total number of hits
+C             +4    I    Number of words stored per hit, NWDSHT (=2)
+C             +5    I    Hitfinding info word:
+C
+C  Fullhits(1)|L2flag(1)|Window(6)|Weight(5)|Thr1(5)|Thr2(5)|Thr3(5)|Table(4)
+C MSB                                                                      LSB
+C           where
+C                   Fullhits (1 bit) = set if full hitfinding done
+C                   L2flag (1 bit) = set if this bank created in L2
+C                   Window (6 bits) = time window for matching hits
+C                               least count = 1 ns (max = 63 ns)
+C                   Weight (5 bits) = Weight parameter used for finding time
+C                               least count = 0.05 (max = 1.55)
+C                   Thr1 (5 bits) = Hitfinding threshold 1
+C                   Thr2 (5 bits) = Hitfinding threshold 2
+C                   Thr3 (5 bits) = hitfinding threshold 3
+C                   Table (4 bits) = bilinear table version
+C               
+C             +6    I    Number of FADC bins before peak that are stored (M)
+C             +7    I    Number of FADC bins after peak that are stored (N)
+C                           Note that M+N _MUST_ equal 3.  By default, M=2 and
+C                           N=1 (ie, store 2 bins before and 1 bin after the
+C                           peak are stored).
+C             +8    F    Least count value in time word (Least_count below)
+C                           (=0.25 ns in original scheme)
+C
+C   For each of the 80 sectors, the following information is stored (OFFSET is
+C   the number of words used so far):
+C
+C       +OFFSET+1   B   SecId (8) | N_VsecHit (11) | WordCount(13) (LSB)
+C                           SecId (8 bits) = Layer*32 + Sector
+C                           N_VsecHit (11 bits) = number of VSEC-type hits in
+C                               the current sector.  There are two types of
+C                               hits:  matched and unmatched.  There are two
+C                               end-hits stored for each matched hit, but just
+C                               one for each unmatched hit.
+C                           WordCount (13 bits) = Number of words stored for 
+C                               the current sector, including the sector 
+C                               header word (this word).  The total number of 
+C                               words equals NWDSHT*N_tot + 1, where N_tot is 
+C                               the total number of end-hits found in this 
+C                               sector (ie, N_tot = 2*N_matched + N_unmatched)
+C
+C   For each hit, there are NWDSHT(=2) words stored.  For a matched hit-pair, 
+C   the two end-hits are stored one after the other, with a bit set in each
+C   indicating that the hits are matched (the end 0 hit is always stored first)
+C   An unmatched hit does not have the bit set.  In order to process this data,
+C   it is necessary to process the hits in order checking to see if the hits
+C   are matched - ie, if the matched bit is set in the first hit, then combine
+C   it with the second hit, then check the third hit next, etc.
+C
+C   For the IHIT'th hit in the current sector, the following information is
+C   stored (where J = OFFSET+1+2*(IHIT-1), the number of words used so far, and
+C   the number in parentheses is the number of bits used):
+C
+C           +J+1    B   Match(1)|Time(15)|Addr(4)|Stat(2)|PeakHeight(10)  (LSB)
+C           +J+2    B   Peak-M(8)|...|Peak(8)|...|Peak+N(8)   where M+N=3 (LSB)
+C
+C    where
+C
+C           Match (1 bit) = matched bit, set if this end-hit is part of a
+C               matched pair
+C           Time (15 bits) = Non-Tzero-subtracted drift time
+C                   Max Value = 32767*Least_count 
+C                      (=8191.75 ns with Least_count = 0.25 ns)
+C               To calculate drift time:
+C                   Itime = Ibits(iq(lvcht+j+1),16,15)
+C                   Drift_time = Itime*Least_count - Tzero (from VTMW bank)
+C           Addr (4 bits) = 2*WIRE + END
+C                   LAYER and SECTOR are known from the sector header word
+C           Stat (2 bits) = Status bits
+C               Statbit0 (bit 10 overall) = Lead Overlap
+C               Statbit1 (bit 11 overall) = Trail Overlap
+C           PeakHeight (10 bits) = peak height of pulse, evaluated by
+C               subtracting the ped-subtracted and linearized fadc value of
+C               the first bin of the hit from that of the peak bin.
+C
+C       The second word is used to store 4 bins of raw fadc data (not
+C       ped-subtracted or linearized):  M bins before the peak, the peak bin
+C       itself, and N bins after the peak (M+N=3).  In the original scheme, M=2
+C       and N=1.  Eight bits are used for each bin.
+C
+C=======================================================================
+C**********************
+C VERSION 1 ***********
+C=======================================================================
+C
+C  Bank Name : VCHT
+C  Author    : Peter Grudberg
+C  Date      : 25-OCT-1993
+C  Updated   : 11-Feb-1994 E.Oltman 1 word/hit..
+C  Updated   : 25-Feb-1994 A.Clark  Change definition of status bits
+C  Tree description : VTXHITS_TREE.ZEB
+C
+C  Bank description : Low-level compressed hits bank for VTX.  Allows
+C                     reprocessing of hits even if raw data bank is dropped.
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to 
+C     +1          Up     link to VTXH
+C     +2          Origin link to VTXH (IZVCHT = 9)
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'VCHT'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = variable
+C              0         Status: bits 13-17 = bank version
+C             +1    I    Bank Version (=1)
+C             +2    I    Bank header length (=8)
+C             +3    I    Total number of hits
+C             +4    I    Number of words stored per hit, NWDSHT (=1)
+C             +5    I    Hitfinding info word: (SAME AS VERSION 0)
+C             +6    F    Time offset
+C             +7    F    Spare
+C             +8    F    Least count value in time word (Least_count below)
+C                           (=0.60 ns in revised scheme)
+C
+C   For each of the 80 sectors, the following information is stored (OFFSET is
+C   the number of words used so far): (Structure is same as VERSION=0)
+C
+C       +OFFSET+1   B   SecId (8) | N_VsecHit (11) | WordCount(13) (LSB)
+C
+C   For the IHIT'th hit in the current sector, the following information is
+C   stored (where J = OFFSET+IHIT-1), the number of words used so far, and
+C   the number in parentheses is the number of bits used):
+C
+C           +J+1    B   Match(1)|Time(12)|Addr(4)|Stat(5)|PeakHeight(10)  (LSB)
+C
+C    where
+C
+C           Match (1 bit) = matched bit, set if this end-hit is part of a
+C               matched pair
+C           Time (12 bits) = Tzero-subtracted drift time + Q(LVCHT+6)
+C                   Max Value = 4095*Least_count 
+C                      (=2457 ns with Least_count = 0.60 ns)
+C               To calculate drift time:
+C                   Itime = Ibits(iq(lvcht+j+1),19,12)
+C                   Drift_time = Itime*Least_count - Q(LVCHT+6)
+C           Addr (4 bits) = 2*WIRE + END
+C                   LAYER and SECTOR are known from the sector header word
+C           Stat (5 bits) = Status bits
+C             For unmatched hits and first wd of matched hits:
+C               Statbit0 (bit 10 overall) = Saturation
+C               Statbit1 (bit 11 overall) = R-hit on ZTRK
+C               StatBit2 (bit 12 overall) = L-hit on ZTRK
+C               StatBit3 (bit 13 overall) = R-hit on VTXT
+C               StatBit4 (bit 14 overall) = L-hit on VTXT
+C             For the second wd of a matched pair
+C               Statbit0 (bit 10 overall) = Saturation
+C               Statbit1 (bit 11 overall) = unused
+C               StatBit2 (bit 12 overall) = unused
+C               StatBit3 (bit 13 overall) = R-hit on rz-track
+C               StatBit4 (bit 14 overall) = L-hit on rz-track
+C           PeakHeight (10 bits) = peak height of pulse, evaluated by
+C               subtracting the ped-subtracted and linearized fadc value of
+C               the first bin of the hit from that of the peak bin.
+C
+C=======================================================================

@@ -1,0 +1,121 @@
+C=======================================================================
+C
+C  Bank Name : C2EM
+C  Author    : James T. McKinley
+C  Date      : 28-APR-1993
+C  Description : Compressed L2 electron photon filter variables bank
+C                (from online L2EM bank). For L2EM versions less than 3,
+C                some elements will be set to -1=INTEGER, -999999.0=FLOAT
+C                since they did not exist in early L2EM versions.
+C
+C  Bank description : Linear chain of banks for each L1 candidate
+C                     Repetition banks = elements 31-38, 39-46 ...
+C                     for each L2_EM filter parameter set
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C     -1          Structural link (free) 
+C      0          Next   link to next L1 candidate (if any)
+C     +1          Up     link to FILT
+C     +2          Origin link to FILT
+C.......................................................................
+C             -5    I     Bank number
+C             -4    H     Bank name, 'C2EM'
+C             -3    I     NL = 1
+C             -2    I     NS = 1
+C             -1    I     ND = NFIX + NR*NP
+C              0    I     Status
+C             +1    I     version number (=1)
+C             +2    I     NFIX = 30 (number of fixed words)
+C             +3    I     NR = 8 (repetition size)
+C             +4    I     NP = number of parameter sets in this bank
+C             +5    I     TETA (L1)     
+C             +6    I     TPHI (L1)
+C             +7    I     IETA (L2 calorimeter eta index)
+C             +8    I     IPHI (L2 calorimeter phi index)
+C             +9    I     LYR  (L2 calorimeter hot layer index)
+C            +10    F     AETA (corrected eta of shower)
+C            +11    F     ZETA (vertex corrected eta)
+C            +12    F     APHI (corrected phi of shower)
+C            +13    F     XCLUS (best estimate of center of shower)
+C            +14    F     YCLUS (best estimate of center of shower)
+C            +15    F     ZCLUS (best estimate of center of shower)
+C            +16    F     ET (assuming VTX = 0); see +35 for Z corrected
+C            +17    F     ET_ZCORR (Et corrected for Zvtx,  cluster center)
+C            +18    F     SUMEM             
+C            +19    F     EM1/SUMEM         ! warning: the following may
+C            +20    F     (EM1+EM2)/SUMEM   ! contain bogus data if candidate 
+C            +21    F     EM3/SUMEM         ! failed previous cuts (i.e. ET)
+C            +22    F     EM4/SUMEM
+C            +23    F     FH1/SUMEM
+C            +24    F     SIGMA3
+C            +25    F     SIGMA5
+C            +26    F     SIG3+MID
+C            +27    F     SH13  (E3MAX/3X3)  
+C            +28    F     SH24  ((4X4-2X2)/(2X2))
+C            +29    F     SH35  ((5X5-3X3)/(3X3))
+C            +30    F     SH57  ((5X5-7X7)/(5X5))
+C
+C Repeat 31-38 for each L2_EM filter parameter set for each L1 candidate bank
+C
+C            +31    I     PAR_SET  (Parameters set number)
+C            +32    I     NTRAK (Tracks in the road) 
+C                           0 = none found 1 = found -1 = veto'd 999 = not tried
+C            +33    I     IFAILED  .NE.0: code describing reason for failure
+C            +34    I     CUTBITS  (Bit mask describing cuts used)
+C            +35    F     CONE_R  (Radius of the isolation CONE)
+C            +36    F     FCONE_ET  (Fraction of ET = (CONE-CORE)/3x3 CORE)
+C            +37    F     DETA  (Width of the road in ETA)
+C            +38    F     DPHI  (Width of the road in PHI)
+C                           DETA,DPHI = 0 if no track requested in a given
+C                           parameter set (i.e. NTRAK = 999)
+C
+C
+C             IFAILED CODES FROM L2_EM FILTER
+C             -------------------------------
+C
+C             0   = PASS
+C             1   = ET THRESHOLD
+C             2   = UNPACKING OR NO CANDIDATE
+C             3   = SUMEM = 0 (DIVIDE BY 0 PROTECTION)
+C             10  = FH1/SUMEM TOO HIGH
+C             11  = EM1/SUMEM TOO LOW
+C             12  = EM1/SUMEM TOO HIGH
+C             13  = (EM1+EM2)/SUMEM TOO LOW
+C             14  = (EM1+EM2)/SUMEM TOO HIGH
+C             15  = EM3/SUMEM TOO LOW
+C             16  = EM3/SUMEM TOO HIGH
+C             17  = EM4/SUMEM TOO LOW
+C             18  = EM4/SUMEM TOO HIGH
+C             52  = EM3 3X3 = 0 (DIVIDE BY 0 PROTECTION)
+C             53  = EM3 5X5-3X3/3X3 TOO HIGH (CC)
+C             54  = EM3 5X5-3X3/3X3 TOO HIGH (EC)
+C             55  = EM3 5X5 = 0 (DIVIDE BY 0 PROTECTION)
+C             56  = EM3 7X7-5X5/5X5 TOO HIGH (IETA > 30) 
+C             57  = EM3 4X4-2X2/2X2 TOO HIGH (CC)
+C             58  = EM3 1X1/3X3 TOO LOW (CC)
+C             59  = SIGMA3-SIG3MID (CC)
+C             60  = SIGMA5 TOO HIGH (CC)
+C             61  = SIGMA5-SIGMA3 TOO HIGH (CC)
+C             62  = SIGMA5-SIGMA3 TOO HIGH (EC)
+C             70  = ISOLATION CONE FRACTION TOO HIGH
+C             100 = NO TRACK
+C             101 = TRACK VETO
+C             666 = BAD TRIGGER, (IETA=13, IETA>32, SHOULD NEVER HAPPEN)
+C
+C         CUTBITS = -1 for old L2EM bank versions (it was unavailable)
+C 
+C         CUTBITS (See L2_EM.PARAMS for parameters for bit numbers):
+C         ----------------------------------------------------------
+C                     Bit #         If TRUE
+C                     -----         -------
+C                       0            Cuts are set for electron
+C                       1            Cuts are set for photon
+C                       2            Track match required
+C                       3            Veto on track
+C                       4            Longitudinal shape cuts used
+C                       5            Transverse shape cuts used
+C                       6            Tight shape cuts used
+C                       7            Isolation cut used
+C
+C=======================================================================

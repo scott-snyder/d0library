@@ -1,0 +1,59 @@
+C=======================================================================
+C
+C  Bank Name : CAEP
+C  Author    : James T. Linnemann, Serban D. Protopopescu
+C  Date      : Feb. 9,1989
+C  Modified  : Chip Stewart, Dharma 20-MAY-1991 added dead & corrected banks
+C  Modified  : 17-JUN-1991 James T. Linnemann, added Level 2 Version
+C  Modified  : 10-FEB-1993 Joan Guida, added bit 7 in packed address
+C  Modified  : 24-FEB-1994 Jan Guida, modified bit 0 in packed address
+C                                     for pulser corrections on run-1A data
+C  Tree description : CALDAT_TREE
+C
+C  Bank description : Packed Hit data using physics indices
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C     -1          structural link (free)
+C      0          Next   link to none
+C     +1          Up     link to CAHT
+C     +2          Origin link to CAHT
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'CAEP'
+C             -3         NL = 1
+C             -2         NS = 1
+C             -1         ND = NR*NCH+3
+C              0         Status
+C              1         Bank version number = 2 for live material,
+C                                   = 1002 for dead (GEAN)
+C                                   = 1002+N*10000 for Nth dead chain
+C                                   = 2002+N*10000 for Nth corrected (live+dead)
+C                                   = 3002 for Level 2 version (See note 2)
+C              2         NR=2  repetition number
+C              3         NCH   number of channels
+C              4   I     packed address in bytes (BYTE B(4) in VAX)
+C                        B(4)=ieta, B(3)=iphi, B(2)=layer
+C                        B(1): bits used to inform about data
+C                             bit 0= (LSB) 1 if 1A pulser corrections performed
+C                             bit 1= 0(x8), 1(x1)
+C                             bit 2= 0(ped sub.), 1(no ped sub)
+C                             bit 3= 0(gains coor.), 1(no gains corr.)
+C                             bit 4= 0(zero sup.), 1(not zero sup.)
+C                             bit 5= 0(E in Gev), 1(E in ADC counts)
+C                             bit 6= 0(live energy only),1(corrected for crack)
+C                             bit 7= 0(normal channel),1(hot channel suppresed)
+C              5   F     Energy in GeV
+C              repeat 4- 5 NCH times
+C=======================================================================
+C
+C NOTE:
+C To allow for several versions of the DEAD & CORRECTED CAEP to exist in 
+C (RECO) ZEBRA at the same time the CAEP version number is used to identify the
+C different CAEP banks in the linear chain. The routine BKCAEP has 
+C ENTRY points BKCAEP_CORRECTED & BKCAEP_CRACK to handle this. In the GEAN
+C PATH the routine BKCAEP_2 books the dead CAEP bank.
+C   Note 2:
+C   Level 2 version has the following peculiarities:
+C       a) the Energy is actual Et (nominal), i.e. assues z(vertex) = 0
+C       b) The bits B(1) are meaningless and should be ignored

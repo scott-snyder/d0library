@@ -1,0 +1,106 @@
+C=======================================================================
+C
+C  Bank Name : FHIT
+C  Author    : Robert E. Avery
+C  Date      : 19-AUG-1991
+C  Tree description : FDCHITS
+C
+C  Bank description : FDC compressed hits bank which contains the hits
+C                     information for the already reconstructed hits
+C  Modified    : 18-OCT-1991 Robert E. Avery  Change status word format.
+C    (no longer save hit number, increase number of bits for track numbers).
+C  Modified    : 20-OCT-1993 Robert E. Avery  New version (V1) of FHIT.
+C    Now save associated Delay Lines as separate hits.
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link 
+C     +1          Up     link to FDCH
+C     +2          Origin link to FDCH
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'FHIT'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = 3 + IQ(LDHIT+2) * IQ(LDHIT+3)
+C              0         Status
+C             +1    I    Version number (current version is 1)
+C             +2    I    Total number of hits in this bank
+C             +3    I    Number of words per hit ( 2 )
+C              |    |
+C
+C
+C
+C-----------------------------------------------------------------------
+C
+C   VERSION 1:
+C       
+C
+C        --- Then for each hit, the following information.
+C        --- (J = LDHIT + 3 + IQ(LDHIT+3) * (I-1)   for the Ith hit)
+C
+C       For each hit associated with a Sense wire:
+C
+C            J+1    B     status word
+C                   Bits 0-11 are the logical channel address:
+C                         bit    0-3: wire
+C                         for phi:
+C                         bit    4-9: Sector number.
+C                         for theta:
+C                         bit    4-6: Sector number.
+C                         bit    7-9: Quadrant number.
+C                         bit    10:  Unit (theta or phi)
+C                         bit    11:  Half
+C
+C                         bit 12 set equal to 0,1 depending on L/R ambiguity.
+C                         bit 13 set if one or more delay line is associated.
+C                         bit 14 set if hit is on a segment.
+C                         bit 15-23  FDC track number (FDCT), 0 if not on track.
+C                         bit 24-31: ZTRK number (Central Detector Track).
+C            J+2    I     bit  0-15:  Drift distance from wire 
+C                                       (in microns, >0)
+C                         bit 16-31:  Pulse Area (MIPS X 500)
+C
+C       If a sense wire hit has 1 or 2 associated delay line pulses,
+C               the delay line data is stored as another hit.
+C               The delay line hits for a sector are stored immediately
+C               following all of the sense wire hits for a sector.
+C
+C       For each Delay Line hit:
+C            J+1    B     status word
+C                   Same as for sense wires with the following exceptions:
+C                         bit    3: set to indicate delay line (for unit=0)
+C                         bit   13: set if 2 delay lines pulse, else 1 pulse
+C            J+2    I     bit  0-15:  Drift distance from wire 
+C                                       (in microns, >0)
+C                         bit 16-31:  Z position (units: 0.02 mm)
+C
+C-----------------------------------------------------------------------
+C
+C   VERSION 0:
+C
+C            J+1    B     status word
+C                   Bits 0-11 are the logical channel address:
+C                         bit    0-3: wire
+C                         for phi:
+C                         bit    4-9: Sector number.
+C                         for theta:
+C                         bit    4-6: Sector number.
+C                         bit    7-9: Quadrant number.
+C                         bit    10:  Unit (theta or phi)
+C                         bit    11:  Half
+C
+C                         bit 12 set equal to 0,1 depending on L/R ambiguity.
+C                         bit 13 set if one or more delay line is associated.
+C                         bit 14 set if hit is on a segment.
+C                         bit 15-23  FDC track number (FDCT), 0 if not on track.
+C                         bit 24-31: ZTRK number (Central Detector Track).
+C            J+2    I     bit  0-15:  Drift distance from wire 
+C                                       (in microns, >0)
+C                         bit 16-31:  
+C                         For Unit 0, SW0 :
+C                                 Z position (units: 0.1mm)
+C                         For other SW, Phi SW :
+C                                 Pulse Area (MIPS X 100)
+C
+C=======================================================================

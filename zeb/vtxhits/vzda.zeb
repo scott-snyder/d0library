@@ -1,0 +1,60 @@
+C-------------------------------------------------------------------------------
+C
+C BANK NAME : VZDA   Version:   0
+C AUTHOR    : C. Klopfenstein, T. Trippe, P. Grudberg
+C DATE      : 16-MAY-88, 10-NOV-88
+C Updated   : 19-JUN-1989 Peter Grudberg - added bank version number in
+C                         top 5 user bits of Zebra status word
+C TREE DESCR. : VTXHITS_TREE
+C
+C                       Vertex Chamber Z-Strip Data
+C                       =====================================
+C         LQ   Q/IQ
+C
+C        L+1            UP TO VZLA
+C         +2            ORIG. TO VZLA
+C              -5       Bank_Ident = 2**12 + Z_LAYER * 2**9
+C              -4       NAME OF BANK 'VZDA'
+C               |
+C               0       Status
+C                       Bits 13-17:  Bank version number
+C              +1    I  Number NDATA of "data" in this z layer
+C              +2    I  Number of FADC channels NCH for this layer
+C              +3    I  Number of words / "data" - NWORDS 
+C                          (RECO 8; GEANT 9; in IQ(LVTXH+9) )
+C                 ****  NCH = NSTRIP * NEND
+C                       NSTRIP = number of strips in z layer
+C                              = 160 for z layer 2
+C                              = 192 for z layers 3 and 4
+C                              = 128 for z layer 5
+C                              (z layers 0 and 1 don't exist in hardware)
+C                       NEND   = 2 for z layer 2
+C                              = 1 for all other layers
+C                       
+C                       For strip ISTRIP(0:NSTRIP-1) and end IEND(0:NEND-1):
+C                             K = (ISTRIP*NEND+IEND)+3
+C
+C             K+1    I  Number NDATA of "data" on strip
+C         NCH+K+1    I  Pointer IPTR to strip "data"
+C   
+C                       The following eight or nine words repeat for 
+C                       each "data".
+C                       The pointer IPTR points to the beginning of the
+C                       "data" for a given strip.  For the Ith "data"
+C                       on the strip, J=IPTR-1+9*I where I=0,NDATA - 1.
+C
+C             J+1   I   Identification : Bank_Ident + 2 * Strip + End
+C             J+2   F   Drift Time  (ns)  
+C             J+3   F   Pulse Area  ( FADC counts ) 
+C             J+4   F   Pulse Width (ns) 
+C             J+5   F   Peak height ( FADC counts )
+C             J+6   F   Drift Time Error (ns) 
+C             J+7   F   Pulse Area Error ( FADC counts )
+C             J+8   I   Status word: bit 0 = saturation flag , = 1 if
+C                                    hit is saturated, 0 otherwise.
+C                                    bit 1 = overlap flag, = 1 if hit
+C                                    overlaps another.
+C                                    bits 2 - 31 are unused as yet.
+C    ( GEANT: J+9   I   Monte Carlo track ID.)
+C
+C-------------------------------------------------------------------------------

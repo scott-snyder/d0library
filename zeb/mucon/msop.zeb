@@ -1,0 +1,147 @@
+C=======================================================================
+C
+C  Bank Name : MSOP    (v. 1.0)
+C  Author    : S.T.REPOND         STR
+C  Date      : 27-JUNE-90        20-jun-91
+C  Tree description : hanging from MSRH under SMUO under STPC
+C                     in ZEBSTP
+C
+C  Bank description : 
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to 
+C     +1          Up     link to XPARENT
+C     +2          Origin link to XPARENT
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'XXXX'
+C             -3         NL = XNL
+C             -2         NS = XNS
+C             -1         ND = XND
+C              0         Status
+C=======================================================================
+C    1   I    BANK VRSN
+C    2   I    Status
+C    3   F    Quality - Average cell efficiency
+C    4   I    Lowest run number
+C    5   I    Highest run runber
+C    6   I    Run generated
+C    7   I    Date generated
+C    8   I    Generated for type of run                     
+C    9   I    Module number
+C   10   I    spare
+C   11   I    spare                                              
+C   12   I    Module orientation  from survey - not implemented -      
+C   13   I    Stagger type (TL=1, TR=2, BL=3, BR=4) from MGEO MC              
+C   14   I    Spare                                                           
+C   15   I    Spare                                                           
+C   16   I    Spare
+C   17   I    X of Local SURVEY Origin (end pin0 deck0) in Global 
+C   18   F    Y                                 -  from Survey directly -
+C   19   F    Z                                            
+C   20   F    X of local origin (CENTER of the module) in Global corrected 
+C                           *******          by trasl. and rot.  (from Survey) 
+C   21   F    Y             *  T1S *                                 
+C   22   F    Z             *******
+C   23   F    Rotation matrix L_to_G         cos(X,x)  R11     (from survey) 
+C   24   F         :                         cos(X,y)  R12
+C   25   F         :                         cos(X,z)  R13        
+C   26   F         :                         cos(Y,x)  R21
+C   27   F         :        ******           cos(Y,y)  R22
+C   28   F         :        * R1S*           cos(Y,z)  R23
+C   29   F         :        ******           cos(Z,x)  R31
+C   30   F         :                         cos(Z,y)  R32
+C   31   F         :                         cos(Z,z)  R33
+C   32   F    Status
+C   33   F    Status 
+C======================================================================
+c
+C      STR May 1990  Note on  coordinates convention:
+C
+C SURVEY LOCAL ref.sys.   x  drift       SURVEY GLOBAL ref.sys.
+c                         y  along wire          (same as PHYS.GLOBAL)
+c                         z  elevation
+c          z  I    / y 
+c             I   /
+c             I  /
+c             I /
+c             I_________ x
+c
+c---------------------------------------------------------------------------
+c
+C PHYS.LOCAL ref.sys.    x  elevation   PHYS.GLOBAL ref.sys.  X  EAST 
+C     (P.Martin note)    y  drift                             Y  UP     
+C                        z  along wire                        Z  SOUTH 
+c                                                                (PROTON BEAM)
+C
+C        x  I      z                            I  Y
+C           I   /                               I
+C           I  /                                I
+C           I /                                 I
+C           I/                                  I
+C           I_____________ y                    I____________ X
+c                                              /
+c                                             /
+c                                      + Z   /
+c                                           V    
+c
+c
+c
+c
+
+C ---------------------------------------------------------------------------c
+c
+
+c   STR May 1990 - note on  SURVEY data input format
+c
+c     input:  X0_s     LOCAL ORIGIN SURVEY in Global (end pin 0 deck 0)
+C             Y0_s       "      "        "
+C             Z0_s       "      "        "
+c
+c     y^z        THETA   rotation angle about x axis (in Local Survey) 
+c     z^x        PSI     rotation angle about y axis (in Local Survey) 
+c     x^y        PHI     rotation angle about z axis (in Local Survey) 
+c
+c
+c
+C**************************************************************************
+C
+C
+C     STR 02-aug-1990   note on the Rotation matrix as defined in 
+C                       MSOP bank.
+C
+C   This is the way we define the Rotation Matrix  whose elements
+C  cos(X,x) are filled in MSOP bank:
+C
+C           X_i  = T_i  + R1S (i,j) * x_j         (I)
+C
+c       where  X_i is the hit i coordinate in Global
+C              x_j is the hit j coordinate in Local
+C              T_i is the i element of the Traslation vector
+C                     T1S,taking in consideration that
+C                     T1S is the position of the 
+C                     CENTER of the module, corrected by Trasl. and
+C                     rotation as calculated from Survey data.
+C              R1S(i,j) is the i,j element of the Rotation Matrix
+C                   rotating from the Local to the Global reference
+C                   system.
+C                 In particular:
+C              R1S(i,j) = RL_TO_G(i,k)* L_TO_RL(k,j)
+C                 
+C                 with L_TO_RL performing the trasformation from Local to
+C                 rotated Local, and RL_TO_G trasforming from rotated Local
+C                 to Global.
+C 
+C      Differently than in the MGEO bank, the rotation mtx R is defined as
+C       in the P. Martin's D0 note 416 and directly trasforms a given hit
+C       position from local coord. (x,y,z) to global coord. (X,Y,Z) :
+C          /X\           /x\
+C          |Y| = T + R * |y|         
+C          \Z/           \z/
+C
+C  T is a vector from the global origin to the local origin.
+C  T and R are calcultated from parameters in  constant banks.
+C                                                   STR, 2-aug-1990
+C=======================================================================
+

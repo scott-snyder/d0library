@@ -1,0 +1,182 @@
+C=======================================================================
+C
+C  Bank Name : JETS
+C  Author    : Serban D. Protopopescu
+C  Date      : Nov. 21,1988
+C  Modified  : Boaz Klima
+C  Date      : 25-JAN-1991
+C  Modified  : Nick Hadley, Boaz Klima - version 2
+C  Date      : 20-NOV-1991
+C  Modified  : Boaz Klima - Add JNEP structural link
+C  Date      : 21-NOV-1991
+C  Modified  : N.A. Graf - add 4 words - version 3
+C  Date      : 28-SEP-1992
+C  Modified  : Harrison B. Prosper - add 5 words - version 4
+C  Date      : 17-May-1993
+C  Modified  : Richard Astur - add 1 ref link and 1 word - version 5
+C  Date      : 17-May-1993
+C  Modified  : Richard Astur - add 7 data words - version 6
+C  Tree description: PROC_TREE
+C  Modified  : Chip Stewart, Bob Hirosky - add 2 data words - version 7
+C  Modified  : Dhiman Chakraborty - add 1 data word - version 8
+C              28-AUG-1995
+C  Modified  : Brad Abbott, Bob Hirosky - add 5 data words - version 9
+C              19-SEP-1995
+C  Modified  : Dhiman Chakraborty - add 6 data words - version 9
+C              07-NOV-1995
+C  Modified  : Bob Hirosky - new links - version 10 to uncorrected jet
+C              and qcd_jet_correction QUANS words, VERSION 10
+C
+C             Jets in Calorimeter
+C
+C    LQ     Q/IQ
+C ___________________________________________________________________________
+C     -9            reference link to qcd_jet_correction QUANS words
+C     -8            reference link to old uncorrected JETS BANK
+C     -7            reference link to VCOR
+C     -6            reference link to Lepton or Photon bank
+C     -5            reference link to Lepton or Photon bank
+C     -4            reference link to Lepton or Photon bank
+C     -3            reference link to Lepton or Photon bank
+C     -2            struct.  (JNEP) Jets without Electron/Photon cells
+C     -1            struct.  (JPTS) pointers to cal. hits
+C      0            next     to next JETS
+C     +1            up       to CAPH
+C     +2            origin   to CAPH for first and previous JETS for others
+C ............................................................................
+C            I-5             bank number
+C             -4             bank name,  'JETS'
+C             -3             NL=7
+C             -2             NS=2
+C             -1             ND=45
+C              0             STATUS
+C             +1     I       bank version (=9)
+C             +2     F       Px
+C             +3     F       Py
+C             +4     F       Pz
+C             +5     F       E
+C             +6     F       Et
+C             +7     F       Theta
+C             +8     F       Phi
+C             +9     F       Eta
+C             +10    F       (SigEx)**2
+C             +11    F       (SigEy)**2
+C             +12    F       RMS Eta width
+C             +13    F       RMS Phi width
+C             +14    F       Fraction of EM Et = EtEm/Et
+C             +15    I       Flag for merging/splitting ( see below )
+C             +16    I       Number of cells above threshold (1GeV def)
+C             +17    F       Fraction of ICD/MG Et(EtICD+EtMG/TOTAL_ET)
+C             +18    F       Fraction of CH Et (Et CH/TOTAL_ET)
+C             +19    F       Ratio of hottest to next-hottest cell
+C             +20    I       Tau match flag (see below )
+C             +21    I       Number of TOWERS comprising 90% of jet Et
+C             +22    F       (SigEz)**2
+C             +23    F       <dExdEy>
+C             +24    F       <dExdEz>
+C             +25    F       <dEydEz>
+C             +26    I       ENERGY CORRECTION STATUS WORD ( see below )
+C             +27    I       Vertex matching word - 4 bytes ( see below)
+C             +28    F       Energy Correction Factor
+C             +29    F       Transverse Energy Correction Factor
+C             +30    F       Estimated ET Noise in jet (GeV) ( see below )
+C             +31    F       Estimated ET Underlying in jet (GeV) ( see below )
+C             +32    F       Eta correction made to jet (corr eta - uncorr eta)
+C             +33    F       Emf correction made to jet (corr emf - uncorr emf)
+C             +34    F       'Momentum' Correction Factor (ex**2+ey**2+ez**2)
+C             +35    F       Phi correction made to jet (corr phi - uncorr phi)
+C             +36    F       Et of seed tower from preclustering                
+C             +37    F       Share fraction from SPLJET =ETSHARE/MIN(ETJ1,ETJ2) 
+C             +38    F       Estimated ET Underlying in jet in ICR (see below)
+C             +39    F       PRECLUSTER ET
+C             +40    F       eta-phi correlation (corresponding to words 12,13)
+C             +41    F       Estimated ET Noise in jet in ICR (see below)
+C             +42    I       The number of cells in the EM compartment
+C             +43    I       The number of cells in the CH compartment
+C             +44    I       The number of cells in the FH compartment
+C             +45    I       The number of cells in the ICD compartment
+C             +46    I       CHf correction made to jet (corr chf - uncorr chf)
+C             +47    I       ICDf corr made to jet (corr icdf - uncorr icdf)
+C             +48    I       Fractional stat error (low) for corrected jet ET 
+C             +49    I       Fractional stat error (high) for corrected jet ET 
+C             +50    I       Fractional syst error (low) for corrected jet ET 
+C             +51    I       Fractional syst error (high) for corrected jet ET 
+C=======================================================================
+C
+C  Definitions ( Cells are those in the CATE bank ):
+C  -----------
+C
+C  E  - Sum(Ei) over all the cells included in the jet.
+C
+C  Px - Sum(Exi).
+C  Py - Sum(Eyi).
+C  Pz - Sum(Ezi).
+C
+C  Et - Sum[(Ei)*sin(Thetai)].
+C
+C  For Theta, Phi and Eta the following code was used
+C  to calculate them from Px,Py,Pz
+C
+C  PARAMETER( SMALL = 1.0E-5 )
+C  Phi=ATAN2(Py,Px+SMALL)
+C  IF(Phi.LT.0) Phi=Phi+TWOPI
+C  EZOE=(Pz+SMALL)/(SQRT(Px*Px+Py*Py+Pz*Pz)+SMALL)
+C  Theta=ACOS(EZOE)
+C  Eta=-ALOG(TAN(Theta/2.)+SMALL)
+C
+C  Sig**2(Ex) - Sum[Sig**2(Exi)].
+C
+C  Sig**2(Ey) - Sum[Sig**2(Eyi)].
+C
+C  EM Et - Sum[(Ei)*sin(Thetai)] if cell I is in an EM calorimeter
+C
+C  RMS Eta WIDTH = SQRT[sum[Eti*(Etai - Eta_average)**2]/Et]
+C  RMS Phi WIDTH = SQRT[sum[Eti*(Phii - Phi_average)**2]/Et]
+C
+C  For fixed Cone Algorithm word 15 equals to:
+C  =0 means no merging or splitting was done
+C  =1 means jet is the result of combining two jets
+C  =2 means jet is the result of splitting ( not a perfect cone )
+C  =3 means jet is the result of both combining and splitting
+C
+C  Note:
+C  ----
+C
+C  One assumes zero mass for each cell included in the jet. The invariant
+C  mass of the jet is given by:
+C
+C       Jet Mass = SQRT [ E**2 - ( Px**2 + Py**2 + Pz**2 )]
+C--------------------------------------
+C  Definition of Energy Correction word 26:
+C
+C   Bit 0 set = Energy correction has been done
+C   Bit 1 set = Out of cone correction was done
+C   Bit 2 set = Zero suppression correction was done
+C   Bit 3 set = Underlying event correction was done
+C   Bit 4 set = Jet areas have been calculated in RECO
+C   All other bits have no meaning at this time
+C--------------------------------------
+C  Definition of Vertex matching word 27
+C   word is byte packed
+C   Byte 1 (least significant)= Total # of tracks matched to this jet
+C   Byte 2                    =  # of those tracks coming from vertex #1
+C   Byte 2                    =  # of those tracks coming from vertex #2
+C   Byte 4                    =  # of those tracks coming from vertex #3
+C-------------------------------------
+C  Estimated ET Noise in jet
+C   if bit(4) of ENERGY CORRECTION STATUS WORD is set then:
+C   this word contains the sin(theta) weighted (eta x phi) area of the jet
+C-------------------------------------
+C  Estimated ET Underlying in jet
+C   if bit(4) of ENERGY CORRECTION STATUS WORD is set then:
+C   this word contains the (eta x phi) area of the jet
+C-------------------------------------
+C  Estimated ET Underlying jet ICR 
+C   if bit(4) of ENERGY CORRECTION STATUS WORD is set then:
+C   this word contains the unweighted area of the jet which 
+C   overlaps with the ICR
+C-------------------------------------
+C  Estimated ET Noise in jet ICR 
+C   if bit(4) of ENERGY CORRECTION STATUS WORD is set then:
+C   this word contains the sin(theta) weighted area of the jet which
+C   overlaps with the ICR

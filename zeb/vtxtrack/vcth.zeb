@@ -1,0 +1,75 @@
+C=======================================================================
+C
+C  Bank Name : VCTH
+C  Author    : Ed Oltman, Al Clark
+C  Date      : 24-FEB-1994
+C  Tree description :
+C
+C  Bank description : VTX Compressed hits-on-track pointer bank.  Allows
+C  association between a track and its hits.
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to none
+C     +1          Up     link to VTRH
+C     +2          Origin link to VTRH
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'VCTH'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = variable
+C              0         Status
+C             +1    I    Bank version (=0)
+C             +2    I    Bank header length (=5)
+C             +3    I    total number of VTXT's
+C             +4    I    hits stored per word (4)
+C             +5    I    Max number of tracks which can be stored in this bank
+C
+C  for each VTXT, the following information is stored (OFFSET is the number
+C  of words used so far):
+C
+C        +OFFSET+1  B    Track packed word:
+C                           bits  0- 8 VTXT track ID-1 (allows 512 tracks max)
+C                           bits  9-12 L0 lower sector number
+C                           bits 13-17 L1 lower sector number
+C                           bits 18-22 L2 lower sector number
+C                           bits 23-25 L0 highest wire number for lower sector
+C                           bits 26-28 L1 highest wire number for lower sector
+C                           bits 29-31 L2 highest wire number for lower sector
+C
+C   Valid "track ID-1" values are 0 to 511; Tracks with ID's .GT. 512 are NOT
+C   entered in this bank.
+C
+C   The "lower" sector number anticipates the day when tracks are allowed to
+C   cross sector boundries.  Thus a layer can have up to 2 sectors (lets not get
+C   silly) -- the lower sector number is the sector number that the track
+C   enters the layer.  If "highest wire number for lower sector" is 7, it means
+C   that the track is completely contained within the sector; else the track
+C   goes to the adjacent cell.  One needs to look at the tracks's Q(LVTXT+6:
+C   LVTXT+8) to figure the next sector.
+C   on the track
+C
+C        +OFFSET+2  B    packed hits for inner 4 wire-layers
+C                           bits  0- 6 hit number for 1st wire-layer's hit
+C                           bit   7    L/R bit    for 1st wire-layer's hit
+C                           bits  8-14 hit number for 2nd wire-layer's hit
+C                           bit  15    L/R bit    for 2nd wire-layer's hit
+C                           bits 16-22 hit number for 3rd wire-layer's hit
+C                           bit  23    L/R bit    for 3rd wire-layer's hit
+C                           bits 24-30 hit number for 4th wire-layer's hit
+C                           bit  31    L/R bit    for 4th wire-layer's hit
+C                                                 .
+C                                                 .
+C  +OFFSET+2+(HITS-1)/4
+C                   B    packed hits for outer (1-4) wire-layer(s) (see above)
+C
+C   If the L/R bit is set, the +phi solution was used in the fit; if clear,
+C   the -phi solution was used.
+C
+C   The hit number, points to the hit on the wire in question, not the hit
+C   within the VCHT sector block. Valid numbers are 1 to 127; 0 indicates
+C   a hit number .ge. 128 (overflow); the hit is NOT accesible.
+C
+C=======================================================================
+

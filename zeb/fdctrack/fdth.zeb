@@ -1,0 +1,58 @@
+C-------------------------------------------------------------------------
+C   Bank Name   : FDTH
+C   Author      : Daria Zieminska
+C   Date        : 25-May-1989
+C   Updated     : 3-DEC-1990    Jeffrey Bantly   add three segment numbers
+C   Updated     : 13-JUN-1991  Susan Blessing  Add reference links to 
+C                                              segments, fix a couple of errors
+C   Updated     : 27-AUG-1992  Susan Blessing  Add explanation about inclusion
+C                                              of DL information.
+C   Tree Descr. : FDCTRACK_TREE 
+C
+C   FDC track to hit relation
+C
+C   LQ  IQ/Q    
+C--------------------------------------------------------------------------
+C   -3       Reference link to layer 2 segment (0 if no segment used)
+C   -2       Reference link to layer 1 segment (0 if no segment used)
+C   -1       Reference link to layer 0 segment (0 if no segment used)
+C    0       Next   link to none
+C   +1       Up     link to FDCT
+C   +2       Origin link to FDCT
+C..........................................................................
+C       -5      Bank number = track number
+C       -4      Bank name 'FDTH'
+C       -3       NL = 0
+C       -2       NS = 0
+C       -1       ND = 105
+C        0       Status
+C        Repeated for each hit: (J=1 to 34)
+C
+C      J+1  I   Encoded hit address : see FCODER.FOR in D0$FDC_UTIL$SOURCE
+C                                     for details, encodes Half,Unit,Quad,
+C                                     Sector,Wire,L/R
+C                                     =FCODER logical address * 2 + L/R(=0,1)
+C       +2  I   Pointer to hit in FTSC or FPSC bank
+C       +3  F   Fit residual 
+C
+C (NOTE:  If there is a theta SW0 hit, there will automatically be an
+C         entry for a delay line hit.  IQHTRK(1:2,I) (SW0 address and pointer) 
+C         will equal IQHTRK(1:2,I+2) (SW0 address and pointer again), but
+C         QHTRK(3,I) will be the residual for SW0 and QHTRK(3,I+1) will be
+C         the residual for the delay line hit - EVEN IF THERE IS NO DELAY
+C         LINE HIT ASSOCIATED WITH THE SW0 HIT.  If there is no DL hit, the
+C         center of the sense wires is assumed with such a large weight as
+C         to make its importance in the fit negligible, but the residual is
+C         still calculated.  You must check bits 0 and 1 of 
+C         IQ(LFTSC+IQHTRK(2,1)+9) to see if -Y/X and/or +Y/X DL hits are
+C         associated.  (Or check the status word of the segment bank for
+C         the theta segments involved in the track by using FCHECK_DL.)
+C
+C       Number of the segment used from each layer to make track,
+C       where 0=layer not used.
+C
+C     +103  I   Segment used from Layer 0, Half determines FSG0 or FSG3 bank
+C     +104  I   Segment used from Layer 1, Half determines FSG1 or FSG4 bank
+C     +105  I   Segment used from Layer 2, Half determines FSG2 or FSG5 bank
+C
+C----------------------------------------------------------------------------

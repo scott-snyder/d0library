@@ -1,0 +1,185 @@
+C=======================================================================
+C
+C  Bank Name : TANA (one per layer)
+C  Author    : A. Zylberstejn
+C  Date      : 29-JUN-1994
+C  Bank description : TRD processed information per layer (contains
+C                                              real_word and integer_word)
+C
+C Tree description: TTRH_TREE
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to TANA
+C     +1          Up     link to TDST
+C     +2          Origin link to TTRH
+C.......................................................................
+C              -5        Bank number
+C              -4        Bank name, 'TANA'
+C              -3        NL = 0
+C              -2        NS = 0
+C              -1        ND = 600
+C               0        STATUS
+C-----------------------------------------------------------------------
+C                   TYPE KEYWORD    DESCRIPTION
+C-----------------------------------------------------------------------
+C-   REAL_WORD is an array of 100 reals, that contains
+C-             +1   F EPICOR in FADC counts/MIP
+C-             +2   F APC in FADC counts
+C-             +3   F HV anode     1st hit anode in volts (>0)
+C-             +4   F HV window    1st hit anode in volts (<0)
+C-             +5   F HV potential 1st hit anode in volts (>0)
+C-             +6   F HV anode     2nd hit anode in volts (>0)
+C-             +7   F HV window    2nd hit anode in volts (<0)
+C-             +8   F HV potential 2nd hit anode in volts (>0)
+C-             +9   F HV anode     3rd hit anode in volts (>0)
+C-             +10  F HV window    3rd hit anode in volts (<0)
+C-             +11  F HV potential 3rd hit anode in volts (>0)
+C-             +12  F HV anode     4th hit anode in volts (>0)
+C-             +13  F HV window    4th hit anode in volts (<0)
+C-             +14  F HV potential 4th hit anode in volts (>0)
+C-             +15  F pedestal 1st hit anode in FADC counts
+C-             +16  F pedestal 2nd hit anode in FADC counts
+C-             +17  F pedestal 3rd hit anode in FADC counts
+C-             +18  F pedestal 4th hit anode in FADC counts
+C-             +19  F energy of adjacent wire inf
+C-             +20  F energy of adjacent wire sup
+C-             +21  F sector correction for 1st hit anode
+C-             +22  F sector correction for 2nd hit anode
+C-             +23  F sector correction for 3rd hit anode
+C-             +24  F sector correction for 4th hit anode
+C-             +25  F wire correction for 1st hit anode
+C-             +26  F wire correction for 2nd hit anode
+C-             +27  F wire correction for 3rd hit anode
+C-             +28  F wire correction for 4th hit anode
+C-             +29  F electronic gain for 1st hit anode
+C-             +30  F electronic gain for 2nd hit anode
+C-             +31  F electronic gain for 3rd hit anode
+C-             +32  F electronic gain for 4th hit anode
+C-             +33  F 0. (other corrections later)
+C-                               |   |   |              |               |
+C-             +40  F 0. (other corrections later)
+C-             +41  F Distance of closest anode wire (cm)
+C-             +42  F |sin(theta)| track
+C-             +43  F gas correction
+C-             +44  F high voltage correction
+C-             +45  F T min on wire with E max
+C-             +46  F total energy hit anodes in this layer
+C-             +47  F total energy hit cathodes in this layer
+C-             +48  F 0.
+C-             +49  F 0.
+C-             +50  F 0.
+C-             +51  F energy for 1st  hit anode
+C-              |                                                
+C-             +50+NA F energy for NAth hit anode
+C-             +51+NA F energy for 1st  hit cathode
+C-              |                                                
+C-             +50+NA+NC F  energy for NCth hit cathode
+C-             +51+NA+NC F  energy for 1st    anode cluster
+C-              |                          
+C-             +50+NA+NC+NCLA F energy for NCLAth anode cluster
+C-             +51+NA+NC+NCLA F energy for 1st    cathode cluster
+C-              | 
+C-             +50+NA+NC+NCLA+NCLC F energy for NCLAth cathode cluster
+C-
+C-
+C   Version >=3
+C    ----------
+C   clusters anodes                J=50+na+nc 
+C-             +j+1            F  energy of 1st anode cluster
+C-              |
+C-             +j+1+5*(NCLA-1))F  energy of NCLAth anode cluster
+C-               
+c-  Clusters cathodes       J=50+na+nc+5*ncla
+c- 
+C-             +j+1 F                =energy of 1st cathode cluster
+C
+C-    INTERSECTION OF THE TRACK WITH THE TRD ANODE PLANE
+C-             +297 F   = PHI (IN TRD FRAME)
+C-             +298 F   = R ANODE
+C-             +299 F   = Z
+C-
+C-             +300     = Z COMPUTED WITH CATHODES
+C- (all energies in REAL_WORD are in MIP and take into account corrections and
+C- calibration).
+C-   From now on all quantities are integers
+C-             +301 I coded word for hit anode cells 
+c-                     bit  I is set to 1 if Ieme anode cell is crossed by the track
+C-             +302 I  coded word for hit cathode cells (...)
+c-                     bit I is set to 1 if Ieme cathode cell is crossed by the track
+c-             +303 I  local density of TRD hits (4+4 surrounding wires)
+C-             +304 I  NA   number of hit anodes
+C-             +305 I  NC   number of hit cathodes
+C-             +306 I  NCLA number of anode clusters
+C-             +307 I  NCLC number of cathode clusters
+C-             +308 I   Nb. of tracks crossing 1st hit anode
+C-             +309 I               "      "      2nd hit anode
+C-             +310 I               "      "      3rd hit anode
+C-             +311 I               "      "      4th hit anode
+C-             +312 I      Status word for corrections
+C-             +313-->350  spare
+C-             +351    I   anode number for 1st  hit anode
+C-              |         
+C-             +350+NA I   anode number for NAth hit anode
+C-             +351+NA I   cathode number in[1..256] for 1st  hit cathode
+C-              | 
+C-             +350+NA+NC cathode number in[1..256] for NCAth hit
+C-               cathode
+C-  Version 2
+C-             +351+NA+NC        I        position of 1st anode cluster
+C-              |                      
+C-             +350+NA+NC+NCLA   I        position of NCLAth anode cluster
+C-             +351+NA+NC+NCLA)  I        position of 1st cathode cluster
+C-              |
+C-             +350+NA+NC+NCLA+NCLC position of NCLAth cathode cluster
+C-             +351+NA+NC+NCLA+NCLC 0
+C-                               |                                 |
+C-             +3100)                     =0
+C-
+C-
+C-  Version 2
+C-         51+NA+NC)     I      =position of 1st anode cluster
+C-         |                                 |
+C-         50+NA+NC+NCLA F     =position of NCLAth anode cluster
+C-         51+NA+NC+NCLA F    =position of 1st cathode cluster
+C-         |                                 |
+C-         50+NA+NC+NCLA+NCLC F =position of NCLAth cathode cluster
+C-         51+NA+NC+NCLA+NCLC F =0
+C-         |                     |
+C-         +100                 =0
+C-
+C   Version >=3
+C    ----------
+C   clusters anodes          J=50+na+nc +na+300
+C-         j+1                   I     =Left edge of the cluster
+C-         j+2                   i     =Center of the cluster
+C-         j+3                   i     =Right edge of the cluster
+C-         j+4                   I     =Peak height of the cluster
+C-         j+5                   I     =spare
+C-          |                            |  
+C-         j+1+5*(NCLA-1)        I     =left edge for NCLAth cluster on anode
+C-          |                            |
+C-         J+4+5*(NCLA-1)        I     =Peak height of NCLAth anode cluster
+C-         J+5+5*(NCLA-1)        I     =spare
+C   clusters cathodes     J=50+na+nc +na+300+5*ncla
+C-         j+1                   I     =Left edge of the first cath. cluster
+C-          |                            |  
+C-         j+1+5*(NCLA-1)        I     =left edge for NCLCth cluster on cathode
+C-          |                            |
+C-         J+5+5*(NCLA-1)        I     =spare
+C-         
+C- (All positions in INTEGER_WORD are in FADC bin number).
+C-
+C-------------------------- j=50+na+nc+5*(ncla+nclc)-------------------
+C-             +J+1              I  Nb of clusters on first hit anodes
+C-                                                  |
+C-             +J+NA             I  Nb of clusters on NA th  hit anodes
+c
+C----------------------------- j=50+na+nc+5*(ncla+nclc)+NA--------------
+C
+C-             +J+1              I  Nb of clusters on first hit cathodes
+C-                                                  |
+C-             +J+NC             I  Nb of clusters on NC th  hit cathodes
+C-
+C               +ND              I  VERSION    Bank Version Number 
+C-----------------------------------------------------------------------

@@ -1,0 +1,51 @@
+C=======================================================================
+C
+C  Bank Name : CGEV
+C  Author    : Chip Stewart
+C  Date      : 30-MAR-1992 15:50:54.60
+C  Tree description : CGEV_TREE.ZEB
+C
+C  Bank description : CGEV contains constants to convert ADC counts 
+C                     to GeV for each cell indexed in LYR,PHI,ETA physics
+C                     indices. CGEV is a stand alone bank. 
+C
+C        E(e,l,p)  = A(m)*W(l,m)*C(e,l,p)*G(e,l,p)*[ADC(e,l,p)-PED(e,l,p)]
+C                    |                            |               |
+C                    |-----------K(e,p,l)---------|            PED(e,p,l)
+C                    
+C                    K is derived from A,W,C from the CSF_STPFILE (CSF_RCP)
+C                    and G is taken from the DBL3 CALIB gains. 
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C     -2          Struc  link to spare
+C     -1          Struc  link to CHOT
+C      0          Next   link to CGEV 
+C     +1          Up     link to none
+C     +2          Origin link to none
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'CGEV'
+C             -3         NL = 2
+C             -2         NS = 2
+C             -1         ND = 163203
+C              0         Status
+C              1  [I]    NH = 4 ! NUMBER OF WORDS IN HEADER
+C              2  [I]    NV = 1
+C              3  [I]    SCALE  = 1(*1) or 0(*8)
+C              4  [I]    NR = 1 ! K (gain) only 
+C                           = 2 ! K and pedestal sigma
+C                           = 3 ! K, pedestal sigma, and pedestal
+C              5  [R]    K(-37,1,1)        ! A*W*C*G for IETA=-37,IPHI=1,ILYR=1
+C              6  [R]    SIGMA(-37,1,1)    ! pedestal sigma (if NR>1)
+C              7  [R]    PED(-37,1,1)      ! pedestal       (if NR>2)
+C              ...
+C              I  [R]    K(IETA,IPHI,ILYR)   
+C                         I = NH + 1 + NR*(ILYR-1+(IPHI-1)*17+(IETA+37)*64*17)
+C            I+1  [R]    SIGMA(IETA,IPHI,ILYR) (if NR>1)
+C            I+2  [R]    PED(IETA,IPHI,ILYR)   (if NR>2)
+C              ....
+C     NH+NR*80510  [R]    PED(IETA=37,IPH=64,ILYR=17)    
+C     NH+NR*80511  [R]    PED(IETA=37,IPH=64,ILYR=17)   (if NR>1) 
+C     NH+NR*80512  [R]    PED(IETA=37,IPH=64,ILYR=17)   (if NR>2)
+C=======================================================================

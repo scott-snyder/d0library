@@ -1,0 +1,52 @@
+C=======================================================================
+C
+C  Bank Name : VALS   Version: 0
+C  Author    : Ghita Rahal-Callot
+C  Date      : 12-SEP-1988
+C  Updated   : 19-JUN-1989 Peter Grudberg - added bank version number 
+C                          in top 5 user bits of Zebra status word
+C  Tree description : VTXGEO_ZEBANKS
+C
+C  Bank description : VTX wire alignment for one sector 
+C
+C     LC     C/IC
+C-----------------------------------------------------------------------
+C     +1          Up     link to VALL
+C     +2          Origin link to VALL
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'VALS'
+C             -1         ND = 
+C              0         Status
+C                        bits 13-17: Bank version number
+C             +1       I    Lower valid run #
+C             +2       I    Upper valid run #
+C             +3       F    Cosine of the drift dir. with D0 X axis (phi>0)
+C             +4       F    Sine   of the drift dir. with D0 X axis (phi>0)
+C             +5       I    Number of wires in the cell ( 8 )
+C             +6       I    Number of items per wire ( 7 )
+C  The next group is repeated for each wire; for the wire N 
+C  ( N = 0, IC(VALS+5)-1) :
+C                     J = 6 + N * IC(LVALS+6)
+C
+C              J+1      F   X of the center of the wire in D0 frame
+C              J+2      F   Y of the center of the wire in D0 frame
+C              J+3      F   Z of the center of the wire in D0 frame
+C              J+4      F   dx/dz of the wire in D0 frame
+C              J+5      F   dy/dz of the wire in D0 frame
+C              J+6      F   d2x/dz2 ( sagitta parameter )
+C              J+7      F   d2y/dz2 (    "        "     )
+C-----------------------------------------------------------------------------
+C            In the wire frame, we know DRIFT, the drift distance ( defined
+C            positive for (phi(ihit) - phi(wire)) > 0), and (after track
+C            fitting ) Zw, the Z position along the wire. The formula
+C            to go to D0 frame are :
+C     X = C(j+1) + C(VALS+3) * DRIFT + C(j+4) * Zw + C(j+6) * Zw**2
+C     Y = C(j+2) + C(VALS+4) * DRIFT + C(j+5) * Zw + C(j+7) * Zw**2
+C     Z = C(j+3) + Zw
+C
+C   We don't use second order terms to correct z from dx/dz, because we
+C   expect those dx/dz to be of order 10**-4.
+C=======================================================================
+
+

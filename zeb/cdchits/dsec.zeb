@@ -1,0 +1,62 @@
+C
+C BANK NAME : DSEC
+C AUTHOR    : Olivier Callot
+C DATE      :  6-AUG-87
+C Updated   : 19-JUL-1989 Qizhong Li-Demarteau   added bank version number in 
+C                         top 5 user bits of Zebra status word
+C Updated   : 29-AUG-1991 Qizhong Li-Demarteau   use bit 12 in Zebra status
+C                                 word to indicate if compress hits is done
+C TREE DESCR. : CDCHITS_TREE
+C
+C                       Central Drift chamber Sense wire Hits
+C                       =====================================
+C         LQ   Q/IQ
+C
+C         -1            Structural to DCDA
+C          0
+C         +1            Up to DLYR
+C
+C              -5       Bank_Ident = LAYER * 2**9 + SECTOR * 2**4
+C              -4       Bank name 'DSEC'
+C
+C               0       Status word
+C                       Bits 12:   1=compress hits done, 0=not done
+C                       Bits 13-17:  Bank version number
+C              +1   I   Total number of hits in the sense wires
+C              +2   I   number NEL of sense wires (7 = IQ(CDCH+3))
+C              +3   I   Number of words per hit  (12 = IQ(CDCH+2), GEANT: 10)
+C              +4   I   Number of hits on wire 0
+C              +5   I   Number of hits on wire 1
+C               |   |
+C          +NEL+4   I   Pointer to first hit on wire 0
+C          +NEL+5   I   Pointer to first hit on wire 1
+C               |   |
+C
+C
+C        --- Then for each hit, the following information.
+C        --- J = IQ(dsec+NEL+4+nwire) + IQ(dsec+3) * (I-1)
+C
+C             J+1   B   Identification = Bank_Ident + WIRE
+C             J+2   F   Position of the +phi solution in the cell frame (cm)
+C             J+3   F   Position of the -phi solution in the cell frame (cm)
+C             J+4   F   Z position ( cm )
+C             J+5   F   Error on the position ( cm )
+C             J+6   F   Error on Z position, = 9999. if no Z for this hit
+C             J+7   F   Ionisation of the hit in M.I.P. units
+C             J+8   F   Error on the previous value
+C             J+9   B   STATUS word
+C             J+10  I   Pointer on first PULSE hit  ( sense wire )
+C             J+11  I   Pointer on second PULSE hit ( Delay -Z )
+C             J+12  I   Pointer on third  PULSE hit ( Delay +Z )
+C
+C              For GEANT direct HIT banks, word J+10 contains the Track
+C              number, and there are no PULSE pointers ( 10 words/hit )
+C
+C   The status word contains :
+C   Bit  0       set if one -Z hit exists
+C   Bit  1       set if one +Z hit exists
+C   Bits 2:7     are unused yet
+C   Bits [ 8:15] are status byte of sense wire hit
+C   Bits [16:23] are status byte of -Z delay line hit ( if any )
+C   Bits [24:31] are status byte of +Z delay line hit ( if any )
+C---------------------------------------------------------------------------

@@ -1,0 +1,132 @@
+C====================================================================
+C        BANK MUD1 --      MUON RAW DATA (in multiport)
+C        =========
+C    Author D. Hedin   8-31-86 6-3-87
+C       J.Green        Header descriptions      12-23-88
+C       M.Fortner      Revised format           1-3-90
+C                      Expanded crates          4-2-90
+C                      Detailed header          3-7-91
+C       A.Taketani     Version number of geom.  1-Aug-91
+C       DH/MF    overflow bits in crate word
+C       M. Fortner     Mixed module IB format      6-22-93
+C
+C    Tree desciption EVENT_HEADER_ZEBANKS
+C
+C******WARNING*****  This is only Run IB format MF 6/93 ******
+C
+C   MUD1 contains the data from multiple muon VME crates.  The data
+C   from different crates are strung together in one long vector, and
+C   each crate's worth of data is preceded by a crate header and followed
+C   by a crate trailer.  The crate headers and trailers are the same
+C   format for all crates, and there are two formats for the data:
+C   WAMUS (wide angle) and SAMUS (small angle).  There are up to 18
+C   WAMUS crates and 6 SAMUS crates in the bank.  There is no
+C   particular order the crates will appear for any given event.
+C   For subsequent crates, add the sum of NH+NA+NB+4
+C   to the address of the current crate.
+C
+C
+C   LQ    IQ
+C______________________________________________________________________
+C   L+1   up    to HEAD
+C.....................................................................
+C
+C               CRATE HEADER
+C
+C         1    I  Number of header words - 1 = NH-1  "Header Length Count"
+C                   For D0 data, NH = NM*8, where NM is the number of
+C                   module slots allocated to the crate.
+C         2    I  Trigger # | FFFF                   "SYNC word"
+C         3    I  Bits 24-31: Crate ID               "Controller Word"
+C                   WAMUS crate ID = 2,12,22,...,172
+C                   SAMUS crate ID = 182,192,...,232
+C                 Bits 16-23: Number of module slots in crate (NM)
+C                 Bits 0-15: Bit mask of selected module slots
+C         4    I  Bit 31: 0                          "Version Number"
+C                 Bit 30: 0 for D0 data, 1 for other site (NWA);
+C                 Bit 29: 0 for data, 1 for Monte Carlo;
+C                 Bit 22: 0 for WAMUS format, 1 for SAMUS format;
+C                 Bit 20: 0 for IA format, 1 for IB format;
+C                 Bit 17: Road digitization used
+C                 Bit 16: Multiplicity cut
+C                 Bits 15-0: version # - yyyy|mmmm|dddd|dddd
+C                            1990=year 0, day is binary coded decimal
+C         5    I  User word 1 
+C                   Data: header/pulser word
+C                   MC: MGEH version number
+C         6    I  User word 2
+C                   Data: header/pulser word
+C                   MC: MMAH version number
+C         7    I  User word 3
+C                   Data: program mode/data path
+C         8    I  User word 4
+C                   Data: trigger info
+C
+C
+C                   The offset to a specific module is MO = 8I + 8,
+C                   I is the number (0-11) of the module slot bit within 
+C                   the crate
+C
+C      1+MO    I  Module ID number
+C      2+MO    I  ADC base address in data block
+C      3+MO    I  Module hit count (ADC hits are double for WAMUS)
+C      4+MO    I  Module flags       (bit 7 is centroid truncation
+C                                     bit 5 is data multiplicity truncation)
+C      5+MO    I  Pad latch word #1  (These words are a bit map of the
+C      6+MO    I  Pad latch word #2   latches read during event building)
+C      7+MO    I  Pad latch word #3
+C      8+MO    I  Pad latch word #4
+C         ..............
+C                   Repeat for each module
+C         ..............
+C
+C.....................................................................
+C
+C               DATA BLOCK A
+C
+C      1+NH    I  Number of data words in ADC/A - 1 = NA-1 
+C                   The offset to a 4 word "hit" is NO = 4I + NH, where
+C                   I is the number of the hit within the crate
+C
+C                   The upper 16 bits are an address defined:
+C                       Bit  31    ADC #  (0 for ADC/A, 1 for ADC/B)
+C                       Bits 28-30 0
+C                       Bits 21-27 cell number
+C                       Bits 18-20 ADC module address
+C                       Bits 16-17 correspond to word number in block of 4
+C                   Header word 2+MO has bits 18-20,31 set for the module
+C
+C                  WAMUS (addr bit 23=0) (addr bit 23=1)  SAMUS
+C      1+NO    I      DRIFT TIME 1        DELTA TIME 2    unused
+C      2+NO    I      DRIFT TIME 2        DELTA TIME 1    DRIFT TIME EVEN CELL
+C      3+NO    I      PAD B EVEN CELL     PAD B ODD CELL  unused
+C      4+NO    I      PAD A EVEN CELL     PAD A ODD CELL  DRIFT TIME ODD CELL
+C         ..............
+C                   Repeat for each "hit" digitized
+C         ..............
+C
+C.....................................................................
+C
+C               DATA BLOCK B
+C
+C     1+NH+NA  I  Number of data words in ADC/B - 1 = NB-1 
+C
+C                   Format identical to data block A
+C
+C.....................................................................
+C
+C               CRATE TRAILER
+C
+C  1+NH+NA+NB  I  Total word count = NH + NA + NB
+C  2+NH+NA+NB  I  Trigger # | Crate ID
+C  3+NH+NA+NB  I  Token Pass Status
+C  4+NH+NA+NB  I  Checksum
+C
+C........................................................................
+C
+C               MUD1 TRAILER
+C
+C     DAQ EVENTS HAVE 16 WORDS OF MUD1 TRAILER
+C     MONTE CARLO SEEMS TO LACK THESE 16 WORDS. 3/93 HTD
+C
+CC=======================================================================

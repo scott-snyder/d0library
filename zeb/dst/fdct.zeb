@@ -1,0 +1,123 @@
+C----------------------------------------------------------------------
+C  Bank Name   : FDCT   
+C  Author      : Daria Zieminska
+C  Date        : 25-May-1989
+C  Updated     : 27-JUL-1990  Jeffrey Bantly  add theta angle word +22
+C  Updated     : 26-MAR-1991  Jeffrey Bantly  add status word bit defns
+C  Updated     : 27-AUG-1991  Robert Avery add more status word bits
+C  Updated     : 17-SEP-1991  Susan Blessing  Add errors for theta and phi
+C                                             and two spare words
+C  Updated     : 21-OCT-1991  Susan Blessing  Add chisq from FIT_SEGTRK fit
+C- Updated     : 28-OCT-1991  Susan Blessing  Add a reference link to the ZTRK 
+C-                                            bank.
+C  Updated     :  1-NOV-1991 Qizhong Li-Demarteau     moved VEEs bit from
+C                                     IQ(LFDCT+1) to IQ(LFDCT) and defined 
+C                                     bit 1 and 3-5 in IQ(LFDCT)
+C  Updated     : 28-FEB-1992  Susan Blessing  Add status bit for edge tracks
+C  Updated     :  6-JUL-1992  Robert Avery Add status bits for FDC track
+C                                       quality in +1 status word.
+C   Updated     : 27-AUG-1992  Susan Blessing  Add explanation about inclusion
+C                                              of DL information.
+C  Updated     :  6-jan-1994  Robert Avery Add words 26-31
+C
+C  Tree Descr. : FDCTRACK_TREE 
+C
+C  Bank description : FDC track bank
+C
+C     LQ     IQ/Q
+C-----------------------------------------------------------------------
+C     -2          Reference link to ZTRK bank
+C     -1          Struct link to FDTH
+C      0          Next   link to next track ( FDCT )
+C     +1          Up     link to FTRH
+C     +2          Origin link to FTRH
+C.......................................................................
+C             -5      Bank number = FDC track number
+C             -4      Bank name, 'FDCT'
+C             -3      NL = 2
+C             -2      NS = 1
+C             -1      ND = 26
+C              0      Status word 
+C                       bit  9: track is used in a VEE
+C                       bit  8: track is in a muon road
+C                       bit  7: track is in an electron road
+C                       bit  6: track is in a jet road
+C                       bit  1 and 3-5: used for track matching
+C             +1  B   Status word 
+C       STATUS = 0 or 1 Perfect, clean track.
+C       STATUS          bit  0: 1 if track in half 1, else 0
+C                       bit  1: 1 if track was built using only a theta 
+C                              segment and the primary vertex
+C                       bit  2: Layer 0 missing
+C                       bit  3: Layer 1 missing
+C                       bit  4: Layer 2 missing
+C                       bit  5: Layer 0 Sector crowded (ave hits/wire > 4.)
+C                       bit  6: Layer 1 Sector crowded
+C                       bit  7: Layer 2 Sector crowded
+C                       bit  8: Layer 0 segment used twice 
+C                       bit  9: Layer 1 segment used twice 
+C                       bit 10: Layer 2 segment used twice 
+C                       bit 11: Layer 0 segment is X-sector
+C                       bit 12: Layer 1 segment is X-sector
+C                       bit 13: Layer 2 segment is X-sector
+C                       bit 14: Layer 0 segment Has large slope ( > 1.0 )
+C                       bit 15: Layer 1 segment Has large slope
+C                       bit 16: Layer 2 segment Has large slope
+C                       bit 17: Track doesn't point to beam line (del phi>0.1)
+C                       bit 18: Track impact parameter large (r_impact >3.0 cm)
+C                       bit 19: Track doesn't point to vertex (del_z >10. cm)
+C             +2  I   Total number of hits on track NHIT
+C
+C (NOTE:  If there is a theta SW0 hit on the track (none, one or two possible),
+C         a delay line hit is assumed and counted in the total number of hits
+C         on the track, even if there is no DL hit associated with the SW0 hit.
+C         See FDTH.ZEB for further explanation.)
+C
+C             +3  B   Bit pattern for used sense wires(0:31) ordered
+C                     by increasing abs(z)
+C             +4  F   par(1)=X0 x at z=Z0 (cm) 
+C             +5  F   par(2)=Y0 y at z=Z0 (cm)
+C                       Z0 can be gotten by calling FGETZ0(ITRK,Z0)
+C                       where ITRK is the FDC track number (IQ(LFDCT-5)).
+C             +6  F   phi = arctan(dy/dx) (0<phi<2pi)
+C             +7  F   par(3)=dx/dz
+C             +8  F   par(4)=dy/dz
+C             +9  F   COV(1,1)
+C            +10  F   COV(1,2)
+C            +11  F   COV(1,3)
+C            +12  F   COV(1,4)
+C            +13  F   COV(2,2)
+C            +14  F   COV(2,3)
+C            +15  F   COV(2,4)
+C            +16  F   COV(3,3)
+C            +17  F   COV(3,4)
+C            +18  F   COV(4,4)
+C            +19  F   chisq  Value is from FTFDCT for three layer tracks
+C                            and from FIT_SEGTRK for two layer tracks.
+C                            All other track information is from FTFDCT.
+C            +20  F   ionization
+C            +21  F   error of ionization
+C            +22  F   theta = atan(drdz) where drdz=sqrt(dxdz**2+dydz**2)
+C                             (0<theta<pi)
+C            +23  F   error on phi
+C            +24  F   error on theta
+C            +25  I   number of points used in track fit
+C                     This is equal to the +2 word for three layer tracks.
+C                     This is a much smaller number for two layer tracks
+C                     when the fitting has been done using FIT_SEGTRK
+C                     (fit using segment information, better for two layer
+C                     tracks).  For tracks built from one theta segment
+C                     and the vertex point, it is two larger than the +2
+C                     word.  The vertex point is used twice - as XZ and 
+C                     YZ points.
+C
+C The following information is provided after performing an FDC track fit
+C including the z-vertex in the fit.
+C            +26  F   Theta
+C            +27  F   Error on Theta
+C            +28  F   Phi
+C            +29  F   Error on Phi
+C            +30  F   Chisq of fit (similar to +19)
+C            +31  I   Vertex with which the track is associated with
+C            +32  F   Spare
+C--------------------------------------------------------------------

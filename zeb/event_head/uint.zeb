@@ -1,0 +1,110 @@
+C=======================================================================
+C
+C  Bank Name : UINT
+C  Author    : John Hobbs
+C  Date      : 06-DEC-1995
+C
+C  Bank description : Packed ESUM banks (TRGR, TR15 and FILT)
+C
+C    The ESUM banks are packed via a 'lossy' compression method with explicit
+C    precision and range limits.   The following table lists the range and
+C    precision for vertex positions, transverse energy, eta and phi values:
+C
+C            Quantity          Range           Precision
+C               Et          0<Et<2000 GeV        0.1 GeV
+C              eta            -5<eta<5           0.01  (natual units)
+C              phi            0<phi<6.3          0.063
+C           x,y Vertex       -2.5<x,y<2.5 cm     0.025 cm
+C             z Vertex       -100<z<100 cm       1 mm
+C
+C    If a value lies outside this range, it is set to the limit (eg, a 10TeV
+C    trigger tower is set to 2TeV).
+C
+C    The ESUM object-status words are kept without modification.
+C
+C    Objects having ID=24 are NOT stored. (no ID's above 8 are currently 
+C      used) 
+C
+C    There can be no more than 15 occurances of any given object type
+C      stored.  If there are more than 15 in the original ESUM bank, the 
+C      highest Et objects are kept and an overflow bit is set (See note 3) 
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next = 0
+C     +1          Up     link to ANLS 
+C     +2          Origin link to ANLS
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'UINT'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = 2+SIZE('TRGR')+SIZE('TR15')+SIZE('FILT')
+C              0         Status
+C=======================================================================
+CBEGIN
+C             +1         I  SIZE1 = Original 'TRGR'/'TR15' sizes (See note 1)
+C             +2         I  SIZE2 = Original 'FILT' size (See note 2)
+C             +3         I  Packed 'TRGR' information (See note 3)
+C             .
+C             .
+C             .
+C         +3+Size(TRGR)  I  Packed 'TR15' information
+C             .
+C             .
+C             .
+C     +3+Size(TRGR+TR15) I  Packed 'FILT' information
+CEND
+C=======================================================================
+C Notes:
+C   1)  The size in words (limited to <64k) of the initial 'TRIG' and 'TR15'
+C           ESUM banks stored as  TRIG + ISHFT(TR15,16)
+C   2)  The size in words (limited to <64k) of the original FILT bank
+C
+C   3)  Each ESUM type ('TRGR','TR15','FILT') is separately packed using
+C           the same format.  The general format is:
+C
+C            Word 1:     version and overflow information
+C            Words 2-4:  Object counts (packed)
+C            Words 7-9:  Packed information for one object
+C              remainder is 7-9 repeated for each object
+C
+C       and in detail
+C
+C            Word 1, bits 1-4:   ESUM version
+C                         5-8:   ESUM type  (1,2,3=TRIG,TR15,FILT)
+C                         9-12:  Overflow bits
+C                                   If there are more than 15 occurances of 
+C                                   object ID I, then overflow bit I is set.
+C            Word 2, bits 1-4:   Number of ID=0 objects
+C                    bits 5-8:   Number of ID=1 objects
+C                    bits 9-12:  Number of ID=2 objects
+C                    bits 13-16: Number of ID=3 objects
+C                    bits 17-20: Number of ID=4 objects
+C                    bits 21-24: Number of ID=5 objects
+C                    bits 25-28: Number of ID=6 objects
+C                    bits 29-32: Number of ID=7 objects
+C            Word 3, bits 1-4:   Number of ID=8 objects
+C                    bits 5-8:   Number of ID=9 objects
+C                    bits 9-12:  Number of ID=10 objects
+C                    bits 13-16: Number of ID=11 objects
+C                    bits 17-20: Number of ID=12 objects
+C                    bits 21-24: Number of ID=13 objects
+C                    bits 25-28: Number of ID=14 objects
+C                    bits 29-32: Number of ID=15 objects
+C            Word 4, bits 1-4:   Number of ID=16 objects
+C                    bits 5-8:   Number of ID=17 objects
+C                    bits 9-12:  Number of ID=18 objects
+C                    bits 13-16: Number of ID=19 objects
+C                    bits 17-20: Number of ID=20 objects
+C                    bits 21-24: Number of ID=21 objects
+C                    bits 25-28: Number of ID=22 objects
+C                    bits 29-32: Number of ID=23 objects
+C      And the next three repeated for each object (with all occurances of
+C      a given object type adjacent)
+C            Word 5, full word:   Object status (direct copy)
+C            Word 6, bits 1-16:   Object ET          (blank for vtx)
+C            Word 7, bits 1-10:   Object physics  eta (vertex X)
+C                    bits 11-20:  Object detector eta (vertex Y)
+C                    bits 21-30:  Object phi (vertex Z)
+C

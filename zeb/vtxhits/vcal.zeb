@@ -1,0 +1,143 @@
+C=======================================================================
+C
+C  Bank Name : VCAL
+C  Author    : Ed Oltman
+C  Date      : 12-FEB-1994
+C  Tree description : 
+C
+C  Bank description : Compressed VTX gain and T0 calibrations for use with VCHT
+C       (version>0) banks.  It lives in both /ZEBSTP/ and /ZEBCOM/  Its
+C       presense in the event record (e.g. on STA output files) enables
+C       DBL3-free re-reconstruction.
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to 
+C     +1          Up     link to 
+C     +2          Origin link to 
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'VCAL'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = (710)
+C              0         Status word: bits 0:1 = 1+ENV_STAT (see VTX_ENVSTAT)
+C                                          2:3 = 1+LUM_STAT (see VTX_LUMADJ
+C                                                            and VTX_HVADJ)
+C             +1    I    Bank version (0)
+C             +2    I    Bank header length (70)
+C             +3    I    words stored per wire (1)
+C             +4    I    VDTM index number (IC(LVDTM-5))
+C             +5    I    DBL3 packed time of event for which VCAL was filled
+C             +6    I    DBL3 packed time of LUMINOSITY measurement
+C             +7    I    DBL3 packed time of ENVIRONMENTAL measuremets
+C             +8    F    SCALE for Distance-time map (dynamic value)
+C             +9    F    Charge division scale factor: Layer 0
+C            +10    F    Charge division scale factor: Layer 1
+C            +11    F    Charge division scale factor: Layer 2
+C            +12    F    Average ABSOLUTE gain for layer 0
+C            +13    F    Average ABSOLUTE gain for layer 1
+C            +14    F    Average ABSOLUTE gain for layer 2
+C            +15    F    t0 offset                      (T0_off)
+C            +16    F    least_count for t0             (T0_lc)
+C            +17    F    spare
+C            +18    F    spare
+C Following is bitpacked word containing luminosity, absolute pressure, temp
+C            +19    B    (lsb) Lum(10)|P_abs(11)|T_degC(11) (msb)
+C  Lum   = (20./1023)*Ibits(IQ(LVCAL+20),10,0)  in units of 10**30
+C  Pabs  = (200./2047)*Ibits(IQ(LVCAL+20),11,10) in units of mbar
+C  TdegC = (30./2047)*Ibits(IQ(LVCAL+20),11,21) in unit of degrees-C
+C  
+C...Shape info from VGNL banks: Words 21:64 are bit packed: 8 bits/word
+C   where each count = 2.5/255 and there is no offset.  The order of the bytes 
+C   within each word is from LSB to MSB e.g. the PWC region shape corr for 
+C   Layer 0 wire 0 is given by (2.5/255)*FLOAT(IBITS(IQ(LVCAL+21),8,0))
+C                              
+C            +20    B    PWC region Shape corr for layer 0, wires 0,1,2,3
+C            +21    B    PWC region Shape corr for layer 0, wires 4,5,6,7
+C            +22    B    PWC region Shape corr for layer 1, wires 0,1,2,3
+C            +23    B    PWC region Shape corr for layer 1, wires 4,5,6,7
+C            +24    B    PWC region Shape corr for layer 2, wires 0,1,2,3
+C            +25    B    PWC region Shape corr for layer 2, wires 4,5,6,7
+C
+C            +26    B    Shape corr. for Layer 0 outer, bins  0, 1, 2, 3
+C            +27    B    Shape corr. for Layer 0 outer, bins  4, 5, 6, 7
+C            +28    B    Shape corr. for Layer 0 outer, bins  8, 9,10,11
+C            +29    B    Shape corr. for Layer 0 outer, bins 12,13,14,15
+C            +30    B    Shape corr. for Layer 0 outer, bins 16,17,18,19
+C            +31    B    Shape corr. for Layer 0 outer, bins 20,21,22,23
+C            +32    B    Shape corr. for Layer 0 outer, bins 24
+C
+C            +33    B    Shape corr. for Layer 0 inner, bins  0, 1, 2, 3
+C            +34    B    Shape corr. for Layer 0 inner, bins  4, 5, 6, 7
+C            +35    B    Shape corr. for Layer 0 inner, bins  8, 9,10,11
+C            +36    B    Shape corr. for Layer 0 inner, bins 12,13,14,15
+C            +37    B    Shape corr. for Layer 0 outer, bins 16,17,18,19
+C            +38    B    Shape corr. for Layer 0 inner, bins 20,21,22
+C
+C            +39    B    Shape corr. for Layer 1 outer, bins  0, 1, 2, 3
+C            +40    B    Shape corr. for Layer 1 outer, bins  4, 5, 6, 7
+C            +41    B    Shape corr. for Layer 1 outer, bins  8, 9,10,11
+C            +42    B    Shape corr. for Layer 1 outer, bins 12,13,14,15
+C            +43    B    Shape corr. for Layer 1 outer, bins 16,17,18,19
+C
+C            +44    B    Shape corr. for Layer 1 inner, bins  0, 1, 2, 3
+C            +45    B    Shape corr. for Layer 1 inner, bins  4, 5, 6, 7
+C            +46    B    Shape corr. for Layer 1 inner, bins  8, 9,10,11
+C            +47    B    Shape corr. for Layer 1 inner, bins 12,13,14,15
+C            +48    B    Shape corr. for Layer 1 outer, bins 16,17,18
+C
+C            +49    B    Shape corr. for Layer 2 outer, bins  0, 1, 2, 3
+C            +50    B    Shape corr. for Layer 2 outer, bins  4, 5, 6, 7
+C            +51    B    Shape corr. for Layer 2 outer, bins  8, 9,10,11
+C            +52    B    Shape corr. for Layer 2 outer, bins 12,13,14,15
+C            +53    B    Shape corr. for Layer 2 outer, bins 16,17,18,19
+C            +54    B    Shape corr. for Layer 2 outer, bins 20,21,22,23
+C            +55    B    Shape corr. for Layer 2 outer, bins 24,25,26,27
+C            +56    B    Shape corr. for Layer 2 outer, bins 28
+c
+C            +57    B    Shape corr. for Layer 1 inner, bins  0, 1, 2, 3
+C            +58    B    Shape corr. for Layer 1 inner, bins  4, 5, 6, 7
+C            +59    B    Shape corr. for Layer 1 inner, bins  8, 9,10,11
+C            +60    B    Shape corr. for Layer 1 inner, bins 12,13,14,15
+C            +61    B    Shape corr. for Layer 1 outer, bins 16,17,18,19
+C            +62    B    Shape corr. for Layer 1 outer, bins 20,21,22,23
+C            +63    B    Shape corr. for Layer 1 outer, bins 24,25,26,27
+C            +64    B    Shape corr. for Layer 1 outer, bins 28
+C
+C...Static SCALE info from VTMW banks: Words 65:70 are bit packed: 8 bits/word
+C   where each count = 0.1/255. with an offset of 0.95. The order of the bytes 
+C   within each word is from LSB to MSB e.g. the SCALE factor for layer 0 wire
+C   0 is given by 0.95 + (0.1/255)*FLOAT(IBITS(IQ(LVCAL+65),8,0)
+C            +65    B    SCALE for Layer 0 wires 0,1,2,3
+C            +66    B    SCALE for Layer 0 wires 4,5,6,7
+C            +67    B    SCALE for Layer 1 wires 0,1,2,3
+C            +68    B    SCALE for Layer 1 wires 4,5,6,7
+C            +69    B    SCALE for Layer 2 wires 0,1,2,3
+C            +70    B    SCALE for Layer 2 wires 4,5,6,7
+C
+C  The next 640 words contain the gains and T0's for each wire:  Numbers in
+C  parenthesis indicate number of bits used by each calibration datum:
+C
+C         +PNT+1    B   (lsb)  |T0_0(8)|T0_1(8)|AbsG(7)|RelG(9)|  (msb)
+C
+C  Where the pointer for a wire's data is given by
+C  
+C      PNT = IQ(LVCAL+2) +                       8*SECTOR + WIRE (Layer = 0)
+C
+C                          or
+C
+C      PNT = IQ(LVCAL+2) + 128 + 256*(LAYER-1) + 8*SECTOR + WIRE (layer = 1,2)
+C
+C  and the calibration data for WORD = Q(LCAL+PNT+1) is obtained by:
+C  
+C        T0_0    = T0_lc*IBITS(WORD,0,8) + T0_off          (END=0 T0)
+C        T0_1    = T0_lc*IBITS(WORD,8,8) + T0_off          (END=1 T0)
+C        AbsG    = AbsG_lc*IBITS(WORD,7,16) + AbsG_off
+C                    AbsG_lc  = 0.6*Q(LVCAL+61+LAY)/127.
+C                    AbsG_off = 0.7*Q(LVCAL+61+LAY)
+C        RelG    = (0.3/511.)*IBITS(WORD,9,23) + 0.85   relative gain
+C        GN_0    = AbsG                                    (END=0 Gain)
+C        GN_1    = AbsG*RelG                               (END=1 Gain)
+C        
+C=======================================================================
