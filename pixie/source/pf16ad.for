@@ -23,6 +23,7 @@ C-   Updated   8-SEP-1991   Jeffrey Bantly  remove corrections to FDFADC
 C-   Updated  11-OCT-1991   Robert E. Avery  Clean up error handling. 
 C-   Updated  19-FEB-1992   Robert E. Avery  Put dialogue into 
 C-                              PFPICK_SECTOR, reorganize.
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -144,9 +145,11 @@ C
             LEN=0
             CALL GETPAR(1,PROM,'U',ANSWER)
             CALL SWORDS(ANSWER,II,JJ,LEN)
+            trace_type = 1
             IF(LEN.NE.0) READ(ANSWER(1:LEN),*,ERR=200) TRACE_TYPE
+ 200        continue
             IF(TRACE_TYPE .LT. 1 .OR. TRACE_TYPE .GT. 6 ) THEN
-  200         TRACE_TYPE = 1
+              TRACE_TYPE = 1
             ENDIF
           ENDIF
         ENDIF

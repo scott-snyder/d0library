@@ -22,12 +22,13 @@ C-   Controls:     NONE
 C-
 C-   Modified 01-FEB-1990   Nobu Oshima(Use J3PLGN, when NS=12)
 C-   Created  24-APR-1989   Stephen Kahn
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
 C
       INTEGER  NS, I, J
-      REAL XS(2,NS), YS(2,NS), ZS(2,NS)
+      REAL XS(4,NS), YS(4,NS), ZS(4,NS)
       REAL XPF(4), YPF(4), ZPF(4), XPB(4), YPB(4), ZPB(4)
 C
 C---

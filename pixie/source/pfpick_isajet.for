@@ -9,6 +9,7 @@ C-   Outputs : TRKNUM = Track number
 C-
 C-   Created   7-FEB-1992   Robert E. Avery
 C-   Updated  17-FEB-1992   Robert E. Avery  If hardcopy, don't ask questions.
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -121,13 +122,15 @@ C
         LEN=0
         CALL GETPAR(1,PROM,'U',STRING)
         CALL SWORDS(STRING,II,JJ,LEN)
+        trknum= 0
         IF ( LEN .NE. 0 ) THEN
           READ(STRING(1:LEN),*,ERR=980) TRKNUM
         ELSE
           TRKNUM = LAST_TRKNUM 
         END IF
+ 980    continue
         IF (TRKNUM.LT.1 .OR. TRKNUM.GT.NTRK) THEN
-  980     CONTINUE
+          CONTINUE
           TRKNUM = 1
           CALL OUTMSG(' Choice outside limits, use default value of 1.')
         END IF

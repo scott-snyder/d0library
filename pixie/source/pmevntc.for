@@ -38,6 +38,7 @@ C-                     hits.
 C- T. McKibben 29-OCT-93 Changed call to GTMUHT for run 1B compatibility
 C-   Updated  15-NOV-1993   BH Added variable NMSCT to call GTMUHT
 C- TMcK 04-DEC-1993 run 1B mods made to correct version of PMEVNTC
+C-   Updated  23-MAR-2004   compile with g77.
 C========================================================================
 C
       IMPLICIT NONE
@@ -177,11 +178,14 @@ C
 C    FIND WHICH MUON BANK TO USE
 C    ===========================
 C
+      lmuon = 0
+      lpmuo = 0
+ 800  continue
       IF (MUBANK.EQ.2) THEN
 C
 C    GET MOMENTUM INFORMATION FROM MUON
 C    ==================================
-        LMUON=GZMUON(1)
+        if (lmuon .eq. 0) LMUON=GZMUON(1)
         IF (LMUON.EQ.0) THEN
           CALL JRCLOS
           CALL PUMESS('MUON BANK DOES NOT EXIST')
@@ -213,7 +217,7 @@ C          ORIGIN=1                      ! TEMPORARY TILL MURECO FIXED
 C
 C    GET MOMENTUM INFORMATION FROM PMUO
 C    ==================================
-        LPMUO=GZPMUO(1)
+        if (lpmuo .eq. 0) LPMUO=GZPMUO(1)
         IF (LPMUO.EQ.0) THEN
           CALL JRCLOS
           CALL PUMESS('PMUO BANK DOES NOT EXIST')
@@ -613,13 +617,13 @@ C
    45 CONTINUE
       K=K+1
       IF (MUBANK.EQ.1) THEN
-        IF (K.LE.NTRACK) GOTO 30
+        IF (K.LE.NTRACK) GOTO 800
       ELSEIF (MUBANK.EQ.2) THEN
         LMUON=GZMUON(K)
-        IF(LMUON.NE.0) GOTO 10
+        IF(LMUON.NE.0) GOTO 800
       ELSEIF (MUBANK.EQ.3) THEN
         LPMUO=GZPMUO(K)
-        IF(LPMUO.NE.0) GOTO 20
+        IF(LPMUO.NE.0) GOTO 800
       ENDIF
 C
    50 CALL JRCLOS        !(SEGMENT ISEGEV+IVIEW)

@@ -19,6 +19,7 @@ C-      generally bring back up to date.
 C-   Updated  19-JUN-1992   Robert E. Avery  Change dialogue (no references
 C-                                                      to unit number) 
 C-   Updated  25-JUN-1992   Robert E. Avery  Allow user to choose vert. scale. 
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -111,9 +112,11 @@ C
           ANSWER=' '
           CALL GETPAR(1,PROM3,'U',ANSWER)
           CALL SWORDS(ANSWER,II,JJ,LEN)
+          trace_type = 1
           IF(LEN.NE.0) READ(ANSWER(1:LEN),*,ERR=200) TRACE_TYPE
+ 200      continue
           IF(TRACE_TYPE .LT. 1 .OR. TRACE_TYPE .GT. 6 ) THEN
-  200       TRACE_TYPE = 1
+            TRACE_TYPE = 1
           ENDIF
         ENDIF
         CALL PUSETV('FDC HALF',HALF)
@@ -126,9 +129,11 @@ C
         ANSWER=' '
         CALL GETPAR(1,PROM4,'U',ANSWER)
         CALL SWORDS(ANSWER,II,JJ,LEN)
+        vscale = 1000
         IF(LEN.NE.0) READ(ANSWER(1:LEN),*,ERR=300) VSCALE
+ 300    continue
         IF (VSCALE.LT.0 .OR. VSCALE.GT.1000) THEN
-  300     VSCALE = 1000
+          VSCALE = 1000
         ENDIF
         CALL PUSETV( 'ELECT VERT SCALE', VSCALE)
 C

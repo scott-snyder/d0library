@@ -1,4 +1,4 @@
-      FUNCTION PCOSMIC_EXEC
+      logical FUNCTION PCOSMIC_EXEC()
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Execute combined view displays. These displays
@@ -11,6 +11,7 @@ C-   Outputs : None
 C-   Controls: None
 C-
 C-   Creayed  18-MAR-1991   Lupe Howell   
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       INTEGER IER

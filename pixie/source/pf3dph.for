@@ -8,6 +8,7 @@ C-   Outputs : Display on screen
 C-
 C-   Created  22-MAY-1990   Jeffrey Bantly
 C-   Updated  30-MAR-1992   Robert E. Avery  Change  color name.
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -52,17 +53,17 @@ C
       CALL JARC(XC,YC,(ZC-DZ),OUTRAD,0,BEGARC,ENDARC)
       CALL JARC(XC,YC,(ZC+DZ),OUTRAD,0,BEGARC,ENDARC)
       DO 5 ARC=BEGARC,ENDARC,(ENDARC-BEGARC)
-        X(1)=INRAD*COSD(ARC)
-        Y(1)=INRAD*SIND(ARC)
+        X(1)=INRAD*COS(ARC*pi/180)
+        Y(1)=INRAD*SIN(ARC*pi/180)
         Z(1)=ZC-DZ
-        X(2)=INRAD*COSD(ARC)
-        Y(2)=INRAD*SIND(ARC)
+        X(2)=INRAD*COS(ARC*pi/180)
+        Y(2)=INRAD*SIN(ARC*pi/180)
         Z(2)=ZC+DZ
-        X(3)=OUTRAD*COSD(ARC)
-        Y(3)=OUTRAD*SIND(ARC)
+        X(3)=OUTRAD*COS(ARC*pi/180)
+        Y(3)=OUTRAD*SIN(ARC*pi/180)
         Z(3)=ZC+DZ
-        X(4)=OUTRAD*COSD(ARC)
-        Y(4)=OUTRAD*SIND(ARC)
+        X(4)=OUTRAD*COS(ARC*pi/180)
+        Y(4)=OUTRAD*SIN(ARC*pi/180)
         Z(4)=ZC-DZ
         CALL J3MOVE(X(4),Y(4),Z(4))
         DO 10 I=1,4

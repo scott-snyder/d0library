@@ -20,11 +20,14 @@ C-                          ICOLOR parameter converted to a [C*3]
 C-   Updated   7-FEB-1990   Jeffrey Bantly  remove temp fixes 
 C-   Updated   6-AUG-1991   Robert E. Avery  Change definition of rotation,
 C-                              simply rotates by ANG. 
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
+      include 'd0$inc:pi.def'
       CHARACTER*(*) ICOLOR
       REAL XC,YC,ZC,DX,DY,ANG
+      real angr
 C- local variables:
       REAL U(4),V(4),UU(4),VV(4),TMPFIX
       INTEGER IP
@@ -45,9 +48,10 @@ C
 C
 C  rotate the coordinate system by ANG
 C
+        angr = ang*pi/180
         DO IP=1,4
-          UU(IP)=U(IP)*COSD(ANG)-V(IP)*SIND(ANG)
-          VV(IP)=U(IP)*SIND(ANG)+V(IP)*COSD(ANG)
+          UU(IP)=U(IP)*COS(ANGr)-V(IP)*SIN(ANGr)
+          VV(IP)=U(IP)*SIN(ANGr)+V(IP)*COS(ANGr)
         ENDDO
         CALL JPOLGN(UU,VV,4)
       ENDIF 

@@ -12,6 +12,7 @@ C-  BASED ON GTRDFA
 C-
 C-  AUTHOR:
 C-     LUPE ROSAS
+C-   Updated  23-MAR-2004   compile with g77.
 C-    
 C---------------------------------------------------------------------
       IMPLICIT NONE
@@ -55,14 +56,14 @@ C----------------------------------------------------------------------
       ISH=32/NDATW
    20 IF(LL.LE.0)GO TO 999
       CHL=IQ(IEND).AND.MASK16              !CHANNEL LENGTH
-      CHA=JISHFT(IQ(IEND),-16).AND.MASK16  !CHANNEL NUMBER
+      CHA=ISHFT(IQ(IEND),-16).AND.MASK16  !CHANNEL NUMBER
       NCHAN=IQ(IEND-1).AND.MASK16          !LENGTH
       NCHAN=(NCHAN-2)/4                  !NUMBER OF DATA WORDS
       IF(NCHAN.LE.0)GO TO 999
 C  DECORTICATE THE CHANNEL ADDRESS
       ISUB=CHA.AND.15               !SUB-ADDRESS IN THE FADC MODULE
       ICR=CHA/256                   !CRATE NUMBER
-      IADR=JISHFT(CHA,-4).AND.15   !ADDRESS IN THE CRATE
+      IADR=ISHFT(CHA,-4).AND.15   !ADDRESS IN THE CRATE
       ITRIP=IADR/3                  !TRIPLET NUMBER
       ILAY =IADR-ITRIP*3+1          !LAYER NUMBER
       IWIRE=ISUB+ITRIP*16+MOD(ICR,4)*64+1
@@ -93,7 +94,7 @@ C Store FADC contents in COMMON PTRD
         DO 38 J=1,4
           K=K+1
           JSH=ISH*(4-J)
-          TFADC(K,NTFADC)=JISHFT(IQ(JJ),-JSH).AND.255
+          TFADC(K,NTFADC)=ISHFT(IQ(JJ),-JSH).AND.255
    38   CONTINUE
    40 CONTINUE
       IEND=IS

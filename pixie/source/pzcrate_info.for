@@ -16,6 +16,7 @@ C-   Created  12-OCT-1990   Susan K. Blessing
 C-   Updated  30-APR-1991   Jeffrey Bantly  cleanup using new Compack 
 C-   Updated  02-APR-1992   Susan K. Blessing   Improve appearance
 C-    of information written to screen.
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -116,7 +117,7 @@ C
 C
       NCARDS=CRATEID(CID,2)
       WRITE(STRING,1001) NCARDS,ICRATE
- 1001 FORMAT(' There are ',I2' cards in crate ',I3,'.')
+ 1001 FORMAT(' There are ',I2,' cards in crate ',I3,'.')
       CALL INTMSG('/')
       CALL INTMSG(STRING)
 C

@@ -26,6 +26,7 @@ C-   Updated   7-MAY-1991   Harrison B. Prosper
 C-      Changed calling sequence in pu_modify_zoom; tidy up
 C-   Updated  28-MAY-1991   Harrison B. Prosper  
 C-      Renamed PU_INITIALIZE_ZOOM to PX_ZOOM 
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -44,7 +45,7 @@ C
       CHARACTER*32 ACTIVE_PACKAGE
 C
       INTEGER I,J,II,JJ,KK,LL,IER,NUMBER_SCREENS
-      LOGICAL FLGSET,ACTIVE,PU_SET_RCP_BANK
+      LOGICAL ACTIVE,PU_SET_RCP_BANK
 C----------------------------------------------------------------------
 C
 C ****  Get size of zoom area from user

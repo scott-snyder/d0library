@@ -51,6 +51,7 @@ C-     for the single event case & cleanup of redundent code
 C-   Updated  08-NOV-1995   Nobuaki Oshima
 C-     Added VTRPAR for VTX init. after reading an event. No CALL VTISTP
 C-     in PVINIT anymore.
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -87,6 +88,7 @@ C
       LOGICAL ZTRINI, CALOR_INI, CHTINI, MUONLY_INI, PMEVT_INI
       LOGICAL ODD,PICK_NEXT,MERGE_FILE,FTFLG
       LOGICAL VTRPAR,UDST_TO_DST
+      logical xflag
 C
       CHARACTER*160 DATAFILE,STRING,DATFILNM,STRINGDF,SCANFILE
       CHARACTER*132 DIRNAME,FILENAME,STRINGD,TMPDIR
@@ -558,6 +560,7 @@ C
 C ****  Getting File name using pick mode
 C
       IF ( PICK_FILE ) THEN
+        xflag = .false.
         IF (PICK_NEXT) THEN
 C-
 C *** Getting latest file name (NEXT EVENT case)
@@ -578,6 +581,7 @@ C.N.O     CALL PFILE(RUN,EVNUM,STREAM1,OLDFILE)
             ELSEIF (SOPT(1:1).EQ.'S'.OR.SOPT(1:1).EQ.'S') THEN
               PICK_FILE = .FALSE.
               PKCNT     = 1
+              xflag = .true.
               GOTO 222
             ENDIF
           ENDIF
@@ -625,6 +629,7 @@ C
               ELSEIF (SOPT(1:1).EQ.'S'.OR.SOPT(1:1).EQ.'S') THEN
                 PICK_FILE = .FALSE.
                 IF (PKCNT.EQ.0) PKCNT = 1
+                xflag = .true.
                 GOTO 222
               ENDIF
             ENDIF
@@ -637,7 +642,11 @@ C
 C *** Goto event case
 C
         ELSE
-  222     CALL PIKFILE(FILENAME,LFN)
+          xflag = .true.
+        endif
+ 222    continue
+        if (xflag) then
+          CALL PIKFILE(FILENAME,LFN)
           PKCNT = PKCNT + 1
 C
 C *** If filename returned is blank Quit or enter file name

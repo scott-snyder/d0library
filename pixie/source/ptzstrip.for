@@ -9,12 +9,13 @@ C-   Controls:
 C-
 C-   Created  10-JAN-1994   Sharon Hagopian
 C-   Updated  24-FEB-1994   A. Zylberstejn
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INTEGER I,LAYER,LTPRL,LTRDT,GZTRDT,NZ(3),NMAX,NTRACK
       PARAMETER( NMAX =50  )
-      REAL R(4),TRD_ZPOS,ENERG(NMAX,3),ZTRD(NMAX,3),PHITRD(NMAX,3)
+      REAL R(4),ENERG(NMAX,3),ZTRD(NMAX,3),PHITRD(NMAX,3)
       REAL ZMIN,ZMAX,HALFZ
       REAL ENRG,ENRMAX,R1,R2,SCALE,Z1,Z2,ZT,SCALZR,EPICOR(3),PHITR
       REAL URANIUM(3),COR_ENRG(3),SATURATION,ETH_INF(3),ETH_SUP(3)

@@ -15,7 +15,7 @@ C
 C Output of the above string should reset the terminal
 C (See VT240 Programmer Pocket Guide, p.47)
 C *** Note CSI = ESCAPE  + [
-      TYPE*, DECSTR
-      TYPE*, HDSSTR
+      write (*,*), DECSTR
+      write (*,*), HDSSTR
       RETURN
       END

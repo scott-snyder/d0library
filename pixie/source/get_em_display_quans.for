@@ -8,6 +8,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created  23-MAR-1993   NORMAN A. GRAF
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -109,7 +110,7 @@ C      NAMQUANS(NQUANS) = 'ISOL ETOT'
       QUANS(NQUANS) = CHISQ
       NAMQUANS(NQUANS) = 'TRUN CHISQ'
 C
-      IF (IQ(LCLUS-4).EQ.'PELC') THEN
+      IF (IQ(LCLUS-4).EQ.4HPELC) THEN
 C
         LZTRK = LQ(LCLUS-3)
         IF(LZTRK.LE.0) THEN

@@ -14,6 +14,7 @@ C-   Updated  30-APR-1991   Jeffrey Bantly  cleanup using new Compack
 C-   Updated  18-JUL-1991   Lupe Howell  Check for errors 
 C-   Updated  22-JUL-1991   Robert E. Avery  More cleanup 
 C-   Updated  25-JUN-1992   Robert E. Avery  Use flag for "SET SCALE" 
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -95,9 +96,11 @@ C
         ANSWER=' '
         CALL GETPAR(1,PROM,'U',ANSWER)
         CALL SWORDS(ANSWER,II,JJ,LEN)
+        vscale = fixscale
         IF(LEN.NE.0) READ(ANSWER(1:LEN),*,ERR=100) VSCALE
+ 100    continue
         IF (VSCALE.LE.0 .OR. VSCALE.GT.1000) THEN
-  100     VSCALE = FIXSCALE
+          VSCALE = FIXSCALE
         ENDIF
         CALL PUSETV( 'ELECT FIX SCALE', FIXSCALE)
         CALL PUSETV( 'ELECT VERT SCALE', VSCALE)

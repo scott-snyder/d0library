@@ -22,6 +22,7 @@ C-      Get an EM fraction of Electron/Photon from CACL instead of the
 C-     energy of isolation cone of PELC/PPHO Bank.
 C-   Created   10-JUN-1992   Sharon Hagopian
 C-   based on PLMARK
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -134,7 +135,7 @@ C-
           ELC_PHI(NMARK) = PHI
         ENDIF
 C      WRITE(72,803)NELE,ETA,PHI,ET
-  803   FORMAT(/' NELE=',I4,' ETA=',F12.1,' PHI='F12.1,' ET='F12.1)
+  803   FORMAT(/' NELE=',I4,' ETA=',F12.1,' PHI=',F12.1,' ET=',F12.1)
         IP=(PHI/TWOPI)*64. +1.
         IETA=10.*(ETA+3.7)+1.
 C      WRITE(72,802)IP,IETA

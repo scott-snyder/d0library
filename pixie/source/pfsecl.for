@@ -13,11 +13,14 @@ C-   Created  21-FEB-1989   Lupe Rosas
 C-   Updated   2-MAY-1989   Jeffrey Bantly  eliminate passed variables
 C-   Updated   6-AUG-1991   Robert E. Avery  Correct theta type used,
 C-                              resulting simplifications.
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:PXPARA.INC'
+      include 'd0$inc:pi.def'
       REAL ANG
+      real angr
       REAL FXSIZE, XC, YC, U, V
       REAL PRCENT,YXRATI
       REAL XBASE, YBASE 
@@ -42,8 +45,9 @@ C
       CALL EZRSET
 C
       CALL JJUST(2,2)
-      U= XC*COSD(ANG)-YC*SIND(ANG)
-      V= XC*SIND(ANG)+YC*COSD(ANG)
+      angr = ang*pi/180
+      U= XC*COS(ANGr)-YC*SIN(ANGr)
+      V= XC*SIN(ANGr)+YC*COS(ANGr)
 C
       IF ( QUAD .LE. 3 ) THEN
         XBASE = 1.0

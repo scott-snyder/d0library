@@ -22,6 +22,7 @@ C-
 C-   Outputs : None
 C-
 C-   Created  14-MAY-1991   Lupe Howell
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -36,6 +37,9 @@ C
       LOGICAL FOUND,ACTION_FOUND,SKIP,EZERROR
       CHARACTER*80 PARAM,CVAL,REMARK
       CHARACTER*32 CURRENT_ACTION
+C&IF LINUX
+C&      character*132 xstr
+C&ENDIF
 C----------------------------------------------------------------------
       INCLUDE 'D0$INC:PXBUILDCOM.INC'
       INCLUDE 'D0$OFFLINE_UTIL$GENERAL:VALUE.DEF'
@@ -88,8 +92,14 @@ C
      &        (CURRENT_ACTION,PARNAME(1:LENPAR),PAR_PTR,
      &         OCURRENCE,VALUE,IER)
               IF ( IER .NE. 0 ) THEN
+C&IF LINUX
+C&                xstr = parname
+C&                CALL INTMSG(' Could not modify '//
+C&     &            xstr(1:LENPAR))
+C&ELSE
                 CALL INTMSG(' Could not modify '//
      &            PARNAME(1:LENPAR))
+C&ENDIF
                 GOTO 999
               ELSE
                 FOUND = .TRUE.
@@ -99,8 +109,14 @@ C
         ENDDO
         CALL EZRSET
       ELSE
+C&IF LINUX
+C&        xstr = rcpfile
+C&        CALL INTMSG(' Could not find action routine for '//
+C&     &         xstr(1:len(rcpfile)))
+C&ELSE
         CALL INTMSG(' Could not find action routine for '//
      &         RCPFILE)
+C&ENDIF
       ENDIF
   999 RETURN
       END

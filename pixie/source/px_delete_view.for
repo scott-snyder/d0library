@@ -10,6 +10,7 @@ C-
 C-   Outputs : IER      [I]: 0 if okay
 C-
 C-   Created   6-DEC-1991   Lupe Howell
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -30,13 +31,22 @@ C
       CHARACTER*132 MENU1(MAXROUTINES),MENU2(MAXROUTINES)
       CHARACTER*80 ACTION(MAXROUTINES),ARRAY_NAME,MENU1_NAME,MENU2_NAME
       CHARACTER*10 CVAL,REM
+C&IF LINUX
+C&      character*132 xrcpfile
+C&ENDIF
 C----------------------------------------------------------------------
       CALL WORD(VIEWNAME,I,J,LNAM)
       CALL EZPICK(RCPFILE)
       IF ( EZERROR(IER) ) THEN
         CALL WORD(I,J,K)
+C&IF LINUX
+C&        xrcpfile = rcpfile
+C&        CALL INTMSG(
+C&     &    ' Could NOT find bank '//xRCPFILE(1:K)//' to delete view')
+C&ELSE
         CALL INTMSG(
      &    ' Could NOT find bank '//RCPFILE(1:K)//' to delete view')
+C&ENDIF
         GOTO 999
       ENDIF
 C
@@ -96,7 +106,13 @@ C
           ENDIF
         ENDIF
       ELSE
+C&IF LINUX
+C&        xrcpfile = rcpfile
+C&        CALL INTMSG(' No COMPACK_MENUS found in '//
+C&     &              xRCPFILE(1:len(rcpfile)))
+C&ELSE
         CALL INTMSG(' No COMPACK_MENUS found in '//RCPFILE)
+C&ENDIF
       ENDIF
       CALL EZRSET
   999 RETURN

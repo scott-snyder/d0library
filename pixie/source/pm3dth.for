@@ -20,6 +20,7 @@ C-   Updated  18-SEP-1991   Nobu Oshima( No LEGENDPT in Combined Menus )
 C-   Updated  ??-OCT-1991   Nobu Oshima/C.Y.( Add muon track list. )
 C-   Updated  25-OCT-1991   C.Y.  Killed PMUO & MUON dependence on MUOT.
 C-                                Eliminate use of ORIGIN in PMUO & MUON.
+C-   Updated  23-MAR-2004   compile with g77.
 C
 C----------------------------------------------------------------------
 C
@@ -127,6 +128,10 @@ C
 C
 C    FIND WHICH MUON BANK TO USE
 C    ===========================
+      lmucd = 0
+      lpmuo = 0
+      lmuon = 0
+ 800  continue
       IF (MUBANK.LE.1) THEN
 C
 C    GET MOMENTUM INFORMATION FROM MUOT
@@ -166,7 +171,7 @@ C    =======================================================
 C
 C    GET MOMENTUM INFORMATION FROM MUON
 C    ==================================
-        LMUON=GZMUON(1)
+        if (lmuon .eq. 0) LMUON=GZMUON(1)
         IF (LMUON.EQ.0) THEN
           CALL JRCLOS
           CALL PUMESS('MUON BANK DOES NOT EXIST')
@@ -197,7 +202,7 @@ C          ORIGIN=1                      ! TEMPORARY TILL MURECO FIXED
 C
 C    GET MOMENTUM INFORMATION FROM PMUO
 C    ==================================
-        LPMUO=GZPMUO(1)
+        if (lpmuo .eq. 0) LPMUO=GZPMUO(1)
         IF (LPMUO.EQ.0) THEN
           CALL JRCLOS
           CALL PUMESS('PMUO BANK DOES NOT EXIST')
@@ -228,7 +233,7 @@ C          ORIGIN=1                      ! TEMPORARY TILL MURECO FIXED
 C
 C    GET MOMENTUM INFORMATION FROM MUCD (NO MOMENTUM INFORMATION)
 C    ==================================
-        LMUCD=GZMUCD(1)
+        if (lmucd .eq. 0) LMUCD=GZMUCD(1)
         IF (LMUCD.EQ.0) THEN
           CALL JRCLOS
           CALL PUMESS('MUCD BANK DOES NOT EXIST')
@@ -400,16 +405,16 @@ C
    45 CONTINUE
       K=K+1
       IF (MUBANK.EQ.1) THEN
-        IF (K.LE.NTRACK) GOTO 60
+        IF (K.LE.NTRACK) GOTO 800
       ELSEIF (MUBANK.EQ.2) THEN
         LMUON=GZMUON(K)
-        IF(LMUON.NE.0) GOTO 70
+        IF(LMUON.NE.0) GOTO 800
       ELSEIF (MUBANK.EQ.3) THEN
         LPMUO=GZPMUO(K)
-        IF(LPMUO.NE.0) GOTO 80
+        IF(LPMUO.NE.0) GOTO 800
       ELSEIF (MUBANK.EQ.4) THEN
         LMUCD=GZMUCD(K)
-        IF(LMUCD.NE.0) GOTO 90
+        IF(LMUCD.NE.0) GOTO 800
       ENDIF
 C
    50 CALL JRCLOS

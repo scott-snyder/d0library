@@ -11,6 +11,7 @@ C-   Updated  30-APR-1991   Jeffrey Bantly  add check on acos(val gt 1)
 C-   Updated   7-FEB-1992   Robert E. Avery   Check phi bounds with call to
 C-       PFPHICHK. Upper half of plot is PHI1-PHI2.
 C-   Updated   7-FEB-1992   Robert E. Avery  Change colour. 
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -39,6 +40,7 @@ C
       REAL    ANGLE(MXISP2),COSANGLE,NUM,DENOM1,DENOM2
 C
       LOGICAL FIRST_ISV2
+      logical xflag
       CHARACTER*4 TRKCLR
       DATA TRKCLR /'CYA '/
 C----------------------------------------------------------------------
@@ -68,7 +70,13 @@ C
       FIRST_ISV2=.TRUE.
       LISV2=LISP1-IZISV2
   300 CALL GTISV2(LISV2,LISV2,IDV2,PV2,X2,Y2,Z2,IVTYPE) ! CHECK FOR DECAY
+      xflag = .false.
+ 401  continue
       IF(LISV2.GT.0) THEN
+        if (xflag) then
+          xflag = .false.
+          goto 400
+        endif
         IF(FIRST_ISV2) THEN
           FISV2=LISV2
           IF( LQ(LISV2-2).NE.LISV1 ) GOTO 301
@@ -187,7 +195,7 @@ C            TY2=Y2 + (KY2-Y2)*FRACT
           CALL JDRAW(TX2,TY2)
         ENDIF
       ENDIF
-      IF(LISP2.GT.0) GOTO 400              ! End of valid ISP2 banks
+      IF(LISP2.GT.0) GOTO 401              ! End of valid ISP2 banks
 C
       GOTO 300                             ! End of valid ISV2 banks
   301 CONTINUE

@@ -13,6 +13,7 @@ C-
 C-   Modified  6-APR-1992  Nobuaki Oshima( add "CALL GZFIND_CRATE to find
 C-                          Calorimeter crate 11. )
 C-   Created   5-APR-1991  Nobuaki Oshima( Ref. CL1PHET.FOR )
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -70,7 +71,7 @@ C&IF VAXVMS
 C-
       IF (IEN1 .LT. 0) IEN1 = IEN1 + 256
 C&ELSE
-C&      CALL ABORT('IEN1 extraction not written for this routine')
+C&      CALL d0_ABORT('IEN1 extraction not written for this routine')
 C&ENDIF
       ET = FLOAT(IEN1)/CTS_TO_GEV - CTS_EM_OFF
 C--- We now have the EM contribution of the trigger tower. If ITYPE=0 then
@@ -83,7 +84,7 @@ C&IF VAXVMS
         IEN1= INERGY(IZBYTE)
         IF (IEN1 .LT. 0) IEN1 = IEN1 + 256
 C&ELSE
-C&      CALL ABORT('IEN1 extraction not written for this routine')
+C&      CALL d0_ABORT('IEN1 extraction not written for this routine')
 C&ENDIF
         ET = ET + (FLOAT(IEN1)/CTS_TO_GEV - CTS_HD_OFF)
       END IF

@@ -14,10 +14,12 @@ C             of the box
 C  ANG      - Angle to rotated about in X,Y plane
 C
 C   Created  29-MAY-1990   Jeffrey Bantly   based on T.Kramer pxbox.for
+C-   Updated  23-MAR-2004   compile with g77.
 C
 C======================================================================
 C
       IMPLICIT NONE
+      include 'd0$inc:pi.def'
       INTEGER I
       REAL XC,YC,ZC,DX,DY,DZ,ANG
       REAL XARR(4),YARR(4),ZARR1(4),ZARR2(4),X(4),Y(4)
@@ -35,8 +37,8 @@ C
 C  rotate the X,Y coordinates by ANG around Z axis
 C
         DO 10 I=1,4
-          XARR(I)=X(I)*COSD(ANG)-Y(I)*SIND(ANG)
-          YARR(I)=X(I)*SIND(ANG)+Y(I)*COSD(ANG)
+          XARR(I)=X(I)*COS(ANG*pi/180)-Y(I)*SIN(ANG*pi/180)
+          YARR(I)=X(I)*SIN(ANG*pi/180)+Y(I)*COS(ANG*pi/180)
    10   CONTINUE
 C
       DO 20 I = 1,4

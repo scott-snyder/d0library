@@ -12,12 +12,14 @@ C-   Updated  19-SEP-1990   Harrison B. Prosper, Lupe Howell
 C-   Updated  27-SEP-1990   Harrison B. Prosper
 C-   Updated  28-NOV-1990   Harrison B. Prosper  
 C-      Use OLD_PIXIE_PACKAGE in entry point 
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
       CHARACTER*(*) PIXIE_PACKAGE
       INTEGER I,J,K,L,II,JJ,KK,LL
       LOGICAL PBD_SET_FLAG
+      logical ltmp
 C
       CHARACTER*(*) ACTIVE_PACKAGE
 C----------------------------------------------------------------------
@@ -52,7 +54,7 @@ C
 C ****  Turn on specified package
 C
           CALL WORD(PIXIE_PACKAGE,J,K,L)
-          CALL PBD_SET_FLAG(PIXIE_PACKAGE(1:L),.TRUE.)
+          ltmp = PBD_SET_FLAG(PIXIE_PACKAGE(1:L),.TRUE.)
           OLD_PIXIE_PACKAGE = PIXIE_PACKAGE(1:L)
         ENDIF
 C
@@ -60,9 +62,9 @@ C ****  Turn ON specified package and turn OFF previous package
 C
         CALL WORD(PIXIE_PACKAGE,J,K,L)
         IF ( PIXIE_PACKAGE(1:L) .NE. OLD_PIXIE_PACKAGE(1:L)  ) THEN
-          CALL PBD_SET_FLAG(PIXIE_PACKAGE(1:L),.TRUE.)
+          ltmp = PBD_SET_FLAG(PIXIE_PACKAGE(1:L),.TRUE.)
           CALL WORD(OLD_PIXIE_PACKAGE,JJ,KK,LL)
-          CALL PBD_SET_FLAG(OLD_PIXIE_PACKAGE(1:LL),.FALSE.)
+          ltmp = PBD_SET_FLAG(OLD_PIXIE_PACKAGE(1:LL),.FALSE.)
         ENDIF
         OLD_PIXIE_PACKAGE = PIXIE_PACKAGE(1:L)
       ENDIF

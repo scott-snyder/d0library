@@ -22,6 +22,7 @@ C-   Updated  20-JUL-1993   Lupe Howell  Naming the postscript out file using
 C-            run, event numbers, and view name.
 C-   Updated  20-AUG-1993   Lupe Howell  Fixing name for hardcopy 
 C-   Updated   4-OCT-1993   Lupe Howell  Fixing name for hardcopy .PS 
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -32,7 +33,7 @@ C
       INTEGER PRINT_DEV, SCRE_DEV,CUR_DEV,QPRINT,STATUS,LIB$FIND_FILE
       INTEGER LIB$FIND_FILE_END,ISTAT,CONTXT,RUNNO,EVONUM,LEN,INTEGER
       INTEGER LIB$RENAME_FILE,R,E,I,J,K,L,M,N,NM,O,P,Q,II,JJ,NN
-      LOGICAL PRINFL, FLGSET, FLGVAL,ODD,ACTIVE
+      LOGICAL PRINFL, FLGVAL,ODD,ACTIVE
       CHARACTER*3 DRIVER
       CHARACTER*80 MESS,DATAFILE,NEW_FILENAME,RUNO,EVNTNO,VIEW_NAME
       CHARACTER*1 TOKEN(4)

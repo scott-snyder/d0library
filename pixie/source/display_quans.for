@@ -16,6 +16,7 @@ C-             NQUANS      - No. of selected quantities to be displayed
 C-   Controls:
 C-
 C-   Created  18-MAY-1993   Sailesh Chopra
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -30,7 +31,7 @@ C-
       CALL VZERO(QUANS,50)
       LCACL = LQ(LPELC-2)
       LCASH = LQ(LCACL-2)
-      IF (IQ(LPELC-4) .EQ. 'PELC') THEN
+      IF (IQ(LPELC-4) .EQ. 4HPELC) THEN
         LZTRK = LQ(LPELC-3)
         LVTXT = LQ(LZTRK-6)
         LDTRK = LQ(LZTRK-7)
