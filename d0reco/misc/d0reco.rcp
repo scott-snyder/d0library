@@ -1,0 +1,112 @@
+\START     D0RECO_RCP      !  control file for reconstruction program D0RECO
+\SIZE         98        77
+!------------------------------------------------------------------------------
+!   Name:       D0RECO.RCP
+!   Purpose:    Control file for reconstruction program
+!   Created:    20-SEP-1989     Serban D. Protopopescu
+!   Version:     V2.0          official default version
+!   Updated:    22-APR-1993   Boaz Klima  - Drop L2EM,SATW,SAHS from DST
+!   Updated:    29-MAR-1994   Qizhong Li-Demarteau   drop VCTH from DST and
+!                                                  don't drop MTOF from DST
+!   Updated:    12-OCT-1994   Qizhong Li-Demarteau  added CPU_TIMING control
+!------------------------------------------------------------------------------
+!
+!------------------------------------------------------------------------------
+!   DATA file controls
+!------------------------------------------------------------------------------
+ INPUT_XCHANGE_MODE  .TRUE. !  input data in exchange mode
+ STA_XCHANGE_MODE    .TRUE. !  standard output in exchange mode
+ DST_XCHANGE_MODE    .TRUE. !  DST output in exchange mode
+ STORE_HST           .TRUE.  !  histograms will be stored
+ WRITE_STA           .TRUE.  !  write STA file
+ WRITE_DST           .TRUE.  !  write DST file
+ READ_TRIG_FILE      .FALSE. !  read trigger file, should be true for EXP line
+!------------------------------------------------------------------------------
+!   Flags
+!------------------------------------------------------------------------------
+ WRITE_E_FILE  .FALSE. ! write a file with one event and delete before next
+ VERIFY        .FALSE. ! turn on all verification summaries
+ REPORT_STATUS .TRUE.  ! turn on status report
+ REPORT_RATE    20     ! every how many events to report status
+ CPU_TIMING     .FALSE. ! true: do CPU timing measurement and get histograms
+!------------------------------------------------------------------------------
+!   Event processing controls
+!------------------------------------------------------------------------------
+ \ARRAY PATH
+  'RECO'
+ \END
+ NUMBER_OF_EVENTS   -1 ! number of events to process (-1 for all on file)
+ NUMBER_OF_SKIPS    0    ! sets of events to skip
+!
+! give first and last event to skip for each set ( 2 words/event)
+! if first event is 0 0 the first NUMBER_OF_SKIPS events will be skipped
+ \ARRAY EVENTS_TO_SKIP
+ 1  201   1  205
+ \END
+!------------------------------------------------------------------------------
+!   Banks to drop before processing
+!   BY_VERSION works on FULL_D0RECO HSTR bank
+!------------------------------------------------------------------------------
+ GEAN   .TRUE.     !  everything under GEAN header
+ FAKE   .TRUE.     !     "         "   FAKE  "
+ RECO   .FALSE.    !  previously done reconstruction
+ PROC   .FALSE.    !          "                      but keep hits
+ MUHT   .TRUE.     !  drop muon hits banks under HITS bank
+ ISAE   .FALSE.    !  all ISAJET banks
+ BY_VERSION .TRUE. ! when true: drop PROC if v12, drop RECO if v11
+                   !             (ignore RECO or PROC flags)
+!------------------------------------------------------------------------------
+!   Banks to drop from DST
+!------------------------------------------------------------------------------
+ \ARRAY DROP_DST_BANKS
+ 'TRGR'
+ 'CDD1'
+ 'CDD2'
+ 'CDD3'
+ 'CDD4'
+ 'CAD1'
+ 'CAD2'
+ 'HITS'
+ 'MHIT'
+ 'MFIT'
+ 'MTRJ'
+ 'L2EM'
+ 'SATW'
+ 'SAHS'
+ 'ZTMP'
+ 'ISV2'
+ 'ISP3'
+ 'VCTH'
+ 'CDH2'
+ \END
+!------------------------------------------------------------------------------
+!   Event DUMP controls
+!------------------------------------------------------------------------------
+ NUMBER_DUMPS   0    ! number of events to dump
+ SKIP_DUMPS     1    ! number of events to skip before dumping
+!
+! dumps will be consecutive unless SKIP_DUMPS .lt. 0
+! If SKIP_DUMPS .lt. 0  give a list of events
+! 2 words per event: run and output number
+ \ARRAY EVENTS_TO_DUMP
+ 1 201
+ \END
+!
+! list of banks to dump in hexadecimal format (below are all raw data banks)
+ \ARRAY RAW_BANKS
+ 'TRGR'
+! 'MUD1'
+! 'CDD1'
+! 'CDD2'
+! 'CDD3'
+! 'CDD4'
+! 'CAD1'
+! 'CAD2'
+ \END
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+\ARRAY HBOOK_DIRECTORY
+      'D0RECO'
+\END
+\STOP

@@ -1,0 +1,313 @@
+
+
+                GUIDE TO DORECO PROGRAM
+              (D0 OFFLINE RECONSTRUCTION)
+                                                        Serban Protopopescu
+                                                         version 1.09
+                                                         June 10, 1992
+
+
+
+
+   [1]  Introduction
+
+
+   [2]  General Description and Rules
+
+
+   [3]  Program Builder Hooks
+
+
+   [4]  Program Builder Packages
+
+
+   [5]  Linking and Executing D0RECO
+
+
+   [6]  RCP file for I/O control
+
+
+   [7]  Running production 
+
+
+
+      [1]  Introduction
+      ==================
+
+
+    D0RECO  is  a   framework  for   production  runs of  D0  offline event
+reconstruction. It is meant to be  run in batch mode and has no interactive
+capabilities. For  code development  and analysis  users are advised to use
+D0USER instead. Both D0USER and D0RECO use the program builder. The program
+builder constructs the interfaces between an application and the framework,
+and application packages  must be supplied  following program builder rules
+(see   D0$DOCS:PROGRAM_BUILDER.DOC and   D0$DOCS:RECONSTRUCTION_HOOKS.DOC).
+The  use of  the   program  builder   makes it  easy  to  combine different
+applications   into  one  program  by  people  who are  not  experts on the
+particular applications.
+
+    The program builder hooks for D0RECO are described in section [3], they
+are a  subset  of  those in   D0USER as  all   interactive  hooks have been
+eliminated. As long as the division between interactive and non-interactive
+hooks are kept in mind  and an application is not  dependent on interactive
+input    applications  can  migrate   easily   betweeen  D0RECO  and D0USER
+frameworks. The packages making the full reconstruction program are listed
+in section [4] and section [5] gives detailed examples of how to construct
+a D0RECO executable.
+
+
+        [2] General description and Rules
+        =================================
+
+
+    The program  does not use  COMPACK and  so has no  menus or interactive
+instructions.   The run   control  parameters  are  handled  using the SRCP
+facility,    there  is a    D0RECO.RCP  file    containing  all data driven
+instructions and a  D0RECO_SETUP.COM assigning  input and output files. The
+name of  the  input file  is given  as an  input to   D0RECO_SETUP.COM (the
+default is EVENT_DATA). During execution D0RECO will open 3 files using the
+name of the input file preceded by a prefix:
+
+STA_xxxx for standard event output file
+DST_xxxx for DST (data summary tape) event output file 
+SUM_xxxx for output summaries (histograms, statistics,etc)
+
+    All applications  packages must provide only  RCP files for run control
+parameters and  refer to those  files by logical  names in their code, i.e.
+file TRACKS.RCP must be refered internally as TRACKS_RCP. ANY OTHER TYPE OF
+FILE MUST BE  REFERRED TO BY A  VARIABLE AND THE  CONTENTS OF THAT VARIABLE
+GOTTEN  FROM THE  RCP FILE.  The RCP  files must  be listed  in the program
+builder package description (i.e.  the xxxx.PBD file). The allocation is of
+files is done automatically and when  building packages it is important for
+code  developers to remember  that the users  will not know  what files are
+required.
+
+      The program is organized into  three nested levels: job level, run
+level  and  event  level.  For  details  on the   interface  subroutines
+mentioned below see section [3].
+
+JOB  LEVEL:    Initialization of  input  and  output  files,  and histogram
+definitions are  done at the job  level. The program  initializes ZEBRA and
+all the  Zebra  commons    (ZEBCOM,ZEBSTP,ZEBWRK and  PAWC).  The interface
+INITIALIZE_RECO_PBD is called after all the ZEBRA initializations. When all
+events have  been processed  all histograms  are printed  and the interface
+RECO_JOB_SUMMARY_PBD is called.
+
+
+RUN LEVEL: A file may contain more  than one run, parameter definitions are
+assumed   to  be  needed  at  the  run   level.  At  the  start of each run
+NEW_RECO_RUN_PBD is  called and then an begin run  record is written to the
+event ouput files. At  the end of a run  RECO_RUN_SUMMARY_PBD is called and
+an end-of-run record written to the event output files.
+
+
+EVENT LEVEL: For every  event the interface  EVENT_RECO_PBD is called after
+an event record is read in. If there are event dump requests (the events to
+be dumped are controlled  via the D0RECO.RCP  file) the interface DMPUSR is
+called for each event dump request  after the call to EVENT_RECO_PBD. It is
+recommended  for  those  writing  applications  code to use  the event dump
+utilities  to  dump  zebra  banks (see  for  example   D0$CALOR_OFF$SOURCE:
+CALDMP.FOR on how to use  those utilities).  Before an event is written out
+(and  consequently the  event  division wiped  out) there  is a call to the
+interface    RESET_RECO_POINTERS_PBD.  This stage  can be  used for zeroing
+pointers using the data (this is useful to speed up zeroing of large arrays
+which are sparsely populated). The events are written out to 2 output
+streams STA (standard) and DST (data summary tape). The DST output stream
+only keeps the banks under PROC and supporting banks. As an example of how
+to drop banks from either DST or STA see CALOR.RCP and CALDRP.FOR in
+D0$CALOR_OFF$SOURCE.
+
+
+
+            [3] Program Builder Hooks
+            =========================
+
+    All hooks for D0RECO end with _PBD except DMPUSR which is part of the
+event dump facility and EVENT_READ_OK which is part of event I/O facility.
+    
+Start Job:                        
+                                                                   
+ INITIALIZE_RECO_PBD     :  Overall initialization, read RCP files.
+                                                                   
+ Run loop:                                                         
+                                                                   
+   NEW_RECO_RUN_PBD        :  new run started. Read in run 
+                              dependent parameters.
+                                                   
+   Event loop:                                     
+      
+     READ_EVENT_OK           :  check on HEAD bank information to decide 
+                                whether to read full event structure 
+                                                   
+     EVENT_RECO_PBD          :  do event reconstruction.
+                                                        
+     DMPUSR                  :  do event dumps.         
+                                                                  
+     RESET_RECO_POINTERS_PBD :  banks have not yet been wiped out,
+                                last chance to zero pointers.
+   End of event loop                                         
+                                                             
+   RECO_RUN_SUMMARY_PBD    :  run finished. Do all run dependent summaries.
+                                                                           
+ End of run loop                                                           
+                                                                           
+ RECO_JOB_SUMMARY_PBD      : do all end of job summaries.                  
+                                                                           
+End of job                                                                 
+
+The file D0$PBD:D0RECO_FRAME.PBD lists all the active hooks in D0RECO.
+The meaning of specific hooks is described in D0$PBD:MASTER_HOOK.PBD.
+
+
+             [4] Program Builder Packages
+             ============================
+
+    All  program builder  files have  extension  PBD, for each  application
+there is a  package described by a  PBD file (see  D0$DOCS:PROGRAM_BUILDER.
+DOC). All official PBD files can be found in D0$PBD. The full reconstruction
+program is generated using the combined package FULL (FULL_COMBINED.PBD).
+
+
+    CALORIMETER PACKAGES:
+
+CAHITS: calorimeter hit finding and 1st pass at missing Et
+CAJETS: find jets 
+CALOR:  calorimeter overall initialization, must be used with every
+        calorimeter package. 
+CAPHEL: find photons and electrons    
+C3PMET: 3rd pass at missing Et        
+CTAUS : find tau candidates
+CAJNEP: subtract electrons from jets
+CATD  : make a compact bank (CATD) with calorimeter hits for DST event 
+        display.
+
+    CENTRAL TRACKING PACKAGES:
+
+VERTEX: find primary vertex (must be used with all packages)
+ZTRAKS: central tracking, combines all tracking packages
+
+
+    MUON PACKAGE:
+
+MURECO: muon reconstruction
+
+    GENERAL PACKAGE:
+
+RECO_ESUM: construct summary banks ESUM (reconstruction objects)
+           and TSUM (trigger names). Also fill RECO bit words
+           in HEAD bank.
+
+
+In addition to the above packages which are part of the full event
+reconstruction there are a number of packages useful for stripping
+or filtering events:
+
+PICK_EVENTS: proces only events on EVENT_LIST
+
+RECO_FILTER: select events to multiple streams based on RECO bits
+
+STRIP_TRIG:  strip events using trigger bits
+
+
+
+
+            [5] Linking and Executing D0RECO
+            ================================
+
+
+    To generate the link file, setup command file and the interfaces for
+the full reconstruction program simply:
+
+$ PBD/FRAME=D0RECO/NAME=FULL
+
+this generates FULL_D0RECO.LNK, FULL_D0RECO.COM and FULL_D0RECO.FOR.
+
+$ @FULL_D0RECO.LNK
+generate FULL_D0RECO.EXE
+
+To submit a batch job you need to submit a command file with the following
+commands:
+
+$ SET DEF [directory where EXE resides]
+$ @FULL_D0RECO disk:[directory]input_file sta_output_dir dst_output_dir
+you will then be asked the question
+Do you wish MC, TB, COSMIC or default RCP file? [Default]:
+$ D0RECO
+
+the program will process all events in input_file and write STA output file
+to the   sta_output_dir and DST  output  files to  the  dst_output_dir. The
+sta_output_dir also contains the  summary output file and RZ histogram file
+(generated only on request).
+
+The output files have names with (X_) for exchange mode files:
+input_file.(X_)STA       standard event output file
+input_file.(X_)DST       DST (data summary tape) event output file
+SUM_input_file.OUT   summaries (histograms, statistics, etc.)
+input_file.HST4      RZ histogram files 
+
+These   names can  be   overwritten  by   supplying a   FILES_RCP  file see
+section[6]. If  event dumps are  requested there will  be one file per dump
+with  name  E_run#_id.DUMP  in the  directory  where  the EXE  resides. The
+default is not  to generate  event dumps. To  request event  dumps one must
+copy D0$D0RECO:D0RECO.RCP to a user directory  and edit it. You must then
+$ DEFINE D0RECO_RCP D0RECO.RCP
+before running but after having done the setup (ie @FULL_D0RECO).
+
+    A subset of the full reconstruction program can be built using the
+individual packages. One must keep in mind that VERTEX.PBD is needed with
+all packages and must be listed first. CALOR.PBD must also be included with
+any of the calorimeter packages and listed ahead of them.
+
+
+            [6] RCP file for I/O control
+
+    If one wants D0RECO to run on  multiple input files sequentially an RCP
+file for I/O control must be  supplied. The program will try to read a file
+attached to logical name FILES_RCP, ie. one must:
+
+$ DEFINE FILES_RCP  arbitrary_name.RCP
+
+if FILES_RCP is not  defined D0RECO will use the  defaults given by running
+the command  procedure for  setup (see  section [5]). The  RCP control file
+allows a for a  list of input files  and a list of STA  or DST output files
+and for defining  separate areas for  the output files.  If only one output
+file for a  given stream is  given all input  files will go  to that output
+file, otherwise  it expects a one to  one  correspondence between input and
+output.  To  make an  I/O  control  RCP file  use    D0$D0RECO:FILES.RCP as
+template.
+
+
+
+            [7] Running production
+            ======================
+
+
+    For production jobs a special directory is created, the directory is of
+the form   [D0PRODUCTION.name]  where  name is the  name of the  program in
+production. That  directory contains  the EXE, COM and  RCP files needed to
+run the production. At present there is only one D0RECO production program,
+FULL_D0RECO, for full reconstruction. 
+
+    To run a production job the following DCL commands are needed:
+
+$ LIBPROD FULL_D0RECO
+$ @PROD$FULL_D0RECO:FULL_D0RECO input_file sta_output_dir dst_output_dir
+Do you wish MC, TB, COSMIC or default RCP file? [Default]:
+$ D0RECO
+
+the above can  be of course  in a command  file to run  this in batch mode.
+Note that after the  LIBPROD command all logicals  (like D0$MUON_RECO) have
+been  redefined to  point to   PROD$FULL_D0RECO so  that all  RCP files are
+fetched from the  production area.  PROD$FULL_D0RECO  command points to the
+production directory for  FULL_D0RECO.To go back  to the original state you
+must
+
+$ NOLIBPROD
+
+You can  run with the  official  version by  skipping the  LIBPROD command.
+However there is no warranty the  official version runs anymore because the
+RCP files in the official areas may have changed since the last release of
+D0RECO and may  not be compatible  with  D0$D0RECO:FULL_D0RECO.EXE. 
+
+To make a version compatible with the present state of the library you
+should use the program builder as described in section [5].

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VD0RECO()
+      VD0RECO = ' D0RECO'//
+     X                   '  OFFICIAL V1.13'//
+     X                   ' 31-JUL-1995 14:28:22.28'
+      Return
+      End

@@ -1,0 +1,77 @@
+      SUBROUTINE D0RECO_STATUS
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : 
+C-       report status to Program Manager (PM)
+C-
+C-   ENTRY D0RECO_END_REPORT
+C-       report final status
+C-
+C-   Created   7-NOV-1991   Serban D. Protopopescu
+C-   Updated  18-AUG-1992   Serban Protopopescu  (use PM_INFO) 
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      CHARACTER*40 NAME
+      INTEGER NUM_STREAMS,NEVT_STREAM(40)
+      CHARACTER*3 STREAM_NAME(40),STREAM_TYPE(40)
+      INTEGER FIRST_EVENT(2),LAST_EVENT(2),VERSION,PASS
+      INTEGER NCALLS,NREPORT,IER,N,LHSTR,GZHSTR,NWR
+      LOGICAL FIRST,STATUS_ON,PRODUC,OK
+      SAVE FIRST,STATUS_ON,NCALLS,NREPORT
+      SAVE FIRST_EVENT,LAST_EVENT
+      DATA FIRST/.TRUE./
+      DATA NCALLS/0/
+C----------------------------------------------------------------------
+      NCALLS=NCALLS+1
+C
+      IF ( FIRST ) THEN
+        CALL EZPICK('D0RECO_RCP')
+        CALL EZGET('REPORT_STATUS',STATUS_ON,IER)
+        CALL EZGET('REPORT_RATE',NREPORT,IER)
+        CALL EZRSET
+        LHSTR=GZHSTR()
+        CALL UHTOC(IQ(LHSTR+7),40,NAME,40)
+        VERSION=IQ(LHSTR+3)
+        PASS=IQ(LHSTR+4)
+        CALL EVNTID(FIRST_EVENT(1),FIRST_EVENT(2))
+        FIRST=.FALSE.
+      ENDIF
+C
+      CALL EVNTID(LAST_EVENT(1),LAST_EVENT(2))
+      N=MOD(NCALLS,NREPORT)
+      IF ( (PRODUC().OR.STATUS_ON).AND.N.EQ.0 ) THEN
+        NUM_STREAMS=0
+        CALL PM_INFO(FIRST_EVENT,LAST_EVENT,NCALLS,
+     &    NUM_STREAMS,STREAM_NAME,STREAM_TYPE,NEVT_STREAM,
+     &    NAME,VERSION,PASS)
+      ENDIF
+      GOTO 999
+C
+      ENTRY D0RECO_END_REPORT
+      CALL EVGIVE_MULT(NUM_STREAMS,STREAM_NAME,NEVT_STREAM,STREAM_TYPE)
+      IF ( NUM_STREAMS.EQ.0 ) THEN
+        CALL EVWRITES('STA',NWR)
+        IF ( NWR.GT.0 ) THEN
+          NUM_STREAMS=NUM_STREAMS+1
+          STREAM_NAME(NUM_STREAMS)='ALL'
+          STREAM_TYPE(NUM_STREAMS)='STA'
+          NEVT_STREAM(NUM_STREAMS)=NWR
+        ENDIF
+        CALL EVWRITES('DST',NWR)
+        IF ( NWR.GT.0 ) THEN
+          NUM_STREAMS=NUM_STREAMS+1
+          STREAM_NAME(NUM_STREAMS)='ALL'
+          STREAM_TYPE(NUM_STREAMS)='DST'
+          NEVT_STREAM(NUM_STREAMS)=NWR
+        ENDIF
+      ELSE
+        NUM_STREAMS=2*NUM_STREAMS
+      ENDIF
+        CALL PM_INFO(FIRST_EVENT,LAST_EVENT,NCALLS,
+     &    NUM_STREAMS,STREAM_NAME,STREAM_TYPE,NEVT_STREAM,
+     &    NAME,VERSION,PASS)
+  999 RETURN
+C
+      END

@@ -1,0 +1,44 @@
+$ Verify_Mode = f$verify(1)                                                     
+$ !                                                                             
+$ ! Program_builder must be used to generate interfaces
+$ ! and to specify the task, this command file will not work otherwise.
+$ !                                                                             
+$ !  specify DEBUG if you want debug version                                    
+$ !                                                                             
+$ SET NOVERIFY                                                                  
+$ ON ERROR THEN GOTO CLEANUP                                                    
+$ ON CONTROL_Y THEN GOTO CLEANUP                                                
+$ !    select options                                                           
+$ gosub link_flags                                                              
+$ !                                                                             
+$ SET VERIFY                                                                    
+$ SHOW SYMB TASK                                                                
+$ SHOW SYMB DEB                                                                 
+$ LINK'SWIT'/NOMAP/EXE='TASK'_'TYP'D0RECO -
+'pgbd_sources_object'-        ! see top of file on how to insert additional 
+'user_libraries'-             ! objects and libraries                       
+D0$D0RECO:'DEB'UTIL.OPT/OPT,'CERNP'
+$ GOTO END                                                                      
+$ END:                                                                          
+$CLEANUP:                                                                       
+$ Verify_Mode = f$verify(Verify_Mode)                                           
+$ EXIT                                                                          
+$ !                                                                             
+$ !     sublevel to select options                                              
+$Link_Flags:                                                                    
+$ DEB = ""                                                                      
+$ SWIT = ""                                                                     
+$ TYP = ""
+$ IF P1 .EQS. "DEBUG" .OR. P2 .EQS. "DEBUG" THEN-         
+  DEB = "DEB_"                                                                  
+$ IF P1 .EQS. "DEBUG" .OR. P2 .EQS. "DEBUG" THEN-         
+  TYP = "DEB_"                                                                  
+$ IF P1 .EQS. "DEBUG" .OR. P2 .EQS. "DEBUG" THEN-         
+   SWIT = "/DEBUG"                                                              
+$ IF P1 .EQS. "PCA" .OR. P2 .EQS. "PCA" THEN-         
+  DEB = "DEB_" 
+$ IF P1 .EQS. "PCA" .OR. P2 .EQS. "PCA" THEN-         
+  TYP = "PCA_" 
+$ IF P1 .EQS. "PCA" .OR. P2 .EQS. "PCA" THEN-         
+   SWIT = "/DEBUG=SYS$LIBRARY:PCA$OBJ.OBJ"                                                              
+$ RETURN                                                                        

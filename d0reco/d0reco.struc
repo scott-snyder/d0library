@@ -1,0 +1,174 @@
+
+
+
+           Structure Chart for : Recontruction Program D0RECO             Version 2.0  ,  12-DEC-1991 
+           Page : D0RECO_0                                                 Author : Serban D. Protopopescu
+                                                                                                                     NOTATIONS         
+                                                                                                                    o-->   data        
+                                             +----------------------+                                               *-->   control     
+                                             |                      |                                               @-->   Zebra banks 
+                                             |      D0RECO          |
+                                             |    Main program      |
+                                             |  for reconstruction  |
+                                             |                      |
+                                             +----------------------+
+                                                       |
+                                        +--+-----------+-----------------+-----+
+                              STP-SRCP  |  |                           @ |     |            STP-SRCP                                 
+                                @-->    |  |                       STP-| |     |              @-->                                   
+                          +-------------+  |                       SRCPV |     +-----------------------------------+                 
+                          |                |                             |                                         |                 
+                   +--------------+   +-------------+           + -----------------+                        +--------------+         
+                   |      1.1     |   |   1.2       |           |                  |                        |      2.2     |         
+                   |  INITIALIZE_ |   | D0RECO_NEW_ |           |  START_          |                        |  END_D0RECO  |         
+                   |  D0RECO      |   |   FILE      |           |  RECONSTRUCTION  |                        |              |         
+                   |              |   |             |           |                  |                        |              |         
+                   +--------------+   +-------------+           +--------<>--------+                        +--------------+         
+                                                                  |      /\ \                                                        
+                                                 data_record      |     |  \ +----------------------------------------+              
+                                                   @-->           |     |   +-------------+                           |              
+                                          +-----------------------+   @ |               @ |                           | @            
+                                        ^ |                begin_run_ | |       event_  | |                           | | end_run_   
+                                     ok | |                record     V |       record  V |                           | V record     
+                                        * |                             |                 |                           |              
+                                   ++-------------++          +--------------+      +---------------+            +---------------+   
+                                   ||             ||          |              |      |      2.1      |            |               |   
+                                   ||    EVTRD    ||          | NEW_RECO_RUN |      |  RECONSTRUCT_ |            | END_RECO_RUN  |   
+                                   ||  read data  ||          |              |      |  EVENT        |            |               |   
+                                   ||   file      ||          |              |      |               |            |               |   
+                                   ++-------------++          +--------------+      +---------------+            +---------------+   
+                                                                   |       |                                        |   |            
+                                                                   | ^     |                                        |   |            
+                                                                   | | ok  +-------------------+--------------------+   |            
+                                                                   | *                         |                        |            
+                                                            +-----------------+         ++-----------++          +-----------------+ 
+                                                            | +-------------+ |         ||  EVTWOS   ||          | +-------------+ | 
+                                                            | |  NEW_RECO_  | |         ||  write to ||          | |  RECO_RUN_  | | 
+                                                            | |  RUN_PBD    | |         ||  output   ||          | | SUMMARY_PBD | | 
+                                                            | +-------------+ |         ||  streams  ||          | +-------------+ | 
+                                                            +-----------------+         ++-----------++          +-----------------+ 
+
+                                                                Page 2
+
+
+           Structure Chart for : Reconstruction Program                   Version 2.0  ,  12-DEC-1991 
+           Page : D0RECO.1                                                 Author : Serban D. Protopopescu
+                                                                                                                     NOTATIONS         
+                                                                                                                    o-->   data        
+                                                                                                                    *-->   control     
+                                                                                                                    @-->   Zebra banks 
+           
+                                                             +--------------+                                 +-----------+         
+                                                             |      1.1     |                                 |+---------+|         
+                                                             | INITIALIZE_  |                                 ||         ||   Hooks 
+                                                             | D0RECO       |                                 ||         ||         
+                                                             |              |                                 |+---------+|         
+                                      level=0                +--------------+                                 +-----------+         
+                                       <--o                   | |  | |   | |
+                    +-----------------------------------------+ |  | |   | |
+                    |               +---------------------------+  | |   | +-------------------+-----------------+
+                    |               |   <--o           +-----------+ |   +-----------+         |                 |
+                    |               |  division=2      |             |               |         |                 |
+               ++--------++   ++----------++     ++--------++   ++--------++  ++--------++   ++----------++   ++----------++ 
+               ||        ||   ||          ||     ||        ||   ||        ||  ||        ||   ||          ||   ||          || 
+               || MZEBRA ||   ||  INZCOM  ||     || INZSTP ||   || PBDINI ||  || DMPINI ||   ||  INZWRK  ||   ||  INPAWC  || 
+               ||        ||   ||          ||     ||        ||   ||        ||  ||        ||   ||          ||   ||          || 
+               ++--------++   ++----------++     ++--------++   ++--------++-S++--------++   ++----------++   ++----------++ 
+
+                                                               +-------------+
+                                                               |   1.2       |
+                                                          +--- | D0RECO_NEW_ |
+                     +----------+                         |    |   FILE      |
+                     |          |-------------------------+    |             |
+                     | D0RECO_  |                              +-------------+
+                     |   FILES  |                                     |
+                     |          |                                     |
+                     +----------+                                     |
+                        |o                                            |
+                        || FILES_RCP                                  |
+                        |V                                            |                                                          
+                        +-------------------+-------------------------+----------------+-------------------+-------------------+ 
+                        |                   |                    |                     |                   |                   | 
+                        |                   |                    |                     | ^                 | ^                 | ^
+                      o |                 o |                  o | ^                   | | ok            o | | ok            o | | ok
+           D0RECO_RCP | |     D0RECO_RCPE | |        file_name | | | ok                | *     file_name | | *     file_name | | *
+                      V |                 V |                  V | *                   |                 V |                 V |
+                  ++---------++        ++----------++      ++------------++     +----------------+   ++--------------++   ++--------------++
+                  ||         ||        ||          ||      ||  SSOPEN    ||     | +------------+ |   ||   EVOPIN     ||   ||   EVOPWO     ||
+                  ||  INRCP  ||        ||  INRCPE  ||      ||open file   ||     | | INITIALIZE_| |   ||  open input  ||   ||  open output ||
+                  ||         ||        ||          ||      ||for printout||     | | RECO_PBD   | |   ||  data file   ||   ||  data files  ||
+                  ++---------++        ++----------++      ++------------++     | +------------+ |   ++--------------++   ++--------------++
+                                                                                +----------------+                        
+           
+                                                                Page 3
+
+
+           Structure Chart for : Reconstruction Program D0RECO             Version 2.0  ,  12-DEC-1991 
+           Page : D0RECO.2                                                 Author : Serban D. Protopopescu
+                                                                                                                     NOTATIONS         
+                                                                                                                    o-->   data        
+                                                                                                                    *-->   control     
+                                                                                                                    @-->   Zebra banks 
+
+                         +----------------+                                   +----------------+               +-----------+          
+                         |      2.1       |                                   |      2.2       |               |+---------+|          
+                         |  RECONSTRUCT_  |                                   |   END_D0RECO   |               ||         ||   Hooks  
+                         |  EVENT         |                                   |                |               ||         ||          
+                         |                |                                   |                |               |+---------+|          
+                         +----------------+                                   +----------------+               +-----------+          
+                                 |                                                      |
+                                 |                                                      |
+                        +--------+----------+---------------+-------------+         +---+-----------+-------------------+
+                        |                   |               |             |         |               |                   |
+                        |                   |               |             |         |               |                   |
+               +-----------------+  ++---------++   +------------------+  |    ++----------++   ++---------++    +-----------------+
+               | +-------------+ |  ||  DMPPRO ||   | +--------------+ |  |    ||          ||   ||         ||    | +-------------+ |
+               | |  EVENT_RECO | |  ||  Event  ||   | | RESET_RECO_  | |  |    ||  HROUT   ||   ||  HRPUT  ||    | | RECO_JOB_   | |
+               | |  _PBD       | |  ||  Dump   ||   | | POINTERS_PBD | |  |    ||          ||   ||         ||    | | SUMMARY_PBD | |
+               | +-------------+ |  ||         ||   | +--------------+ |  |    ||          ||   ||         ||    | +-------------+ |
+               +-----------------+  ++---------++   +------------------+  |    ++----------++   ++---------++    +-----------------+
+                                           |                              |
+                                           |                              |
+                                           |                              |
+                                   +-----------------+            ++------------++
+                                   | +-------------+ |            ||  EVTWOS    ||
+                                   | |    DMPUSR   | |            ||  write to  ||
+                                   | |  Event Dump | |            ||  output    ||
+                                   | |     Hook    | |            ||  streams   ||
+                                   | +-------------+ |            ++------------++
+                                   +-----------------+
+           
+           
+                                                                Page 4
+
+
+
+
+                     LIST OF HOOKS FOR RECONSTRUCTION PACKAGES
+                    =========================================
+
+          Start Job:
+
+           INITIALIZE_RECO_PBD     :  Overall initialization, read RCP files.
+
+           Run loop:
+
+             NEW_RECO_RUN_PBD        :  new run started. Read in run dependent parameters.
+
+             Event loop:
+
+               EVENT_RECO_PBD          :  do event reconstruction.
+
+               DMPUSR                  :  do event dumps.
+
+               RESET_RECO_POINTERS_PBD :  banks have not yet been wiped out, last chance to zero pointers
+                                          using data.
+             End of event loop   
+
+             RECO_RUN_SUMMARY_PBD    :  run finished. Do all run dependent summaries.
+
+           End of run loop
+
+           RECO_JOB_SUMMARY_PBD      : do all end of job summaries.
+
+          End of job
