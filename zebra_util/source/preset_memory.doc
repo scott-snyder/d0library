@@ -1,0 +1,163 @@
+                                                            James T. Linnemann
+                                                            24 June 1994
+
+                            PRESET_MEMORY
+News:
+    lock protected areas by using MZWORK 
+        (this may conflict with certain uses of ISAPFL and give false alarms)
+    checking moved to end of event, so message correctly reflects the event
+        during which you overwrote.
+    include location of overwrite in error message
+
+    The purpose of this package is to help find Zebra bugs by presetting unused
+memory to something more useful than 0's (which is what the VAX loader gives
+you).  To do this, this package MUST BE THE FIRST PACKAGE RUN.  Even if your
+loader is more intelligent, it has the virtue of overwriting some unused links
+cleared during ZEBRA initialization.  Since this package runs at BEGIN_PROGRAM
+time, before any possibility of switching off the package, all control must be
+done by selection of parameters in the RCP file.  However, switching off the
+package DOES disable the checking of memory contents against the preset value.
+
+    You can preset ZEBSTP before constants are read in, and preset parts of 
+ZEBCOM before the event has been read in.  Those parts of ZEBCOM not used by an
+event's processing remain at the value preset.  You can also choose what value
+to place in memory.  Finally, you can reset the division into which events
+are read.  The choices are made in PRESET_MEMORY_RCP.  To change package
+defaults, copy the standard one, modify it, and reset the logical.
+
+    PRESET_MEMORY checks the status of the words it intialized after the normal
+event processing (but before the event is actually written out).  So normally,
+the error message should tell you on which event the overwrite occured.  In
+addition, it will tell you the first location which it found overwritten.  So
+the recommended debugging technique is to skip (or process) to the event before
+the one listed, and SET WATCH on the indicated location.
+
+                        Choice of parameters
+
+    By default, PRESET_MEMORY presets ZEBCOM and ZEBSTP with values which have a
+good chance of provoking a floating overflow.  
+
+    The choice of the value to initialize with depends on the kinds of errors
+you wish to trap.  Unfortunately there is no single best value.
+
+    1) Unprotected bank chaining.
+
+LNK2 = LQ(LNK-IZOFFSET)
+LNK3 = LQ(LNK2-IOFF2)   !whoops, should have tested for LNK2 = 0
+IX = IQ(LNK3 + 17)
+    
+    In our usual setup, event data is read into Division 2.  If you have coding
+errors like those above, and find LNK2 = 0, then you will be looking for values
+like LNK3 = LQ(-3).  Zebra provides a FENCE such that LQ(0) through LQ(-7) are
+chosen to provide access violations with a value of 16744448 = FF80000 =
+77700000 octal.  This value of 2*10**7 is sufficienty to normall cause access
+violations (it's pretty close to 64 MB).  If you use a link bigger than 7, say
+LQ(-17) this won't catch it.  Unfortunately, it's very hard to repair that
+without recompiling the whole D0 library.  So I hope this is caught already.
+
+    2) Unprotected data references.
+This is one degree less complicated:
+
+LNK = GZxxxx()  or  LNK = LQ(LNK0 - IZOFFSET) 
+IX = IQ(LNK + 17)  !whoops, should have tested for LNK = 0
+
+Presently you don't tend to get into obvious trouble because IQ(0+small) are
+typically 0.  This is where it is easier to help.  But no single value for
+presetting the IQ array which will guarantee an arithmetic exception.  The
+RCP file contains several suggested values, appropriate for generating integer
+or floating overflows or underflows.  To help with debugging, here are some
+likely initializing values and their floating, integer, and hex interpretations
+(Thanks to Philippe Laurens for providing these, and explaining about address
+wraparound).
+
+ Integer        Hex         Float           What is it
+ -2147483648    80000000    0.0E0           Minimum Integer
+  2147483647    7FFFFFFF   -1.7E38          Maximum Integer
+ -1424097150    AB1E0082    .3E-38          Minimum + Real
+ -1424064382    AB1E8082   -.3E-38          Minimum - Real 
+  -912359425    C99E7FFF    1.7E38          Maximum + Real
+  -912326657    C99EFFFF   -1.7E38          Minimum - Real
+
+    The minimum real value is not really very useful on VAX as by default the
+compiler doesn't test for floating underflow, but simply substitutes zero for
+the result.  If you have code you suspect, you can try recompiling it with
+/CHECK=UNDERFLOW.
+
+    Here is the memory layout of ZEBCOM.
+
+IXCOM   !the store index for ZEBCOM = 0
+IXMAIN  !the index division for data = 2 typically
+IDVR    !the run division index = 20 
+LQ(-7)  FENCE(1)                set to 16744448 
+   .       .
+LQ(-1)  FENCE(7)
+LQ(0)   FENCE(8)                set to 16744448 
+LQ(1)   LHEAD       IQ(-7)  permanent structural link to head bank, 
+                                (some valid index in IQ array)
+LQ(2)   LHEADR      IQ(-6)  permanent structural link to run header (MC only)
+LQ(3)   LREF(1)     IQ(-5)  permanent ref link, used only online in level 2
+LQ(4)   LREF(2)     IQ(-4)
+LQ(5)   LREF(3)     IQ(-3)
+LQ(6)   LREF(4)     IQ(-2)
+LQ(7)   LREF(5)     IQ(-1)
+LQ(8)   LREF(6)     IQ(0)
+LQ(9)   LREF(7)     IQ(1)
+LQ(10)  LREF(8)     IQ(2)   
+LQ(11)  LREF(9)     IQ(3)   last (unused) permanent ref link
+LQ(12)  ZSTOR(1)    IQ(4)   1st word of division 1
+  .      .
+
+Default contents without this package:
+LQ(2) to LQ(11) are links which are not used, so they and IQ(1) through 
+IQ(3) are zero.  Division 1 is not used, so IQ(4) through at least IQ(100) 
+(up to the minimum size of division 1) are also zero.
+
+PRESET_MEMORY will put whatever value you wish starting at LQ(2) = IQ(-6), up to
+IQ(NWDS). By default, NWDS is 40000, a safe number which covers the minimum size
+of division 1 plus division 2.  It is not advised to change this number unless
+you know the size of the store, because of danger of interfering with the system
+division in ZEBCOM.
+
+    EVENT_DIVISION selects the division into which events are read.
+The default value is 2.  Use 1 if you wish to simulate the memory organization
+of level 2 online more exactly.  Note however that it may well be more useful
+for trapping problems to have IQ(0+n) land in preset memory than on pieces of
+the HEAD bank, as would happen in level 2 and if you select EVENT_DIVISION = 1.
+
+    ZEBSTP is handled differently:
+
+The full store is initialized to the preset value before the store is
+initialized.  However, booking the banks will zero the links.  As before, a
+FENCE exists which should catch bad bank chaining of the form LNK = LQ(0-n)
+provided n < 9.  IC(1:99) are in the reference link area, with little way to
+offer  protection.  The quantities found there are either zero, or
+moderate-sized  integers (if the corresponding banks exist).  The rest of
+division 1 and division 2 (where the constants go) are preset with PRESET_TO. 
+This may allow you to recognize some problems.
+
+STP layout (as of May '93)
+IXSTP
+IDVSTP
+IDVSUM  0
+FENSTP(1)
+FENSTP(10)
+LC(1)   LSTPH    IC(-8) first permanent reserved reference link
+   .      .       .
+LC(9)            IC(1)
+    .      .       .
+LC(107) LCA(11)  IC(99)  last permanent reserved reference link
+LC(108) ZCONS(1) IC(100) first permanent reserved structural link
+   .      .       .
+LC(117) ZCONS(10) IC(109) last permanent reserved structural link 
+                            (9 are reserved, not 10 as INZSTP claims)
+LC(118) ZCONS(11) IC(110) word of division 1 (stays at preset value)
+   .      .       .
+      COMMON/ZEBSTP/IXSTP,IDVSTP,IDVSUM,FENSTP,LSTPH,LZSUM,
+     1 LSLV0,LLPDH,LLGNH,LLTMH,LLGEH,LLV,   ! 15 level 0 links
+     2 LSMUO,LMPDH,LMGNH,LMTMH,LMGEH,LMU,   ! 15 muon links
+     3 LSVTX,LVPDH,LVGNH,LVTMH,LVGEH,LVT,   ! 15 vertex chamber links
+     4 LSCDC,LDPDH,LDGNH,LDTMH,LDGEH,LDALH,LDC,   ! 15 cdc links
+     5 LSTRD,LTPDH,LTGAI,LTGEN,LTGEO,LTR,   ! 15 trd links
+     6 LSFDC,LFPDH,LFGNH,LFTMH,LFGEH,LFD,   ! 15 fdc links
+     7 LSCAL,LCPDH,LCGNH,LCGEH,LCA,         ! 15 calorimeter links
+     8 ZCONS,ENDZC

@@ -1,0 +1,2 @@
+      INTEGER IV(2),IVP(NV)
+      COMMON/GVECT/IV,IVP

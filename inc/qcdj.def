@@ -1,0 +1,74 @@
+C----------------------------------------------------------------------
+C-   L2J.DEF : Statement function definitions
+C-
+C-   Created  23-FEB-1991   Richard Astur
+C-
+C----------------------------------------------------------------------
+      REAL PIE
+      PARAMETER( PIE = PI + 1.E-6)      
+      REAL ETA_INT1,ETA_INT2
+      PARAMETER( ETA_INT1 = .1 )        
+      PARAMETER( ETA_INT2 = .2 )        
+      INTEGER JPHI_FROM_PHI,JETA_FROM_ETA,JDELTA_ETA,JDELTA_R,JDELTA_PHI
+      REAL THETA_FROM_ETA,ETA_FROM_THETA,PHI_FROM_JPHI,ETA_FROM_JETA
+      REAL DELTA_R,DELTA_PHI, DANGLE
+      INTEGER JSIZ,JPHI,JETA,JETA1,JETA2,JPHI1,JPHI2
+      REAL RETA,RTHETA,RPHI,ETA_INT,RPHI1,RPHI2,RETA1,RETA2,XTHE1,XTHE2
+      REAL XPHI1, XPHI2
+C----------------------------------------------------------------------
+C
+C---Convert ETA to THETA
+C
+      THETA_FROM_ETA(RETA ) = 2*ATAN(EXP(-(RETA)))
+C
+C---Convert THETA to ETA
+C
+      ETA_FROM_THETA(RTHETA) =  -ALOG(TAN((RTHETA)/2.))
+C
+C---Convert real PHI (0 to 2pi) to IETA for offline (JSIZ=64) or L1 (JSIZ=32)
+C
+      PHI_FROM_JPHI( JPHI,JSIZ) = 2*PIE*((FLOAT(JPHI)-.5)/FLOAT(JSIZ))
+      JPHI_FROM_PHI( RPHI,JSIZ) = 
+     &     INT(JSIZ* ( MOD(RPHI,2*PIE)/(2*PIE) ) )+ 1
+C
+C---Conversion between real ETA and IETA bins (NO 0 BIN) offline (ETA_INT=.1)
+C
+      ETA_FROM_JETA( JETA,ETA_INT) = 
+     &      ((JETA)-SIGN(.5,FLOAT((JETA))))*ETA_INT
+      JETA_FROM_ETA( RETA,ETA_INT) = INT((RETA)/ETA_INT) +
+     &     INT(SIGN(1.1,(RETA)))
+C
+C---Integer difference between two IETA indices or two PHI indices
+C
+      JDELTA_ETA(JETA1,JETA2) = (JETA1)-(JETA2) -
+     &    ( SIGN(1,(JETA1)) - SIGN(1,(JETA2)) )/2
+      JDELTA_PHI(JPHI1,JPHI2,JSIZ) = MIN( ABS((JPHI1)-(JPHI2)) ,         
+     & (JSIZ) - ABS((JPHI1)-(JPHI2)) )
+C
+C---Maximum of ieta and iphi differences between two points. Also corresponds
+C---to the 'ring' that one would be in if the other was the center.
+C
+      JDELTA_R(JETA1,JETA2,JPHI1,JPHI2,JSIZ) = 
+     & MAX(ABS(JDELTA_PHI((JPHI1),(JPHI2),(JSIZ))) ,
+     & ABS( JDELTA_ETA((JETA1),(JETA2))) )
+C
+C---Delta R in eta-phi space
+C
+      DELTA_R(RETA1,RETA2,RPHI1,RPHI2) = SQRT( ((RETA1)-(RETA2))**2 +
+     & MIN( MOD(ABS((RPHI1)-(RPHI2)),2*PIE) , 
+     & 2*PIE-ABS(MOD(ABS((RPHI1)-(RPHI2)),2*PIE)) )**2 )
+C
+C---Relative Delta Phi. Equivalent to RPHI2-RPHI1 but take into account
+C---wrap around to give smallest absolute value.
+C
+      DELTA_PHI(RPHI1,RPHI2) =
+     & MIN(MOD(ABS((RPHI1)-(RPHI2)),2*PIE),
+     &                  2*PIE-MOD(ABS((RPHI1)-(RPHI2)),2*PIE))*
+     & SIGN(1.,(RPHI2)-(RPHI1))*((-1)**INT(((RPHI2)-(RPHI1))/PIE))
+C
+C---Angular difference between two points on a sphere (phi1,theta1) and
+C---(phi2,theta2)
+C
+       DANGLE( XTHE1, XTHE2, XPHI1, XPHI2 ) = 
+     &   ACOS( (COS((XPHI1)-(XPHI2))
+     &   *SIN(XTHE1)*SIN(XTHE2) + COS(XTHE1)*COS(XTHE2))/1.0001 )

@@ -1,0 +1,22 @@
+C
+      INTEGER IDMIN,IDMAX
+      PARAMETER( IDMIN=0)               
+      PARAMETER( IDMAX=2047)            
+C                                       
+C
+      COMMON/CDMOMT/NID,NBADFL,ACMIN,ACMAX,ACMOM0,ACMOM1,ACMOM2,ACMOM3,
+     &              AMPSTEP
+C
+      REAL   ACMOM0(IDMIN:IDMAX),ACMOM1(IDMIN:IDMAX)
+      REAL   ACMOM2(IDMIN:IDMAX),ACMOM3(IDMIN:IDMAX)
+      REAL ACMIN(IDMIN:IDMAX),ACMAX(IDMIN:IDMAX)
+      INTEGER*2 NID(IDMIN:IDMAX),NBADFL(IDMIN:IDMAX),STEPN(IDMIN:IDMAX)
+      INTEGER*2 AMPSTEP(IDMIN:IDMAX)
+C
+C ACMOM0 = NUMBER OF ENTRIES
+C ACMOM1 = AVERAGE /PEAK
+C ACMOM2 = SIGMA
+C ACMOM3 = Skewness
+C AMPSTEP = Amplitude Step Number currently being analyzed
+C NID = Flag to determine if Hist being filled
+C NBADFL = Bit encoded Badness flag

@@ -1,0 +1,100 @@
+                                                    Serban D. Protopopescu
+                                                    J. Linnemann, N. Graf
+                                                    Revised 5 Dec 1992
+
+                        TSUM bank routines
+
+    The TSUM bank contains the names and numbers of all level 1 bits 
+and level 2 bits ON in this event.  (For a more precise definition of ON, see
+below).  The TSUM bank contains information ONLY about names for this particular
+event, so it has to be checked every event.
+
+    GTTSUM fetches the contents of the TSUM bank:
+
+  CALL GTTSUM (NTRIGON,TRIGBON,TRIGNON,NFILTON,FILTBON,FILTNON)
+
+                          possible
+                      type values
+    NTRIGON            [I] [0:32]   number of trigger bits on
+    TRIGBON(i)         [I] [0:31]   ith trigger bit on this event 
+        i up to 32
+    TRIGNON(i)         [C*32]       names of ith trigger bit  on
+    NFILTON            [I] [0:128]  number of filter bits on
+    FILTBON(j)         [I] [0:127]  jth filter bits on this event
+        j up to 128
+    FILTNON(j)         [C*32]       name of jth filter bit on
+        since i can range up to 32 and j to 128, dimension accordingly
+
+
+There are also simpler entry points:
+    L1NAME_PASSED(NAME) returns .TRUE. if L1 bit on this event
+    L2NAME_PASSED(NAME) returns .TRUE. if L2 bit PASSED this event
+                            or, if there is no FILT bank, checks for bit ON
+                            (for the distinction, see below)
+    L2NAME_ON(NAME)     returns .TRUE. if L2 bit was ON
+        (for more detail on the definition of ON, see below)
+
+        GET_L1_BIT_NUMBER(NAME,BITNUM,FOUND)
+        GET_L2_BIT_NUMBER(NAME,BITNUM,FOUND)
+
+      given a bit name, returns FOUND = .TRUE. if the bit was ON this event
+        If FOUND = .TRUE., then you can use the BITNUM.  
+
+      Note that since the routine GET_L2_BIT_NUMBER checks the length of the
+      input character variable and only matches the corresponding part of the 
+      filter names in TSUM, partial names of L2 filters are allowable. 
+
+        For example
+
+        CALL GET_L2_BIT_NUMBER('ELE_MEDIUM',EM_MED_BIT,FOUND)
+        OK = FOUND
+        IF (FOUND) OK = L2BIT_PASSED(EM_MED_BIT)
+        IF (OK) THEN
+            your code here to look at only level2-certified events
+        ENDIF
+
+(The above example has been incorporated into the routines L1NAME_PASSED,
+L2NAME_ON and L2NAME_PASSED, which check for bits by name).
+        
+        so more simply,
+        IF (L2NAME_PASSED('JET_MISS') THEN
+            either JET_MISS-L20 or JET_MISS-L50 would land you here
+        ENDIF
+
+Finally, there is an entry point for getting the lists of the names known as of
+this point in the run:
+
+      GET_TRIG_LISTS(L1_LIST,L2_LIST)
+
+    where L1_LIST(0:31) and L2_LIST(0:127) are character*12 arrays containing
+the list of known bit names (truncated to 12 characters).  Bits for which no
+name has been found (i.e. the bit was never on), contain '............'  
+
+
+--------------------------------------------------------------------------------
+            What ON means: (how the bit names got into TSUM)
+
+
+ON means that as far as this bit was concerned, the decision was reached to 
+WRITE the event:
+
+    Level 1:    a) this level 1 bit fired
+                b) this level 1.5 bit fired
+            or  c) this was a level 1.5 bit whose level 1 fired, but a decision 
+                was not reached before some other bit (level 1 or level 1.5) 
+                reached a decision.  In this case you have to look in the
+                detailed level 1.5 results to see if the level 1.5 answer was
+                really true or false
+
+    Level 2     a) this level 2 bit was passed
+                b) this level 2 bit was ON because it was selected as an
+                unbiased (by level 2) sample
+            or  c) the trigger was not tried (should never happen if we set up
+                   the level 2 triggers correctly.  
+                To determine the real answer, use the functions
+                    L2BIT_PASSED(i) or L2BIT_UNBIASED(i); 
+                    see D0$ZEBRA_UTIL:L2BITS.DOC for details
+
+    The TSUM banks are presently attached to events in the Data Logger. If you
+run the the level 2 simulation, TSUM will be written with names given by
+whatever configuration file you use.

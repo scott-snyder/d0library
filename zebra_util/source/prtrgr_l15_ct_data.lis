@@ -1,0 +1,75 @@
+00001          SUBROUTINE PRTRGR_L15_CT_DATA(LUN, LTRGR_LEVEL15)
+00002    C----------------------------------------------------------------------
+00003    C-
+00004    C-   Purpose and Methods : Print out the summary of the Level 1.5 Datablock
+00005    C-                         from the selected TRGR bank.
+00006    C-
+00007    C-   Inputs  : LUN       The unit number to write to.
+00008    C-             LTRGR_LEVEL15 The offset into IQ of the L15 Datablock crate
+00009    C-
+00010    C-   Outputs : file output
+00011    C-   Controls: none
+00012    C-
+00013    C-   Created  23-NOV-1993   Johannes V. (Djoko) Wirjawan
+00014    C-
+00015    C----------------------------------------------------------------------
+00016          IMPLICIT NONE
+00017          INCLUDE 'D0$INC:ZEBCOM.INC'
+00050          INCLUDE 'D0$PARAMS:L15CALDBB_DATA_BLOCK.PARAMS'
+%FORT-F-INCOPEFAI, Open failure on INCLUDE file
+00051    C
+00052          INTEGER LUN, LTRGR_LEVEL15, LFCS_START, LFPS_START, LTPS_START
+00053          INTEGER LLDSP_START, LGDSP_START, LDEBS_START
+00054          INTEGER CH_NLWF, FC_NLWF, FP_NLWF, TP_NLWF
+00055          INTEGER LDSP_NLWF, GDSP_NLWF
+00056    C
+00057    C-----------------------------------------------------------------------
+00058    C
+00059    C<<
+00060          WRITE (LUN,*)
+00061          WRITE (LUN,*) 'Level 1.5 Datablock Contents (PRTRGR)'
+00062          WRITE (LUN,*) '====================================='
+00063          WRITE (LUN,*)
+00064    C
+00065          IF (LTRGR_LEVEL15 .LE. 0) THEN
+00066            WRITE (LUN,*) 'Couldn''t find LEVEL 1.5 crate'
+00067            CALL ERRMSG('NO LEVEL 1.5 CRATE', 'PRTRGR_L15_FW_AND_CT_DBLOCK',
+00068         &    ' Couldn''t find LEVEL 1.5 crate ', 'W')
+00069            GOTO 999
+00070          ENDIF
+00071    C
+00072          CALL PRTRGR_L15_SECTION_START
+00073         &    (LTRGR_LEVEL15,IQ(LTRGR_LEVEL15),LFCS_START,LFPS_START,
+00074         &     LTPS_START,LLDSP_START,LGDSP_START,LDEBS_START)
+00075          WRITE (LUN,*)
+00076          WRITE (LUN,*) 'Frame Code Section'
+00077          WRITE (LUN,*) '------------------'
+00078          WRITE (LUN,*)
+00079          CALL PRTRGR_L15_FRAME_CODE_SECTION( LUN, IQ(LFCS_START), FC_NLWF)
+00080    C
+00081          WRITE (LUN,*)
+00082          WRITE (LUN,*) 'Frame Parameter Section'
+00083          WRITE (LUN,*) '-----------------------'
+00084          WRITE (LUN,*)
+00085          CALL PRTRGR_L15_FRAME_PARAM_SECTION(LUN, IQ(LFPS_START), FP_NLWF)
+00086    C
+00087          WRITE (LUN,*)
+00088          WRITE (LUN,*) 'Tool Parameter Section'
+00089          WRITE (LUN,*) '----------------------'
+00090          WRITE (LUN,*)
+00091          CALL PRTRGR_L15_TOOL_PARAM_SECTION(LUN, IQ(LTPS_START), TP_NLWF)
+00092    C
+00093          WRITE (LUN,*)
+00094          WRITE (LUN,*) 'Local DSP Section'
+00095          WRITE (LUN,*) '-----------------'
+00096          WRITE (LUN,*)
+00097          CALL PRTRGR_L15_LOCAL_DSP(LUN, IQ(LLDSP_START), LDSP_NLWF)
+00098    C
+00099          WRITE (LUN,*)
+00100          WRITE (LUN,*) 'Global DSP Section'
+00101          WRITE (LUN,*) '------------------'
+00102          WRITE (LUN,*)
+00103          CALL PRTRGR_L15_GLOBAL_DSP(LUN, IQ(LGDSP_START), GDSP_NLWF)
+00104    C----------------------------------------------------------------------
+00105      999 RETURN
+00106          END

@@ -1,0 +1,32 @@
+C DEC/CMS REPLACEMENT HISTORY, Element CCFH_MATERIALS.INC
+C *1     8-DEC-1988 14:42:23 FUESS "Initial entry of CC .INC files"
+C DEC/CMS REPLACEMENT HISTORY, Element CCFH_MATERIALS.INC
+C----------------------------------------------------------------------
+C-
+C-      COMMON /CCFH_MATERIALS_CHAR/
+C-      COMMON /CCFH_MATERIALS/ 
+C-
+C-      Central Calorimeter FH Materials
+C-
+C-   Created  30-NOV-1988   Stuart Fuess
+C-
+C----------------------------------------------------------------------
+      INTEGER CCFH_MAX_MATERIALS
+      INTEGER CCFH_MAX_COMPONENTS
+      PARAMETER ( CCFH_MAX_MATERIALS = 10 )
+      PARAMETER ( CCFH_MAX_COMPONENTS = 5 )
+      CHARACTER*32 CCFH_MATERIAL_LABEL(CCFH_MAX_MATERIALS)
+      INTEGER CCFH_NUMBER_MATERIALS
+      INTEGER CCFH_MATERIAL_NAME(3,CCFH_MAX_MATERIALS)
+      INTEGER CCFH_MATERIAL_CODE(CCFH_MAX_MATERIALS)
+      INTEGER CCFH_NUMBER_COMPONENTS(CCFH_MAX_MATERIALS)
+      INTEGER CCFH_COMPONENT_CODE(CCFH_MAX_COMPONENTS,
+     &                            CCFH_MAX_MATERIALS)
+      REAL CCFH_COMPONENT_FRACTION(CCFH_MAX_COMPONENTS,
+     &                             CCFH_MAX_MATERIALS)
+      COMMON /CCFH_MATERIALS_CHAR/ CCFH_MATERIAL_LABEL
+      COMMON /CCFH_MATERIALS/ CCFH_MATERIAL_NAME,
+     &                        CCFH_MATERIAL_CODE,
+     &                        CCFH_NUMBER_COMPONENTS,
+     &                        CCFH_COMPONENT_CODE,
+     &                        CCFH_COMPONENT_FRACTION

@@ -1,0 +1,3 @@
+C   -------COMMON,HISWTS
+      COMMON/HISWTS/HISWTS(10)
+      REAL          HISTWTS

@@ -1,0 +1,9 @@
+C     DCBUFF.INC
+C                  Digitization buffer
+
+      REAL BUFFES(0:NDEP-1,0:NPHI-1,0:NTIMSL-1,OADC:OADC+NADC-1,
+     +            0:NCRATE-1)
+      REAL BUFFER(0:NDEP-1,0:NPHI-1,0:NETA-1,0:NSECT-1,0:NQUAD-1)
+      EQUIVALENCE ( BUFFES(0,0,0,OADC,0), BUFFER(0,0,0,0,0) )
+      COMMON/DCBUFF/BUFFER
+

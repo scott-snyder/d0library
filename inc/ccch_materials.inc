@@ -1,0 +1,32 @@
+C DEC/CMS REPLACEMENT HISTORY, Element CCCH_MATERIALS.INC
+C *1     8-DEC-1988 14:38:58 FUESS "Initial entry of CC .INC files"
+C DEC/CMS REPLACEMENT HISTORY, Element CCCH_MATERIALS.INC
+C----------------------------------------------------------------------
+C-
+C-      COMMON /CCCH_MATERIALS_CHAR/
+C-      COMMON /CCCH_MATERIALS/ 
+C-
+C-      Central Calorimeter CH Materials
+C-
+C-   Created  30-NOV-1988   Stuart Fuess
+C-
+C----------------------------------------------------------------------
+      INTEGER CCCH_MAX_MATERIALS
+      INTEGER CCCH_MAX_COMPONENTS
+      PARAMETER ( CCCH_MAX_MATERIALS = 10 )
+      PARAMETER ( CCCH_MAX_COMPONENTS = 5 )
+      CHARACTER*32 CCCH_MATERIAL_LABEL(CCCH_MAX_MATERIALS)
+      INTEGER CCCH_NUMBER_MATERIALS
+      INTEGER CCCH_MATERIAL_NAME(3,CCCH_MAX_MATERIALS)
+      INTEGER CCCH_MATERIAL_CODE(CCCH_MAX_MATERIALS)
+      INTEGER CCCH_NUMBER_COMPONENTS(CCCH_MAX_MATERIALS)
+      INTEGER CCCH_COMPONENT_CODE(CCCH_MAX_COMPONENTS,
+     &                            CCCH_MAX_MATERIALS)
+      REAL CCCH_COMPONENT_FRACTION(CCCH_MAX_COMPONENTS,
+     &                             CCCH_MAX_MATERIALS)
+      COMMON /CCCH_MATERIALS_CHAR/ CCCH_MATERIAL_LABEL
+      COMMON /CCCH_MATERIALS/ CCCH_MATERIAL_NAME,
+     &                        CCCH_MATERIAL_CODE,
+     &                        CCCH_NUMBER_COMPONENTS,
+     &                        CCCH_COMPONENT_CODE,
+     &                        CCCH_COMPONENT_FRACTION

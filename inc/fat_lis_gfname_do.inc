@@ -1,0 +1,7 @@
+C-
+C-   Created  14-NOV-1991   Krzysztof L. Genser
+C-
+      CHARACTER*50 UNILIS_NAM
+      INTEGER ULISNL
+      COMMON /FORULS/ UNILIS_NAM
+      COMMON /FORUNL/ ULISNL

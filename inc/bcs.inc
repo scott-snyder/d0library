@@ -1,0 +1,8 @@
+C
+      INTEGER NIW
+      PARAMETER (NIW=20000)
+      COMMON/BCS/IW(NIW)
+      INTEGER IW
+      REAL WI(NIW)
+      EQUIVALENCE(WI,IW)
+C

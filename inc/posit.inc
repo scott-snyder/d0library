@@ -1,0 +1,5 @@
+C  --------COMMON,POSIT:GIVES THE COORDINATE OF THE PART. IN
+C                     THE GENERAL SYSTEM
+      COMMON/POSIT/X0,Y0,Z0,X,Y,Z,R,CTET,STET,CPHI,SPHI,TSTACK
+      REAL         X0,Y0,Z0,X,Y,Z,R,CTET,STET,CPHI,SPHI
+      INTEGER                                           TSTACK

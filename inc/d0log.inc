@@ -1,0 +1,30 @@
+C D0LOG.INC
+      INTEGER NSWTS
+      PARAMETER( NSWTS = 141 )
+      INTEGER ID0LOG(NSWTS)
+      REAL    RD0LOG(NSWTS)
+C
+      LOGICAL LBAT
+C
+      INTEGER   SHWG,RKIN,DTRK,DHIT,DDIG,DLAM,PD0,
+     &          DCEN,PCEN,DVTX,DTRD,DCDC,DFDC,PVTX,PTRD,PCDC,PFDC,
+     &          DCAL,DECA,DUCA,DCRY,DEAD,PCAL,
+     &          DMUO,PMUO,
+     &          DLV0,PLV0,
+     &          DTBM,PTBM,
+     &          DSAM,PSAM
+C
+      REAL    SSEC,SD0(9),SCEN(10),SVTX(10),STRD(10),SCDC(10),SFDC(10),
+     &    SCAL(10),SMUO(10),SLV0(10),STBM(10),SSAM(10)
+C
+      COMMON /D0LOG/LBAT,SHWG,RKIN,DTRK,DHIT,DDIG,DLAM,PD0,SSEC,SD0,
+     &                DCEN,DVTX,DTRD,DCDC,DFDC,PCEN,PVTX,PTRD,PCDC,PFDC,
+     &                SCEN,SVTX,STRD,SCDC,SFDC,
+     &                DCAL,DECA,DUCA,DCRY,DEAD,PCAL,SCAL,
+     &                DMUO,PMUO,SMUO,
+     &                DLV0,PLV0,SLV0,
+     &                DTBM,PTBM,STBM,
+     &                DSAM,PSAM,SSAM
+C
+      EQUIVALENCE (ID0LOG,SHWG)
+      EQUIVALENCE ( RD0LOG,ID0LOG )

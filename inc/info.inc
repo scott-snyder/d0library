@@ -1,0 +1,4 @@
+C   -------COMMON,INFO
+      COMMON/INFO/NOPUN,NOINEF,SHIFTE,ECLMIN
+      INTEGER     NOPUN,NOINEF
+      REAL                     SHIFTE,ECLMIN

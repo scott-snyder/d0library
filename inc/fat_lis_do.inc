@@ -1,0 +1,11 @@
+C-
+C-   Created  12-NOV-1991   Krzysztof L. Genser
+C-
+      INTEGER MAXORI
+      PARAMETER( MAXORI = 20 )
+
+      CHARACTER*255 ZOPATH
+      COMMON /FORZOP/ ZOPATH(MAXORI)
+      
+      INTEGER SELORI
+      COMMON /FORSLR/ SELORI

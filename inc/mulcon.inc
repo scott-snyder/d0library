@@ -1,0 +1,42 @@
+C----------------------------------------------------------------------
+C-   MULCON.INC    Constants for MUON HIT Library
+C-
+C-   Created  25-MAY-1993   Jasbir Singh
+C----------------------------------------------------------------------
+      INTEGER SPACE
+      PARAMETER( SPACE = 100 )          
+      INTEGER NKEY
+      PARAMETER (NKEY=4)
+C       KEY(1) = PHI 
+C       KEY(2) = RAPIDITY
+C       KEY(3) = MOMENTUM
+C       KEY(4) = PARTICLE ID
+C
+      INTEGER NMOM,NPART_ID,NPHI_ID,NETA,NDATA_CYCLES
+      PARAMETER( NETA = 32 )
+      PARAMETER( NMOM = 7 )
+      PARAMETER( NPART_ID = 3 )         
+      PARAMETER( NPHI_ID = 8 )          
+      PARAMETER( NDATA_CYCLES = NETA*NMOM*NPART_ID*NPHI_ID )
+      INTEGER NCYCLE_MAX
+      PARAMETER( NCYCLE_MAX =999999  )  
+      CHARACTER CHTAG(NKEY)*3
+      CHARACTER PARTAG(NPART_ID)*3      
+      REAL    MOMBIN
+      INTEGER KEY
+      INTEGER ISUNIT,ISUNIT_AUX,IUSER
+      INTEGER ISEED                     
+      INTEGER NMBIN,NEBIN,NVBIN
+      INTEGER CYCLES
+      INTEGER NCYCLES,NCYCLES_CUR
+      INTEGER NO_CYCLES
+      INTEGER NO_NCYCLES,NO_NCYCLES_CUR
+      INTEGER NFILE
+      COMMON /MULCON/ ISUNIT,ISUNIT_AUX,IUSER,ISEED,
+     &  MOMBIN(SPACE),NMBIN,
+     &  NEBIN,KEY(NKEY),
+     &  CYCLES(NDATA_CYCLES),
+     &  NCYCLES,NCYCLES_CUR,NFILE,
+     &  NO_CYCLES(NDATA_CYCLES),
+     &  NO_NCYCLES,NO_NCYCLES_CUR
+      COMMON /MULCON2/ CHTAG,PARTAG

@@ -1,0 +1,2 @@
+        COMMON/ION/GAMMA,GAM2
+      REAL GAMMA,GAM2

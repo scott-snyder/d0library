@@ -1,0 +1,101 @@
+C----------------------------------------------------------------------
+C-
+C-   Created   22-DEC-1992  Andrew G. Brandt
+C-   Updated   07-NOV-1994  Andrew G. Brandt convert to CW
+C-   Updated  30-AUG-1995   Bob Hirosky  Add Seed and Preclu Info 
+C-   Updated   1-SEP-1995   Bob Hirosky  Compress integer words 
+C-   Updated   07-NOV-1995  Andrew G. Brandt add extra ESCALE words
+C-   Updated  21-DEC-1995   Bob Hirosky   Add Jet Quality Flag
+C-
+C----------------------------------------------------------------------
+C
+C QCD_JETS1
+C
+      INTEGER MAX_JET
+      PARAMETER (MAX_JET=20)
+      COMMON /QCD_JETS1/NJETS,ETJ(MAX_JET),ETAJ(MAX_JET),
+     +  PHIJ(MAX_JET),IFLAGJ(MAX_JET)
+C
+      REAL    ETJ,PHIJ,ETAJ
+      INTEGER NJETS,IFLAGJ
+      CHARACTER*255 QCD_JETS1_TAG
+      DATA QCD_JETS1_TAG/'N_JETS[0,20],JT_ET(N_JETS):R,
+     +  JT_ETA(N_JETS):R,JT_PHI(N_JETS):R,JT_FLAG(N_JETS)[0,511]:I'/
+C
+C QCD_JETS2
+C
+      COMMON /QCD_JETS2/
+     +  EXJ(MAX_JET),EYJ(MAX_JET),EZJ(MAX_JET),ENJ(MAX_JET),
+     +  WIDJ(MAX_JET),EMFRJ(MAX_JET),
+     +  NCELLJ(MAX_JET),ICDFRJ(MAX_JET),CHFRJ(MAX_JET),
+     +  CELFRJ(MAX_JET),JN90(MAX_JET),JNTRK(MAX_JET),
+     +  SEEDJ(MAX_JET),PRECLUJ(MAX_JET),GOOD_JET(MAX_JET),
+     +  NTKV1(MAX_JET),NTKV2(MAX_JET)
+C
+      REAL    EXJ,EYJ,EZJ,ENJ,
+     +        WIDJ,EMFRJ,ICDFRJ,
+     +        CHFRJ,CELFRJ,SEEDJ,PRECLUJ
+      LOGICAL GOOD_JET
+C
+      INTEGER NCELLJ,JN90,JNTRK,NTKV1,NTKV2
+      CHARACTER*450 QCD_JETS2_TAG
+      DATA QCD_JETS2_TAG/'JT_EX(N_JETS):R,JT_EY(N_JETS):R,
+     +  JT_EZ(N_JETS):R,JT_ENER(N_JETS):R,JT_WID(N_JETS):R,
+     +  JT_EMFR(N_JETS):R,JT_NCELL(N_JETS)[-1,4094]:I,                  
+     +  JT_ICDFR(N_JETS):R,JT_CHFR(N_JETS):R,JT_CELFR(N_JETS):R,
+     +  JT_N90(N_JETS)[-1,4094]:I,JT_NTRK(N_JETS)[-1,254]:I,
+     +  JT_SEED(N_JETS):R,JT_PRECLU(N_JETS):R,
+     +  JT_GOOD(N_JETS):L,JT_NTKV1(N_JETS)[-1,254]:I,
+     +  JT_NTKV2(N_JETS)[-1,254]:I'/
+C
+C QCD_JETS3
+C
+      COMMON /QCD_JETS3/
+     +        ETUN(MAX_JET),ETLO(MAX_JET),ETHI(MAX_JET)
+C
+      REAL ETUN,ETLO,ETHI
+C
+      CHARACTER*255 QCD_JETS3_TAG
+      DATA QCD_JETS3_TAG/
+     +  'JT_ETUN(N_JETS):R,JT_ETLO(N_JETS):R,JT_ETHI(N_JETS):R'/
+C
+C QCD_JETS4
+C
+      COMMON /QCD_JETS4/
+     +  ETR1(MAX_JET),ETR2(MAX_JET),
+     +  ETR3(MAX_JET),ETR4(MAX_JET),
+     +  ETR5(MAX_JET),ETR6(MAX_JET),
+     +  ETR7(MAX_JET),ETR8(MAX_JET),
+     +  ETR9(MAX_JET),ETR10(MAX_JET)
+C
+      REAL ETR1,ETR2,ETR3,ETR4,ETR5,ETR6,ETR7,ETR8,ETR9,ETR10
+      CHARACTER*255 QCD_JETS4_TAG
+      DATA QCD_JETS4_TAG/'JT_ETR1(N_JETS):R,JT_ETR2(N_JETS):R,
+     +  JT_ETR3(N_JETS):R,JT_ETR4(N_JETS):R,
+     +  JT_ETR5(N_JETS):R,JT_ETR6(N_JETS):R,
+     +  JT_ETR7(N_JETS):R,JT_ETR8(N_JETS):R,
+     +  JT_ETR9(N_JETS):R,JT_ETR10(N_JETS):R'/
+C
+C QCD_JETS5
+C
+      COMMON /QCD_JETS5/
+     +        DEMFR(MAX_JET),DCHFR(MAX_JET),DICFR(MAX_JET)
+C
+      REAL DEMFR,DCHFR,DICFR
+C
+      CHARACTER*255 QCD_JETS5_TAG
+      DATA QCD_JETS5_TAG/
+     +  'JT_DEMF(N_JETS):R,JT_DCHF(N_JETS):R,JT_DICF(N_JETS):R'/
+C
+C
+C QCD_JETS6
+C
+      COMMON /QCD_JETS6/
+     +        DJNEP(MAX_JET)
+C
+      REAL DJNEP
+C
+      CHARACTER*255 QCD_JETS6_TAG
+      DATA QCD_JETS6_TAG/
+     +  'JT_DJNEP(N_JETS):R'/
+C

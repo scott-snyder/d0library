@@ -1,0 +1,4 @@
+C     COMMON /CDCLNK/ contains the CDC chamber links.
+      COMMON /CDCLNK/ CDCLNK, LCDCH, LDLYR, LDSEC, LDCDA, LCDD2
+      INTEGER CDCLNK(2), LCDCH, LDLYR(0:3),
+     &        LDSEC(0:31,0:3), LDCDA(0:31,0:3), LCDD2

@@ -1,0 +1,9 @@
+C
+C        pointers to hit banks CAEP and CAEH
+      COMMON/PTCAEP/PTZFLG,PTCAEP
+C
+      LOGICAL PTZFLG     
+C
+C        the parameters NETAL,NPHIL,NLYRL are in CAL_OFFLINE.PARAMS
+      INTEGER PTCAEP(-NETAL:NETAL,NPHIL,NLYRL)
+C

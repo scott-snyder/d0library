@@ -1,0 +1,11 @@
+C----------------------------------------------------------------------
+C-   Created  Jul-01-1995   Bob Kehoe
+C----------------------------------------------------------------------
+
+      INTEGER limit2
+      PARAMETER (limit2 = 20)
+      COMMON /mpf_fill_jets/nj_not_em,jet_eta,jet_phi,jet_e,            
+     &    jet_qual
+      integer nj_not_em
+      REAL jet_eta(10,limit2),jet_phi(10,limit2)
+      REAL jet_e(50,limit2),jet_qual(50,limit2)

@@ -1,0 +1,2 @@
+      COMMON/EEPAR/SGMXEE   
+      REAL      SGMXEE

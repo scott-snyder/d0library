@@ -1,0 +1,11 @@
+C   Created for new fast structure of the GDI.
+c  S. Abachi
+c
+      INTEGER NVER, LDIM, KSTRT
+      PARAMETER (NVER=100000)
+      LOGICAL NUGDI
+      REAL    XVER(NVER), YVER(NVER), ZVER(NVER)
+      LOGICAL*1 POSLIN(NVER)
+C
+      COMMON /GDINEW/ NUGDI, XVER, YVER, ZVER, LDIM, KSTRT, POSLIN
+C

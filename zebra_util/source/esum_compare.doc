@@ -1,0 +1,221 @@
+                                                                M.V.S. Rao
+                                                                March 26, 1992
+                                                                Meenakshi Narain
+                                                                July 7, 1992
+
+                             ESUM_COMPARE Package
+                                Version 2.0
+
+News: 
+    This version allows matching of different types of objects.
+
+This document can be found in D0$GENERAL:ESUM_COMPARE.DOC
+
+    The new version of the ESUM_COMPARE Package compares any two types of
+OBJECTs (including the same type) in any two types of ESUM banks (including the
+same type) and produces a number of histograms for the ALL, MATCHed and
+UNMATCHed OBJECTs. The types of banks, OBJECTs and histograms required are
+controlled by the RCP file, D0$GENERAL:ESUM_COMPARE.RCP. The default RCP
+file will compare electrons, muons and jets between ISAE and RECO (ISAJET
+and event reconstruction). You can make a simple compare program by
+$ PBD/FRAME=D0USER/PACKAGE=ESUM_COMPARE
+$ @ESUM_COMPARE_D0USER.LNK
+$ @ESUM_COMPARE_D0USER
+$D0USER/FULL
+This will run with the default RCP file.
+
+To change the options copy the RCP file to your area and:
+$ DEFINE ESUM_COMPARE_RCP ESUM_COMPARE.RCP
+after having run the ESUM_COMPARE_D0USER setup file.
+
+Note that if you increase the number of objects you must increase the
+size of the PAWC common block as each object needs over 26000 words
+if all histograms are requested. This is easily done with
+$ PBD/FRAME=D0USER/PACK=ESUM_COMPARE/PAWC=300000
+
+For the conventions used for the names of the banks, OBJECTs and OBJECT_IDs, 
+see ESUM.DOC. The package calls the following routines:
+
+    GTESUM, GTESUM_COUNTS, GTESUM_MATCH and ESUM_INIT.
+
+    See the documents, D0$GENERAL:ESUM.DOC and GTESUM_MATCH.DOC, for a
+description of these routines.
+
+    A example of the RCP file is given at the end. REF is the reference ESUM
+bank, where the objects are expected to be of higher quality than those in the
+data bank, DTA. Thus UNMATCHed objects  belonging to the REF bank are referred
+to as "LOST", while UNMATCHed objects in the DTA bank are refrred to as
+"REJECTED". CSP is the cosine of the space angle, within which objects in
+the two banks are considered MATCHed. The IDs of the OBJECTs and their ET
+thresholds are specified in the arrays PAIR_#. If PT_SPEC is .TRUE., the
+following histograms are generated:
+
+         ID             Histogram Title
+
+         11 (1)   REF-OBJECT Pt-distribution 
+         12 (1)   DTA-OBJECT Pt-distribution 
+         13 (1)   MATCHed-REF-OBJECT Pt-distribution 
+         14 (1)   MATCHed-DTA-OBJECT Pt-distribution 
+         28 (1)   Integral Eff. (DTA(MATCH)-OBJECTs/REF(TOTAL)-OBJECTs) .vs.
+                  Pt of REF-OBJECTs 
+         29 (1)   Integral Rej (DTA(TOTAL)-OBJECTs/REF(LOST)OBJECTs) .vs. 
+                  Pt of REF-OBJECTs
+
+If LOC is .TRUE., the following histograms showing the location of the MATCHed
+and UNMATCHed objects in ETA-PHI space, are generated:
+
+         15 (2)   MATCHed-REF-OBJECT PHI-ETA Scatter Plot
+         16 (2)   LOST-REF-OBJECT PHI-ETA Scatter Plot   
+         17 (2)   REJECTed-DTA-OBJECT PHI-ETA Scatter Plot   
+ 
+And, finally, if RES is .TRUE., the following histograms describing how good the
+MATCHing is in various dimensions, are generated:
+
+         18 (2)   MATCHed-REF-OBJECT (dPt/Pt)-Pt Scatter Plot
+         19 (2)   MATCHed-REF-OBJECT d(ETA)-ETA Scatter Plot 
+         20 (2)   MATCHed-REF-OBJECT d(PHI)-PHI Scatter Plot 
+         21 (2)   MATCHed-REF-OBJECT d(Cos(Space angle)) .vs. Pt Scatter Plot
+         22 (1)   MATCHed-REF-OBJECT (dPt/Pt)-Pt Profile Plot
+         23 (1)   MATCHed-REF-OBJECT d(ETA)-ETA Profile Plot 
+         24 (1)   MATCHed-REF-OBJECT d(PHI)-PHI Profile Plot 
+         25 (1)   MATCHed-REF-OBJECT d(Cos(Space angle))-Pt Profile Plot 
+         26 (2)   Pt-Correlation of MATCHed DTA-OBJECTs and REF-OBJECTs 
+         27 (2)   d(Pt)/Pt .vs. d(Cos(Space angle)) for MATCHed DTA-OBJECTs
+                  and REF-OBJECTs 
+
+    Histograms for each pair of OBJECTs are stored in a separate directory
+named, 'REF_OBJECT-DTA_OBJECT'.
+
+    In the example below, if you only wanted to match one pair of objects, you
+would just have an 
+\ARRAY PAIR_1
+        2           12.0         2        12.0        99       12.0       F
+\END
+ instead of 10 such specifications
+
+The switch  EVENT_LIST in ESUM_COMPARE.RCP can be used to write out an event
+list of unmatched objects. The RUN#, EVENT# and a FLAG word are written out for
+these events. In the flag word 
+    bit 0 is set if a REF object is unmatched
+    bit 1 is set if a DTA object is unmatched for the event.
+
+The events with unmatched objects are also written out to the DST, is the
+DST output is chosen.
+
+
+The "REF" and "DTA" objects can be required to match with another object "REQ"
+by specifiying a REQUIRED ESUM bank in the REQ field in ESUM_COMPARE_RCP. 
+For instance, in the following example, both FILT and RECO objects are required
+to have a match with a Level-1 object. The ID and Energy threshold for this 
+REQ object should be specified as the 5th and 6th variable of the ARRAY PAIR. 
+
+If you do NOT need to require a match with a third object then specify 99 for 
+the object ID or a blank string for the REQ ESUM bank. If the variable "MASK" 
+in the ARRAY can be used to specify whether or not both REF and DTA objects are
+required to match the SAME REQ object. If MASK is set TRUE, then both REF and
+DTA objects are forced to match the SAME REQ object. 
+
+In the example given below, for the first PAIR, RECO and FILT electrons
+are compared. A value of 99 for the ID of REQ object turns off any comparisons
+with the Level1 objects. In the second and third PAIR, both RECO and FILT
+electrons are kept only if they match with a Level-1 electron. The only
+difference being that in the second pair the RECO and FILT electrons are
+matched with a Level-1 electron, while the third pair enforces that 
+a Level-1 electron has a match with both RECO and FILT electrons. 
+
+
+Example of RCP file:
+------- -- --- ----
+
+\START    ESUM_COMPARE_RCP   ! Name of COMPARE package control file 
+\SIZE         99        69
+!----------------------------------------------------------------------
+!    Name:       COMPARE.RCP
+!    Package:    COMPARE
+!    Library:
+!    Purpose:    Control file for COMPARE Package
+!    Version     1.0
+!    Created:    27-MAR-1992   M.V.S. Rao
+!    Updated:     7-Jul-1992   Meenakshi Narain (add required object)
+!----------------------------------------------------------------------
+!   Input Specifications
+!----------------------------------------------------------------------
+ REF        'FILT'                  !   REF ESUM Bank
+ DTA        'RECO'                  !   DTA ESUM Bank
+ REQ        'TRGR'                  !   REQUIRED ESUM Bank
+ CSP         0.99                   !   Cosine of MATCH angle
+!----------------------------------------------------------------------
+!   OBJECT_IDs and ETTHRESHOLDs in REF and DTA banks to be MATCHed
+!
+!   Allowed OBJECT_IDs :-
+!   1 - PHOTON          2 - ELECTRON        3 - MUON        4 - TAU
+!   5 - JET             6 - ETMISS          8 - JET_1       9 - JET_2
+!  10 - JET_3          11 - JET_4          12 - JET_5
+!
+!----------------------------------------------------------------------
+!
+! ID_OBJ_REF    ETTHR_REF   ID_OBJ_DTA  ETTHR_DTA ID_OBJ_REQ ETTHR_REQ  MASK
+!
+\ARRAY PAIR_1
+        2           12.0         2        12.0        99       12.0       F
+!
+\ARRAY PAIR_2
+        2           0.0         2          0.0        2        0.0        F
+\END                                                               
+!                                                                  
+\ARRAY PAIR_3                                                      
+        2           0.0         2           0.0       2         0.0       T
+\END                                                               
+!                                                                  
+\ARRAY PAIR_4                                                      
+        1           0.0         1           0.0      99         0.0       F
+\END                                                               
+!                                                                  
+\ARRAY PAIR_5                                                      
+        1           0.0         2           0.0      99         0.0       F
+\END                                                               
+!                                                                  
+\ARRAY PAIR_6                                                      
+        2           0.0         1           0.0      99         0.0       F
+\END                                                               
+!                                                                  
+\ARRAY PAIR_7                                                      
+        2           0.0         2           0.0      99         0.0       F
+\END                                                               
+!                                                                  
+\ARRAY PAIR_8                                                      
+        2           0.0         3           0.0      99         0.0       F
+\END                                                               
+!                                                                  
+\ARRAY PAIR_9                                                      
+        2           0.0         5           0.0      99         0.0       F
+\END                                                               
+!                                                                  
+\ARRAY PAIR_10                                                     
+        3           0.0         3           0.0      99         0.0       F
+\END                                                               
+!                                                                  
+\ARRAY PAIR_11                                                     
+        5           0.0         5           0.0      99         0.0       F
+\END
+!
+!----------------------------------------------------------------------
+!   HISTOGRAMS required
+!----------------------------------------------------------------------
+ PT_SPEC             TRUE        ! Pt-distributions
+ LOC                 TRUE        ! Eta-Phi Scatter Plots
+ RES                 TRUE        ! Resolution Plots
+ WRITE_UNMATCHED     TRUE        ! Plots for UNMATCHed OBJECTS
+!----------------------------------------------------------------------
+!   Range of Pt for Histogramming
+!----------------------------------------------------------------------
+ PT_MIN         0.0              ! Lower end of Pt
+ PT_MAX         200.0            ! Upper end of Pt
+!----------------------------------------------------------------------
+!   if EVENT_LIST is TRUE then write out LIST OF EVENTS  with unmatched 
+!   objects to the file specified by  EVENT_LIST_FILENAME
+!----------------------------------------------------------------------
+EVENT_LIST .TRUE.
+EVENT_LIST_FILENAME   'EVLIST_FILE'
+\STOP    !   ESUM_COMPARE_RCP
+

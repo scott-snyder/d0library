@@ -1,0 +1,10 @@
+      INTEGER NDEV
+       PARAMETER(NDEV=9)
+      COMMON/DEVLIS/DEVLIS(NDEV),DEVSET(NDEV)
+      CHARACTER*8 DEVLIS
+      CHARACTER*4 DEVSET
+C
+C  DEVLIS is a list of device names
+C  DEVSET is the status of these devices
+C  SEE BLOCK DATA DEVLIST
+C
