@@ -5,7 +5,7 @@
  
 #include <stdio.h>                   /* I/O definitions                       */
 #include <math.h>
-#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+#include "D0$XFRAME$SOURCE:D0X_C.H"
 #include <Xm/RowColumn.h>
 #include <Xm/ToggleB.h>
 #include <Xm/Label.h>
@@ -262,7 +262,8 @@ unsigned long    *reason;
      }
     if ( font1 == 0 ) {
         font1 = XLoadQueryFont(XtDisplay(toplevel_widget),
-"-misc-fixed-medium-r-normal-*-13-*-*-*-*-*-iso8859-1");
+"-misc-fixed-medium-r-oblique-*-13-120-75-75-c-70-iso8859-1");
+/*"-misc-fixed-medium-r-normal-*-13-*-*-*-*-*-iso8859-1");*/
         fontlist1 = XmFontListCreate(font1,"charset1");
     }
     if ( fsymb == 0 ) {
@@ -1412,6 +1413,7 @@ SigEY**2    %7.1f\nSigET       %7.1f\nETscalar    %7.1f\n",
 /*
              create new row
 */
+           XtUnmanageChild(rowcol);
            SetWatchCursor(physics_bull);
            NewRow(nobj,cstr,0);
 /*
@@ -1566,6 +1568,7 @@ CHANGE */
     if ( rowcol ) XtDestroyWidget(rowcol);
     rowcol = XtCreateWidget("rowcolumn", xmRowColumnWidgetClass,
                 physics_scroll, wargs, n);
+    XtUnmanageChild(rowcol);
 }
  
 void MakeRCMC()       /* makes the rowcol widget for MC data */
@@ -1593,6 +1596,44 @@ XmTextVerifyCallbackStruct *cbs;
     float val;
     Arg wargs[10];
 /*
+  get the string that's there
+*/
+    string = XmTextGetString(w);
+/*
+  find out where i am, using tag data.
+  row is tag/100, column is tag - 100*tag/100 and
+  look below for correspondence
+*/
+    row = tag/100;
+    col = tag - 100*row;
+/*
+  we only allow changes to px, py, pz, and e
+*/
+    switch (col) {
+    	case 8:		  /* e */
+    	case 9:		  /* px */
+    	case 10:      /* py */
+    	case 11:      /* pz */
+    		break;
+        case 0:       /* et */
+        case 1:       /* eta */
+        case 2:       /* phi */
+        case 3:       /* emf */
+        case 4:       /* cone */
+        case 5:       /* m */
+        case 6:       /* mt */
+        case 7:       /* theta */
+        case 12:       /* pt */
+        case 13:       /* scale */
+        	warning("Not allowed - you can only change px, py, pz, and E");
+        	cbs->doit = False;
+        	return;
+        default:
+            printf(" Error VARIAB ***** Tell FNALD0::DREW \n");
+            return;
+            break;
+    }
+/*
   check on the character.  if it's a not <cr>, return.  if it
   IS a <cr>, then reject the change and read out the number from
   the text widget, store it in the proper place
@@ -1604,38 +1645,16 @@ XmTextVerifyCallbackStruct *cbs;
 */
     cbs->doit = False;
 /*
-  row is tag/100, column is tag - 100*tag/100 and
-  look below for correspondence
+  set font to oblique
 */
-    row = tag/100;
-    col = tag - 100*row;
-    string = XmTextGetString(w);
+    XtVaSetValues(w, XmNfontList, fontlist1, NULL);
     sscanf(string,"%f",&val);
+/*
+  here we change variables.  BEWARE!  there are conventions to follow!
+  that is, if we change pz, we need to change p and eta and theta and e
+  and so on...
+*/
     switch (col) {
-        case 0:       /* et */
-            et[row] = val;
-            break;
-        case 1:       /* eta */
-            eta[row] = val;
-            break;
-        case 2:       /* phi */
-            phi[row] = val;
-            break;
-        case 3:       /* emf */
-            emf[row] = val;
-            break;
-        case 4:       /* cone */
-            rjet[row] = val;
-            break;
-        case 5:       /* m */
-            mass[row] = val;
-            break;
-        case 6:       /* mt */
-            mt[row] = val;
-            break;
-        case 7:       /* theta */
-            theta[row] = val;
-            break;
         case 8:       /* e */
             e[row] = val;
             break;
@@ -1647,12 +1666,6 @@ XmTextVerifyCallbackStruct *cbs;
             break;
         case 11:       /* pz */
             pz[row] = val;
-            break;
-        case 12:       /* pt */
-            pt[row] = val;
-            break;
-        case 13:       /* scale */
-            sfac[row] = val;
             break;
         default:
             printf(" Error VARIAB ***** Tell FNALD0::DREW \n");
@@ -1902,6 +1915,7 @@ char *string;
     XtSetArg(wargs[n], XmNcolumns, 6); n++;
     XtSetArg(wargs[n], XmNmarginWidth, 0); n++;
     XtSetArg(wargs[n], XmNeditMode, XmMULTI_LINE_EDIT); n++;
+    XtSetArg(wargs[n], XmNverifyBell, False); n++;
 /* et */
     if ( do_et ) {
     sprintf(sst,"%6.1f",et[ind]);
