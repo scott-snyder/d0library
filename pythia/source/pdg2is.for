@@ -16,6 +16,7 @@ C-            OUTPUT = ISAJET particle ID
 C-   Controls:
 C-
 C-   Created  17-DEC-1989   Geoff Forden
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -77,15 +78,15 @@ C
             QPROD=QMESON*ICHRG
             IF ( QMESON.EQ.0 ) THEN
               IF ( QRKCRG(IQ(1))*ICHRG.GT.0 ) THEN
-                OUTPUT=JISIGN(OUTPUT,ICHRG)
+                OUTPUT=ISIGN(OUTPUT,ICHRG)
               ELSE
-                OUTPUT=-JISIGN(OUTPUT,ICHRG)
+                OUTPUT=-ISIGN(OUTPUT,ICHRG)
               ENDIF
             ELSE
               IF ( QPROD.LT.0 ) THEN
-                OUTPUT=JISIGN(OUTPUT,QRKCRG(IQ(1)))
+                OUTPUT=ISIGN(OUTPUT,QRKCRG(IQ(1)))
               ELSE
-                OUTPUT=-JISIGN(OUTPUT,QRKCRG(IQ(1)))
+                OUTPUT=-ISIGN(OUTPUT,QRKCRG(IQ(1)))
               ENDIF
             ENDIF
           ENDIF
@@ -106,15 +107,15 @@ C
           QPROD=QMESON*ICHRG
           IF ( QMESON.EQ.0 ) THEN
             IF ( QRKCRG(IQ(1))*ICHRG.GT.0 ) THEN
-              OUTPUT=JISIGN(OUTPUT,ICHRG)
+              OUTPUT=ISIGN(OUTPUT,ICHRG)
             ELSE
-              OUTPUT=-JISIGN(OUTPUT,ICHRG)
+              OUTPUT=-ISIGN(OUTPUT,ICHRG)
             ENDIF
           ELSE
             IF ( QPROD.LT.0 ) THEN
-              OUTPUT=-JISIGN(OUTPUT,QRKCRG(IQ(1)))
+              OUTPUT=-ISIGN(OUTPUT,QRKCRG(IQ(1)))
             ELSE
-              OUTPUT=JISIGN(OUTPUT,QRKCRG(IQ(1)))
+              OUTPUT=ISIGN(OUTPUT,QRKCRG(IQ(1)))
             ENDIF
           ENDIF
         ELSE
@@ -132,15 +133,15 @@ C
           QPROD=QMESON*ICHRG
           IF ( QMESON.EQ.0 ) THEN
             IF ( QRKCRG(IQ(1))*ICHRG.GT.0 ) THEN
-              OUTPUT=JISIGN(OUTPUT,ICHRG)
+              OUTPUT=ISIGN(OUTPUT,ICHRG)
             ELSE
-              OUTPUT=JISIGN(OUTPUT,ICHRG)
+              OUTPUT=ISIGN(OUTPUT,ICHRG)
             ENDIF
           ELSE
             IF ( QPROD.LT.0 ) THEN
-              OUTPUT=-JISIGN(OUTPUT,QRKCRG(IQ(1)))
+              OUTPUT=-ISIGN(OUTPUT,QRKCRG(IQ(1)))
             ELSE
-              OUTPUT=JISIGN(OUTPUT,QRKCRG(IQ(1)))
+              OUTPUT=ISIGN(OUTPUT,QRKCRG(IQ(1)))
             ENDIF
           ENDIF
         ENDIF

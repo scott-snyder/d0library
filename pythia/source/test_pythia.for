@@ -1,6 +1,7 @@
-\      PROGRAM test_pythia
+      PROGRAM test_pythia
 C--------------------------------------------------------------------
 C       PROGRAM TO ILLUSTRATE COMMON PYTHIA USAGE
+C-   Updated  23-MAR-2004   compile with g77.
 C--------------------------------------------------------------------
       INCLUDE 'D0$INC:ITAPES.INC'
 C       PYTHIA COMMONS
