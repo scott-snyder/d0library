@@ -17,6 +17,7 @@ C-   Modified  7-JUL-1992   Jeffrey Bantly  from S.L.Linn routine
 C-                                          L2_L0_VERTEX.FOR
 C-   Updated   2-JUN-1993   Jeffrey Bantly  fixed bug, initialize FULL_*
 C-                                          variables 
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -29,7 +30,8 @@ C
       INTEGER GZTRGR, GZFIND_CRATE
       INTEGER OFFSET, IOFFSET
       INTEGER  VERTEX, CBUNCH
-      INTEGER MASK, IAND, BTEST, NOT, ERR
+      INTEGER MASK, IAND, NOT, ERR
+      logical btest
       PARAMETER ( OFFSET=269, MASK=15 )
       INTEGER IDATA_WORDS(20)
       INTEGER VBOARD, VERTEX_DATA(52)

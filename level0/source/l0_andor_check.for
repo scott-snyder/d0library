@@ -11,6 +11,7 @@ C-   Controls: none
 C-
 C-   Created  15-JUL-1992   Jeffrey Bantly
 C-   Updated  14-SEP-1992   Jeffrey Bantly  add in check with Slow Z
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -18,7 +19,8 @@ C----------------------------------------------------------------------
       INTEGER ZBIN
       INTEGER ANDOR1, ANDOR2, L1VTX, L0SVTX
       INTEGER LTRGR, LCRATE, GZTRGR, GZFIND_CRATE, VERTEX
-      INTEGER IAND, BTEST, NOT
+      INTEGER IAND, NOT
+      logical btest
       INTEGER CBUNCH, WORDS(52)
       INTEGER OFFSET, MASK
       PARAMETER ( OFFSET=269, MASK=15 )

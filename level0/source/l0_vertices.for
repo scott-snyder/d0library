@@ -18,6 +18,7 @@ C-   The last two bits in byte 525 are unused
 C-
 C-   Modified   7-JUL-1992   Jeffrey Bantly   from S.L.Linn routine
 C-                                            L2_L0_VERTEX.FOR
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -35,7 +36,8 @@ C
       PARAMETER ( FOFFSETB=269, SOFFSETB=806, SFOFFSETB=352 )
       PARAMETER ( HALF_BYTE=15 , ONE_BYTE = 255 )
       INTEGER VERTEX, SVERTEX
-      INTEGER MASK, IAND, BTEST, NOT, IBITS
+      INTEGER MASK, IAND, NOT, IBITS
+      logical btest
       PARAMETER ( MASK=15 )
       INTEGER CBUNCH
       INTEGER LTRGR,LCRATE11,LCRATE01
