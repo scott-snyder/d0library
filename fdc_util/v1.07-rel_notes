@@ -1,0 +1,204 @@
+ 17-FEB-1992 : Modifications released by Susan K. Blessing
+ 
+    - FDC_UTIL.RELEASE  Modified to make release to FDC_UTIL.OLB.  Removed
+       release of DUMMY area which contains only DUMMY_FDBINI.FOR.  No longer
+       necessary.
+
+==============================================================================
+
+ 17-FEB-1992 : Modifications released by Robert E. Avery
+ 
+    - FHITFL.FOR  Fix link error by refetching link.  Remove machine block
+       for VAX intrinsic functions.
+
+
+==============================================================================
+
+  4-MAR-1992 : Modifications released by Robert E. Avery
+
+    - FHIT_DECODE.FOR  Use BYTE_ORDER.PARAMS for UNIX compatibility,
+        and remove machine block for VAX intrinsic functions.
+
+    - FDC_MISS_SEG_CHK.FOR  Increase track road size to account for track
+        measurement error.  MISS_SEG_ROAD determines the minimum road size.
+        This mostly will affect one layer Theta tracks, where the error
+        is more or less the delay line measurement error.
+
+    - FTREVT.FOR   Add optional call to FDCISA. (RCP parameter DOFISA).
+
+    - FDCISA.FOR   Add option (default) to use realistic chamber fiducial
+        cuts (See description of FISA_REAL below).
+        Add option to call FDC_MARK, which matches FDC tracks
+        to FITR tracks, (See description of FDC_MARK below).
+        Add a debug option that prints out information for ALL
+        ISAE information. These options controlled by the new RCP parameters:
+        FISA_REALISTIC, FISA_MATCH, and DBG_ISAE_ALL.
+
+    - FISA_REAL.FOR  New routine. For most applications should replace FDISTR.
+        Select the subset of tracks in the ISAJET banks which should be
+        seen in the FDC, using realistic description of FDC active volume.
+        The track is required to pass through the theta chamber active
+        volume for at least one out of the two layers (at the sense wire 
+        0 plane).
+
+    - FDISTR.FOR Fix bug, primary tracks that decayed at small radius
+        before FDC were being included in FISA bank.
+        Also, major rewrite and cleanup.
+
+    - FISA_MARK.FOR New routine, mark FDC ISAJET track in FITR bank as being
+        matched with reconstructed FDC track if it is the closest
+        matched track within momentum dependent cuts:
+        Cut on track matching between isajet and FDC track
+                R_DIFF < MIN( FISA_R_DIFF / p_isa(GeV) , FISA_R_DIFF )
+                ANG_DIFF < MIN( FISA_ANG_DIFF / p_isa(GeV) , FISA_ANG_DIFF )
+        where R_DIFF is the distance between the FDC and ISAJET track in
+        the x-y plane at the face of the FDC, and ANG_DIFF is the opening
+        angle between the FDC and ISAJET track.
+        Cuts are further increased by adding in quadrature
+                FISA_ERR_MULT*(track measurement error)
+        FISA_ANG_DIFF, FISA_R_DIFF, FISA_ERR_MULT are RCP parameters,
+        with defaults set to 4.0 cm, 0.6 radians, and 3.0 (resp.).
+        This match is probably  not reliable for momentum less
+        than ~3 GeV (because of multiple scattering).
+
+
+==============================================================================
+
+  5-MAR-1992 : Modifications released by Robert E. Avery
+ 
+    - FTRINI.FOR  Check existance of FTRAK_RCP bank before calling INRCP.
+
+==============================================================================
+
+  5-MAR-1992 : Modifications released by Susan K. Blessing
+ 
+    - MC_FTRAKS.RCP, COSMIC_FTRAKS.RCP  New versions with new names.
+
+    Routines changed to allow segments to be used more than once.  One
+    segment on a three layer track may be used more than once (NALLOW_SEG
+    times in FTRAKS.RCP):
+
+    - BKFSEG.FOR  Add a reference link to a second track.
+
+    - FBTRAK.FOR  Use NUSE_SEGS as the number of times a segment has been 
+       used rather than number of times left for use.  Will not use MIP_CUT 
+       for deciding if segments may be used more than once.  All segments 
+       may be used more than once if allowed in RCP.  This works about as 
+       well as cutting on the number of MIPs/segment and is much faster.
+
+    - FSORT_TRACKS.FOR  Allow segments to be used NALLOW_SEG times.  This
+       does not allow segments to be used multiple times completely freely.
+       Segments are allowed to be used more than once at each stage of 
+       ladder building: FLINSG, FLINSG_2LAY, FOVERLAD.  To be completely
+       free about it would be much too time consuming.
+
+    - LDFDCT.FOR  Fill status bit 3 if a segment is on two tracks and store 
+       link to second track.
+
+
+    Routines changed to allow for RCP control for building and fitting
+    ladders made from segments in overlapping sectors:
+
+    - FTWO_TO_THREE.FOR  Add RCP options for trying to make three layer 
+       tracks from theta-theta, inner theta-phi, phi-outer theta tracks.  
+       Add entry point FTWO_TO_THREE_FIT_ALL to allow for overridding RCP 
+       options when FTWO_TO_THREE is called for ladders built by FLINSG 
+       (called by FLINSG, FLINSG_2LAY, and FOVERLAD).
+       Three layer tracks must pass FDC_TRACK_CHK.
+
+    - FLINSG.FOR  Call FTWO_TO_THREE_FIT_ALL(.TRUE.) to tell FTWO_TO_THREE 
+       that the next two layer ladders it receives were built by FLINSG and 
+       the RCP options about building three layer ladders are to be overridden.
+
+    - FOVERLAD.FOR  Add RCP switches TT_OVERLAD,PT_OVERLAD,TP_OVERLAD to
+       control building two layer ladders.  
+
+
+    Routines to build tracks at the edges of the FDC using the vertex point:
+
+    - FEDGE_TRACKS.FOR  New routine to make FDC tracks using unused theta 
+        segments in sectors 4 and 5 of the inner thetas and sector 0 of the
+        outer theta.  Fit is between a theta segment with a delay line hit
+        and the primary vertex.  RCP controlled (EDGE_TRACKS = .TRUE. to use).
+        There are also parameters to use the Isajet vertex if there is no
+        VERH vertex (USE_ISA_VERT = .TRUE.) and to require that there be only
+        one primary vertex (ONE_PRIM_VERT = .TRUE.)  All three are defaulted
+        to .TRUE. in MC_FTRAKS.RCP.
+        Edge tracks are marked by the second bit of the +1 word of the 
+        FDCT bank.
+
+    - FIT_EDGE.FOR  New routine to do fit for edge tracks.
+
+
+    General changes:
+    
+    - FTHIRD_LAYER.FOR  Check last wire in missing layer to see if a 
+       neighboring sector should be searched for segments.
+
+    - FIONIZ.FOR, FDEDX.FOR  New routines to calculate ionization for an 
+        FDC track.  Previously this was done in FTFDCT.FOR
+
+    - FIT_SEGTRK.FOR  Set CHINORM=-9999 for cross sector phi segment tracks.
+
+    - FLINSG_2LAY.FOR  New routine to build two layer ladders by matching 
+       angles of segments.
+
+    - FTFDCT.FOR  Remove ionization loss calculation.
+
+    - FTTRAK.FOR   Add NFIT, the number of points in the track fit, to the 
+       FBTRAK call.
+
+    - FDGETD.FOR  Only use delay line hits once and use the best combinations. 
+        Change lots of variable names to try to make things clearer.  
+        Allow single DL hits which are slightly ambiguous if SINGLE_DL is TRUE.
+
+    - FDPULS.FOR  Check width of hits and if too wide, reset and try to find
+        a second hit.  RCP controlled (CLOSE_PEAK = .TRUE. to use) and 
+        two parameters for each type of hit - a width and a value to reset
+        the width to (separate for theta SW hits, DL hits and phi SW hits).
+
+    - FSEGW0.FOR  New routine to try to put wire 0 and 1 hits from a 
+        neighboring sector on a segment.
+
+    - FHITYZ.FOR  New routine to get hit locations for starting hits for 
+        FSEGW0.
+
+    - FSINGLE_DL.FOR  New routine to try to assign single, left over, 
+        delay line hits to SW0 hits.  Use controlled by SINGLE_DL in FTRAKS.RCP.
+
+    - FTRAKS.FOR, FDROAD.FOR  Add EDGE_TRACKS option to build tracks using 
+        segments in edges of FDC and vertex point.  Remove OVERLAD option 
+        (always use), ALL_LADDERS (remove completely).  Call FLINSG_2LAY to 
+        build two layer ladders based on angle cuts. Add call to FIONIZ to 
+        calculate ionization for FDC tracks.
+
+    - FXTSEG.FOR, TSEGRD.FOR  Change call to THITAC to include beginning and 
+        ending wires of interest (0 to NBTSEN-1 here). 
+
+    - THITAC.FOR  Change call to include beginning and ending wires of 
+        interest.
+
+    - ZFFTSC.FOR  Relax limit for making mirror hits in sectors 0-2.
+
+
+
+    Files changed for UNIX compatibility.  Most are unnecessary machine
+    block removals. 
+
+    FCHECK_DL.FOR,     FCHEKL.FOR,        FCODER.FOR,      FDGETD.FOR, 
+    FDPHST.FOR,        FDPULS.FOR,        FDROAD.FOR,      FGETZ0.FOR,
+    FGET_DL_INFO.FOR,  FHITCHK.FOR,       FHITFL.FOR,      FHITST.FOR, 
+    FHIT_DECODE.FOR,   FHIT_GETMAPS.FOR,  FIT_SEGTRK.FOR,  FLINSG.FOR,
+    FMARK_SEGHITS.FOR, FMARK_TRKHITS.FOR, FRHITS.FOR,      FTFDCT.FOR, 
+    FTHIRD_LAYER.FOR,  FTRAKS.FOR,        FTRKHT.FOR,      FUSDSG.FOR, 
+    FXTSEG.FOR, GTFPHT.FOR, GTFTHT.FOR, GZFDUN.FOR, 
+    GZFHLF.FOR, GZFITR.FOR, GZFPDA.FOR, GZFPSC.FOR, 
+    GZFTDA.FOR, GZFTQD.FOR, GZFTSC.FOR, LDFDCT.FOR, 
+    LDTSEG.FOR, PCHAIN.FOR, PCHEKH.FOR, PHITAC.FOR, 
+    PLINKS.FOR, PLKDEL.FOR, PRCDD3.FOR, PRFDCH.FOR, 
+    PRFDCT.FOR, PRFDTX.FOR, PRFDUN.FOR, PRFHLF.FOR, 
+    PRFPDA.FOR, PRFPSC.FOR, PRFTDA.FOR, PRFTQD.FOR, 
+    PRFTSC.FOR, PSEGRD.FOR, PXCHAIN.FOR, TCHAIN.FOR, 
+    TCHEKH.FOR, THITAC.FOR, TLINK1.FOR, TLINK2.FOR, 
+    TLKDEL.FOR, TSEGRD.FOR, ZFFPSC.FOR, ZFFTSC.FOR
+

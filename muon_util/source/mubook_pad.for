@@ -1,0 +1,119 @@
+      SUBROUTINE MUBOOK_PAD
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : BOOKS HISTOS RELATED TO MUON PDT PADS
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls: CALLED IF MUCALIB =0 OR 3
+C-
+C-   Created   1-FEB-1992   c.r.murphy
+C-   Updated  17-APR-1993   Daria Zieminska  CALL EZRSET 
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C----------------------------------------------------------------------
+      INTEGER NUMMODS,EMOD
+      INTEGER ID,UNIT,MLIST0(164)
+      REAL MODBIN(165)
+      INTEGER NMODUL,MODNMS(400),MUNMOD3,LMUNMOD
+      INTEGER I,K,IERR,DUM
+      CHARACTER*10 CMODU
+      CHARACTER*80 TITL
+      DATA MLIST0/10,11,12,13, 15,16, 20,21,22,23, 25,26,
+     &           30,31,32,33, 35,36, 61,62, 64,65, 67, 91,92, 94,95, 97,
+     &           100,101,102,103,104,105,106,107,
+     &           110,111,112,113,114,115,116,117,
+     &           120,121,122,123,124, 127,
+     &           130,131,132,133,134,135,136,137,
+     &           140,141,142,143,144,145,146,147, 150, 153,
+     &           160,161,162,163,164,165,166,167, 180, 183,
+     &           190,191,192,193,194,195,196,197,
+     &           200,201,202,203,204,205,206,207,
+     &           210,211,212,213,214,215,216,217,
+     &           220,221,222,223,224, 227,
+     &           230,231,232,233,234,235,236,237,
+     &           240,241,242,243,244,245,246,247, 250,251, 253, 255,
+     &           260,261,262,263,264,265,266,267,
+     &           270,271,272,273,274,275,276,277, 280,281, 283, 285,
+     &           290,291,292,293,294,295,296,297,
+     &           300,301,302,303,304,305,306,307/
+C
+C
+      CALL EZPICK('MURECO_RCP')
+      CALL EZGET('LMUMOD',LMUNMOD,IERR)
+      IF (LMUNMOD.EQ.4) THEN                ! LIST OF MODS FROM RCP
+        CALL EZGSET('KMUMOD()',NMODUL,1)    ! # OF MODULES
+        CALL EZGSET('KMUMOD',MODNMS,1)      ! ARRAY HOLDING MOD NUMBERS
+        NUMMODS=MUNMOD3(-NMODUL,MODNMS)
+      ENDIF
+      CALL EZRSET
+C
+      DO I=1,164
+        MODBIN(I)=FLOAT(MLIST0(I))-0.5
+      ENDDO
+      MODBIN(165)=FLOAT(MLIST0(164))+0.5
+C
+      NUMMODS=MUNMOD3(0,DUM)
+C
+C
+C
+      DO I=1,NUMMODS
+        EMOD=MUNMOD3(1,I)
+        WRITE(CMODU,100)EMOD
+C
+        ID=40000+EMOD
+        TITL='SIGMA 3-MISS FOR MODULE '//CMODU
+        CALL HBOOK1(ID,TITL,100,-20.,20.,0.)
+C
+        ID=41000+EMOD
+        TITL='PAD PEDESTALS A and B-EVEN: MODULE '//CMODU
+        CALL HBOOK1(ID,TITL,50,0.,500.,0.)
+C
+        ID=42000+EMOD
+        TITL='PAD PEDESTALS A and B-ODD: MODULE '//CMODU
+        CALL HBOOK1(ID,TITL,50,0.,500.,0.)
+C
+        ID=43000+EMOD
+        TITL='GAIN PAD A: MODULE '//CMODU
+        CALL HBOOK1(ID,TITL,50,0.,2.,0.)
+C
+        ID=44000+EMOD
+        TITL='GAIN PAD B: MODULE '//CMODU
+        CALL HBOOK1(ID,TITL,50,0.,2.,0.)
+C
+        ID=45000+EMOD
+        TITL='PAD SUM A+B EVEN HITS: MODULE '//CMODU
+        CALL HBOOK1(ID,TITL,100,0.,6000.,0.)
+C
+        ID=46000+EMOD
+        TITL='PAD SUM A+B ODD HITS: MODULE '//CMODU
+        CALL HBOOK1(ID,TITL,100,0.,6000.,0.)
+C
+        ID=47000+EMOD
+        TITL='PAD CHARGE RATIO ((PADA-PADB)/(PADA+PADB)) '//CMODU
+        CALL HBOOK1(ID,TITL,50,-1.,1.,0.)
+C
+        ID=48000+EMOD
+        TITL='ABSOLUTE VALUE VERNIER PAD CORRECTION: MOD '//CMODU
+        CALL HBOOK1(ID,TITL,100,0.,31.,0.)
+C
+        ID=49000+EMOD
+        TITL='WIRE POSITION REL. TO CENTER OF MODULE '//CMODU
+        CALL HBOOK1(ID,TITL,300,-600.,600.,0.)
+C
+C
+C
+      ENDDO
+C
+C
+      TITL=' RESOLUTION VS MODULE NUMBER'
+      CALL HBOOKB(49999,TITL,164,MODBIN,0.)
+C
+C
+  100 FORMAT(I5)
+  200 FORMAT(I3)
+  999 RETURN
+      END
+
+

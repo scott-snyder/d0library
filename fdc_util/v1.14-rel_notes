@@ -1,0 +1,285 @@
+ 21-SEP-1993 : Modifications released by Robert E. Avery
+ 
+    - FALL_LADDERS_2.FOR,FALL_LADDERS_3.FOR,FCODER.FOR,FDPULS.FOR
+        FDROAD.FOR,FLINSG.FOR,FLINSG_2LAY.FOR,FSEGW0.FOR
+        FTRAKS.FOR,FXPSEG.FOR,FXTSEG.FOR,PCHAIN.FOR
+        PCHEKH.FOR,PHITAC.FOR,PLINKS.FOR,PLKDEL.FOR
+        PSEGLT.FOR,PSEGME.FOR,PSEGRD.FOR,PXCHAIN.FOR
+        PXCLIMB.FOR,PXLINK.FOR,PXTREE.FOR,SAVCHP.FOR
+        SAVCHT.FOR,SAVXPCH.FOR,TCHAIN.FOR,TCHEKH.FOR
+        THITAC.FOR,TLINK1.FOR,TLINK2.FOR,TLKDEL.FOR
+        TSEGLT.FOR,TSEGME.FOR,TSEGRD.FOR
+
+    These routines contain changes documented in the release
+    notes for FDC_UTIL official version 1.13. 
+    The changes were made after D0RECO production version 11.19,
+    and were therfore not included in FDC_UTIL official version 1.13. 
+    FDC_UTIL official version 1.13 is identical to
+    D0RECO production version 11.19.
+
+
+==============================================================================
+
+ 22-SEP-1993 : Modifications released by Susan K. Blessing
+ 
+    - FDC_EDGE_CHK.FOR  New routine to check that an edge track doesn't
+       go through a second theta layer.
+
+    - FEDGE_TRACKS.FOR  Add call to FDC_EDGE_CHK.
+
+    - FDPULS.FOR  Use a different weight for large pulses.  
+       When using CLOSE_PEAK, find beginning of hit using new end of pulse.
+
+    - FTRAKS.RCP, MC_FTRAKS.RCP, COSMIC_FTRAKS.RCP, FULL_FTRAKS.RCP, 
+      MC_FULL_FTRAKS.RCP, COSMIC_FULL_FTRAKS.RCP
+       Add new parameters for FDPULS.
+
+==============================================================================
+
+ 30-SEP-1993 : Modifications released by Robert E. Avery
+ 
+    - FDC_MCCHECK.FOR  Check that LHEAD is pointing
+        to EVENT_HEAD, not RUN_HEAD!
+        (This could happen in d0reco and caloroff).
+
+
+==============================================================================
+
+ 10-OCT-1993 : Modifications released by Robert E. Avery
+ 
+    - FHIT_CHK.FOR  New utility routine. 
+        Check how many hits are consistent with being
+        inside an FDC road. EM roads for which NWIRE_HT_IN_ROAD/NWIRE_IN_ROAD
+        is less than ~ 0.8  have a high probability of being a Gammma.
+        FDC compressed hits are used, so this rputine can be used with an
+        STA file, but not a DST file.
+
+
+==============================================================================
+
+ 29-OCT-1993 : Modifications released by Qizhong Li-Demarteau
+ 
+    - clean up PROD_OMNI_FILTER group.
+
+
+==============================================================================
+
+ 15-NOV-1993 : Modifications released by Robert E. Avery
+
+    Many changes were made in order to implement creation of compressed
+        hits banks and allow reconstruction from these banks. 
+        By default, Full hit finding is now done in FDC for all sectors.
+        Two possible versions of compressed hits can be produced:
+            1) FHIT banks: 
+                These contain processed hit information 
+                (Drift distance, ionization in MIPs)
+                from the FxSC banks. 
+            2) FCHT banks: 
+                These contain hit information from the FxDA banks. 
+                (Drift times, ionization in ADC counts).
+                These are in the same format as proposed for 
+                the Level 2 hitfinding output.
+        Initially, for testing, both banks will be produced.
+                
+      The production of these banks is controlled by the RCP parameters:
+
+    BUILD_FHIT         IF TRUE, build the compressed hits bank FHIT.
+    BUILD_FULL_FHIT    IF TRUE, build FHIT bank for ALL hits,
+                          Else  build FHIT bank only for hits in roads.
+    BUILD_FCHT         IF TRUE, build level2 style compressed hits for ALL hits.
+    
+      The reconstruction from these banks is controlled by the REDO parameters:
+
+    REDOFDC            IF TRUE, redo all reconstruction from scratch:
+                           From CDD3, if it exists,     (raw data)
+                           else from CDH3 if it exists, (L2 hits)
+                           else from FCHT if it exists, (L2-style hits)
+                           else from FHIT if it exists. (processed comp. hits)
+
+    REDOFDC_TRACKING   IF TRUE, redo trackfinding from scratch
+                             but use existing FHIT banks.
+
+    Here is a summary of the code that was modified for these changes:
+
+    - FHIT bank: It is necessary to introduce a new version of the 
+      FHIT bank in order to allow reconstruction from this bank. 
+      These  changes are documented in FHIT.ZEB. 
+      The following routines were modified to implement this change:
+        BKFHIT.FOR       Add new words for delay line hits
+        FHITFL.FOR       Fill new words for delay line hits
+        FHITST.FOR       Rewritten for new version of FHIT
+        FHIT_DECODE.FOR  Modified for new version of FHIT
+        FHIT_EXPAND.FOR  Fills FxSC banks from contents of FHIT bank.
+        FHIT_GETMAPS.FOR Must also return pointers for DL hits.
+
+ ==> WARNING:
+      The argument list to two of these entry points has changed:
+
+        CALL FHIT_GETMAPS(
+     &      NUM_TH_HITS,NUM_PHI_HITS,NUM_DL_HITS,
+     &      PTR_TH_HITS,PTR_PHI_HITS,PTR_DL_HITS)
+
+        CALL FHITPT( HALF,UNIT,QUAD,SECTOR,             ! entry in FHITFL
+     &               FIRST_HIT,NHITS,FIRST_DL,N_DLS)
+
+
+    - FCHT bank: This is a new bank that hangs from FDCH that 
+      is similar in structure to the level 2 hitfinding bank.
+      The following routines were modified or created in order to 
+      implement this new bank:
+        BKFDCH.FOR      modified to include new bank
+        BKFCHT.FOR      Books FCHT
+        GZFCHT.FOR      Returns pointer to FCHT
+        FCHTFL.FOR      Fills FCHT (from FxDA banks).
+        FCHTPT.FOR      Returns pointers to channels within FCHT 
+        FCHT_EXPAND.FOR Fills HITS array in the FDEVNT common block from FCHT.
+
+    - ZFFPSC.FOR, ZFFTSC.FOR, FDGETD.FOR  
+        For the measured positions stored in the In the FxSC banks,
+        only retain the precision that is allowed in the FHIT format.
+        This is necessary in order to insure that the same result is
+        obtained from raw data as from either form of compressed hits.
+        The precision retained is 
+                1  micron for drift distances
+                20 micron for delay line distances
+
+ ==>- FTRAKS.FOR  Major simplification: Now just calls 
+        FDC_HITS, and then FDROAD with wide open road. 
+        (used to be independent from FDROAD).
+
+    - FDC_HITS.FOR  New routine that does full hit finding in FDC. 
+        Also controls what banks are used for reconstruction
+        (as described above), and does initialization for each event.
+
+    - FDROAD.FOR  Restructured to allow reconstruction from compressed 
+        hits banks. This routine is now used to do FULL fdc tracking also.
+        Uses FDCRECO flag. Change arguments to TSEGME, PSEGME.
+
+    - FRHITS.FOR, FSECHT.FOR  Various changes in order to allow 
+        reconstruction from either FHIT or FCHT hit banks. 
+        Both routines have undergone extensive revision.
+        Since FRHITS is now used for full hitfinding also,
+        FDHITS is obsolete.
+
+    - FDGETD.FOR  Returns number of delay line hits associates,
+        for use by FRHITS and FSECHT. 
+      
+    - FDPULS.FOR, FDFADC.FOR  Modifications to speed up code.
+        This is necessary because full hitfinding is now being done.
+ ==>    Cross talk correction is no longer supported!
+        FDFADC_CT.FOR is introduced as a version of FDFADC that
+        still does CT correction, however it is not included in
+        standard RECO, only included in library for users.
+        
+    - PSEGME.FOR, TSEGME.FOR  Simplified because full FDC tracking
+        no longer needs to be supported. Also remove some obsolete
+        code that controlled Link and Tree tracking (no longer supported).
+
+    - PSEGRD.FOR, FSEGW0.FOR, FTSGPAR.FOR, 
+        Eliminate unnecessary QHIT array (~3000 words).
+
+    - FXPSEG.FOR, FXTSEG.FOR  Only use sector if ON road bit is set.
+
+    - FTSGPAR.FOR, FXTSEG.FOR Do not use pointers to DA banks to test 
+        for delay lines. Use status bits instead (since DA banks aren't
+        always there). 
+
+    - FDC_TIMER.FOR  New routine that optionally provides timing data
+        for each event in USER.OUT file. Controlled by RCP parameter:
+                DBG_TIMER  ! TRUE enables timing information.
+
+    - GZCDH3.FOR, GZCDD3.FOR, GZL2CH.FOR Utility routines to return some 
+      pointers.
+
+ *** The following changes are NOT related to the compressed hits changes:
+
+    - FRHITS_GEAN.FOR, FGET_SEGHITS.FOR, FMARK_SEGHITS.FOR
+      These routines were created or modified in order to allow 
+      ideal Geant hits (HITS hanging from GEAN) to be correctly 
+      processed by the FDC reconstruction if PATH in FTRAKS_RCP
+      is set to GEAN. 
+      (This functionality used to exist but had long since been lost)
+
+
+    - FDC_DBL3.FOR  Allow constants to be applied for MC data also.
+      (For example, to allow a t0 shift, which is found to improve
+       track residuals).
+
+    - FTRINI.FOR Allow the optional use of a FTRAKS_RCPE file.
+    
+    - FDC_MCCHECK.FOR Check that LHEAD is pointing to EVENT_HEAD, not RUN_HEAD!
+        (This could happen in d0reco and caloroff).
+
+    - FHIT_CHK.FOR New utility routine:
+        Check how many hits are consistent with being
+        inside an FDC road. EM roads for which NWIRE_HT_IN_ROAD/NWIRE_IN_ROAD
+        is less than ~ 0.8  have a high probability of being a Gamma.
+        I use FDC compressed hits, so can be used with
+        STA file, but not DST file.
+
+
+ *** FDC Cosmic Ray reconstruction: 
+        The following new routines make it possible to find Cosmic
+        Rays in the FDC with a floating t0. The user interface is
+        to simply call 
+                FDC_TZERO(T0, T0_ERR, PHI, THETA)
+        If it was successful in finding a t0 from an FDC cosmic ray track,
+        it will return t0, with an error, and also the Phi and Theta of the FDC
+        track (otherwise it returns 0.'s for everything).
+
+        BKFDCT_COS.FOR,FCLEAN_NOISE.FOR,FDC_COSMIC_TRACKS.FOR,FDC_T0HITS.FOR
+        FDC_T0SHIFT.FOR,FDC_TZERO.FOR,FIT_TRK_T0.FOR,FOVERLAD_3.FOR,
+        FOVRLP_COSMIC.FOR,LDFDCT_COS.FOR,FPSC_REFILL.FOR,FTSC_REFILL.FOR,
+        FTR_TFLOAT.FOR
+        A new version of COSMIC_FTRAKS.RCP is provided.
+
+ *** CD_UTIL:
+        The following CD_UTIL routines must be changed simultaneously
+        with the above changes:
+           ZDDROP.FOR, ZSTCMP.FOR, ZTREVT.FOR, ZTR_HITS.FOR, NFROAD.FOR
+
+ *** Pixie:
+        The following PIXIE routines must be changed simultaneously
+        with the above changes:
+           PFGETD.FOR,PFGETHITS.FOR,PFHBYS.FOR
+
+
+==============================================================================
+
+ 19-NOV-1993 : Modifications released by Robert E. Avery
+
+    Some Minor bug fixes:
+    - FHITFL.FOR  Bug fix, to fix problem on AXP's.
+    - FIT_TRK_T0.FOR  Fix incorrectly dimensioned (I)QTRAK arrays. 
+    - FTRAKS.FOR  Bug fix. Need to fetch FTRH pointer to mark full tracking
+                                                                done.
+    - FDROAD.FOR  Exit if no FDC data available (Raw data or compressed hits).
+    - FHIT_CHK.FOR  Call new routine, FGETHITS.FOR, rather than identical
+        PIXIE rotine, so that fhit_chk doesn't depend on PIXIE.
+
+
+==============================================================================
+
+  7-DEC-1993 : Modifications released by Robert E. Avery
+ 
+    - FDC_TIMER_UPDATE   Insert machine block. 
+        Dummy routine for non-VMS machines.
+
+
+==============================================================================
+
+  9-DEC-1993 : Modifications released by Robert E. Avery
+ 
+    - FTRAKS.RCP  Turn off build_fcht.
+
+==============================================================================
+
+ 17-DEC-1993 : Modifications released by Robert E. Avery
+ 
+    - FDGETD.FOR  Put a cut on acceptable z-position, this is to insure
+     identical results when reconstruction done with FHIT banks.
+
+    -FSECTOR_DEAD.FOR  Bug fix. Do not perform check on collider data.
+     (Old version does not work correctly for reconstruction from FHIT banks,
+     since it depends on DBL3 being read in.)
+

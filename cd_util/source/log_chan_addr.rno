@@ -1,0 +1,207 @@
+.!   Created by Jeffrey Bantly on  7-SEP-1989
+.!
+.PAGE SIZE  60,80     .LEFT MARGIN  0    .RIGHT MARGIN  75
+.LAYOUT  3,2
+.RIGHT ;D0 note 877
+.RIGHT ;7-SEP-1989
+.BLANK 2     !--- underlined title on next line
+.CENTER ; ^& LOGICAL CHANNEL ADDRESS FOR THE CENTRAL DETECTORS  \&  
+.BLANK 1
+.CENTER ;J.Bantly,P.Grudberg,Q.Li-Demarteau,S.Rajagopalan,
+.CENTER ;T.Trippe,A.Zylberstejn
+.BLANK 2
+.!------------ main text start here.
+.LITERAL
+    The logical channel address issue was first discussed at the Florida
+Workshop as an effort to unify and generalize the method of labelling each
+individual FADC uniquely over the entire central detector.  The method
+chosen was one that minimized the disruption to code already written and
+maximized the utility of the address for offline software as well as for
+CALIB.  An overview of the general pattern is given below:
+ 
+ 
+MSB                                                                 LSB
+15    | 14  13   |  12    11  10  9   8   7   6   5   4   3   2   1   0
+      |          |
+active| detector |          individual detector bits (13 total)
+/inact|   type   |          
+------|----------|------------------------------------------------------
+ 0    |  0   0   |          VTX uses all 13 lower bits for channels
+ 0    |  0   1   |  sp   sp     CDC uses 11 lower bits for channels
+ 0    |  1   0   |  sp          FDC uses 12 lower bits for channels
+ 0    |  1   1   |  sp   sp     TRD uses 11 lower bits for channels
+ 
+ 
+From the above pattern, each detector will use bit 15 as the active/inactive
+bit, active=0,inactive=1.  Bits 14-13 are the pre-arranged sub-detector 
+identifier.  The lower 13 bits are then available to each sub-detector for 
+their own individual labelling schemes which are outlined below.
+ 
+
+VTX 
+
+        Wires                                
+    Bit   0   End     (0=north, 1=south)   
+    Bits 1-3  Wire    (0:7, number increases with increasing r) 
+    Bits 4-8  Sector  (0:15 for layer 0, 0:31 for layers 2 and 3.  Number
+                       increases with increasing phi.  Sector 0 contains phi=0)
+    Bits 9-11 Layer   (0:2, number increases with increasing r) 
+    Bit   12    =0                           
+ 
+      Z-strips         
+    Bit   0   End     (0=north, 1=south)   
+    Bits 1-8  Strip   (0:159 in Z-layer 2, 0:191 in Z-layers 3&4, 0:127 in 
+                       Z-layer 5 with strip number increasing with increasing 
+                       phi.  Strip 0 crosses and has a pad at the north end of 
+                       the wire in sector zero.)
+    Bits 9-11 Z-layer (2:5, Z-layers 0&1 not implemented in hardware. Z-layer
+                       2(3)=inner(outer) layer 1, 4(5)=inner(outer) layer 2.)
+    Bit   12    =1     
+.END LITERAL
+.PAGE
+.LITERAL
+CDC 
+
+    Bits 0-3   Wire (0:6 sense wires, number increases with increasing r
+                      7: delay line 1 (close to sense wire 0) north,  
+                      8: delay line 1 (close to sense wire 0) south,
+                      9: delay line 2 (close to sense wire 6) north, 
+                     10: delay line 2 (close to sense wire 6) south)
+    Bits 4-8   Sector  (0:31, number increases with increasing phi.  
+                        In layers 0 and 2 the cathode plane between
+                        sector 0 and sector 31 is at phi=0.  
+                        In layers 1 and 3 the sense wires of sector 31
+                        are at phi=0)
+    Bits 9-10  Layer   (0:3, number increases with increasing r)
+    Bit 11-12  Spare
+ 
+ 
+FDC
+
+  Theta   Chambers       
+
+    Bits 0-3   Wire     (0:7 sense wires, number increase away from Phi chamber)
+                          8: delay line (close to sense wire 0) end at lower 
+                          phi angle relative to sector center ,
+                          9: delay line (close to sense wire 0) end at higher 
+                          phi angle relative to sector center)
+    Bits 4-6   Sector   (0:5, number increases with increasing r)
+    Bits 7-9   Quadrant (0:7, number increases with increasing phi, however,
+                          quadrants 0-3 form an inner(closer to z=0)
+                          Theta chamber with quadrant 0 extending roughly 
+                          between 0 and 90 degrees in phi.  Quadrants 4-7 form
+                          an outer (on higher |z| side of Phi chambers) Theta
+                          chamber with quadrant 0 straddling phi = 0.  Note 
+                          that all quadrant 0's and 2's are 'B'-size Theta
+                          quadrants and 1's and 3's are 'A'-size Theta quads.)
+    Bit   10   Unit     (=0, for all Theta chambers)
+    Bit   11   Half     (0:1, 0=north, 1=south)     
+    Bit   12   Spare
+  
+
+  Phi     Chambers
+
+    Bits 0-3   Wire     (0:15, sense wires, number increases with |z|)
+    Bits 4-9   Sector   (0:35, number increases with phi angle, sector 0 lies
+                         between 0 and 10 degrees in phi.)
+    Bit   10   Unit     (=1, all Phi chambers)
+    Bit   11   Half     (0:1, 0=north, 1=south)
+    Bit   12   Spare
+.END LITERAL
+.PAGE
+.LITERAL
+TRD
+
+    Bits 0-7   Wire     (0:255,  increases with phi)
+    Bits 8-10  Layer    (0:2  , anodes   increases with r)
+                        (3:5  , cathodes increases with r)
+                        (I and I+3 corresponds to the same TRD chamber)
+    Bits 11-12 Spare
+
+    The correspondance between TRD anode and FADC channel is awkward for
+    two reasons:
+       1) The 16 channels of an anode preamp are hard-wired clockwise:
+          PHI(I+1)=PHI(I)-2*PI/256, i.e. - sign instead  of +, 
+                 where i= preamp channel number 
+       2) The trigger asks for a special arrangement of the FADC
+
+    This results in the FADC cabling summarized below:
+
+          16 channels per module
+          12 modules per crate
+           4 crates
+           4 "triplets" per crate
+            a triplet being defined by a set of 3 fadc modules-
+            one of each layer- with the same wires
+
+                 TRIPLET 0                      |   |       TRIPLET 3
+  +-----------+   +-----------+   +-----------+ |   |+-----------+
+  |  LAYER 1  |   |  LAYER 2  |   |  LAYER 3  | |   ||  LAYER 1  |
+  |  -----    |   |  -----    |   |  -----    | |___||  -----    |___
+  | WIRE  I+15|   | WIRE  I+15|   | WIRE  I+15| |   || WIRE  I+63|
+  |       I   |   |       I   |   |       I   | |   ||       I+48|
+  +-----------+   +-----------+   +-----------+ |   |+-----------+
+                                                |   |
+
+    Module number                                 0 to 15
+    Crate number                                  0 to  3
+    Triplet number in the crate                   0 to  3
+    Address of the fadc module in the crate       0 to 11
+    Sub_address of the channel in the fadc module 0 to 15
+
+    I= number of the anode wire with the lowest PHI in the crate
+     = 0  for crate 0   ( sectors 0 to   3)
+     = 64 for crate 1   ( sectors 4 to   7)
+     =128 for crate 2   ( sectors 8 to  12)
+     =192 for crate 3   ( sectors 13 to 16)
+.END LITERAL
+.PAGE
+.LITERAL 
+TRD, cont.
+
+ Preamp  Preamp   Wire nb.      Wire nb.
+  Nb.    Channel    on             on
+           nb.    chamber         FADC
+                    .               .
+                    .               .
+                  +----+          +----+
+           1      | 31 |          | 31 |               ^
+  1        .      | .  |          | .  |               |
+           .      | .  |          | .  |               |
+          16      | 16 |          | 16 |               |
+                  +----+          +----+             ----->PHI=2*pi/16
+                  +----+          +----+               |
+           1      | 15 | -------->| 15 |               |
+  0        .      | .  | -------->| .  |               |
+           .      | .  | -------->| .  |               |
+          16      | 0  | -------->|  0 |               |
+                  +----+          +----+             ----->PHI=0
+                  +----+          +----+               |
+           1      |255 |          |255 |               |
+  15       .      | .  |          | .  |               |
+           .      | .  |          | .  |               |
+          16      |240 |          |240 |               |
+                  +----+          +----+             ----->PHI=15*pi/8
+                    .               .                  | 
+                    .               .                  |
+                  +----+          +----+               |
+                  |    |          |    |               |
+                  | .  |          | .  |               ^
+                  | .  |          | .  |               |
+                  |    |          |    |
+                  +----+          +----+
+
+ADDITIONAL COMMENTS
+ 
+Some detectors have spare bits available and a general policy as to what to
+do with them has not been decided.  
+The logical channel addresses are downloaded at run time when triggers are
+selected and will be read out with each event as part of the data from
+each FADC channel.  In any analysis, when the CDDn banks are unpacked by any of
+the sub-detectors, a map of the banks will be made by ZDEXPD which will use
+the logical channel address as the pointer into an array where the Zebra
+location of that channel's data will be placed.  This is done by stepping
+through the entire banks and finding each address. Note that ZDEXPD will be
+written to ignore inactive channels so as to keep the address array size down.
+Details about the data format and ZDEXPD's capability are in D0 Note 883.
+.END LITERAL

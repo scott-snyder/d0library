@@ -1,0 +1,337 @@
+ 12-DEC-1990 : Modifications released by Susan K. Blessing
+ 
+    - FBESEG.FOR  VZERO was called with an argument of 16 rather than
+        8 or 16 depending on the number of sense wires.  This caused
+        overwriting in an array used for theta segment finding and 
+        segments which crossed the sense wire plane were chosen on the
+        wrong side half of the time.  Call was changed to include the 
+        number of sense wires.
+
+    - TSEGRD.FOR  Changed called to FBESEG and made some arrays
+        smaller because of changes in FBESEG.
+
+    - FOVRLP.FOR  Fixed typo in phi section which caused a phi sector
+        to be called a theta quadrant and subsequent access violations.
+
+
+==============================================================================
+
+ 12-DEC-1990 : Modifications released by Robert E. Avery
+ 
+    - FDC_PWC_HISTS, FDC_PWC_BOOK made into logical functions, so that
+        they can be an independent package. 
+
+    - FDC_SEGMENT modified to work for x-sector segments (FDC_PWC_HISTS too).
+
+
+==============================================================================
+
+ 18-DEC-1990 : Modifications released by Jeffrey Bantly
+ 
+    - FDCUSM.FOR had its HBOOK calls updated to new CERNLIB HBOOK4 format.
+
+==============================================================================
+
+ 19-DEC-1990 : Modifications released by Jeffrey Bantly
+ 
+    - PSEGLT.FOR,TSEGLT.FOR have their calls to LZFIND,NZFIND changed to use
+        IXCOM instead of 0 as first argument. 
+
+==============================================================================
+
+  1-FEB-1991 : Modifications released by Robert E. Avery
+ 
+    - FDTSUB_D0.FOR, New routine to find test pulse used for D0
+        Cosmic Ray commissioning.
+        RCP parameters added: D0_TP (TRUE to use this routine)
+        THR1TP,THR1TP,THR1TP hitfinding thresholds for this routine.
+    - FDTBTP.FOR, FDPULS.FOR modified to accomodate above.
+
+    - FTRAKS.FOR Add option (RCP parameter DROP_BANKS) to drop
+        'FTRH' and 'FDCH' banks before doing analysis in FTRAKS.
+
+    - FDBINI.FOR Change DBL3 initialization to point to logical
+        name DBCALIB$FDC for file (rather than to directory DB).
+
+==============================================================================
+
+  1-FEB-1991 : Modifications released by Jeffrey Bantly
+ 
+    FTRAKS has undergone an internal re-organization.  New routines have been
+      included that add more segment ladders for consideration as tracks.  Old
+      routines have been updated to cope.  New routines are listed below
+      individually.
+
+    - FTRAKS.FOR,FDROAD.FOR(in CD_UTIL) have been re-organized to include 
+      the new routines.
+
+    - FTFDCT.FOR now outputs the track fit values and no longer loads the
+      tracking banks.
+
+    - FT2FDCT.FOR is corrected to call FTFDCT with the track fit variables and
+      loads the track banks.
+
+    - BKFTRH.FOR add dropped bank check and cleanup and use words 3,4,5, and 6.
+
+    - BKFDCT.FOR now the FDCT bank is not booked directly in LDFDCT.
+
+    - BKFDTH.FOR now the FDTH bank is not booked directly in LDFDCT.
+
+    - GZFTRH.FOR add check for dropped banks.
+
+    - GTFDCT.FOR add segment ladders to GTFDCT_LINK call.
+
+    - GTFDCT_LINK.FOR add segment ladders to output.
+
+    - LDFDCT.FOR now calls BKFDCT,BKFDTH to book banks and increments the
+      counters in the FTRH bank (words 2,5, and 6).
+
+    - PRFDCT.FOR add segment ladders to printout.
+
+    - FLINSG.FOR,FLINTB.FOR cleanup of Zebra calls, 0-->IXCOM.
+
+    - FMORLD.FOR include all two-segment ladders from 3-segment ladders, called
+      by FTRAKS.FOR
+
+    - FTTRAK.FOR first pass track-fitting now handled by FTTRAK as called by
+      FTRAKS.FOR
+
+    - FOVERLAD.FOR include unused segments which overlap, called by FTRAKS.FOR
+
+    - FBTRAK.FOR selects best FDC track from current sample.
+
+    - FRENUM.FOR renumbers the FDCT banks consecutively after the second pass
+      fit.  The division is then garbage collected to get rid of the dropped
+      FDCT banks.
+
+    - FT4FDCT.FOR will include Inner Theta quadrants sectors 4 and 5 as tracks
+      if unused so far.  These are assumed to have been caused by particles
+      grazing only the inner layer of an FDC Half.
+
+    - FTRHFL.FOR fills the FTRH bank words including the floating point values
+      of Z0(1) and Z0(2).  Version number of the FTRH bank is changed from
+      version 0 to version 1.  
+
+    - FTRESID.FOR makes the correct residual fits to a track by fitting once per
+      hit and omitting the hit from the fit.
+
+    FDHITS has been upgraded to include a new option of pulse shape subtraction
+    but it is currently turned off in the RCP pending more complete study.
+    However, it is worth it to make the software available.
+
+    - FDPULS.FOR add call to pulse shape subtraction
+
+    - GAUSS_TAIL.FOR function that returns value of pulse shape given time
+      relative to the pulse's leading edge.
+
+    - FPULSHP_SUBTR.FOR actually does the pulse shape subtraction.
+
+    - FDPHST.FOR generates Topdrawer pulse shape outputs
+
+    Odds'n'Ends
+
+    - PRCDD3.FOR reduces the quantity of output for IFL input = 1.
+
+    - PXLINK.FOR set maximum number of linkls allowed.
+
+    - FDGETD.FOR eliminate positive time requirements.
+
+    - FDHITS.FOR remove FDHITS_END entry point and cleanup.
+
+    - FTRPAR.FOR improve and reduce the number of messages.
+
+    - FRHITS.FOR fix hit counting.
+
+    - FSECHT.FOR remove FRHITS_END entry point.
+
+    - ZFFPDA.FOR,ZFFPSC.FOR,ZFFTDA.FOR,ZFFTSC.FOR better hit counting.
+
+    - FMUCHK.FOR,FPICHK.FOR analysis of Isajet mu's and pi's through the FDC.
+
+    - FTRKHT.FOR add track hit data check and cleanup.
+
+    - FTRAKS.RCP updated to include the new parameters necessary and extra
+      histograms etc.
+
+    Non-FDC_UTIL changes made that require a simultaneous release.
+
+    - FDEVNT.INC remove the DATA statement from the INCLUDE file.
+
+    - FDPARA.PARAMS add the DMXTRAK parameter (=2000) limiting the maximum
+      number of tracks that can be found in the FDCs.
+
+    - FDROAD.FOR as mentioned above.
+
+    - many routines in the PIXIE library.
+
+    Also...
+
+    - FTRH.ZEB updated the file to delineate the contents of the FTRH bank
+      especially the use of words 3 to 6.
+
+==============================================================================
+
+  4-FEB-1991 : Modifications released by Robert E. Avery
+ 
+    - FDSUBT_D0.FOR fix mistake in argument list. Add new entry
+      FGET_TPS(TMPBN1,TMPBN2), used for TP resolution study.
+
+==============================================================================
+
+  4-FEB-1991 : Modifications released by Jeffrey Bantly
+ 
+    - Remove the EXTERNAL statement for FRHITS.FOR,PRFDCT.FOR,PRCDD3.FOR as
+      the functions IBIT and IBSET are no longer considered external functions
+      and cause linking errors if declared external.
+
+==============================================================================
+
+  9-FEB-1991 : Modifications released by Robert E. Avery
+ 
+    - FDPULS.FOR Always do Bilinear conversion (both at NWA and D0 hall)
+
+    - FDSUBT_D0.FOR Another mistake fixed.
+
+==============================================================================
+
+ 12-FEB-1991 : Modifications released by Robert E. Avery
+ 
+    - FXTSEG.FOR Fix bug for segments that cross back.
+
+==============================================================================
+
+ 22-FEB-1991 : Modifications released by Jeffrey Bantly
+ 
+    - FT4FDCT.FOR remove bug that allowed one to jump into middle of a loop
+
+    - FDPULS.FOR initialize FADCHK variables and properly handle bit function
+
+    - FTRAKS.RCP add REDOFDC word for redoing reconstruction using STAs
+
+==============================================================================
+
+ 22-FEB-1991 : Modifications released by Robert E. Avery
+ 
+    - GZFASE.FOR, GZFGSE.FOR, GZFPSE.FOR, AND GZFTSE.FOR
+      Check that THETA sector is a valid sector before filling link,
+      else return 0 (no F%SE bank exists).
+
+    - FTMINI.FOR, and FPDINI.FOR. Only fill bank if it exists.
+
+    - FDTBTP.FOR, if ped bank doesn't exist, use a default pedestal.
+
+==============================================================================
+
+ 22-FEB-1991 : Modifications released by Jeffrey Bantly
+ 
+    - FDCUSM.FOR, FDCINI,FDCPAR,FDCEVT,FXTTRK,FHISID,FMINHI,FINEFF,FMETHO,
+      FLFHIT,FPATH,SEGSTAT made obsolete as they are no longer used in any FDC
+      code.
+
+==============================================================================
+
+ 22-FEB-1991 : Modifications released by Jeffrey Bantly
+ 
+    - FDROAD.FOR moved from CD_UTIL to FDC_UTIL.
+
+    - all GZFxxx.FOR and GZSFDC.FOR have been replaced to meet the UNIX
+      compatibility.
+
+    - all BKFxxx.FOR and BKSFDC.FOR have been replaced to meet the UNIX
+      compatibility.
+
+==============================================================================
+
+  2-MAR-1991 : Modifications released by Daria Zieminska
+ 
+    - FTRAKS.FOR corrected setting the flag IDONE
+
+==============================================================================
+
+  4-MAR-1991 : Modifications released by Jeffrey Bantly
+ 
+    - almost ALL FDC_UTIL routines have been updated to comply with library
+      rules via the CMSInterface procedure.  Too many were changed to list
+      them all here.  One specific change was to use d0flavor rules to declare
+      external all the bit functions normally available on VAX machines.  They
+      are also in CERNLIB so the C&IF structure was used.  
+
+    - GTFDCT.FOR has the LADDER(0:2) parameters as outputs now.  All routines
+      calling GTFDCT were also changed to add this param to call.
+
+==============================================================================
+
+ 12-MAR-1991 : Modifications released by Jeffrey Bantly
+ 
+    - Fixed bug in FTRAKS.FOR where IDONE check was zeroing FTRH status word.
+      Okay now.  
+
+    - FRENUM.FOR replaced the mzgarb call with a zpress call.  should be
+      faster.
+
+    - F2CLEAN,FCHEKL,FCLEAN,FUNFLG,FUSDSG,GTFSEG,GZFDCT,PCHAIN,PDELET,PSEGME,
+      PXLINK,TCHAIN,TDELET,TSEGME all had Zebra calls referencing the ixstore
+      as 0, now it is IXCOM and IXMAIN as appropriate.
+
+    - LDPSEG,LDTSEG just some minor cleanup
+
+    - FT2FDCT eliminated the need for the FGETLDR and FGETLDR2 calls which
+      were CPU wasteful.  The new GTFDCT already gets the track ladder.
+
+==============================================================================
+
+ 21-MAR-1991 : Modifications released by Jeffrey Bantly
+ 
+    - FGNINI.FOR,FPDINI.FOR,FTMINI.FOR changed to fully implement all STP values
+      for the FDC.  Includes changes in calls to FGTxxS.FOR.
+
+    - FDC_FILL_STP.FOR is used to enter updated values input from the FTRAKS.RCP
+      file to the STP banks for special runs, etc.
+
+    - FGTGNS.FOR,FGTPDS.FOR,FGTTMS.FOR altered to return all of the STP values
+      for the FDC.  Also includes a third control path that allows input of
+      decoded Logical Channel Addresses.
+
+    - FDPULS.FOR,ZFFPSC.FOR,ZFFPDA.FOR,ZFFTSC.FOR,ZFFTDA.FOR altered to use the
+      returned gains,peds,times.  FDTBTP.FOR also altered because of change to
+      FGTPDS.FOR
+
+    - FTFDCT.FOR,ZFFPSC.FOR,ZFFTSC.FOR add the ionization calculations and
+      output data words to FPSC,FTSC, and FDCT banks.
+
+    - FDDEDX.FOR calculates the dE/dx for all FDC tracks after the FRENUM call
+      in FTRAKS.  It is an option that is omitted for now as ionization is
+      calculated in FTFDCT.FOR already.
+
+    - FSTAGR.FOR changed to generate a small look-up table and use that in
+      subsequent calls.  A time saver.
+
+    - FDPHST.FOR,FPICHK.FOR,FPULSHPS_SUBTR.FOR adding more output histograms etc
+
+    - PSEGME.FOR has a bug fix to correctly count the hits used especially in
+      cross-sector cases.
+
+    - FTRAKS.RCP has a few new parameters added for  STP updates and misc.
+      Also, lots of histogram entries no longer used by FTRAKS have been
+      deleted.
+
+    Will require the releasee of D0$STP to generate a new FDC_STPFILE.DAT.
+
+==============================================================================
+
+ 21-MAR-1991 : Modifications released by Susan K. Blessing
+ 
+    - New routines to control the FDC Examine:
+        FDBHST_EXM.FOR - Book histograms
+        FDC_EXM_ANAL.FOR - Control analysis
+        FDC_EXM_BEGIN_RUN.FOR - Begin run initialization
+        FDC_EXM_PROC_MENU.FOR - Add Optional Histograms to Processing Menu
+        FDC_EXM_SETUP.FOR - Initialization
+        FDC_OPT_HIST.FOR - Control optional histograms
+        FDFHST_EXM.FOR - Fill histograms
+        FDLHST_EXM.FOR - Delay line histograms
+        FGET_INFO.FOR - Get information from screen
+        FTRAKS_EXM.FOR - Call FTRAKS
+        FTRAKS_EXM_BEGIN_RUN.FOR - FTRAKS initialization
+        FTRAKS_EXM_SETUP.FOR - Initialization
+

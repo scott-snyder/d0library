@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VMUON_UTIL()
+      VMUON_UTIL = ' MUON_UTIL'//
+     X                   '  OFFICIAL V3.04'//
+     X                   ' 14-JUL-1997 15:20:49.24'
+      Return
+      End

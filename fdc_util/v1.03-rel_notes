@@ -1,0 +1,384 @@
+ 26-APR-1991 : Modifications released by Susan K. Blessing
+
+    - FDBHST_EXM.FOR, FDFHST_EXM.FOR, FDLHST_EXM.FOR
+        Better histograms for the CRC run.  Also using new FDPARA.PARAMS
+        and FTRAKS.RCP
+
+
+==============================================================================
+
+ 30-APR-1991 : Modifications released by Robert E. Avery
+
+    - FDC_CELL.FOR, FDC_PWC_TRACK.FOR, Track returned by FDC_PWC_TRACK
+        is now defined w.r.t. Z0, so that it can be treated just like
+        an FDC track. FDC_CELL will then work for PWC or FDC track.
+
+    - PWCCHK.FOR, New routine. Function that returns false if PWC and
+        FDC event numbers mismatch. Called from FDC_PWC_TRACK.FOR.
+
+==============================================================================
+
+ 30-APR-1991 : Modifications released by Jeffrey Bantly
+
+    - FMARK_SEGHITS.FOR marks the hits used on a segment or track by marking the
+      status word in both the FxSC and FxDA banks with the segment,track number
+      and the left/right ambiguity.
+      LDFDCT,LDPSEG,LDTSEG,FRENUM also changed to call FMARK_SEGHITS.
+
+    - FLFSEC,FRHITS,FDROAD,ZTRAKS(CD_UTIL) were changed to pass ZVTX the z
+      position of the vertex so that the FDC roads can be calculated correctly.
+
+    - FDROAD,FORDER,FTRAKS,FTRDMP,FTRDRP,FTREVT,FTRHIS,FTRPAR have EZERROR
+      installed so that the presence of RCP banks is checked.  Success leads to
+      getting desired values and resetting.  Failure issues an error message.
+
+    - FTREVT now calls FTRAKS and optionally calls FTRHIS depending on value of
+      DOHIST in FTRAKS.RCP.  The PBD file for FTRAKS will be changed to call
+      FTREVT instead of FTRAKS.
+
+    - The following routines have been updated to use the cleaned up version of
+      FTRAKS.RCP and the new FDC.RCP as well as the expanded FDPARA.PARAMS:
+      Some general cleanup is also included.
+
+      F2CLEAN,FBEAM_CELL,FCHEKL,FDBHST,FDCISA,FDDEDX,FDEXST,FDFHST,FDGETD,
+      FDHFIL,FDHITS,FDILIN,FDLHST,FDPHST,FDPULS,FDRISE,FDROAD,FDTBTP,FDTSUB_D0,
+      FDUNPK,FEZTRK,FLFSEC,FLINSG,FMORLD,FORDER,FOVERLAD,FPULSHP_SUBTR,FRHITS,
+      FSECHT,FSGXYZ,FSTAGR,FT2FDCT,FT4FDCT,FTFDCT,FTRAKS,FTRDMP,FTRDRP,FTRESID,
+      FTREVT,FTRHIS,FTRKHT,FTRPAR,FTSGPAR,FTTHET,FTTRAK,FUNFLG,FUNSUP,FUSDSG,
+      FXPSEG,FXTSEG,GTFASE,GTFPHT,GTFTHT,PCHAIN,PCHEKH,PCLIMB,PRCDD3,PRFDC,
+      PRFSG0,PRFSG1,PRFSG3,PRFSG4,PSEGLT,PSEGME,PSEGRD,PXCHAIN,PXCLIMB,PXLINK,
+      PXTREE,SAVCHP,SAVCHT,SAVXPCH,TCHAIN,TCHEKH,THITAC,TSEGLT,TSEGME,TSEGRD,
+      ZFFPDA,ZFFTDA,ZFFTSC,FBTRAK,FDC_PWC_HISTS,FTRHI2
+
+    - FTRAKS.RCP,FDC.RCP cleaned up and separated in a useful way.  FTRAKS.RCP
+      now contains only those RCP parameters used by the FTRAKS package.
+      FDC.RCP contains personal parameters used by individuals in their own
+      PBD packages that have been made public.
+
+
+
+    To use all this new code, the following are routines in other libraries that
+    will have to be released simultaneously with FDC_UTIL:
+
+    - ZTRAKS in CD_UTIL
+    - FDPARA.PARAMS,FDCDEL.PARAMS in PARAMS
+    - all the changed routines in PIXIE
+
+
+
+==============================================================================
+
+  1-MAY-1991 : Modifications released by Robert E. Avery
+
+    - FDC_CELL.FOR, FDC_SEGMENT.FOR, Fixes to deal correctly with
+      Theta Cell 1 reversed direction.
+
+    - FDPULS.FOR, FTMINI.FOR Sign change for D0 tzero's relative to test
+      beam, and added checks on tzero quality. Requires new parameter
+      in FTRAKS.RCP, ETZERO_CUT. (Once tzero's better understood we
+      may be able to remove this.)
+
+    - FDC_FILL_STP.FOR, Fill in delay line length's into STP bank
+      (not used yet in standard code). Add time DL_DELAY (RCP parameter)
+      to DL's relative to SW0.
+
+    - FDGETD.FOR Use the Atzero, not the Etzero (already corrected in
+      FDPULS.FOR).
+
+    -FTRAKS.RCP Add ETZERO_CUT, change default value of DL_DELAY.
+
+==============================================================================
+
+  2-MAY-1991 : Modifications released by Jeffrey Bantly
+
+    - FDGETD.FOR fix a bug by including parameter DMAXZV=10
+
+==============================================================================
+
+  9-MAY-1991 : Modifications released by Jeffrey Bantly
+
+    - FTREVT.FOR fix bug with logical FIRST.
+
+    - FTRHIS.FOR make into a FUNCTION for use by FTREVT.
+
+    - FDCINI.FOR,FDCPAR.FOR are new main routines for an FDC package that is
+      an extension of the FTRAKS package.
+
+==============================================================================
+
+  9-MAY-1991 : Modifications released by Robert E. Avery
+
+    - FCODER.FOR, FTRPAR.FOR  Remove RCP call in Fcoder. Instead create
+      a new entry point, FCODER_INI(RUNTYPE,RUN), that is called from
+      FTRPAR, that allows FCODER to do the right corrections based on
+      run number and run type. (Also fixes Test Beam problems now.)
+
+    - FDPULS.FOR  Added protection so that EXPDAT pointer doesn't go
+      out of bounds.
+
+    - FDC_PWC_BOOK.FOR, FDC_PWC_HISTS.FOR  Replace with new version that
+      selects only clean, good quality events (residual within cuts).
+
+    - FT2FDCT.FOR  Fix bug, wrong segment  was being added to track
+      in some cases, good segment lost its status bit sometimes.
+
+
+==============================================================================
+
+ 20-MAY-1991 : Modifications released by Robert E. Avery
+
+    - FGNINI.FOR,FPDINI.FOR,FTMINI.FOR Bug fix, EZPICK was being called
+      w.o. call to EZRSET (once for each crate).
+
+    - FDC_QUADTYPE.FOR  New utility routine to return QUADTYPE of sector
+      (no longer need to use QUADTYPE from RCP file).
+
+    - FGET_SECTOR.FOR  New utility routine. Given X,Y, HALF and LAYER,
+      return the QUADRANT and SECTOR.
+
+    - FDC_TRACK_CHK.FOR  Check that FDC track really goes through sector
+      if it uses a segment from that sector. This check will be done in
+      the new version of FTTRAK to be released by Sue.
+
+
+==============================================================================
+
+ 13-JUN-1991 : Modifications released by Robert E. Avery
+
+    - FCODER.FOR Fix Cable switch from cosmic ray run (S Phi sector 27 <==> 29)
+
+    - FDPULS.FOR Several changes:
+        * Only do Crosstalk correction if ADC count of bin in  adjoining
+        channel is greater than threshold, pedsigma*THR_CT (new rcp param).
+        * B(1)=expdat(1)-pedestal (rather than 0).
+        * Require B(ifirst) > 0, ifirst >=1 (required because of above).
+
+    - GTFSEG.FOR Now a function whose return status = status word of segment.
+        Otherwise, argument list is unchanged, so remains back-compatable.
+
+    - TSEGRD.FOR New RCP parameter, TOLXSW, to allow a wider road for X-sense
+        wire plane segments (to be used for testing).  Add number of delay
+        line hits.
+
+    - ZFFPDA.FOR, ZFFTDA.FOR Use SRTINT instead of SORTZV.
+
+    - FDC_FILL_STP.FOR  Allow setting of velocity for a whole quadrant with
+        one line (to do this set SECT field = -1). Bug fix for MIP parameters.
+
+    - FDC_SEG_XSECT.FOR New routine, similar to FDC_SEGMENT, returns segment
+        info, but if segment is X-sector, returns info in local coordinates
+        of second Sector (not first, like FDC_SEGMENT does).
+
+    - FTRAKS.RCP New parameters THR_CT, TOLXSW noted above. New array
+        FXPVAR for Jeff's changes.
+
+==============================================================================
+
+ 13-JUN-1991 : Modifications released by Susan K. Blessing
+
+    - BKFDTH.FOR  Add three reference links to point to segments on track.
+
+    - BKFSEG.FOR  New routine to handle booking of FSGx banks.
+
+    - FBTRAK.FOR  Completely change method of choosing "best" tracks.  Do
+       by track, not by segment.
+
+    - FCHECK_DL.FOR  New routine to check the number of delay line hits
+       associated with a segment.
+
+    - FDROAD.FOR, FTRAKS.FOR  Remove call to FT2FDCT.  This is now handled
+       in FTTRAK by FTHIRD_LAYER.
+
+    - FLINSG.FOR  Check on number of associated delay line hits.  If there
+       are none, increase the angle tolerances for matching segments.
+
+    - FT4FDCT.FOR  Remove FUSDSG call.  No longer necessary.
+
+    - FTFDCT.FOR  Fix sign of ionization.
+
+    - FTHIRD_LAYER.FOR  New routine to put a third layer on a two layer
+       ladder.
+
+    - FTSGPAR.FOR  Add number of delay line hits to output parameters.
+
+    - FTTRAK.FOR  Try to add third layer to two layer ladder right away.
+
+    - FXTSEG.FOR  Add number of delay lines hits.
+
+    - LDFDCT.FOR  Remove track number incrementing, done already in BKFDCT.
+
+    - LDPSEG.FOR, LDTSEG.FOR  Remove booking of FSGx bank.
+
+    - TCHAIN.FOR  Add number of delay line hits.
+
+
+        !!!!!!!!!! REQUIRES RELEASE OF FDPARA.PARAMS !!!!!!!!!!
+
+
+
+==============================================================================
+
+ 14-JUN-1991 : Modifications released by Jeffrey Bantly
+
+    - FDEXST.FOR fetches hist_cells array from FDC.RCP now
+
+    - FXPSEG.FOR,PXLINK.FOR,PXTREE.FOR,PXCLIMB.FOR,PXCHAIN.FOR,SAVXPCH.FOR
+      have all been renovated a bit to increase speed by making more cuts on
+      both the links in each chain and in the fits to the segment candidates.
+
+    - For future inclusion into PXCHAIN.FOR, I have released in advance
+      FPHXYZ.FOR and FXPCHK_PLANES.FOR which use intersecting planes to
+      determine the Phi cross sector line and segment fit.  this will be used
+      to try to improve poor but not hopeless link-and-tree fitted Phi
+      cross-sector segments.
+
+    - Added FXPVAR(2) to FTRAKS.RCP as the cuts based on a sum of the squares
+      of the residuals to a segment fit for Phi cross-sector segments.
+      Changed TOLSL and DSLMAX also to accept more candidates.  Several good
+      ones were being cut away by unrealistic tolerances.
+
+==============================================================================
+
+ 14-JUN-1991 : Modifications released by Robert E. Avery
+
+    - FTMINI.FOR Several bug fixes, One bug had caused Phi tzero's to get
+      zeroed immediately, the other caused all tzero's to be zeroed
+      after the second call to FTMINI (i.e. analysing two or more runs).
+
+==============================================================================
+
+ 27-JUN-1991 : Modifications released by Robert E. Avery
+
+    - FDGETD.FOR Get delay line lengths from STP file rather than from
+      RCP file. RCP parameters DELLEN and QUADTYP are now obsolete.
+
+    - FTMINI.FOR Only use tzeros for crate 0 in NWA runs, since these are all
+      that are correct.
+
+    - FTRAKS.FOR New RCP parameter MAX_HITS. Track finding is only done if
+      nhits is less than MAX_HITS. This selection can be turned off by
+      setting MAX_HITS=0 (the default).
+      Eliminate INEFF from RCP, use TINEFF instead.
+
+    - FDC_CELL.FOR For Phi cell, Now returns track "Y" position relative
+      to FDC center rather than relative to center of wire.
+
+    - FDCISA.FOR,FSECHT.FOR,FDHITS.FOR,FDGETD.FOR Eliminate the RCP
+      parameters DBGFLG and LVLDBG(10). Replace with logicals,
+      DBG_FDGETD,DBG_FDHITS, and DBG_FDCISA.
+
+
+        !!!!!!!!!! REQUIRES RELEASE OF D0$STP !!!!!!!!!!
+                        (FOR FDGETD MOD.)
+
+==============================================================================
+
+ 28-JUN-1991 : Modifications released by Susan K. Blessing
+
+
+    - Added four floating point words to the FSGx banks for segment fit
+       information (slope, intercept, chisq/dof, ionization/hit) and four
+       spare words.
+
+       BKFSEG.FOR  Book 8 more floating point words
+       GTFSEG.FOR  Return 62 words for segment information
+       LDTSEG.FOR, LDPSEG.FOR  Pass extra words in call and load
+
+       FBESEG.FOR  Return slope and intercept
+       PCHAIN.FOR, PXCHAIN.FOR, TCHAIN.FOR  Add AVE_ION calculation,
+        slope, intercept, chisq/dof to LDxSEG call
+       PRFSGx.FOR  Include extra words in print out
+
+       Since the array returned from GTFSEG is now larger, the following
+       routines were changed:
+        FDC_PWC_HISTS, FDC_SEGMENT, FDC_SEG_XSECT, FDFHST, FDFHST_EXM,
+        FGET_DL_INFO, FMARK_SEGHITS, FOVERLAD, FPMTCH, FPTRAK, FSGXYZ,
+        FTFDCT, FTRESID, FTRHI2, FTTHET
+
+    - FDROAD.FOR  Remove INEFF and use TINEFF instead (duplicated RCP
+       parameter).
+
+    - FTSGPAR.FOR  Clean up a little
+
+    - FXTSEG.FOR  Make MAXCHI an RCP parameter
+
+    - PSEGRD.FOR  Make MAXCHI an RCP parameter.
+       Turn off hits in segments rather than the entire segment after
+       one segment has been loaded. Refit segments with enough hits and
+       try again.
+
+    - SEGFIT.FOR  Make some internal variables into double precision,
+       and some changes to avoid roundoff error.
+       Correct normalization of chisq.
+       Change A and B to SLOPE and INTER to avoid future errors like the
+       one caused by the comments not matching the code.
+
+    - TSEGRD.FOR  Make MAXCHI an RCP parameter.
+       Turn off hits in segments rather than the entire segment after
+       one segment has been loaded. Refit segments with enough hits and
+       try again.
+       If a temporary segment uses all of the hits of a second temporary
+       segment, the second segment has fewer hits, and the second segment
+       has a better chisq, turn off the second segment because it is most
+       likely to be the wrong side combination.
+
+    - FT2FDCT.FOR  Make obsolete.  FTHIRD_LAYER.FOR has taken its place.
+
+    - FTRAKS.RCP  New parameter MAX_HITS.  Track finding is only done if
+       NHITS is less than MAX_HITS. This selection can be turned off by
+       setting MAX_HITS=0 (the default).
+       Remove INEFF, use TINEFF in FTRAKS.FOR, FDROAD.FOR.
+       Change name of default MC STP file because of FDGETD change.
+       Remove QUADTYPE and DELLEN because of FDGETD change.
+       Remove DBGFLG and LVLDGB(10) and put in DBG_FDGETD, DBG_FDHITS,
+       and DBG_FDCISA for easier, clearer debugging.
+       Add MAX_TSEG_CHI, MAX_XTSEG_CHI, MAX_PSEG_CHI, MAX_XPSEG_CHI(2)
+       for maximum values of the chisq/dof for theta segments, cross
+       sector theta segment, phi segments and cross sector phi segments
+       (two fitting methods for cross phi segments).
+       Add MAX_XT_SLOPE for the maximum slope of a cross sector theta
+       segment (helps cut down on junk segments).
+       Remove FXPVAR(2), replaced by MAX_XPSEG_CHI(2).
+       Remove XDIFF, YDIFF, PASST2 - obsolete.
+       Remove BESTTRACK, no longer have a choice, the best is always used.
+
+
+==============================================================================
+
+  1-JUL-1991 : Modifications released by Robert E. Avery
+
+    - FDRIFTDIR.FOR, New routine  replaces DRIDIR.FOR,
+      Actual drift direction in D0 coordinates is found rather than
+      in design coordinates. Argument list of FDRIFTDIR is different
+      from DRIDIR, using HALF,UNIT,QUAD,SECTOR,WIRE rather than IADD.
+      DRIDIR.FOR will be maintained temporarily to allow compatibility
+      with older PIXIE routines.
+
+    - FDRIFTDIR_TABLE.FOR New routine, initialization for FDRIFTDIR.FOR.
+
+    - The following routines that called DRIDIR have been modified
+      to call FDRIFTDIR:
+      FBEAM_CELL, FDC_CELL, FPHXYZ, FSGXYZ, FTFDCT, FTRESID, 
+      FTRKHT, FTRXYZ, FTTHET
+
+
+==============================================================================
+
+  5-JUL-1991 : Modifications released by Jeffrey Bantly
+ 
+    - FTRPAR.FOR modified slightly so that analyzing multiple monte carlo runs
+      in the same analysis run won't cause FTRPAR to return false.
+
+==============================================================================
+
+  7-JUL-1991 : Modifications released by Robert E. Avery
+ 
+    - FDEXST.FOR Fix bug, sector number in no RCP case was wrong.
+
+==============================================================================
+
+  8-AUG-1991 : Modifications released by Robert E. Avery
+ 
+    - FDC_PWC_TRACK - Make compatible with newest release of TB90_UTIL.
+      NPLANES in D0$PARAMS:PWCPAR.DEF has been changed from a parameter
+      to a variable. Use NPWCMX instead (for defining array dimensions).

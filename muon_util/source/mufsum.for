@@ -1,0 +1,34 @@
+      SUBROUTINE MUFSUM(N,X,Z,WPL,SW,SZ,SZ2,SX,SX2,SXZ)
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC 
+C.        FINDS SUMS FOR N POINTS
+C         INPUT PARAMETERS  
+C             N         NUMBER OF MEASURED POINTS   
+C             X,Z       N MEASURED COORDINATE PAIRS 
+C             WPL       N WEIGHTS   
+C   
+C         OUTPUT PARAMETERS 
+C             SW,SZ,SZ2,SX,SX2,SXZ    = SUMS 
+C   DH 5/89
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      IMPLICIT NONE
+      INTEGER N,I
+      REAL SX,SZ,SW,SX2,SXZ,SZ2
+      REAL X(N),Z(N),WPL(N)    
+C   
+      SX = 0.   
+      SZ = 0.   
+      SW = 0.   
+      SX2 = 0.  
+      SXZ = 0.  
+      SZ2 = 0.  
+      DO 10 I = 1,N 
+      IF(Z(I).LT.-9999..OR.X(I).LT.-9999.) GO TO 10
+      SX = SX+X(I)*WPL(I)   
+      SZ = SZ+Z(I)*WPL(I)   
+      SW = SW+WPL(I)    
+      SX2 = SX2+WPL(I)*X(I)**2 
+      SXZ = SXZ+WPL(I)*X(I)*Z(I)  
+      SZ2 = SZ2+WPL(I)*Z(I)**2 
+   10 CONTINUE  
+      RETURN    
+      END   

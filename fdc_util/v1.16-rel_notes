@@ -1,0 +1,185 @@
+==============================================================================
+
+ 14-JUL-1994 : Modifications released by Susan K. Blessing
+ 
+    - FDBHST_EXM.FOR, FDC_AVE_PH.FOR, FDC_EXM_PROC_MENU.FOR,
+       FDC_EXM_SETUP.FOR, FDFHST_EXM.FOR, FDLHST_EXM.FOR
+       Code which has been in use for Examine for six months!
+
+==============================================================================
+
+ 15-JUL-1994 : Modifications released by Robert E. Avery
+
+    - Modifications required for Level 2 hit finding to be used:
+
+      FCHTPT.FOR  Bug fix, old version pointer was off by one.
+        Data with L2 FDC hits can not be reconstructed without this fix!
+      FCHT_EXPAND.FOR  Bug fix, Peak height needs to have bilinear 
+        correction applied
+      FDPULS.FOR Changes made in order to make output from FDPULS
+        as close as possible to identical to Level 2 hitfinding output:
+        1. Using constant cutoffs for maximum drift times (optional, via RCP).
+        2. Truncate the time measurement to only retain the same
+            accuracy as used by the level 2 hitfinding.
+        3. Slightly different treatment of some cases of rounding.
+            This change will only affects very marginal hits.
+      FTRAKS.RCP, FULL_FTRAKS.RCP Increase maximum hits per wire to 20.
+
+
+    - FDROAD.FOR  Small bug fix. In some circumstances (FDROAD being 
+        called without including ZTRAKS or FTRAKS package), the REDOFDC
+        RCP switch did not have the right effect. (Would not affect
+        production version).
+        
+
+==============================================================================
+
+  8-SEP-1994 : Modifications released by Y. C. Liu
+ 
+    - Modifications to speed up FDC reconstruction :
+    
+
+    FDC_EDGE_CHK.FOR - Put GTFALH calls in FIRST loop (always getting the
+     same four numbers).
+
+    FDC_MISS_SEG_CHK.FOR - Put GTFALH and FDC_QUADTYPE callS into 
+     FIRST loop and store as arrays.
+
+    FDROAD.FOR - Call FLFSEC to set ON array of sectors in road.
+
+    FEDGE_TRACKS.FOR - Remove FCHEKL call, duplicate its function here 
+     and check if segment is in road using FSECTOR_IN_ROAD.
+
+    FHITFL.FOR - Add NEW_EVENT to call. 
+
+    FHIT_CHK.FOR - Remove call to FLFSEC (done in FDROAD), replace ON 
+     array with call to FSECTOR_IN_ROAD.
+
+    FIT_SEGTRK.FOR - Call GTFALH in ICALL=1 loop and store information 
+     on wire center locations rather than calling it within the loops.
+     Replace the double precision calculation with a single precision one.
+     Redefine WT_NORM to be 1/WT_NORM.
+     Replace GTFSEG calls with local ZEBRA calls.
+
+    FLFSEC.FOR - Add entry point FSECTOR_IN_ROAD to check the ON array for 
+     a particular sector.  Remove ON from call.  Change to a logical function 
+     so that the entry point can be a logical.
+
+    FLINSG.FOR - Use FSECTOR_IN_ROAD to check if segments are in road 
+     before building ladders.
+     Add check on slope of segments before using them.
+
+    FLINSG_2LAY.FOR - Use FSECTOR_IN_ROAD to check if segments are in 
+     road before building ladders.
+     Add check on slope of segments before using them.
+
+    FOVERLAD.FOR - Use FSECTOR_IN_ROAD to check if segments are in road 
+     before building ladders.
+     Add check on slope of segments before using them.
+
+    FRHITS.FOR - Remove call to FLFSEC (done in FDROAD), replace ON array
+     with call to FSECTOR_IN_ROAD.
+     Add call to EVNTID so that information can be passed to FHITFL.
+
+    FRHITS_GEAN.FOR - Remove call to FLFSEC (done in FDROAD), replace ON 
+     array with call to FSECTOR_IN_ROAD.
+
+    FTFDCT.FOR - Replace GTxxxx calls with local ZEBRA calls.
+
+    FTHIRD_LAYER.FOR - Remove GTFSEG call, replace with LZFIND and direct 
+     access to ZEBCOM.
+     Add check on slope of segments before using them.
+
+    GTFALH.FOR - Store information locally.
+
+    GTFSEG.FOR - Remove UCOPY calls. 
+
+
+    FTRAKS.RCP - Add maximum segment slope parameters THETA_SLOPE_MAX and
+     PHI_SLOPE_MAX - 0.8 for theta, 0.15 for phi.
+
+    FULL_FTRAKS.RCP,COSMIC_FTRAKS.RCP,COSMIC_FULL_FTRAKS.RCP - Add maximum
+     segment slope parameters THETA_SLOPE_MAX and PHI_SLOPE_MAX.  Both
+     set to 10.0 to effectively turn them off.
+
+
+==============================================================================
+
+  9-SEP-1994 : Modifications released by LIU
+ 
+    - Modifications to FHIT_CHK.FOR 
+    FHIT_CHK.FOR - Put FLFSEC call back in to set up ON array, forgot this 
+                   was a stand alone routine. 
+
+==============================================================================
+
+ 28-SEP-1994 : Modifications released by Susan K. Blessing
+
+    FIT_SEGTRK.FOR - Check that PAR(3) is not equal to zero before doing 
+     error calculation.  Probably never came up before because calculation 
+     used to be double precision.
+
+
+==============================================================================
+
+ 31-MAR-1995 : Modifications released by Yi-Cheng Liu
+ 
+    - FCHTPT.FOR  Fix minor compile-time errors on RUNSAV, IDSAV by defining
+                  them before use.
+    - FDC_ENVADJ.FOR  Fix minor compile-time errors on ERR2 by initializing it
+                      at the beginning of normal entry, also get rid of
+                      variables GOODTIME, BADTIME, I, NWORDS which were never
+                      used in this routine.
+    - FHIT_CHK.FOR  Fix minor compile-time errors on RUNSAV, IDSAV by defining
+                    them before use.
+
+==============================================================================
+
+ 28-SEP-1995 : Modifications released by NORMAN A. GRAF
+ 
+    - CORR_HIT_CELL_TYPE.FOR  Used for correcting FDCT dE/dx in DSTFIX
+    - FDC_DSTFIX.FOR          Routine to correct dE/dx on FDCT in DSTFIX
+    - FDC_DSTFIX.RCP          control RCP for FDC corrections in DSTFIX
+
+==============================================================================
+
+ 19-DEC-1995 : Modifications released by Susan K. Blessing
+ 
+    - FDC_HITS.FOR  Move DBL3 initialization to the beginning of the 
+                    routine.  If FDC was not read out on the first event
+                    analyzed, the DBL3 initialization was never called
+                    and default tzeros and velocities were used.
+
+==============================================================================
+
+ 19-DEC-1995 : Modifications released by Brent J. May
+ 
+    - FDC_DSTFIX.FOR  Fix loop over IWIRE from 24,32 to 24,31.  Bug found 
+                      by Herb Greenlee on comparison of VMS and sgi outputs.
+
+==============================================================================
+
+ 21-FEB-1996 : Modifications released by Susan K. Blessing
+ 
+    - FCHT_EXPAND.FOR  -- Kludge fix:
+C Kludge -- at the beginning of run 1c when triggers which do not read
+C out the entire detector were introduced, there was a problem.
+C In Wjj data, which does not read out the FDC, the CDH3 bank can exist
+C with a length of 40,000 words.  These can be all zeros, or some odd
+C pattern of zeros and numbers.  If the FCHT bank does not exist, LFCHT
+C points to CDH3.  Check the length of CDH3 for the problem run range.
+C If it is 40,000, just skip.  I suppose it is possible to lose a real
+C event this way, but can't think of any other straightforward solution.
+C One store was affected.
+C
+
+==============================================================================
+
+ 29-FEB-1996 : Modifications released by Susan K. Blessing
+ 
+    - FCHT_EXPAND.FOR 
+        25-May-1995 C. Klopfenstein made a change to this routine.  It
+        was put into the production area.  It was not put into CMS.  
+        I retrieved the routine from CMS when I modified it.  Now I have
+        put the change of last May into the routine.
+

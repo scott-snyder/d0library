@@ -1,0 +1,93 @@
+c DEC/CMS REPLACEMENT HISTORY, Element SPLINE.FOR
+c *3     5-JUL-1988 13:18:47 HEDIN ""
+c *2    23-MAY-1988 17:43:30 TAMI "Fix bug"
+c *1     9-FEB-1988 19:39:16 HEDIN ""
+c DEC/CMS REPLACEMENT HISTORY, Element SPLINE.FOR
+C DEC/CMS REPLACEMENT HISTORY, Element SPLINE.FOR
+C *1    19-DEC-1986 18:53:10 HEDIN "MUON RANDOM COSMIC TEST VERSION 1"
+C DEC/CMS REPLACEMENT HISTORY, Element SPLINE.FOR
+      SUBROUTINE SPLINE(N,XX,ZZ,XM,ZM,VF,VB,SIGMA)
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+CC    ROUTINE TO FIT TRAJECTORY BENDING IN MAGNET
+CC    SMOOTH TRAJECTORY; STRIGHT LINE OUTSIDE THE FIELD
+CC    PARABOLA INSIDE
+CC    THIS ROUTINE IS APPROPRIATE TO LARGE APERTURE AIRGAP
+CC    MAGNETS AND IS BEING USED AS A TEMPORARY D0 MUON FITTER
+CC
+CC    INPUT: N  - NUMBER OF POINTS
+CC           XX - POINTS IN 'BEND' DIRECTION
+CC           ZZ - POINTS IN 'OTHER' DIRECTION (I.E. TRAVEL)
+CC           ZM - CENTER OF MAGNET
+CC
+CC    OUTPUT XM - FIT POINT AT ZM
+CC           VF - DX/DZ AT Z'S LESS THAN ZM
+CC           VB - DX/DZ AT Z'S MORE THAN ZM
+CC           SIGMA - (CHISQ/(NTOT-3))**2
+CC
+CC    HEDIN 4-29-86
+CC     DH 5/88 CHISQ MIXUP
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      IMPLICIT NONE         
+      REAL ZZ(20),XX(20),XM,ZM,SIGMA,VF,VB,ZLM,S1,SX,SZ,SQ,SXZ,SZZ,
+     A W,SQQ,SZQ,SXQ,X,Z,Q,TS,TZ,TQ,TZQ,SIG,XT,TZZ,TQQ,DET,A1,A2,A3
+      INTEGER N,I 
+      DATA ZLM/5./        
+      W=ZLM/2.    
+C   CONSTRAIN THE TWO TRACKS TO MEET AT THE CENTER      
+C   OF THE MAGNET.   
+      S1=0.       
+      SX=0.       
+      SZ=0.       
+      SQ=0.       
+      SXZ=0.      
+      SZZ=0.      
+      SZQ=0.      
+      SXQ=0.      
+      SQQ=0.      
+      DO 100 I=1,N
+      X=XX(I)     
+      IF(X.LT.-99999.) GO TO 100 
+      S1=S1+1.    
+      Z=ZZ(I)-ZM  
+      Q=W*(2.*ABS(Z)-W)     
+      SZ=SZ+Z     
+      SX=SX+X     
+      SQ=SQ+Q     
+      SZZ=SZZ+Z*Z 
+      SXZ=SXZ+X*Z 
+      SZQ=SZQ+Z*Q 
+      SXQ=SXQ+X*Q 
+      SQQ=SQQ+Q*Q 
+ 100  CONTINUE    
+      IF(S1.LE.4) GO TO 300 
+      TS=SZZ*SQQ-SZQ*SZQ    
+      TZ=SZQ*SQ-SZ*SQQ      
+      TQ=SZ*SZQ-SZZ*SQ      
+      TZZ=S1*SQQ-SQ*SQ      
+      TZQ=SZ*SQ-S1*SZQ      
+      TQQ=S1*SZZ-SZ*SZ      
+      DET=S1*TS+SZ*TZ+SQ*TQ 
+      IF(DET.EQ.0.) GO TO 300         
+      A1=(SX*TS+SXZ*TZ+SXQ*TQ)/DET    
+      A2=(SX*TZ+SXZ*TZZ+SXQ*TZQ)/DET  
+      A3=(SX*TQ+SXZ*TZQ+SXQ*TQQ)/DET  
+      VF=A2-2.*A3*W         
+      VB=A2+2.*A3*W         
+      XM=A1-A3*W*W
+      SIG=0.      
+      DO 200 I=1,N
+      X=XX(I)     
+      IF(X.LT.-99999.) GO TO 200 
+      IF(ZZ(I).LT.ZM) XT=XM+VF*(ZZ(I)-ZM)       
+      IF(ZZ(I).GT.ZM) XT=XM+VB*(ZZ(I)-ZM)       
+      SIG=SIG+(X-XT)**2     
+ 200  CONTINUE    
+      SIGMA=SQRT(SIG/(S1-3))
+      RETURN      
+ 300  CONTINUE    
+      VF=10000000.
+      VB=VF       
+      XM=VF       
+      SIGMA=-VF   
+      RETURN      
+      END         

@@ -1,0 +1,287 @@
+      SUBROUTINE MUFIT4(N,JJ,Z,D,WT,IS,X1,Z1,SL1,C1)
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+CC     LOOP OVER L/R DRIFT COMBINATIONS; USE OPTIMIZED CALCULATION
+CC     ASSUMES ALL POINTS ARE GOOD. HAS MAXIMUM OF 10 POINTS ON FIT
+CC     MIMIMUM OF 3. IGNORE WEIGHTS FOR NOW THOUGH COMMENT OUT CODE
+CC     DOES CENTRAL. EITHER Z OR D VARIES
+CC     INPUT: N          = NUMBER OF POINTS (GE.3)
+CC            JJ         = NUMBER OF TIMES (1 OR 2)
+CC            Z          = POSITION BETWEEN PLANES
+CC            D          = DRIFT DISTANCE+WIRE
+CC            WT         = WEIGHT OF EACH POINT
+CC     OUTPUT: IS        = DRIFT SOLUTION 
+CC             X1        = FITTED POSITION (DRIFT DIRECTION)
+CC             Z1        = CENTER OF GRAVITY BETWEEN PLANES FROM FIT
+CC            SL1        = SLOPE DX/DZ
+CC             C1        = SQRT(CHI**2/(N-2))         
+CC
+CC     INITIAL VERSION D. HEDIN MARCH 3, 1993
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      IMPLICIT NONE
+      INTEGER N,NFIT,I
+      PARAMETER (NFIT=12)
+      REAL X1,Z1,SL1,C1,ZQ,FACTOR
+      REAL WT(NFIT),Z(12,NFIT),X(NFIT),D(12,NFIT)
+      REAL*8 ZQB(NFIT),SWB(NFIT)
+      REAL X0A,SLA,ZA,CHIMX,CHI,VXG,VSL,Y(NFIT)
+      REAL*8 SW,SX,SZ,SX2,SZ2,SXZ,SX4,SX5,SX6,SX7,SX8,SX9,SX10,
+     A SX24,SX25,SX26,SX27,SX28,SX29,SX210,SXZ4,SXZ5,SXZ6,SXZ7,
+     A SXZ8,SXZ9,SXZ10,SXZ11,SXZ12,SX11,SX12,SX211,SX212
+      REAL*8 SZ4,SZ5,SZ6,SZ7,SZ8,SZ9,SZ10,
+     A SZ24,SZ25,SZ26,SZ27,SZ28,SZ29,SZ210,SZ11,SZ12,SZ211,SZ212
+      INTEGER JJ(NFIT),IS(NFIT)
+      INTEGER I1,I2,I3,I4,I5,I6,I7,I8,I9,I10,I11,I12
+      PARAMETER (FACTOR=2.0)
+C
+C
+      DO I=1,N
+        IS(I)=0
+      ENDDO
+      IF(N.LE.2.OR.N.GT.NFIT) THEN   ! TOO FEW OR TOO MANY POINTS
+        C1=-1.
+        SL1=10000.
+        Z1=-100000.
+        X1=-999999.
+        RETURN
+      ENDIF
+C
+      SW=0.
+      SZ=0.
+      SZ2=0.
+      DO I=1,N
+        SW=SW+1./WT(I)**2
+        SWB(I)=SW
+      ENDDO
+C    LOOP OVER ALL DRIFT SOLUTIONS
+C
+C     J is for number of solutions in that plane
+C
+      CHIMX=100000.
+C
+      DO 302 I1=1,JJ(1)
+      X(1)= D(I1,1)
+      Y(1)= Z(I1,1)
+      DO 301 I2=1,JJ(2)
+      X(2)= D(I2,2)
+      Y(2)= Z(I2,2)
+      DO 3 I3=1,JJ(3)
+      X(3)= D(I3,3)
+      Y(3)= Z(I3,3)
+C
+      SX=X(1)/WT(1)**2+X(2)/WT(2)**2+X(3)/WT(3)**2
+      SX2=X(1)**2/WT(1)**2+X(2)**2/WT(2)**2+X(3)**2/WT(3)**2
+      SZ=Y(1)/WT(1)**2+Y(2)/WT(2)**2+Y(3)/WT(3)**2
+      SZ2=Y(1)**2/WT(1)**2+Y(2)**2/WT(2)**2+Y(3)**2/WT(3)**2
+      SXZ=X(1)*Y(1)/WT(1)**2+X(2)*Y(2)/WT(2)**2+X(3)*Y(3)/WT(3)**2
+      ZQ=SZ2-SZ**2/SWB(3)
+C      SX=X(1)+X(2)+X(3)
+C      SX2=X(1)**2+X(2)**2+X(3)**2 
+C      SXZ=X(1)*Y(1)+X(2)*Y(2)+X(3)*Y(3) 
+C
+       CHI=SX2-SX**2/SWB(3)-(SXZ-SX*SZ/SWB(3))**2/ZQ
+      DO 202 I4=1,JJ(4)
+      IF(N.GE.4) THEN
+        X(4)= D(I4,4)
+      Y(4)= Z(I4,4)
+        SX4=SX+X(4)/WT(4)**2
+        SX24=SX2+X(4)**2/WT(4)**2
+        SZ4=SZ+Y(4)/WT(4)**2
+        SZ24=SZ2+Y(4)**2/WT(4)**2
+        SXZ4=SXZ+X(4)*Y(4)/WT(4)**2
+      ZQ=SZ24-SZ4**2/SWB(4)
+C        SX4=SX+X(4) 
+C        SX24=SX2+X(4)**2 
+C        SXZ4=SXZ+X(4)*Y(4) 
+        CHI=(SX24-SX4**2/SWB(4)-(SXZ4-SX4*SZ4/SWB(4))**2/ZQ)/2.
+        IF(CHI.GT.FACTOR*CHIMX) GO TO 202
+      ENDIF
+      DO 2 I5=1,JJ(5)
+      IF(N.GE.5) THEN
+      X(5)= D(I5,5)
+      Y(5)= Z(I5,5)
+C        SX5=SX4+X(5)/WT(5)**2
+C        SX25=SX24+X(5)**2/WT(5)**2
+C        SXZ5=SXZ4+X(5)*Z(5)/WT(5)**2
+        SX5=SX4+X(5) 
+        SX25=SX24+X(5)**2 
+        SZ5=SZ4+Y(5) 
+        SZ25=SZ24+Y(5)**2 
+        SXZ5=SXZ4+X(5)*Y(5) 
+      ZQ=SZ25-SZ5**2/SWB(5)
+        CHI=(SX25-SX5**2/SWB(5)-(SXZ5-SX5*SZ5/SWB(5))**2/ZQ)/3.
+        IF(CHI.GT.FACTOR*CHIMX) GO TO 2
+      ENDIF
+      DO 102 I6=1,JJ(6)
+      IF(N.GE.6) THEN
+      X(6)= D(I6,6)
+      Y(6)= Z(I6,6)
+C        SX6=SX5+X(6)/WT(6)**2
+C        SX26=SX25+X(6)**2/WT(6)**2
+C        SXZ6=SXZ5+X(6)*Z(6)/WT(6)**2
+        SX6=SX5+X(6) 
+        SX26=SX25+X(6)**2 
+        SZ6=SZ5+Y(6) 
+        SZ26=SZ25+Y(6)**2 
+        SXZ6=SXZ5+X(6)*Y(6) 
+      ZQ=SZ26-SZ6**2/SWB(6)
+        CHI=(SX26-SX6**2/SWB(6)-(SXZ6-SX6*SZ6/SWB(6))**2/ZQ)/4.
+        IF(CHI.GT.FACTOR*CHIMX) GO TO 102
+      ENDIF
+      DO 1 I7=1,JJ(7) 
+      IF(N.GE.7) THEN
+      X(7)= D(I7,7)
+      Y(7)= Z(I7,7)
+C        SX7=SX6+X(7)/WT(7)**2
+C        SX27=SX26+X(7)**2/WT(7)**2
+C        SXZ7=SXZ6+X(7)*Z(7)/WT(7)**2
+        SX7=SX6+X(7) 
+        SX27=SX26+X(7)**2 
+        SZ7=SZ6+Y(7) 
+        SZ27=SZ26+Y(7)**2 
+        SXZ7=SXZ6+X(7)*Y(7) 
+      ZQ=SZ27-SZ7**2/SWB(7)
+        CHI=(SX27-SX7**2/SWB(7)-(SXZ7-SX7*SZ7/SWB(7))**2/ZQ)/5.
+        IF(CHI.GT.FACTOR*CHIMX) GO TO 1
+      ENDIF
+      DO 404 I8=1,JJ(8)
+      IF(N.GE.8) THEN
+      X(8)= D(I8,8)
+      Y(8)= Z(I8,8)
+C        SX8=SX7+X(8)/WT(8)**2
+C        SX28=SX27+X(8)**2/WT(8)**2
+C        SXZ8=SXZ7+X(8)*Z(8)/WT(8)**2
+        SX8=SX7+X(8) 
+        SX28=SX27+X(8)**2 
+        SZ8=SZ7+Y(8) 
+        SZ28=SZ27+Y(8)**2 
+        SXZ8=SXZ7+X(8)*Y(8) 
+      ZQ=SZ28-SZ8**2/SWB(8)
+        CHI=(SX28-SX8**2/SWB(8)-(SXZ8-SX8*SZ8/SWB(8))**2/ZQ)/6.
+        IF(CHI.GT.FACTOR*CHIMX) GO TO 404
+      ENDIF
+      DO 403 I9=1,JJ(9)
+      IF(N.GE.9) THEN
+      X(9)= D(I9,9)
+      Y(9)= Z(I9,9)
+C        SX9=SX8+X(9)/WT(9)**2
+C        SX29=SX28+X(9)**2/WT(9)**2
+C        SXZ9=SXZ8+X(9)*Z(9)/WT(9)**2
+        SX9=SX8+X(9) 
+        SX29=SX28+X(9)**2 
+        SZ9=SZ8+Y(9) 
+        SZ29=SZ28+Y(9)**2 
+        SXZ9=SXZ8+X(9)*Y(9) 
+      ZQ=SZ29-SZ9**2/SWB(9)
+        CHI=(SX29-SX9**2/SWB(9)-(SXZ9-SX9*SZ9/SWB(9))**2/ZQ)/7.
+        IF(CHI.GT.FACTOR*CHIMX) GO TO 403
+      ENDIF
+      DO 402 I10=1,JJ(10)
+C      IF(N.GE.10)  SX10=SX9+X(10)/WT(10)**2
+C      IF(N.GE.10)  SX210=SX29+X(10)**2/WT(10)**2
+C      IF(N.GE.10)  SXZ10=SXZ9+X(10)*Z(10)/WT(10)**2
+      IF(N.GE.10) THEN
+      X(10)= D(I10,10)
+      Y(10)= Z(I10,10)
+        SX10=SX9+X(10) 
+        SX210=SX29+X(10)**2 
+        SZ10=SZ9+Y(10) 
+        SZ210=SZ29+Y(10)**2 
+        SXZ10=SXZ9+X(10)*Y(10)
+      ZQ=SZ210-SZ10**2/SWB(10)
+        CHI=(SX210-SX10**2/SWB(10)-(SXZ10-SX10*SZ10/SWB(10))**2
+     A  /ZQ)/8.
+        IF(CHI.GT.FACTOR*CHIMX) GO TO 402
+      ENDIF 
+      DO 401 I11=1,JJ(11)
+C      IF(N.GE.11)  SX11=SX10+X(11)/WT(11)**2
+C      IF(N.GE.11)  SX211=SX210+X(11)**2/WT(11)**2
+C      IF(N.GE.11)  SXZ11=SXZ10+X(11)*Z(11)/WT(11)**2
+      IF(N.GE.11) THEN
+      X(11)= D(I11,11)
+      Y(11)= Z(I11,11)
+        SX11=SX10+X(11) 
+        SX211=SX210+X(11)**2 
+        SZ11=SZ10+Y(11) 
+        SZ211=SZ210+Y(11)**2 
+        SXZ11=SXZ10+X(11)*Y(11)
+      ZQ=SZ211-SZ11**2/SWB(11)
+        CHI=(SX211-SX11**2/SWB(11)-(SXZ11-SX11*SZ11/SWB(11))**2
+     A  /ZQ)/9.
+        IF(CHI.GT.FACTOR*CHIMX) GO TO 401
+      ENDIF 
+      DO 4 I12=1,JJ(12)
+C      IF(N.GE.12)  SX12=SX11+X(12)/WT(12)**2
+C      IF(N.GE.12)  SX212=SX211+X(12)**2/WT(12)**2
+C      IF(N.GE.12)  SXZ12=SXZ11+X(12)*Z(12)/WT(12)**2
+      IF(N.GE.12) THEN
+      X(12)= D(I12,12)
+      Y(12)= Z(I12,12)
+        SX12=SX11+X(12) 
+        SX212=SX211+X(12)**2 
+        SZ12=SZ11+Y(12) 
+        SZ212=SZ211+Y(12)**2 
+        SXZ12=SXZ11+X(12)*Y(12)
+      ZQ=SZ212-SZ12**2/SWB(12)
+        CHI=(SX212-SX12**2/SWB(12)-(SXZ12-SX12*SZ12/SWB(12))**2
+     A  /ZQ)/10.
+        IF(CHI.GT.FACTOR*CHIMX) GO TO 4
+      ENDIF 
+C
+C
+C       IF(CHI.LT.0.) GO TO 4
+       IF(CHI.GT.CHIMX) GO TO 4
+      IF(N.EQ.3) THEN
+       CALL MUSLN(SW,SX,SZ,SX2,SZ2,SXZ,X0A,ZA,SLA,VXG,VSL,CHI)
+      ELSE IF(N.EQ.4) THEN
+       CALL MUSLN(SW,SX4,SZ4,SX24,SZ24,SXZ4,X0A,ZA,SLA,VXG,VSL,CHI)
+      ELSE IF(N.EQ.5) THEN
+       CALL MUSLN(SW,SX5,SZ5,SX25,SZ25,SXZ5,X0A,ZA,SLA,VXG,VSL,CHI)
+      ELSE IF(N.EQ.6) THEN
+       CALL MUSLN(SW,SX6,SZ6,SX26,SZ26,SXZ6,X0A,ZA,SLA,VXG,VSL,CHI)
+      ELSE IF(N.EQ.7) THEN
+       CALL MUSLN(SW,SX7,SZ7,SX27,SZ27,SXZ7,X0A,ZA,SLA,VXG,VSL,CHI)
+      ELSE IF(N.EQ.8) THEN
+       CALL MUSLN(SW,SX8,SZ8,SX28,SZ28,SXZ8,X0A,ZA,SLA,VXG,VSL,CHI)
+      ELSE IF(N.EQ.9) THEN
+       CALL MUSLN(SW,SX9,SZ9,SX29,SZ29,SXZ9,X0A,ZA,SLA,VXG,VSL,CHI)
+      ELSE IF(N.EQ.10) THEN
+       CALL MUSLN(SW,SX10,SZ10,SX210,SZ210,SXZ10,X0A,ZA,SLA,VXG,VSL,CHI)
+      ELSE IF(N.EQ.11) THEN
+       CALL MUSLN(SW,SX11,SZ11,SX211,SZ211,SXZ11,X0A,ZA,SLA,VXG,VSL,CHI)
+      ELSE IF(N.EQ.12) THEN
+       CALL MUSLN(SW,SX12,SZ12,SX212,SZ212,SXZ12,X0A,ZA,SLA,VXG,VSL,CHI)
+      ENDIF
+        CHIMX=CHI/(N-2.)
+        C1=CHI/(N-2.)
+        X1=X0A
+        Z1=ZA
+        SL1=SLA
+        IS(1)=I1
+        IS(2)=I2
+        IS(3)=I3
+        IS(4)=I4
+        IS(5)=I5
+        IS(6)=I6
+        IS(7)=I7
+        IS(8)=I8
+        IS(9)=I9
+        IS(10)=I10
+        IS(11)=I11
+        IS(12)=I12
+4     CONTINUE
+401   CONTINUE
+402   CONTINUE
+403   CONTINUE
+404   CONTINUE
+1     CONTINUE
+102   CONTINUE
+2     CONTINUE
+202   CONTINUE
+3     CONTINUE
+301   CONTINUE
+302   CONTINUE
+      IF(C1.LT.0.) C1=0.
+      C1=SQRT(C1)
+C
+  999 RETURN
+      END

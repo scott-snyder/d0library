@@ -1,0 +1,217 @@
+ 10-JUL-1992 : Modifications released by Robert E. Avery
+
+    - FTRK_QUALITY.FOR (new routine), FMARK_TRKHITS.FOR (modified):
+        FTRK_QUALITY a function that returns a status word that
+        has bits set depending on the quality of a track.
+        The bits are currently defined as:
+                        bit  2: Layer 0 missing
+                        bit  3: Layer 1 missing
+                        bit  4: Layer 2 missing
+                        bit  5: Layer 0 Sector crowded (ave hits/wire > 4.)
+                        bit  6: Layer 1 Sector crowded
+                        bit  7: Layer 2 Sector crowded
+                        bit  8: Layer 0 segment used twice
+                        bit  9: Layer 1 segment used twice
+                        bit 10: Layer 2 segment used twice
+                        bit 11: Layer 0 segment is X-sector
+                        bit 12: Layer 1 segment is X-sector
+                        bit 13: Layer 2 segment is X-sector
+                        bit 14: Layer 0 segment Has large slope ( > 1.0 )
+                        bit 15: Layer 1 segment Has large slope
+                        bit 16: Layer 2 segment Has large slope
+                        bit 17: Track doesn't point to beam line (del phi>0.1)
+                        bit 18: Track impact parameter large (r_impact >3.0 cm)
+                        bit 19: Track doesn't point to vertex (del_z >10. cm)
+
+        The +1 word in the FDCT bank is now "or"ed with this status word,
+        so that this information will be available at the STA and DST level.
+
+    - FDC_ERROR_NHIT.FOR (new), 
+      FXTSEG.FOR,PSEGRD.FOR,PXCHAIN.FOR,TSEGRD.FOR (modified)
+        Position errors are now dependent on the average number of 
+        hits per wire. These errors are determined by the RCP parameters,
+        ERR_NHIT_THETA and ERR_NHIT_PHI. The error is increased by the
+        factor, ( 1. + <number hits per wire> * ERR_NHIT_XXX )
+
+    - FTRAKS.RCP  The above parameters are included, and the errors
+        adjusted to agree with those determined from collider data.
+
+
+==============================================================================
+
+ 23-JUL-1992 : Modifications released by Susan K. Blessing
+ 
+    - PWCCHK.FOR  Check value of USUNIT before writing to it.  (Not used
+       in reconstruction, so doesn't really matter.)
+
+    - FDFADC.FOR  Stop doubling DL FADC values.
+
+    - FDPULS.FOR  Use separate threshold multipliers for delay lines 
+       rather than double delay line FADC values in FDFADC.
+
+    - FIT_SEG_TRK.FOR  QTRAK(23) and (24) (errors on theta and phi) must 
+       be filled in for FDC_MISS_SEG_CHK.
+
+    - FDC_MISS_SEG_CHK.FOR  The errors on theta and phi were not being 
+       calculated in FIT_SEGTRK, so the new roads weren't related to 
+       anything for two layer tracks.  One layer tracks were okay.
+       The roads are now very large, so remove the factor of 2.
+
+    - FDPULS.FOR, FXTSEG.FOR, GTFPHT.FOR, GTFTHT.FOR, PHITAC.FOR, THITAC.FOR
+      Use new RCP parameter HITS_PER_WIRE to control how many hits/wire are
+      allowed.  Requires release of FDPARA.PARAMS.
+
+    - FTRAKS.RCP, COSMIC_FTRAKS.RCP, MC_FTRAKS.RCP  Add separate threshold
+       multipliers for DL hitfinding.  Use new values for ERR_COEF_THETA
+       and ERR_COEF_PHI for collider data.  Add new parameters to increase
+       errors depending on the number of hits on a wire.
+       New parameter HITS_PER_WIRE.
+
+
+
+==============================================================================
+
+ 24-JUL-1992 : Modifications released by Qizhong Li-Demarteau
+ 
+    - FDROAD: added an argument in the call to NFROAD
+
+
+==============================================================================
+
+ 27-JUL-1992 : Modifications released by Qizhong Li-Demarteau
+ 
+    - The following routines are modified by M. Diesburg for compatibility
+      with IBM machines:
+
+        FDEDX.FOR   (There was a CALL to a FUNCTION, fixed now)
+        FMUCHK.FOR
+        FPICHK.FOR
+        FTRHI2.FOR
+        FTRHIS.FOR
+
+
+==============================================================================
+
+ 21-AUG-1992 : Modifications released by Robert E. Avery
+
+    Changes were made to the STP file and to D0GEANT that the MC FDC 
+    geometry more closely resemble actual D0 detector. 
+    The following changes allow FTRAKS (and FDROAD) to recognize the
+    new version of MC, select the appropriate MC STP banks,
+    and analyse either old or new MC data correctly.
+
+    - FDC_MCCHECK.FOR  Check if MC data is old or new version.
+      If old version, then replace new version of STP banks
+      with old version (if they exist in STPFILE). Perform
+      checks that proper STP banks are being used.
+
+    - FTRPAR.FOR, GZFGEH.FOR, GZFALH.FOR  Add call to FDC_MCCHECK
+      in order to select correct STP banks.
+
+    - FDC_QUADTYPE.FOR  Determine whether to use old MC quadtype.
+      Determination is based on rotation number in FGEH bank.
+
+    - FSTAGR.FOR  Determine stagger of wires based entirely on contents of
+      STP banks (including rotation number in FGEH bank).
+      (eliminate use of RUNTYPE, which is not available in D0GEANT).
+
+    - BKSFDC.FOR add another link for new FLIS bank (see STP release notes).
+
+*****************************************************************************
+**************** REQUIRES RELEASE OF D0$LINKS *******************************
+*****************************************************************************
+
+    In addition, these other changes were made to FDC_UTIL:
+
+    - FDC_SHIFT.FOR  Allow for a different amount of shift in z for each wire.
+      A model in which the shift is largest at sense wire 0, and diminishing
+      for increasing wire number can bring track segments into aligment
+      with a much smaller correction thatn was previously used
+      (Maximum is 0.15 cm, as compared to 0.5 cm previously used).
+      New FTRAKS_RCP array SHIFT_Z_WIRE is introduced.
+
+    - FTRAKS.RCP, COSMIC_FTRAKS.RCP  Add array SHIFT_Z_WIRE.
+
+    - PRFDCT.FOR  Write FDC half for each track.
+
+
+==============================================================================
+
+ 21-AUG-1992 : Modifications released by Susan K. Blessing
+ 
+    - GTFPHT.FOR, GTFTHT.FOR  Call EZPICK before EZGET.  Without EZPICK
+       call, the hits were not marked on FADC traces.  No effect on 
+       reconstruction.
+
+    - FDC_MISS_SEG_CHK.FOR Check value of X_DRIFT in loop over LR.  Drift 
+       distance=0 for LR=2 for half cells!
+
+    - GZFASE.FOR  Rearrange logic to speed up. 
+
+
+==============================================================================
+
+  9-SEP-1992 : Modifications released by Robert E. Avery
+ 
+    - FDC_MCCHECK.FOR  No longer checks time to determine version number,
+        since time is very machine dependent.
+
+
+==============================================================================
+
+ 10-SEP-1992 : Modifications released by Susan K. Blessing
+ 
+    -PSEGRD.FOR, TSEGRD.FOR  Bug fix.  Subsequent lost hits have to be
+      moved down one place.  Some hits were being used more than once.
+
+
+==============================================================================
+
+ 23-SEP-1992 : Modifications released by Susan K. Blessing
+ 
+    - FTRPAR.FOR  Remove message about reading from DBL3 file.
+
+    - FGNINI.FOR, FPDINI.FOR, FTMINI.FOR  Add message about reading
+       gains/peds/tzeros for first time through.
+
+    - FTRAKS.RCP  Slightly improved hitfinding parameters.  Turn CLOSE_PEAK
+       option on.  Improve Z_SHIFT parameters.  Increase Phi velocity to 40.
+
+
+==============================================================================
+
+ 23-SEP-1992 : Modifications released by Qizhong Li-Demarteau
+ 
+    - GZFDCT: Sandor Feher's fix for ITRACK=0
+
+
+==============================================================================
+
+  1-OCT-1992 : Modifications released by Robert E. Avery
+ 
+    - FDC_MCCHECK.FOR  Bug fix, BYTE paramters weren't being used. 
+
+==============================================================================
+
+ 13-OCT-1992 : Modifications released by Robert E. Avery
+ 
+    - FLFSEC.FOR  Use ZVTX information to determine which cells to read out
+        in road.
+
+==============================================================================
+
+ 15-OCT-1992 : Modifications released by Robert E. Avery
+ 
+    - FDC_MCCHECK.FOR, MC_FTRAKS.RCP   Add RCP parameter that allows
+        the user to choose which STP bank version to use.
+        STP_VERSION  = 0 -> Use flag word in GEAN HSTR bank of
+                            Begin run record to determine version.
+                            This is not reliable for data files
+                            missing the begin run record !!!!!
+                     = 1 -> Use version 1 of MC STP banks.
+                            For data generated BEFORE
+                            STP V1.11_01, 30-SEP-1992 (on FNALD0)
+                     = 2 -> Use version 2 of MC STP banks.
+                            For data generated AFTER
+                            STP V1.11_01, 30-SEP-1992 (on FNALD0)
+                                                                              

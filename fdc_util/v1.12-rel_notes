@@ -1,0 +1,208 @@
+  8-APR-1993 : Modifications released by Robert E. Avery
+ 
+    - FDC_ALIGNCHK.FOR  New routine. Checks that the alignment bank used for
+      reconstruction is consistent with the one currently used.
+      If not, then change.
+      Returns .TRUE. if alignment banks were actually changed, else .FALSE.
+    - FDC_CELL.FOR, FDRIFTDIR.FOR  Include calls to FDC_ALIGNCHK.FOR.
+
+    - FDC_SHIFT.FOR  Make sure shift is only applied once (for this set
+      of banks). Use status bit in FALH to mark as shifted.
+
+    - FDPULS.FOR, and new routine, FDRISE_SIGMA.FOR
+      Change calculation of rise time, fall time, width of pulse.
+      Use sigmas and means of FADC differences array.
+
+    - FTWO_CLOSE.FOR  New utility routine. Given pointers to two FDCT tracks,
+      returns points of closest approach on each track. A similar
+      routine exists in CD_UTIL for ZFIT tracks (ZTWO_CLOSE).
+
+    - FGET_ANGLES_CHAMBER.FOR  New utility routine.
+      Given the pointer to a ZTRK bank for an FDC track, and given
+      a vertex number, recomputes the PHI and THETA
+      of the track. The returned value of PHI and THETA are obtained
+      by taking the the point on the FDCT track at Z = center of FDC
+      (about +- 120. cm), and assuming that the track comes from the
+      vertex.
+
+    - FSTP_INSERT.FOR  Fill in KEYS(11) with run number (so ENDTSK can
+      delete).
+
+    - GTFDCT_LINK.FOR  Don't change value of input variable (use a new
+      variable for FDTH bank pointer).
+
+    - FGET_CLOSE.FOR  Use BEAM_POS, but return X,Y in D0 coordinates.
+                                                                              
+
+==============================================================================
+
+ 14-APR-1993 : Modifications released by Robert E. Avery
+ 
+    - FDC_SHIFT.FOR  Make sure that UNIT is explicitly set to LAYER/2.
+      (Since shift is only done for UNIT=0, this bug should not be a problem
+      on VMS, only potentially on UNIX).
+ 
+    - PCHAIN.FOR, TCHAIN.FOR  Fix calls to LDxSEG. Segment errors included
+      in call list. 
+
+
+==============================================================================
+
+ 15-APR-1993 : Modifications released by Susan K. Blessing
+ 
+    - FDPULS.FOR Comment out pulse shape subtraction stuff.  Call to
+       FPULSHP_SUBTR is incorrect.
+
+    - TSEGLT.FOR, TCHAIN.FOR, TLKDEL.FOR, TLINK1.FOR, TLINK2.FOR, TCLIMB.FOR,
+      SAVCHT.FOR, PSEGLT.FOR, PCHAIN.FOR, PLKDEL.FOR, PLINKS.FOR, PCLIMB.FOR,
+      SAVCHP.FOR - Removed from PROD_FULL_D0RECO group.  Link and tree code,
+       not currently used.
+
+
+==============================================================================
+
+ 13-MAY-1993 : Modifications released by Robert E. Avery
+ 
+    - New Routines: FDC_DYNADJ.FOR,FDC_ENVADJ.FOR,FDC_ENVCHK.FOR,
+      FDC_GETLUMLIST.FOR,FDC_LUMADJ.FOR,FDC_RCPADJ.FOR
+      Modified routines: ZFFPSC.FOR,ZFFTSC.FOR,FDROAD.FOR,FTRAKS.FOR
+
+      Implement new time dependent FDC gain corrections.
+        1. Environmental corrections based on P(ATM) and T.
+        2. Luminosity corrections (to correct for sagging wire gain).
+        3. Overall gain adjustments for certain run periods where conditions
+            have changed (in particular, runs 61819-63120, when Alcohol in
+            the South FDC caused dramatic changes in gas gain).
+      These are all global gain corrections, segmented only by
+      Half (North,South), and Chamber type (Theta, Phi). Therefore
+      the 4 constants are stored and updated in the banks FGTH and FGPH.
+      There are quite a few new RCP parameters to control these corrections.
+      They are documented within the FTRAKS.RCP file.
+      These routines are based on similar routines borrowed from VTX_UTIL.
+
+    - New Routine: FDC_DBL3.FOR
+      Modified routines: FTRPAR.FOR, FDBINI.FOR, FDROAD.FOR, FTRAKS.FOR
+      Move the reading of DBL3 from the FTRPAR (begin run) routine to the
+      event processing routines. This way DBL3 is only opened when absolutely
+      necessary.
+
+    - FDROAD.FOR, Modified so that if REDOFDC is false, and FDC banks
+      already existed on the first call for an event, it will NOT drop
+      banks or redo tracking, it will just return the tracks that
+      have already been found. (Should have no affect for official
+      production).
+
+    - FDC_CELL.FOR  Minor bug fix (FDC_ALIGNCHK wasn't getting called on
+      the first call, only affects users running PIXIE w/o FTRAKS).
+
+    - FTRAKS.RCP,MC_FTRAKS.RCP Modify parameters to accommodate above changes.
+
+
+==============================================================================
+
+ 13-MAY-1993 : Modifications released by Susan K. Blessing
+ 
+    - FDGETD.FOR, PRFDTX.FOR, PRPXPA.FOR  Remove PRODUC variable.
+
+    - PRFITR.FOR  Initialize ICALL.
+
+    - FTSGPAR.FOR  Correct calculation of "theta."  Drift distance should 
+       be taken into account.
+
+    - SEGFIT.FOR Add option to calculate residuals.  Default to false.
+
+    - FTRAKS.FOR, FDROAD.FOR  Comment out call to FLINSG. 
+       Interchange call to FOVERLAD and FLINSG_2LAY.  Add AGAIN flag to 
+       FLINSG, FLINSG_2LAY, FOVERLAD to call multiple times if MXTRAK was
+       hit.  Change call to FTTRAK and FEDGE_TRACKS to include road 
+       information.
+
+    - FLINSG.FOR, FLINSG_2LAY.FOR, FOVERLAD.FOR  Add SAME flag to tell 
+       if routine is being called again for the same event and half in
+       case MXTRAK was hit.  
+
+    - FTHIRD_LAYER.FOR  Include a check on the theta slopes if the missing 
+       layer is a theta.  Add SAME flag so that routine can be called more 
+       than once if MXTRAK is hit.
+
+    - FTWO_TO_THREE.FOR  Call FTHIRD_LAYER multiple times if MXTRAK limit 
+       was reached.  Change FTFDCT call for vertex usage.
+
+    - FTFDCT.FOR  Change the flag for fitting with the vertex to an integer
+       which is equal to the id of the vertex to fit with.  0 to fit without
+       a vertex point.  Add correct calculation of number of points used in
+       fit and number of hits on track (take vertex use into account).
+
+    - FEDGE_TRACKS.FOR  Change call to FTFDCT for vertex use flag.  Use
+       vertex number 1 since it is the most likely vertex.
+       Remove calculation of number of points in fit and number of hits on
+       track.  Change call to include road information.  Call FDC_IN_ROAD
+       to check if track is in road before loading.
+
+    - FGETVERT.FOR  New routine to determine which vertex ZVERT belongs to.
+
+    - FITFDC_VERTEX.FOR  Add ZVERT to call to identify which vertex to use.
+       Call FGETVERT.
+
+    - FTTRAK.FOR  Change FTFDCT call for vertex usage (calls with 0 for no
+       vertex fitting).  Remove calculation of number of points used in fit.
+
+    - FDC_IN_ROAD.FOR  New routine to check if an FDC track is in the 
+       road.
+
+    - FSEGW0.FOR  Call FTSGPAR rather than calculating stuff here.  Bug fix.
+
+    - FTRAKS.RCP, MC_FTRAKS.RCP  Add flag for calculating segment residuals
+       (default to FALSE).  Add TOLSLOPE parameter for matching theta segments.
+       Set NALLOW_SEG to 1.  
+
+
+==============================================================================
+
+ 14-MAY-1993 : Modifications released by Robert E. Avery
+ 
+    - PHITAC.FOR,THITAC.FOR  Make maximum hit cutoff controlled by 
+       RCP parameter MAXTIMEFACT rather than hardcoded.
+
+==============================================================================
+
+ 25-MAY-1993 : Modifications released by Susan K. Blessing
+
+    - FTRAKS.RCP, MC_FTRAKS.RCP, COSMIC_FTRAKS.RCP  Accidentally neglected
+       to set CHIMAX=4 in previous release.
+
+    - FDC_IN_ROAD.FOR  Subtract 0.00001 from PI and TWOPI before making
+       comparison for full tracking case.
+
+==============================================================================
+
+ 28-MAY-1993 : Modifications released by Susan K. Blessing
+ 
+    - FDROAD.FOR, FTRAKS.FOR  Add switch to call FLINSG.
+
+    - FTRAKS.RCP, MC_FTRAKS.RCP, COSMIC_FTRAKS.RCP  Add switch to call FLINSG.
+      Turned on.
+
+==============================================================================
+
+  4-JUN-1993 : Modifications released by Susan K. Blessing
+ 
+    - FSTP_INSERT.FOR  Zero JDATE, JTIME, DATTIM
+
+==============================================================================
+
+  7-JUN-1993 : Modifications released by Susan K. Blessing
+ 
+    - FOVERLAD.FOR  Bug fix.  Some stuff wasn't being initialized.
+
+==============================================================================
+
+ 10-JUN-1993 : Modifications released by Susan K. Blessing
+ 
+    - FLINSG_2LAY.FOR  Same bug fix as in FOVERLAD.FOR.
+
+==============================================================================
+
+ 10-JUN-1993 : Modifications released by Robert E. Avery
+ 
+    - FTMINI.FOR  Make error for no good  t0's in crate Fatal (but BYPASSable).

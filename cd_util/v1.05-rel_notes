@@ -1,0 +1,317 @@
+ 26-AUG-1991 : Modifications released by Qizhong Li-Demarteau
+ 
+    - ZTRINI: make sure it is called once only and remove the temporarily
+              booked flags for subdetector's RCP file reading. These flags
+              are booked in each DTRINI, VTRINI and FTRINI now.
+
+    - ZFLZFT: added protection when no hits information are available
+
+
+==============================================================================
+
+  5-SEP-1991 : Modifications released by Qizhong Li-Demarteau
+ 
+    - ZSTCMP: new routine to update the compressed hits banks for a ZTRK
+
+    - ZTRAKS and ZCOSMC: added updating the compressed hits banks with
+                         ZTRK information
+
+    - CVROAD, FVROAD, FCROAD, FFROAD, ZTRCDC, ZTRVTX, ZTRTMP, ZTFLAG and
+      ZDROP_TRACKS: 
+        use bits definition from ZTRAKS.PARAMS instead of from ZTRAKS.RCP 
+        file
+
+    - ZFPARH: clean up by removing unused variables and useless statements 
+              such as:
+                       IF (FIRST) THEN
+                         FIRST=.FALSE.
+                       END IF
+              which didn't do anything.
+              
+  ******** Note: The PARAMS should be released before this release of CD_UTIL
+
+
+==============================================================================
+
+  6-SEP-1991 : Modifications released by Tom Trippe
+ 
+    - BKVERT: added phis and thetas, D0 standards.
+
+    - VEE: added EZRSET, ZIMPACT calls, D0 standards.                    
+
+    - VEES.RCP: added IMPMIN minimum impact parameter.                    
+
+    - VEE3D: added phis, thetas, EZRSET calls.                            
+
+    - VEEFIL: added VEE Status bit 4 to ZTRK, DTRK, FDCT, VTXT. D0 stds. 
+
+    - VEEHIS: added EZRSET call.                                          
+
+==============================================================================
+
+ 20-SEP-1991 : Modifications released by Susan K. Blessing
+ 
+    - Four words were added to the bottom of the FDCT bank.  Two for the 
+       errors on PHI and THETA and two spares.  The changed CD routines
+       are:
+
+       FCROAD.FOR, FVROAD.FOR, FVTRAK.FOR  Use the correct values of 
+        the errors on PHI and THETA for an FDC track.
+       ZTRHIS.FOR  Increase array size for call to GTFDCT
+
+
+      !!!!!!!!!!!!!!!  REQUIRES RELEASE OF FDC_UTIL  !!!!!!!!!!!!!!!  
+
+
+==============================================================================
+
+ 24-SEP-1991 : Modifications released by Susan K. Blessing
+ 
+    - FCROAD.FOR, FVROAD.FOR  My previous versions (from 20-SEP) were
+       based on the official versions, not Qizhong's changes.
+
+
+==============================================================================
+
+ 25-OCT-1991 : Modifications released by Qizhong Li-Demarteau
+ 
+    - BKZTRH: fill the reference link to HSTR bank and fill version #
+    
+    - ZDROP_TRACKS: added switches to allow the drop for each subdetector
+                    separately
+
+    - ZTRKFT: added dE/dx and CDC+FDC fit
+
+    - CVMTCH, FVMTCH, CVRPHI and FVRPHI:  allow crosses X axis matching
+
+    - CVROAD, FVROAD and FCROAD: make sure the match is unique
+
+    - ZTRAKS.RCP: added new parameters
+
+
+==============================================================================
+
+ 28-OCT-1991 : Modifications released by Qizhong Li-Demarteau
+ 
+    - DTRGTM: new routine for TRD to use trigger pulse signal from CDC crate
+
+
+==============================================================================
+
+ 29-OCT-1991 : Modifications released by Susan K. Blessing
+ 
+    - VERTEX_FDC.FOR  Add EZRSETs.
+
+    - ZFDCGZ.FOR, ZFDCHS.FOR - Add EZRSET, remove reference to FDSPEC.INC
+       and replace with ONEZ in the call to ZFDCGZ.
+
+    - ZFDCHT.FOR  Call to FDPULS was changed a while ago and ZFDCHT wasn't 
+       changed.  Remove FMXPUL since MAXPUL is no longer part of the call.  
+       Call to FDGETD changed even longer ago, remove LUNDBG.
+
+       Regarding ZFDCHT and FMXPUL:  The FDC hitfinding has been changed 
+        to do crosstalk corrections.  This requires that all wires in a 
+        sector be unpacked at once.  Obviously, we don't want to do this 
+        if the FDC is being used for fast vertex finding, but it is the
+        current default method.  Since the changes were made, FDC vertex
+        finding hasn't been working at all.  Now it will work, but be slow.
+        We'll work on it.  FMXPUL can't be used with the current hitfinding.
+
+    - ZTRPAR.FOR - Move LOGICAL to declarations, add ().
+
+    - ZFLZFT.FOR - Change the parameter NHIT to 85 (from 65) to allow for 
+       VTX-CDC-FDC tracks.  
+       Change logic for filling HITx arrays to be clearer.
+       Make WIRE1 an integer (called WIREF) and use it in loops over NHIT 
+       to cut down on the number of executions.  Introduce WIREL to reduce
+       number of executions from the upper end of the loop.
+
+    - ZTRKFT.FOR - Make the size of the HITx and Wx arrays a parameter equal 
+       to 85 (up from 65) to allow for fitting of VTX-CDC-FDC tracks.  
+       85 = 24 (VTX) + 28 (CDC) + 32 (FDC) + 1 (Vertex) hits in fit.
+       Change the parameter VNWIRE to 24 (from 28).  It is set to 24 in
+       VTXTHT.
+       Change IF-THEN chain to allow fitting of CDC-FDC tracks (previously, 
+       if there was a CDC-FDC track, only the CDC part was used in the fit).
+       Change IQ(LZFIT+5) to FNHIT from IQ(LFTRK+2) since the delay lines
+       are no longer being included in the ZTRK fit.  (Change in FTRKHT
+       to not use the delay line information since track information is 
+       3 dimensional.)
+
+    - ZTRAKS.FOR - Calculation of NZTR was in the wrong place.
+   
+
+==============================================================================
+
+  1-NOV-1991 : Modifications released by Qizhong Li-Demarteau
+ 
+    - BKVERT: fixed a bug in MZFORM, added a check on LVERH and book
+              linear banks in sequence
+
+    - VEEFIL: changed VEEs bit from IQ(Lxxxx+1) to IQ(Lxxxx)
+
+    - VERTEX: added a statement VERTEX=.FALSE. at the beginning of the routine
+
+
+==============================================================================
+
+  7-NOV-1991 : Modifications released by Daria Zieminska
+ 
+    VEES upgrade: kinematic fit by V.Burtovoy; use of calorimeter energy 
+
+    - ZENERGY: new routine getting track energy from the calorimeter
+    - VEEHIS:  for MC data call VEE_MC
+    - VEE_MC:  new routine comparing vee parameters with Isajet values
+    - VEEFIT:  new routine 
+    - VEE:     store track angles and errors in VEEKIN.INC
+    - VEE3D:   call VEEFIT
+
+    New routines from Vladimir Burtovoy:
+
+    - VKINEMA, VKIN_BOECK, VKIN_DERIV, VKIN_FIT, VKIN_NCFIT, VKIN_TYPE,
+    - VKIN_VAL, MXWRT, PHI_VEE, THETA_VEE, SIGMA_VEE, PVESFL
+    - BKPVES - version updated by V. Burtovoy. Previous version has to be
+      removed from ZEBRA_UTIL.
+
+  8-NOV-1991 : Modifications released by Daria Zieminska
+ 
+    - GTPVES, GZPVES, PRPVES: moved from zebra_util
+
+    !!!!!!!!!  needs release of INC, ZEBRA_UTIL, OFFLINE_UTIL !!!!!!!!!!!!!!!!!
+
+==============================================================================
+
+==============================================================================
+
+ 12-NOV-1991 : Modifications released by Peter M. Grudberg
+ 
+    - VTROAD:  Fix PATH so that the track banks are built under the RCP
+      selected PATH (previously, they were always built under RECO).
+
+==============================================================================
+
+ 12-NOV-1991 : Modifications released by Qizhong Li-Demarteau
+ 
+    - ZSTCMP: Rob Avery updated it for FHIT,
+              Peter Grudberg updated it for VHIT
+
+    - ZVERTX_ACCURATE: added path set
+
+    - VERINI: added call to EZLOC and added calls to DTRINI, FTRINI and
+              VTRINI again, because without them the VERTEX package does
+              not work alone correctly.
+
+    - ZTRINI: added call to EZLOC
+
+    - ZTREVT: added a choice to open the road to full phi and theta
+              (the default value for this is .FALSE.)
+
+    - CVROAD, FVROAD, FCROAD, ZTRCDC, ZTRVTX and FFROAD: added ref. link in
+              VTXT, DTRK and FDCT. (CVROAD, FVROAD and FCROAD are also using
+              a better way to make the match unique.)
+
+    - CVROAD, FVROAD and ZTRVTX: added path set for VTXT, since VTXT can
+              handle different path now. (need the test release of VTX_UTIL)
+
+    - ZTRAKS.RCP: added new parameter
+
+*** note: Need the test release of CDC_UTIL and VTX_UTIL (FDC_UTIL is
+          already test released) 
+
+
+==============================================================================
+
+ 21-NOV-1991 : Modifications released by Daria Zieminska
+ 
+    - VERTEX_VTX: remove MZLINT; remove setting path to RECO explicitly
+
+
+==============================================================================
+
+  2-DEC-1991 : Modifications released by Qizhong Li-Demarteau
+ 
+    - ZTRHIS: added histograms for # wires on CD tracks, subdetector's 
+              theta, phi and dE/dx distributions and added verification 
+              flag check and make sure it is called only once per event
+
+    - VERHIS: added histograms for verification and added the verification 
+              flag check
+
+    - ZTREVT and ZCOSMC: removed the call to ZTRHIS
+
+    - ZCLEAN: added the histograming in the end of event process hook
+
+    - ZTR_SUMMARY and VER_SUMMARY: new routines for the JOB_SUMMARY hook
+
+    - ZVERTX_ACCURATE: do not use CDC edge tracks for vertex finding
+
+    - ZTRAKS.RCP and VERTEX.RCP: added histograms for the verification
+
+    - ZTRAKS.OPT and DEB_ZTRAKS.OPT: removed the objs from the D0$STP library.
+ 
+
+==============================================================================
+
+  3-DEC-1991 : Modifications released by Daria Zieminska
+ 
+    - minor modifications in the VEES package. 
+      Modified files are:
+      VEE,VEES,VEE3D,VEEFIT,VEEHIS,VKINEMA,VEE_MC,VKIN_FIT,VKIN_NCFIT,
+      VKIN_TYPE, PVESFL, VEES.RCP
+
+    - new files for the DILEPTON package:
+      DILEPTON, DILEP_DMP,DILEP_INI, DILEP_PAR, DIMUON, DILEPTON.RCP
+
+    !!!!!!!!!!!  request a release of LINKS !!!!!!!!!!!!!!!!!!!
+
+==============================================================================
+
+  9-DEC-1991 : Modifications released by Daria Zieminska
+ 
+    - GTVERH check link
+    - DIMUON, DILEP_DMP updated; xxPDIL added
+
+==============================================================================
+
+ 14-DEC-1991 : Modifications released by Daria Zieminska
+ 
+    - VEES_CONE new
+    - VEES: call VEES_CONE
+    - VEE:  add arguments (cone for Vee search); cut on track energy
+    - DIMUON.FOR call VEES_CONE
+    - PVESDR new (drop PVES bank if no good hypothesis)
+    - VKIN_NCFIT.FOR call PVESFL
+    - ZENERGY check EL/HAD
+    - VKIN_DERIV, VEE_MC minor changes
+    - VEE2D use RVMIN1, RVMIN2
+    - VKINEMA, VEEHIS, BKPVES, GTPVES, PRPVES, PVESFL new PVES format
+    - VEES.RCP new parameters
+
+==============================================================================
+
+  2-JAN-1992 : Modifications released by Daria Zieminska
+ 
+    - CD_UTIL.RELEASE, VERTEX.RCP, ZTRAKS.RCP - inserted into group
+      PROD_FULL_D0RECO.
+
+==============================================================================
+
+ 15-JAN-1992 : Modifications released by Qizhong Li-Demarteau
+ 
+    - ZTRAKS.OPT and DEB_ZTRAKS.OPT: removed CALIB.OLB and DBL3.OLB from
+                                     the OPT files
+
+
+==============================================================================
+
+ 17-JAN-1992 : Modifications released by Qizhong Li-Demarteau
+ 
+    - ZTR_SUMMARY,VER_SUMMARY and DTRGTM: inserted into PROD_FULL_D0RECO group
+
+
+==============================================================================
+
+ 22-JAN-1992 : Modifications released by Daria Zieminska
+ 
+    - VERHIS: don't skip filling histogram 2 if NVER=0
+

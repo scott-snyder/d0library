@@ -1,0 +1,177 @@
+
+
+
+            MUANLZ.1             MUON ANALYSIS STRUCTURE CHART FOR D0 COSMIC SETUP    DH 11-26-86
+                                                                         As incorporated into MU_EVTMON dh 7-24-87
+                                                                         UPDATED 2-18-88 DH, 8-24-88 DH, 6-22-89 DH
+                                             _______|______              4-23-90 DH, 6-18-90 DH, 9-90 DH, 11-91 DH
+                                             | MUANLZ     |
+                                             | control    |                    all routines in library MUON_UTIL         
+                                             |____________|----------------------------------------------|
+            ---------------------------------|MUHT        |                                              |
+            |                   _____________|____________|   o--> MUHT,MTRH,MUOH,MUOF           --------|-----
+     +------|--------+          | |                | |________________                           |   MUMISS   |
+     |   MUMSET      |          | |             ___|________         |                           |see if miss mod|
+     |returns mod    |          | |             |  GZ****  |     ____|_______                    |---------------|
+     |and quad list  |          | |             |__________|     || BK**** ||                    called from EVENT_EMON
+     |               |          | |  o-> quadrant list. cuts     ||________||
+     +---------------+          | |_________________________                                       ____|________
+                                |                +---------|-----+                                 |  MUPRT    |
+                                |                |    MUTRK2     |                                 |dump banks |
+                                |                |muon tracking  |                                 |___________|
+                                |                |simple fitting |                                      ||||||
+                                |                |      2.       |                                       |
+                                 \_____          +---------------+                                       |
+                                  \  \ \                                                            _____|_______
+                                   \  \ \____                                                       | PR****    |
+                                    \_ \_   |                                                       |print bank |
+                                      |  |  |                                                       |___________|
+                                      |  |  |                      nmusrt,lmuoh o--->               |  ****     |
+                   lmud1,lmuht,lmuof  |  |  |_____________________________________________          |_________ _|
+                         <---o        |  |     lmud1,lmuht,lmuoh,lmuof,module list       |                   | 
+                      ________________|  |_____________  o--->                           |                   |
+                      |                               |                                  |                ___|______ 
+              +----------------+                +-------------------+                +---------------+    | GZ***  | 
+              |    MUSRT1      |                |    MUSRT2         |                |   MUSRT3      |    |________| 
+              |sort  raw data  |                |convert to hits    |                |hits in space  |                             
+              |________________|                |___________________|                |               |                          
+              |MUD1 /MUHT/MUOF |       _________|MUHT/MUOH/MUOF/MUD1|                |      1.       |                        
+-----------   +----------------+       |      | +-------------------+                +---------------+                     
+|MUDCHK   |------|                     |      |              | o raw hit                                       
+|check MUD1 |    |                     |      |              | |        ^rearranged                            
+|----------|     |                     |      |              | v        |  hit                                 
++----------+ +------------+  +-----------+ +-----------+  +-----------+ o                                      
+|MUUWAM    | | MUUSAM     |  | MUGPED    | | MUGTCN    |  | MDTCHK    |                                        
+|unpacks   | |unpacks     |  |gets peds  | |gets times |  |see if good|                                        
+|WAMUS     | |SAMUS crate |  |           | |           |  | rearrange |                                        
++----------+ +------------+  +-----------+ +|----------+  +-----------+                                        
+                              |             |                     |  |                                                       
+                       |------|             |      a,b nhit pads  |  |                                                    
+                +------|----+     +---------|--  *-->  o-->  <--o |  |      o t1,t2,dt1, ^it12                                
+                | GZMPED    |     | GZMDTM    |        ___________|  |_____ | dt2,timadd |                                        
+                |  get ped  |     | get delta |        |                  | v            *                                              
+                |  pointer  |     | T pointer |  +-----------+      +-----------+        ^                                   
+                +-----------+     +-----------+  |  MPADCK   |      | MTCK      |        |ntime12                         
+                                                 | look at   |      | look at   |        o                                
+                                                 | pad hits  |      | time hits |                                         
+                                                 +-----------+      +-----------+                                         
+                                                                Page 2
+
+
+        MUANLZ.1    MUSRT3   Convert from pads and times to points in space
+
+                                            +----------+
+                                            | MUSRT3   |________________________________________________________
+         ___________________________________|__________|__________________________________________             |
+         |            ______________________|  MUOH    |                                         |             |
+         |            |                     +----------+                                         |             |
+module ^ | XYZ cente^ |           _________/        |  \______________                           |             | ^
+plane  | | wire leng| | wirelengo |                   ____           | ^                         | ^           | |x1,x2
+wire   o | orientat o | timediff| |                      | o iorent  | | distance                | | gain      | o
+       o |  module  o |         v |                      | | xyz,xtdv| o                         | o           | o
+address| |  plane   | |         ^ |                      | v wireleng| o time                    | o mod       | |pad1,pad2
+       v |  wire    v |  xtdiv  | |                      | ^         | | angle                   | | plane     | v
+         |            |         o |                      | | time    | v                         |             |         
+         |            |           |                      | o correct |                           |             |
+         |            |           |                      |           |                           |             |
+   +----------+ +----------+ +----------+              +----------+ +----------+              +----------+ +----------+
+   |  MUADD   | | MUGEOM   | |  MUTDV   |              | MUTCOR   | | MUDRFT   |              |  MUGGAN  | | MUVERN   |
+   |unpack    | | get      | | do time  |              | do TOF   | | time to  |              | get gain | |determine |
+   |   address| | geometry | | division |              |correction| | distance |              |          | | vernier  |
+   +----------+ +----------+ +----------+              +----------+ +----------+              +----------+ +----------+
+                    |                                           |                                |
+      o             |                                           | ^vertex                   
+      |  nmod,npl   |                                           | |  XYZ                         |              
+      v  ncl        |                                           | o                                
+                    |                                           |                                |
+^   size,position   |                                           |                           
+|   rot,orient      |                                           |                                |              
+o              +----------+                                    +----------+                   +----------+
+               | MUCELL   |                                    | VERXYZ   |                   |  GZMGAN  |
+               |geom of   |                                    | get      |                   | get gain |  
+               |cell      |                                    |  vertex  |                   |  pointer |
+               +----------+                                    +----------+                   +----------+
+               | MGEH     |
+       --------|__________|-------
+       |          |              | 
+  _____|____  ____|_____    _____|____
+  | GZMGEH |  | GZMGEO |    | VMATR  |
+  |________|  |________|    |rotate  | 
+                            |to lab  |
+                            |________|
+                                                                Page 3
+
+
+ MUANLZ.2   MUTRK1 Simple tracking and fitting       DH 11-25-86  , DH 4-23-90
+                                                                                    |
+                                                                               +-----------+
+                                                                               |  MUTRK2   |
+                                           #hits,xyz hits o--> <--o quad,slopes|           |
+                                            ___________________________________|find 3D    |
+                                            |         _________________________| tracks    |
+                                            |         | <--o#planes,road,minsiz+-----------+
+                                            |         |     #hits/plane XZ hits |         |  o quad, slopes
+                                            |         |        +-------------+  |         |  | x,z,slope of line
+                                            |         |        |             |  |         |  v roads
+                                            |         |   _____|  MUTRK3     |__|         |
+                                            |         |   |    |             |            |
+                      ______________________|         |   |    |  decide     |            |
+      quadrant    o   |               ________________|   |    | best track  |         +--------------------
+      slopea,bc   |   |               |                   |    +-------------+         | MUTHIT            |
+                  v   |             +-----------|  +-----------+                       |puts hits on track |
+                      |             |  PTRAK1   |  |  LINFIT   |     __________________|-------------------|____
+      #hits/plane ^   |             |           |  |           |     |     ____________|MUHT,MUOH          |   | o
+      xyz hits    |   |             | finds 3D  |  | fits line |     |     |  0        +-------------------+   | | time,angle
+                  o   |             |  tracks   |  | (straight)|     |     |  |address   | |   o|^         |   | v
+                      |             +-----------+  +-----------+     |     |  v ^mod     | |mod|||layer    |   | ^
+                      |                                              |     |    |plane   | |   v|o    _____|   | | drift distance
+                  +-----------+                                      |     |    owire  __| |    |     |        | o
+                  |  MUTSET   |                                  ____|___ _|______ ____|__ | ___|____ |  _____________
+                  | puts hits |                                  |GZMUHT| |GZMUOH| |MUADD| | |MULAYR| |  |  MUDRFT   |
+                  | in quad   |                                  |______| |______| |_____| | |______| |  |time to    |
+   _______________|into array |____________________                           quadrant o-> |          |  | distance  |
+   |              +-----------+                   |                           mod <-0 _____|          |  |___________|
+   |o           /           \  o                  |                              _____|_____          |  o         
+   || module   | 0           | | module           | ^                            | MUQUAD  |          |  | quad,#hits,(XYZ,addresses
+   |v          | |address    | v                  | |nhit                        | quadrant|          |  v  pointers,idsol,ipad)ofhits
+   |^          | v ^mod      | ^                  | v                            |_________|      ____|_____________    
+   ||quadrant  |   |plane    | | layer            |                                               |MUTSTR          |    
+   |o          |   owire     | o                  |                                               |stores hits/trac|    
+___|_____ _____|____    _____|___          _______|______                                         |and does quick  |    
+|MUQUAD | |MUADD   |    |MULAYR |          ||  GZERO   ||                                         |fitting         |    
+|quadran| |address |    |layer  |          ||zero array||                                         |________________|    
+|       | |        |    |       |          ||__________||                                               ||              
+|_______| |________|    |_______|                                                                       ||                    
+                                                                                                         |              
+                                                                                                         |              
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                Page 4
+
+
+
+                                                                  ____|_____________                    
+                                               +----------+       |MUTSTR          |        |--------|            
+                                               | MUTHXX   |-------|stores hits/trac|        | MTGOOD |            
+                                               |other quad|       |and does quick  |--------|see if  |                    
+                                               |----------|       |  fitting       |        |good tk |            
+                                                                  |________________|        |--------|            
+       ______________________________________________________________|            |_____________________   
+       |                          |            | <do either> |                     |                   |
+   +---------+              ______|______ _____|___ _________|___            ______|______       ______|______  
+   |MUZBND   |              | MUFTBD    | | LINFIT| | MUFTNB    |            | MUPQCK    |       | MUMUOT    |  
+   | get     |              |fit in bend| | fit in| |fit in non |            |quick      |       |store MUOT |  
+   |bend point              |    view   | |nonbend| |bend view  |            |momentum   |       |    bank   |  
+   |in magnet|              |___________| |________ |___________|            |___________|       |___________|  
+   +---------+              ______|______ ______|----|____|______    ______|____________|______  ______|______  
+                            | MUFIT2    | | MUFSUM| | MUFIT3    |    | MUELOS    || MUBFLD    |  | GZMTRH    |  
+                            |fit segment| | sums  | | it segment|    |energys|oss||gets magnet|  -----------t|  
+                            | in bend   | |_______| |in nonbend |    | field d   || field d   |  | BKMUOT    |  
+                            |___________|           |___________|    |___________||___________|  |___________|  
+                           ______|______           ______|______                                                
+                           | MUSLIN    |           | MUSLIN    |                                                
+                           |calculate  |           |calculate  |                                                
+                           |line fit   |           |line fit   |                                                
+                           |___________|           |___________|                                              
+

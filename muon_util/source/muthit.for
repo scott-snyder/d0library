@@ -1,0 +1,419 @@
+      SUBROUTINE MUTHIT(IQUAD,SLBC,SLA,SLY,SLYA,ZG,XGBC,
+     A  XGA,YG,YGA,ROAD,IOK)
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+CC    PUTS HITS ON A GIVEN TRACK
+CC    LOOKS FOR HITS IN SAME QUADRANT
+CC    PUTS ALL HITS WITHIN SOME ROAD ONTO TRACK
+CC    STARTS WITH SOME INPUT DIRECTION
+CC    THIS ROUTINES CALLS MUTSTR WHICH DOES 'FINAL' FITTING AND
+CC    STORING OF TRACK PARAMETERS IN ZEBRA
+CC
+CC    INPUT: IQUAD  -  QUADRANT
+CC           SLBC,SLA,SLY,SLYA - SLOPE IN BC AND A LAYER AND NONBEND VIEW
+CC           ZG                - CENTERS OF FITS
+CC           XGBC,XGA      - CENTERS OF FITS IN BEND VIEW
+CC           YG,YGA        - CENTER OF FIT IN NONBEND VIEW
+CC           ROAD          - DISTANCE TO LINE IN BEND,NONBEND VIEW
+CC           IOK     =0 THEN no call to MUTSTR made
+CC       D. HEDIN   4-29-86 ,11-86 DH NEW ZEBRA 4 MODULES
+CC       DH  MAKE MORE GENERAL 2-88 ONLY HAS 1,2 ORIENTATION
+CC      DH 5/88 DON'T USE PADS FOR NOW, REQUIRE SOME HITS TO BE ONE BOTH
+CC      VIEWS
+CC      DH 7/88 ALLOW FOR 2 MODULE TRACKING
+CC      DH DONOT USE UNPHYSICSL TIME DIVISION; POSSIBLY SUPERFLUOUS
+CC      DH 8/88 REQUIRE AT LEAST 2 MODULES ON EACH VIEW
+CC      DH PUT VERNIER ON TRACK BUT NOT IN FIT 8/88
+CC      DH 10/88 put in ORENT=3,4 (forward view)
+CC      DH 12/88 SAVE DRIFT DISTANCE
+CC      DH 5/89 SAVE PAD POSITIONS
+CC      DH 10/89 FIX GTSRCP
+CC      DH 12/89 USE ANGLES FOR DRIFT TIME
+CC      DH 3/90 ALLOW LAYER = 4
+CC      DH 4/90 REMOVE FSTMOD,LSTMOD
+CC      DH 5/90 ALLOW 2 MODULE TRACKS
+CC      DH 6/90 CHANGE INPUT
+CC      DH 7/90 allow 1-view hits if deltaT unphysical
+CC      DH 4/91 MINOR BUG IN FIRST
+CC      DH 4/91 change NMAX from 20 to 40
+CC      DH 5/91 MINOR BUG; NESTED DO LOOP
+CC      dh 6/91 hardwire roads for level 2 ease, allow mod in MUDRFT
+CC      dh 10/91 expand roads slightly; allow bad deltaT in central
+CC      dh 2/92 28 words/MUOH hit. use MUROTC
+CC      DH 4/92 fix screwup on handling rotations. 2B*2C if no A
+CC      DH 5/92 fix subtle mistakes in counting number of modules;
+CC              require shared hits in multiple layers
+CC      DH 6/92 be more careful about allowing 2D hits, remove pads
+CC      DH 7/92 clean up mistakes from last release
+CC      DH 9/92 track by octants top/bottom central
+CC      DH 10/92 allow end hits if only on in drift
+CC      DH 11/92 third pass for all layers
+CC  DH 1/93 allow point on 2 tracks if not used in fit; remove crummy tracks
+CC  DH 7/94 allow for missing drift time
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INTEGER NTOT,IQUAD,GZMUHT,GZMUOH,LMUHT,LMUOH,NMUSRT,I,LP,IADD,NMAX
+      PARAMETER (NMAX=40)
+      INTEGER JADD(NMAX),NMOD,NPLN,NWIR,IERR,JQUAD,LAYER,K,NLRBT,NM,
+     A MM(10),IM(10),NTOT2,IPOINT2(NMAX),IDELT2(NMAX),JADD2(NMAX)
+      INTEGER IORENT,MULAYR,MUQUAD2,IPOINT(NMAX),IDELT(NMAX),IPASS,
+     A  II,KK,ISIGN(2),JP,JD,NTIME,IBT,IT,JT,KM,KMOD,IOK,KWIR,KPLN
+      REAL SLBC,SLA,SLY,SLYA,ZG,XGBC,XGA,YG,YGA,XV(2,NMAX),FACTOR(3),
+     A  X(NMAX),Y(NMAX),Z(NMAX),COST,ANGLE,XX,YY,ZZ,ROAD(2),DMIN,TIME,
+     A  MUDRFT,DD,DEL,S,YMIN,XP,YP,XDR(2,NMAX),XV2(2,NMAX),
+     A X2(NMAX),Y2(NMAX),Z2(NMAX),XDR2(2,NMAX),DXX2(NMAX),DYY2(NMAX),
+     A DZZ2(NMAX),XAVE(4),XXXX(4)
+      INTRINSIC ABS,ACOS
+      INTEGER NMODZ,NMODX,MODX,MODZ,IOR,IODD,ILAYR(4),ILBT(4),IFW1,IER
+      REAL TCOR,XTD,WLEN,VECT(3),DX,DY,DZ,XXX,YYY,ZZZ,DXX,DYY,DZZ
+      DATA ISIGN/-1,1/
+      DATA FACTOR/1.,1.5,1./
+CC
+      IOK=0
+      LMUHT=GZMUHT(0)
+      LMUOH=GZMUOH(0)
+      NMUSRT=IQ(LMUHT+2)
+      NM=0
+      DO I=1,10
+        MM(I)=0
+        IM(I)=0
+      ENDDO
+      NTOT=0
+      NTOT2=0
+      DO I=1,4
+        XAVE(I)=0
+        XXXX(I)=10000000.
+        ILBT(I)=0
+        ILAYR(I)=0
+      ENDDO
+      IPASS=1
+101   CONTINUE
+CC   LOOP OVER HITS
+      DO 100 I=1,NMUSRT
+        IF(IPASS.GE.2) THEN    ! SECOND PASS; SEE IF POINT ON TRACK
+          DO K=1,NTOT
+            IF(IPOINT(K).EQ.I) GO TO 100
+          ENDDO
+        ENDIF
+        LP=28*(I-1)+LMUOH
+        IF(IQ(LP+3).GT.0) GO TO 100        ! ALREADY ON A TRACK
+        IADD=IQ(LP+1)       ! WIRE ADDRESS
+        CALL MUADD(IADD,NMOD,NPLN,NWIR,IERR)
+CC   SEE IF IN RIGHT QUADRANT
+        JQUAD=MUQUAD2(NMOD)
+        IF(JQUAD.NE.IQUAD) GO TO 100
+        LAYER=MULAYR(NMOD)
+        IF(IPASS.EQ.2.AND.LAYER.NE.1) GO TO 100
+CC
+        IORENT=IABS(IQ(LP+5))
+        IF(LAYER.EQ.1) THEN      ! A LAYER
+          COST=1./SQRT(1.+SLA**2)
+        ELSE    ! BC LAYER
+          COST=1./SQRT(1.+SLBC**2)
+        ENDIF
+        ANGLE=ACOS(COST)
+CC
+CC    FILL UP ARRAY OF HITS ON TRACK XX=BEND,YY=NONBEND,ZZ=BETWEEN PLANES
+CC
+        IF(IORENT.EQ.1) THEN
+          XX=Q(LP+23)
+          YY=Q(LP+22)
+          ZZ=Q(LP+21)
+        ELSE IF(IORENT.EQ.2) THEN
+          XX=Q(LP+23)
+          YY=Q(LP+21)
+          ZZ=Q(LP+22)
+        ELSE IF(IORENT.EQ.3) THEN
+          XX=Q(LP+21)
+          YY=Q(LP+22)
+          ZZ=Q(LP+23)
+        ELSE IF(IORENT.EQ.4) THEN
+          XX=Q(LP+22)
+          YY=Q(LP+21)
+          ZZ=Q(LP+23)
+        ENDIF
+CC  PROJECT SEGMENT TO THIS CELL
+        IF(LAYER.EQ.1) THEN
+          XP=XGA+SLA*(ZZ-ZG)
+          YP=YGA+SLYA*(ZZ-ZG)
+        ELSE
+          XP=XGBC+SLBC*(ZZ-ZG)
+          YP=YG+SLY*(ZZ-ZG)
+        ENDIF
+CC   SKIP OUT IF 'FAR' AWAY BEFORE DOING ROTATIONS
+        WLEN=Q(LP+24)
+        IF(ABS(YP-YY).GT.WLEN/2.+30.) GO TO 100   ! OUTSIDE CHAMBER
+        IF(IPASS.EQ.1.AND.ABS(XP-XX).GT.30.) GO TO 100   ! 3 CELLS AWAY
+        IF(IPASS.GE.2.AND.JQUAD.GE.5.AND.ABS(XP-XX).GT.30.) GO TO 100
+        IF(IPASS.GE.2.AND.JQUAD.LE.4.AND.ABS(XP-XX).GT.45.) GO TO 100 
+CC    DO ROTATIONS   
+        IF(IORENT.EQ.1) THEN
+          XXX=ZZ
+          YYY=YP
+          ZZZ=XP
+        ELSE IF(IORENT.EQ.2) THEN
+          XXX=YP
+          YYY=ZZ
+          ZZZ=XP
+        ELSE IF(IORENT.EQ.3) THEN
+          XXX=XP
+          YYY=YP
+          ZZZ=ZZ
+        ELSE IF(IORENT.EQ.4) THEN
+          XXX=YP
+          YYY=XP
+          ZZZ=ZZ
+        ENDIF
+        DXX=0.
+        DYY=0.
+        DZZ=0.
+        CALL MUROTC(IADD,XXX,YYY,ZZZ,DX,DY,DZ,IER)
+CCC   ADD ROTATION CORRECTION TO HIT
+        IF(IER.EQ.0) THEN
+          DXX=DX
+          DYY=DY
+          DZZ=DZ
+          IF(IORENT.EQ.1) THEN
+            XX=XX+DZ
+            YY=YY+DY
+            ZZ=ZZ+DX
+          ELSE IF(IORENT.EQ.2) THEN
+            XX=XX+DZ
+            YY=YY+DX
+            ZZ=ZZ+DY
+          ELSE IF(IORENT.EQ.3) THEN
+            XX=XX+DX
+            YY=YY+DY
+            ZZ=ZZ+DZ
+          ELSE IF(IORENT.EQ.4) THEN
+            XX=XX+DY
+            YY=YY+DX
+            ZZ=ZZ+DZ
+          ENDIF
+CC  PROJECT TO THIS CELL
+          IF(LAYER.EQ.1) THEN
+            XP=XGA+SLA*(ZZ-ZG)
+            YP=YGA+SLYA*(ZZ-ZG)
+          ELSE
+            XP=XGBC+SLBC*(ZZ-ZG)
+            YP=YG+SLY*(ZZ-ZG)
+          ENDIF
+        ENDIF
+CC   FING CLOSEST HIT TO TRACK BEND AND NONBEND
+        NTIME=IQ(LP+6)
+C        IF(NTIME.EQ.0) GO TO 100
+CC   SEE IF HIT ON TRACK IN BEND VIEW
+        IT=0
+        DMIN=2.0*ROAD(1)
+        IF(LAYER.EQ.1) DMIN=1.3*DMIN  ! LARGER ROAD IN A
+        DMIN=DMIN*FACTOR(IPASS)     ! INCREASE ROAD SECOND TIME THROUGH
+        VECT(1)=Q(LP+21)
+        VECT(2)=Q(LP+22)
+        VECT(3)=Q(LP+23)
+        XTD=YP-YY              ! TIME DIVISION
+        IOR=IQ(LP+5)           ! ORIENTATION
+        IODD=1                   ! ODD/EVEN CELL
+        IF(MOD(NWIR,2).EQ.0) IODD=0
+        IF(NTIME.GE.1) THEN
+        DO 10 K=1,NTIME
+CCC    REDO DRIFT DISTANCE CALCULATION
+          CALL MUTCOR(IOR,IODD,VECT,XTD,WLEN,TCOR)   ! TIME OF FLIGHT
+          TIME=Q(LP+8+K)-TCOR                ! DRIFT TIME PLUS TOF
+          DD=MUDRFT(TIME,ANGLE,NMOD)          ! DRIFT DISTANCE
+          DO  KK=1,2
+            S=ISIGN(KK)
+            DEL=ABS(XX+S*DD-XP)
+            IF(IPASS.EQ.3) DEL=ABS(XX+S*DD-XXXX(LAYER))
+            IF(DEL.LT.DMIN) THEN
+              Q(LP+14+K)=DD                 ! SAVE NEW POSITION
+              IT=K
+              DMIN=DEL
+            ENDIF
+          ENDDO
+   10   CONTINUE
+        ELSE                 ! NO DRIFT TIMES
+            DEL=ABS(XX-XP)
+            IF(IPASS.EQ.3) DEL=ABS(XX-XXXX(LAYER))
+            IF(DEL.LT.DMIN) THEN
+              IT=3
+              DMIN=DEL
+            ENDIF
+        ENDIF
+CC   SEE IF HIT ON TRACK IN NONBEND VIEW
+CC   FIRST USING TIME DIVISION
+        JT=0
+        DMIN= ROAD(2)
+        IF(LAYER.EQ.1) DMIN=1.3*DMIN
+        IF(NTIME.GE.1) THEN
+        DO 15 K=1,NTIME
+          DD=Q(LP+16+K)                  ! TIME DIVISION
+          IF(ABS(DD).LE.80000.) THEN
+            IF(JT.EQ.0) JT=-1
+            DEL=ABS(YY+DD-YP)
+            IF(DEL.LT.DMIN) THEN
+              JT=K
+              DMIN=DEL
+              YMIN=YY+DD
+            ENDIF
+          ENDIF
+   15   CONTINUE
+       ENDIF
+CC     REQUIRE HIT TO BE ON TRACK IN both VIEWS
+        IF(IT.EQ.0.OR.JT.LE.0) GO TO 200
+        IF(NTOT.GE.NMAX) GO TO 100
+CC   HIT ON TRACK
+        IF(NM.EQ.0) THEN
+          NM=1
+          MM(1)=NMOD
+          IM(1)=1
+        ELSE
+          DO K=1,NM
+            IF(NMOD.EQ.MM(K)) THEN
+              IM(K)=IM(K)+1
+              GO TO 765
+            ENDIF
+          ENDDO
+          NM=NM+1
+          MM(NM)=NMOD
+          IM(NM)=1
+765       CONTINUE
+        ENDIF
+        ILBT(LAYER)=ILBT(LAYER)+1       ! COUNT HITS IN EACH LAYER
+        ILAYR(LAYER)=ILAYR(LAYER)+1       ! COUNT HITS IN EACH LAYER
+        XAVE(LAYER)=XAVE(LAYER)+XX
+        NTOT=NTOT+1
+        JADD(NTOT)=IADD
+        IPOINT(NTOT)=I
+CCC   SAVE ROTATION CORRECTIONS
+        IQ(LP+7)=1
+        Q(LP+26)=DXX
+        Q(LP+27)=DYY
+        Q(LP+28)=DZZ
+        X(NTOT)=XX
+        XDR(1,NTOT)=Q(LP+15)
+        XDR(2,NTOT)=Q(LP+16)
+        IF(NTIME.LE.0) XDR(1,NTOT)=999999.
+        IF(NTIME.LE.1) XDR(2,NTOT)=999999.
+        Y(NTOT)=YMIN
+        IDELT(NTOT)=JT
+        XV(1,NTOT)=Q(LP+19)+YY
+        XV(2,NTOT)=Q(LP+20)+YY    ! NO DELTA REQUIREMENT ON PADS
+        Z(NTOT)=ZZ
+        GO TO 100
+200     CONTINUE
+CCC   HIT ON TRACK ONLY IN BEND VIEW; IN END BC ONLY IF UNPHYSICAL
+        IF(IT.EQ.0) GO TO 100
+c        IF(IQUAD.GE.5.AND.JT.EQ.-1.AND.LAYER.GE.2) GO TO 100      ! END REGIONS
+        IF(NTOT2.GE.NMAX) GO TO 100
+        NTOT2=NTOT2+1
+        JADD2(NTOT2)=IADD
+        IPOINT2(NTOT2)=I
+CCC   SAVE ROTATION CORRECTIONS
+        DXX2(NTOT2)=DXX
+        DYY2(NTOT2)=DYY
+        DZZ2(NTOT2)=DZZ
+        X2(NTOT2)=XX
+        XDR2(1,NTOT2)=Q(LP+15)
+        XDR2(2,NTOT2)=Q(LP+16)
+        IF(NTIME.LE.1) XDR2(2,NTOT2)=999999.
+        IF(NTIME.LE.0) XDR2(1,NTOT2)=999999.
+        Y2(NTOT2)=-9999999.
+        IDELT2(NTOT2)=0
+        XV2(1,NTOT2)=Q(LP+19)+YY
+        XV2(2,NTOT2)=Q(LP+20)+YY    ! NO DELTA REQUIREMENT ON PADS
+        Z2(NTOT2)=ZZ
+  100 CONTINUE
+CC   SEE IF HITS ONLY ON IN BEND SHOULD BE INCLUDED
+      IF(NTOT2.GT.0) THEN
+        DO 109 I=1,NTOT2
+          IF(IPASS.GE.2) THEN    ! SECOND PASS; SEE IF POINT ON TRACK
+            DO K=1,NTOT
+              IF(IPOINT(K).EQ.IPOINT2(I)) GO TO 109
+            ENDDO
+          ENDIF
+          CALL MUADD(JADD2(I),NMOD,NPLN,NWIR,IERR)
+          KM=1             ! NUMBER OF PLANES
+          DO K=1,NTOT2     ! SEE HOW MANY 'BEND ONLY' IN THIS MODULE
+            IF(K.NE.I) THEN
+              CALL MUADD(JADD2(K),KMOD,KPLN,KWIR,IERR)
+              IF(KMOD.EQ.NMOD.AND.KPLN.NE.NPLN) KM=KM+1
+            ENDIF
+          ENDDO
+CCCC   SEE IF A 3D POINT IN THAT MODULE
+          DO K=1,NM
+            IF(MM(K).EQ.NMOD.AND.IM(K).GE.1) GO TO 110
+          ENDDO
+CCC OR FOR CENTRAL, 2 PLANES OR MORE
+C          IF(JQUAD.LE.4.AND.KM.GE.2) GO TO 110
+          IF(KM.GE.2) GO TO 110
+          GO TO 109
+ 110    CONTINUE
+CC  HAVE BEND HIT ONLY 
+        IF(NTOT.EQ.NMAX) GO TO 108
+          NTOT=NTOT+1
+          JADD(NTOT)=JADD2(I)
+          IPOINT(NTOT)=IPOINT2(I)
+          IDELT(NTOT)=IDELT2(I)
+          X(NTOT)=X2(I)
+          Y(NTOT)=Y2(I)
+          Z(NTOT)=Z2(I)
+          XDR(1,NTOT)=XDR2(1,I)
+          XDR(2,NTOT)=XDR2(2,I)
+          XV(1,NTOT)=XV2(1,I)
+          XV(2,NTOT)=XV2(2,I)
+          LP=28*(IPOINT2(I)-1)+LMUOH
+          IQ(LP+7)=1
+          Q(LP+26)=DXX2(I)
+          Q(LP+27)=DYY2(I)
+          Q(LP+28)=DZZ2(I)
+          LAYER=MULAYR(NMOD)
+          ILAYR(LAYER)=ILAYR(LAYER)+1       ! COUNT HITS IN EACH LAYER
+          XAVE(LAYER)=XAVE(LAYER)+X2(I)
+ 109    CONTINUE
+ 108    CONTINUE
+      ENDIF
+      IF(IPASS.EQ.1.AND.ILAYR(1).LE.2) THEN 
+C          ONLY 0,1,2 HITS IN A-LAYERS, DO 2 PASS
+        IPASS=2
+        GO TO 101
+      ENDIF
+      IF(IPASS.LE.2) THEN
+C    LOOK FOR OTHER HITS CENTERED ON THOSE ALREADY FOUND
+        IPASS=3
+        DO I=1,4
+          IF(ILAYR(I).GE.1) XXXX(I)=XAVE(I)/ILAYR(I)
+        ENDDO
+        GO TO 101
+      ENDIF
+CC
+CC   CALL ROUTINE TO DO FINAL FITTING AND STORING IN ZEBRA BANK
+CC
+CC   REQUIRE 3 HITS SHARED IN 2 VIEWS
+CC   WITH AT LEAST 2 LAYERS IN EACH VIEW; THIS IS LOOSER THAN ABOVE
+      IBT=ILBT(1)+ILBT(2)+ILBT(3)+ILBT(4)
+      NLRBT=0
+      IF(ILBT(1).GE.1) NLRBT=NLRBT+1
+      IF(ILBT(2).GE.1) NLRBT=NLRBT+1
+      IF(ILBT(3).GE.1.OR.ILBT(4).GE.1) NLRBT=NLRBT+1
+      IF(NTOT.GE.4.AND.IBT.GE.3.AND.NLRBT.GE.2) THEN
+CCCC   FLAG TYPE OF TRACK
+        IF(ILAYR(2)+ILAYR(3)+ILAYR(4).GE.2) THEN
+          IFW1=0             ! HAS A-B-C  LAYERS
+          IF(ILAYR(1).EQ.0) THEN
+            IFW1=-1       ! NO A LAYER, REQUIRE 2B AND 2C
+            IF(ILAYR(2).GE.2.AND.ILAYR(3).GE.2) IFW1=1
+            IF(ILAYR(2).GE.2.AND.ILAYR(4).GE.2) IFW1=1
+          ENDIF
+          IF(ILAYR(2).EQ.0) IFW1=2       ! NO B LAYER
+          IF(ILAYR(3).EQ.0.AND.ILAYR(4).EQ.0) IFW1=3   ! NO C LAYER
+          IF(ILAYR(1).EQ.0.AND.ILAYR(2).EQ.0) IFW1=4   ! NO A-B LAYER
+          JQUAD=IABS(IQUAD)
+          IF(IFW1.GE.0) THEN
+            CALL MUTSTR(IFW1,JQUAD,NTOT,JADD,IPOINT,IDELT,X,Y,Z,XDR,XV)
+            IOK=1
+          ENDIF
+        ENDIF
+      ENDIF
+CC
+      RETURN
+      END

@@ -1,0 +1,331 @@
+
+
+
+                 MUON RECONSTRUCTION PROGRAM     V 1.1   3/11/92
+                                                         D. Hedin
+
+
+  This note describes the muon reconstruction program. It is meant
+  more as a general discussion of the algorithms used and their
+  performance rather than as a reference guide to the specific
+  routines. Documentation on the ZEBRA banks can be found in
+  D0$ZEB$MUDAT.
+
+  The muon reconstruction (like Gaul) is divided into three parts.
+  The first is hit sorting. This takes the raw data in bank MUD1,
+  loops over it to determine the location of hits in specific muon
+  chambers, and then converts these hits into points in the
+  D0 global coordinate system by, for example, correcting for
+  calibration constants. These hits are then the input to
+  the second stage of the analysis which pattern recognizes that
+  certain groups of hits make up a muon track. A preliminary fit
+  is performed using only the muon chamber hits. The final part
+  of the muon reconstruction takes the muon track and links it
+  with information from the calorimeter and central tracking.
+  With all its possible input information available, a complete
+  fit of the muon is then performed. Note that the first two
+  stages are equivalent to what the muon level 2 filter does.
+  An overall structure chart for the muon reconstruction is in
+  D0$MUON_RECO$STRUC while that for the first two stages is in
+  D0$MUON_UTIL$STRUC. Finally, the muon reconstruction operates
+  on either pp beam interactions or on random cosmics with, currently, an
+  RCP switch set to determine which mode of operation is being
+  used.
+
+                          A. Hit Sorting
+
+  Hit sorting is controlled by MUANLZ. First, a search is
+  done through the raw data bank (MUSRT1) to both determine
+  if something in the data is corrupted and to produce pointers
+  to MUD1 for hits in the SAMUS and WAMUS modules. Completely
+  screwed up events will cause further processing on that event
+  to be skipped. Banks MUHT, MUOF and SAHH have these pointers plus
+  counts on the number of hits.
+
+  Next, MUSRT2 and MUSRT3 convert the raw WAMUS data into points
+  in space usable by the trackfinding (bank MUOH). MUSRT2 loops
+  over a list of chambers (usually all with hits except for level 2
+  applications), corrects for the time and delta time constants,
+  and then uses the pad latch bits and time information to assign
+  the hit to the even or odd cell (or both). Inconsistent data (for
+  example, both cells with pad latches but only a single time) are
+  flagged as described in MUOH.ZEB. A MUD1 hit is required to have at
+  least one latch bit set and a physical drift time for a MUOH hit
+  to be created with two MUOH hits being created when both cells were
+  hit. MUSRT2 then fills the address, flagging word, number of time hits,
+  corrected time and delta time values, and uncorrected pad values for that hit.
+  For odd cells, the address is adjusted and the delta time is flipped. 
+
+                                                                Page 2
+
+
+  MUSRT3 fills the remaining MUOH entries. It first gets geometry values
+  (orientation, wire length and location in the global coordinate system)
+  from MUGEOM. Rotations are ignored at this point. The orientation
+  stored in MUOH is a reduction from the 16 possible values with 1
+  being a central vertical, 2 central horizontal, 3 end vertical,
+  and 4 end horizontal. Positive values of the orientation correspond
+  to having the electronics at the negative end of that chamber (in
+  global coordinates). 
+  MUSRT3 then corrects the pad values for pedestals (currently done
+  in MUSRT2 but will be moved to MUSRT3) and gains and uses MUVERN to
+  determine the two vernier pad solutions at the most negative
+  end of the wire (in global coordinates). MUTDV converts the time division
+  to a distance from the wire center (in global coordinates). Next,
+  time-of-flight corrections are estimated using MUTCOR, and then
+  the corrected drift time is converted to a drift distance (assuming
+  a 90 degree incident angle) using MUDRFT. It should be noted that the
+  drift time saved in MUOH includes only T0 and slope corrections but the
+  drift distance utilizes the best available TOF calculation.
+
+                             B. Trackfinding
+
+  Trackfinding is the process of pattern recognizing that a certain
+  set of hits were all due to the passage of a single track (hopefully
+  a muon) through the muon chambers. We currently assign any hit
+  to only a single track.
+  Muon trackfinding is done by geographic sectors called quadrants. There
+  are 14 quadrants: 1-4 are in the central region, 5-8 WAMUS north,
+  9-12 WAMUS south, 13 SAMUS north, and 14 SAMUS south. For the wide angle
+  regions, they all start with east (vertical) chambers, then top (horizontal),
+  west (vertical), and bottom (horizontal).  The current tracking requires
+  at least two chambers in the same quadrant to be on a track. The
+  tracking is ordered so that WAMUS quadrants are looped over first. If
+  a WAMUS track is found, it is seen if it overlaps with hits in an adjacent
+  WAMUS quadrant. After all WAMUS tracks are found, those at low angles are
+  extended into SAMUS chambers and appropriate hits are assigned to
+  the track. Next, tracks in SAMUS are searched for with those at
+  larger angles extended into WAMUS. The quadrant of a given track is
+  saved in MUOT. It can overlap with up to three quadrants and these
+  are packed modulo 100 in the quadrant word with the ordering being
+  determined by how the track was found ("least significant" found first).
+  The ordering of the search through WAMUS quadrants is set by MUMSET.
+  It currently proceeds by 6,5,7,8,10,9,11,12,1,2,3,4 with this (somewhat
+  obscure) ordering meant to maximize the number of three-chamber tracks
+  found in the first quadrant for mixed quadrant tracks. (Note: MUMSET is
+  also used in level 2 to limit the search region based upon level 1
+  information). 
+
+  Found tracks are stored in the MUOT Zebra banks with information on
+  the hits on the track in banks MHTT (for WAMUS hits) and STTH (for
+  SAMUS hits). The tracking requirements are loose enough at this
+  point to give high efficiency for low momentum muons. This leads to
+  a good fraction of the tracks being due to random hadronic debris.
+  At the tracking stage, a flagging word (described below) gives
+  a good separation between muons and background with a more refined
+  separation available after the complete fit.
+                                                                Page 3
+
+
+
+  After all tracks are found with at least two modules, we should search over
+  the remaining hits not assigned to any track and look for "orphans":
+  those tracks which either hit only a single muon chamber or else two
+  chambers with different orientations. As code for this has yet to be
+  writen, it hasn't been defined how we will handle the different situations.
+
+  B.1 WAMUS Trackfinding
+
+  The wide angle trackfinding starts from a list of hits in a given
+  quadrant. The two solutions of the first drift time are considered
+  as separate "hits". The second time and delta time solutions are
+  ignored at the initial tracking as the second time division is
+  usually either noise or at almost exactly the same point as the
+  first time division. Tracks are then found in 3D using the drift
+  distance and time division points.  A road algorithm is used, allowing
+  only a single hit per plane, with hits being required to be on
+  the line in both views (except for 1 hit/segment which can include a
+  drift time if the time division is unphysical).
+  MUTRK2 controls this search and begins with looking for a BC segment
+  with at least 4 points. If found, a matching A layer segment (with
+  at least 2 points) is searched
+  for. If no BC segment is found, the search starts with looking for
+  an A-layer segment (with 3 points being required though one
+  of these could be the vertex acting as a psuedopoint) and 
+  then extends this into the B or C layer.
+  All segments are required to roughly point at the vertex (within
+  3-5 m, this is coarse due to multiple scattering at low momentum).
+  At each segment search, a list of possible candidates is built up
+  and the best one selected based upon its number of planes, its
+  pointing to the vertex, and its quality of fit (in MUTRK3). There
+  is an attempt to bias the search toward higher momentum tracks
+  which point to the vertex. If a track is found, further analysis
+  described below is performed and the hits are flagged in MUOH
+  as belonging
+  to that track. The search procedure in that quadrant is then repeated
+  looking for up to 6 tracks per quadrant. Up to
+  three passes through a given quadrant are done with the first pass
+  looking for only 3 module (ABC) tracks, the second allowing 2 module
+  tracks, and the third expanding the road search window by 50%.
+
+  Next, hits in the track's quadrant
+  are assigned to the found track. All cells in a given plane
+  within a road value are assigned. At this step, the hit is required
+  to be on the track in both views unless the time division is unphysical.
+  (Note that allowing assigning hits to the track whose time division 
+  position lies outside the road is now being used for central quadrants
+  only.) Also, corrections to the drift distance using improved time-of-flight
+  and the incident angle is done with the new drift distance value stored
+  in MUOH. Rotation corrections are also done with
+  the corrections also stored in MUOH. At this point, a list of hits on
+  tracks with a reasonable resolving of time and pad ambiguities and
+  the tracks angles and intercepts are available. Historically, it was
+  planned on using this to make intermediate cuts in level 2 before
+  proceeding to the initial fit discussed in the next paragraph. However,
+                                                                Page 4
+
+
+  the CPU time efficiency of the initial fit has improved to the point
+  that it now does not dominate the event. This leaves certain redundant
+  calculations in routines such at MUTHIT.
+
+  Fits to the points on the track are performed in order to resolve all
+  the ambiguities (time 1 vs time 2, left vs right drifts, 
+  which pad vernier, and which pad solution). The ambiguity solutions
+  for each WAMUS hit are stored in bank MHTT. Not all hits are used
+  in the fit; those that are will have non-zero values in MHTT as
+  explained in MHTT.ZEB. The fit using the drift distances is done
+  and it (obviously) assumes a bend in the magnet. For three module,
+  ABC tracks, a straight line fit to the BC points is done first,
+  looping over all possible hits and selecting that which gives the
+  best fit. This segment is than extrapolated to the magnet center
+  with this pseudopoint combine with the A-layer points in fitting the
+  segment inside the magnet. Currently, the pseudopoint is given an
+  equal weight to each of the A-layer points. While more than one cell/plane 
+  can be on a track, only one is allowed to be on the fitted line. This
+  is due to the PDT's performance which produces a low probability
+  that two adjacent hits on a track can both be good (they are usually
+  due to either noise or delta-rays). If a cell is determined not to be
+  on the drift view fit, it's corresponding vernier pad is also not
+  used. Three module tracks currently ignore
+  the vertex point. BC-layer tracks use the projection of the BC-segment
+  to the magnet center plus the vertex point to define the segment
+  inside the magnet. AB- or AC-layer tracks use the vertex point
+  plus the A-layer hits to define the inside segment.
+
+  The "non-bend" view assumes a straight line fit 
+  through the magnet with the time division fit used to seed
+  a possible list of vernier pad solutions. A fit is then performed
+  using both pads and time division points (with the time division
+  points having relative weightings somewhat better than their
+  nominal resolution due to their not having ambiguities). Whichever
+  combination of pad solutions minimizes the quality of fit is 
+  assumed to be the correct solution. (Note that it is possible to
+  turn off the pad fit using an RCP parameter. This is probably
+  how level 2 will operate.)  The fit to the muon chamber points is used
+  to give the position of the track at the magnet center and its
+  direction outside the magnet while the inside direction is taken
+  from the line joining the magnet center and the vertex.
+
+  At this point, we have a fitted track using hits in a given quadrant.
+  All of these hits are from chambers with the same orientation, that
+  is, with the chamber's wires running in the same direction. The
+  track is then projected to hits in adjacent quadrants and those that
+  lie within a 3D road of the fitted track are also assigned to the
+  found track. These "mixed orientation" tracks occur in the
+  CF-EF overlap region and in the corners of the ends. The hits are 
+  assigned to the track but they are not included in the fit
+  (nor are the ambiguities of each hit resolved). However, should
+  at least two modules of end chambers in the adjacent quadrant to
+  the original track be determined to be on the track, then the drift
+  times are fit (as the previous paragraph). These tracks will then
+  have the track parameters in both views (XZ,YZ) determined
+                                                                Page 5
+
+
+  using drift times.
+
+  The muon trackfinding also produces (using MUPQCK) a first pass muon 
+  momentum which is stored in bank MUOT. It uses a simple field determination
+  (MUBFLD) plus the angle change to determine the momentum. Energy loss
+  is then added to this with lookup tables which include some angular
+  and momentum dependence (MUELOS). The momentum error saved in MUOT
+  gives the average value for a particular angle and momentum but has
+  no event-by-event value due, for example, to a poorly fit track or missing
+  a muon layer.
+
+  Finally, at the trackfinding stage, a preliminary track quality flag
+  is set (in MUOT again) in routine MTGOOD. It uses the projection of the muon
+  track to the vertex point and the muon quality of fit (in separate views)
+  as the primary separating factors. Angular and momentum dependent
+  values are used for the vertex projection. Also, it is investigated
+  whether a given track projects to a muon chamber but hits from
+  that chamber are not on the track. Flags for missing a-layer chambers
+  and bc-layer chambers are handled separately.
+
+  At some future time, the results and quality of muon tracking will be
+  tabulated plus chapters on: SAMUS tracking, use of calorimeter and
+  central tracking information in defining muons, and the complete muon
+  fitting technique.
+                                                                Page 6
+
+
+                  MUON   MOMENTUM RESOLUTIONS          FEB-24-1992
+
+
+              MUOT OFFLINE            MUOT  L2            PMUO-MUOT
+  --------------------------------------------------------------------------
+                                                    (same as column 1 but
+   VTX res. cm   0.2                  30             with PMUO E loss)
+
+   PDT res. cm   .05                  .5 
+
+   field map      Y                    Y    
+
+   pad fits       Y                    N         
+  --------------------------------------------------------------------------
+  #events       3000                  3000
+  #tracks(2)    2157(14)              2159(14)
+  #good(2)      2076(1)               2059(0)
+  --------------------------------------------------------------------------
+                RMS   Gauss  U/O   | RMS   Gauss U/O
+                                   |
+   all muons   .236    .188  .023  | .33   .27   .20  
+                                   |
+    5-10 deg   .288    .253  .026  | .37   .43   .15
+                                   |
+   10-15 deg   .248    .203  .022  | .35   .30   .36
+                                   |
+   15-35 deg   .190    .154  .013  | .29   .21   .10
+                                   |
+   35-50 deg   .287    .286  .041  | .37    -    .37
+                                   |
+   50-90 deg   .212    .177  .021  | .34   .24   .21
+                                   |
+   ABC tracks  .215    .179  .026  | .31   .22   .09
+                                   |
+   BC tracks   .195    .150  .016  | .32   .25   .17
+                                   |
+   AC tracks   .194    .203  .000  | .34    -    .44
+                                   |
+   AB tracks   .259    .231  .032  | .37    -    .45
+                                   |
+    p=9        .181    .140  .010  | .23   .15   .05 | .184  .143  .010
+                                   |                 |
+    p=20       .223    .180  .020  | .32   .27   .16 | .218  .174  .020
+                                   |                 |
+    p=50       .241    .216  .039  | .42   .49   .34 | .237  .212  .039
+
+  For last 7 rows, angle>15 degrees
+
+  Sigmas of Gaussian fits of delta(1/p)/(1/p). Often non-Gaussian tails,
+  which can be seen in the RMS values. The under/overlow column reflects
+  those not within +-1.
+  3000 single muons, flat eta,phi. p=9,20,50. Theta>15 degrees.
+  ------------------------------------------------------------------------
+                            ENERGY LOSS
+  (Pmc/P - 1)  MUOT: average   mean(Gaussian)    PMUO: average  mean(G)
+                                                                Page 7
+
+
+
+     p=9             .028            .019              .003        .010
+     p=20            .043            .045              .031        .035
+     p=50            .031            .031              .032        .030
+
+  Eloss (MTRG-PMUO)                               PMUO: average    mean(G)
+
+     p=9                                               -.002 GeV   -.10
+     p=20                                               .26        -.12
+     p=50                                               .47        -.07
+    

@@ -1,0 +1,192 @@
+      SUBROUTINE MUMISS(IT,NON,ION,NOFF,IOFF)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : determines module numbers on a given MUOT
+C-            track and also which modules were missed
+C-   Inputs  : IT   -   MUOT track number
+C-   Outputs : NON,NOFF   number chambers on/off track
+C-             ION,IOFF   list of modules on/off track
+C-
+C-   Created  11-OCT-1991   David Hedin: skip SAMUS for now
+C-   Updated  21-JAN-1992   Daria Zieminska  handle WAMUS-SAMUS tracks 
+C-    1/92 DH MINOR FIX (LE.12)
+C     2/92 DH ALLOW FOR DIFFERENT L2 CUTS
+C     7/93 HTD DOESN'T OPERATE ON A-STUBS
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INTEGER LMUOT,GZMUOT,NW,NS,IWADD,MOD,PLN,WIR,IERR
+      INTEGER GZMHTT,LMHTT,K,J,IA,ALIST(28),BLIST(136)
+      INTEGER IT,NON,ION(10),NOFF,IOFF(10),IFW2,QUAD,KMOD,
+     &  KQUAD,I,MUQUAD,FIRST,MUVERT,IER
+      REAL    SPAR(3),XPAR(3),ROTM(3,3)
+      CHARACTER*4 HSHAPE
+      INTEGER NSPAR,NBUF,IBUF(1)
+      REAL XO,YO,ZO,XI,YI,ZI,X,Z
+      REAL XCOSIM,YCOSIM,ZCOSIM,XCOSOM,YCOSOM,ZCOSOM,MOM
+      DATA FIRST/0/
+      DATA ALIST/10,11,12,13,15,16,20,21,22,23,25,26,
+     &           30,31,32,33,35,36,61,62,64,65,67,91,92,94,95,97/
+      DATA BLIST/100,101,102,103,104,105,106,107,110,111,112,113,114,
+     &   115,116,117,120,121,122,123,124,127,130,131,132,133,134,135,
+     &   136,137,140,141,142,143,144,145,146,147,150,153,160,161,162,
+     &   163,164,165,166,167,180,183,190,191,192,193,194,195,196,197,
+     &   200,201,202,203,204,205,206,207,210,211,212,213,214,215,216,
+     &   217,220,221,222,223,224,227,230,231,232,233,234,235,236,237,
+     &   240,241,242,243,244,245,246,247,250,251,253,255,260,261,262,
+     &   263,264,265,266,267,270,271,272,273,274,275,276,277,280,281,
+     &   283,285,290,291,292,293,294,295,296,297,
+     &   300,301,302,303,304,305,306,307/
+C----------------------------------------------------------------------
+      IF(FIRST.EQ.0) THEN
+        FIRST=1
+        CALL EZGET('MUVERT',MUVERT,IER)
+      ENDIF
+      NON=0
+      NOFF=0
+      DO I=1,10
+        ION(I)=0
+        IOFF(I)=0
+      ENDDO
+C
+      LMUOT = GZMUOT(IT)
+      IF(LMUOT.EQ.0) GO TO 999
+      LMHTT = GZMHTT(IT)
+      IF (LMHTT.EQ.0) GO TO 999
+      IF(IQ(LMUOT+4).EQ.5) THEN
+        GOTO 999
+      ENDIF                                !A LAYER STUB
+      NW = IQ(LMUOT+1)
+      NS = IQ(LMUOT+2)
+      QUAD = IQ(LMUOT+3)
+      IFW2 = IQ(LMUOT+5)
+      XI = Q(LMUOT+8)
+      YI = Q(LMUOT+9)
+      ZI = Q(LMUOT+10)
+      XO = Q(LMUOT+11)
+      YO = Q(LMUOT+12)
+      ZO = Q(LMUOT+13)
+      XCOSIM = Q(LMUOT+14)
+      YCOSIM = Q(LMUOT+15)
+      ZCOSIM = Q(LMUOT+16)
+      XCOSOM = Q(LMUOT+17)
+      YCOSOM = Q(LMUOT+18)
+      ZCOSOM = Q(LMUOT+19)
+      MOM    = Q(LMUOT+23)
+CCC  GET LIST OF WAMUS MODULES ON TRACKS
+      IA=0
+      DO I=1,NW
+        IWADD = IQ(LMHTT+1+5*(I-1))
+        CALL MUADD(IWADD,MOD,PLN,WIR,IERR)
+        IF(MOD.LE.99) IA=1              ! A-LAYER ON TRACK
+        IF(NON.EQ.0) THEN
+          NON=1
+          ION(1)=MOD
+        ELSE
+          K=0
+          DO J=1,NON
+            IF(MOD.EQ.ION(J)) K=1
+          ENDDO
+          IF(K.EQ.0) THEN
+            NON=NON+1
+            IF(NON.LE.10) ION(NON)=MOD
+          ENDIF
+        ENDIF
+      ENDDO
+CCCCCCCCCCCCCCCCCC     SEE IF MISSING MODULES ON TRACK
+CCC   SKIP OUT IF UNPHYSICAL
+      X=XCOSIM**2+YCOSIM**2+ZCOSIM**2
+      IF(X.GT.2.) GO TO 999
+      X=XCOSOM**2+YCOSOM**2+ZCOSOM**2
+      IF(X.GT.2.) GO TO 999
+      IF (QUAD.LE.12.AND.NS.GT.0) THEN  ! Wamus BC + Samus A plane 
+        IA=1
+      END IF
+CCC  IN A-LAYER, IF ALREADY HIT THEN NO MISSING
+      IF(IA.EQ.0) THEN          ! MISSING A-LAYER HIT
+        DO 100 I=1,28
+          KMOD=ALIST(I)
+          DO J=1,NON
+            IF(KMOD.EQ.ION(J)) GO TO 100
+          ENDDO
+          KQUAD=MUQUAD(KMOD)
+CCC   SEE IF IN APPROPRIATE QUADRANT
+          IF(QUAD.LE.4.AND.QUAD.NE.KQUAD) GO TO 100
+          IF(QUAD.LE.8.AND.QUAD.GE.5) THEN
+            IF(KQUAD.LE.4.OR.KQUAD.GE.9) GO TO 100
+          ENDIF
+          IF(QUAD.GE.9.AND.KQUAD.LE.8) GO TO 100
+          CALL MUMODU(KMOD,HSHAPE,NSPAR,SPAR,XPAR,ROTM,NBUF,IBUF)
+          IF(KQUAD.EQ.1.OR.KQUAD.EQ.3) THEN
+            X=YI+(XPAR(1)-XI)*YCOSIM/XCOSIM-XPAR(2)    ! ALONG WIRE
+            Z=ZI+(XPAR(1)-XI)*ZCOSIM/XCOSIM-XPAR(3)    ! DRIFT DIRECTION
+          ELSE IF(KQUAD.EQ.2.OR.KQUAD.EQ.4) THEN
+            X=XI+(XPAR(2)-YI)*XCOSIM/YCOSIM-XPAR(1)    ! ALONG WIRE
+            Z=ZI+(XPAR(2)-YI)*ZCOSIM/YCOSIM-XPAR(3)    ! DRIFT DIRECTION
+          ELSE IF(KQUAD.EQ.5.OR.KQUAD.EQ.7.OR.
+     &          KQUAD.EQ.9.OR.KQUAD.EQ.11) THEN
+            X=YI+(XPAR(3)-ZI)*YCOSIM/ZCOSIM-XPAR(2)    ! ALONG WIRE
+            Z=XI+(XPAR(3)-ZI)*XCOSIM/ZCOSIM-XPAR(1)    ! DRIFT DIRECTION
+          ELSE IF(KQUAD.EQ.6.OR.KQUAD.EQ.8.OR.
+     &          KQUAD.EQ.10.OR.KQUAD.EQ.12) THEN
+            X=XI+(XPAR(3)-ZI)*XCOSIM/ZCOSIM-XPAR(1)    ! ALONG WIRE
+            Z=YI+(XPAR(3)-ZI)*YCOSIM/ZCOSIM-XPAR(2)    ! DRIFT DIRECTION
+          ENDIF
+CCCC    SEE IF PROJECTS WITHIN 9 CM BORDER: COULD ADD P-DEPENDENT
+          IF(MUVERT.NE.3) THEN
+            IF(ABS(X).LT.SPAR(3)-9..AND.ABS(Z).LT.SPAR(2)-9.) THEN
+              NOFF=NOFF+1
+              IF(NOFF.LE.10) IOFF(NOFF)=KMOD
+            ENDIF
+          ELSE                     ! LEVEL 2
+            IF(ABS(X).LT.SPAR(3)-30..AND.ABS(Z).LT.SPAR(2)-9.) THEN
+              NOFF=NOFF+1
+              IF(NOFF.LE.10) IOFF(NOFF)=KMOD
+            ENDIF
+          ENDIF
+  100   CONTINUE
+      ENDIF
+CCCCC            DO BC: LOOK FOR MISS EVEN IF HAVE BC ON TRACK
+      DO 200 I=1,136
+        KMOD=BLIST(I)
+        DO J=1,NON
+          IF(KMOD.EQ.ION(J)) GO TO 200
+        ENDDO
+        KQUAD=MUQUAD(KMOD)
+CCC   SEE IF IN APPROPRIATE QUADRANT
+        IF(QUAD.LE.4.AND.QUAD.NE.KQUAD) GO TO 200
+        IF(QUAD.LE.8.AND.QUAD.GE.5) THEN
+          IF(KQUAD.LE.4.OR.KQUAD.GE.9) GO TO 200
+        ENDIF
+        IF(QUAD.GE.9.AND.KQUAD.LE.8) GO TO 200
+        CALL MUMODU(KMOD,HSHAPE,NSPAR,SPAR,XPAR,ROTM,NBUF,IBUF)
+        IF(KQUAD.EQ.1.OR.KQUAD.EQ.3) THEN
+          X=YO+(XPAR(1)-XO)*YCOSOM/XCOSOM-XPAR(2)    ! ALONG WIRE
+          Z=ZO+(XPAR(1)-XO)*ZCOSOM/XCOSOM-XPAR(3)    ! DRIFT DIRECTION
+        ELSE IF(KQUAD.EQ.2.OR.KQUAD.EQ.4) THEN
+          X=XO+(XPAR(2)-YO)*XCOSOM/YCOSOM-XPAR(1)    ! ALONG WIRE
+          Z=ZO+(XPAR(2)-YO)*ZCOSOM/YCOSOM-XPAR(3)    ! DRIFT DIRECTION
+        ELSE IF(KQUAD.EQ.5.OR.KQUAD.EQ.7.OR.
+     &          KQUAD.EQ.9.OR.KQUAD.EQ.11) THEN
+          X=YO+(XPAR(3)-ZO)*YCOSOM/ZCOSOM-XPAR(2)    ! ALONG WIRE
+          Z=XO+(XPAR(3)-ZO)*XCOSOM/ZCOSOM-XPAR(1)    ! DRIFT DIRECTION
+        ELSE IF(KQUAD.EQ.6.OR.KQUAD.EQ.8.OR.
+     &          KQUAD.EQ.10.OR.KQUAD.EQ.12) THEN
+          X=XO+(XPAR(3)-ZO)*XCOSOM/ZCOSOM-XPAR(1)    ! ALONG WIRE
+          Z=YO+(XPAR(3)-ZO)*YCOSOM/ZCOSOM-XPAR(2)    ! DRIFT DIRECTION
+        ENDIF
+CCCC    SEE IF PROJECTS WITHIN 9 CM BORDER: COULD ADD P-DEPENDENT
+        IF(MUVERT.NE.3) THEN
+          IF(ABS(X).LT.SPAR(3)-9..AND.ABS(Z).LT.SPAR(2)-9.) THEN
+            NOFF=NOFF+1
+            IF(NOFF.LE.10) IOFF(NOFF)=KMOD
+          ENDIF
+        ELSE                  ! L2
+          IF(ABS(X).LT.SPAR(3)-30..AND.ABS(Z).LT.SPAR(2)-9.) THEN
+            NOFF=NOFF+1
+            IF(NOFF.LE.10) IOFF(NOFF)=KMOD
+          ENDIF
+        ENDIF
+  200 CONTINUE
+  999 RETURN
+      END

@@ -1,0 +1,58 @@
+
+                                                            scott snyder
+                                                            26-SEP-1995
+
+			 FIX_SHOWERLIB_VERTEX
+
+The purpose of this package is to fix up the vertex information
+for early showerlibrary MC data.
+
+Brief summary:
+
+If you expect to be using showerlibrary MC data for reco 11.19 or earlier
+include this package in your program (after udst unpacking, but before
+any actual analysis).  If the data is showerlibrary, you must also
+set the SHOWERLIB_DATA parameter in FIX_SHOWERLIB_VERTEX_RCP to true.
+For v12 reco or data, it doesn't matter what you set it to.
+
+Longer summary:
+
+Showerlibrary is a problem for vertexing due to the small number
+of tracks contained in the data.  Any VERT banks built by the
+the vertexing algorithms are likely to be crap.  Unfortunately,
+different versions of reco have dealt with this in different
+ways:
+
+  - For RECO <= 11.18, there was no general convention.
+    We leave the VERT bank alone if it exists, otherwise,
+    we make one at z=0.
+
+  - For RECO 11.19, the ISAJET vertex was used by CAHITS,
+    CAPHEL, and MURECO, but it wasn't stored in a VERT bank.
+    We replace any existing VERT bank with one containing
+    the ISAJET vertex.  This won't fix all the problems,
+    since some other parts of reco used the reconstructed VERT
+    information rather than the ISAJET vertex.  C'est la vie.
+
+  - For RECO 12, the ISAJET vertex was used, and it was
+    also put into a VERT bank.  We need do nothing for this case.
+
+A further problem is that we want to do the above actions only
+for showerlibrary Monte Carlo events.  It's easy enough to tell
+if the data is Monte Carlo, but there is no reliable way
+to find out whether or not showerlibrary was used.  So we require
+the user to tell us via a RCP parameter in FIX_SHOWERLIB_VERTEX_RCP.
+The package initialization routine will then set the flag
+FIX_SHLIB_VERTEX based on this parameter.  Other code could also
+in principle set this flag should it think it can do better.
+
+The entry point fix_showerlib_vertex_oldvert gives people a way
+to look at what the primary version was before this package
+screwed with it.
+
+Files:
+
+d0$physics_util$general:fix_showerlib_vertex.for
+d0$physics_util$general:fix_showerlib_vertex_ini.for
+d0$physics_util:fix_showerlib_vertex.rcp
+d0$physics_util:fix_showerlib_vertex.doc

@@ -1,0 +1,204 @@
+
+    FDC_UTIL  Release Notes                     started 23-OCT-1990
+
+===============================================================================
+
+
+==============================================================================
+
+ 29-OCT-1990 : Modifications released by Jeffrey Bantly
+
+    - FTRDMP.FOR set the value of DUNIT to USUNIT() which is WRONG.  Removed
+      the code that caused this to occur.
+
+==============================================================================
+
+  5-NOV-1990 : Modifications released by Susan K. Blessing
+
+    - FPMTCH.FOR, FSGXYZ.FOR, FSTAGR.FOR, FTFDCT.FOR, FTRKHT.FOR, FTRXYZ.FOR,
+      FTTHET.FOR, FXTTRK.FOR, THITAC.FOR, ZFFPSC.FOR, ZFFTSC.FOR
+        Changed the call to FSTAGR so that it includes
+        (HALF,UNIT,QUAD,SECTOR,WIRE) rather than just (UNIT,WIRE).
+        Necessary because HALF=1 is identical to HALF=0 rather than a
+        mirror image as was used for the Monte Carlo.
+        This change was also made in PIXIE routines, so a simultaneous
+        release is required.
+
+==============================================================================
+
+  6-NOV-1990 : Modifications released by Robert E. Avery
+
+    - PSEGRD.FOR, TSEGRD.FOR
+        When the number of possible segments is too large
+        (larger than MAX_COMB, in rcp file), give up for that Cell.
+        Add angle correction for defining road.
+        In PSEGRD, allow smaller road in region near sense wire plane
+        (where ambigueous hits may cause too many combinations).
+    - FDPULS.FOR
+        Add crosstalk correction to FADC data. Adjacent channels
+        contribute to a given channel with a coefficient
+        CROSSTALKT (for theta chamber), or CROSSTALKP (for Phi chamber),
+        both are RCP parameters.
+    -FTFDCT.FOR, FREFIT.FOR (new), Allow possibility to compute
+        full track fit residuals for each hit with that hit left out of
+        fit (as is already possible for segment fit). Controlled
+        by RCP parameter TRKRES. Also, change sign definition
+        of residuals to correspond to that used for segment residuals
+        (residual = measured - fit).
+
+==============================================================================
+
+  7-NOV-1990 : Modifications released by Susan K. Blessing
+
+    - FUNSUP.FOR (new) Unzerosuppresses zero-suppressed data.  This is
+        actually a generic routine but includes FDPARA.PARAMS for the
+        number of FADC bins.  So I put it in FDC_UTIL.
+
+==============================================================================
+
+  8-NOV-1990 : Modifications released by Robert E. Avery
+
+    - FDFHST.FOR,FDBHST.FOR
+        Fix up full track residual histogram so that wire 0 histogram
+        does not include delay line hits. Also change some hist. limits.
+        Fix mistake in computing position of track at chamber.
+    - FDC_PWC_BOOK.FOR,FDC_PWC_HISTS.FOR,FDC_PWC_TRACK.FOR,FDC_SEGMENT.FOR,
+      FDC_CELL.FOR,FBEAM_CELL.FOR 
+        Routines and support routines for using PWC track information
+        from test beam data. FDC_PWC_BOOK, FDC_PWC_HISTS are called
+        from FDFHST,FDBHST (resp.), though the call is currently
+        commented out. These routines require the PWC package from 
+        D0$TB90_UTIL to be linked ahead of the FTRAKS package.
+
+==============================================================================
+
+  9-NOV-1990 : Modifications released by Jeffrey Bantly
+ 
+    - GZFDCH,GZFHLF,GZFDUN,GZFPDA,GZFPSC,GZFTDA,GZFTQD,GZFTSC have the check
+      added that looks for the bank having been dropped.
+
+    - PRFPDA,PRFPSC,PRFTDA,PRFTSC have been altered so that the CFL='ALL', IFL=1
+      option will produce a compact output.
+
+    - FTRAKS,FT2FDCT,F2CLEAN,FGETLDR2,FUNFLG are all changed/added for use with
+      the second pass option PASST2 in FTRAKS.RCP.  The second pass takes any   
+      two segment track and tries to find the third segment.  The segment is    
+      usually missing because of a missing delay line hit.  
+
+        FGETLDR2 gets the segment ladder of a two segment track.
+        FUNFLG unflags segments used in two segment track for upcoming use.
+        FT2FDCT finds possible third segment based on 3-D intersecting planes
+                and uses FTFDCT to fit a track and, if successful, store it.
+        F2CLEAN re-marks all segments now used and deletes old track if
+                necessary.
+
+
+    - FXPSEG,PSEGME,PXCHAIN,PXCLIMB,PXLINK,PXTREE,SAVXPCH are used with
+      cross-sector Phi segments.  Method used is to make two link and tree-type
+      chains, one in each adjacent sector, and join them across the boundary.
+
+        FXPSEG is the controlling routine for finding Phi chamber cross-sector
+               segments.
+        PXLINK assembles the links for a link-and-tree method.
+        PXTREE assembles the search tree of links.
+        PXCLIMB climbs the links in a tree and makes chains.
+        SAVXPCH saves the chains.
+        PXCHAIN assembles the two chains, one from each sector, and stores
+                then as a segment.
+
+
+    - FXTSEG add some lines to save info for histograms.
+
+    - FCLRLNK zeroes the FDCLNK.INC link area variables.
+
+    - FDCISA has some MC studies options added.
+
+    - FDGETD has DELLEN values handled differently and new checks for Hit times
+      less than zero.
+
+    - FDISTR has an additional check put it for the next vertex of all particles
+      possibly passing through the FDC.  Some used to actually terminate before
+      the FDC but where drawn all the way to the FDC.  Now check eliminates the
+      problem.
+
+    - GTFPHT,GTFTHT use a more reliable method to get the hit info from the FDC
+      hit banks for use with the display routines.
+
+    - ZFFPDA,ZFFTDA have limit added for maximum allowed drift time by setting
+      the parameters MAXDISP,MAXDIST in FTRAKS.RCP.
+
+    - LDFDCT add segment ladder to FDTH bank as words 103,104,105=ladder of
+      layers 0,1,2.
+
+    - FLINSG change the PHIAV calculation to avoid some possible wrong values
+      and check the Phi segment drift distance versus the radius of the track   
+      ladder.
+      
+    - THITAC add half theta sector mirror hits in for close to the wire hits.
+
+    - FTRHIS,FTRHI2 adds more histograms for FDC  use.  Do not use these
+      routines until you have looked over the source code.  Many options may be
+      required to have these routines be of any use.
+
+    - MUCHCK added for some Monte Carlo study use.
+
+    - FSGXYZ add cross-sector segments correctly.
+
+    - FTFDCT extra checks and cross-sector bug corrections put in.  Wasn't
+      always right with the cross-sector calculations before.  Also allows for
+      residual calculation not including the point.
+ 
+    - FTRAKS.RCP has been updated with the latest.  I am still leaving
+      cross-sector Phi segments as optional until I upgrade with an overflow
+      limit, otherwise it can become very time consuming.  Second pass is
+      done although much less necessary for MC events.
+
+    ***WARNING*** Release of INC required.  FDC_UTIL test release required for
+    proper functioning of PIXIE FDC display routines in upcoming PIXIE test
+    release.
+
+==============================================================================
+
+ 26-NOV-1990 : Modifications released by Jeffrey Bantly
+ 
+    - PRFPDA,PRFPSC changed one FORMAT statement to line up printout lines.
+
+    - FTRPAR now checks run number and will skip over reading in new STP file
+      IF previous run number same as current run number AND it's not the first
+      call to FTRPAR.
+
+    - FDISTP has one lowered ERRMSG level.  Changed can't read file from 'W' to
+      'I'
+
+==============================================================================
+
+ 26-NOV-1990 : Modifications released by Robert E. Avery
+ 
+    - FTFDCT Fix bug in hit address stored in FDCT bank for cross-sector
+      segments. Simplifiy code for treating cross-sector segments
+      in track fit (treat each wire relative to its own sector rather than
+      relative to the home sector). 
+      Put in residual sign change mentioned in 6-nov-1990 note 
+      (accidentally got left out before).
+
+
+==============================================================================
+
+ 28-NOV-1990 : Modifications released by Jeffrey Bantly
+ 
+    - FDHITS.FOR fix hit counting bug which would overcount the number of hits
+      in the FDCs when called with FDROAD.
+
+==============================================================================
+
+  3-DEC-1990 : Modifications released by Jeffrey Bantly
+ 
+    - FTRAKS.FOR,SAVCHP.FOR,SAVCHT.FOR,SAVXPCH.FOR have the MZBOOK call for
+      USER and CHAI banks changed from using division=0 to division=IXMAIN.
+
+==============================================================================
+
+  7-DEC-1990 : Modifications released by Robert E. Avery
+ 
+    - FTFDCT.FOR, FTTHET.FOR, FREFIT.FOR have been modified to call
+      DINV instead of the obsolete MATIN2 (CERNLIB matrix inversion).

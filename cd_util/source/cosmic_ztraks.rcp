@@ -1,0 +1,198 @@
+\START     ZTRAKS_RCP        ! Name of ZTRAKS package control file                                                                  
+\SIZE        289       140
+!------------------------------------------------------------------------------
+!   Name:       COSMIC_ZTRAKS.RCP
+!   Purpose:    Control file for ZTRAKS package
+!
+!    ***** This RCP file is for COSMIC RAY DATA *****
+!
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+! Switches to control processing
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!
+  REDOCD       FALSE  ! TRUE: REDO the reconstruction in CD from STA file
+  FULL_TRACKING FALSE ! TRUE: tracking road will be open to full phi and theta
+  FULL_HITFINDING TRUE ! TRUE: All hits will be found (not just in roads).
+  CALL_VERTEX  TRUE   ! call VERTEX in ZTREVT for every event
+  COSMIC       TRUE   ! TRUE: use specifics for cosmic ray runs
+  FREE_T0      TRUE   ! TRUE: floating t0 for track fits (FDC only at present)
+  CALL_TRD     TRUE   ! call TTRAKS in ZTREVT
+  REDOROADS    FALSE  ! For Testing. If true, redo tracking for existing roads.
+!
+! subdetector switches:
+  VTXON        TRUE   ! TRUE: switch on VTX chamber
+  CDCON        TRUE   ! TRUE: switch on CDC chamber
+  FDCON        TRUE   ! TRUE: switch on FDC chamber
+  TRDON        TRUE   ! TRUE: switch on TRD
+!
+!------------------------------------------------------------------------------
+! Switches used for tracking in roads
+!------------------------------------------------------------------------------
+! switches for unmatched subdetector tracks
+  CDONLY       TRUE   ! ZTRK including non-matched CDC tracks
+  FDONLY       TRUE   ! ZTRK including non-matched FDC tracks
+  VTONLY       FALSE  ! ZTRK including non-matched VTX tracks
+  GAP_VTONLY   TRUE   ! ZTRK including non-matched VTX tracks in the gaps
+!
+  MKZFIT       TRUE   ! make global fitting for each ZTRK in a road
+  MATCH2D      FALSE  ! flag for making 2D matching for non-theta tracks
+  ZFTVER       FALSE  ! fit ZTRK tracks with reconstructed vertex
+  ZTMPVX       FALSE  ! fit ZTMP tracks with reconstructed vertex
+!
+!------------------------------------------------------------------------------
+! Switches used to drop tracks outside of the electron, muon or tau roads
+! before write DST
+!------------------------------------------------------------------------------
+  DROP_ZTRK_OUT_ROADS  FALSE  ! drop ZTRKs outside of roads
+  DROP_DTRK_OUT_ROADS  FALSE  ! drop CDC tracks outside of roads
+  DROP_FDCT_OUT_ROADS  FALSE  ! drop FDC tracks outside of roads
+  DROP_VTXT_OUT_ROADS  FALSE  ! drop VTX tracks outside of roads
+!
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+HBOOK_DIRECTORY       'ZTRAKS'
+!------------------------------------------------------------------------------
+!   Banks to dump
+!------------------------------------------------------------------------------
+NUM_DUMPS     9
+\ARRAY DUMP_BANKS
+  'VTXH'
+  'CDCH'
+  'FDCH'
+  'VTXT'
+  'DTRK'
+  'FDCT'
+  'TRDT'
+  'ZTRK'
+  'ZFIT'
+\END
+!------------------------------------------------------------------------------
+!   Banks to drop from standard output stream
+!------------------------------------------------------------------------------
+NUM_DROPS_STA     22
+\ARRAY DROPS_STA_BANKS
+  'VLAY'
+  'VZLA'
+  'DLYR'
+  'FTQD'
+  'FPSC'
+  'VSG0'
+  'VSG1'
+  'VSG2'
+  'DTSG'
+  'FSG0'
+  'FSG1'
+  'FSG2'
+  'FSG3'
+  'FSG4'
+  'FSG5'
+  'VTTH'
+  'DTTH'
+  'FDTH'
+  'CDD1'
+  'CDD2'
+  'CDD3'
+  'CDD4'
+\END
+!------------------------------------------------------------------------------
+! Tolerances for track matching
+!------------------------------------------------------------------------------
+!
+  CVRESP   0.0017     ! VTX + CDC resolution on PHI
+  CVTMCS   0.0051     ! multiple scattering factor in TRD,VTX,CDC
+  DSTFCT  35.0        ! distance mismatch factor (cm)
+!
+  FVRESP   0.0033     ! VTX + FDC resolution on PHI
+  FVTMCS   0.017      ! multiple scattering factor in TRD,VTX,FDC
+  DSTFC2  50.0        ! distance mismatch factor (cm) (for VTX+FDC)
+!
+  DIFTHE   0.3        ! tolerance for delta_theta VTX-CDC
+  ERRTHE   0.25       ! tolerance for the error on delta_theta VTX-CDC
+  MIN_THETA_ROAD 0.1  ! Minimum road in theta (get from CAPHEL_RCP)
+  NO_BAD_MATCH   TRUE ! false: use 1.0 sigma curve for use VTX track in ZFIT
+!                     ! true: use DIFTHE to cut the sigma curve
+!
+  SGMFCT   3.0        ! sigma factor for delta PHI
+  PTLIMT   1.0        ! pt limit (Gev/c) for using above cuts
+!
+!  Tolerance for PT < PTLIMT
+!
+  TOLPH2   0.02       ! tolerance for delta_phi VTX-CDC
+  TOLDI2   1.00       ! tolerance for midplane mismatch VTX-CDC (cm)
+  TOLPHF   0.06       ! tolerance for delta_phi VTX-FDC
+  TOLDIF   3.00       ! tolerance for delta_phi VTX-FDC
+  TOLZMN   2.0        ! additional term for distance tolerance in RZ
+!
+  DELTHE_GAP  0.05    ! delta theta added to the GAPs between CDC and FDC
+!                     ! GAP = real_geometry_gap + 2 * delthe_gap
+!
+!------------------------------------------------------------------------------
+! Parameters only used for building ZTMPs
+!------------------------------------------------------------------------------
+  RTRD         18.0   ! R of TRD layer 0
+  ZTRD         88.0   ! Z of TRD layer 0
+!
+!------------------------------------------------------------------------------
+! HISTOGRAMS
+!       the histograms 1-26 are for verification (except the histograms
+!       22 and 23), they are booked when the 'VERIFY' flag is TRUE or
+!       HST_VERIFY is TRUE.
+!       The histograms 1-9 and 13 are booked when the 'VERIFY' flag
+!       is FALSE and HST_VERIFY is FALSE.
+!       The histograms 22, 23 and 28-31 are switched off in ZTRAKS.RCP
+!       at this moment
+!
+!------------------------------------------------------------------------------
+  HST_VERIFY  FALSE        ! true: to switch on the verification histograms
+\ARRAY ZHIST
+! ON/OFF   nbins  xmin    xmax
+! 1./ 0.
+!
+! # track histograms:  -1 indicates that there were not enough hits to
+! attempt tracking in the subdetector
+    1.      20.   -1.5    18.5   ! 1:  # CD track ZTRKs
+    1.      20.   -1.5    18.5   ! 2:  # VTX tracks
+    1.      20.   -1.5    18.5   ! 3:  # CDC tracks
+    1.      20.   -1.5    18.5   ! 4:  # FDC tracks
+    1.      85.   -0.5    84.5   ! 5:  # hits on CD track ZTRKs
+    1.      25.   -0.5    24.5   ! 6:  # hits on VTX tracks
+    1.      29.   -0.5    28.5   ! 7:  # hits on CDC tracks
+    1.      35.   -0.5    34.5   ! 8:  # hits on FDC tracks
+    1.      64.   -0.01   6.29   ! 9:  phi of ZTRKs
+    1.      64.   -0.01   6.29   ! 10: phi of VTX tracks
+    1.      64.   -0.01   6.29   ! 11: phi of CDC tracks
+    1.      64.   -0.01   6.29   ! 12: phi of FDC tracks
+    1.      64.    0.01   3.15   ! 13: theta of ZTRKs
+    1.      64.    0.01   3.15   ! 14: theta of VTX tracks
+    1.      64.    0.01   3.15   ! 15: theta of CDC tracks
+    1.      64.    0.01   3.15   ! 16: theta of FDC tracks
+    1.      50.    0.0    20.    ! 17: VTX tracks, chi_xy/dof
+    1.      50.    0.0    20.    ! 18: VTX tracks, chi_z/dof
+    1.      50.    0.0    20.    ! 19: CDC tracks, chi_xy/dof
+    1.      50.    0.0    50.    ! 20: CDC tracks, chi_z/dof
+    1.      50.    0.0    20.    ! 21: FDC tracks, chi/dof
+    0.      100.   0.0    8.0    ! 22: dE/dx from VTX tracks
+    0.      100.   0.0    8.0    ! 23: dE/dx from CDC tracks
+    1.      100.   0.0    8.0    ! 24: dE/dx from FDC tracks
+    1.      150.  -150.0  150.0  ! 25: Z at beam line from ZTRKs
+    1.      20.   -0.5    19.5   ! 26: ZTRK status
+! bits definision in the ZTRK status word:
+!   bit 12: unique match between VTX and CDC/FDC track
+!   bit 11: 3D match
+!   bit 10: 2D match; theta from CDC/FDC only
+!   bit  9: 2D match; theta from VTX only
+!   bit  8: track is in a muon road
+!   bit  7: track is in an electron road
+!   bit  6: track is in a tau road
+!   bit  5: track is used in a VEE
+!
+    1.      200.  -100.0  100.0  ! 27: (ZTRK-VERTEX) at Z axis
+    0.      50.    0.     0.05   ! 28: ZTRK quality: ABS(PHI_VTX-PHI_CDC)
+    0.      50.    0.     0.05   ! 29: ZTRK quality: ABS(PHI_VTX-PHI_FDC)
+    0.      50.    0.     0.5    ! 30: ZTRK quality: ABS(THE_VTX-THE_CDC)
+    0.      50.    0.     0.5    ! 31: ZTRK quality: ABS(THE_VTX-THE_FDC)
+\END
+\STOP
