@@ -36,6 +36,7 @@ note : all function arguments are pointers since fortran
 
      Modified March 1994 - add protection against corrupt FADC data.
                            CK
+C-   Updated  22-MAR-2004   sss - compile on linux.
 */
 
 int l2cdpuls(unsigned long *iq, long *end, long *ped, long *channel_id,
@@ -43,8 +44,13 @@ int l2cdpuls(unsigned long *iq, long *end, long *ped, long *channel_id,
              long *L2area, long *L2peak, long *L2status, long *error)
 {
 
+#if D0FLAVOR==LINUX
+#include "c_inc/table.h"
+#include "c_inc/cdc_rcp.h"      /* parameters normally gotten from RCP */
+#else
 #include "c$include:table.h"
 #include "c$include:cdc_rcp.h"      /* parameters normally gotten from RCP */
+#endif
 /*#include <macros.h> */
 #define min(a,b)    (a>b ? b : a)
 #define max(a,b)    (a<b ? b : a)
@@ -92,7 +98,7 @@ int l2cdpuls(unsigned long *iq, long *end, long *ped, long *channel_id,
 /*---------------------------------------------------------------------------*/
 
 /* initialize */
-    error = 0;
+    *error = 0;
     if (first) {
         first = 0;
 /*        init_cdc_tables(table, elbat);	*/
@@ -149,7 +155,7 @@ int l2cdpuls(unsigned long *iq, long *end, long *ped, long *channel_id,
         cluster_length = (iq[point - 1] & MASK16) - 4;
         if ( (cluster_length >= channel_length) ||
         	 (cluster_end >= LFADC) ) {
-          error = 1;
+          *error = 1;
           return 0;
         }
         point -= (cluster_length + 4)/4;

@@ -16,6 +16,7 @@ C-   UPDATE   18-OCT-1993   TOM FAHLAND: ADDED THE CDC VERTEX CODE AND
 C-                          EXTENDED OPTIONS BY ADDING ENTRY POINTS
 C-                          TO USE ONLY NOMINAL, OR L0 VERTEX
 C-   UPDATE   14-JUN-1994   R. MARKELOFF: SPURIOUS CALL TO EZRSET ON RETURN
+C-   Updated  22-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$PARAMS:ESUM.PARAMS'
@@ -24,7 +25,7 @@ C----------------------------------------------------------------------
       INTEGER ISHFT,FAST_FLAG,SLOW_FLAG,FLAG_WORD,MI_FLAG,
      &        IER,IPAR,USE_CDC_VERTEX_FOR(15)
       LOGICAL OK,USE_NOMINAL,CDC_CHOICE,FGOOD,
-     &        SGOOD,L2_VERTEX_CDC,USE_CDC,FIRST,USE_FASTZ
+     &        SGOOD,USE_CDC,FIRST,USE_FASTZ
       DATA FIRST/.TRUE./
 C----------------------------------------------------------------------
 CC CHECK TO SEE IF NOMINAL VERTEX IS TO BE USED 

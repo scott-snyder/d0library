@@ -19,13 +19,15 @@ C-   Updated   3-FEB-1992   Ed Oltman  made crude vtx l2 filter -- lots of help
 C-                              from Srini 
 C-   Updated  09-APR-1992   Liang-ping Chen 
 C_                          Updated the method of wire hit counting
+C-   Updated  22-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INTEGER PS_NUM,HARDWARE
       LOGICAL RESULT_FLAG,FORCE_FLAG
       REAL    Y
       REAL    PEAKMAX
-      PARAMETER MAX_CLUS = 5
+      integer max_clus
+      PARAMETER (MAX_CLUS = 5)
       INTEGER HITLST(MAX_CLUS,3,0:7)
       INTEGER I,ERR,NL,LAY,NS(0:2),SEC,NW,WIR,NCLUS
       INTEGER NSEC(0:2)
@@ -108,6 +110,7 @@ C-   Controls: STATUS = Set false for bad data
 C-
 C-   Created  22-AUG-1990   Srini Rajagopalan
 C-   Updated   2-FEB-1992   Ed Oltman   CHANGE 2'S TO 1'S AND 4'S TO 3'S ETC
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -118,7 +121,8 @@ C
       INTEGER MAP(0:65000)
       COMMON /VTXMAP/ IMAP,MAP
 C
-      PARAMETER MAX_CLUS = 5
+      integer max_clus
+      PARAMETER (MAX_CLUS = 5)
       INTEGER HITLST(MAX_CLUS,3,0:7)
       INTEGER ICRT,LENCRT
       INTEGER LCDD1,ADDR,CHNL,LENGTH
@@ -184,6 +188,7 @@ C-   Controls:
 C-
 C-   Created  27-AUG-1990   Srini Rajagopalan
 C-   Updated   2-FEB-1992   Ed Oltman  make it VTX-esk 
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -195,7 +200,8 @@ C
       INCLUDE 'D0$INC:ZEBCOM.INC'
       INCLUDE 'D0$LINKS:IZCDD1.LINK'
 C
-      PARAMETER MAX_CLUS = 5
+      integer max_clus
+      PARAMETER (MAX_CLUS = 5)
       INTEGER HITLST(MAX_CLUS,3,0:7)
       INTEGER LAYER,SECTOR,WIRE,WEND,LABEL
       INTEGER LCHA,CHNL,P,INDEX,MAX

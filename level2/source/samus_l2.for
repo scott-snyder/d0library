@@ -22,13 +22,12 @@ C-   MODIFIED 08-DEC-1992 DIEHL removed ESUM; made this a MUON_L2 subtool
 C-                              included SIDETRACK 
 C-   Modified 26-APR-1993 Diehl Check if SAHTFL already done.
 C-   Modified 19-FEB-1994 Denisov corrected for Ib: GZ and comments
+C-   Updated  22-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
       IMPLICIT NONE
 C----------------------------------------------------------------------
       INCLUDE 'D0$INC:ZEBCOM.INC'
 C----------------------------------------------------------------------
-      LOGICAL SAMUS_L2_SIDE
-C
       INTEGER IDUMMY
       REAL ETAMU_PHYSICS,ETAMU_DETECTOR,PHIMU
       INTEGER KEYT

@@ -10,11 +10,12 @@ C-   Outputs : None
 C-   Controls: None
 C-
 C-   Created   22-NOV-93   by L2STATE
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INTEGER RUN_NUMBER
-      BYTE PARFLG(1)
+      BYTE PARFLG(40)
 C----------------------------------------------------------------------
       CALL L2JETS_PARAMETERS(PARFLG(10))
       CALL L2_EM_PARAMETERS(PARFLG(17))

@@ -10,6 +10,7 @@ C-   Controls: none
 C-
 C-   Created  10-AUG-1993   j.balderston
 C-   Updated  17-OCT-1993   j.balderston
+C-   Updated  22-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -39,14 +40,14 @@ C
 C Derive ETA indice for candidate track
 C
       IF(ABS(ETA).LT.3.2) THEN
-        IETA=JISIGN(INT(ABS(ETA)*10)+1,INT(ETA))
+        IETA=SIGN(INT(ABS(ETA)*10)+1,INT(ETA))
       ELSE
         CHK=0
-        IETA=JISIGN(37,INT(ETA))
+        IETA=SIGN(37,INT(ETA))
         DO I=1,4
           IF(ABS(ETA).LT.ETA_RANGE(I).AND.CHK.EQ.0) THEN
             CHK=1
-            IETA=JISIGN(32+I,INT(ETA))
+            IETA=SIGN(32+I,INT(ETA))
           ENDIF
         ENDDO
       ENDIF
