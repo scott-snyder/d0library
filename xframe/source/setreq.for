@@ -9,6 +9,7 @@ C-   Outputs : none
 C-   Controls: 
 C-
 C-   Created  19-APR-1993   Drew Baden
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -186,7 +187,7 @@ c
 c
       include 'd0$xframe$source:d0map.inc'
 c
-      logical satisfied,checkopt,thisone
+      logical satisfied,thisone,checkoptr,checkopti,checkoptl
       integer i,nummet,index,nbanks,ibank(100),npass,lbank,j
       integer type,offset
       character*4 bank,fchar
@@ -246,20 +247,20 @@ c
               type = rdtypes(j)
               offset = roffsets(j)
               if (type.eq.isreal) then
-                thisone = checkopt('REAL',
+                thisone = checkoptr(
      &            q(lbank+offset),rrvals1(j),rops1(j))
               else if (type.eq.isint) then
-                thisone = checkopt('INT',
+                thisone = checkopti(
      &            iq(lbank+offset),rivals1(j),rops1(j))
               else if (type.eq.ishex) then
-                thisone = checkopt('INT',
+                thisone = checkopti(
      &            iq(lbank+offset),rivals1(j),rops1(j))
               else if (type.eq.istf) then
-                thisone = checkopt('LOGICAL',
+                thisone = checkoptl(
      &            iq(lbank+offset),rbvals1(j),rops1(j))
               else if (type.eq.ischar) then
                 call uhtoc(iq(lbank+offset),4,fchar,4)
-                thisone = checkopt('REAL',
+                thisone = checkoptr(
      &            fchar,rcvals1(j),rops1(j))
               endif
 c
@@ -280,7 +281,7 @@ c
 c
 c       how many banks do we require to be satisfied?
 c
-        rsatis(index) = checkopt('INT',npass,rvals2(index),rops2(index))
+        rsatis(index) = checkopti(npass,rvals2(index),rops2(index))
       enddo
 c
 c     take the .or. OR .and. of all requirements in the list 
@@ -315,89 +316,130 @@ c
       return
       end
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      logical function checkopt(opt,val,test,op)
+      logical function checkoptr(freal,treal,op)
 c
-c     opt is a character string (REAL, INT, ec.), value is the value of
-c     something you compare to test with the operation specified in op
 c
       implicit none
 c
       include 'd0$xframe$source:d0map.inc'
 c
       character*(*) opt
-      real val,test
+      real freal,treal
       integer op
-c
-      integer fint,fhex
-      real freal
-      character*4 fchar
-      logical ftf
-c
-      equivalence (fint,fhex,freal,fchar,ftf)
-c
-      integer tint,thex
-      real treal
-      character*4 tchar
-      logical ttf
-c
-      equivalence (tint,thex,treal,tchar,ttf)
 c
 c     preset
 c
-      checkopt = .false.
+      checkoptr = .false.
 c
 c     do it
 c
-      freal = val
-      treal = test
-      if (opt.eq.'REAL') then
-        if (op.eq.islt) then
-          checkopt = freal.lt.treal
-        else if (op.eq.isle) then
-          checkopt = freal.le.treal
-        else if (op.eq.iseq) then
-          checkopt = freal.eq.treal
-        else if (op.eq.isge) then
-          checkopt = freal.ge.treal
-        else if (op.eq.isgt) then
-          checkopt = freal.gt.treal
-        else if (op.eq.isne) then
-          checkopt = freal.ne.treal
-        endif
-      else if (opt.eq.'INT') then
-        if (op.eq.islt) then
-          checkopt = fint.lt.tint
-        else if (op.eq.isle) then
-          checkopt = fint.le.tint
-        else if (op.eq.iseq) then
-          checkopt = fint.eq.tint
-        else if (op.eq.isge) then
-          checkopt = fint.ge.tint
-        else if (op.eq.isgt) then
-          checkopt = fint.gt.tint
-        else if (op.ne.isgt) then
-          checkopt = fint.ne.tint
-        endif
-      else if (opt.eq.'LOGICAL') then
-        if (op.eq.istrue) then
-          checkopt = ftf
-        else if (op.eq.isfalse) then
-          checkopt = .not.ftf
-        endif
-      else if (opt.eq.'CHAR') then
-        if (op.eq.islt) then
-          checkopt = fchar.lt.tchar
-        else if (op.eq.isle) then
-          checkopt = fchar.le.tchar
-        else if (op.eq.iseq) then
-          checkopt = fchar.eq.tchar
-        else if (op.eq.isge) then
-          checkopt = fchar.ge.tchar
-        else if (op.eq.isgt) then
-          checkopt = fchar.gt.tchar
-        else if (op.eq.isne) then
-          checkopt = fchar.ne.tchar
-        endif
+      if (op.eq.islt) then
+        checkoptr = freal.lt.treal
+      else if (op.eq.isle) then
+        checkoptr = freal.le.treal
+      else if (op.eq.iseq) then
+        checkoptr = freal.eq.treal
+      else if (op.eq.isge) then
+        checkoptr = freal.ge.treal
+      else if (op.eq.isgt) then
+        checkoptr = freal.gt.treal
+      else if (op.eq.isne) then
+        checkoptr = freal.ne.treal
+      endif
+c
+      return
+      end
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      logical function checkopti(fint,tint,op)
+c
+c
+      implicit none
+c
+      include 'd0$xframe$source:d0map.inc'
+c
+      character*(*) opt
+      integer fint, tint
+      integer op
+c
+c     preset
+c
+      checkopti = .false.
+c
+c     do it
+c
+      if (op.eq.islt) then
+        checkopti = fint.lt.tint
+      else if (op.eq.isle) then
+        checkopti = fint.le.tint
+      else if (op.eq.iseq) then
+        checkopti = fint.eq.tint
+      else if (op.eq.isge) then
+        checkopti = fint.ge.tint
+      else if (op.eq.isgt) then
+        checkopti = fint.gt.tint
+      else if (op.ne.isgt) then
+        checkopti = fint.ne.tint
+      endif
+c
+      return
+      end
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      logical function checkoptl(ftf,ttf,op)
+c
+c
+      implicit none
+c
+      include 'd0$xframe$source:d0map.inc'
+c
+      character*(*) opt
+      logical ftf, ttf
+      integer op
+c
+c     preset
+c
+      checkoptl = .false.
+c
+c     do it
+c
+      if (op.eq.istrue) then
+        checkoptl = ftf
+      else if (op.eq.isfalse) then
+        checkoptl = .not.ftf
+      endif
+c
+      return
+      end
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      logical function checkoptc(fchar,tchar,op)
+c
+c
+      implicit none
+c
+      include 'd0$xframe$source:d0map.inc'
+c
+      character*(*) opt
+      character*(*) fchar, tchar
+      integer op
+c
+c
+c     preset
+c
+      checkoptc = .false.
+c
+c     do it
+c
+      if (op.eq.islt) then
+        checkoptc = fchar.lt.tchar
+      else if (op.eq.isle) then
+        checkoptc = fchar.le.tchar
+      else if (op.eq.iseq) then
+        checkoptc = fchar.eq.tchar
+      else if (op.eq.isge) then
+        checkoptc = fchar.ge.tchar
+      else if (op.eq.isgt) then
+        checkoptc = fchar.gt.tchar
+      else if (op.eq.isne) then
+        checkoptc = fchar.ne.tchar
       endif
 c
       return
@@ -415,7 +457,7 @@ c
 c
       include 'd0$xframe$source:d0map.inc'
 c
-      logical satisfied,checkopt
+      logical satisfied,checkoptr,checkoptl,checkoptc,checkopti
 c
       integer numv,i,var(100)
       integer f2int,f2hex
@@ -445,15 +487,15 @@ c
       do i=1,numv
         f2int = var(i)
         if (type.eq.isreal) then
-          satisfied = checkopt('REAL',f2real,f1real,op) 
+          satisfied = checkoptr(f2real,f1real,op) 
         else if (type.eq.isint) then
-          satisfied = checkopt('INT',f2int,f1int,op)
+          satisfied = checkopti(f2int,f1int,op)
         else if (type.eq.ishex) then
-          satisfied = checkopt('INT',f2hex,f1hex,op)
+          satisfied = checkopti(f2hex,f1hex,op)
         else if (type.eq.istf) then
-          satisfied = checkopt('LOGICAL',f2tf,f1tf,op)
+          satisfied = checkoptl(f2tf,f1tf,op)
         else if (type.eq.ischar) then
-          satisfied = checkopt('CHAR',f2char,f1char,op)
+          satisfied = checkoptc(f2char,f1char,op)
         endif
         if (satisfied) nummet = nummet + 1
       enddo

@@ -5,7 +5,7 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+#include "xframe/source/d0x_c.h"
 extern Widget zebra_tree;
 /*---------------------------------------------------------------------
   sets d0$zeblst (or unix equivalent) or en(dis)ables display

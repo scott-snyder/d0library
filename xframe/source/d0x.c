@@ -1,13 +1,13 @@
 
 #include <stdio.h>                      /* For printf and so on. */
-#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+#include "xframe/source/d0x_c.h"
 /*#include <X11/X.h>*/
 
 /* The vuit generated application include file.				    */
 /* If the user does not specify a directory for the file		    */
 /* then the vaxc$include logical needs to be defined to point to the	    */
 /* directory of the include file.					    */
-#include "/d0library/scratch/test/xframe/source/d0x.h"
+#include "xframe/source/d0x.h"
 
 /*
  * Global data
@@ -279,7 +279,7 @@ static int reglist_num = (sizeof reglist / sizeof reglist[0]);
  * OS transfer point.  The main routine does all the one-time setup and
  * then calls XtAppMainLoop.
  */
-unsigned int main(argc, argv)
+int main(argc, argv)
     int argc;                  		    /* Command line argument count. */
     char *argv[];                       /* Pointers to command line args. */
 {

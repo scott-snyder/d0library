@@ -37,7 +37,7 @@ definition of a requirement, and if the requirement is implemented. e.q.
 #include <stdio.h>                   /* I/O definitions                       */
 #include <ctype.h>
 #include <math.h>
-#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+#include "xframe/source/d0x_c.h"
 #include <Xm/FileSB.h>
 #define NL '\n'
 unsigned long *uldumq;

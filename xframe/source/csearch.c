@@ -5,7 +5,7 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 #include <ctype.h>
-#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+#include "xframe/source/d0x_c.h"
 
 /*---------------------------------------------------------------------
   search menu - 0=by run, 1=by event, 2=by bank

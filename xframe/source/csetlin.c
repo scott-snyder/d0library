@@ -5,7 +5,7 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "xframe/source/d0x_c.h"
 
 /*---------------------------------------------------------------------
   sets the value of length of the chain in the window

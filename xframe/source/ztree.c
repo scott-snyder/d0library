@@ -7,9 +7,9 @@
 #include <Xm/PushB.h>
 #include <Xm/ArrowB.h>
 
-#include "/d0library/scratch/test/xframe/source/d0x_c.h"
-#include "/d0library/scratch/test/xframe/source/tree.h"
-#include "/d0library/scratch/test/xframe/source/treep.h"
+#include "xframe/source/d0x_c.h"
+#include "xframe/source/tree.h"
+#include "xframe/source/treep.h"
 
 	
 Widget thewidget;

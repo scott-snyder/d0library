@@ -5,7 +5,7 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+#include "xframe/source/d0x_c.h"
 
 /*---------------------------------------------------------------------
   causes the linear bank number in text window to be read

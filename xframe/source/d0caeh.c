@@ -6,7 +6,7 @@
 */
  
 #include <stdio.h>                   /* I/O definitions                       */
-#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+#include "xframe/source/d0x_c.h"
 #define ALL 0
 #define PTR 1
 int caehtype = ALL;

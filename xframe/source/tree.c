@@ -18,8 +18,8 @@
 #include  	<X11/CompositeP.h>
 #include	  <X11/ConstrainP.h>
 
-#include "/d0lib/scratch/xframe/source/tree.h"
-#include "/d0lib/scratch/xframe/source/treep.h"
+#include "xframe/source/tree.h"
+#include "xframe/source/treep.h"
 
 
 #define   CFMAX(a,b) ((a) > (b) ? (a) : (b))
@@ -141,7 +141,7 @@ static void Initialize(request, new)
   valueMask = GCForeground | GCBackground;
   values.foreground = new->tree.foreground;
   values.background = new->core.background_pixel;
-  new->tree.gc = XtGetGC (new, valueMask, &values);
+  new->tree.gc = XtGetGC ((Widget)new, valueMask, &values);
   /*
    * Create the hidden root widget.
    */
@@ -149,7 +149,7 @@ static void Initialize(request, new)
   XtSetArg(wargs[0], XtNwidth, 1);
   XtSetArg(wargs[1], XtNheight, 1);
   new->tree.tree_root =
-          XtCreateWidget("root", widgetClass, new, wargs, 2);
+          XtCreateWidget("root", widgetClass, (Widget)new, wargs, 2);
   /*
    * Allocate the tables used by the layout
    * algorithm.
@@ -198,8 +198,8 @@ static Boolean SetValues(current, request, new)
    valueMask         = GCForeground | GCBackground;
    values.foreground = new->tree.foreground;
    values.background = new->core.background_pixel;
-   XtReleaseGC(new, new->tree.gc);
-   new->tree.gc    = XtGetGC (new, valueMask, &values);
+   XtReleaseGC((Widget)new, new->tree.gc);
+   new->tree.gc    = XtGetGC ((Widget)new, valueMask, &values);
    redraw = TRUE;
  }
  /*
@@ -236,7 +236,7 @@ static Boolean ConstraintSetValues(current, request, new)
     * If the Tree widget has been realized,
     * compute new layout.
     */
-   if(XtIsRealized(tw))
+   if(XtIsRealized((Widget)tw))
      new_layout(tw);
   }
   return (False);
@@ -259,7 +259,7 @@ static void insert_new_node(super_node, node)
     super_const->tree.max_sub_nodes +=
                     (super_const->tree.max_sub_nodes / 2) + 2;
     super_const->tree.sub_nodes =
-     (WidgetList) XtRealloc(super_const->tree.sub_nodes,
+     (WidgetList) XtRealloc((char*)(super_const->tree.sub_nodes),
                            (super_const->tree.max_sub_nodes) *
                             sizeof(Widget));
   }
@@ -414,7 +414,7 @@ static void new_layout(tw)
   /*
    * Trigger a redisplay of the lines connecting nodes.
    */
-  if(XtIsRealized(tw))
+  if(XtIsRealized((Widget)tw))
     XClearArea(XtDisplay(tw), XtWindow(tw), 0, 0, 0, 0, TRUE);
 }
 
@@ -550,7 +550,7 @@ static void set_positions(tw, w, level)
   if(tw->core.width < tree_const->tree.x + w->core.width ||
      tw->core.height < tree_const->tree.y + w->core.height){
     result =
-      XtMakeResizeRequest(tw, CFMAX(tw->core.width,
+      XtMakeResizeRequest((Widget)tw, CFMAX(tw->core.width,
                                   tree_const->tree.x +
                                   w->core.width),
                               CFMAX(tw->core.height,
@@ -561,7 +561,7 @@ static void set_positions(tw, w, level)
      * Accept any compromise.
      */
      if (result == XtGeometryAlmost)
-       XtMakeResizeRequest (tw, replyWidth, replyHeight,
+       XtMakeResizeRequest ((Widget)tw, replyWidth, replyHeight,
                              NULL, NULL);
   }
  /*
@@ -608,7 +608,7 @@ static void set_current_position(offset, index, value)
  if(index >= offset->size){
    offset->size = index + index / 2;
    offset->array =
-    (Dimension *) XtRealloc(offset->array,
+    (Dimension *) XtRealloc((char*)(offset->array),
                             offset->size * sizeof(Dimension));
  }
  offset->array[index] = value;

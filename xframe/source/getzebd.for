@@ -15,6 +15,7 @@ C-
 C-   Created  22-APR-1989   Rajendran Raja
 C-   Updated   3-SEP-1991   Herbert Greenlee
 C-   Bastardized Aug-1992   me
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -36,18 +37,21 @@ C
       character*5 tflag
       character*12 cdat
       integer iauto_fmt,type
-      integer inl,inull
-      character*4 cnl,cnull
       character*80 msg
 c
 c     the following number 538976266 is 2020200A hex, which means
 c     '   '\nl    or 3 spaces followed by a carriage return.  on the
 c     ibm (unix?) that will mean a cr followed by 3 spaces...
 c
-      data inl/538976266/,inull/0/
 c
       equivalence (iline4,cline4)
+C&IF LINUX
+C&ELSE
+      integer inl,inull
+      character*4 cnl,cnull
+      data inl/538976266/,inull/0/
       equivalence (inl,cnl),(inull,cnull)
+C&ENDIF
 c
 c     this routine consists of a call to a bastardized
 c     version of zb_smg_pn2...
@@ -214,7 +218,11 @@ c
 c
 c     fixup (don't ask)
 c
+C&IF LINUX
+C&      wrup(1) = '   '//char(12)
+C&ELSE
       wrup(1) = cnl
+C&ENDIF
       nr = nr + 1
 c
 c     start with the reference links
@@ -316,7 +324,11 @@ c
 c     eof and we are done
 c
   200 continue
+C&IF LINUX
+C&      wrup(nr) = char(0)//char(0)//char(0)//char(0)
+C&ELSE
       wrup(nr) = cnull
+C&ENDIF
       nr = nr + 1
       lwv = nr
 c

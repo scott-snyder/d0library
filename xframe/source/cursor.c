@@ -25,7 +25,7 @@
 static char SCCSID[] = "@(#)misc.c	1.26	3/8/94";
 #include <math.h>
 #include <stdio.h>
-#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+#include "xframe/source/d0x_c.h"
 
 void RemapDeleteKey(Widget w);
 void SetDeleteRemap(int state);

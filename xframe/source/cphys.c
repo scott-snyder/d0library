@@ -5,7 +5,7 @@
  
 #include <stdio.h>                   /* I/O definitions                       */
 #include <math.h>
-#include "D0$XFRAME$SOURCE:D0X_C.H"
+#include "d0x_c.h"
 #include <Xm/RowColumn.h>
 #include <Xm/ToggleB.h>
 #include <Xm/Label.h>

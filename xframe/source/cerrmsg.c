@@ -7,7 +7,7 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "xframe/source/d0x_c.h"
 
 #define MAXSTR 8000   /* 80char*100 lines max */
 void cerrmsg(text)

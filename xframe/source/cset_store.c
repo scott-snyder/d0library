@@ -5,7 +5,7 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+#include "xframe/source/d0x_c.h"
 
 /*---------------------------------------------------------------------
   stores "store" - 0=zebcom, 1=zetstp, 2=geant, 3=zebwrk
