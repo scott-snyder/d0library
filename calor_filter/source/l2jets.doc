@@ -1,0 +1,393 @@
+                                                                L2JETS.DOC
+                                                                Richard Astur
+                                                               October 19, 1993 
+
+    This file is D0$CALOR_FILTER$ROOT:[SOURCE]L2JETS.DOC. It is intended as
+a help file to familiarize users with the L2JETS jet finding tool. For help
+running L2SIM see D0$LEVEL2:L2SIM.DOC.
+
+
+                I) What is L2JETS?
+               II) How does it Work?
+              III) How to use L2JETS.RCP
+               IV) Release Notes
+                V) using the JAUX bank
+
+I) WHAT IS L2JETS?
+    L2JETS is a software TOOL that is meant to work either in the real
+Level 2 environment or with the VMS_FILTER package.  L2JETS is a level 2 
+jet finder. It finds jets in the event and then applies a set of cuts
+to the results and returns a TRUE or FALSE depending on the result.
+
+
+II) HOW DOES L2JETS WORK?
+    L2JETS receives 'candidate' jets seeds from the Level 1 TRGR bank. 
+Software creates a list of 'candidate' trigger towers whose
+total (EM + HADRONIC) ET is greater than some set of thresholds. This list
+is used (for now) as an input to L2JETS to identify jet seeds. [Revision
+as of 10/93, the list of candidates now also includes trigger towers from
+any large tile triggers.  If a large tile satisfies the trigger, the
+software will find the trigger tower which corresponds to the ET weighted
+average of 40 trigger towers in the large tile and that trigger tower is
+used as a seed. Also, there is an allowance to add trigger tower seeds
+found by L1.5 as well.] 
+    Done mostly in L2JETS_HOTFL.FOR
+
+    L2JETS cycles through this list of candidate trigger towers in decreasing 
+order of ET.  As it does so, two things are done: A jet 'core' is defined and
+all the trigger towers within this area are clustered by ET and this sum 
+becomes the ET of the jet.  This cone is defined as having a radius of
+CORE_DELTA_R and includes only towers whose center is within the cone radius.
+CORE_DELTA_R is a parameter that is passed to the routine. [ Revision as
+of 10/93 : formerly, the candidate trigger tower was used as the center of
+the jet, now we use the ET weighted average of all trigger towers in the
+core cone. ]
+An ET weighted average phi and eta are computed.  This is what is 
+later reported as the eta and phi of the jet. Note that after this phase, all
+jets are defined.  Any tower that is swallowed up by another (higher ET)
+jet is no longer considered a candidate.  Three other quanities are also
+calculated here. The electromagnetic fraction of the core, the energy weighted
+average phi and eta deviation from the hot tower. This is meant to be a 
+measure of jet width and is the sum of the ABSOLUTE VALUE of the distance
+between the tower and the candidate tower as opposed to the SQUARE of the
+ABSOLUTE VALUE which is calculated in RECO.
+    Done mostly in L2JETS_CEN_CL2.FOR
+
+OBSOLETE: The following phase will no longer be used as of 10/93
+*********************************************************************
+    In the second phase, the cone size of each jet is increased ring by ring
+until each jet comprises an cone of radius = JET_DELTA_R
+The higher ET jets have an advantage when it comes to energy
+sharing as they will 'swallow' available trigger towers first.  But note
+that at this stage all jets retain their identity; no jet is swallowed by
+another. Thus the relative definitions of CORE_DELTA_R and JET_DELTA_R should
+be considered carefully if signal jets are expected to be close together.
+The electromagnetic fraction and eta,phi widths are modifed further at this 
+point. But the eta,phi of the core is not modified in this step.
+[WARNING: This second phase uses L1 FADC ET instead of the precision
+calorimeter readout energies (from CAD1,CAD2).  Thus all trigger
+configurations uses in data-taking so far skip this second phase by
+setting JET_DELTA_R = CORE_DELTA_R.
+    Done mostly in L2JETS_ENG.FOR
+**************************************************************************
+
+    In the third phase, each jet is multiplied by a calibration factor
+depending on which area of the calorimeter it was pointing into.  This
+calibration factor is meant to correct for energy losses. Currently these
+numbers are 1.0.  After this, the jet ET, EMET and ETA values are vertex
+corrected.
+    Done mostly in L2JETS_CALIB.FOR
+
+    Finally, the jets that were found are now compared to a set of cuts
+that were passed to the routine. Two of these 'cuts' (CORE_DELTA_R,JET_DELTA_R)
+were used to determine the jet-finding algorithm as defined above. Other
+'cuts' are ETMIN (minimum ET of a found jet),SIZE_MIN ( minimum transverse
+size of the jet) and NJET_COUNT (minimum number of jets found that satisfy
+these other cuts).  If at least NJET_COUNT jets are found that satisfy
+these cuts, a TRUE is returned by L2JETS. Else it returns FALSE. See below
+for list of possible jet cuts for use in triggering.
+    Done mostly in L2JETS_CUTS.FOR
+
+
+III) RCP File for L2JETS.  Below is an example of L2JETS.RCP which contains
+parameters that are used by L2JETS in Level 2. They are not normally changed
+from run to run.  Most users will not be interested in these.
+C*********************************************************************
+\START       L2JETS_CONTROL
+\SIZE         42        38
+!---------------------------------------------------------------
+!   SRCP bank for controlling the L2JETS filter
+!   see D0$INC:L2JETS_CONT.INC for more info.
+!---------------------------------------------------------------
+DO_ALL_CAND               0      ! Do all candidates? -1 if true, else 0
+DUMP_JAUX               .FALSE. ! Should we dump JAUX to a file?
+RUN_ELN                 .FALSE. ! Are we running in ELN?
+TRGR_READY              .TRUE.  ! Should TRGR supply us with hot towers?
+USE_CL2                 .false.  ! Use CL2 fast unpack for jet 'core' only.
+                                 ! that is just for ICON_CEN cone
+NJTHOT_FAKE                 3  ! Fake # of jet towers if TRGR_READY = FALSE
+JT_COMP_FAKE            .TRUE.  ! Jet list complete    if "        "   "
+!---- The below is fake hot tower info that is used if TRGR_READY = .FALSE.
+\ARRAY IHOT_MSK_JT_FAKE  3
+ 1  1  1
+\END
+\ARRAY IHOT_ADR_JT_FAKE  3
+ 23 34 45
+\END
+L2JCAL_CEN           1. !   1.198    ! 1/(1-.16)  ! TRGR Calibration numbers
+L2JCAL_CRA           1. !   1.440   ! 1/(1-.39)
+L2JCAL_END           1. !   1.186
+L2JCAL_CEN_CL2       1. !   1.145   ! CAD calibration numbers
+L2JCAL_CRA_CL2       1. !   1.300
+L2JCAL_END_CL2       1. !   1.137
+!---- Chance default FADC ET unpack of TRGR
+CTS_TO_GEV_EM        4. !   Counts to GEV conversion for EM Trigger Tower
+CTS_TO_GEV_HD        4. !    "     "    "             "  HADRONIC  "
+CTS_EM_OFF           8. !   Count offset to subtract in EM
+CTS_HD_OFF           8. !   "      "      "     "     " HADRONIC
+!-----
+\STOP    !   L2JETS_CONTROL_RCP
+C
+C************************************************************************
+
+III) Use of the RCP file. The RCP file used is referred to by the logical
+name: L2JETS_RCP and can be found in D0$CALOR_FILTER:L2JETS.RCP. I will
+describe the parameters below:
+DUMP_JAUX : Set to true if you want L2JETS results to be dumped to the
+            file: L2JETS_DUMP.DAT
+DO_ALL_CAN: -1/0. This controls how L2JETS evaluates the jet candidates.
+            If =0, L2JETS only evaluates candidates that Level 1 found
+            for the trigger bit that is currently causing L2JETS to be
+            called. If =-1, all candidates are evaluated.
+            NOTE: If you are doing trigger efficiency studies,this number
+            should be set to 0!
+RUN_ELN   : Should be set TRUE for real ELN. Otherwise, FALSE
+TRGR_READY: TRUE is the TRGR block will supply a hot tower list. If it is
+          : not, but the TRGR FADC values will be available, it can be set
+          : to FALSE and NJTHOT_FAKE and IHOT_ADR_JT_FAKE can be used
+          : to force L2JETS to use the trigger towers defined in
+          : IHOT_ADR_JT_FAKE as hot tower jet candidate with corresponding
+          : trigger masks IHOT_MSK_JT_FAKE
+USE_CL2   : L2JETS obtains energy in two ways:
+        NO_CL2 mode means that it access the Level 1 Trigger Block (TRGR)
+        and uses the FADC ET values for each Trigger Tower. These values
+        lack coarse hadronic,vertex,massless gap or Inter-Cryostat Detector
+        information as well as having the poorer eta-phi resolution of
+        a trigger tower.
+        CL2 mode uses a fast localized unpacking routine to fill a special
+        CAEP bank underneath FILT. This information unpacks the CADX 
+        data and does a nominal vertex sin theta multiplication to get
+        ET. Currently, the massless gap and ICD is ignored. 
+
+L2JCAL_CEN: Calibration number for central region
+L2JCAL_CRA:  "          "       "  crack   region
+L2JCAL_END  "           "       "  endcap  region.
+L2JCAL_CEN_CL2: Similar values for use when USE_CL2 is true.
+    The jet ET's are multiplied by these numbers.
+The following numbers have to do with how the L1 Trigger Block in unpacked
+while in NO_CL2 mode. CTS_EM_OFF, and CTS_HD_OFF is the pedestal and
+should be 0 for now, but with the next release of L1C (level 1 calorimeter
+simulator package), CTS_EM_OFF and CTS_HD_OFF should be set to 8.
+CTS_TO_GEV_EM        4. !   Counts to GEV conversion for EM Trigger Tower
+CTS_TO_GEV_HD        4. !    "     "    "             "  HADRONIC  "
+CTS_EM_OFF           8. !   Count offset to subtract in EM
+CTS_HD_OFF           8. !   "      "      "     "     " HADRONIC
+
+**********************************************
+    Cuts used in Triggering.
+    
+The following are parameters for L2JETS that must be specified in the
+trigger configuration files, specifically in the Filter script that calls
+it.
+
+The parameters in L2JETS are the parameter sets that are passed to the
+Tool by Level 2.  These parameters must be given to L2 when declaring the
+L2JETS TOOL.
+
+ETMIN           : Is a set of ET cuts on jets found.    [R]
+NUM_JETS      : Cut on number of jets passing ETMIN   [I]
+CORE_DELTA_R    : Cone size of jet core in eta-phi space[R]
+JET_DELTA_R     : Total cone size of jet                [R] OBSOLETE 10/93
+SIZE_MIN        : Cut on minimum transverse size of jet [R]
+SIZE_MAX        : Cut on maximum transverse size of jet [R]
+    ( The transverse size of the jet is defined as sqrt( deta**2 + dphi**2),
+where deta = sum over towers in jet core of abs(eta(tower)-eta(center))
+and dphi is defined in a similar way.)
+EMPCT_MAX     : Cuts on electromagnetic fraction of jet [R]
+EMPCT_MIN     : = E(EM)/(E(EM)+E(HD))
+    ( These cuts are given in percent e.g. EMPTC_MAX = 75. ->75%)
+VETO            : If TRUE, the script is failed if all the other cuts
+                  are satisfied. [Added 10/93]
+
+
+IV)  New Features   July 1992.
+     New Features   October 1993
+
+****************************************************************************
+Release notes for L2JETS and associated code for 10/93
+
+Changes to L2JETS - Level 2 jet finder
+    a) Now ignore towers which are less than L2J_ET_TOWER_MIN (-1.0 GEV)
+    b) Remove code which recalls L2JETS_HOTFL when no candidates are found
+    c) Modify jet clustering so that the core tower used is not the candidate
+       tower, but the trigger tower which is the ET weighted average of those
+       in the core cone around it.
+    d) Add VETO parameter: if VETO is TRUE and the other cuts are satisfied,
+       then the RESULT returned will be FALSE (event is vetoed )
+
+Changes to L2JETS_HOTFL - General routine which loads both EM and JET
+    L1 candidates into common blocks and allows access.
+
+    a) Redefinition of JET arrays.
+        NJTHOT is now the total sum of candidate TRIGGER TOWERS + LARGE TILES
+        + L15 JETS
+        NJTTHOT = # of trigger tower candidates
+        NJLTHOT = # of large tile candidates
+        NJ15HOT = # of L1.5 candidates
+
+    WARNING: Any code that is looping from 1 to NJTHOT to get trigger tower
+    candidates will now get all candidates. Code should be changed to
+    loop from 1 to NJTTHOT if that is what is desired.
+
+    b) Addition of Large tiles and L15 candidates to arrays. The arrays
+    are made like this:
+        If there are NJTHOT candidates then
+            NJTHOT = NJTTHOT + NJLTHOT + NJ15HOT
+        And the first NJTTHOT places in the array are for trigger tower 
+        candidates.  The next NJLTHOT are for large tile candidates and
+        the final NJL15HOT places are for L1.5 jets.
+
+    Therefore, to get the L1 address of the first LT candidate, one would
+    use IHOT_ADR_JT( NJTTHOT + 1 ).  Use of IHOT_MSK_JT is similarly defined.
+
+    c) Addition of code to associate the candidate trigger tower of a 
+    large tile with the 'average' trigger tower in the large tile and not
+    the tower of smallest absolute magnitude which is how the list 
+    returns it.
+
+
+
+
+SOURCE : *.FOR, *.C files  --> D0$CALOR_FILTER$SOURCE
+*****************************************************
+
+ESUM_CONESIZE_TO_JET.FOR
+    : Bug fix.  Now return object of conesize CLOSEST to that requested
+ESUM_JET_TO_CONESIZE.FOR
+    : Update for VETO parameter
+GTJAUX.FOR - routine to return L2JETS results. Bug fixed.
+GTJPAR.FOR - routine to return L2JETS cuts used in L2. Add veto cut.
+GZJPAR
+    : Bug fix.  Make a SL2H if needed when getting JPAR from FRES
+L2JETS.FOR
+    : Remove FORCE of L1 list building when no L1 candidates found
+    : Add VETO code to veto event if other cuts are satisfied
+L2JETS_HOTFL.FOR
+    : Use software listbuilding for every call
+    : Use software listbuilding for large tile triggers
+    : Map large tiles to the trigger tower which corresponds to the
+       eta-phi average over the large tile
+L2JETS_CEN_CL2.FOR
+    : Use the average of a window around the L1 candidate instead of
+          just the L1 candidate for the jet center.
+    : Exclude readout towers with ET < -1 GeV from the jet
+L2JETS_JPARFL.FOR
+    : Add veto parameter
+L2JETS_PARAMETERS.FOR
+    : Read in veto parameter. But dont error if cant find it.
+L2J_GET_PT_TO_L1FADC.FOR
+    : Get the zebra pointer to the start of the L1 FADC block for use
+         with L2J_ETAPHI_AVE.C
+L2J_ETAPHI_AVE.C
+    : Loops over a window around a trigger tower and returns the EM and
+         total ET as well as the ET weighted average over that window
+L2JETS_CONTRS.FOR
+    : Changes to be compatible with ALPHA (initialize all variables before use)
+L2CRCAL_PARAMETERS.FOR
+    : Changes to be compatible with ALPHA. Add EZRSET call.
+L2J_UTIL_INIT.FOR
+    : Changes to be compatible with ALPHA  ** Already released **
+L2CR_BUILD.FOR
+    : Changes to be compatible with ALPHA  ** Already released **
+L2CRCAL_GET_TRACK.FOR
+    : Changes to be compatible with ALPHA. ** Already released **
+PRJPAR.FOR
+    : Add veto parameter.
+
+PARAMS ---> D0$PARAMS
+***********************************************************
+L1_PARAMS.H
+    : C header with parameter definitions for variables needed to access
+      L1 Cal FADC ET's
+L1PHP.PARAMS
+    : Added parameters which tell the number of large tiles in phi and eta
+      (NETALT, NPHILT) as well as their size in terms of trigger towers:
+      (NTTLTETA, NTTLTPHI)
+L2JETS.PARAMS
+    : Add L2J_ET_TOWER_MIN parameter
+INC ----> D0$INC
+*************************************************************
+L2J_ETAPHI_UTIL.H
+    : C header of static lookup arrays to access L1 cal FADC values within
+      L1 trigger block
+L2JETS_HOT.INC
+    : Add variables to count number of candidate trigger towers, large tiles
+      and l1.5 jets
+L2JETS_PAR.INC
+    : Add veto parameter to common block
+
+ZEB ----> D0$ZEB
+************************************************************
+FRES.ZEB
+    : New stuctural links added for ETA tool, CD, SAMUS_L2, MUON_L2
+
+
+***********************
+
+Additions/changes to L2JETS                             July 1992
+Richard V. Astur
+July 25th, 1992
+
+    The next release of CALOR_FILTER will include many modifications to the
+L2JETS tool.  This includes improved error handling, storage of parameter
+cuts and utility routines for use with ESUM.  It also includes the use
+of Philippe Lauren's software jet list builder.  Thus Level 2 can correctly
+handle the case where there are too many candidates above theshold for the
+Level 1 hardware. (See L2JETS_HOT.FOR)
+
+ESUM-L2JETS routines: 
+
+    ESUM_CONESIZE_TO_JET: Returns ESUM object Jet ID which is closest 
+    to the cone size you specify. Currently the difference in the cone size
+    returned will be no more than .15 from what is asked for.
+
+    ESUM_JET_TO_CONESIZE: Returns cone size of jet ID specified.
+
+    L2JETS_CURRENT_ESUM_OBJECT: Returns esum jet ID of last type of jets
+    that L2JETS tried to process.  This intended for topology type tools
+    which are called after L2JETS and want to check ESUM banks to see
+    what the results were.
+
+L1 Candidate unpacking routines:
+
+    L2JETS_HOTFL now completes the candidate list if it is incomplete
+
+L2JETS-OFFLINE
+
+    L2JETS_MAKE_JETS puts L2JETS results into standard CAPH and JETS banks
+    under the FILT path.  SET_CAPH can be used.
+
+V) GTJAUX
+    JAUX is the L2JETS results bank.  A GT routine exists.
+
+    CALL GTJAUX(START, CONE_SIZE, PAR_SET, 
+        ET, ETA, PHI, L1ETA, L1PHI, ETASIZE, PHISIZE, EMET, IER )
+
+    The first 3 parameters are inputs.
+        START = .TRUE. on 1st call for the requested conditions CONE_SIZE and 
+            PAR_SET
+        CONE_SIZE   cone radius in delta-R you seek (you get nearest match
+                within .1).  IF you set CONE_SIZE < 0, it will be ignored and
+                you will get any jets matching the PAR_SET value chosen.
+        PAR_SET = 0 for any or nonzero for a particular one.
+            You can get the current PAR_SET by PAR_SET = L2JETS_CURRENT_PARAM()
+
+	JAUX contains all candidates.  Those that were clustered into
+jets are flagged specially. GTJAUX will return each candidate that was
+clustered into a jet.  You start by setting START = .TRUE. and you will
+then get the first such jet candidate, you can then keep calling GTJAUX
+until there are more left ( signified by IER .ne. 0 ).
+
+	If PAR_SET = 0, then you will get all jets, even if they did not
+contribute to the passing the event, if you set PAR_SET equal to the
+current parameter set number (as passed to L2JETS by TOOL_DISPATCH ), you will
+only get those jets which MIGHT have contributed to the passing of the tool.
+That is, they satisfied the jet-specific conditions but perhaps not the
+Jet Count.
+
+	Of course, if it is called by a tool that runs after L2JETS with
+the proper parameter set number, then I guess you are sure that the Jet Count
+was satisfied or that L2JETS was somehow forced to pass the event...
+
+    A routine GTJPAR is available to recover the selection cuts used for a given
+parameter set number.

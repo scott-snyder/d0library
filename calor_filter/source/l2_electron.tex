@@ -1,0 +1,357 @@
+\tracingcommands=1
+\font\ninerm=cmr9 \font\eightrm=cmr8 \font\sixrm=cmr6 %\font\csc=cmcsc
+
+\magnification=1200 % This magnifies everything by 1.2.
+\parskip 10pt plus 1pt % This puts some empty space between paragraphs
+\parindent 20pt  % paragraphs are not to be indended
+
+\nopagenumbers  % this page ia not to be numbered
+\null\vskip-46pt % put the first line 46 points higher than normal
+\hbox to 6.5truein {\hfil D0 Report No. 1021}
+  % a convenient way to make a box of specific size.
+\vskip  .1in 
+\line {\hfill Yi Xia }
+\line {\hfill Mich. State Univ.}
+\line {\hfill APR. 10,  1991}
+\line {\hfill L2\_electron.doc}
+\line {\hfill Version 00\_01}
+\vskip 0.8in
+\centerline{\bf How to Run VMS\_L2\_ELECTRON Filter}
+\vskip .8in
+\centerline{\bf Abstract}
+\vskip 0.5in
+This note is designed for  the users who have never run 
+L2\_ELECTRON package
+and VMS\_FILTER before.
+Examples of running L1 and L2 simulation in detail of step by step 
+are given.
+You may find this file in D0\$CALOR\_FILTER:L2\_ELECTRON.DOC.
+
+Due to the frequently updateing of D0software, the L2\_ELECTRON 
+package may be 
+crash during your use. Please send any error messages and questions to 
+                         D0TEST::XIAYI. 
+It will help the author to find bugs and follow the trace of 
+the development
+of D0software.
+\vfill\eject
+\footline={\hss\tenrm-- \folio\ --\hss}
+\vskip 0.2in
+\centerline{\bf A. Introduction }
+\vskip 0.2in
+L2\_ELECTRON is a software package. It works either in a 
+Level\_2 node
+to filter events under Level\_2 environment, or in purpose 
+of trigger simulation in conjunction
+with the VMS\_FILTER 
+package. 
+
+Due to the limited time and memory budget in D0 L2 
+environment, L2\_ELECTRON is a carefull designed filter which 
+is not only
+faster but also has a quite strong rejection 
+power to reduce the background EM trigger rate. It may run togather
+with the D0user CAHITS
+package or run independently within its own self closed 
+software package. In combination with CAHITS you may look the 
+output of L2\_ELECTRON directly by adding your analysis package
+just after the L2\_ELECTRON. It is faster when you run L2\_ELECTRON
+under its own system. 
+
+L2\_ELECTRON has a logic flag. 
+The L2\_framework will consider to pass or reject this event
+depending on the status of this logic flag.
+When there is a electron (or more) which 
+was found by L2\_ELECTRON in a 
+event, it will set the logic flag to TRUE, otherwise a FALSE 
+logic will be 
+assigned to this flag. The value of this flag will be passed to 
+L2\_framework
+which will consider all results of all other releated filters to make
+the final decision.
+
+\vskip 0.3in
+\centerline{\bf B. A Sketch of L2\_ELECTRON}
+\vskip 0.1in
+From the Level\_1 TRGR bank which is filled by Level\_1 trigger 
+framework
+or by LEVEL\_1 simulation process, L2\_ELECTRON obtains a 
+list of electron
+candidates with the address of the hot trigger towers for every event.  
+
+L2\_ELECTRON cycles through this list of candidates (a list
+ of hot trigger
+towers which have the EMt showers above a certain threshold
+ and the HDt lower
+the veto threshold) to find the electrons.
+
+If the number of candidates from Level\_1 TRGR is not zero, then 
+L2\_ELECTRON
+unpacks the CAD1 and CAD2 data bank of calorimetor data.  Combainning 
+the above 
+Level\_1 hot tower address and the calorimetor data, L2\_ELECTRON 
+finds the positions of the possible EM 
+shower first.
+ 
+For separating the shower caused by $\gamma$s or $\pi^0$s
+with electron,
+L2\_ELECTRON uses track marching package to reject these 
+fake candidates. Only
+the candidates which passed this track marching check will 
+meet the shower shape
+check. Surrounding the shower axis of a candidate 
+L2\_ELECTRON measures the 
+longitudinal and transverse shape of this shower 
+using the 3\_D energy 
+deposition distribution in the calorimetor. L2\_ELECTRON uses 
+energy information
+in five layers (EM1,EM2,EM3,EM4 and HD1) and the total EM shower 
+EMtot to check
+the longitudinal shape which is represented by the distribution of the 
+correlations of energy betweem the above six values. The transverse 
+shower 
+shape of the candidate is based on the calculation of its transverse 
+shower 
+radius and the shower diffusivity which is defined at 
+page 8 of the D0 NOTE 869. 
+
+The candidate which failed the above check will be rejected. 
+If the number
+of candidates which were satisfied as a electron reaches the quota 
+that you ask 
+for (you set this quota in the RCP file for L2\_ELECTRON) the 
+event's flag will
+be set TRUE, and this checking cycle stops. If there is none 
+candidate which
+was passed 
+the check then the event's logic flag will be set FALSE.
+
+\vskip 0.2in
+\centerline{\bf  C. How to Run L2\_ELECTRON}
+\vskip 0.2in
+\+\bf I)  The RCP file to control L2\_ELECTRON\cr
+
+L2\_ELECTRON uses a RCP file which is referred to by the logical
+\item{name:} 
+{\bf L2ELCT\_RCP}
+and can be found in D0\$CALOR\_FILTER:L2ELCT.RCP. 
+
+This RCP file contains whole cuts parameters and constants which are used
+by the L2\_ELECTRON. The parameters which user releated are 
+list and explained as
+follow: (do not try to modify other parameters except bellow)
+
+{\bf   ETCUT:} Level\_2 Et Cut on energy which 
+deposited in the Hot Trigger Tower in CC region.
+
+{\bf   EETCUT:} Level\_2 Et Cut on energy which deposited 
+in the Hot Trigger Tower in EC region.
+
+{\bf   ELIMIT:} Quota of the electrons passed the check
+ should be reached, if the event's flag becomes TRUE.
+
+{\bf   CCCUT:} If it is TRUE, the CC part longitudinal shape 
+check is turn on.
+
+{\bf   TRCUT:} If it is TRUE, the CC part transverse shape 
+check is turn on.
+
+{\bf   ECCUT:} If it is TRUE, the EC part longitudinal shape 
+check is turn on.
+
+{\bf   ECTRA:} If it is TRUE, the EC part transverse shape 
+check is turn on.
+
+There are more parameters, but they are not for modification 
+by user right now.
+Due to the differency of shower shape between data and Monte 
+Calro, the above
+RCP file which services for Monte Carlo will not good for the
+ testbeam data. 
+User should check the subtitle inside the RCP file, make sure
+ it consistents
+with the data type which you want to work on.
+
+\vskip 0.4in
+\vfill\eject
+\+\bf II) How to run L1 simulation\cr 
+
+Before you try to run VMS\_FILTER on a data set, you have to let this data
+set pass through the Level\_1 simulation. A package called 
+L1C which does this
+job. Please see D0\$LEVEL1:LEVEL1\_SIMULATION.DOC to learn 
+how to use it. Data
+without TRGR bank will be not accepted by the VMS\_FILTER.
+
+
+You may follow the steps which I give you here to run L1 trigger simulation
+(EM part) without diging into the hell of L1C.
+
+The instructions of step by step are :
+
+\item{A.}  Create your working area in your account (right now it is
+better that you work in 
+D0SF cluster)
+
+{\bf    [xxxx.L1]}
+
+\item{B.}  type : \$LIBT ~~ LEVEL1
+
+\item{C.}  type : \$COPY ~~ D0\$LEVEL1:L1C.RCP ~~ [xxxx.L1]*.*
+
+\item{D.}  type : \$COPY ~~ D0\$LEVEL1:LEVEL1\_CONFIG\_0000.DAT ~~ [xxxx.L1]
+
+\item{E.}  EVE your L1C.RCP,  change
+
+      "D0\$LEVEL1:LEVEL1\_CONFIG\_0000.DAT"
+
+\item{      to}
+
+      "your\_disk:[xxxx.l1]LEVEL1\_CONFIG\_0000.DAT"
+
+\item{F.}  Modify the part of EMt Hot Tower Reference Set 
+Definition in your
+
+    {\bf [xxxx.l1]LEVEL1\_CONFIG\_0000.DAT}  file. 
+
+There are four references which
+have been setup. You may change the Threshold and Veto. The maximum
+number of refrences is 4 , so if you want to test more then four 
+Threshold, you have to run the simulation more then one time.
+
+\item{G.}  Modify the part of Specific Trigger Definition in above file too. It 
+    should set some trigger bits to corresponding to your Emt Hot Tower
+    Reference Set definition. Later on, when the trig bit fired it will
+    mean this event satisfied this trigger definition.  Do not forget 
+that you should active these triggers which you have defined here at 
+the end of this configuration file.
+
+
+\item{H.}  type:  {\bf    \$PBD/D0USER/PACKEDGE=L1C}
+
+\item{It}  creates {\bf L1C\_D0USER.LNK and L1C\_D0USER.COM} file .
+You should modify the  .COM file, 
+
+replace:
+
+     \$define L1C\_RCP D0\$LEVEL1:L1C.RCP
+\item{   by}
+
+     \$define L1C\_RCP your\_disk:[xxxx.l1]L1C.RCP
+
+\item{I.}  type : \$@L1C\_D0USER.COM
+
+           \$@L1C\_D0USER.LNK ~~~ (p1 is DEBUG feature, if you want)
+
+    Now you should have{\bf L1C\_D0USER.EXE} in your area.
+
+\item{J.}  You can run interative mode :
+    now by  type:   \$D0USER/FULL  (answer the question ,choose proper menu
+    which will let you input your data file and choice the output file name.
+    But a lot of item in the menu are not ready yet, so be ware do not 
+    attend to run a fancy job which uses many features in the menu)
+
+\item{K.}  For Batch job, you may copy L1C\_BATCH.COM and
+     SETUP\$L1.INP  from
+
+     D0SFXX::USR\$ROOT1:[XIAYI.L1\_EXAMPLE] to your [xxxx.L1] area.
+
+    Modify the SETUP\$L1.INP file (data file name of the input and output)
+
+    TYPE \$SUBMIT/QUE=qqqq   L1C\_BATCH
+
+    The batch job L1C\_BATCH should now run in the que :qqqq
+
+\vskip 0.4in
+\+\bf III) How to Use L2\_ELECTRON with VMS\_FILTER Package\cr
+
+The LEVEL\_2 FRAMEWORK runs under VAXELN environment instead of VMS. For 
+offline simulation of the Level\_2 trigger, a VMS\_FILTER package 
+was wrotten by
+Jan Hoftun which allows the user to simulate Level\_2 trigger 
+without COOR and
+VAXELN environment. Please read D0\$L2CONTROL:LEVEL2\_MANUAL.MEM 
+for more  information.
+
+For first time user of the VMS\_FILTER, a area in my account 
+at D0SF cluster
+in which several files that will help you to run the L2\_ELECTRON has been 
+created. So please follow these instructions in your first try.
+
+\item{  A.} Create a working ares [xxxx.L2] in your account.
+
+\item{  B.} copy 
+
+    D0SFXX::USR\$ROOT1:[XIAYI.L2\_example]D0\_FILTER.OPT and
+          
+    D0SFXX::USR\$ROOT1:[XIAYI.L2\_example]SETUP.COM and
+    
+    D0SFXX::USR\$ROOT1:[XIAYI.L2\_example]L2TOOL.DAT and
+
+     D0SFXX::USR\$ROOT1:[XIAYI.L2\_example]FILTER\_MAKER.EXAMPLE and
+
+     D0SFXX::USR\$ROOT1:[XIAYI.L2\_example]SETUP\$L2\_ELECTRON.INP and
+
+     D0SFXX::USR\$ROOT1:[XIAYI.L2\_example]MAKE\_RUN\_FILE.COM and
+
+     D0SFXX::USR\$ROOT1:[XIAYI.L2\_example]SETUP\$L2OUT.INP and
+
+     D0SFXX::USR\$ROOT1:[XIAYI.L2\_example]L2ELCT.RCP 
+    
+   into your [xxxx.L2] area .
+
+       You should modify the DIRECTORIES which used in above file to your
+       local directories. For example , replace the {\bf[XIAYI.L2]} 
+by {\bf[xxxx.L2].}
+
+\item{  C.} According to your need to modify the L2\_ELECTRON 
+run control file L2ELCT.RCP.
+
+\item{  D.} Print out the FILTER\_MAKER.EXAMPLE. 
+
+Step by step follow this example,
+       you should obtain 
+
+{\bf VMS\_FILTER\_D0USER.LNK} and
+                         
+{\bf VMS\_FILTER\_D0USER.COM} and
+                         
+{\bf VMS\_FILTER\_D0USER.EXE}  
+
+     The procedure in this example shows you how to create a 
+VMS\_FILTER which uses the CAHITS package.
+
+\item{  E.} EVE the SETUP\$L2\_ELECTRON.INP file to replace the 
+trigger bit, now it is
+       set to 18 in that file, to the trigger bit which you are 
+interested in.
+
+\item{  F.} Submit batch job MAKE\_RUN\_FILE.COM
+
+\item{  G.} Copy CAHITS.RCP from D0\$calor\_off into your area. You 
+should modify
+       this file make sure the Flag for Monte Carlo data is turned on,
+if you are working on Monte Carlo data.
+  Of course you also should
+       modify the VMS\_FILTER\_D0USER.COM file, let it define the CAHITS\_RCP
+       as your CAHITS.RCP file.
+
+\item{  H.} Now you may run the L2\_ELECTRON by type :
+
+       \$@SETUP.COM
+
+       \$@VMS\_FILTER\_D0USER.COM
+
+       \$ D0USER/FULL
+
+\vskip 0.1in
+\centerline{ Choose the menu which you want, and now all are yours.}
+
+\vskip 0.8in
+\centerline{\bf D. Acknowledgement}
+\vskip 0.1in
+I would like to thank Maris Abolins and Jan Hoften for their helps
+on understanding the L1C and VMS\_FILTER software .
+\vfill\eject\end %\eject, only, would be used if other pages were to follow.
+
+

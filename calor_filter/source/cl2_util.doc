@@ -1,0 +1,161 @@
+                                                                J. Linnemann
+                                                                28 Jan 1993
+
+                        CL2 Utilities
+
+This documents several internal utility routines written for level 2 calorimeter
+data.  All the utilities described are initialized by the call to CL2_INI, which
+should be called in every execution of tool_PARAMETERS.  This is in case any new
+STP files have been downloaded.
+    
+    Examples of their usage may be found in D0$CALOR$FILTER$SOURCE in
+CL2TEST_CANDS.FOR.  Of course, in the level 1 filter, no calls to PATHST should
+be done.  An excerpt of this routine is found at the end of this document.
+All of these utilities assume the existence of TRGR and CAD banks.
+Useful Utilities:
+=================
+
+
+    These two are described in D0$CALOR_UTIL$SOURCE:L2_CONV.DOC:
+    DBITT.INC     table for translating hot tower indices to level 1 eta and phi
+    CL1PHET     given level 1 eta and phi, convert raw L1 Pulse Height to ET
+
+    L2JETS_HOTFL  (actually from the L2JETS package)
+        unpacks the hot tower list into the trigger bit mask and hot tower
+        address, suitable for conversion by the /DBITT/ table 
+        No special initialization is required for this routine.
+
+    Back in CL2_xxx (code in CALOR_FILTER):
+
+    /CL2_LINK/  common block with level 2 links to CAEP and PNUT1 banks
+        the links are set and reset by the CL2_xxxx unpacking routines
+
+    CL2_RING11  return bounds of a ring around a central level 1 trigger tower
+    CL2_RING12  same inputs , but bounds are returned in terms of level 2
+                towers, suitable for calling CL2_ROTOW_ETNOM.
+    CL2_RING22  inputs and outputs are both in terms of level 2 towers
+    All three use arrays in CL2_RINGS.INC
+
+    (warning: this technique may result in you looping across eta = 0.  This
+    will not produce incorrect data, since ptcaep2 will be zero for
+    these values, but it may generate errmsg calls when the "routine" version
+    of PTCAEP2 is used unless you trap on eta=0, which is not expensive since it
+    should be the outermost loop)
+
+    CL2_CAEPFL  find CAEP and PNUT1 for ALL hits, assuming Zvtx=0
+                used in L2ETMISS and L2SUMET
+
+    CL2_ET_CORR(IETAC)  call L2_VERT to get the level 2 vertex and use that
+        vertex to find a correction factor between etnominal and true ET for 
+        the tower with offline index IETAC.
+
+    CL2_SNTH(IETAC,IPHIC,LAYERC,ZVTX)
+        calculate the sine of the cell wrt the vertex ZVTX.
+        returns 0 if the cell doesn't exist
+    
+    CL2_ET_TO_E(IETAC) returns the factor to use to get E from ETnominal
+            E = ETnom*CL2_ET_TO_E(IETAC)
+
+Code example:
+    
+    OKL1 = L2JETS_HOTFL()
+    IF (OKL1) THEN
+C...em candidates
+      DO ICAND = 1,NEMHOT
+        IETAL1 =  DBITT(IHOT_ADR_EM(ICAND),1)
+        IPHIL1 =  DBITT(IHOT_ADR_EM(ICAND),2)
+C...if you want L1 nominal Et for tower:
+        CALL CL1PHET(IPHIL1,IETAL1,EMETL1,ETL1)     ! ETEM(nominal) in hot tower
+C...now convert for level 2 data
+        CALL CL2_RING12(IETAL1,IPHIL1,SIZEM,ETALO,ETAHI,PHILO,PHIHI,NPHI)
+        CALL CL2_ROTOW_ETNOM(ETALO,ETAHI,PHILO(1),PHIHI(1))
+        IF (NPHI.EQ.2) CALL CL2_ROTOW_ETNOM(ETALO,ETAHI,PHILO(2),PHIHI(2))
+      ENDDO
+             now PTCAEP2 can be used in this region--see below
+
+C...jet candidates
+      DO ICAND = 1,NJTHOT
+        IETAL1 =  DBITT(IHOT_ADR_JT(ICAND),1)
+        IPHIL1 =  DBITT(IHOT_ADR_JT(ICAND),2)
+        CALL CL1PHET(IPHIL1,IETAL1,EMETL1,ETL1)  !the core tower
+C...ring bounds in level 1 space
+        CALL CL2_RING11(IETAL1,IPHIL1,SIZJT,IELO1,IEHI1,PHLO1,PHHI1,NPHI)     
+C...now in level 2 space
+        CALL CL2_RING12(IETAL1,IPHIL1,SIZJT,ETALO,ETAHI,PHILO,PHIHI,NPHI)
+        CALL CL2_ROTOW_ETNOM(ETALO,ETAHI,PHILO(1),PHIHI(1))
+        IF (ICDJET) CALL CL2_ICDMG_ETNOM(ETALO,ETAHI,PHILO(1),PHIHI(1))
+        IF (NPHI.EQ.2) THEN
+          CALL CL2_ROTOW_ETNOM(ETALO,ETAHI,PHILO(2),PHIHI(2))
+          IF (ICDJET) CALL CL2_ICDMG_ETNOM(ETALO,ETAHI,PHILO(2),PHIHI(2))
+        ENDIF
+        ETSUM = 0       !now sum tower contents
+        DO ETA = ETALO,ETAHI
+          DO IBOUND = 1,NPHI
+            DO PHI = PHILO(IBOUND),PHIHI(IBOUND)
+              DO LYR = 1,MXLYR
+                IF (PTCAEP2(LYR,PHI,ETA).GT.0) THEN
+                  IPOINT = (PTCAEP2(LYR,PHI,ETA)-1)*IQ(L2CAEP+2)
+                  ETSUM = ETSUM + Q(L2CAEP+IPOINT+5
+                ENDIF
+              ENDDO
+            ENDDO
+          ENDDO
+        ENDDO
+      ENDDO
+    ENDIF
+
+Contents of CL2_LINK.INC:
+===============================================================================
+C-
+C-permanent link area for CL2 conversion routines
+
+      INTEGER CL2NSLNK
+      PARAMETER(CL2NSLNK = 20)
+      INTEGER CL2SLNK( CL2NSLNK )
+      COMMON /CL2_LINK/ CL2SLNK
+C
+      INTEGER L2CAD1,L2CAD2,L2CAEP,L2PNUT,L2CAEH,L2CATE
+      EQUIVALENCE( L2CAD1 , CL2SLNK(1) )
+      EQUIVALENCE( L2CAD2 , CL2SLNK(2) )
+      EQUIVALENCE( L2CAEP , CL2SLNK(3) )
+      EQUIVALENCE( L2PNUT , CL2SLNK(4) )
+      EQUIVALENCE( L2CAEH,  CL2SLNK(5) )
+      EQUIVALENCE( L2CATE , CL2SLNK(6) )
+      EQUIVALENCE( L2GLOB , CL2SLNK(7) )
+
+Contents of CL2_RINGS.INC:
+===============================================================================
+C----------------------------------------------------------------------
+C-
+C-   Created  14-JUN-1991   James T. Linnemann
+C-   Updated  27-Jan-1992   James T. Linnemann add L2 arrays
+C-   Updated  29-FEB-1992   James T. Linnemann BYTE; border->NPHI/2
+C----------------------------------------------------------------------
+      INTEGER BORDER1 
+      PARAMETER( BORDER1 = NPHIL1/2 )
+      INTEGER BORDER2
+      PARAMETER( BORDER2 = NPHIL/2 )
+      BYTE L1_JETA                   ! L1 eta coord to quantized eta
+      BYTE JETA_L1                   ! quantized eta to L1 eta coord
+      BYTE L2_JETA                   ! offline eta coord to quantized eta
+      BYTE JETA_L2                   ! quantized eta to offline eta coord
+      BYTE L1_ETA2LO                 ! L1 eta coord to lowest offline eta
+      BYTE L1_ETA2HI                 ! L1 eta coord to highest offline eta
+      BYTE L1_JPHI                   ! wrapped-around L1 phi
+      BYTE L2_JPHI                   ! wrapped-around offline phi
+      BYTE DETA3,DPHI3               !offsets in EM3 space
+      INTEGER*2 L3_DPHI              ! delta phi in EM3 space
+      COMMON /CL2_RINGS/ L1_JETA(-NETAL11-BORDER1:NETAL11+BORDER1),
+     &                   JETA_L1(-NETAL11-BORDER1:NETAL11+BORDER1),
+     &                   L2_JETA(-NETAL-BORDER2:NETAL+BORDER2),
+     &                   JETA_L2(-NETAL-BORDER2:NETAL+BORDER2),
+     &                   L1_ETA2LO(-NETAL11-BORDER1:NETAL11+BORDER1),
+     &                   L1_ETA2HI(-NETAL11-BORDER1:NETAL11+BORDER1),
+     &                   L1_JPHI(-BORDER1:NPHIL1+BORDER1),
+     &                   L2_JPHI(-BORDER2:NPHIL+BORDER2),
+     &                   DETA3(LYEM3A:LYEM3D),DPHI3(LYEM3A:LYEM3D),
+     &                   L3_DPHI(-2*NPHIL:2*NPHIL) 
+
+    If you wish to use these arrays directly in your code, see the CL2_RINGnn
+routine code.
+

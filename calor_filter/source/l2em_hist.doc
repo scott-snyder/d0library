@@ -1,0 +1,373 @@
+L2EM_HIST.DOC
+James T. McKinley
+18-JAN-1993
+
+    Documentation for Online Monitoring of the L2_EM Filter Tool via EXAMINE
+    ------------------------------------------------------------------------
+
+DESCRIPTION:
+------------
+    The L2EM_HIST routine called by the L2_CHECK EXAMINE makes histograms
+of various cut variables used for making pass/fail decisions in the L2_EM
+online data aquisition filter.  It is controlled by the L2EM_HIST.RCP file.
+Various parameters are supplied in L2EM_HIST.RCP which provide selection
+criteria for the user (global monitor?) to control what actually gets put into
+the histograms booked and filled by L2EM_HIST.
+
+THINGS TO BE AWARE OF:
+----------------------
+    The D0 online environment has several features which make understanding
+the information provided by online EXAMINE software (and consequently monitoring
+the experiment) somewhat difficult.  The only data EXAMINE has available to it
+when used in DAQ mode is what is contained in global shared common.  The data
+in global shared common must pass some trigger/filter combination in order to
+get to this buffer.  
+
+    The information plotted by L2EM_HIST is gotten from L2EM banks which are
+filled online in the Level 2 nodes.  The L2EM banks contain cut variable 
+information for all Level 1 EM candidates for all parameter sets.  This means
+each event has a linear chain of L2EM banks of length 
+L = (# L1 candidates) * (# L2_EM parameter sets).  Since list building is done
+in Level 1, this can be quite a large number of banks since these banks are 
+filled regardless of whether or not any candidates pass the L2_EM filter.  The 
+number of L2_EM parameter sets is determined by the filter scripts contained in 
+the trigger configuration files.  The filter scripts are parsed by COOR and the 
+corresponding parameters are downloaded to the Level 2 nodes.
+
+    The L2_EM filter tool knows nothing about filter bit numbers.  The only 
+information L2_EM has regarding decision criteria are the parameter set numbers
+distributed by COOR and the parameters which belong to each set.  Consequently
+the only information in the L2EM banks regarding which filter bit the L2_EM
+tool was called for is the parameter set number from COOR.  This makes 
+referencing the information in the L2EM bank by filter bit difficult.
+
+    There is a one to one correspondence between filter bit and parameter set
+for each run, but this mapping may change depending upon which trigger
+configuration file is downloaded.  The filter bit to parameter set mapping 
+changes if more or fewer filter scripts which use the L2_EM tool are contained
+in one configuration file than another, or if the ordering of the filter bits
+change.  The D0 triggermeisters try to avoid this but sometimes it is 
+impossible (i.e. if a new filter is added). 
+
+    Since global shared common only contains events which pass a filter, all
+information about events which fail all filters is lost (except in mark and 
+pass mode).  Therefore THE EVENT RATES MUST BE MONITORED.  Some information 
+about events which fail all filter scripts that call the L2_EM tool can be 
+gotten from events which pass other independent filters, however this
+information may be somewhat biased.  THE MOST IMPORTANT HISTOGRAM MADE IS THE
+L2_EM IFAILED CODES HISTOGRAM.  THE BINS OF THIS HISTOGRAM SHOULD BE
+APPROXIMATELY THE SAME HEIGHT RELATIVE TO ONE ANOTHER FROM RUN TO RUN.  The
+IFAILED codes from L2_EM tell one where the candidate failed in the code
+(i.e. which cut).  The IFAILED codes are:
+
+    CODE  TRANSLATION
+    ----  -----------
+      0 = PASS
+      1 = ET
+      2 = UNPACKING PROBLEM OR NO CANDIDATE FOR THIS PARAMETER SET
+      3 = SUM OF EM LAYERS ET (SUMEM) IS ZERO OR NEGATIVE
+     10 = FH1/SUMEM HIGH SIDE
+     11 = EM1/SUMEM LOW SIDE
+     12 = EM1/SUMEM HIGH SIDE
+     13 = (EM1+EM2)/SUMEM LOW SIDE
+     14 = (EM1+EM2)/SUMEM HIGH SIDE
+     15 = EM3/SUMEM LOW SIDE
+     16 = EM3/SUMEM HIGH SIDE
+     17 = EM4/SUMEM LOW SIDE
+     18 = EM4/SUMEM HIGH SIDE
+     52 = 3X3 SUM OF EM3 CELLS AROUND HOT EM3 CELL IS ZERO OR NEGATIVE
+     53 = EM3 (5X5-3X3)/3X3 CC HIGH SIDE
+     54 = EM3 (5X5-3X3)/3X3 EC HIGH SIDE
+     55 = 5X5 SUM OF EM3 CELLS AROUND HOT EM3 CELL IS ZERO OR NEGATIVE
+     56 = EM3 (7X7-5X5)/5X5 (IETA>31 ONLY) HIGH SIDE
+     57 = EM3 (4X4-2X2)/2X2 CC HIGH SIDE
+     58 = EM3 1X1/3X3 CC LOW SIDE
+     59 = SIGMA3-MID CC TWO SIDED BUT SYMMETRIC
+     60 = SIGMA5 HIGH SIDE
+     61 = SIGMA5-SIGMA3 HIGH SIDE
+     70 = ISOLATION (CONE-CORE)/CORE HIGH SIDE
+    100 = NO TRACK
+    101 = TRACK VETO
+    666 = TRIGGER WHERE NO TRIGGER INSTRUMENTATION OR EM CALORIMETER EXISTS
+          (LOOK AT OVERFLOWS ON HISTOGRAM)
+
+THESE CODES SHOULD ESPECIALLY BE CHECKED WHEN A NEW LEVEL2 SOFTWARE RELEASE HAS
+RECENTLY BEEN MADE.  BUGS ARE LIKELY TO SHOW UP HERE OR IN THE PASS RATES. BOTH
+SHOULD BE CAREFULLY MONITORED.
+
+
+L2EM_HIST CONTROLS:
+-------------------
+    The L2EM_HIST routine makes the following histograms available:
+
+ ID         Title
+-----      -------
+ 1          L2_EM IETA
+ 2          L2_EM IPHI
+ 3          L2_EM eta of shower center
+ 4          L2_EM vertex corrected eta of shower center
+ 5          L2_EM phi of shower center
+ 6          L2_EM ET (VTX=0)
+ 7          L2_EM ET (ZCORR)
+ 8          L2_EM ET (ZCORR) - ET (VTX=0)
+ 9          L2_EM EM1/SUMEM
+ 10         L2_EM (EM1+EM2)/SUMEM
+ 11         L2_EM EM3/SUMEM
+ 12         L2_EM EM4/SUMEM
+ 13         L2_EM FH1/SUMEM
+ 14         L2_EM SIGMA5-SIGMA3 
+ 15         L2_EM SIG3-MID (CC only)
+ 16         L2_EM EM3 MAX/3X3 (CC only)
+ 17         L2_EM EM3 (4X4-2X2)/2X2 (CC only)
+ 18         L2_EM EM3 (5X5-3X3)/3X3 
+ 19         L2_EM EM3 (7X7-5X5)/5X5 (ABS(IETA)>31 only)
+ 20         L2_EM (CONE-CORE)/CORE (isolation)
+ 21         L2_EM number of tracks in road (CC only)
+ 22         L2_EM IFAILED CODES
+ 23         L2_EM IFAILED CODES (ALL)
+
+The histogram titles reflect the fact that some cut variables are only used in 
+some regions of the D0 detector.
+
+    THE 'L2_EM IFAILED CODES (ALL)' HISTOGRAM CANNOT BE TURNED OFF.  IT IS NOT 
+AFFECTED BY THE FOLLOWING SWITCHES, AND IS FILLED FOR EVERY CANDIDATE FOR EVERY 
+PARAMETER SET FOR EVERY EVENT THAT MAKES IT TO GLOBAL SHARED COMMON.  IT IS NOT
+REDUNDANT WITH THE OTHER 'L2_EM IFAILED CODES' HISTOGRAM.
+
+In addition to turning histograms on or off, there are several other controls.
+These are:
+
+    ALL         LOGICAL
+    HI_ET       LOGICAL
+    PASS_TRIG   LOGICAL
+    PASS_FILT   LOGICAL
+    PASS_CAND   LOGICAL
+    FILT_ONLY   LOGICAL
+    NTRIG       INTEGER
+    NFILT       INTEGER
+    TRIG        CHARACTER ARRAY
+    FILT        CHARACTER ARRAY
+    HIST_ON     LOGICAL ARRAY
+    HIST_PARM   REAL ARRAY 2-D
+    FILT_TABLE  CHARACTER ARRAY
+
+    ALL - If this switch is TRUE all candidates for all parameter sets will
+    be plotted in all histograms.  It is redundant with setting all other
+    logical flags to false, but it should be used instead since it bypasses
+    the decision making code and will speed up processing.
+
+    HI_ET - If this switch is TRUE only the highest Et candidates will be 
+    plotted.
+
+    PASS_TRIG - If this switch is TRUE, the event will be checked to ensure
+    that the Level 1 trigger name specified in the TRIG array passed.
+
+    PASS_FILT - If this switch is TRUE, the event will be checked to ensure
+    that the Level 2 filter name specified in the FILT array passed.
+
+    PASS_CAND - Only candidates which pass the L2_EM filter tool will be
+    plotted.
+
+    FILT_ONLY - Only plot candidates for filters specified in the FILT array.
+
+    NTRIG - The number of triggers the user wants to be checked.  Must be equal 
+    to the number of names given in the TRIG array.
+
+    NFILT - The number of filters the user wants to be checked.  Must be equal
+    to the number of names given in the FILT array.
+
+    TRIG - An array of character strings containing the names of the triggers
+    the user wants to be checked.  Names can be partial, i.e. 'EM*' will check
+    that any trigger beginning with EM fired. Wild card (*) usage is limited.  
+    Wild cards may only be used at the end of a string.  For example,
+    'EM*' is legal, but '*2*' or '*MAX' are not for compatibilty reasons
+    with other D0 software such as L1NAME_PASSED.  DO NOT INCLUDE THE LUMINOSITY
+    SUFFIX IN THE TRIGGER NAME.
+
+    FILT - An array of character strings containing the names of the filters
+    the user wants to be checked.  Names can be partial, i.e. 'GAM*' will check
+    that any filter beginning with 'GAM' passed.  Wild card (*) usage is 
+    limited. Wild cards may only be used at the end of a string.  For example,
+    'ELE*' is legal, but '*MAX*' or '*_SG' are not for compatibilty reasons
+    with other D0 software such as L2NAME_PASSED. DO NOT INCLUDE THE LUMINOSITY 
+    SUFFIX IN THE FILTER NAME.
+
+    HIST_ON - A logical array to turn histograms on or off.  TRUE = ON.
+
+    HIST_PARM - A real array containing the booking parameters for histograms. 
+
+    FILT_TABLE - Character array containing the parameter set to filter bit
+    mapping from COOR for all EM triggers.  This array is used internally by
+    L2EM_HIST to determine the correspondence between parameter set and filter
+    bit.  The array index corresponds to the parameter set number, and the
+    character string contents correspond to the filter bit name.  This table
+    can be checked by comparing it to the list in LEVEL2.INFO produced by
+    COOR when a configuration file is downloaded.  The L2_EM tool number is 17.
+    It should not be necessary to modify or check this array unless a new 
+    configuration file is downloaded which has the number or order of filter
+    bits changed.  WHEN MODIFYING THE FILTER NAMES IN THIS ARRAY DO NOT 
+    INCLUDE THE LUMINOSITY SUFFIX.
+
+
+USAGE:
+    All logical switches may be combined.  The ALL switch overrides all other
+switches except PASS_CAND.  An example combination would be to set all switches 
+except ALL to true (ALL should be set to false in this example) and specify the 
+names of some (one or more) trigger(s) in the TRIG array and filter(s) in the 
+FILT array.  As mentioned previously, partial trigger/filter names may be used 
+to select several filters (i.e. 'ELE').  The result of this set of parameters
+would be to fill histograms only for the highest Et candidates which passed the
+L2_EM tool and which had the trigger and filter bits set for the triggers and 
+filters specified in the TRIG and FILT arrays and only for those parameter sets 
+corresponding to the filters specified in the FILT array.
+
+    Persons doing special runs should not use FILT_ONLY unless they make their 
+own version of L2EM_HIST.RCP which has a modified FILT_TABLE array that 
+reflects the parameter set to filter bit mapping used in their trigger 
+configuration file.  This routine was designed for global runs.
+
+TO RETURN TO THE METHOD OF FILLING USED BEFORE THIS UPGRADE SET THE SWITCHES 
+AS FOLLOWS:
+
+    ALL         T
+    HI_ET       F
+    PASS_TRIG   F
+    PASS_FILT   F
+    PASS_CAND   T
+    FILT_ONLY   F
+
+This setup will fill histograms with all candidates which pass the L2_EM tool
+for all parameter sets regardless of trigger or filter decision.  The contents 
+of the FILT and TRIG arrays are ignored.  If the changes to the trigger 
+configuration files become too frequent it may be best to just use this setup.
+
+    The FILT_TABLE array may occaisonally (I hope) need to be modified if major 
+changes to the global run trigger configuration files are made.  This should be
+infrequent.  The document included below gives instructions about where to get
+this information.  The FILT_TABLE array in L2EM_HIST.RCP has the following
+format.  The array index corresponds to the parameter set number, and the
+contents of the array for a given index contains the name of the filter bit 
+which corresponds to that parameter set number.  ONE SHOULD NOT INCLUDE THE
+LUMINOSITY SUFFIXES WHEN MODIFYING THE NAMES IN THE FILT_TABLE ARRAY.
+
+EM_FILT.TXT
+James T. McKinley
+21-JAN-1993
+
+            Filter Bit to Parameter Set Mapping Table for V6.5-L10
+            ------------------------------------------------------
+
+ Notes
+ -----
+    To get the filter bit to parameter set map from COOR one can look at two
+    files produced by COOR when the trigger configuration is downloaded.  The
+    files are TRIG_FILT_RUN.INFO and LEVEL_2.INFO.  These files reside in the
+    ONLINE:[COOR_EXEC] area on D0.  The most recent versions of the files 
+    correspond to the most recent download that was done.  The LEVEL_2.INFO
+    file contains the Filter #, Tool #, Parameter Set # list for all filter
+    scripts for the download.  The TRIG_FILT_RUN.INFO file contains the bit
+    numbers and Trigger/Filter names for the configuration and also has the
+    correspondence between trigger and filter bits.  The table below was 
+    constructed from these two files for V6.5-L10.  I believe the filter bit to 
+    parameter set mapping is valid for all luminosities even though the filter 
+    names change, but I am not sure of this.
+
+    Filter # = Filter bit # + 1  (Filter #'s = 1-128, Filter bit #'s = 0-127)
+
+    Tool number for L2_EM tool is 17.  
+
+    The format of the Filter lines are:
+
+    Filter [#] [Tool #] [<-Parameter set #] [Tool #] [<-Parameter Set #] ...
+
+    Example
+    -------
+    Filter  9    17             1              12            10
+            ^    ^              ^              ^             ^
+            |    |              |              |             |
+            #  L2_EM Tool#    L2_EM P.S.#    MUON_L2 Tool#  MUON_L2 P.S.#
+
+
+    EM TRIGGERS/FILTERS FROM TRIGGER VERSION 6.5 FOR L=10^30
+    --------------------------------------------------------
+
+ FILTER BIT AND PARAMETER SET DEFINITIONS                       TRIGGER BIT
+ ----------------------------------------                       -----------
+     8 MU_ELE                                                   8 MU_EM_1 
+ Filter   9   17  1   12 10                                         
+
+     9 MU_ELE_2                                                 9 MU_EM_2-L10
+ Filter  10   17  2   12 11
+ 
+    22 GAM_LOW_ISO                                              22 EM_1_LOW-L10
+ Filter  23   17  3
+ 
+    23 GAM_MED_ISO                                              23 EM_1_MED-L10 
+ Filter  24   17  4
+
+    24 ESC_HIGH-L10                                             24 EM_1_MAX-L10 
+ Filter  25   17  6   26  8
+ 
+    25 GAM_2_LOW                                                25 EM_2_LOW-L10 
+ Filter  26   17 12
+ 
+    26 GAM_2_MED-L10                                            26 EM_2_MED-L10 
+ Filter  27   17 14   17 15   26 12
+
+    27 ELE_MISS                                                 27 EM_MISS-L10
+ Filter  28   17 22   18  8
+ 
+    28 ELE_JET                                                  28 EM_JET 
+ Filter  29   17 23   27  6   10 19   27  7   18  9
+ 
+    42 ELE_MEDIUM                                               23 EM_1_MED-L10 
+ Filter  43   17  5
+ 
+    43 GAM_HIGH_ISO-L10                                         24 EM_1_MAX-L10 
+ Filter  44   17  7   26  9
+ 
+    44 ELE_HIGH-L10                                             24 EM_1_MAX-L10 
+ Filter  45   17  8   26 10
+ 
+    45 ELE_HIGH_TRK-L10                                         24 EM_1_MAX-L10 
+ Filter  46   17  9   26 11
+ 
+    46 ELE_MAX                                                  24 EM_1_MAX-L10 
+ Filter  47   17 10   18  4
+ 
+    47 ELE_MAX_SG                                               24 EM_1_MAX-L10 
+ Filter  48   17 11   18  5
+ 
+    48 ELE_2_LOW                                                25 EM_2_LOW-L10 
+ Filter  49   17 13
+ 
+    49 ELE_2_HIGH                                               26 EM_2_MED-L10 
+ Filter  50   17 16
+ 
+    50 ELE_2_MAX                                                26 EM_2_MED-L10 
+ Filter  51   17 17
+ 
+    51 ELE_HIGH2-L10                                            26 EM_2_MED-L10 
+ Filter  52   17 18   26 13
+ 
+    52 ELE_HIGH2_TR-L10                                         26 EM_2_MED-L10 
+ Filter  53   17 19   26 14
+ 
+    53 ELE_MAX2                                                 26 EM_2_MED-L10 
+ Filter  54   17 20   18  6
+ 
+    54 ELE_MAX2_SG                                              26 EM_2_MED-L10 
+ Filter  55   17 21   18  7
+ 
+    55 ELE_JET_MAX                                              28 EM_JET 
+ Filter  56   17 24   27  8   10 20   27  9   18 10
+
+An alternative (and significantly simpler) method of getting the filter bit
+to parameter set mapping is to run the Level 2 simulator (VMS_FILTER) on an
+event and look at the FILTER REPORT.  This requires that one have trigger
+configuration files that work with COOR_SIM however.  Getting these
+configuration files is not too difficult if one starts with the online TRIGPARSE
+files contained in the CFG area.  One can modify the TRIGPARSE file and remove
+all the online specific keywords and then simply run TRIGPARSE and COOR_SIM to
+generate the necessary files for VMS_FILTER and then run the production version
+of VMS_FILTER on 1 or 2 events.

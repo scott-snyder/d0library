@@ -1,0 +1,335 @@
+====================  Start Version 1.02_01 -> 1.03 eventually =============
+    
+ 14-NOV-1991 : Modifications released by James T. Linnemann
+
+    - add L2ETSUM filter
+    - new RCP and STP file handling in electron, l2jets, l2etsum, l2etmiss
+        * use real downloading path; check if any new parameters received
+        * check if parameter set number is in bounds
+        * rationalize parameter names
+    - CL2 banks now have private level-2 only copy of CAGS and CADT
+
+==============================================================================
+
+ 25-JAN-1992 : Modifications released by James T. Linnemann
+    - l2_em,l2jets,l2etsum,l2etmiss now fill esum bank
+    - electron renamed to l2_em (both routine and rcp banks)
+    - mods to l2_em:
+        * handles multiple candidates 
+        * better handlng of when parameters ezpicked (be sure get correct and
+            only correct paramters even if new sets downloaded)
+        * now calls cd tracking
+        * shape cuts choices added as parameters
+            long    longitudinal only
+            trans   transverse only (doesn't work yet)
+            none    no shape cuts
+            electron    long and trans cuts
+            photon      as electron, but no cuts on em1 and em2 long shape
+        * can use CL2 unpacking (not certified yet)
+        * now cuts on Et from level 2 cluster
+        * shape cuts now for three energy bands
+        * added ifail codes to cut section to help debugging of l2_ele_chk
+        * bug fixes:
+            used to fail if long cuts turned off in cc
+            change handling of ietac=14
+        * move tracking test to after shape cuts
+
+JAUX.ZEB : Add parameter mask words 14-17 to flag parameter set (0-127)
+JAUX.PARAMS : Update repetition number of JAUX from 9 to 13
+FRES.ZEB : Updated
+JPAR.ZEB : New ZEB file to hold parameter cuts. Kept under SL2H
+L2JETS_CONT.INC : Add event counter for JAUX [IEVT_JAUX]
+BKJAUX.FOR : Eliminated LSUP from argument list. Now find supporting link within
+             routine.
+BKJPAR.FOR : Elimated LSUP from argument list. Find supporting link with GZXXXX
+             routine instead.
+L2JETS.FOR : Safer testing of logical variables
+L2JETS_CEN.FOR: Implement round cone instead of square cone
+L2JETS_CEN_CL2.FOR Implement round cone instead of square cone
+L2JETS_CUTS.FOR : Record parameter set number of passing jets in mask in JAUX.
+L2JETS_DUMP.FOR : Update dump to include 1 time dump of JPAR
+L2JETS_ENG.FOR  : Replace hardcode of parameter with parameter name,
+                : Implement round cone instead of square cone
+L2JETS_JPARFL.FOR : Modify call to BKJPAR
+L2J_MAKE_JAUX.FOR : Modify call to BKJAUX
+L2JETS_MAKE_JETS.FOR : User callable routine to fill CAPH,JETS sub-tree for
+                     : each parameter set which was present with those Jets
+                     : that passed the cuts. Tree is made under FILT.
+L2JETS_PARAMETERS.FOR : change input cone arrays to real cone sizes.
+
+=================== Release V1.02_01 on 27-Jan-1992 ======================
+
+==============================================================================
+
+  6-MAR-1992 : Modifications released by James T. Linnemann
+ 
+    - saved final version of l2_ele_chk, obsoleted by l2_em rewrite
+
+    - total rewrite of l2_em using cl2 unpacking and extended ring routines
+                    to define region of unpacking
+
+    - activate level 2 tracking calls
+    
+    - add more possibilities to SHAPE_CUTS
+
+    - more careful version handling for MC data in CL2 table building
+
+    - fix bug in cl2_caepfl which caused problems if l2etmiss or l2etsum
+      didn't run before jets
+
+=================== Release V1.02_02 on 10-Mar-1992 ======================
+
+==============================================================================
+
+ 18-MAR-1992 : Modifications released by James T. Linnemann
+ 
+    - added 1st version of event memory code in l2_em (Yi Xia)
+
+    - isolation cone code in l2_em (Y.X.)
+
+    - write output bank l2em (Y.X.)
+
+    - remove checks requiring all crates and CAD banks from l2_em (JTL)
+
+=================== Release V1.02_03 on 30-Mar-1992 ======================
+
+==============================================================================
+
+ 30-MAR-1992 : Modifications released by James T. Linnemann
+ 
+    - bug fix in PRJAUX
+    - add PRL2EM (D. Baden)
+    - parameterize internal memory in L2_EM (JTL)
+    - ALWAYS calculate transverse variables, even for EC (J. McKinley)
+    - adapt CL2_MAKE_TABLES to new FILTER_UTIL: INZSTP and BKHEAD called
+        elsewhere
+   
+
+==============================================================================
+
+  1-MAY-1992 : Modifications released by James T. Linnemann
+    BKL2EM  version number -> 1
+    CL2_CONV.DOC update call tree
+    CL2_MAKE_TABLES
+        supress extraneous error messages
+        !!!!!! fix bug which used cal format 3 when format 2 requested !!!!!!!
+    L2EMFL  zero variables for next call
+    L2ETMISS.DOC, L2ETSUM.DOC fix typos
+    L2JETS_CEN_CL2  correct bug in calculation of cone
+    L2_EM   fix bug giving only positive eta in ESUM
+    L2_EM_GET_CAND  protection against zero-energy candidates (L1 was just
+        noise)
+    L2_EM_ISOL  bug fix in unpacking calls for cone
+    L2_EM_PARSE_CUTS    add new parameter possibilities to steer "escape"
+        candidates to gamma or electron ESUM banks
+
+            ELECTRON, PHOTON              as before
+
+            E_xxxx              specifies will go only into the ID_ELECTRON ESUM
+                                    bank
+            G_xxxx or P_xxxx    specifies a) only into ID_PHOTON ESUM
+                                        b) variable PHOTON = .TRUE.       
+                                        (which for now means that the EM1
+                                        and EM2 cuts are turned off)
+            where 
+        
+                xxxx   = LONG       only longitudinal cuts
+                xxxx   = TRANS      only transverse cuts
+                         otherwise  NO cuts (eg escape)
+
+    - demote E messages on calorimeter format errors to W
+    - record NEWPAR = 0 as not truly initialized in L2JETS
+    - 
+
+==============================================================================
+
+ 11-MAY-1992 : Modifications released by James T. Linnemann
+ 
+    - enhance error detection in cl2_find_adcs (mostly from new gtcad_total)
+    - update l2jets TRGR bank handling
+
+=================== Release V1.02_04 on 12-May-1992 ======================
+
+==============================================================================
+
+ 18-MAY-1992 : Modifications released by James T. Linnemann
+ 
+    - more improvements in cl2_find_adcs messages; silence cl2_caepfl and
+      cl2_ttow_etnom about things found by cl2_find_adcs
+    - l2jets: remove call to dump, which calls D0OPEN (not allowed online)
+
+==============================================================================
+
+ 30-JUN-1992 : Modifications released by James T. Linnemann
+ 
+    - better zeroing of l2em quantities
+    - new IFAILED code = 2 when no candidates
+    - fix MZFORM for JAUX
+    - add a word in l2_em.doc about new shape cut possibilities
+
+==============================================================================
+
+ 12-JUL-1992 : Modifications released by James T. Linnemann
+ 
+    - compatibility with CGEV bank  (several cl2xxx routines)
+    - new handling of error messages (especially cl2_caepfl, cl2_find_adcs)
+    - version 3 esum bank (all tools)
+    - error messages only when try to use illegal parameter set
+        (allows triggering of a node during a run, getting all available
+        parameters)  (all tool's parameter entry)
+    - l2_em_position is now detector eta,phi
+
+==============================================================================
+
+New L2JETS code as of 7/27/92   (Richard V. Astur)
+*** D0$ZEB ********
+    SL2H.ZEB 
+    : Add structural link for FDC tracking bank, L2ETMISS RCP, CL2 geometry
+    : and CL2 calib
+    FRES.ZEB 
+    : Add L0VT, L2FD and L2CD links
+*** D0$INC **********
+    L2JETS_CHARS.INC
+    : Add error severity flag for L2JETS
+    L2JETS_CONT.INC
+    : Add numerous error condition parameters for L2JETS.
+    : Add NOW_NEW_PARAMS logical (did we download a new parameter set?)
+    L2JET_HOT.INC
+    : Change IHOT_MSK_JT,IHOT_MSK_EM arrays to functions and add arrays that
+    : now allow use of software Jet_list_builder (P. Laurens)
+
+***** D0$CALOR_FILTER$SOURCE: **************
+    L2JETS_INIT.FOR
+    : Use new method for downloading .RCP (L2J_RCP_CHAIN.FOR)
+    L2JETS_PARAMETERS.FOR
+    : No error messages issued from this routine anymore. All
+      are to be handled by L2JETS.
+    : Warn L2JETS when new parameters are loaded
+    L2JETS.FOR
+    : Modify error code to respect desired E,W and F requirements. Most error
+      messages now issued by L2JETS.  
+    L2JETS_DUMP.FOR
+    : Remove call to D0OPEN
+    L2JETS_HOTFL.FOR, L2JETS_FAKE_HOTFL.FOR
+    : Make compatitble with P. Lauren's new jet list builder
+    : Add functions IHOT_MSK_JT,IHOT_ADR_JT, IHOT_MSK_EM, IHOT_ADR_EM to
+      replace arrays
+    L2JETS_MAKE_JETS.FOR, L2JETS_JPARFL.FOR, L2JETS_TEST_PARAMS.FOR, 
+    L2J_COPY_JPAR.FOR, L2JETS_CEN_CL2.FOR
+    : Small bug fixes, update error handling
+*   BKJAUX.FOR
+    : Update call to MZFORM (should be already released?)
+    CL1PHET.FOR
+    : Handle case where TRGR info cannot be found
+    L2JETS_CURRENT_PARAM.FOR
+    : Returns last parameter set number used by L2JETS
+        ENTRY L2JETS_CURRENT_IND_PARAM
+        : Return last independent parameter set number used by L2JETS
+        ENTRY L2JETS_CURRENT_ESUM_OBJECT
+        : Return ESUM object id for last jet type processed by L2JETS
+    L2JETSFL.FOR
+    : should be obsolete
+    GZJPAR.FOR
+    : Copy bank from FRES if we cant find it on STP
+    PRJPAR.FOR, L2JETS_JPARFL.FOR
+    : Small bug fix
+    L2J_COPY_JPAR.FOR
+    : Copy bank to underneath FRES so it will be written out.
+    ESUM_JET_TO_CONESIZE.FOR
+    : ESUM jet object id to conesize
+    ESUM_CONESIZE_TO_JET.FOR
+    : Return closest (within .15) ESUM jet id for requested cone size
+    L2J_RCP_CHAIN
+    : Add requested RCP banks to those to be downloaded
+
+=================== Release V1.02_05 on 12-Aug-1992 ======================
+
+==============================================================================
+
+ 15-AUG-1992 : Modifications released by James T. Linnemann
+ 
+1. CL2 unpacking (J. Linnemann,S. Kahn)
+    upgrade to handle new sequencers 
+    support for CELXYZ and other utilities using offline CAL geometry banks
+        geometry file with provisional survey is in d0$STP; will be released
+        soon as real test release.  For the present, the provisional survey will
+        be used for DATA (via data version of calevt.rcp).  The cal file with
+        survey information is provisionally d0$stp:cal_stpfile.srv.
+    new routine CL2_SNTH    precise calculation of sin theta given cell, Zvtx
+    new routine CL2_ET_CORR rough correction of Et of a cluster
+
+2. L2_EM       (J. McKinley, S. Fahey, J. Linnemann)
+    l2em bank -> version 2 (see below)
+    candidate list now overflows at 128 instead of 16
+    add l2_em_fine_position (log weighting; no alignment) 
+            used for track position with better resolution
+        l2_em_xyz_position (template fine Z routine using alignment of cal)
+            (it's not used currently)
+            record fine position in L2EM bank
+    add Et correction for l2 vertex    (ON in beta; OFF in online)
+                (switchable in debugger by local variable DO_Z_CORR)
+            record corrected Et in L2EM bank
+    update l2_em rcp file (see more detail below)
+            support eta,e binning defined in RCP
+            move eta boundaries
+            add new E bin at 65 GeV
+            separate E binning in CC EC
+            backwards compatible to old files
+    DEFINE PRIMARY CUT VARIABLES: 
+        		EM3 lo,hi
+        		FH1 hi
+        		transverse variable (hi) :
+        			CC	SIGMA 5x5-3x3
+        			EC	5x5 -3x3
+        			EC IETAC.GE.31 7x7-5x5
+    NEW DEFAULT: ONLY USE PRIMARY VARIABLES!!!!!!!
+    new shape cuts parameter qualifier TIGHT
+            If it's part of a SHAPE_CUTS variable, use ALL variables:
+                includes (if values given in L2_EM.RCP):
+                    EM1, EM1+2, 4x5-2x2 in CC, EC
+                    5x5-3x3; 1x1/3x3, SIGMA3, SIGMA5 in CC
+                    SIGMA5-3 in EC; 
+            omitted => use ONLY 4 primary cuts: 
+        Examples
+        SHAPE_CUTS  'E_TIGHT'   electron; use tight cuts
+                    'PHOTON'    gamma; use primary variables only
+                    'P_TIGHT'   gamma, but use ALL variables except EM1, EM2
+    DROP EM1/2 and EM4 cuts in regions where no signals exist
+    
+
+3. L2_EM_RCP   (M. Fatyga, P. Grudberg, J. McKinley, Yi Xia)
+        (the RCP files will be in the LEVEL2 library)
+Data:
+    Two new testbeam-tuned sets of cuts are released in d0$level2$l2sim.
+
+        L2_EM_TB03.RCP      (default) tuned by Mirek and Peter
+                for a detailed description see the header.  
+        Both basic cuts and _tight  (using more variables) are available.
+        For an explanation of _tight, see item 3 above.
+        The basic cuts are rather loose except for the transverse variable.
+                    (comment: there is some evidence that the cut on 4x4-2x2 is
+                    tighter than was intended: under investigation: used only
+                    for the _TIGHT condition)
+
+        L2_EM_TB02.RCP      tuned by Yi Xia
+
+        His set of cuts was tuned by looking at both TB and D0 data, and was
+        intended to be used with _tight in shape_cuts, in order to use all the
+        variables he defined.
+
+MC:
+    A new Monte Carlo set of cuts was generated by Jim McKinley.  It is based on
+    the same information as the previous set, but uses the newer eta binning.
+    This file uses only the four primary cuts.
+        L2_EM_MC03.RCP
+
+    A set of MC cuts corresponding more closely to L2_EM_TB03.RCP is not yet
+    available, but M. Tartaglia is working on it.  
+
+4. L2ETMISS         (J. Linnemann)
+    add correction for l2 vertex (ON in beta; OFF in online)
+                (switchable in debugger by local variable DO_Z_CORR)
+    The ICD/MG's are still not included.
+
+=================== Release V1.02_06 on 20-Aug-1992 ======================
+=================== Release V1.03    on  4-Nov-1992 ======================

@@ -1,0 +1,315 @@
+                                                                J. Linnemann
+                                                                MSU
+                                                                23 May 1991
+
+                CL2_CONV routines, version 2.0
+                
+    The CL2-xxx routines are meant to provide local conversion of calorimeter
+data to nominal ET (as if z - 0) for the level 2 calorimeter filters.
+
+**********************************************************
+*    To use these routines in a filter:                  *
+* 1) tool_INIT must call CL2_MAKE_TABLES                 *
+*     CL2HITS.RCP, CAHITS.RCP, and CALEVT.RCP            *
+*       are needed for tool_INIT                         *
+* 2) tool_PARAMETERS must call CL2_INI                   *
+**********************************************************
+
+    (These routines may also be used as a PBD package.  The package name is
+CL2HITS.  
+
+    The specification for the calorimeter fast conversion routines is:
+
+CALL CL2_ROTOW_ETNOM(ietamin,ietamax,iphimin,iphimax)
+
+    The input arguments specify a range of readout towers, in OFFLINE indices,
+to be converted to nominal Et.
+
+    The action of the routine is to convert AT LEAST the requested towers'
+calorimeter signals into NOMINAL ET in a CAEP bank.  These entries are pointed
+to by a pointer array 
+
+    PTCAEP2(LAYERC,IPHIC,IETAC)  (note that this is a different index order
+        than used offline.  This order makes the code more efficient
+        whenever you loop over layers, and whenever I locally reset this
+        array)
+
+    Usage:
+        
+    Before you start a loop over channels, you call this routine, using as
+arguments the upper and lower bounds of your loop.  It will then guarantee
+that PTCAEP2 will be valid for all indices used by that loop.  If there is
+danger of reaching "outside" this range, then the routine will have to be
+called with arguments included the whole range you intend to reference, or
+you will have to include special calls to the routine INSIDE your loop if
+you extend out of the originial range....
+    The array PTCAEP2 will contain numbers <= 0 for cells which
+        a) do not exist (eg ietac=0)
+        b) were zero supressed either in hardware or in conversion
+PROVIDED that CL2_ROTOW_ETNOM has been called for the tower you are looking at.
+
+To include PTCAEP2 in your routine, you must 
+
+INCLUDE 'D0$CALOR$FILTER$SOURCE:PTCAEP2.DEF'    
+                                I USE .DEF instead of .INC because the content
+                                of the .DEF file is either a common block
+                                containing the pointer array, or an integer
+                                declaration of PTCAEP2 as a function
+
+    Internally, the routine will worry about whether it has already done the
+conversion (from PH to ETNOM) for this particular channel before on this event. 
+I believe this can be done with reasonable efficiency; my intention is to do
+conversions a trigger tower at a time, a compromise between the possibly extra
+work of converting more channels than strictly required, and the amount of
+searching required tofind data to convert.  Requests to convert readout towers
+with massless gaps and/or ICD's will NOT trigger conversion of that information.
+You have to call CL2_ICDMG_ETNOM to ensure conversion of that information.
+
+Related routines:
+
+CALL CL2_ICDMG_ETNOM(ietamin,ietamax,iphimin,iphimax)
+
+    used internally by CL2_ROTOW_ETNOM and CL2_CAEPFL
+    put the massless gap/ICD nominal ET into CAEP, and set PTCAEP2 to indicate
+their presence.  The validity of the PTCAEP2 pointers MGs/ICD's of a tower is
+not guaranteed until this routine is called for that tower.  This routine will 
+ONLY guarantee the accuracy of the MG/ICD layers of these towers; if you need
+the whole tower, call CL2_ROTOW_ETNOM as well.
+
+Limitations:
+
+    CAD bank(s) must be present.
+    Et is calculated assuming the vertex is at zvtx=0, but correction routines
+        are available (see cl2_util.doc)
+
+Implementation:
+
+    This implementation produces a CAEP bank under filt which contains, instead
+of E, nominal ET(assuming Zvtx = 0).  This calculation is performed to an 
+accuracy of 1.3% by using a lookup table.  The offline CADT banks perform the
+address translation.  Added to the offline addresses is a byte which points to
+the nearest entry in a CAGS bank (Gain * Sine theta(nominal) ).  The entries in
+this table are spaced by  2.5%, so choosing the nearest one guarantees 1.3%
+worst case accuracy.
+
+    Also, PTCAEP2 is actually a function; when it becomes a real array, I will
+simply change the .DEF statement.  No change in user code will be necessary. 
+The function implementation will allow the function to check whether the
+information being accessed is valid or not, to help debugging code.
+NOTE: as of this release   
+
+- PTCAEP2.DEF changed so compiled version is FAST version (not a function
+    which can generate error messages).  To debug your code, comment out the
+    dimension and equivalence statements in PTCAEP2.DEF, and be sure you
+    recompile all routines you wish to debug.
+
+SIDE EFFECTS and special treatment:
+    1) if the MICRO_BLANK bit is on (Main Ring active) CH layer 15 is dropped 
+        for abs(eta)<12, and OCH layers 16 and 17 are dropped.  This kills all 
+        CH cells with the main ring in them, plus all their phi-symmetric 
+        partners.  This affects ALL unpacking, and thus all filters.  It should 
+        provide less junk for ETSUM/ETMISS and avoid needless MR-induced 
+        electron vetoing.  It will effectively lose a bit of jet energy for 
+        triggers taken during microblanking on.
+    2)  The noisy cell removal algorithm operates for the ETSUM and ETMISS
+        banks.  The algorithm looks at the n (n = 1 as of 29 Jan 1993) highest 
+        Et cells to see if they are isolated (like a noise hit).  If so, they 
+        are subtracted out of the PNUT bank by a CL2_CAEPFL call to 
+        CL2_BAD_CELL_KILL. The entry point may also be used to remove such 
+        cells from CAEP, but this opportunity is presently not used.
+
+
+Performance:
+
+    For tower sizes of 3 X 3 readout towers (electron candidates), on 7.5 GeV Et
+candidates in 40-80 GeV isajet pt, the conversion and zeroing takes about
+5ms/candidate on a  3100/38 Vaxstation.
+
+    For tower sizes of 7 X 7 readout towers ( jet candidates), on 7.5 GeV Et
+candidates in 40-80 GeV isajet pt, the conversion and zeroing takes about
+11-14 ms/candidate on a  3100/38 Vaxstation, depending in part whether the ICD
+conversion is called.
+
+    For the same event sample, a PCA study was performed.  This resulted in a
+mixture of .9 electron candidates/event, and 2.1 jet candidates per event.
+No ICD conversion was attempted.  Under these conditions, the breakdown of 
+time was:
+    CL2_ROTOW_ETNOM: 29%
+        15% control logic
+        15% Vzero'ing of PTCAEP2
+      CL2_TTOW_ETNOM 14% (in control logic)
+        BKCAEP           4%         (book CAEP bank)
+        CL2_FIND_ADCS    6%         (scan CAD to get pointers to all ADC cards)
+        CL2_FIND_TTOW   17%         (binary search for data)
+        CL2_MAKE_ETNOM  29%         (fill CAEP and PTR2)
+
+    For a more realistic mixture of events (lower PT, fewer candidates per
+event, and probably fewer channels found), the time for CL2_MAKE_ETNOM would
+probably go down fastest.  However, my conclusion is that rather extensive
+modifications would be necessary to obtain substantial further gains, as several
+different routines would have to be optimized.  Thus, given the present
+acceptable level of performance, my enthusiasm for further optimization is
+limited.  I may try to rework the zeroing of PTCAEP2, which might be attractive
+for reasons of compatibility with offline, but large gains are not to be
+expected.
+
+
+Call tree for CL2_xxx L2ETMISS and CL2HITS
+
+Note: these are in rough alphabetical order, not order of execution
+                routines from other libraries are generally not followed:
+                    this is why some line numbers in the listing are skipped
+
+-------------------
+ Entry:  CL2_CAEPFL      (Called by L2ETMISS and L2ETSUM)                
+          +---BKCAEP
+          +---BKGLOB
+          +---BKPNUT
+    A     +---CL2_FIND_ADCS                 build pointers and check format
+          |    +---ERRMSG 
+          |    +---GZCAD1
+          |    +---GZCAD2
+          |    +---SET_BAD_CAL_FLAG
+    B     +---CL2_MAKE_ETNOM                unpack from raw -> Et nom, PNUT
+          |    +---CL2_ETMISS_Z_GEOM        initialization for event
+          |    |    +---CL2_ET_CORR
+          |    |         +---CELXYZ
+          |    |         +---CEXIST
+          |    |         +---L2_VERT
+          |    +---CL2_CHECK_SFTVSN         did geometry match data type?
+          |    |    +---ERRMSG 
+          |    +---CL2_RESET_BIG_CELL_LIST
+          |    +---CL2_ADD_BIG_CELL         note highest Et cells
+          |    +---ERRMSG 
+          |    +---MICRO_BLANK      drop some CH cells when Main Ring on
+          +---CL2_BAD_CELL_KILL             are highest Et cells noise?
+          |    +---BKPNUT 
+          |    +---CL2_CELL_ISOLATED
+          |    |    +---CL2_NEIGHBOR_HITS
+          |    |    |    +---CL2_GET_NEIGHBORS
+          |    |    |    +---GZCAEP 
+          |    |    |    +---PTCAEP2
+          |    |    |    |    +---ERRMSG 
+          |    |    |    +---VZERO
+          |    |    +---GZCAEP 
+          |    |    +---PTCAEP2 
+          |    +---CL2_GET_N_BIG_CELL
+          |    +---CL2_GET_BIG_CELL
+          |    +---CL2_SET_BIG_CELL
+          |    +---GZPNUT 
+          +---CL2_VZERO_PTCAEP2
+          |    +---VZERO
+          +---ERRMSG 
+          +---GZGLOB
+          +---GZPNUT 
+          +---MZDROP 
+          +---VZERO
+
+
+-------------------
+ Entry:  CL2_TTOW_ETNOM                  entry called for local unpacking
+          +---BKCAEP 
+          +---CL2_FIND_ADCS (CL2_CAEPFL, A)     pointer list
+          +---CL2_FIND_TTOW                     find what should be unpacked
+          +---CL2_MAKE_ETNOM (CL2_CAEPFL, B)
+          +---ERRMSG 
+          +---VZERO
+
+
+
+-------------------
+ Entry:  CL2_INI              build tables and misc init                    
+          +---CGDBITT
+          |    +---CDBITT
+          +---CGL2CRATE
+          |    +---VZERO
+          +---CGPHTT
+          |    +---CPHTT
+          +---CGTTEDGE
+          +---CGTTMGETA
+          +---CGTTPH
+          |    +---CTTPH
+          |         +---CMNMXHX
+          |              +---CPHHEX
+          |                   +---CADPAK
+          |                   |    +---SBIT
+          |                   |    +---SBYT
+          |                   +---CEXIST
+          |                   +---CPHAD
+          |                        +---CLYRDP
+          |                             +---CDPLYR
+          |                                  +---UCOPY
+          +---CL2_ETMISS_GEOM_INIT
+          |    +---CL2_ET_TO_E
+          |         +---CELXYZ 
+          +---CL2_GET_GEOM          get downloaded geometry 
+          |    +---BKSCAL
+          |    +---ERRMSG 
+          |    +---GZCADT
+          |    +---GZSCAL
+          |    +---MZDROP 
+          |    +---MZ_BANK_SAME_MSG     check if compatible with existing geom
+          |    |    +---MZ_BANK_SAME
+          |    +---SWORDS 
+          |    +---ZSHUNT
+          +---CL2_GET_SFTVSN            
+          |    +---GZSL2H
+          +---CL2_LINK_INI
+          |    +---MZLINK 
+          +---CL2_RING_INIT         init ring routines
+          +---CL2_STPLNK
+          |    +---ERRMSG 
+          |    +---GZSL2H
+          +---CL2_VZERO_PTCAEP2 
+          +---L2_L0_PARAMETERS      prep for use of L2_VERT
+
+
+
+
+-------------------
+ Entry:  CL2_MAKE_TABLES        build download of CAL, L2_VERT constants
+          +---INZSTP 
+          +---CALOR_INI 
+          +---CHTINI 
+          +---INRCP 
+          +---EZPICK            which constants to build 
+          +---EZGET
+          +---EZRSET
+          +---CL2_SET_STP       preparation for getting right constants
+          |    +---BKCAD1
+          |    +---CADT_FIX
+          |    +---CAL_VERSION_WORD
+          |    +---CGEVFL
+          |    +---ERRMSG 
+          |    +---GZCADT 
+          |    +---STP_GSLINK 
+          +---CAGSFL            fill the table of possible gain*sine
+          |    +---BKCAGS
+          |    +---CEXIST
+  A       |    +---CL2_CAGS     find the value of gain*sine for the channel
+          |    |    +---CELXYZ
+          |    |    +---GTCGEV
+          |    +---CL2_INI  (see above)
+          |    +---CL2_PUT_CAGS    put the bank were it can be downloaded
+          |         +---BKSL2H
+          |         +---CL2_LINK_INI 
+          |         +---ERRMSG 
+          |         +---GZCADT 
+          |         +---GZCAGS
+          |         +---GZSL2H
+          |         +---MZDROP 
+          +---CL2_CADTFL        fill the CADT bank with pointers to gain table
+          |    +---CEXIST
+          |    +---CL2_CAGS (A)
+          |    +---CL2_INI (see above)
+          |    +---ERRMSG 
+          +---CL2_PUT_GEOM      put geometry and constants in download bank
+          |    +---ERRMSG 
+          |    +---MZCOPY 
+          |    +---MZDROP   
+          +---L2_VERT_INIT      download constants needed for use of VTX 
+               +---L2_L0_INIT
+
+
+
+

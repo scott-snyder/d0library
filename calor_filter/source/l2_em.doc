@@ -1,0 +1,660 @@
+                                                            J. McKinley
+                                                            J. Linnemann
+                                                            13 Nov. 1993
+                                L2_EM: 
+    
+            The level 2 electromagnetic cluster algorithm
+
+    This note describes the EM cluster algorithm as designed and implemented by
+Yi Xia, et. al.  The cuts are described functionally and the tuning methods
+are briefly described.  The sections below include:
+
+    Filter script:              what the parameters are and what they mean
+    Algorithm description:      what is being done
+            - longitudinal algorithm   
+            - transverse algorithm
+            - cone algorithm
+    Energy dependence of cuts 
+    How the cuts were tuned
+    Internal organization:
+            - the call tree of routines inside L2_EM
+            - the RCP files with the cuts, and variable names used
+    Geometry:
+            - EM signals available
+            - the Calorimeter signal organization
+
+
+                            Filter Scripts
+                            --------------
+
+As an example, here is the filter script for the ELE_2_MAX filter used in Run 1A
+to trigger on 2 isolated EM candidates both with Et>20 GeV and which passed the
+primary  electron shape cuts.
+
+!ele_2_max.filt
+!Generated from `ofln_v73.glb-triglist;1' by trigparse 1.19.
+!
+filter_bit ele_2_max pass_1_of 0 speed 1.0 must_try
+  l2_em
+    num_em  2
+    etmin_cc  20.
+    etmin_ec  20.
+    track_match  'IGNORE'
+    del_eta_track  0.03
+    del_phi_track  0.03
+    shape_cuts  'ELECTRON'
+    do_isolation  true
+    cone_delta_r  0.4
+    cone_fract_max  0.15
+script_end
+
+Description of script parameters:
+
+- num_em
+    For the filter to pass, this many candidates must pass all other specified 
+
+- etmin_cc
+    Et threshold if the candidate is in the CC
+
+- etmin_ec
+    Et threshold if the candidate is in the EC
+
+- track_match
+    'IGNORE' = do not require a matching track
+    'REQUIRE' = require a track to calorimeter cluster match (CDC or FDC)
+    'CDC_ONLY' = require a track match IF in |IETAC| < 13 (CC)
+    'FDC_ONLY' = require a track match IF in |IETAC| > 13 (EC)
+
+    'VETO' = Fail candidate if a track points to EM candidate cluster
+                        (CDC or FDC)
+    'VETO_CDC' = veto if find a track match and in |IETAC| < 13 (CC)
+    'VETO_FDC' = veto if find a track match and in |IETAC| > 13 (EC)
+
+- del_eta_track
+    eta road size in which to look for matching track
+
+- del_phi_track
+    phi road size in which to look for matching track
+
+- shape_cuts
+    'ELECTRON' = uses standard longitudinal and transverse cuts
+                 (primary variables only)
+    'PHOTON'   = drops cuts on EM1 and EM2
+    'E_LONG'   = does longitudinal only for electron
+    'E_TRANS'  = does transverse only for electron
+    'E_IGNORE' = or anything else not among the above
+                 does no shape cuts but calls it an electron
+    'G_LONG'   = does longitudinal only for photon
+    'G_TRANS'  = does transverse only for photon
+    'G_IGNORE' = or anything else not among the above
+                 does no shape cuts but calls it a photon
+    'P_...'    = also works same as 'G_....'
+
+    'xx_TIGHT' = use ALL variables; default is only 4 main variables:
+                 FH1, EM3, SIG5-SIG3 or 5x5-3x3.  All variables means all
+                 variables which are turned on in the RCP file, some are 
+                 turned off.  [This option no longer includes EM1 or EM2 cuts]
+
+- do_isolation
+    If true pass only candidates whose fractional energy difference between
+    a cone of radius 0.15 and a cone of radius cone_delta_r is less than
+    cone_fract_max.  
+
+- cone_delta_r
+    radius of isolation cone in sqrt(deta**2+dphi**2) units
+
+- cone_fract_max
+    actual cut on fractional energy in isolation cone < (cone-core)/core
+
+
+                        The L2_EM Algorithm 
+                        -------------------
+
+    This algorithm description explains ALL the possible cuts.  All the cuts are
+done if the E_TIGHT parameter option is selected.  But generally all cuts have
+not been used in the past, neither for electrons nor for photons.  Cut values
+not specified directly as tool parameters come from D0$LEVEL2$L2SIM:L2_EM.RCP,
+which is downloaded as an STP file to level 2.
+
+1)    Find candidate(s) from level 1
+2)    Find peak EM3 cell in a trigger tower which triggers at Level 1
+3)    Unpack EM + FH1 energy in 3X3 readout towers around peak EM3 cell
+4)    Find centroid of shower
+5)    Get vertex z position
+6)    Correct Et for vertex position and leakage out of nominal cluster size.
+7)    Cut on Level 2 EM Et
+8)    Cut on longitudinal shape
+9)    Cut on transverse shape
+10)   Cut on track match 
+11)   Cut on isolation of candidate 
+    
+The peak EM3 cell is the one with the largest single EM3 deposit inside the
+original candidate trigger tower.
+
+
+Longitudinal Algorithm 
+----------------------
+The cuts are divided into two groups: primary and secondary.  The primary
+cuts are FH1/SUMEM and EM3/SUMEM (f5 and f3 below) and are used unless the
+SHAPE_CUTS field in the filter script is set to IGNORE.  The 
+secondary cuts are not used unless the E_TIGHT option is selected in 
+the filter script SHAPE_CUTS field.  For the P_TIGHT or PHOTON options
+f1 and f2 below are not done.
+
+    The tested region for the longitudinal algorithm is 3X3 readout towers
+around the readout tower containing the peak EM3 cell.  This size is independent
+of eta.  This 3x3 region is also the core region used in the cone isolation
+algorithm.
+    
+Floor fractions f(i) = E(i)/SUMEM, i = 1-5 are calculated.  SUMEM is the sum of
+the first 4 floors.  However, only FH1 participates in floor 5. 
+
+The cuts are made on f5, f3, f1, (f1+f2), f4 (in that order)
+
+    [NOTE: because of the offset introduced in the energy scale, the f1 and
+f1+f2 cuts are NO LONGER PERFORMED EVEN FOR E_TIGHT]
+
+There are lower and upper cuts on f1-f4.  f5 has only an upper side cut
+performed on it.  However the low side cuts on f1,f2,f4 are turned off in the
+RCP file at this writing.  All longitudinal cuts depend on both energy and
+eta.  Presently the f3 cuts are quite loose, so that they effectively only serve
+to eliminate "hot" single cells in the EM layers which trigger.
+
+
+Transverse Algorithm 
+--------------------
+The primary cuts are:
+
+    CC: S5-S3 (99% efficient value from TB data)
+    EC(IETA < 31): dE5X5/E3X3 (99% efficient value from TB data)
+    EC(IETA = 31,32): dE7X7/E3X3 (100% efficient value from Yi Xia)
+
+The other cuts are used only in the E_TIGHT option of the SHAPE_CUTS filter
+script parameter.  Some of the cuts described below are turned off even if
+the TIGHT option is selected.  
+
+
+ietac   MAX/3X3 S3  dE5X5/E3X3 S5  S5-S3  dE4X4/E2X2 dE7X7/E5X5
+1-12       x     x      x       x    x       x
+13      no EM calorimeter, so no EM triggers here.
+14-25                   x            x        
+26-30                   x            x           
+31-32                                                     x          
+33-37   candidate automatically fails (no trigger here now).
+
+    This diagram shows what cuts the L2_EM filter tool will attempt under the
+E_TIGHT option, however if the cut values are set very  large in the RCP file
+which contains the cut values, it is as if no cut was  made.
+The *'s in the descriptions below mark those cuts which are turned off in the
+RCP at this writing.
+
+Definitions:
+
+*MAX/3X3 .GE. cut value (no E, eta dependence!), turned off in RCP file.
+    
+*S3 
+    cut is on lo < S3 < hi, where
+
+            lo, hi = -(A2*peak**2 + B1*peak + C0) - or + Delta
+                    (peak) is the energy in the peak EM3 cell  
+
+    turned off in RCP file.
+    S3, S5 are defined as energy-weighted <r> (NOT rms)  
+        with units if EM3 cells
+
+E5X5, E3X3 are the energy sums in 5X5 and 3X3 EM3 cell regions about the peak.
+
+dE5X5/E3X3
+    cut on (E5X5 - E3X3) / E3X3, primary in EC, secondary in CC, SUMEM
+    and IETAC dependent.
+
+*S5
+    the cut is on S5 < max, INDEPENDENT of energy, eta
+
+S5-S3
+    The cut is on S5-S3 < cut depending on SUMEM, IETAC, primary in CC, 
+    secondary in EC (turned off in RCP above IETA=25).
+
+dE4X4/E2X2 CC, *EC
+    From peak EM3 cell, find eta, phi neighbors with highest energies.  Build
+a 2X2 EM3 array including these 3 and the cell which fills out the 2X2 square.
+Then make a surrounding 4X4 cell square.  Call the energies in these
+two E2X2 and E4X4.  Seconary only in CC.  Not done in EC, turned off in RCP.
+
+    min < (E4X4 - E2X2) / E2X2 < max, where min, max indep of energy
+
+dE7X7/E5X5
+
+    cut on (E7X7 - E5X5) / E5X5 < max independent of energy
+                                  since far forward will always be high E if
+                                  candidate passes Et threshold, IETA=31,32
+                                                        
+Cone Algorithm
+--------------
+    The core is a sum over the layers selected in D0$LEVEL2$L2SIM:L2_EM.RCP:
+Core sums from LO_GAMMA_FLOOR to HI_GAMMA_FLOOR (as of run 1A, EM 1-4), over the
+3 x 3 Readout Towers centered about the highest EM3 cell.
+    The cone is a sum over LO_CONE_LAYER to HI_CONE_LAYER, with possibly the
+ICD/MG  turned off by CONE_USE_ICD (as of run 1A, the sum is over all layers
+except the ICD/MG).  The lateral extent is chosen by the CONE_DELTA_R parameter
+for the script: cells with centers that close to the central readout tower are
+included. 
+
+
+
+                Energy And Eta Dependence Of Cuts
+                ---------------------------------
+
+Energies are broken up into 4 ranges:
+
+                L (1)  < ETH1  
+      ETH1 <    M (2)  < ETH2  
+      ETH2 <    H (3)  < ETH3  
+      ETH3 <    X (4)
+
+    The L,M,H,X notation is used below in the description of RCP contents.
+
+The actual energy boundaries ETH1,ETH2,ETH3 are different for CC and EC:
+
+                   CC          EC
+
+ETH1            14.0 GeV    29.0 GeV
+ETH2            35.0 GeV    70.0 GeV
+ETH3            65.0 GeV   150.0 GeV
+
+
+There are 8 eta regions:
+    
+                |IETAC|   L2_EM eta region
+                -------   ----------------
+                 1-2      CC index  1   
+                 3-6      CC        2
+                 7-12     CC        3
+                  13        no EM so no shape cuts performed
+                14-15     EC        5
+                16-18     EC        6
+                19-24     EC        7
+                25-31     EC        8
+                32-37       no shape cuts performed
+
+    These indices are used below in the description of RCP bank contents.
+
+
+                            Cut Tuning
+                            ----------
+    This information is taken mostly from the header of 
+D0$LEVEL2$L2SIM:L2_EM_TB05.RCP.  A more detailed D0 note is in preparation.
+
+   Cuts used:
+    The 99% point is defined as that cut value which passes 99% of the test
+sample (TB for data, MC for Monte Carlo).  The "100 %" point is defined a little
+differently, and its precise meaning varies but is described below.
+    
+PRIMARY CUTS:
+ EM3       cuts set to .1 .9 (lo hi)
+ FH1       cuts set to 1.5*99% value
+ SIGMA5-SIGMA3 or 5X5-3X3 as main
+       cuts set to 99% value (after TB selection cuts!!)
+       For very LOW energy electrons (less than 10 GeV)
+       the efficiency of these cuts is reduced due to changes in
+       longitudinal shower profile.  At 5 GeV these cuts are approximately
+       95% efficient, decreasing with decreasing energy.
+       for IETAC=31,32 use Yi Xia's value of cut on 7x7-5x5
+
+
+ SECONDARY CUTS:
+    chosen at "100%" efficiency point defined as follows
+       EC: "100%" = 99%(actual) * 1.25
+           added cuts for the EC:
+           EM1(high), EM12(high),EM4(low, high), and SIGMA5-SIGMA3
+                                                       (for ieta<26)
+           as secondary transverse variables regions where not already cut on
+
+       CC: 100% = 99% + (99%-90%)
+           added cuts for the CC:
+           EM1(high), EM1+2(high),EM4(high), 4x4-2x2/2x2 and 5X5-3X3/3X3
+           as secondary transverse variables in regions where these variables
+           are not already cut on
+
+********************************************************
+* All other cuts turned off by setting cuts to +-10000 *
+********************************************************
+
+*** Description of L2_EM filter shower shape cuts from load 1 ECEM data ***
+
+ Load 1 Test Beam analysis done by Peter Grudberg
+
+ DATA USED:
+
+     Ntuples of the L2_EM cut variables were made (old CAHITS, but sampling
+ fractions used by TB90_CALOR_UNPACK have been changed to match the new CAHITS)
+ on one eta scan and two energy scans.  Zero suppression was applied in
+ software at the 2 sigma level.
+
+     ETA scan: (ECEM eta scan # 2)
+         ENERGY = 100 GeV
+         ETA = 1.55, 1.65, 1.75, 1.85, 1.95, 2.05, 2.25, 2.55, 2.65, 2.86, 3.05
+         PHI = 61
+
+     ENERGY scan # 1 (ECEM E scan # 5)
+         ENERGY = 25, 50, 75, 100, 125, 150 GeV
+        ETA = 1.95
+         PHI = 61
+
+     ENERGY scan # 2 (ECEM E scan # 7)
+         ENERGY = 25, 50, 100, 150
+         ETA = 2.55
+         PHI = 61
+
+ Note: For one run, the new version of the ntuple package was used (new
+ CAHITS),  and the results were the same as for the old package with correct
+ sampling fractions.
+
+     ANALYSIS:
+
+ Tables of efficiency vs cut value for all L2_EM variables were made from
+ the  ntuples using PAW macros written by Mike Tartaglia (with small
+ modifications).  Several tables for each variable/ntuple combination were
+ made, in order to study the effects of several technical cuts and try to get a
+ clean electron sample.  The technical cuts tried were:
+
+     TRK: at least on PWC track in all views
+     CRY: 1.le.ncryox.le.4 .and. 1.le.ncryoy.le.4
+           (ie, require not too many hits in cryo pwcs)
+     ETA: Require ieta of max EM3 tower (L2_ETA) equal to selected ieta
+           (some runs cover more than one ieta tower, depending on pad size)
+     PHI: Require iphi of max EM3 tower (L2_PHI) equal to 31 (benchmark phi)
+     TAG: BIT 5,6 and 8 in TAG_WORD set (cerenkov bits)
+
+ The combinations tried were:
+     NOCUTS, CRY+ETA, TRK+CRY+ETA, CRY+ETA+TAG, CRY+ETA+PHI, CRY+ETA+PHI+TAG
+
+     The combination used was CRY+ETA+PHI, which seemed to give the best
+ signal/noise (further cuts seemed to just reduce the statistics without
+ significant cleaning of the signal).  For one run (E=125, ETA=1.95),
+ CRY+ETA+TAG+PHI was used, as there seemed to be unusually large pion
+ contamination (confirmed by private communication with A. Spadafora).
+
+     The energy and eta dependence of the four primary cuts was parametrized
+ for each efficiency  value using simple functions based on the data in the
+ efficiency tables.   The cut values for FH1(high) and 5x5-3x3(high) were
+ obtained using these parametrizations   For each bin in (energy,eta), the
+ least restrictive point of the parametrization was used.   For the FH1 cut,
+ the numbers below are 1.5 times the 99% parametrization value; for the
+ 5X5-3X3 cut,  an additional safety factor of 0.25% ! was added (ie, the
+ numbers below are 99%+0.25(99%-98%)).
+
+
+*** Description of L2_EM filter shower shape cuts from Load 2 CCEM data ***
+
+  Load 2 Test Beam Analysis done by Mirek Fatyga
+
+ 1. Require a good track (one track upstream of the bending magnet, one track
+    downstream of the bending magnet).
+
+ 2. Require that the calculated beam momentum is within 20% of the nominal
+    value.
+
+ 3. Require at least one upstream cerenkov.
+
+ 4. No hits closer than (approx.) 2cm from the CCEM crack.
+
+
+ ADDITIONAL TESTS PERFORMED:
+
+ -  require one and only one cluster in each plane of the cryo-pwc.
+    NO EFFECT ON RESULTS
+
+ -  veto on mip and muon counters
+    NO EFFECT ON RESULTS
+
+
+ DATA SETS USED:
+
+- Three fine energy scans in the 7.5 - 100GeV energy range.
+   eta = 0.05, 0.45, 1.05
+   phi = 31.6 (corresponding to the benchmark point. approx. 4.5cm from the
+               CCEM crack)
+
+ - Energy dependence of cut limits obtained at three eta values on the basis
+   of these three energy scans. Simple functional fits to energy dependence
+   were obtained at each eta. Linear interpolation of fit parameters was used
+   to set limits in prescribed (eta x energy) bins.
+ -  NOTE: The typical test beam run does not iluminate the calorimeter
+    surface uniformly. Potentially, this can cause an error in the
+    determination of transverse cuts (based on transverse energy sharing).
+    To assess this error we analyzed two sets of runs which were taken to
+    study the position resolution in the CC. In these sets, one readout
+    tower (eta=0.05, eta=0.55) was carefuly scanned with the beam (both in
+    eta and phi) to effectively create a uniform ilumination of a single
+    readout tower. We analyzed these runs in the same manner as the three
+    energy scans used to establish cut values. We then compared all results,
+    searching for significant deviations due to the change in the position of
+    the beam. Based on this analysis, we believe that the error on
+    sigma5-sigma3 is no larger than 2% off the nominal efficiency value.
+    A similar argument can be made concerning the influence of vertex
+    smearing on longitudinal cuts. We analyzed a set of test beam runs which
+    were dedicated to the scanning of the vertex position. Using the same
+    principle, we conclude that the vertex smearing does not introduce
+    significant errors in our cuts. IN ADDITION, all longitudinal cuts
+    were opened beyond their 99% values to increase the safety margin.
+    We found that most of these cuts can be opened without damaging
+    the background rejection in a significant way.
+
+ -  NOTE: The cuts are based on test beam data. No effect of
+    an underlying event, pileup, etc. were taken into account.
+
+                        Internal organization of L2_EM
+                        ------------------------------
+L2_EM Call Tree
+---------------
+L2_EM-+-(ERRMSG)
+      |
+      +-L2_EM_PARSE_CUTS-+-(TRULEN)
+      +-(L2J_L1_LIST_FORCE)
+      +-(L2JETS_HOTFL)
+      +-L2_EM_GET_CAND-+-(IHOT_MSK_EM)
+      |                +-(IHOT_ADR_EM)
+      |                +-L2_EM3_MAX-+-(CL2_RING12)
+      |                |            +-(CL2_ROTOW_ETNOM)
+      |                |            +-(CL2_ROTOW_ETNOM)
+      |                |            +-(CL2_RING12)
+      |                |            +-(GZCAEP)
+      |                +-L2_EM_UNPACK-+-(CL2_RING22)
+      |                               +-(VZERO)
+      |                               +-(GZCAEP)
+      |                               +-(CL2_RING22)
+      |                               +-(CL2_ROTOW_ETNOM)
+      |                               +-(CL2_SNTH)
+      +-L2_EM_XYZ_POSITION-+-L2_EM_LOGW_CONSTS
+      |                    +-(CL2_SNTH)
+      |                    +-(CL2_RING22)
+      |                    +-(GZCAEP)
+      |                    +-(CELXYZ)
+      +-(L2_VERT)
+      +-(ETA_ZCORR)
+      +-(CL2_ET_CORR_FINE)
+      +-L2_EM_LEAK_FIX (1)--(ERRMSG)
+      +-L2_EM_CUT_BINS
+      +-L2_EM_LONG_CUT
+      +-L2_EM_TRANS_CUT
+      +-L2_EM_TRACK_ROADS
+      +-(L2_CD_MATCH)
+      +-L2_EM_ISOL-+-(CL2_RING22)
+      |            +-(CL2_ROTOW_ETNOM)
+      |            +-(GZCAEP)
+      |            +-L2_EM_LEAK_FIX see 1
+      +-(ESUMFL)
+      +-(L2EMFL)
+
+
+
+Correspondence between RCP names and internal variables:
+--------------------------------------------------------
+
+Energy and eta bin indices as described earlier.
+
+    RCP name    internal name
+        EBOUNDS   J_ENRG_BIN = index to cut array based on energies in EBOUNDS
+        (CC->1-3, EC->4-6)
+        ETABOUNDS J_ETA_BIN = index to cut array based on etas in ETABOUNDS
+        S3A2    A2      parameters for central value of S3 cut
+        S3B1    B1              same
+        S3C0    C0              same
+        SSIG3   SS3     diff between min,max of S3 cut
+        EP3     EM3L    min size of Epeak/E3x3
+        ELECT3  ESIZE   various transverse cuts:
+                        1,2 not used
+                        3,4 not used
+                        5,6 dE7x7/E5x5
+                        7 not used 
+                        8 max S5 (CC)
+                        9,10 not used
+    This diagram shows what cuts the L2_EM filter tool will attempt under the
+E_TIGHT option, however if the cut values are set very  large in the RCP file
+which contains the cut values, it is as if no cut was  made (see *'s below for
+those turned off in RCP at this writing).*
+
+All the RCP cut arrays below get mapped into the L2_EM internal array
+EMCUTS(j,i,x), where x=1,2,3,4=L,M,H,X below and the IETA index is as described
+in the energy and eta binning description section.
+
+RCP cut arrays:
+    ELCxi(j)  x = L,M,H,X  energy index
+              i = eta index for CC: 1,2,3 table above gives ranges.
+              j = cut number:
+                    1,2 min,max for floor 1 fraction
+                    3,4                   1+2
+                    5,6                   3
+                    7,8                   4
+                    9       max for floor 5 fraction
+                    10 sigma5-sigma3
+                    11 5x5-3x3/3x3
+                    12 4x4-2x2/2x2
+    ELExi(j) x = L,M,H energy index    
+             i = eta index for EC: 1,2,3,4 see table (5,6,7,8 in L2_EM)
+             j = cut number: see above for CC
+    E15xCT(j) as above, for IETAC=15 in EC
+    EL12xCT(j) as above, for IETAC=13, never used since no EM
+
+                            GEOMETRY
+                            --------
+
+Summary Of EM Signal Availability in D0:
+----------------------------------------
+IETAC   comments                IETAC_TT
+1-11    all EM signals present  1-5; 1/2 of TT 6
+12      lose some EM signals    6   
+13      NO EM signals           7
+14      lose some EM signals    7
+15-26   all EM signals present  8-13
+27-32   no EM3 subdivision      14-16
+33-35   pads coarsen;           17-19
+        only odd IPHIC exist; 
+        no EM3 subdivision
+36-37   no EM signals           20, (21--does not exist)
+
+
+Basic Geometry (from Calorimeter_addressing.mem)
+------------------------------------------------
+
+    The convention is as follows:
+    1   EM1                     (MNLYEM = 1)
+    2   EM2
+    3   EM3a
+    4   EM3b
+    5   EM3c
+    6   EM3d
+    7   EM4                     (MXLYEM = 7)
+    8   CC Massless gap         (MNLYMG = 8)
+    9   ICD
+    10  EC Massless gap         (MXLYMG = 10)
+    11  FH1 (Fine Hadronic)     (MNLYFH = 11)
+    12  FH2
+    13  FH3
+    14  FH4                     (MXLYFH = 14)
+    15  CH1 (Coarse Hadronic)   (MNLYCH = 15)
+    16  CH2
+    17  CH3                     (MXLYCH = 17)
+
+
+        The definition of the EM3 sublayer order is:
+                
+                ^
+                | EM3b | EM3d
+                |  4   |  6        i.e. EM3d is LAYERC = 6
+    increasing  | ----------- 
+       phi      | EM3a | EM3c
+                |  3   |  5
+                --------------->
+                  increasing z (increasing eta) 
+
+                That is, the SAME orientation is used in all parts of the
+            calorimeter, with respect to the phi and +z directions.  
+            The EM3 layer is indexed effectively with sub-indices in the
+            phi and eta directions, with phi running fastest.
+
+    An auxiliary system is also sometimes used, substituting a different
+coordinate, FLOOR,  for the depth dimension, and summing all the EM3 signals
+into a single floor.  That is
+
+        FLOOR   LAYERC
+        1       1       EM1
+        2       2       EM2
+        3       3,4,5,6 EM3
+        4       7       EM4
+        5       8-14    FH + MG + ICD
+        6       15-17   CH
+
+    The layers in each eta bin in the OFFLINE system are listed below:
+
+
+ eta      IETAC           Layers included
+ range
+                     E             C I E F       C
+                     M             C C C H       H
+                                   M D M          
+                                   G   G          
+                                       1 1 1 1 1 1 1 1
+                     1-2-3-4-5-6-7-8-9-0-1-2-3-4-5-6-7
+                                             <-CC | EC->      
+  0   .1     1       x x x x x x x       x x x   x|
+ .1   .2     2       x x x x x x x       x x x   x|
+ .2   .3     3       x x x x x x x       x x x   x|
+ .3   .4     4       x x x x x x x       x x x   x|
+ .4   .5     5       x x x x x x x       x x x   x|
+ .5   .6     6       x x x x x x x       x x x   x|
+ .6   .7     7       x x x x x x x  _____x x x  __|  
+ .7   .8     8       x x x x x x x x| |x|x x x  |x
+ .8   .9     9       x x x x x x x x|x|x|x x    |x x
+ .9   1.0    10   ^  x x x x x x x x|x|x|x______|x x
+ 1.0  1.1    11   |  x x x x x x x x|x|x/x\_     x x x  <- ECOH
+ 1.1  1.2   +12*  C  x x x x       x|x/x|x x\    x x x
+-1.1 -1.2   -12*  C  x x     x x   x|x|x|x x \__ x x x
+ 1.2  1.3    13   _  _______________|x|x|x x x x\_ x x
+ 1.3  1.4   +14*             x x x  |x| |x x x x x\  x
+-1.3 -1.4   -14*  E      x x     x  |x| |x x x x x \ x                      
+ 1.4  1.5    15   C  x x x x x x x  |_|\|x x x x x =\g  OCH3 ganged /w MCH 
+ 1.5  1.6    16   |  x x x x x x x      \x x x x x   \__
+ 1.6  1.7    17   v  x x x x x x x       x\x x x x
+ 1.7  1.8    18      x x x x x x x       x x\_ x x      <- ECMH 
+ 1.8  1.9    19      x x x x x x x       x x x\_ x
+ 1.9  2.0    20      x x x x x x x       x x x x\x
+ 2.0  2.1    21      x x x x x x x       x x x x x\_____
+ 2.1  2.2    22      x x x x x x x       x x x x x
+ 2.2  2.3    23      x x x x x x x       x x x x x
+ 2.3  2.4    24      x x x x x x x       x x x x x
+ 2.4  2.5    25      x x x x x x x       x x x x x
+ 2.5  2.6    26      x x x x x x x       x x x x x      <- ECIH 
+ 2.6  2.7    27      x x x       x       x x x x x
+ 2.7  2.8    28      x x x       x       x x x x x
+ 2.8  2.9    29      x x x       x       x x x x x
+ 2.9  3.0    30      x x x       x       x x x x x
+ 3.0  3.1    31      x x x       x       x x x x x
+ 3.1  3.2    32      x x x       x       x x x x x
+ 3.2  3.42   33      x x x       x       x x x x x
+ 3.42 3.7    34      x x x       x       x x x x x
+ 3.7  4.1    35      x x x       x       x x x x x
+ 4.1  4.45   36                          x x x x x
+ 4.45 **     37                              x x x
+               

@@ -1,0 +1,267 @@
+James T. McKinley
+27-OCT-1992  
+L2EM_NTUPLE V1.0
+
+                    L2EM_NTUPLE PACKAGE DOCUMENTATION
+                    ---------------------------------
+    Description
+    -----------
+    L2EM_NTUPLE is a package which makes ntuples of the L2EM zebra bank
+    and allows users to select which parameter sets from L2EM to put in
+    the ntuple.  The string XXXXXXX refers to run numbers in the following.
+
+
+    Data Requirements
+    -----------------
+    L2EM_NTUPLE may be used as a stand alone package and run on data which has
+    L2EM banks already, or it may be used in conjunction with the Level 2 
+    simulator to make ntuples of L2_EM filter quantities on data which does not
+    have the L2EM bank (i.e. Monte Carlo data).  The only requirement for the
+    package to run is that the L2EM bank exist in the data.
+
+    Stand Alone
+    -----------
+    $ PBD/FRAME=frame/PACKAGE=L2EM_NTUPLE/NAME=name/ZEBCOM=2000000
+    $ @name_frame.LNK
+    ZEBCOM=2000000 may be larger than necessary, but it is safe.
+    One can of course link one's other packages in as well in PBD.
+
+    With Level 2 Simulator
+    ----------------------
+    $ LIBTEST ALL
+    $ LIBTEST/GAMMA=D0$L2BETA ALL
+    { $ LIBTEST/GAMMA=DISK$MSU1:[LEVEL2.ALPHA] ALL }
+    $ @D0$LEVEL2:SETUP_L2SIM
+        follow directions in D0$LEVEL2:L2SIM.DOC
+        select 2 make your own private version
+        PACKAGES before VMS_FILTER = {RERUN_L12},CALOR,{RECDDN},{L1SIM}, etc...
+        PACKAGES after VMS_FILTER = L2EM_NTUPLE, etc...
+        ZEBCOM=2000000
+        ZEBSTP=2000000
+    $ @VMS_FILTER_frame.LNK
+    ZEBCOM,ZEBSTP=2000000 may be larger than necessary, but it is safe.
+    Steps and names enclosed in {} are optional.
+
+    Choosing Parameter Sets
+    -----------------------
+    There are two modes of operation for this package.  One, where results
+    from all filter scripts which include the L2_EM tool are put in the ntuple,
+    and two, where the user selects specific parameter sets.  The user chooses
+    these options by setting ALL_PARM_SETS to TRUE or FALSE in L2EM_NTUPLE.RCP.
+    If ALL_PARM_SETS is TRUE then results from all parameters sets will be used.
+    If ALL_PARM_SETS is FALSE then the user puts the parameter set numbers in
+    which he/she is interested in the array PARM_SET and puts the number of
+    parameter sets in the variable NSETS.  To find out what the parameter set
+    numbers are for a given run, one needs to look at some configuration files, 
+    the .FILT file which contains the filter script information for the script
+    one is interested in, and the RCP_XXXXXXX.DAT.  In RCP_XXXXXXX.DAT look
+    for the L2_EM parameters list and find which parameters match the .FILT
+    file of interest.  One should check ALL parameters.  Find the position in
+    the arrays that the parameters of interest reside.  This index is the 
+    parameter set number.  For global runs look in D0::COPYCFG$ARCHIVE: for
+    these files.  Unfortunately, these files are only saved for GLOBAL runs,
+    so for special runs one will have to copy over the trigger configuration
+    files or (if one exists the TRIGPARSE file) and run COOR_SIM on them
+    (TRIGPARSE first if TRIGPARSE file) to make these files.
+    
+    If one runs COOR_SIM things are somewhat simpler.  To find the parameter
+    set numbers one can look in LEVEL_2.INFO.  In this file is a list of
+    "All non-blank tool scripts by filter bit".  This list contains the 
+    parameter set numbers from COOR.  The format of the list is
+
+            bit  tool#  ps  tool#  ps  etc...
+    
+    Filter   36   17     3   10     5  etc...
+    
+    Where the bits are numbered from 1-128 in this list.  The bit numbers may 
+    be found in TRIG_FILT_XXXXXXX.INFO where they are listed from 0-127, so one
+    should use bit+1 from TRIG_FILT_XXXXXXX.INFO to reference LEVEL_2.INFO.  The
+    tool# is the COOR tool number from L2TOOL.DAT, L2_EM is TOOL 17.  The ps
+    is the parameter set number for the previous tool# for that filter script
+    for that bit.  The above example from LEVEL_2.INFO represents the following:
+    bit 35 (0-127) = L2_EM parameter set 3 + L2_JET parameter set 5 (L2_JET has
+    tool number 10, this is irrelevant for L2_EM) + etc... .
+
+    Admittedly, this is a tedious procedure, but I know of no other way to
+    get the info from the L2EM bank for a particular filter script.  If a 
+    better way can be found it will be implemented, but it is not likely
+    since the L2_EM filter knows nothing about filter bits.
+
+    Output
+    ------
+    This package creates an RZ file and writes to it directly.  This file
+    is opened and the ntuple booked in the begin program hook and is closed
+    in the user summary hook thus allowing many runs to be combined into one
+    ntuple.  To make ntuples of runs separately one must run a job for each.
+    The ntuple is written to a file named L2EM_XXXXXXX.NTUP.  The logical 
+    USR$OUT is provided to allow the user to store the ntuple in a directory
+    other than the default directory.  XXXXXXX = first run number found.
+
+    Additional Notes On L2EM_NTUPLE 
+    --------------------------------
+    The L2EM bank contains all candidates for all parameter sets, and may
+    contain multiple candidate entries for a single particle if this 
+    particle shared it's energy across trigger tower boundaries.  Also since
+    list building is done with low thresholds even for high threshold triggers
+    online, high threshold triggers will likely have several candidates.
+    Also, for complex trigger setups there will be candidate entries for
+    thresholds that do not correspond to valid candiates for a given script.
+    The IFAILED code should be 2 for these candidates meaning the bit mask
+    did not match for this script.
+
+    Included below is a listing of the ntuple contents, the L2EM.ZEB file,
+    and descriptions of additional ntuple variables not covered by L2EM.ZEB.
+
+********************************************************
+* NTUPLE ID= 4410  ENTRIES=    691   L2EM ntuple
+********************************************************
+*  Var numb  *   Name    *    Lower     *    Upper     *
+********************************************************
+*      1     * RUN_NUM   * 0.504440E+05 * 0.519820E+05 *
+*      2     * L1_TOTET  * -.200000E+01 * 0.630000E+02 *
+*      3     * L1_EMET   * -.200000E+01 * 0.617500E+02 *
+*      4     * TETA      * -.140000E+02 * 0.160000E+02 *
+*      5     * TPHI      * 0.000000E+00 * 0.320000E+02 *
+*      6     * IETA      * -.280000E+02 * 0.310000E+02 *
+*      7     * IPHI      * 0.000000E+00 * 0.640000E+02 *
+*      8     * LYR       * 0.000000E+00 * 0.600000E+01 *
+*      9     * EMET      * 0.000000E+00 * 0.827736E+02 *
+*     10     * SUMEM     * 0.000000E+00 * 0.827736E+02 *
+*     11     * EM1FRAC   * 0.000000E+00 * 0.527714E+00 *
+*     12     * EM12FRAC  * 0.000000E+00 * 0.797596E+00 *
+*     13     * EM3FRAC   * 0.000000E+00 * 0.808859E+00 *
+*     14     * EM4FRAC   * 0.000000E+00 * 0.725944E+00 *
+*     15     * FH1FRAC   * -.482460E-02 * 0.112085E+01 *
+*     16     * SIGMA3    * 0.000000E+00 * 0.919397E+00 *
+*     17     * SIGMA5    * 0.000000E+00 * 0.162097E+01 *
+*     18     * SIG3_MID  * 0.000000E+00 * 0.100005E+05 *
+*     19     * SH13      * 0.000000E+00 * 0.944734E+00 *                        
+*     20     * SH24      * 0.000000E+00 * 0.265351E+01 *
+*     21     * SH35      * 0.000000E+00 * 0.222324E+01 *
+*     22     * SH57      * 0.000000E+00 * 0.132364E+01 *
+*     23     * CONE_R    * 0.400000E+00 * 0.400000E+00 *
+*     24     * FCONE_ET  * 0.000000E+00 * 0.000000E+00 *                        
+*     25     * DETA      * 0.000000E+00 * 0.000000E+00 *
+*     26     * DPHI      * 0.000000E+00 * 0.000000E+00 *
+*     27     * NTRACK    * 0.999000E+03 * 0.999000E+03 *
+*     28     * IFAILED   * 0.000000E+00 * 0.610000E+02 *
+*     29     * PAR_SET   * 0.600000E+01 * 0.900000E+01 *
+*     30     * AETA      * -.274984E+01 * 0.300511E+01 *
+*     31     * APHI      * 0.000000E+00 * 0.624676E+01 *
+*     32     * XCLUS     * -.920873E+02 * 0.916694E+02 *
+*     33     * YCLUS     * -.917823E+02 * 0.908034E+02 *
+*     34     * ZCLUS     * -.179917E+03 * 0.178889E+03 *
+*     35     * EMET_ZC   * 0.000000E+00 * 0.844185E+02 *
+*     36     * CUTBITS   * 0.112000E+03 * 0.112000E+03 *
+*     37     * VTX_Z     * -.937500E+02 * 0.750000E+02 *
+*     38     * VTX_FLAG  * 0.000000E+00 * 0.000000E+00 *
+*     39     * VTX_TYPE  * 0.100000E+01 * 0.100000E+01 *
+*     40     * NCAND_PS  * 0.100000E+01 * 0.800000E+01 *
+*     41     * EVT_NUM   * 0.300000E+01 * 0.382100E+04 *
+*     42     * WEIGHT    * 0.100000E+01 * 0.100000E+01 *
+********************************************************                        
+
+
+
+C=======================================================================
+C
+C  Bank Name : L2EM
+C  Author    : Yi  Xia
+C  Date      : 15-OCT-1991
+C  Description : L2 electron photon filter bank
+C
+C  Bank description : 
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C     -1          Structural link (free) 
+C      0          Next   link to 
+C     +1          Up     link to FRES
+C     +2          Origin link to FRES
+C.......................................................................
+C             -5    I     Bank number
+C             -4    H     Bank name, 'L2EM'
+C             -3    I     NL = 1
+C             -2    I     NS = 1
+C             -1    I     ND = NR*NH + 3
+C              0    I     Status
+C             +1    I     version number (=3)
+C             +2    I     NR = 32 (Repetition number)
+C             +3    I     NH = number of candidates this bank
+C           repeat 4-35 for each candidate in bank 
+C             +4    I     TETA (L1)     
+C             +5    I     TPHI (L1)
+C             +6    I     IETA (L2)
+C             +7    I     IPHI (L2)
+C             +8    I     LYR  (L2)
+C             +9    F     ET (assuming VTX = 0); see +35 for Z corrected
+C            +10    F     SUMEM             
+C            +11    F     EM1/SUMEM         ! warning: the following may
+C            +12    F     (EM1+EM2)/SUMEM   ! contain stale data if candidate 
+C            +13    F     EM3/SUMEM         ! failed
+C            +14    F     EM4/SUMEM
+C            +15    F     FH1/SUMEM
+C            +16    F     SIGMA3
+C            +17    F     SIGMA5
+C            +18    F     SIG3+MID
+C            +19    F     SH13  (E3MAX/3X3)  
+C            +20    F     SH24  ((4X4-2X2)/(2X2))
+C            +21    F     SH35  ((5X5-3X3)/(3X3))
+C            +22    F     SH57  ((5X5-7X7)/(5X5))
+C            +23    F     CONE_R  (Radius of the isolation CONE)
+C            +24    F     FCONE_ET  (Fraction of ET = (CONE-CORE)/3x3 CORE)
+C            +25    F     DETA  (Width of the road in ETA)
+C            +26    F     DPHI  (Width of the road in PHI)
+C            +27    I     NTRAK (Tracks in the road) 
+C                           0 = none found 1 = found -1 = veto'd 999 = not tried
+C            +28    I     IFAILED = 
+C 0       = success   1     = threshold   2     = no candidate   10    = FH1 
+C 11,12   = EM1       13,14 = EM1+EM2     15,16 = EM3            17,18 = EM4 
+C 52,53,54= 5x5/3x3   55,56 = 7x7/5x5     57    = 4x4/2x2        58    = 1x1/3x3
+C 59,60   = SIG3,5    61    = SIG5-SIG3   70    = isolation
+C 100     = no track  101   = track veto   3    = bad data ( about to do x/0)
+C 666     = bad trigger, should never happen (ieta=13, ieta>32)
+C            +29    I     PAR_SET  (Parameters set number)
+C            +30    F     AETA ( corrected eta of shower)
+C            +31    F     APHI ( corrected phi of shower)
+C            +32    F     XCLUS ( best estimate of center of shower)
+C            +33    F     YCLUS ( best estimate of center of shower)
+C            +34    F     ZCLUS ( best estimate of center of shower)
+C            +35    F     ET_ZCORR (Et corrected for Zvtx,  cluster center)
+C            +36    I     CUTBITS  (Bit mask describing cuts used)
+C         CUTBITS (See L2_EM.PARAMS for parameters for bit numbers):
+C                     Bit #         If TRUE
+C                     -----         -------
+C                       0            Cuts are set for electron
+C                       1            Cuts are set for photon
+C                       2            Track match required
+C                       3            Veto on track
+C                       4            Longitudinal shape cuts used
+C                       5            Transverse shape cuts used
+C                       6            Tight shape cuts used
+C                       7            Isolation cut used
+C=======================================================================
+Version 1: only elements 1-29 exist
+Version 2: only elements 1-35 exist
+
+    A description of ntuple variables not covered by L2EM.ZEB follows:
+
+    RUN_NUM  = run number
+    L1_TOTET = Level 1 total Et EM+HAD
+    L1_EMET  = Level 1 EM Et
+    VTX_Z    = Vertex Z position reported from Level 0
+             = 0 if no Level 0 information
+    VTX_FLAG = Vertex quality reported from Level 0 (see L0 docs for more info)
+               VTX_FLAG = 1 --> single interaction
+               VTX_FLAG = 2 --> 60% probability of single interaction
+               VTX_FLAG = 3 --> 60% probability of multiple interaction
+               VTX_FLAG = 4 --> multiple interaction
+               VTX_FLAG is meaningless for VTX_TYPE = 0,1
+    VTX_TYPE = Type of vertex information used
+               0 = no vertex information
+               1 = fast Z vertex used
+               2 = slow Z vertex used
+    NCAND_PS = candidate number for a given parameter set ordered in Et
+    EVT_NUM  = event number
+    WEIGHT   = event weight for MC if ISAE bank present, otherwise = 1
+

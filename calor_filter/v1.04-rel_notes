@@ -1,0 +1,758 @@
+====================  Start Version 1.03_01 -> 1.04 eventually =============
+
+==============================================================================
+
+ 30-AUG-1992 : Modifications released by James T. Linnemann
+ 
+    - bug fix in l2_em_long_cut: _tight implemented backwards
+
+==============================================================================
+
+ 27-OCT-1992 : Modifications released by James T. Linnemann
+ 
+MODIFICATIONS TO L2_EM
+______________________
+ - Log position code (N. Roe, S. Fahey, J. Linnemann)
+    position calculated by log weighting (algorithm from N. Graf; tuning by
+    Natalie)
+    the cuts are now set at max(cut value in param file, 3*sigma)
+
+ - additions to L2EM bank (S. Fahey, J. McKinley, J. Linnemann)
+    a flag word is now recorded showing the state of the cuts for each
+    candidates.
+    all cut values are filled in L2EM for every event, except tracking results
+    actual road sizes recorded for each event
+    new failure codes: 2 (no good candidate in unpacking--including failure if
+        no hit at all in EM3); 666 = trigger in illegal region
+
+- cuts (J. McKinley, J. Linnemann, M. Fatyga, P. Grudberg, M. Tartaglia)
+        no longer cuts on 4x4-2x2 in EC (this is a secondary cut in any case)
+    New cut sets (in the LEVEL2 library)
+        L2_EM_TB04.RCP for data (and plate MC)
+        L2_EM_MC04.RCP for mixture MC
+    The main differences are:
+            better handling of low Et bins (higher efficiency)
+            _tight cuts available which cut on EM1, EM2, and EM4 
+                (only EM4 for gammas)
+    Further new cut sets:
+        L2_EM_TB05.RCP for data (and plate MC)
+        L2_EM_MC05.RCP for mixture MC
+    The 05 versions are now default.  They add a cut on 4x4-2x2 in CC to the 
+        _TIGHT definitions.  The default shape cuts are unchanged
+
+    Bug fixes for:
+        interaction of L2_VERT code and unpacking in CL2_MAKE_ETNOM
+        problem in 7x7-5x5: the cut was made when it shouldn't have been
+        errors in 5x5-3x3 unpacking: data used without unpacking
+        occasional errors when NO energy was found in EM3 within the L1
+            candidate's trigger tower 
+
+L2EM_NTUPLE James T. McKinley
+-----------
+        The package L2EM_NTUPLE exists now, which makes an ntuple from L2EM
+        banks found on events.  It is described in 
+        d0$calor_filter:l2em_ntuple.doc and uses d0$calor_filter:l2em_ntuple.rcp
+
+L2ETMISS
+________
+ - Hot cell killer code from Amber Boehnlein, Jim Linnemann, and Marc Paterno
+        hot cells candidates are identified during unpacking.
+        candidates are examined for isolation at end of etmiss calculation
+            if isolated longitudinally, the cell is removed from PNUT (but not
+            from anything else).  Two PNUT banks are made: 1 without
+            corrections but with ICD/MG, and 2 with any modifications due to
+            the hot cell killer, but only one entry into ESUM is made from the
+            level 2 tool.
+
+L2ETMISS, L2JETS
+----------------
+ - ICD/MG unpacking now enabled   (J. Linnemann)
+        This applies to ALL calorimeter code except for electrons, which 
+     ignores energy in the ICD/MG layers because of values set in
+     the L2_EM_xxxx.RCP files.
+
+L2EM, L2ETMISS         Vertex position corrections
+--------------
+ -  Level 2 vertex routine uses slow z if available (J. Bantly, J. Linnemann)
+
+    Uses:
+        - L2_EM uses the vertex to calculate final Et of cluster, based on
+        Zvtx and hottest EM3 cell
+        - ETMISS uses Zvtx to calculate a correction factor for each eta when
+        performing its calculations
+ 
+        modified routines:LV0_DATA,L2_L0_VERTEX; new routine L2LVL0_INIT
+        which uses L2LVL0.RCP for initialization.  This initialization routine
+        is called by the CL2_INIT routine and the MUON_INIT and PARAMS routines
+
+        The default vertex returned if no level 0 information is not available
+    is now -8.9 cm, the average longitudinal position (but 0 in MC).
+
+        The level 0 information (normally slow vertex) is now what is used in
+    vertex position correction of Et for em clusters and missing/total ET
+    calculations.  In addition, this is the position used in the muon as the
+    vertex position in its rough fits.
+
+    Reorganized call tree:
+    L2_L0_INIT                  call at init time (called from CL2_INIT)
+    L2_L0_PARAMS                call at params time (called from CL2_INI)
+    L2_VERT                     call at event time
+        GTL0VT
+            L0VTFL
+                BLK0VT
+                L2_L0_VERTEX
+
+    [WARNING WARNING WARNING] you will only get fast Z if you run l1sim on
+data.  L1sim is not yet smart enough to copy over the level 0 information when
+running on raw data.  The way to fix this is to NOT run l1sim on raw data if you
+can at all avoid it.
+
+==============================================================================
+
+  6-DEC-1992 : Modifications released by James T. Linnemann
+ 
+    - improve error reporting in cl2_get_geom (where L2 constants override
+      those from offline)
+
+==============================================================================
+
+ 11-DEC-1992 : Modifications released by James T. Linnemann
+    
+    - in L2JETS, use z to correct Et, and give eta_physics to esumfl
+
+   CHANGES to l2_em
+    - correct zeroing of SH57,E7 
+    - add eta_physics to esumfl call and l2em bank
+    - add cutbits to esumfl call
+
+=================== Release V1.03_01    on 12-Dec-1992 ======================
+=================== Release L2PROD02.00 on 12-Dec-1992 ======================
+=================== Release L2PROD03.00 on 19-Jan-1993 ======================
+
+==============================================================================
+
+ 28-JAN-1993 : Modifications released by James T. Linnemann
+ 
+    - Add ETOT cut to L2_ETSUM (Bill Cobau)
+    - Add utility CL2_ET_TO_E (Bill Cobau)
+
+==============================================================================
+
+ 28-JAN-1993 : Modifications released by James T. Linnemann
+ 
+    - move etmiss geometry into a separate routine  
+    - make noise candidate list length selectable by PARAMETER
+            for now, we will use length = 1, same as before.
+    - L2JETS converted for version 4: uses flag word as or'd bits (R. Astur)
+    - drop severity of one error message in l2jets                (R. Astur)
+    - Ntuple routines for L2 EM -Jim McKinley 
+        (see d0$calor_filter:l2em_ntuple.doc)
+
+==============================================================================
+
+ 29-JAN-1993 : Modifications released by Amber Boehnlein
+ 
+    - if the main ring is on (MICRO_BLANK) CH layer 15 is dropped for 
+        abs(eta)<12, and OCH layers 16 and 17 are dropped.  This kills all CH
+        with the main ring in them, plus all their phi-symmetric partners
+        This affects ALL unpacking, and thus all filters.  It should provide
+        less junk for ETSUM/ETMISS and avoid needless MR-induced electron
+        vetoing.  It will effectively lose a bit of jet energy for triggers
+        taken during microblanking on.
+    [ modifications to CL2_MAKE_ETNOM Etmiss calculation for TOP group ]
+
+=================== Release V1.03_02    on 29-Jan-1993 ======================
+
+=================== Release L2PROD04.00 on 30-Jan-1993 ======================
+
+==============================================================================
+
+ 18-JUL-1993 : Modifications released by James T. Linnemann
+
+From the production release:
+
+    L2ETMISS_PARAMETERS L2ETSUM_PARAMETERS L2JETS_PARAMETERS L2_EM_PARAMETERS
+        now all call L2_VERT_PARAMETERS.    (J. Linnemann)
+
+    L2JETS  L2JETS_HOTFL.FOR    (R. Astur)
+        rebuild candidate list if none found
+
+Tested code never used in production:
+    
+    Correct Et, Cone Et for leakage out of a fixed window 
+        (M. Tartaglia, J. McKinley)
+            BKL2EM  L2_EM   L2_EM_ISOL  L2_EM_LEAK_FIX  PRL2EM
+
+    L2EM ntuple (J. McKinley) : fix unassigned variables
+        L2EM_NTUPLE     L2EM_NTUPLE_BOOK
+    
+    Fix call arguments (R. Astur)   L2CRCAL_GET_TRACK
+    Fix return values not correctly assigned (R. Astur)
+        L2CR_BUILD  L2J_UTIL_INIT
+
+    Gain/sine table building update (J. Linnemann)
+        CAGSFL      call ERERMSG if table accuracy is poor
+        CLS_CAGS    maps negative gains to zero 
+
+    Better positions in EC (A. Goldschmidt, N. Roe)
+        L2_EM_LOGW_CONSTS  (previously recycled weights from CC)
+
+    Code to allow eventual expansion of hot cell list (A. Boehnlein)
+        CL2_BAD_CELL_KILL
+        Use array version of pointer array instead of slower function call
+            CL2_CELL_ISOLATED   CL2_NEIGHBOR_HITS
+
+    Add Quality bits for  ETmiss and ETsum  (A. Boehnlein)
+        L2ETMISS    L2ETSUM     L2ET_PARSE_QUALITY_BITS
+        Also added ETOT object to ESUM bank
+
+
+==============================================================================
+
+ 19-JUL-1993 : Modifications released by James T. Linnemann
+ 
+    GT routine for JAUX, L2JETS result bank (R. Astur)
+            GTJAUX.FOR           L2JETS.DOC   
+
+=================== Release V1.03_03    on 20-Jul-1993 ======================
+
+==============================================================================
+
+ 29-JUL-1993 : Modifications released by James T. Linnemann
+ 
+    - Enhance GTJPAUX routine so cone size is optional if you have the current
+      PARSET  (R. Astur)
+        GTJAUX.FOR              GTJPAR.FOR
+
+    - new GT routines for L2EM bank (J. McKinley)
+        GTL2EM_COUNT.FOR        GTL2EM_VALUE.FOR
+
+    - bug fix: need to force rebuild of candidate lists (J. Linnemann)
+        L2_EM.FOR
+
+=================== Release V1.03_04    on 29-Jul-1993 ======================
+
+==============================================================================
+
+ 30-JUL-1993 : Modifications released by James T. Linnemann
+ 
+    - bug fix: correct method of rebuild of candidate list (D. Claes)
+
+
+==============================================================================
+
+ 21-NOV-1993 : Modifications released by James T. Linnemann
+ 
+Release notes for L2JETS and associated code for 10/93  (R. Astur)
+
+Changes to L2JETS - Level 2 jet finder
+    a) Now ignore towers which are less than L2J_ET_TOWER_MIN (-1.0 GEV)
+    b) Remove code which recalls L2JETS_HOTFL when no candidates are found
+    c) Modify jet clustering so that the core tower used is not the candidate
+       tower, but the trigger tower which is the ET weighted average of those
+       in the core cone around it.
+    d) Add VETO parameter: if VETO is TRUE and the other cuts are satisfied,
+       then the RESULT returned will be FALSE (event is vetoed )
+    e) Technical adjustment which is important for large tiles:
+       Modify L2JETS program to use the JET_MASK array which holds the 
+       trigger mask for each jet. Each time a jet is clustered, we go
+       through all the other candidates looking for candidates that were
+       just 'absorbed' by the new jet. If we find them, we OR the trigger
+       mask of those 'absorbed' jets with our current jet.  This is not
+       necessary when when running with normal trigger tower thresholds since
+       we loop over the jet list in decreasing order of ET. But now that
+       the jet can absorb large tile candidates, l15 candidates and trigger
+       tower candidates that are specific to certain geographic regions
+       (like the endcap triggers), this adjustment could be crucial.
+    f) Stop calling L2JETS_ENG. So now there is only one conesize used.
+Changes to L2JETS_HOTFL - General routine which loads both EM and JET
+    L1 candidates into common blocks and allows access.
+
+    a) Redefinition of JET arrays.
+        NJTHOT is now the total sum of candidate TRIGGER TOWERS + LARGE TILES
+        + L15 JETS
+        NJTTHOT = # of trigger tower candidates
+        NJLTHOT = # of large tile candidates
+        NJ15HOT = # of L1.5 candidates
+
+    WARNING: Any code that is looping from 1 to NJTHOT to get trigger tower
+    candidates will now get all candidates. Code should be changed to
+    loop from 1 to NJTTHOT if that is what is desired.
+
+    b) Addition of Large tiles and L15 candidates to arrays. The arrays
+    are made like this:
+        If there are NJTHOT candidates then
+            NJTHOT = NJTTHOT + NJLTHOT + NJ15HOT
+        And the first NJTTHOT places in the array are for trigger tower 
+        candidates.  The next NJLTHOT are for large tile candidates and
+        the final NJL15HOT places are for L1.5 jets.
+
+    Therefore, to get the L1 address of the first LT candidate, one would
+    use IHOT_ADR_JT( NJTTHOT + 1 ).  Use of IHOT_MSK_JT is similarly defined.
+
+    c) Addition of code to associate the candidate trigger tower of a 
+    large tile with the 'average' trigger tower in the large tile and not
+    the tower of smallest absolute magnitude which is how the list 
+    returns it.
+
+
+
+
+SOURCE : *.FOR, *.C files  --> D0$CALOR_FILTER$SOURCE
+*****************************************************
+
+ESUM_CONESIZE_TO_JET.FOR
+    : Bug fix.  Now return object of conesize CLOSEST to that requested
+ESUM_JET_TO_CONESIZE.FOR
+    : Update for VETO parameter
+GTJAUX.FOR - routine to return L2JETS results. Bug fixed.
+GTJPAR.FOR - routine to return L2JETS cuts used in L2. Add veto cut.
+GZJPAR
+    : Bug fix.  Make a SL2H if needed when getting JPAR from FRES
+L2JETS.FOR
+    : Remove FORCE of L1 list building when no L1 candidates found
+    : Add VETO code to veto event if other cuts are satisfied
+    : Stop calling L2JETS_ENG
+L2JETS_HOTFL.FOR
+    : Use software listbuilding for every call
+    : Use software listbuilding for large tile triggers
+    : Map large tiles to the trigger tower which corresponds to the
+       eta-phi average over the large tile
+L2JETS_CEN_CL2.FOR
+    : Use the average of a window around the L1 candidate instead of
+          just the L1 candidate for the jet center.
+    : Exclude readout towers with ET < -1 GeV from the jet
+    : Adjust JET_MASK of each found jet to aquire trigger bits of absorbed
+          candidates as well.
+L2JETS_CEN.FOR
+    : Adjust JET_MASK of each found jet to aquire trigger bits of absorbed
+          candidates as well.
+L2JETS_CUTS.FOR
+    : Check JET_MASK and not IHOT_MSK_JT to determine if this jet satisfied
+          the current trigger or not.
+L2JETS_CONTRS.FOR
+    : Zero JET_MASK every event.
+L2JETS_JPARFL.FOR
+    : Add veto parameter
+L2JETS_PARAMETERS.FOR
+    : Read in veto parameter. But dont error if cant find it.
+L2J_GET_PT_TO_L1FADC.FOR
+    : Get the zebra pointer to the start of the L1 FADC block for use
+         with L2J_ETAPHI_AVE.C
+L2J_ETAPHI_AVE.C
+    : Loops over a window around a trigger tower and returns the EM and
+         total ET as well as the ET weighted average over that window
+L2JETS_CONTRS.FOR
+    : Changes to be compatible with ALPHA (initialize all variables before use)
+L2CRCAL_PARAMETERS.FOR
+    : Changes to be compatible with ALPHA. Add EZRSET call.
+L2J_UTIL_INIT.FOR
+    : Changes to be compatible with ALPHA  ** Already released **
+L2CR_BUILD.FOR
+    : Changes to be compatible with ALPHA  ** Already released **
+L2CRCAL_GET_TRACK.FOR
+    : Changes to be compatible with ALPHA. ** Already released **
+PRJPAR.FOR
+    : Add veto parameter.
+
+PARAMS ---> D0$PARAMS
+***********************************************************
+L1_PARAMS.H
+    : C header with parameter definitions for variables needed to access
+      L1 Cal FADC ET's
+L1PHP.PARAMS
+    : Added parameters which tell the number of large tiles in phi and eta
+      (NETALT, NPHILT) as well as their size in terms of trigger towers:
+      (NTTLTETA, NTTLTPHI)
+L2JETS.PARAMS
+    : Add L2J_ET_TOWER_MIN parameter
+INC ----> D0$INC
+*************************************************************
+L2J_ETAPHI_UTIL.H
+    : C header of static lookup arrays to access L1 cal FADC values within
+      L1 trigger block
+L2JETS_HOT.INC
+    : Add variables to count number of candidate trigger towers, large tiles
+      and l1.5 jets
+L2JETS_PAR.INC
+    : Add veto parameter to common block
+
+ZEB ----> D0$ZEB
+************************************************************
+FRES.ZEB
+    : New stuctural links added for ETA tool, CD, SAMUS_L2, MUON_L2
+    - 
+History of beta area -> test release
+
+24-AUG-1993 - L2JETS.FOR        Simplify the forced rebuild of L1
+              L2JETS_HOTFL.FOR  candidate lists             Rich Astur
+              L2_EM.FOR                                     Jim Linnemann
+
+              PRL2EM.FOR        Bug fix.                    J. McKinley
+                    [actually inserted in zebra_util]
+                        
+              CL2HITS.OPT       Update OPT files.           Jim Linnemann
+              DEB_CL2HITS.OPT
+
+30-AUG-1993 - GTJAUX.FOR        Bug fix in BTEST bit position
+                                                            Rich Astur
+
+ 6-OCT-1993 - L2JETS.FOR        Rich's copy for RELEASE (earlier copy
+                                carried TIMING calls/loops and private
+                                diagnostic code that generated undefined
+                                externals).
+                                                            Rich Astur
+
+12-OCT-1993 - CALOR_FILTER.RELEASE  update release file to allow C code
+                                                            J. Linnemann
+
+14-OCT-1993 - ESUM_CONESIZE_TO_JET.FOR  (Bug fix) Now return object of conesize
+                                        CLOSEST to that requested.
+              ESUM_JET_TO_CONESIZE.FOR  Updated for VETO parameter.
+              GTJAUX.FOR                (Bug fix)
+              GTJPAR.FOR                Add veto cut.
+              GZJPAR.FOR                (Bug fix) Make a SL2H if needed when 
+                                        getting JPAR from FRES.
+              L2CRCAL_PARAMETERS.FOR    Changed to be compatible with ALPHA.
+                                        Add EZRSET call.
+              L2JETS.FOR                Remove FORCE of L1 list building when
+                                        no L1 candidate found.  Add VETO code to
+                                        veto event if other cuts satisfied.
+              L2JETS_CEN_CL2.FOR        Use the avg of a window around the L1
+                                        candidate instead of just the L1
+                                        candidate for the jet center.
+              L2JETS_CONTRS.FOR         Changed to be compatible with ALPHA.
+                                        Initialize all variables before use.
+                                        Zero JET_MASK every event.
+              L2JETS_DUMP.FOR           
+              L2JETS_HOTFL.FOR          Use software listbuilding for every call
+                                        Use software listbuilding for large tile
+                                        triggers.  Map large tiles to the
+                                        trigger tower which corresponds to the
+                                        eta-phi average over the large tile.
+              L2JETS_JPARFL.FOR         Add VETO parameter.
+              L2JETS_PARAMETERS.FOR     Read in VETO parameter, but DON'T error
+                                        if can't find it.
+              L2J_GET_PT_TO_L1FADC.FOR  Get the zebra pointer to the start
+                                        of the L1 FADC block for use with
+                                        L2J_ETAPHI_AVE.C
+              PRJPAR.FOR                Add VETO parameter.
+
+              L2J_ETAPHI_AVE.C          Loops over a window around a trigger
+                                        tower and returns the EM and total Et as
+                                        well as the Et weighted average over
+                                        that window.
+              L2J_ETAPHI_UTIL_INIT.C
+                                                            Rich Astur
+
+18-OCT-1993 - L2JETS.FOR - a) Ignore towers < L2J_ET_TOWER_MIN (-1.0 GEV)
+                           b) Remove code which recalls L2JETS_HOTFL when no
+                              candidates are found
+                           c) Modify jet clustering so that the core tower used
+                              is not the candidate tower, but the trigger tower 
+                              which is the ET weighted average of those in the 
+                              core cone around it.
+                           d) Add VETO parameter: if VETO is TRUE and the other 
+                              cuts are satisfied, then the RESULT returned will 
+                              be FALSE (event is vetoed )
+                           e) Technical adjustment which is important for large 
+                              tiles: Modify L2JETS program to use the JET_MASK 
+                              array which holds the trigger mask for each jet. 
+                              Each time a jet is clustered, we go through all 
+                              the other candidates looking for candidates that 
+                              were just 'absorbed' by the new jet. If we find 
+                              them, we OR the trigger  mask of those 'absorbed' 
+                              jets with our current jet.  This is not necessary 
+                              when when running with normal trigger tower 
+                              thresholds since we loop over the jet list in 
+                              decreasing order of ET. But now that the jet can 
+                              absorb large tile candidates, l15 candidates and 
+                              trigger tower candidates that are specific to 
+                              certain geographic regions (like the endcap 
+                              triggers), this adjustment could be crucial.
+                           f) Stop calling L2JETS_ENG. Now there is only one
+                              conesize used.
+
+         L2JETS_CEN_CL2.FOR   Exclude readout towers with ET < -1 GeV from jet.
+                              Adjust JET_MASK of each found jet to aquire 
+                              trigger bits of absorbed candidates as well.
+         L2JETS_CUTS.FOR      Check JET_MASK and not IHOT_MSK_JT to determine 
+                              if this jet satisfied the current trigger or not.
+         L2JETS_HOTFL.FOR  -  Loads both EM and JET L1 candidates into 
+                              common blocks, allowing access.
+                           a) Redefinition of JET arrays. NJTHOT is now 
+                              the total sum of candidate TRIGGER TOWERS 
+                                 + LARGE TILES + L15 JETS
+                              NJTTHOT = # of trigger tower candidates
+                              NJLTHOT = # of large tile candidates
+                              NJ15HOT = # of L1.5 candidates
+
+                     WARNING: Any code that is looping from 1 to NJTHOT to get 
+                              trigger tower candidates will now get all 
+                              candidates. Code should be changed to loop from 
+                              1 to NJTTHOT if that is what is desired.
+
+                           b) Adds Large tiles & L15 candidates to arrays.
+                              The arrays are made with NJTHOT candidates where
+                              NJTHOT = NJTTHOT + NJLTHOT + NJ15HOT,  with the 
+                              first NJTTHOT places are for trigger tower 
+                              candidates.  The next NJLTHOT are for large tile
+                              candidates; the final NJL15HOT for L1.5 jets.
+
+                     Therefore, to get the L1 address of the first LT
+                     candidate, one would use IHOT_ADR_JT( NJTTHOT + 1 ).  
+                     Use of IHOT_MSK_JT is similarly defined.
+
+                           c) Addition of code to associate the candidate 
+                              trigger tower of a large tile with the 'average' 
+                              trigger tower in the large tile and not the tower 
+                              of smallest absolute magnitude which is how the 
+                              list returns it.
+                                                            Rich Astur
+18-OCT-1993 - L2_EM_LONG_CUT.FOR - Bug fix 
+                     Bug affects ONLY data taken with the TIGHT cuts.
+                     In that case, I BELIEVE (not verified with a debugger) 
+                     the effect is that the longitudinal tight cuts for EM1 
+                     and EM1+2 are TURNED OFF, even in the case TIGHT was 
+                     selected.
+                                                            J. McKinley
+
+26-Oct-1993 - L2_EM.DOC   rewrite/update J. McKinley, J. Linnemann
+
+27-OCT-1993 - CL2_ET_TO_E.FOR - Returns 0.0 for bad input.
+                                                            William Cobau
+              (Update thru FAKE_GAMMA not yet done).
+
+03-Nov-1993 - Fix problems found by FLINT (J. Linnemann)
+
+    CL1RING     called l2j_util_init as a subroutine: it's a logical function
+                no known negative consequences
+    CL2_RING_INIT   overran array bounds in JETS_L2 initializing
+                not clear whether this changes anything: it's probably in the
+              "spare" safety region rather than in the normal wraparound region
+    CL2TEST_CANDS   call with dummy variable instead of constant 
+                    not used in filtering
+  
+03-NOV-1993 - L2_EM_XYZ_POSITION.FOR - Adds the radial offset to the ECEM 
+                                       eta, as presently done in CM3POS.
+                                                    Natalie Roe
+
+6-Nov-1993  J. Linnemann
+
+CGL1PHT (this is a CALOR_UTIL routine)
+    fix bug found by FLINT (in part of data not used....)
+
+CL2_FIND_ADCS 
+    fix bug found by FLINT (in error message formatting)
+
+add ETMIN_CELL parameter (eventually in L2_EM.RCP L2EM_VERSION = 3)
+    if a cell is lower than ETMIN_CELLin ET nominal, it is excluded both from
+        floor and cone sums.
+    
+    L2_EM_ISOL      L2_EM_PARAMETERS    L2_EM_UNPACK
+
+add an E offset to the CAGS bank for ECN, CC, ECS (still currently 0)    
+    BKCAGS      CAGSFL      PRCAGS  CAGS.ZEB
+
+    note: there is still no provision for FILLING this parameter (eventually to
+be seen in energy scale chosen in the cl2_util RCP when Kotcher's nonlinear
+scale is instituted); values for CC,ECN,ECS.
+
+13-Nov-1993  J. McKinley 
+        patch l2_em_ntuple for FLINT
+        new version of L2EM_NTUPLE which allows one to select L2EM banks by 
+            filter names ala L2EM_HIST 
+L2EM_NTUPLE.DOC         L2EM_NTUPLE.RCP
+L2EM_NTUPLE.FOR         L2EM_NTUPLE_BGNRUN.FOR      L2EM_NTUPLE_BOOK.FOR
+L2EM_NTUPLE_FILL.FOR    L2EM_NTUPLE_FILL_RESET.FOR  L2EM_NTUPLE_SETUP.FOR
+
+
+14-Nov-1993 J. Linnemann
+
+    _TIGHT parameter meaning changed to exclude EM1, EM1+2 cuts
+        L2_EM_LONG_CUT  L2_EM.DOC
+
+    This was done because it was simplest to just roll the E offsets into 
+    EFLOOR(1), which could have thrown these cuts off.  No one was know to be
+    using them.
+
+17-Nov-1993 J. Linnemann
+    Correct control logic for L2_CD_MATCH.  This requires a new parameter
+    returned from L2_CD_MATCH
+        L2_EM.FOR  L2_EM.DOC
+
+==============================================================================
+
+ 23-NOV-1993 : Modifications released by James T. Linnemann
+ 
+    - L2JETS.FOR          Bug fix for the initialization problem that
+      L2JETS_HOTFL.FOR    caused clashes between L2JETS/L2EM on 1st evt.
+                                                                Rich Astur
+
+      L2_EM.FOR,L2_EM_ISOL.FOR  put offset effects into cone cut as well 
+                                            J. Linnemann
+
+
+==============================================================================
+
+ 23-NOV-1993 : Modifications released by James T. Linnemann
+ 
+    - L2JETS_PARAMETERS fix handling of JET_DELTA_R     Rich Astur
+
+==============================================================================
+
+ 10-JAN-1994 : Modifications released by James T. Linnemann
+ 
+    - CAGSFL        patch printing during STP making
+    - CL2_PUT_GEOM  keep RCPs needed for CLINPH in STP Making
+
+==============================================================================
+
+  1-APR-1994 : Modifications released by James T. Linnemann
+                        Collection from L2 beta area
+
+10-JAN-1994 L2JETS_CEN_CL2.FOR  Bug fix cures problems where single tower jets
+                                triggers conflicted with large tile jets
+                                triggers that contained them.
+                                            R. Astur
+
+24-JAN-1994 Clean out D0$L2BETA area. Delete all TEST-Released code.
+            This leaves:
+
+    CAGSFL.FOR;11            10/12      30-DEC-1993 20:08:40.17
+    CL2_PUT_GEOM.FOR;3        6/6       19-JAN-1994 13:26:14.60
+    L2JETS_CEN_CL2.FOR;21    20/21      10-JAN-1994 11:58:31.89
+    L2_EM_XYZ_POSITION.FOR;3 15/15      23-DEC-1993 10:47:03.20  (not in CMS)
+
+
+    Imported from ALPHA area:
+
+17-JAN-1994 L2_EM.FOR   J. Linnemann
+    no longer book a L2EM bank when the candidate doesn't belong to the
+    trigger
+
+================================================================================
+    Beta release an l2prod 6.04
+================================================================================
+02-JAN-1994 L2JETS.FOR      Informational VETO message sent ONCE now.
+                        R. Astur
+
+25-JAN-1994 J. Linnemann
+    squash down size of RCP's in STP
+ L2JETS_INIT.FOR    L2CRCAL_INIT.FOR    L2_EM_INIT.FOR
+
+25-JAN-1994 J. Linnemann
+
+    CAGSFL.FOR      get offsets from CORRECTEM.RCP
+
+4-Feb-1994 J. Linnemann
+
+    L2EMFL.FOR      Since Deta, Dphi are recalculated whenever needed, zero them
+                        after they are put in the L2EM bank.
+23-Feb-1994 J. Linnemann
+
+    CAGSFL.FOR      needed call to CORRECTEM_BEGIN to get .RCP read
+
+10-Mar-1994 J. Linnemann for Djoko 
+
+    CL2_MAKE_TABLES.FOR     CL2_SHRINK_RCP.FOR
+    CAL_SHRINK_GEOM.RCP 
+
+    shrink down to minimum size the ECAL and UCAL RCP banks needed for
+            cal_confirm geometry
+14-Mar-1994 J. Linnemann
+    CL2_SHRINK_RCP.FOR  remove EZDUMP
+
+==============================================================================
+
+  4-JUN-1994 : Modifications released by James T. Linnemann
+ 
+    - 6-May-1994 J. Linnemann
+    L2_EM.FOR   remove possible overwrite in case of > 20 candidates
+    - 9-May-1994 J. Linnemann
+    Cl2_MAKE_ETNOM.FOR  history-dependent bug fixed
+
+    I believe I have found the source of the discrepancy between eln and
+l2sim.  The problem lies in the implementation of the main_ring_on supression
+of the CH barrel, ie ILAYERC= 16-17 anywhere, and ILAYERC= 15 for |IETAC| <=12. 
+    The status of main_ring_on was interrogated only when there exists a pnut
+bank, ie when we are doing missing pt.  But the variable main_ring_on is USED
+for ALL unpacking.  So the result is that
+    1) muon l2 cal confirm is not affected, since the CH layers are not used in
+        the confirmation
+    2) missing pt (and sum et, since one calculation implies the other)
+        is guaranteed correct, as seen
+    3) If the last time you did missing pt, the main ring was NOT on, ie most
+    of the time, everything is also correct.
+    4) if the last event you did missing pt, the main ring was ON,
+        AND you are L2JETS or L2EM
+        AND you run on this event before missing pt or sum et (or neither run
+                at all)
+        a) l2jets will not have CH available, usually meaning a downward bias
+            in energy wrt actual, and offline
+        b) l2em isolation fraction is wrong, usually too low compared to
+            actual, so usually you pass a bit too much (benign)
+        c) cal confirm will not have CH available
+
+    I will wait for confirmation from Amber that she agrees with my
+interpretation of the cl2_make_etnom code.  Before doing repairs, I also await
+confirmation of the EXPECTED behavior during main ring on conditions:
+    A) check main_ring_on every event, and supress CH for ALL em filters
+or  B) check and use ONLY for sum/missing Et
+
+    This was found to occur on approximately 3% of the events in L2JETS, and
+perhaps .5% of events in L2_EM.  The banks containing the Cal Confirm
+information were apparently not being checked.
+
+    -2-June-1994 Cl2_make_etnom.for  J. Linnemann
+    add mrbs_loss to list of main_ring_on conditions for active veto at request
+    of Trigger Panel
+
+
+
+==============================================================================
+
+ 15-JUN-1994 : Modifications released by James T. Linnemann
+ 
+    -  CL2_CELL_ISOLATED.FOR (Amber Boehnlein)
+        Turn on isolation test for FH1 (had been supressed)
+            (presently used ONLY in missing Et, sum Et)
+
+==============================================================================
+
+ 16-AUG-1994 : Modifications released by James T. Linnemann
+ 
+    - l2_em3_max.for    improve handling when nothing found in L1 candidate
+    - cl2_make_tables.for   yank cl2_shrink_rcp call until ezsqueeze fixed
+
+==============================================================================
+
+ 17-AUG-1994 : Modifications released by James T. Linnemann
+ 
+    - l2_em_xyz_position.for (A. Goldschmidt)
+        sometimes track match road too narrow in ECS
+        better protection if nothing found at L1 candidate position
+    - l2_em3_max.for
+        better protection and messages if nothing found at L1 candidate position
+    - l2_em_unpack.for
+        better protection if nothing found at L1 candidate position
+
+
+==============================================================================
+
+ 18-AUG-1994 : Modifications released by James T. Linnemann
+ 
+    - remove extraneous comment in l2_em_xyz_position.for
+
+
+==============================================================================
+
+ 13-OCT-1994 : Modifications released by James T. Linnemann
+ 
+    -   l2_em3_max.for  leave in protection (simplified) but remove error
+        messages: source of problems more or less understood as MR, noise
+        and/or temperature monitoring
+
+    -   cl2_cell_isolated.for   Amber Boehnlein
+            start cutting on FH1, but only if it's greater than 30 GeV Et
+    

@@ -1,0 +1,74 @@
+                                                    Richard V Astur
+                                                    December 5, 1990
+                                                    D0$CALOR_FILTER:L2CRCAL.DOC
+
+                        Documentation on L2CRCAL: 
+                        ( Level 2 Cosmic Ray Tool )
+
+
+
+    I)  Introduction.
+    This is intended to be a help document for using L2CRCAL, which is a
+Level 2 Filtering tool. A more complete description of the role of a 
+Level 2 Tool and how to set up a program builder program that to use such
+tools in described more completely elsewhere. (D0$CALOR_FILTER:L2JETS.DOC,
+D0$L2CONTROL:LEVEL2_MANUAL.MEM for example).
+    Briefly, L2CRCAL is intended for the cosmic ray run. It takes results
+from the level 2 muon track tool (from which it gets a track hit position
+and directional cosines that point the track) and then a) calculates a 
+list of cells that this ideal track would intersect in the CC. and b)
+Clusters the energy around these cells. A zebra bank (CRCA) is filled
+containing a list of 'hit' cells (in IETA,IPHI,ILYR offline coordinates)
+as well as corresponding found energies.
+    NOTE: L2CRCAL assumes some things in order to work:
+    a) It only considers the central calorimeter as that is what it was
+    intended for.
+    b) It assumes that the muon points 'generally' in the direction of
+    the beam pipe.  As of this writing, the cosmic ray commissioning run
+    planned on triggering only on muons that passed through a scintillator
+    that was located in the beam pipe region.
+    c) It assumes that the muons have some transverse component. Naturally
+    muons that have momentum primarily in the z direction cannot both
+    trigger and intersect the calorimeter unless by some other interaction.
+    L2CRCAL will not try to evaluate such tracks.
+
+    II) How to run L2CRCAL with VMS_FILTER or in Level 2.
+    The procedure for adding a tool has been described elsewhere (see
+    the documents mentioned above for example).  L2CRCAL can be added
+    in a similar way.  A  .INP file will be provided in D0$CALOR_FILTER
+    which will allow users to easily add L2CRCAL to their list of tools
+    while in TOOL_MAKER.
+
+    III) L2CRCAL.RCP
+    Like most tools, L2CRCAL has a corresponding RCP file that is needed
+    for the tool_INIT phase of the running. This RCP file is pointed to
+    by the logical: L2CRCAL_RCP.  This RCP file holds the various parameter
+    sets under which this tool can be called. The individual parameters
+    are as follows:
+    
+    MUON_TRACK_MODE INTEGER 
+        This parameter is set either to 1 or to 0 and determines how the
+    muon track direction is to be derived. 
+    To take muon track from GEANT banks:
+        0 : Take directional cosines from Muon Finder (normal mode)
+        1 : Constrain track to pass through beam pipe.
+    To take muon track from real muon finder (e.g. l2 muon finder)
+        2 : take real track from MUOT
+        3 : Constrain this track to pass through beampipe
+
+    DPHI_CUT REAL
+        This parameter fixes the maximum change in phi angle that the
+    track is allowed to change. Ideally, if the track passes through the
+    beam pipe, phi is a constant angle (except when it passes through the
+    x=0,y=0 line when it changes by pi.  This cut is mainly a protection
+    on an algorithm that depends to some extent on the track passing near
+    the beampipe.
+
+    IMUHIT_CONE  INTEGER
+        This parameter fixes the radius of the cone used to cluster energy
+    around the track.
+        < 0     ---> No energy clustering is done
+        = 0     ---> Just the cells where the track intersects the calorimeter
+        = 1     ---> Also add the 8 nearest neighbors
+        and so on....
+
