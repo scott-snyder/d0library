@@ -1,0 +1,84 @@
+      SUBROUTINE CALCLU(IHAD,IER)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Find EM/HAD clusters of the CATE , CAEP banks
+C-
+C-   Inputs  : IHAD = 1 EM, IHAD =2 HADRONIC+EM
+C-   Outputs : IER- error flag
+C-             CACL,CACH- Cluster and Cluster hit banks
+C-   Controls:
+C-
+C-   Created   2-MAY-1989   Rajendran Raja
+C-   Updated  27-JUL-1989   Rajendran Raja  1000-- 10000
+C-   Modified 9-FEB-1990    N. A. Graf
+C-                          Now calls CNEIGH_CATE
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$PARAMS:CAL_OFFLINE.PARAMS'
+      INCLUDE 'D0$PARAMS:CATENM.PARAMS'
+      INCLUDE 'D0$INC:PTCATE.INC'
+      INCLUDE 'D0$INC:PTCAEP.INC'
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$INC:ZLINKC.INC'
+      INCLUDE 'D0$INC:CLUPAR.INC'
+      INTEGER IER
+      INTEGER IHAD,I
+      INTEGER TOWER_MAX
+      LOGICAL DOENERGY
+      REAL    ETMIN
+      INTEGER DELETA,DELPHI,LOOP,I1,I2
+      LOGICAL FIRST,LCHECK
+      DATA FIRST /.TRUE./
+C----------------------------------------------------------------------
+      IF ( FIRST ) THEN
+        FIRST = .FALSE.
+        CALL EZPICK('CAPHEL_RCP')
+        CALL EZGET('ETA_NEIGHBOR_LIMIT',DELETA,IER)
+        CALL EZGET('PHI_NEIGHBOR_LIMIT',DELPHI,IER)
+        CALL EZGET('DO_NEIGHBOR_ENERGY',DOENERGY,IER)
+        CALL EZGET('MINIMUM_TOWER_E',ETMIN,IER)
+        CALL EZGET('CLUSTER_ORDER',LOOP,IER)!LOOP OVER CATE Et:1=HI/LO,-1=LO/HI
+        CALL EZGET('CLUSTER_CHECK',LCHECK,IER) !F=DON'T CHECK PREV CONNECTIONS
+        CALL EZRSET
+      ENDIF
+      IER = 0
+C
+      IF(IHAD.NE.1.AND.IHAD.NE.2)THEN
+        CALL ERRMSG('CALORIMETER','CALCLU',
+     &    ' CALLED WITH WRONG ARGUMENTS ','W')
+        IER = 999
+        GO TO 999
+      ENDIF
+C
+C ****  Initialize cluster finder
+C
+      CALL CLUSTER_INIT(IHAD)
+C
+C ****  NOW TO CONNECT TO NEAREST NEIGHBOR HAVING HIGHEST ENERGY.
+C ****  THIS CONNECTS ONLY IF CELLS ARE NEIGHBORING PHYSICALLY. THIS
+C ****  IS WHERE THE ALGORITHM WILL HAVE TO BE TUNED.
+C
+      I1= ILO
+      I2= IHI
+      LOOP = SIGN(1,LOOP)
+      IF(LOOP.LT.0) THEN
+        I1 = IHI
+        I2 = ILO
+      END IF
+      IF(.NOT.LCHECK) ETMIN = -1*ABS(ETMIN)  ! AVOID TOGGLING CONNECT CHECKING
+      DO I = I1,I2,LOOP
+        CALL CNEIGH_CATE(IHAD,DOENERGY,ETMIN,DELETA,DELPHI,I,TOWER_MAX)
+        IF(TOWER_MAX.NE.0) THEN
+          CALL CLUSTER_CONNECT(TOWER_MAX,I)       ! IF A NEIGHBOR FOUND
+        ENDIF
+C
+C ****  THE ORDER OF THE ABOVE CALL IS IMPORTANT. TOWER_MAX
+C ****   IS THE CELL WITH THE HIGHEST ENERGY,
+C ****   SO PROBABLY HAS AN EXTENSIVE NEXT RING. I IS
+C ****  VERY LIKELY A SINGLE CELL. HENCE I SHOULD BE THE SECOND ARGUMENT
+C ****  FOR SPEED.
+C
+      ENDDO
+  999 RETURN
+      END

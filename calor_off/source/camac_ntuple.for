@@ -1,0 +1,229 @@
+      SUBROUTINE CAMAC_NTUPLE(HALL,TAGWORD,LDTDC_WORDS,ADC_WORDS,
+     X                      SCALERS,TDC_WORDS, TRIGGER)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : RCP CONTROL OF TAG & CERENKOV CUTS
+C-
+C-   Inputs  : HALL, TAGWORD, LDTDC_WORDS, ADC_WORDS, SCALERS, TDC_WORDS,
+C              TRIGGER
+C-
+C-   Created   25-OCT-1990   MIKE TARTAGLIA TO FILL NTUPLE W/CAMAC INFO
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:TB90_NTUPLE.INC'
+      INCLUDE 'D0$PARAMS:PWCPAR.DEF'
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+C
+      INTEGER TAGWORD, IER, I, TRIGGER
+      INTEGER LDTDC_WORDS(*), ADC_WORDS(*), TDC_WORDS(*)
+      INTEGER SCALERS(*), HALL
+      INTEGER  TRKNO_UX, TRKNO_DX
+      INTEGER  NTY,NTXD,NTXU,NHY,NHXD,CHY,CHXD
+      INTEGER  NTR, NWTRK,NP
+      INTEGER  LPWCT,GZPWCT,LDATA
+      INTEGER   NHITS(NPWCMX)            ! number of hits per plane
+      INTEGER   HITWIRE(MXHITS,NPWCMX)   ! wire number of hit
+      INTEGER  NXCRYO, NYCRYO
+      INTEGER*4 IERR
+C
+      REAL     MAGAPT
+      REAL     YT(5),DXT(5),UXT(4),MOM(4), NOM_MOM, NOM_MOM_HALL
+      REAL     Z_BEND, DELTAX, Z_1, Z_2
+      REAL     XCP_Y, SLP_Y, PROJ_Y1, PROJ_Y2
+      REAL     XCP_DX, XCP_UX, SLP_DX, SLP_UX, PROJ_DX, PROJ_UX
+      REAL     CHI2_Y, CHI2_DX
+C
+      LOGICAL  CUTMU, CUTMIP, CUTHALO, CUTLDTDC, CUTC9, CUTCA, CUTC2
+      LOGICAL  REQC9, REQCA, REQC2, CUTTRKS, FIRST, LACCEPT
+      LOGICAL REQMU, REQMIP
+C
+C---------------------------------------------------------------------
+      DATA     MAGAPT/2.5/
+      DATA     TRKNO_DX, TRKNO_UX/2, 3/
+      DATA     FIRST /.TRUE./
+C---------------------------------------------------------------------
+C
+      IF (FIRST) THEN
+        FIRST = .FALSE.
+        Z_BEND = 8031.5
+        Z_1 = 7040.
+        Z_2 = 9125
+      ENDIF
+C
+C- GET THE PWCT ZEBRA BANK TRACK INFORMATION
+      CALL GTPWCT(YT,DXT,UXT,NTY,NTXD,NTXU,NHY,NHXD,CHY,CHXD,
+     &                  NP,MOM,IER)
+      IF(IER.NE.0) THEN
+        NTY = 0
+        NTXD = 0
+        NTXU = 0
+        NP = 0
+      ENDIF
+C
+C- GET THE TRACK FIT PARAMETERS IF THERE IS ONE
+      IF(NTY.NE.1) THEN
+        XCP_Y = 9999.
+        SLP_Y = 9999.
+        PROJ_Y1 = 9999.
+        PROJ_Y2 = 9999.
+      ELSE
+        XCP_Y = YT(1)
+        SLP_Y = YT(2)
+        PROJ_Y1 = XCP_Y + SLP_Y * Z_1
+        PROJ_Y2 = XCP_Y + SLP_Y * Z_2
+        CHI2_Y = YT(5)
+      ENDIF
+C
+      IF(NTXD.NE.1) THEN
+        XCP_DX = 9999.
+        SLP_DX = 9999.
+        PROJ_DX = 9999.
+      ELSE
+        XCP_DX = DXT(1)
+        SLP_DX = DXT(2)
+        PROJ_DX = XCP_DX + SLP_DX * Z_BEND
+        CHI2_DX = DXT(5)
+      ENDIF
+C
+      IF(NTXU.NE.1) THEN
+        XCP_UX = 9999.
+        SLP_UX = 9999.
+        PROJ_UX = 9999.
+      ELSE
+        XCP_UX = UXT(1)
+        SLP_UX = UXT(2)
+        PROJ_UX = XCP_UX + SLP_UX * Z_BEND
+      ENDIF
+C
+C- FILL NTUPLE WITH TRACKING INFORMATION
+      XTUPLE(1) = FLOAT(NTXU)
+      XTUPLE(2) = FLOAT(NTXD)
+      XTUPLE(3) = FLOAT(NTY)
+      XTUPLE(4) = XCP_UX
+      XTUPLE(5) = XCP_DX
+      XTUPLE(6) = XCP_Y
+      XTUPLE(7) = SLP_UX
+      XTUPLE(8) = SLP_DX
+      XTUPLE(9) = SLP_Y
+      XTUPLE(10) = CHXD
+      XTUPLE(11) = CHY
+      XTUPLE(12) = PROJ_UX
+      XTUPLE(13) = PROJ_DX
+      XTUPLE(14) = PROJ_Y1
+      XTUPLE(15) = PROJ_Y2
+      XTUPLE(45) = CHI2_Y
+      XTUPLE(46) = CHI2_DX
+C
+C- MOMENTUM AND RATION TO NOMINAL MOMENTUM AT THIS BEND ANGLE
+      IF(NP.LT.1) THEN
+        XTUPLE(16) = 9999.
+        XTUPLE(17) = 9999.
+      ELSE
+        XTUPLE(16) = MOM(1)
+        NOM_MOM = NOM_MOM_HALL()
+        IF(NOM_MOM.GT.0.) THEN
+          XTUPLE(17) = MOM(1)/NOM_MOM
+        ELSE
+          XTUPLE(17) = 9999.
+        ENDIF
+      ENDIF
+C
+C- HALL PROBE B-FIELD VALUE
+      XTUPLE(18) = FLOAT(HALL)
+C
+C- MU COUNTER TAG
+      IF(BTEST(TAGWORD,3)) THEN
+        XTUPLE(19) = 1.
+      ELSE
+        XTUPLE(19) = 0.
+      ENDIF
+C
+C- MIP COUNTER TAG
+      IF(BTEST(TAGWORD,4)) THEN
+        XTUPLE(20) = 1.
+      ELSE
+        XTUPLE(20) = 0.
+      ENDIF
+C
+C- HALO COUNTER TAG
+      IF(BTEST(TAGWORD,7)) THEN
+        XTUPLE(21) = 1.
+      ELSE
+        XTUPLE(21) = 0.
+      ENDIF
+C
+C- CERENKOV 9 TAG
+      IF(BTEST(TAGWORD,5)) THEN
+        XTUPLE(22) = 1.
+      ELSE
+        XTUPLE(22) = 0.
+      ENDIF
+C
+C- CERENKOV A TAG
+      IF(BTEST(TAGWORD,6)) THEN
+        XTUPLE(23) = 1.
+      ELSE
+        XTUPLE(23) = 0.
+      ENDIF
+C
+C- CERENKOV 2 TAG
+      IF(BTEST(TAGWORD,8)) THEN
+        XTUPLE(24) = 1.
+      ELSE
+        XTUPLE(24) = 0.
+      ENDIF
+C
+C- LDTDC EARLY/LATE PARTICLE TAGS SHOULD APPEAR AS NEGATIVE VALUES
+      DO 101 I = 1,7
+        XTUPLE(24+I) = FLOAT(LDTDC_WORDS(I))
+  101 CONTINUE
+C
+C- FIRST TWO SCALER WORDS ARE POTENTIALLY MEANINGFUL RATES
+      DO 102 I = 1,2
+        XTUPLE(31+I) = SCALERS(I)
+  102 CONTINUE
+C
+C- FIRST FOUR ADC WORDS ARE SMALL ARRAY PARTICLE COUNTERS
+      DO 103 I = 1,4
+        XTUPLE(33+I) = ADC_WORDS(I)
+  103 CONTINUE
+C
+C- FILL THE "RON LIPTON" ADC WORD
+      XTUPLE(38) = ADC_WORDS(10)
+C
+C- FILL THE MIP ADC AS IT MAY BE USEFUL
+      XTUPLE(39) = ADC_WORDS(7)
+C
+C- KEEP TRACK OF THE SCINT TIMING FOR POSSIBLE TOF, ETC
+C-MIP
+      XTUPLE(40) = TDC_WORDS(1)
+C-MUON
+      XTUPLE(41) = TDC_WORDS(2)
+C- S123
+      XTUPLE(42) = TDC_WORDS(5)
+C- CKV2
+      XTUPLE(47) = TDC_WORDS(3)
+C
+C- GET SOME INFO ON NUMBER OF HIT WIRES IN CRYO PWC
+      CALL GTPWCH(NHITS,HITWIRE,IER)
+      IF(IER.NE.0) THEN
+        XTUPLE(43) = 9999.
+        XTUPLE(44) = 9999.
+      ELSE
+        NXCRYO = NHITS(10)
+        NYCRYO = NHITS(11)
+        XTUPLE(43) = FLOAT(NXCRYO)
+        XTUPLE(44) = FLOAT(NYCRYO)
+      ENDIF
+C
+C- THERE ARE 2 SPARE WORDS LEFT, SO ZERO THEM OUT
+      XTUPLE(48) = ADC_WORDS(11)
+      XTUPLE(49) = ADC_WORDS(12)
+C
+C- FILL THE TRIGGER WORD
+      XTUPLE(50) = FLOAT(TRIGGER)
+C
+C- HIT THE ROAD
+  999 RETURN
+      END

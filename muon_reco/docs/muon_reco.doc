@@ -1,0 +1,621 @@
+              MUON RECONSTRUCTION PROGRAM : MUON_RECO
+             =========================================
+     S. Abachi, S. Hagopian, D. Hedin, S. Kunori, D. Zieminska
+last update: 4-28-92
+partial update: 21-Dec-93 D.Wood
+
+        This is a very brief documentaion on how to run MUON_RECO.
+
+      [1] Step by step to run MUON_RECO.
+      [2] Add your own routines or modify existing routines.
+      [3] Event Display in MUON_RECO     
+      [4] Check Histograms stored in a file, D0USER_1.HST4
+      [5] understand the default histograms 
+      [6] Errors
+      [7] MUCLIB routines
+ =======================================================================
+
+[1] Step by step to run MUON_RECO.
+
+
+    1) Go to your directory where you want to create the MUON_RECO
+       program.
+
+        $ SET DEF [xxxx.yyyy]
+
+    2) If you want to use the test version of library,
+
+        $ LIBT ALL
+
+       If you want to use the production version of library, skip
+       this section.
+
+    3) Run program builder to create the program in your directory.
+
+       $ PBD/FRAME=D0USER/ZEBCOM=1200000/ZEBSTP=800000
+        /GCBANK=250000/NAME=MUONS 
+        /PACKAGES=(ZTRAKS,CALOR,CAHITS,MURECO)
+
+        In this case, your program has a program package for central
+        tracking reconstruction, calorimeter, and a package, MURECO,
+        for muon track reconstruction. The name of your program is
+        'MUONS_D0USER' which is named by 'NAME' parameter in PBD. Note
+        that the above included packages are all required by muon package.
+        You may add to the packages but not eleminate any of the above.
+        
+        The package MURECO includes SAMUS part of the muon system.  
+        The SAMUS reconstruction can be switched on/off by changing the
+        parameter 'SKIP_LEVEL' in the file MURECO.RCP (see below how to
+        handle RCP files).
+
+        If you are only interested in SAMUS you may replace your command
+        with:
+
+       $ PBD/FRAME=D0USER/ZEBCOM=1200000/ZEBSTP=800000/NAME=MUONS
+        /PACKAGES=(SAMRECO)
+
+        Another package available is MUONLY, which proceeds as far
+        as MUOT bank. This is usefull for those interested in MUOT bank
+        only. A PBD command for this package should look like;
+
+       $ PBD/FRAME=D0USER/ZEBCOM=1200000/ZEBSTP=800000/GCBANK=400000
+        /NAME=MUONS/PACKAGES=(MUONLY)
+
+
+        The program builder, PBD creates various files in your directory.
+
+        MUONS_D0USER.FOR has a main routine and interface routines
+        to program packages, for example the central track reconstruction
+        program and the muon reconstruction program in this case.
+
+        MUONS_D0USER.LNK is to link the program.
+
+        MUONS_D0USER.COM is to define input RCP files, etc. 
+
+               
+     4) Link the program,
+
+       $ @MUONS_D0USER.LNK
+
+        If you want to add your own routines, see section [2].
+
+     5) Define input RCP files.
+
+       $ @MUONS_D0USER.COM
+
+        The input RCP file, D0$MUON_UTIL:MURECO.RCP defines mainly,
+        a) sets of hitograms, b) list of banks to be dumped if Event
+        dump requested, c) parameters for muon track finding in the
+        muon system, d) how input calibration files are read in.
+
+        If you need to modify input parameters in RCP file, do the following 
+        procedure.
+
+        5.1)  $ COPY D0$MUON_RECO:MURECO.RCP *
+
+        5.2)  change parameters in MURECO.RCP in your directory.
+
+        5.3)  $ DEFINE MURECO_RCP MURECO.RCP
+               (or you can modify DEFINE statement in MUONS_D0USER.COM
+                and run $ @MUONS_D0USER.COM )
+                
+     6) Run D0USER,
+
+       $ D0USER/NOSMG  
+            or
+       $ D0USER/FULL
+
+          (use HELP to get definitions of commands.)
+
+        An example of sequence of commands in D0USER is as follows.
+
+        Select: {        }  > HELP         to see available commands
+  
+        (If you do not want any event dump, skip this part.)
+        Select: {        }  > 8            to go to Event dump control
+        Select: {        }  > back  
+        Select: {        }  > back         to go back to the top menue.
+        Dump event to screen? n
+        Dump event to print.? n
+        NDUMP> 5
+        nskip> 0
+        (end of event dump control- The event dump outputs each event
+         into EVENT.DUMP.n.    Use editor to look at.)
+
+        Select: {        }  > 3            to define an input data file
+        Name of input file  > input.dat    type an input file name.
+        ... excahnge mode?  > (CR)         carridge return for no exchange mode
+        Select: {        }  > 1            for manual process.
+                                          (2 for auto process)
+        Store histograms?   > 2            for end of job only
+        Process all events? > Y
+        Use same param....? > Y     
+
+           -- Event processing --
+
+        Select: {        }  > help         to see available commands again
+        Select: {        }  > 4            to examine histograms
+        Select: {        }  > help         to see commands for histograms
+        Select: {        }  > 6            to type hitograms
+        Histogram number?   > 0            for all histograms
+        Select: {        }  > back         to go back to previous menue
+        Select: {        }  > 2            to finish the job
+
+
+     
+[2] Add your own routines or modify existing routines.
+
+    There three user hooks from MUON_RECO to user.      
+
+    A subroutine 'MUUSER_INIT' is called at initialization phase of
+    the program.
+
+    A subroutine 'MUUSER_HIST' is called at the end of event phase
+    for histograming. 
+
+    A subroutine 'PRMUSR' is called from event dump routine and
+    any WRITE statement with a logical unit number PRUNIT goes
+    to event dump file (and screen).
+
+    The structure chart may be found in D0$MUON_RECO:MURECO_INI.STRUC
+    and D0$MUON_RECO:MURECO_INI.STRUC.
+
+    In order to modify and include these routines, follow,
+
+     1) copy two routines from library area,
+
+        $ COPY D0$MUON_RECO$SOURCE:MUUSER_INIT.FOR *
+        $ COPY D0$MUON_RECO$SOURCE:MUUSER_HIST.FOR *
+        $ COPY D0$MUON_UTIL$SOURCE:PRMUSR.FOR *
+
+        Note that you can copy only these three routines directly form 
+        D0$MUON_RECO$SOURCE.     All other routines have to be obtained
+        from the BNL CMS library for modification in order to avoid
+        conflicts with other people who are modifying same routine
+        at the same time.
+
+    2) modify the subroutines.
+
+    3) add one line in MUONS_D0USER.LNK 
+        
+         "'DEB'MUONS_D0USER.OPT/OPTIONS,"+-
+
+       after third line, ($user_libraries = -).   
+
+
+     --- an example of new .LNK file ---
+$ TASK = "MUONS"
+$pgbd_sources_object = "'DEB'MUONS_D0USER.OBJ,"
+$user_libraries = -
+"'DEB'MUONS_D0USER.OPT/OPTIONS,"+-
+"D0$TRACKING_UTIL:'DEB'TRACKING_UTIL.OLB/LIBRARY,"+-
+"D0$MUON_RECO:'DEB'MUON_RECO.OLB/LIBRARY,"+-
+""
+         (following lines are omitted)
+
+
+    4) create MUONS_D0USER.OPT file.
+
+     --- an example of new .OPT file ---
+MUUSER_INIT,-
+MUUSER_HIST,-
+PRMUSR
+
+     
+    5) Since S/R MUUSER_HIST is called only if the offset of hitogram id
+       for user histograms is NOT-ZERO,  define non zero hitogram id 
+       offset in MURECO.RCP.     A key word for user histogram id
+       is 'USER_HIST' in MURECO.RCP.
+
+    6) Since S/R PRMUSR is called only if a dump switch 'MUSR' is on.
+       Please make sure this switch is ON in MURECO.RCP.
+       Note that the purpose of this routine is to print out some event
+       informations in event dump files with dump of other banks.
+
+    7) Then follow procedure 4, 5 and 6 in section [1] to link and run
+       the program.
+
+
+
+
+[3]  Event Display in MUON_RECO     (written by D.Hedin, S. Hagopian)
+
+
+         Complete documentation on event display can be found in
+    D0$PIXIE:PIXIE_GUIDE.DOC. ALSO in this area, MUODIS.DOC and SAMDIS.DOC 
+    describe the MUON and SAMUS event display packages (to be written)
+
+ 1. Program builder - The package MUODIS must be included in the package list
+    to get the MUON event display. The package SAMDIS must be included to
+    get the SAMUS event display. To get combined displays, including CAL and
+    ZTRAKS as well as WAMUS and SAMUS, just use the package ALL_DISPLAY%.
+    (The % indicates it is a combined package).
+
+
+ 2. Linking. The normal D0USER link does not include the event display
+    package. One needs to do: $@MUONS_D0USER.LNK DI3000.
+    Also, it is usually best to do a $LIBT PIXIE in order to
+    pick up the latest event display routines and parameters.
+
+ 3. Logicals. The event display needs a RCP file to define the views
+    to be displayed and the interactive parameters which control them.
+    For the WAMUS display, the file needed is D0$PIXIE:PX_MUODIS.RCP.
+    For the SAMUS display, the file needed is D0$PIXIE:PX_SAMDIS.RCP.
+    The corresponding logicals are PX_MUODIS_RCP and PX_SAMDIS_RCP.
+    The user may redirect the RCP logicals to their own files.
+    It also needs STP files to define the geometry. Logicals pointing
+    to the default files are defined in the program builder file,
+    MUONS_USER.COM. If the user has included the package ALL_DISPLAY,
+    the command file D0$D0USER:EVENT_DISPLAY.COM must also be executed.
+    Details of the various displays are available in the D0$PIXIE:.DOC files.
+
+ 4. Running. There are two ways to use event display. The first
+    is to turn on the interactive menu and then, while analyzing
+    events, do a DISPLAY EVENT. This will start at a random event.
+    One can also turn on the automatic event display by doing
+    EVENT DISPLAYS (7) before starting the run. It will ask how
+    many events and their particular IDs (if -1 then assumes 
+    consecutive). 
+
+    Once in the event display, it will ask for a view such as MUONS
+    ALL VIEWS. The standard muon event display shows all modules
+    which have at least one hit and all tracks (with each line
+    given a track number). A 0 is placed at the point (0,0,0) to
+    guide the eye. One can also blow-up around a particular
+    track by invoking the TRACK view and answering the questions.
+    Details of the implementation will change with time.
+
+    One can also dump events, write out events, and make a hard-copy
+    file of the screen while in event display. It is also possible to
+    display the ISAJET tracks (including only those with ID=14; that
+    is muons.) This is currently only implemented in one of the
+    calorimeter packages but will become more universally available
+    soon. One may need to MODIFY PARAMETERS in order to change which
+    particles get displayed.
+
+
+
+[4] Check Histograms stored in a file, D0USER_nnnnn.HST4 
+    (nnnnn=last run number processed)
+    
+    Method 1:  PAW
+        Do the necessary setups for your environment, e.g.
+        $ paw :== $d0$cernlib:pawdi3
+        $ setdrv xdw psp
+        then run paw
+        $ paw
+                graphics device?  (answer 1 for xwindow, 2 for postscript)
+        PAW> HIS/FIL 1 D0USER_nnnnn.HST4
+        PAW> cdir mureco
+        PAW> hist/lis    (shows the list of histograms)
+        PAW> hist/plot HID   (HID = histogram id #)
+
+    see PAW documentation for more details
+
+    Method 2 (where supported): DISPLAY5
+
+       $ DISPLAY5
+
+        DIS > help           to see available commands
+        DIS > help device    find your device name and use it in next command
+
+        Graphic device (  ) ? T              choose graphic device. 
+                                             (in this case, Tektronix is chosen)
+        Input file name:    ? d0user_nnnnn.hst4
+        Hbook4 format...... ? 1              choose Hbook4.
+        How many histograms ? 0              for all histograms
+        Sub-dir name in file? MURECO         use MURECO
+        sub-dir name in mem.? (CR)           for MURECO
+
+        DIS > i              to show histogram index
+        DIS > h 1            to move to id-1
+        DIS > t              to display id-1
+        DIS > n              to go to next histogram
+        DIS > t              to display id-2
+        DIS > devi           to switch the UGS device.
+       
+        Graphic device (  ) ? q              switch to Talaris laser printer
+
+        DIS > h 1            to move to id-1
+        DIS > t              to display id-1
+        DIS > nt             to go to next histogram and display it
+
+        DIS > exit           to finish
+     
+       Then if you want to print out,
+
+       $PRINT/QUE=WH13W_PRINT QMSQUIC.UGS     (choose appropriate queue for
+                                               your laser printer)
+
+       You may find more details about DISPLAY5 in D0$DISPLAY:DISPLAY.MEM
+       as well as HELP in the interactive mode.
+
+
+[5] MUON VERIFICATION HISTOGRAMS AND OUTPUT
+
+                          D. Hedin   Dec. 1, 1991
+    DH 4/92 this is slightly out of date and will be updated once the
+    verification histograms have stabilized.
+A. Minimum set  (note: 4/92 many MINI histograms have been moved to SET1)
+
+    S/R MUUSER_MINI is called provided that parameter HIST_MINIMUM
+  in MURECO.RCP is greater than or equal to 0 (with this parameter
+  also giving the ID offset; for now assume =0). 15 histograms are
+  booked and filled from the MUOT bank (the output of the muon
+  tracking) and the PMUO bank (which includes all relevant info).
+  For each bank, there are two muon categories. MUOT ALL includes
+  all the tracks found, even those which are clearly junk. MUOT
+  GOOD tracks have MUOT's second flagging word = 0. This implies
+  cuts on the track quality of fit, its projection to the vertex,
+  and whether it failed to have a hit in a muon chamber it projected
+  too. PMUO banks are formed from a subset of MUOT (the exact definition
+  isn't yet available; it will be almost equivalent to good MUOT
+  tracks) and then a further subset of the PMUO banks will have
+  had a complete fit, including the central tracking, performed.
+
+    1   MUOT RESIDUALS BEND VIEW      2   MUOT RESIDUALS NONBEND VIEW 
+    3   MUOT ALL THETA                4   MUOT ALL PHI 
+    5   MUOT GOOD THETA VS PHI        6   MUOT GOOD ETA 
+    7   MUOT GOOD THETA               8   MUOT GOOD MOMENTUM 
+    9   MUOT ALL NO. TRACKS/EVENT    10   MUOT GOOD NO. TRACKS/EVENT 
+   11   PMUO ALL NO. TRACKS/EVENT    12   PMUO GLOBAL FIT NO. TRACKS/EVENT 
+   13   PMUO THETA                   14   PMUO PHI 
+   15   PMUO GLOBAL FIT THETA 
+
+  In addition, a summary of the events in the above histograms are written
+out to the standard summary file (done in routine MUSUMR). An example is
+given below.
+
+ Muon Tracks     All MUOT   Good MUOT    All PMUO   PMUO global 
+ All theta           2149       2050       2044          0
+ Theta > 20 deg      1343       1265       1246          0
+ No. events >1 MUOT =     11   >1 PMUO =      1
+
+B. Extended histograms
+
+    In a like manner, a few more detailed histgrams will be booked and 
+  filled provided parameter HIST_SET1 is set greater than or equal to
+  0. A call to MUHIST_SET1 will be generated. Attempts are made to
+  find the ISAJET muon associated with either a MUOT track or a
+  PMUO track (requiring cos(opening angle)>.95 for MUOT and dR<.3
+  for PMUO matches). Finally, a number of quantities associated
+  with calorimeter and CD info is histogrammed.
+
+ 100 MUOT GOOD MOMENTUM RESOLUTION  101 MUOT GOOD MOM. RES. 15<T<35 degrees
+ 102 MUOT GOOD MOM. RES. 35<T<50    103 MUOT GOOD MOM. RES. 50<T<90 
+ 104 ISAL MUON, p>4 THETA           105 ISAL MUON, p>4 PHI 
+ 106 MUOT THETA NO ISAJET MUON      107 MUOT GOOD NO ISAJET MUON
+ 120 PMUO:Delta(PHI)(with ISAJET)   121 PMUO:DELTA(THETA)(with ISAJET) 
+ 122 PMUO:Delta(ET)(with ISAJET)    123 PMUO:Delta(E)(with ISAJET)
+ 124  PMUO:Delta(E)/E               125  PMUO:Delta(E)/E   E<15   
+ 126  PMUO:Delta(E)/E 15<E<25       127  PMUO:Delta(E)/E  25<E<60 
+ 130  PMUO:ETA                      131  PMUO:PT 
+ 132  PMUO:THETA:NO ISA MATCH       133  PMUO:THETA NO CD TRACK 
+ 134  PMUO:ELOSS CAL                135  PMUO:ET about muon dR<.2 
+ 136  PMUO:ET about muon dR<.4      137  PMUO:ET about muon dR<.6 
+ 138  PMUO:ISOLATION PARAMETER      139  PMUO: NO. CD TRACKS near muon
+ 190 MUD1 HIT A-LAYER CHAMBERS      191 MUD1 HIT B-LAYER CHAMBERS 
+ 192 MUD1 HIT C-LAYER CHAMBERS      193 MUD1 PAD ADC COUNT  
+ 194 MUD1 PAD ADC SUM               195 MUD1 TIME 1 ADC COUNT
+ 196 MUD1 TIME 2 ADC COUNT          197 MUD1 DELTA TIME:EVEN PAD 
+ 198 MUD1 DELTA TIME:ODD PAD
+
+There is also a brief summary in the output file extracted from these
+histograms concerning muon tracks with either no ISAJET or no CD
+matching.
+ 
+ Muon Tracks     MUOT no ISA   PMUO no ISA   PMUO no CD 
+ All theta             15            23          2044
+ Theta > 20 deg        10             3          1246
+
+[6] ERRORS
+
+    A. MUANLZ
+
+        The call to MUANLZ can return a variety of errors. Those less
+      than 0 are fatal. The current set of possible errors are:
+
+      -1  Fatal   MUDCHK    stream of zeros in MUD1 data
+      -2  Fatal   MUDCHK    module count in crate greater than 12
+      -3  Fatal   MUDCHK    MUD1 crate header has wrong number of words
+      -4  Fatal   MUANLZ    event has been flagged bad on previous MUANLZ call
+       1+10*CRID  MUSRT1    trailer/header mismatch in MUD1 crate
+       4+10*NMOD  MUSRT2    set of 4 ADC values identical to previous 4
+       5+10*NMOD  MUSRT2    pad latch bits missing
+
+       Note that MUD1 hits with unphysical addresses are skipped over but
+       not flagged as errors (an unphysical address can be caused by
+       SCI-BO hits or by ghost plane 3 hits).             
+
+
+[6]  MUCALIB code 
+                           D. Hedin                  
+
+This note describes how databases are used in muon analysis. It
+also describes the MUCALIB set of routines which are in the MUONLY
+D0USER package.
+
+I. MUON databases
+   A. Electronic constants (MPED,MTIM,MDTM,MGAN,MDFT)
+        These will be read into your muon analysis by using RCP switch
+        USE_DBL = 1,2 in MURECO.RCP. The database needs to be assigned
+        via $ASSIGN ONLINE:[DBL3.MUO]DBCALIB$MUO.DAT DBCALIB$MUO before
+        running the job.
+      
+        Four databases exist:
+
+    a. CALIB DATABASE AT D0       D0HSA::ONLINE:[DBL3.MUO.CALIB]DBCALIB$MUO.DAT
+    b. RELEASED DATABASE AT D0    D0HSA::ONLINE:[DBL3.MUO]DBCALIB$MUO.DAT
+    c. EDIT DATABSE AT FNALD0     PRJ$ROOT8:[MUCALIB.DATABASE]DBCALIB$MUO.DAT
+    d. RELEASED DATABSE AT FNALD0 DBOFFLINE:[DBL3.MUO]DBCALIB$MUO.DAT
+
+      The CALIB program writes directly into (a). (c) is used
+    as a work area when using track data to correct and test the calibration
+    constants before moving them into (b). (d) is a copy of (b) with the
+    database server being used to copy the 'official' database from D0HSA
+    to FNALD0 and other nodes.
+
+       Note that when reading in banks from the database into EXAMINE or
+    D0USER, a file, CALIB_CONST.OUT, wil be created giving brief information
+    on what constants were read in.
+
+   B. Geometry and magnetic field constants (MGEO,MMAG,MMAP,MMAU)
+
+       need an Atsushi writeup
+
+II. MUCALIB verification/correction routines
+
+     As part of the MUONLY/MURECO PBD package in D0USER, a series of
+     analysis routines and histograms which both verify constants and
+     calculate corrections has been set up. These routines are given
+     the generic name MUCALIB. MURECO.RCP controls MUCALIB:  
+ 
+   MUCALIB     controls which MUCALIB analysis is done
+               if <0 do nothing =0 ALL, =1 T0 and time->distance, 
+               =2 deltaT0, =3 vernier pads
+
+   LMUMOD      controls which modules are being analyzed
+               =0 all, =1 central, =2 North, =3 South, =4, then KMUMOD
+   example   \ARRAY KMUMOD
+               11 111 211
+             \END
+
+   CALIB_OUT   controls how calibration ZEBRA file output
+               1 or more, write out SMUO bank at job end to
+               file SMUO_MUCALIB.OUT
+
+   CALIB_T    controls whether one corrects T0 or time->distance 
+              1,2 do T-->D corrections to MDFT banks. 2,3 do T0 fine
+              corrections to MTIM banks. 4 do T0 coarse corrections
+              to MTIM banks.
+
+   MUPRINT     dump muon data ZEBRA banks for every event to this
+               unit (if >0) 
+
+   STPPRINT    dump muon calibration ZEBRA banks for the modules of interest
+               to this unit (if >0)
+
+    There are currently four separate analyses set using the MUCALIB RCP
+   parameter. Each analysis produces its own set of histograms in the
+   ID ranges: 20000=T0, 30000=t->d, 10000=deltaT, 40000=pads. Note that more
+   global histograms are available by setting RCP parameters HIST_MINI and
+   HIST_SET1 to 0. Also, each also produces an output to the standard
+   output file D0USER_xxxxxx.OUT.
+
+  A. Drift times: T0 and Time --> distance analysis
+
+      The T0 and T-->D analysis are tightly correlated and done concurrently.
+    However, when making corrections to the MTIM or MDFT banks, one usually
+    only does a single correction. CALIB_T controls this. The coarse T0
+    is deterimined using the raw ADC drift time 1 plot. This gives an
+    accuracy of roughly 100 ADC counts (or 30 ns).  For fine determination 
+    of T0, three points in a given module are forced to lie on a straight line
+    by assuming an identical X0 offset (which is then converted to T0)
+    for the entire module. Signed deviations (that is multiplied by the 
+    drift sign) between the hit and the MUOT line are used for tuning
+    the drift time to distance function.
+
+       20000         Sigmas of 3-miss deviations for all modules
+       20000+MOD     signed drift deviation for 1<ddis<4 cm. Time 1
+       21000+MOD     signed drift deviation for 1<ddis<4 cm. Time 2
+       22000+MOD     raw drift time
+       23000+MOD     corrected drift time
+       24000+MOD     corrected drift distance
+       25000+MOD     3-miss: deviation
+       26000+MOD     3-miss: float X0
+       30000+BIN     signed drift deviation. all modules in LMUMOD.
+                     in 20 2.5 mm BINs. used in time->distance
+       30000+10*MOD  signed drift deviation. ddis<2.5 cm
+       30001+10*MOD  signed drift deviation. ddis>2.5 cm
+
+  B. Time division analysis
+
+     The time division checking code uses two methods to check the
+     quality of the deltaT values. The first requires 3 hits in
+     a given module to form a 3-miss. Odd-even triplets (that is
+     with some of the hits on odd cells and some on even) are then
+     chosen to see if the DT0 is correct. A single correction value
+     is determined for each motherboard and (currently) added to both
+     channel 1 and 2 (though only DT1 hits are used in its calculation).
+     The code also compares the line from MUOT (which includes the
+     vernier pad points provided the IPDFIT=0) to the time division
+     point for three 150 cm wide bins along the wire. This checks the 
+     value of the time division slope calibration
+     constant but no correction to its value is currently made.
+
+     10000        deltaT 3-miss odd-even sigmas from all motherboards
+     10000+MOD    DT0 offset in ADC counts from odd-even 3-miss: mobo 0     
+     11000+MOD    DT0 offset in ADC counts from odd-even 3-miss: mobo 1     
+     12000+MOD    DT0 offset in ADC counts from odd-even 3-miss: mobo 2
+     13000+MOD    deltaT 3-miss odd-even in cm: mobo 0     
+     14000+MOD    deltaT 3-miss odd-even in cm: mobo 1     
+     15000+MOD    deltaT 3-miss odd-even in cm: mobo 2
+     16000+MOD    Time division position in cm (0=center of wire)
+     17000+MOD    Deviation MUOT line and time divsion hit. -225<x<-75 cm     
+     18000+MOD    Deviation MUOT line and time divsion hit.  -75<x<75 cm     
+     19000+MOD    Deviation MUOT line and time divsion hit.   75<x<225 cm     
+
+  C. Vernier pad analysis
+
+              DESCRIPTION OF THE PADS PORTION OF MUCALIB
+              ------------------------------------------
+                         C.R.Murphy  4/21/92
+              ------------------------------------------
+
+    The pads portion of MUCALIB consists of three main subroutines;
+MUBOOK_PAD.FOR,PADS.FOR,PADSUMRY.FOR. These routines are called if
+the switch "mucalib" in the mureco.rcp file is set to either 0 or 3.
+
+    Subroutine PADS is the main analysis routine. It's basic purpose
+is to attempt to calculate the hit position resolution for a given
+chamber along the wire or non-bend direction. This is done as follows:
+
+    A loop is made over all tracks found in MTRH. Only tracks corres-
+ponding to muon momenta greater than 3 gev/c are considered. For a
+given track a further loop over all hits on that track is made.
+Depending on the orientation of the chamber involved, a track is ignored
+if its direction is close to being parallel to the wires within the given
+chamber cells where the hits occur. It is further required that each
+track passing through a certain chamber is such that it has one and
+only one hit in each plane or deck of the chamber involved. Thus a track
+passing through an A-layer chamber must have precisely 4 hits in that
+chamber (one hit on each plane), and a track passing through a B or C
+layer chamber must have precisely 3 hits in that chamber (again,one hit
+per plane).
+
+    Once a track is found which meets all the restrictions described
+above, a method referred to as the "sigma 3-miss" method is employed
+to determine the wire-pad resolution for a given set of points belonging
+to a particular chamber along the track.
+
+    The sigma 3-miss method draws a line between two hits on the segment
+the track belonging to a given chamber. These two hits are on two differ-
+ent, non-adjacent planes within the chamber. The distance from that line
+of the intervening hit on the plane sandwiched between the two chosen outer 
+planes is then calculated and histogrammed. This distance is referred to
+as the "3-miss distance". In the end of job summary routine PADSUMRY,
+this histogrammed data is fitted to a Guassian and the resulting rms is
+recorded. This rms error is called the "sigma 3-miss". The actual point
+resolution of the hits is simply related to this sigma 3-miss, namely,
+pad-wire resolution = sqrt(2/3)*(sigma 3-miss).
+
+    Subroutine MUBOOK_PAD books the following histograms with their
+associated histogram id's ( MOD is the chamber number):
+
+
+   ID                  TITLE
+   --                  -----
+
+40000+MOD              SIGMA 3-MISS
+41000+MOD              PAD PEDESTALS A and B EVEN 
+42000+MOD              PAD PEDESTALS A and B ODD
+43000+MOD              GAIN PAD A
+44000+MOD              GAIN PAD B
+45000+MOD              PAD SUM A+B EVEN HITS
+46000+MOD              PAD SUM A+B ODD HITS
+47000+MOD              PAD CHARGE RATIO ((PAD A-PAD B)/(PAD A+PAD B))
+48000+MOD              ABSOLUTE VALUE VERNIER PAD CORRECTION
+49000+MOD              WIRE POSITION REL. TO CENTER OF MODULE
+49999                  RESOLUTION vs MODULE NUMBER   
+
+  D. geometry analysis

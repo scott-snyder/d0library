@@ -1,0 +1,190 @@
+\START     MURECO_RCP
+\SIZE        242       163
+!------------------------------------------------------------------------------
+!   Name:       MURECO.RCP
+!   Purpose:    Control file for MURECO package
+!   Created:    08-OCT-1989     Shuichi Kunori
+!      DH JAN 1992. add more Asher parameters   DH FEB 92. add mUCALIB stuff
+!               05-FEB-1992     SHAHRIAR ABACHI  - Global fit flag turned off
+!               14-FEB-1992     SHAHRIAR ABACHI  - Kalman fit flag (KFIT) added
+!               03-DEC-1992     SHAHRIAR ABACHI  - Cecilia's squeeze switches added
+!               11-MAR-1993     Cecilia Gerber - add MUREFIT switches for MUONLY package
+!               12-AUG-1993     SHAHRIAR ABACHI  - stp list scheme added
+!   Version:     V1.2
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+\ARRAY HBOOK_DIRECTORY
+      'MURECO'
+\END
+  SKIP_LEVEL      0
+! SKIP_LEVEL  0  ! do everything: hitfinding + tracking (WAMUS+SAMUS)
+! SKIP_LEVEL 1,2 ! skip SAMUS tracking, skip WAMUS tracking
+! SKIP_LEVEL  3  ! skip WAMUS and SAMUS tracking (just hitfinding)
+! SKIP_LEVEL 4,5 ! skip SAMUS tracking+hitfinding, only use SAMUS for WAMUS tracks
+! SKIP_LEVEL  6  ! skip everything except MTRG fillin
+! SKIP_LEVEL  7  ! same as 0 but also SA*SB*WC
+!------------------------------------------------------------------------------
+!   Switch for histogram set.
+!      parameter.1 (I)   offset for ID number.
+!                        If ID=-1, no booking.
+!------------------------------------------------------------------------------
+HIST_MINIMUM    0     ! minimum set of histograms.
+HIST_SET1      -1     ! histograms for MUOT and PMUO (compares to ISAJET)
+HIST_USER      -1     ! user histograms.
+PREFF          0     ! if >0 then print out efficiency summaries in MUSUMR
+!------------------------------------------------------------------------------
+!      parameters for muon reconstruction program, MURECO.
+!   GEOMETRY file name. read in if USE_DBL=0,1,10,11
+!------------------------------------------------------------------------------
+\ARRAY SMUO_FILE
+    'D0$STP:MUO_STPFILE_SRV_2.DAT'
+\END
+\ARRAY SMUO_FILE_OLD
+    'D0$STP:MUO_STPFILE.DAT'
+\END
+\ARRAY GEANT_GEOMETRY
+    'D0$STP:MURECO_GSAVE314.DAT'
+\END
+!------------------------------------------------------------------------------
+! Switches to automatically pickup correct STP file.
+!------------------------------------------------------------------------------
+ USE_STP_LIST        .TRUE.
+\ARRAY STP_LIST
+'D0$STP:MUO_STPFILE.DAT'
+'D0$STP:MUO_STPFILE_1.DAT'
+'D0$STP:MUO_STPFILE_SRV.DAT'
+'D0$STP:MUO_STPFILE_SRV_2.DAT'
+'D0$STP:MUO_STPFILE_SRV_3.DAT'
+'D0$STP:MUO_STPFILE_SRV_3.DAT'
+\END
+\ARRAY MUD1_WRD5
+ 0 2 4 3 5 3
+\END
+\ARRAY MUD1_WRD6
+ 0 2 2 3 4 4
+\END
+!------------------------------------------------------------------------------
+!!    Switches for using full field
+!------------------------------------------------------------------------------
+USE_FIELD_MAP .TRUE. !! .FALSE. !!
+!------------------------------------------------------------------------------
+ MUVERT   0   ! =0 USE CENTRAL; =1 ASSUME COSMIC; =2 USE ISAJET; =3 L2 beam
+ IPDFIT = 0   ! IF 0 THEN USE PADS IN FIT
+!
+ USE_DBL  0   ! 0=read in SMUO file, 1=read in SMUO file plus use DBL3 database
+! for electronic constants. 2=read geom and elec constants from database
+! 3=read geom from database, elect from file
+! 10,11,12= as 0,1,2 except SMUO structure read out to SMUO_SAVE.OUT
+!----------------------------------------------------------------------------
+! Muon Calib with tracks program. will run if MUCALIB GE 0
+ MUCALIB  -1  !=0 ALL, =1 T0 and time->distance, =2 deltaT0, =3 vernier pads
+! histogram ID: 10000=T0, 20000=t->d, 30000=deltaT, 40000=pads
+LMUMOD 1      !=0 all, =1 central, =2 North, =3 South, =4, then KMUMOD
+\ARRAY KMUMOD
+ 21 121 221
+\END
+CALIB_OUT 0 ! 1 or more, write out SMUO bank at job end
+CALIB_T 0   ! 1,2 do T-->D corrections to SMUO banks.
+!    2,3 do fine T0 corrections, 4 do coarse T0
+MUPRINT 0  ! if >0, dump out muon banks to this unit
+STPPRINT 0 ! if >0, dump out muon STP banks to this unit
+MUCALIB_DB 0 ! IF>0, only read in reduced set from database
+MUCALIB_RUN 0 ! if>0 force read to this run number
+SAMTR      2  ! SAMUS tracking version
+DIFMAX_A   10.
+DIFMAX_BC  5.
+!end parameters used by MUCALIB code-----------------------------------------
+! Scintillator reco paramter
+!------------------------------------------------------------------------------
+SCINT_C_CELL   1     ! 0 to 3, N. of cell within from edge of scinti for
+                     ! C-layer algorithm
+SCINT_C_WIRE   60.0  ! [cm] in wire direction for C-layer algorithm
+SCINT_F_DRFT   10.0  ! [cm] edge definiton for drift for track algorithm
+SCINT_F_WIRE   60.0  ! [cm] edge defintion for wire for track algorithm
+SCINT_IFW4_MAX 2    ! maximum IFW4 value for track match
+!-----------------------------------------------------------------------------
+! switches for squeezing MUD1 bank in DST files
+!-----------------------------------------------------------------------------
+SQ_MUD1   .TRUE.
+ETAMAX     2.0
+IFW4MAX    1
+!-----------------------------------------------------------------------------
+!
+\ARRAY ISO_CONE_SIZE    ! Cone sizes for isolation calculation.
+0.2
+0.4
+0.6
+\END
+!
+ IFMAX     2    ! used in MULINK
+! find matching CD tracks only if IFW4PRIM.LE.IFMAX
+ T0MAX     200. ! increment IFW4PRIM if t0>T0MAX
+ ECALMIN   1.   ! increment IFW4PRIM if ECAL<ECALMIN
+ ETA_ZTR = 3.5  ! Find associated CD tracks only for |ETA| < ETA_ZTR
+!
+ DIRMOD = 1    ! Flag for modifying track direction in MULINK.
+!                  0= do not corect,
+!                  1= correct by considering A layer
+!                  2= correct by considering middle of calorimeter
+!--------------------------------------------------------------------------
+!   FIT PARAMETERS
+KFIT  0   ! 0=Do not use kalman fit, just copy muot, 1=not used
+GFIT  3   ! 0=DO not do global fit, 1=not used 2=Do global fit (MUGLOBAL)
+!           3= global fit and MTC
+ IPAD = 1 !0 -use only time devision for wire,1-Vernier ,2 -when no Vernier
+!      use time devisions
+ VAR_D = 0.045 !drift resolution
+ VAR_W = 1.5 !wire resolution
+ TOROID_STEPS = 10.0
+ WSTARTD = 1.E+09 !
+ WSTARTW = 1.E+09 !
+ TOLERD = 10.0
+ TOLERW = 10.0
+ TOLERCD = 2.5
+ TOLERCW = 10.5
+ FACTOR_MU = 1.0
+ PLOW = 10.
+ KALMAN_CD = .TRUE. !! .FALSE.!!
+ CD_ERROR = .TRUE. !! .FALSE.!!
+ FACTOR_CD = 1.E+06
+ CHI_MIN_CD = 100.
+ CHI_MIN_MU = 10.
+ FINE_FITM = .TRUE.!!.FALSE.!!
+ PD = 5
+ PW = 5
+ PW_CD = 2
+ PD_CD 5
+ USE_VERTEX .TRUE.
+ POLYCD = .FALSE. !.TRUE.!
+  INTBDL32 = 3
+  ONLY_TCHEV = .FALSE.!.TRUE. !
+  CHEB = .FALSE.!.TRUE. !
+!------------------------------------------------------------------------------
+! muon REFIT parameters. GFIT has to be set to 2
+! Uses MUONLY package build with DROP_INPUT, to drop banks that will be refilled
+! When working from DSTs, ceratin banks need to be dropped:
+! For murefit=1, drop RECO, FILT
+! For murefit=2, drop PMUO, FILT
+! For murefit=3, drop ? THIS OPTION STILL DOES NOT EXIST
+ MUREFIT = 1   ! 1= do muonly, 2= do global fit, 3= do global fit + new calib c
+!------------------------------------------------------------------------------
+!   Banks to dump
+!     Available switches are:
+!       'MUOH'  'MUOT'  'MUON'  'MUCD'  'MTRJ'  'PMUO'
+!       'ISAL'     (isajet lepton bank, ISAL)
+!       'MUSR'     (to turn on user hook S/R PRMUSR in event dump)
+!------------------------------------------------------------------------------
+ NUM_DUMPS     9        !Number of banks to dump
+ \ARRAY DUMP_BANKS
+  'MUOH'
+  'MUOT'
+  'MFIT'
+  'MUON'
+  'MUCD'
+  'MTRJ'
+  'PMUO'
+  'ISAL'
+  'MUSR'
+ \END
+\STOP

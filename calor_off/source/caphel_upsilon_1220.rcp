@@ -1,0 +1,188 @@
+\START          CAPHEL_RCP  ! control file for CAPHEL package
+\SIZE        235       146
+!------------------------------------------------------------------------------
+!   Name:       CAPHEL.RCP
+!   Purpose:    Control file for CAPHEL package
+!   Created:    25-APR-1989     Rajendran Raja
+!   Modified:   16-OCT-1989     Gerald C. Blazey
+!   Modified:   19-JAN-1990     N.A. Graf
+!                               Added HMATRIX_PRED and HMATRIX_ITER
+!                              *ONLY FOR LONGITUDINAL NOW.
+!    Updated:     4-MAR-1992   Meenakshi Narain
+!                            added choice_of_matrix_type,
+!                            use_dead_energy, use_position_info
+!   Version:    V1.2
+!    Updated:    14-MAY-1993   Azriel Goldschmidt added off-sets for EC CM3POS
+!    Updated:    10-JUN-1993   Orin Dahl Changed radial offset
+!                                        parameters for ECEM
+!    Updated:    20-AUG-1993   Chip Stewart  CALCLU order/check switches added!
+!    Updated:    23-MAR-1994   Azriel Goldschmidt Added theta
+!                                    parameters for correction of CC position
+!    Updated:     6-MAR-1994   Meenakshi Narain /Paul Rubinov
+!                                       Added a third isolation cone
+!    Updated:     8-SEP-1994   Meenakshi Narain
+!                                   Add options for SELECTIVE ROAD tracking
+!                                   depending on Et thresholds or CHISQ cut
+!
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+ \ARRAY HBOOK_DIRECTORY
+      'CALORIMETER'
+      'CAPHEL'
+ \END
+ \ARRAY HBOOK_DIRECTORY2
+      'CALORIMETER'
+      'CAPHEL'
+      'HMATRIX'
+ \END
+ \ARRAY HBOOK_DIRECTORY3
+      'CALORIMETER'
+      'CAPHEL'
+      'HITS'
+ \END
+ RERUN_CAPHEL .TRUE.  !If true, delete CACL,PELC,PPHO, etc. and recreate if
+                      !running on STA files. If false, only reruns analysis
+                      !if DO_CPHANL switch is true.
+ RERUN_CAPHEL_FROM_DST .FALSE. !If true, delete PELC,PPHO, etc. and recreate if
+                      !running on DST files.
+ DO_HMATRIX          .TRUE. !If true, will call HMATRIX (CHMANL_NEW)
+ DO_HMATRIX_ANALYSIS .FALSE. !If true, will call CAL_HMATRIX_ANAL
+ DO_HMATRIX_NTUPLE   .FALSE. !If true, will write NTUPLE if analysis
+ DO_CLEANEM    .TRUE.     !If false turns off photon/electron analysis
+ DO_CPHANL    .true.     !If false turns off photon/electron analysis
+ DO_CPHANL1   .FALSE.     !If false turns off user diagnostic analysis
+ DO_CPHANL2   .FALSE.     !If false turns off user diagnostic analysis
+ DO_WINDOW    .TRUE.     !If true uses TB-size window for electron energy
+ DO_ZTRAKS    .TRUE.     !If false does no CD track reconstruction
+ USE_TRACK_DIR      .FALSE. !If true, uses track for electron direction
+ DO_PPHO_IN_TRD .TRUE. ! CALL TRD tracking for photons.
+ DO_ELFIT    .TRUE.     !If false turns off photon/electron analysis
+!------------------------------------------------------------------------------
+!   EM Cluster finding constants
+!------------------------------------------------------------------------------
+ MAXIMUM_CAL_CLUSTERS     9999
+ CLUSTER_ENERGY_THRESHOLD 1.5   !Cluster dropped if E<E-THR or ET<Et-THR
+ CLUSTER_ET_THRESHOLD     1.5   !Seeds for elements in CATE bank in GeV
+ CLUSTER_EM_RATIO_THRESHOLD 0.5 !Cluster dropped if EM_RATIO less than THR
+ CLUSTER_ETRANS_THRESHOLD 0.6   !Cluster dropped if ET ratio greater than THR
+ FH_LAYER1_LIMIT         999.0  !Cluster dropped if FH layer1 energy > limit
+ RADIUS_OF_CORE_CONE       0.2  !Inner Radius used for electron isolation cut
+ RADIUS_OF_ISOLATION_CONE  0.4  !Outer Radius used for electron isolation cut
+ PHYSICS_ISOLATION_CONE1   0.4  !Calculates Et in this cone for global isolation
+ PHYSICS_ISOLATION_CONE2   0.7  !Calculates Et in this cone for global isolation
+ PHYSICS_ISOLATION_CONE3   0.6  !Calculates Et in this cone for global isolation
+ \ARRAY WINDOW_SIZE             !Eta dependent nxn window in calorimeter towers
+ !   CC    EC=14-23, EC=24-35
+     6*5 7*5 7*5 3*7  12*9
+ \END
+ CLUSTER_ORDER              1   !CALCLU LOOP OVER TOWERS Et: 1=HI->LO -1=LO->HI
+ CLUSTER_CHECK              F   !F=ALLOW CONNECT BETWEEN CATES ALREADY CONNECTED
+ CLUSTER_CLASS_OFFSET     15    !word used to represent cluster class in CATE
+ CLUSTER_NEXT_OFFSET      16    !word used to represent NEXT connection in CATE
+ ETA_NEIGHBOR_LIMIT        1    !Search +/- this number for nearest neighbor
+ PHI_NEIGHBOR_LIMIT        1    !Search +/- this number for nearest neighbor
+ DO_NEIGHBOR_ENERGY     .TRUE.  !If false, find neighbor with highest ET
+                                !If true,  find neighbor with highest E
+ MINIMUM_TOWER_E         0.05   !Minimum tower E(Et) (GeV) for clustering
+ POWER_FOR_SHOWER_CENTER   0.5  !used for energy weighting EM and Had. showers
+ WEIGHT_CUT                5.5  !used in log-weighted center of gravity  EM3
+ USE_LOG_WEIGHTED_CENTER  .TRUE.!will use Log weighted center for roads,dcl etc
+ PHI_ROAD                 0.1   !Phi road will be +/- this around cluster center
+ THETA_ROAD_FACT          5.0   !Factor to multiply Vertex error with to find
+                                !Theta Road
+ MIN_THETA_ROAD           0.1   !Minimum road in theta (+/- around cluster)
+ MIN_VERTEX_Z_ERROR       5.0   !Minimum Z error on vertex.(cm.)
+!
+!----------------------------------------------------------------------
+! SELECTIVE TRACKING CONTROLS
+!----------------------------------------------------------------------
+!
+SELECTIVE_EC_TRACKING .FALSE.
+SELECTIVE_CC_TRACKING .FALSE.
+SELECTIVE_VERTLOOP    .FALSE.
+ET_ECTRK_THR          -99.
+ET_CCTRK_THR          -99.
+ET_ECTRK_THR_VERTLOOP -99.
+APPLY_CHISQ_CUTOFF    .FALSE.
+CHISQ_ECTRK_THR       9999.
+CHISQ_CCTRK_THR       9999.
+
+!
+!------------------------------------------------------------------------------
+!
+! correction routine parameters here...
+!
+!------------------------------------------------------------------------------
+!
+ CRACK_SCALE            1.0   ! For CC crack correction
+ ALPHA_MAX              0.8   ! For CC crack correction
+!
+ ECEM_OFFSET_THETA       0.000428 ! ECEM dr/r constant offset
+ ECEM_OFFSET_LN_E0       -11.064  ! ECEM ln(E0) for dr/r offset
+\ARRAY W0_ECEM_PHI
+    5.3 4.9 4.5 4.3 4.9 4.5
+\END
+\ARRAY W0_ECEM_ETA
+    4.0 3.6 3.4 3.2 3.2 3.2
+\END
+  CC_THETA_A1             -1.2525  ! coefficients for theta correction
+  CC_THETA_A3             2.45835  ! polynomial in CC
+  CC_THETA_A5             -3.08253 !
+  CC_THETA_A7             3.18251  !
+\ARRAY W0_CCEM_PHI
+    4.2 4.2 4.4
+    4.3 4.4 4.0
+    4.5 4.6 4.0
+    4.7 4.6 5.0
+    4.7 4.6 5.2
+\END
+\ARRAY W0_CCEM_ETA
+    4.0 3.2 3.0
+    4.3 3.4 2.8
+    4.5 3.4 2.8
+    4.7 3.4 2.6
+    4.7 3.4 2.4
+\END
+!
+!------------------------------------------------------------------------------
+!
+ USE_MONTE_CARLO_VERTEX  F !If true will use monte carlo vertex
+\ARRAY DUMP_HMATRICES
+!will dump the following hmatrices to dmp unit.
+!This list should be a subset of the Use_hmatrix array in Hmatrix_rcp
+!i.e. they should have been read in at initialization time
+! 'ETA1_52550_FULL_PLATER'
+! 'ETA1_051550_LONG'
+! 'ETA1_052550_INTER'
+! 'NETA1_52550_FULL_PLATE'
+! 'ETA1_25_FULL_TB'
+! 'ETA1_25_FULL_PLATER'
+\END
+\ARRAY DUMP_BANK_NAMES  !WILL dump the following banks of the H matrix suite
+ 'AVER'
+ 'EMAT'
+ 'HMAT'
+! 'HVIS'
+! 'HINV'
+! 'EIGN'
+! 'UMAT'
+\END
+NUMBER_OF_QUANS_TO_DUMP 5  !WILL DUMP 5 QUAN BANKS
+!
+!  Here goes the parameter block for the hit-analyzing routine
+!
+ HITS_INFO  .True.      ! Switch the hit-analizing package on/off
+ HITS_HIST  .False.     ! Book and fill histograms for the hit-analysis?
+ HITS_SEGM  .True.      ! Use CDC segments for the hit-analysis?
+ FDC_THETA  0.005       ! Theta half-opening of the road in FDC
+ FDC_PHI    0.015       ! Phi   half-opening of the road in FDC
+ CDC_THETA  0.0500      ! Theta half-opening of the road in CDC
+ CDC_PHI    0.0075      ! Phi   half-opening of the road in CDC
+ HITS_VTX   .True.      ! Use VTX chamber info for the hit-analysis
+ VTX_THETA  0.005       ! Theta half-opening of the road in VTX
+ VTX_PHI    0.012       ! Phi   half-opening of the road in VTX
+ HITS_TRD   .TRUE.      ! Do TRD hit analysis
+ TRD_THETA  0.100       ! Theta half-opening of the road in TRD
+ TRD_PHI    0.0123      ! Phi half-opening of the road in TRD
+\STOP

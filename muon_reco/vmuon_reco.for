@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VMUON_RECO()
+      VMUON_RECO = ' MUON_RECO'//
+     X                   '  OFFICIAL V2.14'//
+     X                   ' 17-AUG-1995 15:52:48.77'
+      Return
+      End

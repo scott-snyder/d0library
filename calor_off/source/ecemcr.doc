@@ -1,0 +1,169 @@
+    ECEM ENERGY CORRECTION ROUTINES                         A.SPADAFORA
+                                                            O.DAHL
+                                                            27-JAN-1993
+
+
+    This note is a brief description of a set of subroutines that determine
+    a  correction to the  energy of EM  showers in  the ECEM  module. These
+    corrections are based on analysis of the data from the Load 1 test beam
+    run. The motivation for these corrections is discussed in general in D0
+    Note 1448,  and  specifics are given in the more the detailed D0 Notes 
+    cited below. 
+        The four types of corrections are: 
+
+    1) DELTA (additive offset from linearity  fit) 
+    2) OUTER RADIUS (falloff of response at module outer radius)  
+    3) CRACK (increase in  response due to crack in Uranium plates) 
+    4) BOLT (decrease in response in vicinity of Anti-warp bolts)
+
+    The relevant files for these corrections are:
+    ECEMCR.DOC      !this file
+
+    ECEMCR.RCP
+    
+    ECEMCR.FOR
+    ECEMCR_BOLT.FOR
+    ECEMCR_BOLT_GEOM.FOR
+    ECEMCR_CRACK.FOR
+    ECEMCR_CRACK_GEOM.FOR
+    ECEMCR_DELTA.FOR
+    ECEMCR_NEW_CELL_E.FOR
+    ECEMCR_OUTER_RADIUS.FOR
+
+    CEMDPTH.FOR             ! Needed from CMS or library
+    
+    !For testing only:
+    ECEMCR_DRV.FOR          ! Driver routine for testing. 
+                              It loops over CACL,PELC,PPHO calling ECEMCR
+                              for each. This can be used until CAPHEL 
+                              does these calls. 
+
+    _______________________________________________________
+ECEMCR.FOR 
+
+    The  controlling  routine is  ECEMCR  which calls   subroutines for the
+    specific   corrections.  
+        * ECEMCR is  intended to  be called by CAPHEL in  normal  production.
+          (for development, it can be  called by a  user routine)
+        * It works on DST (as well as STA) files 
+    CONTROL:
+        * All switches that control  which  corrections are to be applied,
+          are in ECEMCR.RCP.  The corrections can be independently switched
+          on/off. 
+        * All  parameters used in  calculating the corrections are also
+          in ECEMCR.RCP
+    INPUT:
+        * ECEMCR can be called with a pointer to a CACL, PELC, or PPHO bank.
+          It uses the theta and phi in the bank it is called with. For 
+          electrons these angles are from tracking (or will someday be),
+          whereas for CACL or PPHO, they are from the calorimeter position
+          finding.
+    OUTPUT:
+        * ECEMCR returns a combined energy correction (DE_ECEM), an  estimate 
+          of the error in this quantity (ERR_DE_ECEM), and a  status  word 
+          (CORR_APPLIED) indicating  which corrections contribute to DE_ECEM. 
+          (CAPHEL or the  user must then apply or store this information.)
+        * The DE returned is simply the sum of all corrections applied
+          and should be ADDED to the cluster energy to obtain a 
+          corrected total energy.
+        * The ERR_DE returned is the sum in quadrature of the errors for
+          each correction.
+        * The CORR_APPLIED uses the (bit) masks:
+                                1 : DELTA
+                                2 : OUTER RADIUS
+                                4 : TOWER 14 (outer radius) 
+                                8 : CRACK
+                               16 : BOLT
+        * Corrections DE<THRESH_DE ( an RCP parameter) are ignored. 
+        * The CRACK correction is only applied if the BOLT correction 
+          was below threshold.
+        * Provision is made, although not implemented at present, for 
+          returning energy corrections on a cell-by-cell basis.
+
+    PROCEDURE:
+        * ECEMCR first tests if  the cluster is in the  fiducial volume of the 
+          ECEM. It does this using CEMDPTH to calculate the IETA in EM3
+          of the hottest tower in the cluster. It then compares this against
+          the limits given in the RCP file.
+        * For ECEM clusters it computes the x,y coordinates of the point
+          where the particle (given zvtx, theta, phi) intersects the    
+          midplane of EM3. These x,y coordinates are used for computing the
+          outer radius, crack, and bolt corrections. 
+
+ECEMCR_DELTA.FOR
+
+        * This routine calculates the simple energy-linearity offset 
+          correction, i.e. the small  amount of  energy that should be 
+          added to each  cluster. (see  D0note 1378 for discussion)  
+          This  additive term  is thought to be due to  energy loss upstream 
+          of the module and so should be eta dependent. 
+        * A  table in ECEMCR.RCP gives the offset for each  (0.1) tower in 
+          eta, indexed by IETA. It is  assumed to be  the same for both
+          end calorimeters.
+        * At present, from the test  beam load 1 data, this  quantity can 
+          be  deduced only at TWO  discrete values of eta (1.95, 2.55).
+          ECEMCR.RCP is set up to use the testbeam eta=1.95 value  (0.30 GeV)
+          for IETA < 2.2 and the testbeam eta=2.55 value (0.43 GeV)  for 
+          all larger  etas. (Provision is  made for a different  offset value 
+          for  each eta so  that if  someday the upstream material is modelled 
+          carefully in the Monte Carlo, one could deduce and employ offsets 
+          more finely varying in eta.)
+
+
+ECEMCR_OUTER_RADIUS.FOR
+
+        * This routine an energy correction that is a linear function of 
+          the radial location of the shower. 
+        * With the parameters currently given in the RCP file, showers in 
+          with maximum deposition in towers at:
+            IETA > 16 are unaffected
+            IETA = 15 correction ranges from  0 to 15% of the shower energy,
+                      with an uncertainty (ERR_DE_ECEM) = 25% of the correction.
+            IETA =14  need a large correction, which has not yet been 
+                      implemented. At present, DE_ECEM returns 0, but 
+                      to flag these showers, ERR_DE_ECEM is set equal to 
+                      the shower energy.
+
+ECEMCR_BOLT.FOR
+
+        * This routine calculates the energy correction (and its uncertainty)
+          for the anti-warp bolts.
+        * This correction is proportional to the energy of the shower.
+          We parameterize the effect by the product of two functions:
+          a function in r and a function in phi.
+          1.  The radial dependence is a sum of two gaussians.
+          2.  The azimuthal dependence is a sum of a gaussian and
+              a 4th power exponential of the form exp(-phi**4).
+        * The values of the parameters are specified in ECEMCR.RCP.
+
+ECEMCR_BOLT_GEOM.FOR
+
+        * This routine gets the positions of the anti-warp bolts.
+          It gets the bolt positions for one octant from ECEMCR.RCP, then
+          replicates the positions in the other octants and in the other
+          calorimeter endcap.  Any survey corrections added to the cells by
+          CELXYZ are added here to the anti-warp bolt positions.
+        * This is a temporary routine.  Eventually the bolt positions
+          will be described in the calorimeter geometry RCP files and
+          will be set up (complete with survey corrections) by the
+          appropriate geometry routines.
+
+ECEMCR_CRACK.FOR
+
+        * This routine calculates the energy correction (and its uncertainty)
+          for the uranium cracks.
+        * This correction is proportional to the energy of the shower.
+          We parameterize the effect by a simple gaussian in x.
+        * The values of the parameters are specified in ECEMCR.RCP.
+
+ECEMCR_CRACK_GEOM.FOR
+
+        * This routine gets the positions of the uranium cracks.
+          It gets the crack positions for one calorimeter endcap from
+          ECEMCR.RCP, then replicates the positions in the other calorimeter
+          endcap.  Any survey corrections added to the cells by CELXYZ are
+          added here to the uranium crack positions.
+        * This is a temporary routine.  Eventually the crack positions
+          will be described in the calorimeter geometry RCP files and
+          will be set up (complete with survey corrections) by the
+          appropriate geometry routines.

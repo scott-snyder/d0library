@@ -1,0 +1,265 @@
+\START          CAHITS_RCP  ! control file for CAHITS package
+\SIZE        358       218
+!------------------------------------------------------------------------------
+!   Name:       CAHITS.RCP
+!   Purpose:    Control file for CAHITS package
+!   Created:     9-May-1989     Serban D. Protopopescu
+!   Modified    17-SEP-1992     Chip Stewart
+!   Modified    29-Oct-1992     Stan Krzywdzinski, Harrison Prosper
+!                               Added error printout and changed values of
+!                               constants for subroutine CAEHFL_ERROR.
+!                               Added GET_SUMS switch.
+!   Modified     7-APR-1993     Added controls for AIDA
+!   Modified     7-FEB-1994     R. Astur - Add CAEQ logic
+!   Version:    V4.5
+!   Modified    30-SEP-1995     Dhiman Chakraborty - DO_CRYO_CORR and DO_PNU1
+!   Version:    V4.6
+!   Updated:    26-NOV-1995   Rajendran Raja   Added Phi dependent corrections
+!   Version:    V4.7
+!------------------------------------------------------------------------------
+!   Constants for package CAHITS
+!------------------------------------------------------------------------------
+     DO_CAEPFL        T       ! create CAEP banks from raw CAD1, CAD2 banks.
+      DOCAEQ_TO_CAEP  F       ! Drop old CAEP and make CAEP using CAEQ
+     DO_CAEQFL        T       ! create compressed CAEP bank from CAEP
+     DO_ICD_CORR      T       ! Correct ICD channels in RECO v12_20
+     DO_CAEHFL        T       ! create CAEH banks from CAEP and primary vertex
+     DO_CATEFL        T       ! create CATE tower bank from CAEH cells
+     DO_C1PMET        T       ! create PNUT1 bank (missing Et w/o ICD/MG info)
+     DO_C2PMET        T       ! create PNUT2 bank (missing Et with ICD/MG info)
+     DO_ANALYSIS      T       ! SKIP CHTANL IF DO_ANALYSIS IS FALSE
+     FILL_PTCAEP      T       ! FILL PTCAEP in CAEPFL with hit cells
+     DO_AIDA          T       ! Do AIDA hot cell suppression
+     DO_CATD_TO_CAEP  F       ! Fake a CAEP bank from CATD info on DST
+!------------------------------------------------------------------------------
+!   Constants for subroutine CAEPFL
+!------------------------------------------------------------------------------
+    CAD_STPFILE 'D0$STP:CAD_STPFILE.DAT' ! use CAD_STPFILE for addressing
+    CSF_STPFILE 'D0$STP:CSF_STPFILE.DAT' ! use CSF_STPFILE for energy conversion
+    CCPT_STPFILE 'D0$STP:CCPT_STPFILE.DAT' ! use CCPT_STPFILE capacitance banks
+    CAHITS_ERROR_LOG 'CAHITS_ERROR.LOG'  ! file to store bad channels
+    NEED_CAD1        T                   ! no CAEP created if CAD1 -
+    NEED_CAD2        T                   ! - or CAD2 are not in raw data.
+    DO_ADDR_CHECK    T
+      CAD_ADDR_CHECK_PRESCALE      1
+      ERRMSG_LIMIT_PDGN            0
+    DO_ZERO_SUPRESS  F        ! zero suppress even if already done in hardware
+      ENERGY_CUTOFF  0.0      ! cutoff for zero suppresion in CAEP energy units
+      SIGMA_CUTOFF   0.0      ! cutoff in multiples of pedestal sigma.
+    DO_GNSCOR        T
+      GAINS_FILE               'DBL3'
+      GAIN_NORMALIZATION        6000.    ! Convention at D0
+      GAIN_NORMALIZATION_NWA    1900.    ! Convention at NWA
+      EM_GAIN        1.9091     ! EM  LYR 3-7 10.5 pf factor for DO_GNSCOR FALSE
+      ICD_GAIN       0.2683     ! ICD LYR 9   20.5 pf factor when DO_GNSCOR TRUE
+    DO_PEDSUB        F
+      PEDESTAL_FILE            'DBL3'
+      PEDESTAL_SIGMAS  F      ! Fetch pedestal sigmas even when DO_PEDSUB FALSE
+    DO_FIX_8_1         T      ! Kill both x1 and x8 if either one is bad
+    DO_ADC_TO_GEV      T      ! If TRUE use A*W from CSFW bank; If F use A*W=1
+      CSF_CORRECTIONS  T      ! IF TRUE use C from CSFC bank. IF F use C=1
+      BUILD_CSF        F      ! Build sampling weights from user CSF_RCP
+      DROP_CALIB_BANKS T      ! DROP CPDH,CGNH tree after CGEVFL
+    DO_HOTSUP          T      ! If TRUE "suppress" hot channels
+    DO_HOTFIND         F      ! If TRUE find hot channels
+    CAL_BLAST_ET_CUT   99.999E6 ! If PNUT2 scalar Et exceeds blast limit
+!------------------------------------------------------------------------------
+!   Name of the DBL3 default file for CALIB data
+!------------------------------------------------------------------------------
+    DBCALIB$CAL  'DBL3$CAL:DBCALIB$CAL.DAT'
+    BYPASS_DBL3_ERROR    FALSE  ! true: bypass DBL3 errors
+!----------------------------------------------------------------------
+!   Data driven sampling weights from word 4 of CAD bank crate header
+!       If TB data then bit 2**30=1; If MC data bit 2**29=1
+!----------------------------------------------------------------------
+      DATA_DRIVE_CSF   T
+        CSF_RCP_D0_MIX 'D0$CALOR_OFF:MIX_CSF.RCP'
+        CSF_RCP_D0_PLT 'D0$CALOR_OFF:PLT_CSF.RCP'
+        CSF_RCP_TB_MIX 'D0$CALOR_OFF:MIX_CSF.RCP'
+        CSF_RCP_TB_PLT 'D0$CALOR_OFF:PLT_CSF.RCP'
+        CSF_RCP_TB     'D0$CALOR_OFF:TB_CSF.RCP'
+!----------------------------------------------------------------------
+!  Constants for hot channel suppression (CHOT)
+    CALHOT_USER 123              ! For GTUNIT in CHOTINFO
+    TMPCHOT  'TMP$CHOT:'         ! Area for "hot" channel temporary files
+    CHOT_TODO 'RUNSUM$TODO'      ! Area for todo files
+    DBCHOT 'DBL3$RSM:RSM_DBFILES.DAT'  ! Run summary database file
+    CHOT_PATH '//TOP/RDET/CAL/CHOT'
+!----------------------------------------------------------------------
+!  CAEPFL: Processing existing CAEP banks:
+!  0=If input already has CAEP bank then skip CAEPFL
+!  1=FORCE new CAEP bank from CAD banks even when CAEP already exists in data.
+!  2=FORCE new CAEP bank from existing CAEP bank: convert energy units
+!          (CAEP in ADC counts, live GeV, or Total GeV) - NEEDS OLD_CAEP_CSF_RCP
+!----------------------------------------------------------------------
+      OLD_CAEP       0
+      OLD_CAEP_CSF_RCP 'D0$CALOR_OFF:UNIT_CSF.RCP'
+!----------------------------------------------------------------------
+!  CALIB Gains modification.  Should be applied for all D0 data taken
+!                             before run 74360
+    DO_CMODGN        F
+! Gains correction factors
+    TM_INT_5PF            0.9966     ! Intercept for timing correction - 5pf
+    TM_INT_10PF           0.9973     ! Intercept for timing correction - 10pf
+    TM_SLOPE_5PF          2.44E-06   ! Slope for timing correction - 5pf
+    TM_SLOPE_10PF         1.57E-06   ! Slope for timing correction - 10pf
+    TRACE_INT_SHORT       1.0014     ! Intercept for short trace correction
+    TRACE_SLOPE_SHORT     -1.09E-06  ! Slope for short trace correction
+    TRACE_INT_LONG        1.00       ! Intercept for long/short trace correction
+    TRACE_SLOPE_LONG      0.0        ! Slope for long/short trace correction
+    \ARRAY  PBOX_COR       12        ! Relative pulser normalization correction
+    0.997  0.994  1.000  0.999   0.987  1.010
+    1.002  1.007  0.993  0.999   0.995  0.986
+    \END
+    P4COR_INT             1.017      ! Intercept for pulser 4 correction factor
+    P4COR_SLOPE           3.57E-05   ! Slope for pulser 4 correction factor
+!----------------------------------------------------------------------
+!  CAEPFL: BAD CHANNEL CONTROL:
+!  Relevant CALIB bad channel bits
+!  bit  meaning
+!    3   Way too many over/underflows
+!    6   Zero entries inside window
+!    7   Peak of histogram above limit
+!    8   Peak of histogram below limit
+!    13  Mean value far away from limits
+!    14  Sigma value very large (noisy channel)
+!    15  Channel has been suppressed (peds) / x8 mean .ne. x1 mean (pulser)
+!
+!----------------------------------------------------------------------
+    \ARRAY  BAD_CHANNEL_CPB8_BITS   ! x1 bad pedestal bits
+       3  6  11  13  14  15         ! bit>0 = suppress channel in CAEP
+    \END
+    \ARRAY  BAD_CHANNEL_CPB1_BITS   ! x1 bad pedestal bits
+       3  6  11  13  14  15         ! bit>0 = suppress channel in CAEP
+    \END
+    \ARRAY  BAD_CHANNEL_CGB8_BITS   ! x8 bad gain bits
+      -3  -6  -11  -13  -14         ! bit<0 = Ignore CALIB gain (use nominal)
+    \END
+    \ARRAY  BAD_CHANNEL_CGB1_BITS   ! x1 bad gain bits
+      -3  -6  -11  -13  -14         ! bit<0 = Ignore CALIB gain (use nominal)
+    \END
+    \ARRAY  KEEP_CHANNELS  !override CALIB and CHOT bad channel bits for cells
+!       ETA PHI LYR
+!       -12  34   6
+    \END
+    \ARRAY  BAD_CHANNELS   !set these channels to zero even if CALIB bits OK
+!       ETA PHI LYR
+!       -12  31   2
+    \END
+!----------------------------------------------------------------------
+!  Relevant CHOT bad channel bits
+!  bit  meaning
+!   0   Bad ped from CALIB
+!   1   Bad gain from CALIB
+!   2   Hot Channel - run dependent
+!
+!----------------------------------------------------------------------
+    \ARRAY  HOT_CHANNEL_BITS
+       2                          ! hot bit = "suppress" channel in CAEP
+    \END
+!---------------------------------------------------------------------
+!   Constants for subroutine CAEHFL_ERROR
+!------------------------------------------------------------------------------
+! ERROR PRINTOUT              ! from subroutine CAEHFL_ERROR
+!----------------------------------------------------------------------
+    PRINT_ERRORS            F
+    PRINT_ERRORS_MIN        10.0
+    PRINT_ERRORS_MAXLINE    48
+    USE_CGEV_FOR_ERRORS     F
+!------------------------------------------------------------------------------
+!   Sigma    = A*E^2 + K*B*E + K^2*Sigma(Ped)
+!   Sigma(R) = dr^2/alpha etc.
+!
+    \ARRAY  SIGMA_EM
+      0.0                           !   A
+      4.435                         !   B
+     24.2                           !   alpha
+    \END
+    \ARRAY  SIGMA_HAD
+      0.0077
+     38.83
+    118.6
+    \END
+    \ARRAY  SIGMA_ICD
+        0.0  5.0  12.0
+    \END
+    \ARRAY  SIGMA_MSG
+        0.0  5.0  12.0
+    \END
+    GET_SUMS                  F    ! Get energy and error sums via entry point
+                                   ! GET_CAEHFL_ERROR_SUMS in subroutine
+                                   ! CAEHFL_ERROR
+!------------------------------------------------------------------------------
+!   Constants for subroutine CAEHFL
+!------------------------------------------------------------------------------
+!
+    APPLY_WINDOW              F
+    \ARRAY  DETA_DPHI_WINDOW
+               2    2
+    \END
+    \ARRAY  LAYERS_TO_BE_USED
+!   For electrons: ECEM (layers 1-7) and ECIH1 (layer 11)
+      T   T   T   T   T   T   T   F   F   F   T   F   F   F   F   F   F
+!   For hadrons:   ECEM (layers 1-7) and ECIH  (layers 11-15)
+!      T   T   T   T   T   T   T   F   F   F   T   T   T   T   T   F   F
+!     1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17
+    \END
+!------------------------------------------------------------------------------
+    CELL_WEIGHT             1.0    ! Phase space weight of cell
+    USE_MONTE_CARLO_VERTEX    F    ! If TRUE get ISV1 vtx - else use VERT vtx
+    USE_LEVEL_ZERO_VERTEX     F    ! If TRUE get PLV0 SLOW vtx - else VERT vtx
+    USE_VERT_XY               F    ! If true use XY of beam from VERT bank
+    USE_RCP_XY                F    ! If true use XY of beam from here
+\ARRAY RCP_BEAM_XY
+   -0.3  0.2       ! nominal beam position in X-Y at D0. For testing only !
+\END
+!------------------------------------------------------------------------------
+!   Constants for subroutine AIDA
+!----------------------------------------------------------------------
+    AIDA_ET_THRESH          10.0   ! Minimum ET for a AID candidate
+    AIDA_RATIO               0.05  ! Cuts cells with ratio below this number
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+\ARRAY HBOOK_DIRECTORY
+     'CALORIMETER'
+     'CAHITS'
+\END
+!----------------------------------------------------------------------------
+! Cryostat-dependent factors for CAEHFL.FOR
+!----------------------------------------------------------------------------
+    DO_CRYO_CORR              T   ! If true, will scale 4-momenta in CAEHFL
+\ARRAY CRYO_FACTOR                ! by CRYO_FACTOR
+    1.0609     ! ECN        |
+    1.0496     ! CC         | Values certified by Eric Flattum 27-NOV-1995
+    1.0478     ! ECS        |
+\END
+    DO_PNU1    T    ! If true, will make PNU1 in CAEHFL (only if there are
+                    ! additional primary vertices in the event)
+!----------------------------------------------------------------------
+! Phi dependent energy corrections
+!----------------------------------------------------------------------
+
+    DO_PHI_CORRECTIONS      F   !If true will scale energies to balance phi
+                                !response
+    DO_RESCALE_EM           F   !If true will scale PELC/PHHO 4 vectors by Phi
+                                !corrections in CAL_FIX
+    CHECK_CALIB_RESCALE     F   !If true will check CSFC contents against
+                                !Calib array read from a file.
+    RESCALE_TOLERANCE       0.15!if rescaled object is different by this
+                                !will alarm
+    CASH_SUM_TOLERANCE      0.01!if sum of cash .ne.pelc energy within this
+                                !tolerance in gev, will alarm
+!
+    DO_PHI_HISTS            T   !If true will make histograms of energy flow
+                                !as a function of Phi for various modules
+    PHI_HIST_SIZE         65000 !size of histograms
+!
+\ARRAY HBOOK_PHI_DIRECTORY
+ 'CALORIMETER'
+ 'ELFSTREAM'
+\END
+!
+\ARRAY HIST_FILTER_NAMES
+    'EM1_' 'EM2_' 'EM_' 'ELE_' 'ELETRK_' 'GIS_' 'GAM_'
+\END
+\STOP

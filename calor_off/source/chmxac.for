@@ -1,0 +1,233 @@
+      SUBROUTINE CHMXAC
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Accumulate H matrix elements
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  30-MAY-1989   Rajendran Raja
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$PARAMS:CAL_OFFLINE.PARAMS'
+      INCLUDE 'D0$PARAMS:DEAD_MATERIALS.PARAMS'
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$INC:ZLINKC.INC'
+      INCLUDE 'D0$INC:CHMATR.INC'
+      INCLUDE 'D0$LINKS:IZCACH.LINK'
+      DOUBLE PRECISION PROD(NDIMH,NDIMH)
+      DOUBLE PRECISION PRODL(NDIML,NDIML)
+      DOUBLE PRECISION HMATRP(NDIMPR,NDIMPR)
+      DOUBLE PRECISION HMATRPL(NDIMP,NDIMP)
+      DOUBLE PRECISION EMAT_VIS(NDIMVFR,NDIMVFR)
+      DOUBLE PRECISION EMATRL_VIS(NDIMVL,NDIMVL)
+C
+      INTEGER NERROR,DMPUNI,PRU
+      REAL    WORK(NDIMH)
+      INTEGER I,J,K,II,JJ,KK
+      INTEGER IET,IPH,ILYR,JET,JPH,KET,KPH,IST
+      INTEGER IX
+      REAL    TEST
+      LOGICAL FIRST
+      DATA FIRST/.TRUE./
+C----------------------------------------------------------------------
+      IX(IET,IPH,ILYR) = 1 + (IET-NETLO) + (IPH-NPHLO)*NETTOT +
+     &  (ILYR-1)*NETTOT*NPHTOT                ! INDEX STATEMENT FUNCTION.
+C
+      IF(FIRST)THEN
+        FIRST = .FALSE.
+        NEVMTR = 0
+        DO 10 I = 1 , NDIMH
+          AVR(I) = 0.
+          DO 20 J = 1 , NDIMH
+            EMAT(I,J) = 0.
+            HMAT(I,J) = 0.
+   20     CONTINUE
+   10   CONTINUE
+        DO 30 I = 1 , NDIML
+          AVERL(I) = 0.0
+          DO 40 J = 1, NDIML
+            EMATRL(I,J) = 0.0
+            HMATRL(I,J) = 0.0            ! Longitudinal quantities.
+   40     CONTINUE
+   30   CONTINUE
+      ENDIF
+C
+C ****  Set up QUANT vector using Calorimeter Live energies
+C
+      CALL CHQUAN(0)                    ! 0 = all quantities
+C
+C ****  Now to accumulate the H matrix elements.
+C
+      NEVMTR = NEVMTR + 1
+      DO 500 I = 1 , NDIMH
+        AVR(I) = AVR(I) + QUAN(I)       ! Averages
+        DO 600 J = 1 , NDIMH
+          EMAT(I,J) = EMAT(I,J) + QUAN(I)*QUAN(J)
+  600   CONTINUE
+  500 CONTINUE
+C
+      DO 650 I = 1 , NDIML
+        AVERL(I) = AVERL(I) + QUANTL(I)
+        DO 750 J = 1 , NDIML
+          EMATRL(I,J) = EMATRL(I,J) + QUANTL(I)*QUANTL(J) ! Longitudinal matrix
+  750   CONTINUE
+  650 CONTINUE
+      RETURN
+C
+      ENTRY CHMXFN
+C
+C ****  NOW TO GET AVERAGES, TRUE EMAT AND INVERT.
+C
+      DO 700 I = 1 , NDIMH
+        AVR(I) = AVR(I)/NEVMTR
+  700 CONTINUE
+C
+      DO 710 IET = -NET , NET
+        DO 710 IPH = -NPH,NPH
+          DO 710 ILYR = 1,NLYRH
+            IF(AVR(IX(IET,IPH,ILYR)).EQ.0.0)WRITE(DMPUNI(),711)
+     &        IET,IPH,ILYR,AVR(IX(IET,IPH,ILYR))
+  711       FORMAT(' ZERO AVERAGE : IET,IPH,ILYR,AVER ',3I12,F15.7)
+  710 CONTINUE
+C
+      DO 800 I = 1,NDIMH
+        DO 800 J = 1 , NDIMH
+          EMAT(I,J) = EMAT(I,J)/NEVMTR
+          EMAT(I,J) = EMAT(I,J) - AVR(I)*AVR(J)
+          IF(I.LE.NDIMVFR.AND.J.LE.NDIMVFR)THEN
+            EMAT_VIS(I,J) = EMAT(I,J)
+          ENDIF
+  800 CONTINUE
+C
+      DO 850 I =  1, NDIML
+        AVERL(I) = AVERL(I)/NEVMTR
+  850 CONTINUE
+C
+      DO 900 I = 1,NDIML
+        DO 900 J = 1 , NDIML
+          EMATRL(I,J) = EMATRL(I,J)/NEVMTR
+          EMATRL(I,J) = EMATRL(I,J) - AVERL(I)*AVERL(J)
+          IF(I.LE.NDIMVL.AND.J.LE.NDIMVL)THEN
+            EMATRL_VIS(I,J) = EMATRL(I,J)
+          ENDIF
+  900 CONTINUE
+C
+C
+C ****  now to invert EMAT
+C
+      CALL MATRIX_INVERT_2('EMAT',EMAT,NDIMH,WORK,HMAT,NERROR)
+C
+      IF(NERROR.NE.0)THEN
+        CALL ERRMSG('CALORIMETER','CHMXFN',
+     &    'ERROR INVERTING EMAT MATRIX','W')
+      ENDIF
+C
+      CALL MATRIX_INVERT_TEST2('EMAT',EMAT,HMAT,1.E-10,NDIMH,PROD)
+C
+C
+C ****  to get HMAT_VIS
+C
+      CALL MATRIX_INVERT_2
+     &  ('EMAT_VIS',EMAT_VIS,NDIMVFR,WORK,HMAT_VIS,NERROR)
+C
+      IF(NERROR.NE.0)THEN
+        CALL ERRMSG('CALORIMETER','CHMXFN',
+     &    'ERROR INVERTING EMAT_VIS MATRIX','W')
+      ENDIF
+C
+      CALL MATRIX_INVERT_TEST2('EMAT_VIS',EMAT_VIS,HMAT_VIS,1.E-10,
+     &  NDIMVFR,PROD)
+C
+C ****  NOW to invert EMATRL longitudinal matrix
+C
+      CALL MATRIX_INVERT_2('EMATRL',EMATRL,NDIML,WORK,HMATRL,NERROR)
+C
+      IF(NERROR.NE.0)THEN
+        CALL ERRMSG('CALORIMETER','CHMXFN',
+     &    'ERROR INVERTING EMATRL MATRIX','W')
+      ENDIF
+C
+      CALL MATRIX_INVERT_TEST2
+     & ('EMATRL',EMATRL,HMATRL,1.E-10,NDIML,PRODL)
+C
+C
+C ****  to get HMATRL_VIS, the visible portion of the longitudinal H matrix.
+C
+      CALL MATRIX_INVERT_2('EMATRL_VIS',EMATRL_VIS,NDIMVL,WORK,
+     &  HMATRL_VIS,NERROR)
+C
+      IF(NERROR.NE.0)THEN
+        CALL ERRMSG('CALORIMETER','CHMXFN',
+     &    'ERROR INVERTING EMATRL_VIS MATRIX','W')
+      ENDIF
+C
+      CALL MATRIX_INVERT_TEST2
+     & ('EMATRL_VIS',EMATRL_VIS,HMATRL_VIS,1.E-10,NDIMVL,PRODL)
+C
+C ****  NOW TO INVERT THE INVISIBLE PORTION OF HMAT
+C
+      II = 0
+      DO 1300 I = IPREDF,NDIMH
+        II = II + 1
+        JJ = 0
+        DO 1300 J = IPREDF,NDIMH
+          JJ = JJ+1
+          HMATRP(II,JJ) = HMAT(I,J)
+ 1300 CONTINUE
+C
+      CALL MATRIX_INVERT_2
+     &  ('HMATRP',HMATRP,NDIMPR,WORK,HMAT_INV,NERROR)
+C
+      IF(NERROR.NE.0)THEN
+        CALL ERRMSG('CALORIMETER','CHMXFN',
+     &    'ERROR INVERTING HMAT','W')
+      ENDIF
+C
+C
+      CALL MATRIX_INVERT_TEST2
+     & ('HMATRP',HMATRP,HMAT_INV,1.E-10,NDIMPR,PROD)
+C
+C
+C ****  NOW TO INVERT THE INVISIBLE PORTION OF HMATRL
+C
+      II = 0
+      DO 1600 I = IPREDL , NDIML
+        II = II + 1
+        JJ = 0
+        DO 1600 J = IPREDL , NDIML
+          JJ = JJ+1
+          HMATRPL(II,JJ) = HMATRL(I,J)
+ 1600 CONTINUE
+C
+      CALL MATRIX_INVERT_2
+     &  ('HMATRPL',HMATRPL,NDIMP,WORK,HMATRL_INV,NERROR)
+C
+      IF(NERROR.NE.0)THEN
+        CALL ERRMSG('CALORIMETER','CHMXFN',
+     &    'ERROR INVERTING HMATRL_INV','W')
+      ENDIF
+C
+C
+      CALL MATRIX_INVERT_TEST2
+     &  ('HMATRPL',HMATRPL,HMATRL_INV,1.E-10,NDIMP,PROD)
+C
+C
+      PRU = DMPUNI()
+      CALL MXPRND(PRU,'DUMP OF EMATL ',
+     &  EMATRL,NDIML,NDIML,NDIML,NDIML,7,'(D10.3)')
+      CALL MXPRND(PRU,'DUMP OF HMATRL ',
+     &  HMATRL,NDIML,NDIML,NDIML,NDIML,7,'(D10.3)')
+      CALL MXPRND(PRU,'DUMP OF HMAT_INV',
+     &  HMAT_INV,NDIMPR,NDIMPR,NDIMPR,NDIMPR,7,'(D10.3)')
+      CALL MXPRND(PRU,'DUMP OF HMATRL_INV',
+     &  HMATRL_INV,NDIMP,NDIMP,NDIMP,NDIMP,7,'(D10.3)')
+C
+C ****  NOW WRITE OUT H MATRIX
+C
+      CALL CHMWRT(1)
+C
+  999 RETURN
+      END

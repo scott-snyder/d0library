@@ -1,0 +1,126 @@
+      LOGICAL FUNCTION TB90_CALOR_DST ()
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : To write out a TB90 DST file
+C-
+C-   Returned value  : TRUE IF OK
+C-   Inputs  : NONE
+C-   Outputs : NONE
+C-   Controls: TB90_CALOR_DST_RCP FILE
+C-
+C-   Created   9-JUN-1990   Chip Stewart
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      LOGICAL FIRST,TB90_CALOR_DST_END,OK
+      INTEGER HROUT_UNIT,OUTPUT_UNIT,LOG_UNIT,IEVENT
+C
+C--     ZEBRA VARIABLES
+      INCLUDE 'D0$INC:ZEBCOM.INC/LIST'
+      INCLUDE 'D0$INC:QUEST.INC'
+C
+      CHARACTER*80 HROUT_FILE/' '/,OUT_FILE/' '/,LOG_FILE/' '/
+      CHARACTER*80 COMMAND,EXIST_FILE
+      INTEGER NSKIP/0/,NEVENT/99999/
+      INTEGER NUH,IUHEAD(20),RUNNUM,RUNNO,N
+      INTEGER IER,IRUN,NRUN
+      CHARACTER*5 RUN
+      CHARACTER*15 FILE_LABEL
+C
+      INTEGER I,J,K,II,JJ,KK,LL,NIO,IFILE,GTUNIT_ID,UNIT
+      INTEGER III,JJJ,KKK
+      CHARACTER*4 DOING
+      DATA FIRST/.TRUE./
+C----------------------------------------------------------------------
+C INITIALIZE ZEBRA
+      TB90_CALOR_DST = .TRUE.
+      IF (FIRST) THEN
+        FIRST = .FALSE.
+        CALL INRCP('TB90_CALOR_DST_RCP',IER)
+        IF(IER.NE.0)THEN
+          CALL ERRMSG('TB90','TB90_CALOR_DST',
+     &     'COULD NOT OPEN RCP FILE','W')
+          TB90_CALOR_DST = .FALSE.
+        ENDIF
+C
+C ****  RUN NUMBER
+C
+        NRUN= RUNNO()
+        IRUN = NRUN/10000
+        IRUN = IRUN * 10000
+        RUNNUM = NRUN - IRUN
+        WRITE(RUN,'(I5)') RUNNUM
+C
+C ****  OPEN OUTPUT TEXT FILE
+C
+        CALL EZPICK('TB90_CALOR_DST_RCP')
+        CALL EZ_FILE_OPEN1(100,'LOG_FILE','OF',RUN,
+     &    LOG_UNIT,LOG_FILE,IER)
+C
+C ****  OPEN FZ OUTPUT UNIT
+C
+        CALL EZ_FILE_OPEN1(100,'OUTPUT_FILE','OU',RUN,
+     &     OUTPUT_UNIT,OUT_FILE,IER)
+        IF(IER.NE.0)THEN
+          CALL ERRMSG('TB90','TB90_CALOR_DST',
+     &    'COULD NOT OPEN OUPUT FILE','W')
+          TB90_CALOR_DST = .FALSE.
+          GOTO 999
+        ENDIF
+        WRITE(LOG_UNIT,*) ' Output: ',OUT_FILE
+        CALL FZFILE(OUTPUT_UNIT,0,'O')
+C
+C ****  NUMBERS of EVENTS
+C
+        CALL EZGET('NEVT_SKIP',NSKIP,IER)
+        CALL EZGET('NEVT_WRITE',NEVENT,IER)
+        IF ( NEVENT.LE.0 ) NEVENT = 999999
+        WRITE(LOG_UNIT,*) ' Events: skip/WRITE ',nskip,nevent
+        IEVENT = 0
+        CALL EZRSET
+      END IF
+C
+C ****  LOOP OVER EVENTS
+C
+      NUH = 20
+C
+C **** STATUS CHECK
+C
+      IF ( LHEAD.LE.0 ) GO TO 999                !PROBLEM
+C
+      IEVENT = IEVENT + 1
+      IF ( IEVENT.GT.NEVENT ) GOTO 999
+      IF ( IEVENT.LE.NSKIP ) THEN
+        DOING = 'SKIP'
+      ELSE
+        DOING = 'COPY'
+      ENDIF
+C      WRITE(LOG_UNIT,12) IEVENT,IQ(LHEAD+9),DOING           !OK
+C   12 FORMAT(' EVENT: ',I,' EVENT:',I,' ',A4)
+C
+      IF ( IEVENT.GT.NSKIP .AND. IEVENT.LE.NEVENT ) THEN
+C
+C ****  DROP UNWANTED BANKS
+C
+        IF( IEVENT.EQ.1)CALL DZSURV('TB90_CALOR     event bank',0,LQ)
+        CALL PURGE_BANKS ('TB90_CALOR_DST_RCP',IER)
+        IF( IEVENT.EQ.1)CALL DZSURV('TB90_CALOR_DST event bank',0,LQ)
+C
+C ****  WRITE IT OUT
+C
+        CALL FZOUT(OUTPUT_UNIT,IXMAIN,LHEAD,1,' ',2,NUH,IUHEAD)
+C
+      ENDIF
+C
+C **** FINISHED
+C
+  999 RETURN
+C
+      ENTRY TB90_CALOR_DST_END
+      TB90_CALOR_DST_END = .TRUE.
+      CALL FZENDO(OUTPUT_UNIT,'TU')
+C
+      WRITE(LOG_UNIT,12) IEVENT
+   12 FORMAT(' WROTE ',I6,' EVENTS' )
+  998 CONTINUE
+      END

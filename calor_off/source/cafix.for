@@ -35,6 +35,8 @@ C-   Updated  30-SEP-1993   Stan M. Krzywdzinski, Harrison B. Prosper
 C-      add BUILD_GLOB switch
 C-   Updated  13-JAN-1994   Richard Astur - Make into a total correction routine
 C-   Updated   9-SEP-1994   Astur: Skip old (pre-10) reco versions
+C-   Updated  26-AUG-1997   Bob Hirosky : protect against MET=0.0 in ATAN2 call
+C-   Updated  12-SEP-1997   Bob Hirosky : bug fix for MET=0.0 protection
 C----------------------------------------------------------------------
       IMPLICIT NONE
 C----------------------------------------------------------------------
@@ -282,7 +284,7 @@ C
               Q( LBANK + 6 ) = Q( LBANK + 6 ) - Q( LPMUO + 13 )
               Q( LBANK + 14) = Q( LBANK + 14) + Q( LPMUO + 14 )   ! Scalar ET
             ENDIF
-            LPMUO          = LQ( LPMUO )  
+            LPMUO          = LQ( LPMUO )
           ENDDO
         ENDIF
 C
@@ -296,14 +298,20 @@ C
         Q( LBANK + 6 )  = SQRT( Q(LBANK+3)**2 + Q(LBANK+4)**2 +
      &      Q(LBANK+5)**2)
         Q( LBANK + 7 )  = SQRT( Q( LBANK + 3 )**2 + Q( LBANK + 4 )**2
-     &      ) 
+     &      )
         Q( LBANK + 14)  = Q( LBANK + 14 ) + DP(5)            ! Scalar ET
         Q( LBANK + 11)  = Q( LBANK + 11 ) + DPE(1)            ! Errors
-        Q( LBANK + 12)  = Q( LBANK + 12 ) + DPE(2)  
+        Q( LBANK + 12)  = Q( LBANK + 12 ) + DPE(2)
         Q( LBANK + 13)  = Q( LBANK + 13 ) + DPE(5)
         Q( LBANK + 15)  = Q( LBANK + 15 ) + DPE(3)
 C                                                          ! phi,theta,eta
-        Q( LBANK + 10)  = ATAN2( Q( LBANK + 4 ), Q( LBANK + 3 ) )
+        IF (Q( LBANK + 4 ).NE.0.0 .OR. Q( LBANK + 3 ).NE.0.0) THEN
+          Q( LBANK + 10)  = ATAN2( Q( LBANK + 4 ), Q( LBANK + 3 ) )
+        ELSE
+          Q( LBANK + 10) = 0.0
+          CALL ERRMSG('No Event MET','CAFIX','Empty PNUT/VCOR Bank',
+     &      'W')
+        ENDIF
         IF ( Q( LBANK + 10 ) .LT. 0. ) Q( LBANK + 10 ) = Q( LBANK + 10
      &      ) + 2*SNGL(PI)
         EZOE            = -Q( LBANK + 5 )/MAX( SMALL, Q(LBANK + 6 ) )

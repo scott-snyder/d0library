@@ -1,0 +1,484 @@
+                                                Serban Protopopescu 19-APR-1989
+                                                Chip Stewart        18-SEP-1992
+
+    The CAHITS  package  consists of a set of  interface  subroutines to be
+ found in  the group  CAHITS of the  CMS library  CALOR_OFF.  The interface
+ subroutines call utilities in  CALOR_UTIL for initialization and to create
+ the banks:
+
+ CAHT   calorimeter hits header
+
+ CAEP   packed physics address and energy per cell (zero suppressed)
+
+ CAEH   calorimeter hits, contains E vectors, unpacked adresses, etc.
+
+ CATE   calorimeter towers, contains E vectors for towers separating
+        total sums and electromagnetic sums only.
+
+ PNUT   neutrino particle bank (missing Et from C1PMET and C2PMET).
+        PNUT is made into a linear chain where the first PNUT bank
+        contains the missing Et from calorimeter excuding the ICD and
+        massless gap cells. The second PNUT includes the ICD and MG. 
+        The third PNUT is corrected for the Pt of muons from the PMUO 
+        bank- the third PNUT is not written by CAHITS. 
+
+    The package uses D0$CALOR_OFF:CAHITS.RCP for run control parameters and
+ requires that it be  defined as CAHITS_RCP. This  is handled automatically
+ in the  xxxx_SETUP.COM  file  constructed by the   program_builder. A file
+ overwriting  the  default  parameters can  be  provided by  defining it as
+ CAHITS_RCPE.
+
+ The following interfaces are part of CAHITS package:
+
+ o CAHITS :   generate CAHT, CAEP, CAEH, CATE and PNUT banks
+
+ o CHTINI :   read parameter files and run independent initialization
+
+ o CHTRUN :   initialize run dependent parameters at begining of run
+              Reset CAEPFL so that new CALIB parameters can be read.
+
+ o CHTFIN :   summary and print histograms
+
+ o CHTDIA :   optional dialog to overwrite defaults
+             has entry point CHDROP (reads from file banks to drop)
+
+ o CHTDDF :   define dumps
+             has entry point CHTDFL (reads from file banks to dump)
+
+ o CHTDMP :   dump banks to dump file
+
+ o CHTWEV :   drop banks before writing data to output stream
+
+ All of these  interfaces are used  in the D0USER  frame.  In the CALOR_OFF
+ frame only CHTINI,  CHTRUN and CAHITS are used.  D0$PBD:CAHITS.PBD defines
+ which interface routines are called  in any  given frame. In CALOR_OFF and
+ D0USER it is  necessary to   include the  CALOR package to  initialize the
+ geometry (read  CAL_STPFILE  in  CAISTP), and reset  the PTCAEP and PTCATE
+ common blocks. In the EXAMINE2 frame  CAHITS and CALOR are merged into the
+ CALOR_UNPACK package  (D0$PBD:CALOR_UNPACK.PBD).
+
+ Some  of the   parameters  used by  CAHITS  depend  on the   source of the
+ calorimeter data:  real D0 collider  data, Test Beam  data, or Monte Carlo
+ data. For example, D0  and TB data need CALIB  pulser gain corrections  to
+ convert ADC  counts into  cell energies,  but MC data does  not need these
+ gain corrections.  D0$CALOR_OFF:CAHITS.RCP contains parameters relevant to
+ collider data,  MC data and TV data. 
+
+
+ 1. CAHITS control via CAHITS_RCP
+    -----------------------------
+  The standard CAHITS.RCP file lives in D0$CALOR_OFF. It contains the most
+  commonly used set of parameters for standard recontruction of D0 collider
+  data. There is no need to modify CAHITS_RCP to run with TB or MC data.
+  When the first event is processed, CAHITS (CAEPFL) picks up the correct
+  version of CAD_STPFILE, and  XX_CSF.RCP files (for sampling weights) 
+  by checking the CAD bank version. 
+  
+
+ 1a. DATA_DRIVE, BUILD_CSF & CSF_STPFILE:
+     ------------------------------------
+
+  At program intialization time (before any data is read), CHTINI reads
+ the CSF_STPFILE (sampling weights), and CAD_STPFILE (addressing map).
+ The default files are appropriate for D0 collider data.
+
+  There is a switch  DATA_DRIVE which allows to CAHITS to decide for itself
+  what certain parameters should  be for MC, TB and D0 data.
+  If DATA_DRIVE is FALSE  then the user must supply a CSF_RCP which contains
+  his/her prefered sampling weights.  If DATA_DRIVE is TRUE then the routine
+  CSF_FIX detects the data source from the CAD1 bank version word,IQ(LCAD1+4),
+  and attempts to 'fix' the CSFH, CSFW, and CSFC (See D0$ZEBLST:CSF*.ZEB)
+  with the right sampling weights for the data.
+
+  For MC data (bit 29 of the CAD version word set, see d0$ZEB$CALDAT:CAD1.ZEB):
+     DO_GNSCOR, DO_PEDSUB, and CSF_CORRECTIONS
+     (plate thickness corrections) are automatically set to false.
+     For Plate MC (bit 18 of CAD version set):
+         CSF_RCP_D0_PLT 'D0$CALOR_OFF:PLT_CSF.RCP' is used for sampling weights
+     For Mixture  MC (bit 18 of CAD version clear):
+         CSF_RCP_D0_MIX 'D0$CALOR_OFF:MIX_CSF.RCP' is used for sampling weights
+     for TB MC - bit 30 set too - then CSF_RCP_TB_PLT and CSF_RCP_TB_MIX are
+     used in
+
+  1c. CAHITS_RCP file 
+      ---------------
+
+\START          CAHITS_RCP  ! control file for CAHITS package
+\SIZE        179       108
+!------------------------------------------------------------------------------
+!   Name:       CAHITS.RCP
+!   Purpose:    Control file for CAHITS package
+!   Created:     9-May-1989     Serban D. Protopopescu
+!   Modified    17-SEP-1992     Chip Stewart
+!   Version:    V4.4 
+!------------------------------------------------------------------------------
+!   Constants for package CAHITS
+!------------------------------------------------------------------------------
+     DO_CAEPFL        T       ! create CAEP banks from raw CAD1, CAD2 banks.
+     DO_CAEHFL        T       ! create CAEH banks from CAEP and primary vertex
+     DO_CATEFL        T       ! create CATE tower bank from CAEH cells
+     DO_C1PMET        T       ! create PNUT1 bank (missing Et w/o ICD/MG info)
+     DO_C2PMET        T       ! create PNUT2 bank (missing Et with ICD/MG info)
+     DO_ANALYSIS      F       ! SKIP CHTANL IF DO_ANALYSIS IS FALSE
+     FILL_PTCAEP      T       ! FILL PTCAEP in CAEPFL with hit cells
+!------------------------------------------------------------------------------
+!   Constants for subroutine CAEPFL
+!------------------------------------------------------------------------------
+    CAD_STPFILE 'D0$STP:CAD_STPFILE.DAT' ! use CAD_STPFILE for addressing
+    CSF_STPFILE 'D0$STP:CSF_STPFILE.DAT' ! use CSF_STPFILE for energy conversion
+    CAHITS_ERROR_LOG 'CAHITS_ERROR.LOG'  ! file to store bad channels
+    NEED_CAD1        T                   ! no CAEP created if CAD1 -
+    NEED_CAD2        T                   ! - or CAD2 are not in raw data.
+    DO_ADDR_CHECK    T
+      CAD_ADDR_CHECK_PRESCALE      1
+      ERRMSG_LIMIT_PDGN            0
+    DO_ZERO_SUPRESS  F        ! zero suppress even if already done in hardware
+      ENERGY_CUTOFF  0.0      ! cutoff for zero suppresion in CAEP energy units
+      SIGMA_CUTOFF   0.0      ! cutoff in multiples of pedestal sigma.
+    DO_GNSCOR        T
+      GAINS_FILE               'DBL3'
+      GAIN_NORMALIZATION        6000.    ! Convention at D0
+      GAIN_NORMALIZATION_NWA    1900.    ! Convention at NWA
+      EM_GAIN        1.9091     ! EM  LYR 3-7 10.5 pf factor for DO_GNSCOR FALSE
+      ICD_GAIN       0.2683     ! ICD LYR 9   20.5 pf factor when DO_GNSCOR TRUE
+    DO_PEDSUB        F
+      PEDESTAL_FILE            'DBL3'
+      PEDESTAL_SIGMAS  T      ! Fetch pedestal sigmas even when DO_PEDSUB FALSE
+    DO_ADC_TO_GEV      T      ! If TRUE use A*W from CSFW bank; If F use A*W=1
+      CSF_CORRECTIONS  T      ! IF TRUE use C from CSFC bank. IF F use C=1
+      BUILD_CSF        F      ! Build sampling weights from user CSF_RCP
+      DROP_CALIB_BANKS T      ! DROP CPDH,CGNH tree after CGEVFL
+!------------------------------------------------------------------------------
+!   Name of the DBL3 default file for CALIB data
+!------------------------------------------------------------------------------
+    DBCALIB$CAL  'DBL3$CAL:DBCALIB$CAL.DAT'
+!----------------------------------------------------------------------
+!   Data driven sampling weights from word 4 of CAD bank crate header
+!       If TB data then bit 2**30=1; If MC data bit 2**29=1
+!----------------------------------------------------------------------
+      DATA_DRIVE_CSF   T
+        CSF_RCP_D0_MIX 'D0$CALOR_OFF:MIX_CSF.RCP'
+        CSF_RCP_D0_PLT 'D0$CALOR_OFF:PLT_CSF.RCP'
+        CSF_RCP_TB_MIX 'D0$CALOR_OFF:MIX_CSF.RCP'
+        CSF_RCP_TB_PLT 'D0$CALOR_OFF:PLT_CSF.RCP'
+        CSF_RCP_TB     'D0$CALOR_OFF:TB_CSF.RCP'
+!----------------------------------------------------------------------
+!  CAEPFL: Processing existing CAEP banks:
+!  0=If input already has CAEP bank then skip CAEPFL
+!  1=FORCE new CAEP bank from CAD banks even when CAEP already exists in data.
+!  2=FORCE new CAEP bank from existing CAEP bank: convert energy units
+!          (CAEP in ADC counts, live GeV, or Total GeV) - NEEDS OLD_CAEP_CSF_RCP
+!----------------------------------------------------------------------
+      OLD_CAEP       0
+      OLD_CAEP_CSF_RCP 'D0$CALOR_OFF:UNIT_CSF.RCP'
+!----------------------------------------------------------------------
+!  CAEPFL: BAD CHANNEL CONTROL:
+!  Relevant CALIB bad channel bits
+!  bit  meaning
+!    3   Way too many over/underflows
+!    6   Zero entries inside window
+!    7   Peak of histogram above limit
+!    8   Peak of histogram below limit
+!    13  Mean value far away from limits
+!    14  Sigma value very large (noisy channel)
+!    15  Channel has been suppressed (peds) / x8 mean .ne. x1 mean (pulser)
+!
+!----------------------------------------------------------------------
+    \ARRAY  BAD_CHANNEL_CPB8_BITS   ! x1 bad pedestal bits
+       3  6  13  14 ! 7  8          ! bit>0 = suppress channel in CAEP 
+    \END
+    \ARRAY  BAD_CHANNEL_CPB1_BITS   ! x1 bad pedestal bits
+       3  6  13  14 ! 7  8          ! bit>0 = suppress channel in CAEP 
+    \END
+    \ARRAY  BAD_CHANNEL_CGB8_BITS   ! x8 bad gain bits
+      -3  -6  -13  -14  -15         ! bit<0 = Ignore CALIB gain (use nominal) 
+    \END
+    \ARRAY  BAD_CHANNEL_CGB1_BITS   ! x1 bad gain bits
+      -3  -6  -13  -14  -15         ! bit<0 = Ignore CALIB gain (use nominal) 
+    \END
+    \ARRAY  KEEP_CHANNELS  !override CALIB bad channel bits for these cells
+!       ETA PHI LYR
+!       -12  34   6
+    \END
+    \ARRAY  BAD_CHANNELS   !set these channels to zero even if CALIB bits OK
+!       ETA PHI LYR
+!       -12  31   2
+    \END
+!------------------------------------------------------------------------------
+!   Constants for subroutine CAEHFL
+!------------------------------------------------------------------------------
+    ALPHA               12.0        !   Sigma(R) = dr^2/alpha etc.
+    \ARRAY  SIGMA_EM                !   Sigma = A*E^2 + K*B*E + K^2*Sigma(Ped)
+      0.0                         !   A
+      5.0                         !   B
+    \END
+    \ARRAY  SIGMA_HAD
+        0.0  5.0
+    \END
+    \ARRAY  SIGMA_ICD
+        0.0  5.0
+    \END
+    \ARRAY  SIGMA_MSG
+        0.0  5.0
+    \END
+    CELL_WEIGHT             1.0    ! Phase space weight of cell
+    USE_MONTE_CARLO_VERTEX    F    ! If TRUE get ISV1 vtx - else use VERT vtx
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+\ARRAY HBOOK_DIRECTORY
+     'CALORIMETER'
+     'CAHITS'
+\END
+\STOP
+
+
+ 2. Unpacking CAEP, CAEH, and CATE
+
+ To find information  for a particular cell in  CAEP or CAEH one should use
+ the routines GTCAEP or GTCAEH. For  example, code to histogram energy from
+ the CAEP bank might look like:
+
+        CALL GTCAEP_HEADER(NV,NR,NCH,IER)
+        START = .TRUE.
+        ENERGY_TOT = 0
+        DO I = 1, NCH
+          CALL GTCAEP(START,IETA,IPHI,ILYR,BITS,ENERGY,ICHAN,IER)
+          START = .FALSE.
+          CALL HF1(1,ENERGY,1.0)
+          ENERGY_TOT = ENERGY_TOT + ENERGY
+        END DO
+        CALL HF1(2,ENERGY_TOT,1.0)
+
+ GTCAEP and GTCAEH use a pointer array PTCAEP in common block /PTCAEP/:
+
+ D0$INC:PTCAEP.INC
+ ------------------------------------------------------------------
+ C
+ C        pointers to hit banks CAEP and CAEH
+      COMMON/PTCAEP/PTZFLG,PTCAEP
+ C
+       LOGICAL PTZFLG     ! if true PTCAEP array is set to 0
+ C
+ C        the parameters NETAL,NPHIL,NLYRL are in CAL_OFFLINE.PARAMS
+       INTEGER PTCAEP(-NETAL:NETAL,NPHIL,NLYRL)
+ C
+ --------------------------------------------------------------------
+
+ The information in CAEP for a given cell can be found by:
+     LCAEP=GZCAEP()
+     NR=IQ(LCAEP+2)
+     IPOINT=PTCAEP(ieta,iphi,layer)*NR
+     DATA = Q(IPOINT+location)   location as indicated in CAEP.ZEB
+
+ the   information  in CAEH  can be  found  in  exactly  the same  way just
+ replacing GZCAEP with GZCAEH. If  IPOINT is zero there is no data for that
+ cell.
+
+ Similar GT routines exist for finding information in CATE.
+
+      CALL GTCATE_TOTAL (NTOWERS,NEM_TOWERS,ERROR)
+      IF ( SWITCH .EQ. HADRONIC ) THEN
+        TOWER1 = NEM_TOWERS+1             ! First  tower
+      ELSE
+        TOWER1 = 1
+      ENDIF
+      CALL GTCATE_MIN_TOWER (SWITCH,ETMIN,TOWER2)       ! Last tower
+      DO TOWER = TOWER1, TOWER2
+        CALL GTCATE (TOWER,IETA,IPHI,LAYER,NLAYER,E,ERROR)
+        IF ( ERROR .EQ. 0 ) THEN
+          E(4) = SQRT(E(1)*E(1)+E(2)*E(2)+E(3)*E(3))
+          CALL ETOETA (E,PHI,THETA,ETA)
+        ENDIF
+      ENDDO
+
+
+ A common block exists for finding information in CATE:
+
+ D0$INC:PTCATE.INC
+ C------------------------------------------------------------------
+ C
+ C        pointers to tower bank CATE
+ C
+ C
+       COMMON/PTCATE/PTTFLG,PTCATE
+ C
+       LOGICAL PTTFLG     ! if true PTCATE array is set to 0
+ C
+ C        the parameters NETAL,NPHIL are in CAL_OFFLINE.PARAMS
+ C
+      INTEGER PTCATE(-NETAL:NETAL,NPHIL,2)
+ C
+ C --------------------------------------------------------------------
+
+
+ 3. CAEPFL
+
+ Monte Carlo files using old addressing scheme are CAD bank
+ software version (SFTVSN) 0,1 and 2. The unpacking code is designed to
+ automatically use the appropriate addressing (CADT_FIX fixes the CADT
+ look-up table if needed) so that CAHITS is compatible with
+ old MC data. CAD_STPFILE consists of the CADT banks which are generated
+ by the CAWSTP program in D0$STP$GEOCAL. CADT is based on the
+ calorimeter addressing utility routines CADPH and CDPLYR.
+
+ The energy scale of the cells in CAEP (CAEH,CATE...) is controled via
+ CAHITS_RCP. The electronics gains (pedestals too) given by calib can be
+ turned on and off (DO_GNSCOR, DO_PEDSUB). Sampling weights are read in as
+ the CSF_STPFILE and can be overridden with BUILD_CSF set to TRUE. If
+ BUILD_CSF is set TRUE, then the sampling weights are constructed from
+ CSF_RCP which must be defined appropriately. The pedestals, gains, and
+ sampling weights are all combined into the CGEV bank (D0$ZEBLST:CGEV.ZEB)
+ which is used in CAEPFL to convert ADC counts to Energy as described below.
+
+
+                   ADC Counts to Energy in CAHITS/CHTRUN                3/5/92
+                   -------------------------------------            R. Madaras
+
+        Q(e,p,l) = G(e,p,l) x [ADC(e,p,l) - PED_CORR(e,p,l)]
+
+        E(e,p,l) = A(d) x W(e,l) x C(e,p,l) x Q(e,p,l)
+
+ with:  e = IETA
+        p = IPHI
+        l = ILAYER
+        d = CC, EC, ICD, CCMG, ECMG detectors
+
+ where:
+
+ G(e,p,l) Run-dependent DBL3 gain, corrected for:
+
+                EM3,4 correction for pre-amp cap.
+                Calib pulser response corrections (due to capacitance, timing).
+                Transfer of test beam calibration.
+                In-spill pulser calibration corrections.
+                Temperature variation of electronics.
+                Deviation of HV from nominal.
+                Argon purity corrections (This probably does not depend on p,l).
+                Shorted or missing channels.
+
+ PED_CORR(e,p,l) Is a possible pedestal correction for the zero-suppressed data.
+
+ A(d)    Overall calibration constant, one each for CC, EC, ICD, CCMG, ECMG.
+
+ W(e,l)  Sampling fraction weights, determined from test beam data.  This array
+         is determined from analogous arrays for each physical module:
+
+                W_CCEM(i), W_CCFH(i), W_CCCH(i)              i = physical layer
+                W_ECEM(i), W_ECIH(i), W_ECMH(i), W_ECOH(i)
+                W_ICD(e),  W_CCMG(e), W_ECMG(e)
+
+ C(e,p,l) Corrections, not run-dependent:
+
+                Corrections in the CC due to response varying with eta.
+                Thickness corrections, normalized to 1.00 at the spot A and W
+                   were determined.
+                Corrections from phi uniformity calib with min bias data events.
+                Corrections from Z, upsilon, pi-zero, etc data events.
+
+ K(e,p,l) = A(d) x W(e,l) x C(e,p,l) x G(e,p,l)      is calculated in CHTRUN and
+           ------------+-----------   ---+----         used in CAHITS.
+                       |                 |
+            Stored in CSF_STPFILE     From CALIB/DBL3
+
+ [There  is  also an   additive term  in the   equation for  E,  due to the
+ intercept of E vs ADC. This is a  correction to the cluster energy, and is
+ better handled in  CAPHEL/CAFIX. Similar  corrections will need to be made
+ to the hadronic energy.]
+
+
+
+ 3a. GAINS & PEDESTALS, SIGMAS & BAD CHANNELS FROM CALIB
+     ---------------------------------------------------
+
+     The CALIB gains and pedestals are read at begin run time from the
+     DBL3 database. The actual file used is controled in CAHITS_RCP
+     by the DBCALIB$CAL  parameter which is set to 'DBL3$CAL:DBCALIB$CAL.DAT'
+     in the default CAHITS.RCP. The DBL3$CAL area is (or will be) defined
+     as a system logical. The D0 cluster online database is in
+     D0::DBONLINE:[DBL3.CAL] and the FNALD0 offline database is in
+     FNALD0::DBOFFLINE:[DBL3.CAL]. CAHITS will fetch CALIB gains if DO_GNSCOR
+     is set TRUE in CAHITS_RCP . Pedestals are fetched if DO_PEDSUB is
+     set TRUE or SIGMA_CUTOFF is greater than zero and DO_ZERO_SUPRESS is set
+     TRUE. If the data is Monte Carlo no gains or pedestals are fetched.
+     Fetching 12 crates of gains and pedestals uses 700,000 words of memory in
+     ZEBSTP.
+
+     The CALIB gains are numbers that correspond to ADC counts when the
+     channel is pulsed. At D0 the average CALIB gain is close to 6000 so
+     the factor, G(e,p,l) from section above, used in CAHITS is
+     6000/CALIB_GAIN. The D0 GAIN_NORMALIZATION is different from the test
+     beam GAIN_NORMALIZATION due to different pulser hardware so 1900
+     is used for NWA data rather than the 6000.
+
+     Some channels have different feedback capacitors at the preamps;
+     the typical capactance is 5.5 pf, EM floor 3 and 4 have 10.5 pf capacitors
+     to increase the dynamic range of those channels in ADC counts. A few
+     other channels in hadronic modules also have these 10.5 pf capacitors.
+     The effect of this difference in the feedback capacitor is a factor of
+     5.5/10.5=1.9091 in the average pulse height for EM floors 3 and 4.
+     All sampling weights (CSF_RCP) take this into account. When DO_GNSCOR
+     is FALSE the EM_GAIN factor of 1.9091 is used in CAHITS to simulate
+     the average effect of including CALIB gains so that the sampling weights
+     are still appropriate.
+
+     ICD channels have a feedback capacitance of 20.5 pf. The sampling weights
+     for the ICD were estimated (K.De) assuming the average CALIB gain to be 1.0
+     so when DO_GNSCOR is TRUE the ICD CALIB gains are multiplied by
+     ICD_GAIN=5.5/20.5=0.2683 to make the G(e,p,l) for the ICD close to 1.0.
+
+     CALIB writes bad channel banks which list cells that CALIB determined had
+     odd behaviour and an array of bits indicating what CALIB thought was odd
+     (See D0$ZEBLST:CPB1.ZEB,CGB1.ZEB for the bank format). At begin run time
+     CAHITS loops through the bad channel list and takes one of three actions:
+
+       1. Ignore the bad channel bit
+       2. Kill the cell (set it's gain to 0)
+       3. Ignore the gain from CALIB and use 1.0 (or EM_GAIN) instead.
+
+     The BAD_CHANNEL_CPB8_BITS (CPB1,CGB1,CGB8) arrays in CAHITS_RCP
+     control which action is taken. If a bit is listed and is positive
+     then the cell will be killed if the bit is set in the bad channel bank.
+     If a bit is listed as negative then the CALIB gain will be ignored
+     if the bit is set in the bad channel banks. Bit 7 in a CGB1 or CGB8
+     flags the case of the pulser response being too low. This case may warrant
+     ignoring the CALIB gain for that cell rather than killing it.
+
+     The bad channel bit checking can be over-ridden by listing the cells
+     in the KEEP_CHANNELS array in ETA PHI LYR order. A cell can be killed
+     by listing it in the BAD_CHANNELS array. In either case a whole range of
+     cells can be kept or killed by putting a 0 in the ETA PHI or LYR slot.
+
+ 4. C1PMET, C2PMET, CALICD ...
+    --------------------------
+    CP1PMET calcuates the PNUT bank with no input from the ICD or massless gap
+    cells. C2PMET writes another PNUT bank with the ICD and MG cells included.
+    For Monte Carlo data the ICD and MG energy are calculated in the CALICD
+    routine, CAEP contains only a small fraction of the ICD and MG energy.
+    MC_CALICD.RCP contains the parameters which CALICD uses to the the
+    correction for Monte Carlo. For real data, D0 collider and NWA, CAEP
+    calculates the full ICD and MG energy so CALICD_RCP contains null parameters
+    and CALICD does nothing. For both MC and real data the PNUT banks produced
+    by C1PMET and C2PMET can be interpreted and the missing and scalar
+    Et with (C2PMET) and without (C1PMET) the ICD and MG.
+
+ 5. CALOR package control by CALEVT_RCP
+    -----------------------------------
+    The  CALOR  package is  controled  by the  CALEVT_RCP  file.  The geometry
+    parameters  for all   calorimeter calls  are  contains in the  CAL_STPFILE
+    which is fetched in the CALOR_INI hook of CALOR and is given in CALEVT_RCP
+
+    GEOMETRY_FILE    'D0$STP:CAL_STPFILE.DAT'
+
+    There is version of the calorimeter geometry CAL_STPFILE for D0, MC, and TB
+    so this parameter need not be modified to process different types of data.
+    Two other parameters in CALEVT_RCP control how CELXYZ uses the CAL_STPFILE.
+    
+    SURVEY_CONSTANTS  .TRUE.  ! include survey corrections
+    DO_GANG           .TRUE.  ! gang eta=22/CH cells together a la D0 note 918
+                              ! this should not be done for MC, but should 
+                              ! be done for real data
+
+    For TB and MC data (TB_CALEVT.RCP and MC_CALEVT.RCP) these two parameters 
+    are  set FALSE. 
+

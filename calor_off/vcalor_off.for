@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VCALOR_OFF()
       VCALOR_OFF = ' CALOR_OFF'//
-     X                   '  OFFICIAL V1.60'//
-     X                   ' 14-JUL-1997 09:21:50.31'
+     X                   '  TEST V1.60_02'//
+     X                   ' 10-JUN-1998 10:46:22.24'
       Return
       End
