@@ -1,5 +1,4 @@
       SUBROUTINE EZSIZE (LUN,NUMVAL,NUMREC)
-      ENTRY SZSRCP      (LUN,NUMVAL,NUMREC)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Read an RCP file containing parameters and
@@ -14,6 +13,7 @@ C-   Outputs : NUMVAL        Number of values
 C-             NUMREC        Number of records (identifiers + comments)
 C-
 C-   Created 16-NOV-1988   Harrison B. Prosper
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -27,6 +27,8 @@ C
       INCLUDE 'D0$PARAMS:SRCP.DEF'
       INCLUDE 'D0$INC:BFSRCP.INC'
       LOGICAL FIRST
+C----------------------------------------------------------------------
+      ENTRY SZSRCP      (LUN,NUMVAL,NUMREC)
 C----------------------------------------------------------------------
 C
       NUMREC = 0  ! Identifier counter

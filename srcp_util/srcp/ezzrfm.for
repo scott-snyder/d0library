@@ -1,5 +1,4 @@
       SUBROUTINE EZZRFM (BKNAME,LBANK,IZLINK)
-      ENTRY RFSRCP (BKNAME,LBANK,IZLINK)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Convert old SRCP bank to new format. Old
@@ -23,6 +22,7 @@ C-
 C-   Created  20-NOV-1988   Harrison B. Prosper
 C-   Updated  12-Feb-1992   Herbert Greenlee
 C-      UNIX version
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -36,6 +36,8 @@ C
       INCLUDE 'D0$INC:NMSRCP.INC'
       INCLUDE 'D0$INC:ZEBSTP.INC'
       LOGICAL OK
+C----------------------------------------------------------------------
+      ENTRY RFSRCP (BKNAME,LBANK,IZLINK)
 C----------------------------------------------------------------------
 C
 C ****  Clear error flag

@@ -1,5 +1,4 @@
       FUNCTION L2BIT_ON(I)
-      ENTRY L2BIT_WRITE(I)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : 
@@ -28,6 +27,7 @@ C-
 C-   Created 22-OCT-1991   James T. Linnemann   
 C-   Updated 11-Mar-1992   Herbert B. Greenlee
 C-     Got rid of machine block
+C-   Modified 30-Dec-1995   sss - compile with g77.
 C-  
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -36,6 +36,7 @@ C----------------------------------------------------------------------
       INTEGER I, J, L2_WORD, MY_BIT
       LOGICAL BTEST
 C----------------------------------------------------------------------
+      ENTRY L2BIT_WRITE(I)
       IF (I.LT.0 .OR. I.GE.128 .OR. LHEAD.LE.0) THEN 
         L2BIT_ON = .FALSE.  ! CHECK FOR I OUT OF RANGE, LHEAD BAD
        GO TO 999

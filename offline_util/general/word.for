@@ -18,6 +18,7 @@ C-   Updated  15-APR-1994   Harrison B. Prosper
 C-    Handle strings bounded by NULLs
 C-   Updated  17-JAN-1995   sss
 C-    Fix TAB parameter.
+C-   Updated 30-Dec-1995   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -25,9 +26,14 @@ C----------------------------------------------------------------------
       INTEGER       I,J,N,K,LSTR
 C
       CHARACTER*1 TAB,SPACE,NUL
-      PARAMETER( TAB   = CHAR(9) )
       PARAMETER( SPACE = ' ' )
+C&IF LINUX
+C&      tab = char (9)
+C&      nul = char (0)
+C&ELSE
+      PARAMETER( TAB   = CHAR(9) )
       PARAMETER( NUL   = CHAR(0) )
+C&ENDIF
 C----------------------------------------------------------------------
 C
       I = 1

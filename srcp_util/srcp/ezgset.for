@@ -1,5 +1,4 @@
       SUBROUTINE EZGSET (CHAR1,IVAL,IDX)
-      ENTRY      GTSRCP (CHAR1,IVAL,IDX)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Access value(s) of variable CHAR1 in given
@@ -19,6 +18,7 @@ C-   Created  27-NOV-1987   Rajendran Raja
 C-   Modified 28-JUN-1988   Harrison B. Prosper
 C-   Updated  12-Feb-1992   Herbert Greenlee
 C-      UNIX version.
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       CHARACTER*(*) CHAR1
@@ -26,6 +26,8 @@ C----------------------------------------------------------------------
       INTEGER IVAL(*),IER,N,IDX,I,J,L
       CHARACTER*132 STRING
       INCLUDE 'D0$PARAMS:SRCP.DEF'
+C----------------------------------------------------------------------
+      ENTRY      GTSRCP (CHAR1,IVAL,IDX)
 C----------------------------------------------------------------------
       IF ( IDX .GT. 0 ) THEN
         CALL EZGET  (CHAR1,IVAL,IER)

@@ -1,5 +1,4 @@
       FUNCTION EZERR (IER)
-      ENTRY  EZERROR (IER)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Set TRUE if IER not equal to ZERO. Use this
@@ -19,6 +18,7 @@ C-
 C-   Created  23-SEP-1988   Harrison B. Prosper
 C-   Updated  14-MAY-1990   Harrison B. Prosper
 C-      Add entry points EZERROR,EZGET_ERROR_TEXT.
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -27,6 +27,8 @@ C----------------------------------------------------------------------
       CHARACTER*(*) STRING
       INCLUDE 'D0$PARAMS:SRCP.DEF'
       INCLUDE 'D0$INC:LKSRCP.INC'
+C----------------------------------------------------------------------
+      ENTRY  EZERROR (IER)
 C----------------------------------------------------------------------
       IER = ERRSRC
       EZERR = IER .NE. 0

@@ -1,5 +1,4 @@
       SUBROUTINE EZOUT (LUNOUT,BKNAME)
-      ENTRY      SVSRCP(LUNOUT,BKNAME)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Save named SRCP bank to disk.
@@ -11,6 +10,7 @@ C-   Outputs : None
 C-   Controls: None
 C-
 C-   Created  20-NOV-1988   Harrison B. Prosper
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -19,6 +19,8 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$PARAMS:SRCP.DEF'
       INCLUDE 'D0$INC:LKSRCP.INC'
       INCLUDE 'D0$INC:ZEBSTP.INC'
+C----------------------------------------------------------------------
+      ENTRY      SVSRCP(LUNOUT,BKNAME)
 C----------------------------------------------------------------------
 C
 C ****  Write SRCP bank to file

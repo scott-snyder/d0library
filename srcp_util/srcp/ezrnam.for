@@ -1,5 +1,4 @@
       SUBROUTINE EZRNAM (BKNAM1,BKNAM2)
-      ENTRY RNSRCP (BKNAM1,BKNAM2)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Rename SRCP bank.
@@ -15,6 +14,7 @@ C-
 C-   Created   3-OCT-1988   Harrison B. Prosper
 C-   Updated  15-MAY-1990   Harrison B. Prosper  
 C-      Use symbolic constants 
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -26,6 +26,8 @@ C
       INCLUDE 'D0$INC:LKSRCP.INC'
       INCLUDE 'D0$INC:NMSRCP.INC'
       INCLUDE 'D0$INC:ZEBSTP.INC'
+C----------------------------------------------------------------------
+      ENTRY RNSRCP (BKNAM1,BKNAM2)
 C----------------------------------------------------------------------
 C
 C       ISRCP is the pointer to address of the

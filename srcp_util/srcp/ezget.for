@@ -1,5 +1,4 @@
       SUBROUTINE EZGET (PARAM1,IVAL,IER)
-      ENTRY     GXSRCP (PARAM1,IVAL,IER)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Return the value(s) associated with the
@@ -41,6 +40,7 @@ C-   Modified 15-NOV-1988   Harrison B. Prosper
 C-                          MAJOR CHANGE: USES NEW SRCP BANK FORMAT
 C-   Updated  10-MAR-1992   Harrison B. Prosper   
 C-      Allow return of arrays
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C----------------------------------------------------------------------
       IMPLICIT NONE
 C
@@ -53,6 +53,8 @@ C
       INTEGER KSTART,KEND,KSTEP,LENGIN
       INTEGER I,J,K,L,ID
 C
+C----------------------------------------------------------------------
+      ENTRY     GXSRCP (PARAM1,IVAL,IER)
 C----------------------------------------------------------------------
       GET = .TRUE.
       GOTO 5

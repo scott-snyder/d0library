@@ -1,5 +1,4 @@
       SUBROUTINE EZSHUNT (BKNAME,LSUP,IZLINK)
-      ENTRY MVSRCP (BKNAME,LSUP,IZLINK)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Move SRCP bank BKNAME from current address
@@ -22,6 +21,7 @@ C-   Created  23-SEP-1988   Harrison B. Prosper
 C-   Modified 13-NOV-1988   Make link an input parameter
 C-   Updated  15-MAY-1990   Harrison B. Prosper
 C-   Updated  13-JUL-1992   Chip Stewart  - previously EZMOVE 
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -32,6 +32,8 @@ C
       INCLUDE 'D0$PARAMS:SRCP.DEF'
       INCLUDE 'D0$INC:LKSRCP.INC'
       INCLUDE 'D0$INC:ZEBSTP.INC'
+C----------------------------------------------------------------------
+      ENTRY MVSRCP (BKNAME,LSUP,IZLINK)
 C----------------------------------------------------------------------
 C
 C ****  Clear error flag

@@ -1,5 +1,4 @@
       SUBROUTINE EZIN (LUNIN,BKNAME)
-      ENTRY    FTSRCP (LUNIN,BKNAME)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Fetch an SRCP bank from unit LUNIN and give
@@ -32,6 +31,7 @@ C-   Updated  24-OCT-1991   Harrison B. Prosper, Jan Guida
 C-    Preserve ISRCP pointer
 C-   Updated  13-JAN-1992   Harrison B. Prosper   
 C-    Fix first bank name bug
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       LOGICAL      EZERROR
@@ -44,6 +44,8 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:LKSRCP.INC'
       INCLUDE 'D0$INC:ZEBSTP.INC'
       INCLUDE 'D0$LINKS:IZSRCP.LINK'
+C----------------------------------------------------------------------
+      ENTRY    FTSRCP (LUNIN,BKNAME)
 C----------------------------------------------------------------------
 C
 C ****  Note currently picked bank

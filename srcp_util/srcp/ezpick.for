@@ -1,5 +1,4 @@
       SUBROUTINE EZPICK (BKNAME)
-      ENTRY SLSRCP (BKNAME)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Select specified SRCP bank so that
@@ -73,6 +72,7 @@ C-   Updated   8-DEC-1994   James T. Linnemann
 C-        add EZPICK_DUMP_STACK entry
 C-        make stack empty = 0 entries consistently
 C-        add ERRMSGs for stack overflow and underflow
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       CHARACTER*(*) BKNAME
@@ -99,6 +99,8 @@ C
       DATA LAST_ERROR_LEVEL     /1/
       DATA ERROR_LEVEL          /1/
       DATA OVFLOW_PTR           /0/
+C----------------------------------------------------------------------
+      ENTRY SLSRCP (BKNAME)
 C----------------------------------------------------------------------
 C
 C       ISRCP is the pointer to address of the

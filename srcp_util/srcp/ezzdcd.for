@@ -1,5 +1,4 @@
       SUBROUTINE EZZDCD (CHAR1,CHAR2,LENG,KSTART,KEND,KSTEP)
-      ENTRY DCSRCP (CHAR1,CHAR2,LENG,KSTART,KEND,KSTEP)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Decode SRCP parameter. Return parameter name
@@ -24,12 +23,15 @@ C-
 C-   Controls: None
 C-
 C-   Created  30-SEP-1988   Harrison B. Prosper
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       CHARACTER*(*) CHAR1,CHAR2
       CHARACTER*132  PANAME
       INTEGER LENG,LENARR,TYPE,II,NN,I,J,K,L,N,KSTART,KEND,KSTEP
       REAL    VALUE
+C----------------------------------------------------------------------
+      ENTRY DCSRCP (CHAR1,CHAR2,LENG,KSTART,KEND,KSTEP)
 C----------------------------------------------------------------------
 C
 C ****  Remove trailing blanks and convert to upper case
