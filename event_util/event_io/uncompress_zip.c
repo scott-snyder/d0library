@@ -202,7 +202,8 @@ static void flush_window()
    the next table, which codes e - 16 bits, and lastly e == 99 indicates
    an unused code.  If a code with e == 99 is looked up, this implies an
    error in the data. */
-static struct huft {
+/* sss --- remove useless static to avoid warning */
+/*static*/ struct huft {
   uch e;                /* number of extra bits or operation */
   uch b;                /* number of bits in this code or subcode */
   union {

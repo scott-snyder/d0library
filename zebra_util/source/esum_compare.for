@@ -31,6 +31,7 @@ C-                          Add option to require a match of the REF and DTA
 C-                          objects to a third object REQ.
 C-   Updated  19-AUG-1992   sss - compile on ibm
 C-   Updated  10-NOV-1993   M.V.S. Rao  (Fixed some trivial FLINT conflicts) 
+C-   Updated  29-Dec-1995   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -684,7 +685,7 @@ C
       IF (EVENT_LIST .AND. FLAG_SET) THEN
         NEVT = NEVT + 1
         EVENT(NEVT) = EVONUM()
-C&IF IBMAIX    ! losing ibm compiler doesn't have variable formats
+C&IF IBMAIX, LINUX    ! ibm and g77 don't have variable formats
 C&        WRITE (msg, 555) num_pairs
 C& 555    format ('(2(3x,i10),', i3, '(2x,i4))')
 C&        write (wunit, msg) RUN,EVENT(NEVT),(EV_FLAG(I),I=1,NUM_PAIRS)

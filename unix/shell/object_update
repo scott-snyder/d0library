@@ -19,6 +19,7 @@ source `uff $d0unix/d0local.cshrc`
 # -f   - Specify UNIX flavor.  Default $D0FLAVOR.
 # -l   - Specify an archive library to be used as a target.  If not specified,
 #        the object file itself is the target.
+# -t   - Specify timestamp file.
 #
 # 1.  Object and source files are read from standard input, one each
 #     per line.
@@ -55,6 +56,7 @@ source `uff $d0unix/d0local.cshrc`
 # Updated 4-Feb-1998   Herbert Greenlee
 #    Removed previous AIX modification that turned library modules into fake
 #    targets, causing full recompilation on each invocation.
+# sss - add -t option
 #
 #------------------------------------------------------------------------------
 #
@@ -64,7 +66,8 @@ set library = ''
 set flavor = $D0FLAVOR
 set debug = 0
 set compdir = ''
-set argv = (`getopt df:l:c: $argv`)
+set stamp_file = ''
+set argv = (`getopt df:l:c:t: $argv`)
 while("$argv[1]" != '--')
   switch($argv[1])
   case -d:
@@ -81,6 +84,10 @@ while("$argv[1]" != '--')
     breaksw
   case -c:
     set compdir = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -t:
+    set stamp_file = $argv[2]
     repeat 2 shift
     breaksw
   endsw
@@ -138,6 +145,7 @@ while( 1 )
       d0echo '\t$(F77) $(F77FLAGS) $(OPT)' "$compsrc" ';\'
     endif
     if( $o_file:q != $a_file:q )d0echo "	mv $o_file" "$a_file" ';\'
+    if( $stamp_file != '' ) d0echo "\ttouch $stamp_file" ';\'
     d0echo '\t)'
     breaksw
   case f:
@@ -155,6 +163,7 @@ while( 1 )
       d0echo '\t$(F77) $(F77FLAGS) $(OPT)' "$compsrc" ';\'
     endif
     if( $o_file:q != $a_file:q )d0echo "	mv $o_file" "$a_file" ';\'
+    if( $stamp_file != '' ) d0echo "\ttouch $stamp_file" ';\'
     d0echo '\t)'
     breaksw
   case c:
@@ -172,6 +181,7 @@ while( 1 )
       d0echo '\t$(CC) $(CCFLAGS) $(OPT)' "$compsrc" ';\'
     endif
     if( $o_file:q != $a_file:q )d0echo "	mv $o_file" "$a_file" ';\'
+    if( $stamp_file != '' ) d0echo "\ttouch $stamp_file" ';\'
     d0echo '\t)'
     breaksw
   case lex:
@@ -189,6 +199,7 @@ while( 1 )
       d0echo '\t$(CC) $(LCCFLAGS) $(OPT)' "$compsrc" ';\'
     endif
     if( $o_file:q != $a_file:q )d0echo "	mv $o_file" "$a_file" ';\'
+    if( $stamp_file != '' ) d0echo "\ttouch $stamp_file" ';\'
     d0echo '\t)'
     breaksw
   endsw

@@ -26,7 +26,8 @@ C-              TIME            Time intrinsic function
 C-
 C-   Created   6-JUL-1988   Stuart Fuess
 C-   Updated   5-JUL-1990   Jan Guida  Chip Stewart -CAP BANK LINKS
-C-   Updated  27-APR-1992   Jan Guida  Add MZFORM 
+C-   Updated  27-APR-1992   Jan Guida  Add MZFORM
+C-   Updated  16-MAR-2004   sss - use idate2k instead of idate.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -92,7 +93,7 @@ C
 C
 C ****  Get date and time and pack into SCAL data
 C
-      CALL IDATE(I,J,K)
+      CALL IDATE2k(I,J,K)
       JDATE = K + J*100 + I*10000
       CALL TIME(STIME)
       READ(UNIT=STIME,FMT='(I2,2(1X,I2))') I,J,K

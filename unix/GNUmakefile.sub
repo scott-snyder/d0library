@@ -1,0 +1,20 @@
+PACKAGE := unix
+$(PACKAGE)_LIB := yes
+include GNUmakefile.subcommon
+
+LEX_PROGRAMS = tasteofd0 vmstounix
+# missing c_depend f_depend for_depend.  require library.
+LEX_PROGRAM_BINS := $(addprefix $(BINDIR)/,$(LEX_PROGRAMS))
+
+build-tools : $(LEX_PROGRAM_BINS)
+
+$(LEX_PROGRAM_BINS) : $(BINDIR)/% : $(THISDIR)/source/%.lex
+	lex -o$(TOPDIR)/unix/tmp_deb/$*.yy.c $<
+	$(CC) -I$(TOPDIR)/unix/source \
+          $(C_DEB_FLAGS) $(C_COMMON_FLAGS) -o $@ \
+          $(TOPDIR)/unix/tmp_deb/$*.yy.c -lfl
+
+
+clean : clean-unix-buildtools
+clean-unix-buildtools:
+	$(NOECHO) rm -f $(LEX_PROGRAM_BINS)

@@ -46,6 +46,7 @@ C-      Added remote memory to memory transfer option
 C-   Updated   8-MAR-1993   Hailin Li and Kirill Denisenko
 C-                          Added parallel RECO option
 C-   Updated  28-NOV-1994   sss - added zzip support
+C-   Updated  17-Jan-1996   sss - tpmfarm doesn't work on linux yet.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       CHARACTER*3 OSTRM,OSTRM_IN
@@ -61,7 +62,7 @@ C----------------------------------------------------------------------
       CHARACTER*4 CHOPT
 
 C-- VARIABLES FOR REMOTE TRANSFER
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
 C&ELSE
 C&      INTEGER*4 DUMMY, IDUMMY(10), IERR
 C&      EXTERNAL FARM_OUT
@@ -153,7 +154,7 @@ C             single streams
       GIVEO=OUNITS(CHOSEO)
       IF(GIVEO.EQ.0) THEN          ! first call for OSTRM get unit number
         CALL GTUNIT(88,GIVEO,IER)
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
 C&ELSE
 C&        IF((CHOSEO.EQ.1) .AND. FLGVAL('REMOTE_STA')) THEN
 C&          CALL SRV_INI
@@ -170,7 +171,7 @@ C&ENDIF
         CALL D0OPEN(GIVEO,ONAME,CHOPT,OK)
         CALL XZRECL(ILEN,CHOPT)
         IF (ILEN .GE. 0) CALL FZFILE(GIVEO,ILEN,CHOPT)
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
 C&ELSE
 C&        ENDIF
 C&ENDIF
@@ -220,7 +221,7 @@ C
           CALL FLGUBK(STREAM,1)
           CALL FZENDO(GIVEO,'T')
 
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
 C&ELSE
 C&          IF(CHOSEO.EQ.1 .AND. FLGVAL('REMOTE_STA')) THEN
 C&            CALL SRV_WRI(IDUMMY,0,IERR)
@@ -230,7 +231,7 @@ C&            CALL CLI_FIN
 C&          ELSE
 C&ENDIF
           CALL D0CLOSE(GIVEO, ' ', CLOSE_OK)
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
 C&ELSE
 C&          ENDIF
 C&ENDIF

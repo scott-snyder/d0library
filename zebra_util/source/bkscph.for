@@ -15,6 +15,7 @@ C-                         -1 --> SCPH bank not created because
 C-                                bank STPH does not exist
 C-
 C-   Created  17-JUN-1988   Harrison B. Prosper
+C-   Updated  16-MAR-2004   sss - use idate2k instead of idate.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INTEGER       RUN,I,J,K,JDATE,JTIME,LSCPH
@@ -38,7 +39,7 @@ C
 C
 C ****  Get date and time and pack into head bank SCPH
 C
-      CALL IDATE (I,J,K)
+      CALL IDATE2k (I,J,K)
       CALL TIME (STIME)
       JDATE = K + J*100 + I*10000
       READ (UNIT=STIME,FMT='(I2,2(1X,I2))') I,J,K

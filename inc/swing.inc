@@ -3,8 +3,10 @@
 *=======================================================================
      
       implicit  none
-     
-      include '/d0library/scratch/inc/pulldown.inc'
+
+c$$$      sss - fix up include     
+c$$$      include '/d0library/scratch/inc/pulldown.inc'
+      include 'inc/pulldown.inc'
      
       parameter MAX_LINES = 495  
       parameter MAX_LEVELS = 7

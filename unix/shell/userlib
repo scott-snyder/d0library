@@ -22,6 +22,7 @@ source `uff $d0unix/d0local.cshrc`
 # -l  - Specify library file (default userlib.a in current directory).
 #
 # Created 28-SEP-1991   Herbert B. Greenlee
+# sss -- add timestamps
 #
 # Recognized source file types:
 #
@@ -211,7 +212,7 @@ if( $debug )then
   echo "$deb_library:t : $deb_library" >> $scratch/makefile
   d0echo "\t@ echo $deb_library:t is up to date" >> $scratch/makefile
   echo "${deb_library}:: $lib_scratch/nothing.nl" >> $scratch/makefile
-  cut -f1 $scratch/dependencies | archive_update $deb_library \
+  cut -f1 $scratch/dependencies | archive_update $deb_library $lib_scratch/stamp \
   >> $scratch/makefile
   foreach subdir ( $subdirs )
     d0echo '\tar $(ARFLAGS)' "$deb_library" '`ls' "$lib_scratch/$subdir/*.o" '2> /dev/null`'\
@@ -227,7 +228,7 @@ if( $opt )then
   echo "$library:t : $library" >> $scratch/makefile
   d0echo "\t@ echo $library:t is up to date" >> $scratch/makefile
   echo "${library}:: $lib_scratch/nothing.nl" >> $scratch/makefile
-  cut -f1 $scratch/dependencies | archive_update $library \
+  cut -f1 $scratch/dependencies | archive_update $library $lib_scratch/stamp \
     >> $scratch/makefile
   foreach subdir ( $subdirs )
     d0echo '\tar $(ARFLAGS)' "$library" '`ls' "$lib_scratch/$subdir/*.o" '2> /dev/null`'\
@@ -243,21 +244,26 @@ d0echo "\trmdirp $lib_scratch" >> $scratch/makefile
 foreach subdir ( $subdirs )
   d0echo "\tmkdirp $lib_scratch/$subdir" >> $scratch/makefile
 end
+d0echo "\tif [ -r $library ] ; then\\" >> $scratch/makefile
+d0echo "\t  touch -r $library $lib_scratch/stamp ;\\" >> $scratch/makefile
+d0echo "\telse \\" >> $scratch/makefile
+d0echo "\t  touch $lib_scratch/stamp ;\\" >> $scratch/makefile
+d0echo "\tfi" >> $scratch/makefile
 #
 # Generate debug object file dependencies and updating rules
 #
 if( $debug )then
   echo "Generating dependencies for debug object files"
-  object_update $compdir -d -f $flavor -l $deb_library < $scratch/dependencies \
-    >> $scratch/makefile
+  object_update $compdir -d -f $flavor -l $deb_library -t $lib_scratch/stamp \
+    < $scratch/dependencies  >> $scratch/makefile
 endif
 #
 # Generate non-debug object file dependencies and updating rules
 #
 if( $opt )then
   echo "Generating dependencies for non-debug object files"
-  object_update $compdir -f $flavor -l $library < $scratch/dependencies \
-    >> $scratch/makefile
+  object_update $compdir -f $flavor -l $library -t $lib_scratch/stamp \
+    < $scratch/dependencies  >> $scratch/makefile
 endif
 #
 # Generate preprocessor dependencies.  This is done once for both debug and

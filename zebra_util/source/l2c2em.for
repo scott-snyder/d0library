@@ -61,6 +61,7 @@ C-                          correct version.
 C-   Modified 18-MAY-1994   James T. McKinley - Drop any C2EM banks that exist
 C-                          if L2EM exists for rebuild so will work on data
 C-                          with and without C2EM.
+C-   Modified 29-Dec-1995   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -68,7 +69,7 @@ C
       INCLUDE 'D0$INC:ZEBCOM.INC'
       INCLUDE 'D0$INC:C2EM_ZLINKA.INC'   !contains my reserved link area
       INTEGER NL1,L1PTR
-      INTEGER LL2EM,LC2EM,C2EMFL,GZL2EM,GZC2EM
+      INTEGER LL2EM,LC2EM,GZL2EM,GZC2EM
       INTEGER GZFILT,LFILT,UNUSED
       INTEGER TT(3,NL1MAX)      ! TT(1,*) = TT ETA, 
 C                                 TT(2,*) = TT PHI,

@@ -1,3 +1,14 @@
+C CMS REPLACEMENT HISTORY, Element EVOPIN.FOR
+C *9    27-NOV-1995 09:59:41 SERBAN "call FILENAME_PARSE, Hobbs"
+C *8    28-NOV-1994 23:59:14 SNYDER "support zzip option"
+C *7    26-NOV-1994 00:22:21 SNYDER "make compatible with zzip"
+C *6    23-FEB-1994 19:46:55 SERBAN "add D0DAD features, Hobbs"
+C *5    27-JAN-1994 20:42:46 SERBAN "fix for UNIX, Greenlee"
+C *4    10-JUL-1992 14:15:36 SERBAN ""
+C *3    28-FEB-1992 15:50:54 SERBAN "new X mode and multiple streams"
+C *2     7-NOV-1989 09:40:27 SERBAN "fix arguments"
+C *1     3-NOV-1989 12:19:19 SERBAN "open event input file"
+C CMS REPLACEMENT HISTORY, Element EVOPIN.FOR
       SUBROUTINE EVOPIN(INPUT_FILE,XOPT,INUNIT,OK)
 C----------------------------------------------------------------------
 C-
@@ -14,6 +25,7 @@ C-   Created   7-SEP-1989   Serban D. Protopopescu
 C-   Updated   8-MAR-1993   Kirill Denisenko and Hailin Li 
 C-                          Added Parallel Reco
 C-   Updated  26-NOV-1994   sss - added ZZIP support.
+C-   Updated  17-Jan-1996   sss - tpmfarm doesn't work on linux yet.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INTEGER IER,INUNIT,ILEN
@@ -22,7 +34,7 @@ C----------------------------------------------------------------------
       CHARACTER*3 CHOPT,CFTYPE,CFRUN,CFTEMP*128
       CHARACTER*1 CH
       INTEGER I,L,LEN,IERR
-      LOGICAL OK,OPTX,OPTG,OPTT,OPTZ
+      LOGICAL OK,XMODE,OPTX,OPTG,OPTT,OPTZ
       LOGICAL FLGVAL
       SAVE CFTYPE
 C----------------------------------------------------------------------
@@ -62,7 +74,7 @@ C
         IF(OPTG) CHOPT='GI'
         IF(OPTZ) CHOPT='ZI'
       ENDIF
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
       CALL D0OPEN(INUNIT,INPUT_FILE,CHOPT,OK)
       CALL XZRECL(ILEN,CHOPT)
       IF (ILEN .GE. 0) CALL FZFILE(INUNIT,ILEN,CHOPT)
@@ -88,6 +100,8 @@ C&ENDIF
 C
   999 CONTINUE
       CFTYPE='   '
+      CFTEMP=' '
+      ILEN=0
       IF( OK ) THEN
         CALL FILENAME_PARSE(INPUT_FILE,'NAM',CFTEMP,ILEN)
         CFTYPE=CFTEMP(1:3)
@@ -100,6 +114,8 @@ C
 C
       ENTRY SET_STREAM_TYPE(INPUT_FILE)
       CFTYPE='   '
+      CFTEMP=' '
+      ILEN=0
       CALL FILENAME_PARSE(INPUT_FILE,'NAM',CFTEMP,ILEN)
       CFTYPE=CFTEMP(1:3)
 C

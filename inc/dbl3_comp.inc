@@ -2,6 +2,7 @@ C----------------------------------------------------------------------
 C-
 C-   Created  14-NOV-1993   Srini Rajagopalan
 C-                  (S. abachi  renamed from dbcomp.inc)
+C-   Modified: sss - reorder variables to avoid warnings.
 C-
 C-   Declarations for DBL3 Compression package.
 C-
@@ -53,8 +54,8 @@ C devi(j,i)         Devices names to keep (j=1..ndev) for each class
 C
 C---common block-------------------------------------------------------
 C
-      COMMON /DBL3_COMP/ NUM_DTYP,DTYP_CALIB,NDROP,BANK_DROP,
+      COMMON /DBL3_COMP/ NUM_DTYP,NDROP,BANK_DROP,
      &                   NPATH,CALIB_PATH,
-     &                   NCLS,NDEV,CLAS,DEVI
+     &                   NCLS,NDEV,CLAS,DEVI,DTYP_CALIB
 C
 C----------------------------------------------------------------------

@@ -36,6 +36,7 @@ source `uff $d0unix/d0local.cshrc`
 #     be located in different directories.
 #
 # Created 12-NOV-1991   Herbert B. Greenlee
+# sss - add timestamp file
 #
 #------------------------------------------------------------------------------
 #
@@ -183,6 +184,7 @@ set parent_root = $library:h
 set deb_library = $parent_root/deb_$library:t
 set parent_name = $parent_names[$k]
 set parent_scratch = '$(SCRATCH)/'"$parent_name"
+set stamp_file = "$parent_scratch/stamp"
 #
 # Get a list of objects associated with this parent library.  Use this list
 # to get a list of sources and their dependencies.
@@ -224,7 +226,7 @@ if( $debug )then
   echo "deb_${parent_name}.a : $deb_library" >> $admin_area/makefile
   d0echo "\t@ echo deb_${parent_name}.a is up to date" >> $admin_area/makefile
   echo "${deb_library}:: $parent_scratch/nothing.nl" >> $admin_area/makefile
-  cut -f1 $admin_area/dependencies | archive_update $deb_library \
+  cut -f1 $admin_area/dependencies | archive_update $deb_library $stamp_file \
     >> $admin_area/makefile
   foreach subdir ( $subdirs )
     d0echo '\tar $(ARFLAGS)' "$deb_library" '`ls' "$parent_scratch/$subdir/*.o" '2> /dev/null`' \
@@ -240,7 +242,7 @@ if( $opt )then
   echo "${parent_name}.a : $library" >> $admin_area/makefile
   d0echo "\t@ echo ${parent_name}.a is up to date" >> $admin_area/makefile
   echo "${library}:: $parent_scratch/nothing.nl" >> $admin_area/makefile
-  cut -f1 $admin_area/dependencies | archive_update $library \
+  cut -f1 $admin_area/dependencies | archive_update $library $stamp_file \
     >> $admin_area/makefile
   foreach subdir ( $subdirs )
     d0echo '\tar $(ARFLAGS)' "$library" '`ls' "$parent_scratch/$subdir/*.o" '2> /dev/null`' \
@@ -256,21 +258,26 @@ d0echo "\trmdirp $parent_scratch" >> $admin_area/makefile
 foreach subdir ( $subdirs )
   d0echo "\tmkdirp $parent_scratch/$subdir" >> $admin_area/makefile
 end
+d0echo "\tif [ -r $library ] ; then\\" >> $admin_area/makefile
+d0echo "\t  touch -r $library $stamp_file ;\\" >> $admin_area/makefile
+d0echo "\telse \\" >> $admin_area/makefile
+d0echo "\t  touch $stamp_file ;\\" >> $admin_area/makefile
+d0echo "\tfi" >> $admin_area/makefile
 #
 # Generate debug object file dependencies and updating rules
 #
 if( $debug )then
   echo "Generating dependencies for debug object files"
-  object_update $compdir -d -f $flavor -l $deb_library < $admin_area/dependencies \
-    >> $admin_area/makefile
+  object_update $compdir -d -f $flavor -l $deb_library -t $stamp_file \
+    < $admin_area/dependencies  >> $admin_area/makefile
 endif
 #
 # Generate non-debug object file dependencies and updating rules
 #
 if( $opt )then
   echo "Generating dependencies for non-debug object files"
-  object_update $compdir -f $flavor -l $library < $admin_area/dependencies \
-    >> $admin_area/makefile
+  object_update $compdir -f $flavor -l $library -t $stamp_file \
+    < $admin_area/dependencies  >> $admin_area/makefile
 endif
 goto parent_loop
 parent_end:
