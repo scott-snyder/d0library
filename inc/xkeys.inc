@@ -1,0 +1,2 @@
+      COMMON/XKEYS/REAC 
+      CHARACTER*8 REAC  

@@ -1,0 +1,2 @@
+      REAL TRDT_VERS
+      PARAMETER( TRDT_VERS = 4.1 )

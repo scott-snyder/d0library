@@ -1,0 +1,13 @@
+C DSSCLOG.INC
+C
+C
+      INTEGER   DSIL,DSCF,DPRE,DATR,DPXP
+      INTEGER   PSIL,PSCF,PPRE,PATR,PPXP
+C
+      REAL      SSIL(10),SSCF(10),SPRE(10),SATR(10),SPXP(10)
+C
+      COMMON /DSSCLOG/ 
+     &                DSIL,DSCF,DPRE,DATR,DPXP,
+     &                PSIL,PSCF,PPRE,PATR,PPXP,
+     &                SSIL,SSCF,SPRE,SATR,SPXP
+C

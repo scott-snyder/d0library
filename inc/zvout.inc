@@ -1,0 +1,2 @@
+      COMMON/ZVOUT/ZVOUT(512)   
+      REAL      ZVOUT

@@ -1,0 +1,4 @@
+C
+      COMMON/SEED/XSEED
+      CHARACTER*24 XSEED   
+C      

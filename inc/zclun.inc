@@ -1,0 +1,6 @@
+C
+C ZCEDEX input/output units
+C
+      INTEGER LINZ,LOUTZ,LUNITZ
+      COMMON /ZCLUN/  LINZ,LOUTZ,LUNITZ    
+

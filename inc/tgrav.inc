@@ -1,0 +1,2 @@
+      COMMON/TGRAV/XCG(100)
+      REAL XCG

@@ -1,0 +1,27 @@
+C----------------------------------------------------------------------
+C-
+C-   Created  15-MAR-1994   Rajendran Raja
+C-
+C----------------------------------------------------------------------
+      COMMON /TOP_FIT_RCP/ TMASS,TMOM,TLEP(7),WLEP(7),BLEP(7),
+     &  EL(7),NU(7),
+     &  WLEP_T(7),BLEP_T(7),LEP_W(7),NEUT_W(7),THAD(7),WHAD(7),BHAD(7),
+     &  J1(7),J2(7),J1_W(7),J2_W(7),COST,SINT,PHI,WHAD_T(7),BHAD_T(7),
+     &  CTH_TL,PH_TL,CTH_WL,PH_WL,
+     &  CTH_TH,PH_TH,CTH_WH,PH_WH,
+     &  CPHI,SPHI,REST_EVENT_PT,REST_EVENT(2),
+     &  REST_EVENT_PT1
+C
+      DOUBLE PRECISION    TMASS,TMOM
+      DOUBLE PRECISION    TLEP,WLEP,BLEP,EL,NU
+      DOUBLE PRECISION    WLEP_T,BLEP_T
+      DOUBLE PRECISION    LEP_W,NEUT_W
+      DOUBLE PRECISION    THAD,WHAD,BHAD,J1,J2
+      DOUBLE PRECISION    J1_W,J2_W
+      DOUBLE PRECISION    COST,SINT,PHI
+      DOUBLE PRECISION    WHAD_T,BHAD_T
+      DOUBLE PRECISION    CTH_TL,PH_TL,CTH_WL,PH_WL
+      DOUBLE PRECISION    CTH_TH,PH_TH,CTH_WH,PH_WH
+      DOUBLE PRECISION    CPHI,SPHI
+      DOUBLE PRECISION    REST_EVENT_PT,REST_EVENT
+      DOUBLE PRECISION    REST_EVENT_PT1
