@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VLEVEL0()
       VLEVEL0 = ' LEVEL0'//
-     X                   '  OFFICIAL V0.04'//
-     X                   ' 27-JUL-1995 16:26:59.03'
+     X                   '  TEST V0.04_02'//
+     X                   '  7-MAY-1996 16:23:53.37'
       Return
       End

@@ -9,6 +9,7 @@ C-   Outputs : None
 C-   Controls: None
 C-
 C-   Created  13-JUL-1992   Freedy Nang
+C-   Updated   8-DEC-1995   Tracy L. Taylor  look for MDST bank if QCD MDST 
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -18,24 +19,32 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$PARAMS:ISTAT_DROP.PARAMS'
 C
       INTEGER GZPLV0
-      INTEGER DUMMY, LKPROC, GZPROC
+      INTEGER LKPROC, GZPROC
+      INTEGER GZMDST,LMDST
 C
       CHARACTER*4 PATH_LINK   !   path for which link has been set
       CHARACTER*4 PATH        !   path for which link is wanted
 C
-      LOGICAL FIRST, LGEANT_CHK
+      LOGICAL FIRST
 C
       DATA FIRST/.TRUE./
+      SAVE PATH_LINK
 C
 C----------------------------------------------------------------------
 C
       IF (FIRST) THEN
-C        IF (.NOT.LGEANT_CHK()) THEN
           CALL LV0PLNK
-C        ENDIF
         FIRST = .FALSE.
       ENDIF
 C
+      CALL PATHGT(PATH)
+      IF ( PATH.EQ.'MDST' ) THEN
+        LMDST = GZMDST()
+        IF ( LMDST .GT. 0 ) GZPLV0 = LQ(LMDST-2)
+        IF ( GZPLV0.EQ.0 ) CALL ERRMSG('GZPLV0','GZPLV0',
+     &                     'PLV0 BANK NOT PRESENT','W')
+        GOTO 999
+      ENDIF
       IF (LPLV0.EQ.0) THEN        ! link not set
         LKPROC=GZPROC()
         IF (LKPROC.NE.0) LPLV0=LQ(LKPROC-IZPLV0)

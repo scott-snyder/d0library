@@ -11,7 +11,7 @@ C-
 C-   Created   1-DEC-1992   Susan K. Blessing
 C-   Updated  13-JAN-1994   Jeffrey Bantly    new Crate 71 data format upgrade
 C-   Updated   2-FEB-1994   Chip Stewart:  functions with zero-suppressed data
-C-   Updated  26-JUL-1995   Jeffrey Bantly  fix data length error bug, ncards=3 
+C-   Updated  20-JUL-1995   Chip Stewart, Chris Klopfenstein - MAXLEN=74
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -21,11 +21,11 @@ C----------------------------------------------------------------------
       INTEGER L71,L71_TRAILER,GZFIND_CRATE,GZFIND_CRATE_TRAILER_WAS
       INTEGER NHEAD,NLUMIN,NHV,NFADC,NMUON, LFADC,LWORD,NWORDS,WORD
       INTEGER LABEL,LENGTH, LCHAN,CHAN, BIN, LOC_CLUS,LENGTH_CLUS,OFFSET
-      INTEGER VERSION, MIN_CHAN,MAX_CHAN,NCHAN, NCARDS,PROPER_LENGTH
+      INTEGER VERSION, MIN_CHAN,MAX_CHAN,NCHAN, NCARDS, MAXLEN
       INTEGER LEN_CARD, NWCHAN,LCLUS
       CHARACTER*80 MESSG
       LOGICAL FIRST
-      SAVE FIRST,MIN_CHAN,MAX_CHAN,LEN_CARD,PROPER_LENGTH,NCHAN,NMUON
+      SAVE FIRST,MIN_CHAN,MAX_CHAN,LEN_CARD,NCHAN,NMUON
       DATA FIRST/.TRUE./,MIN_CHAN/0/,NCHAN/16/,NMUON/80/
 C----------------------------------------------------------------------
       DO I=0,255
@@ -35,35 +35,39 @@ C----------------------------------------------------------------------
       IF(LTRGR.LE.0) GOTO 999
       L71 = GZFIND_CRATE('TRGR',LTRGR,71)
 C      IF (FIRST) THEN       ! set nominal accounting for 3 FADC cards
-        NCARDS = 3
-        MAX_CHAN = MIN_CHAN + NCHAN*NCARDS - 1
-        LEN_CARD = 4*(256*NCARDS+8)+1 !bogus length (indicates how many cards)
-        PROPER_LENGTH=66              ! non  zero suppressed
+      NCARDS = 3
+      MAX_CHAN = MIN_CHAN + NCHAN*NCARDS - 1
+      LEN_CARD = 4*(256*NCARDS+8)+1 !bogus length (indicates how many cards)
+C
+C **** MAXLEN is set to 74 which allows the zero suppressed length (66)
+C **** to exceed non-zero suppressed length - which can happen now and then.
+C
+      MAXLEN=74
 C
 C ****  TOP DOWN  (to check number of cards -  shouldn't change in data)
 C
-        NHEAD = IQ(L71) + 1
-        VERSION = IQ(L71+3)
-        NLUMIN = IQ(L71+NHEAD)
-        IF (VERSION.EQ.3) NLUMIN = NLUMIN + 1
-        IF (NLUMIN.LE.1) NLUMIN = 1
-        NHV = IQ(L71+NHEAD+NLUMIN)
-        IF (VERSION.EQ.3) NHV = NHV + 1
-        IF (NHV.LE.1) NHV = 1
-        NFADC = IQ(L71+NHEAD+NLUMIN+NHV)
-        IF (VERSION.EQ.3) NFADC = NFADC + 1
-        IF (NFADC.NE.LEN_CARD) THEN
-          DO NCARDS=1,3
-            LEN_CARD = 4*(256*NCARDS+8)+1
-            IF (LEN_CARD.EQ.NFADC) GOTO 700
-          END DO
-          WRITE(MESSG,*) 'TRGR FADC data length =',NFADC, LEN_CARD
-          CALL ERRMSG('LEVEL0-bad-71-length','TRGR_FADC',MESSG,'W')
-          GO TO 999
-        END IF
-        FIRST=.FALSE.
+      NHEAD = IQ(L71) + 1
+      VERSION = IQ(L71+3)
+      NLUMIN = IQ(L71+NHEAD)
+      IF (VERSION.EQ.3) NLUMIN = NLUMIN + 1
+      IF (NLUMIN.LE.1) NLUMIN = 1
+      NHV = IQ(L71+NHEAD+NLUMIN)
+      IF (VERSION.EQ.3) NHV = NHV + 1
+      IF (NHV.LE.1) NHV = 1
+      NFADC = IQ(L71+NHEAD+NLUMIN+NHV)
+      IF (VERSION.EQ.3) NFADC = NFADC + 1
+      IF (NFADC.NE.LEN_CARD) THEN
+        DO NCARDS=1,3
+          LEN_CARD = 4*(256*NCARDS+8)+1
+          IF (LEN_CARD.EQ.NFADC) GOTO 700
+        END DO
+        WRITE(MESSG,*) 'TRGR FADC data length =',NFADC, LEN_CARD
+        CALL ERRMSG('LEVEL0-bad-71-length','TRGR_FADC',MESSG,'W')
+        GO TO 999
+      END IF
+      FIRST=.FALSE.
 C      ENDIF
- 
+
       IF ( CHANNEL.LT.MIN_CHAN .OR. CHANNEL.GT.MAX_CHAN ) GOTO 999
 C
 C ****  BOTTOM UP UNPACKING to handle zero-supression
@@ -94,7 +98,7 @@ C
         IF ( LABEL.LT.MIN_CHAN .OR. LABEL.GT.MAX_CHAN ) THEN
           CALL ERRMSG('TRGR_CRATE_71','TRGR_FADC','CHANNEL LABEL','W')
           GOTO 999
-        ELSE IF ( LENGTH.GT.PROPER_LENGTH )  THEN
+        ELSE IF ( LENGTH.GT.MAXLEN )  THEN
           CALL ERRMSG('TRGR_CRATE_71','TRGR_FADC','CHANNEL LENGTH','W')
           GOTO 999
         ELSE IF ( LABEL.NE.CHANNEL ) THEN
@@ -139,3 +143,4 @@ C
 C-----------------------------------------------------------------------------
   999 RETURN
       END
+
