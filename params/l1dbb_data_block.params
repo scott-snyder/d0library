@@ -1,0 +1,561 @@
+C----------------------------------------------------------------------
+C-
+C-                      LEVEL1_TRIGGER_DATA_BLOCK
+C-                      =========================
+C-
+C-   Created   8-MAR-1990   Sylvain Tisserant (MSU)
+C-   Updated  19-MAR-1990   Sylvain Tisserant (MSU) : Only INTEGER declarations
+C-   Updated  24-MAY-1990   Sylvain Tisserant (MSU) : New format.
+C-   Updated  14-JUN-1990   Sylvain Tisserant (MSU) : Back new format.
+C-                          (Cf : D0 Note 967)
+C-   Updated   9-OCT-1991   MICHIGAN STATE UNIVERSITY, TRIGGER CONTROL SOFTWARE
+C-                          Moved parameter definitions here from .INC file
+C-   Updated   6-JAN-1992   Philippe Laurens, Steven Klocek  
+C-                          Moved header and trailer parameters here from
+C-                          L1_FW_ANDD_CT_FILL. 
+C-   Updated   8-JUN-1992   Philippe Laurens, Steven Klocek  
+C-                          Added parameters related to Revision B of the Data
+C-                          Block. See also Revision B of D0 Note 967. Note
+C-                          that currently the length of the Data Block has not
+C-                          been updated in this file, so that L1SIM will still
+C-                          operate correctly. 
+C-   Updated  28-JUN-1993   Philippe Laurens - MSU L1 Trigger  
+C-                          Change name Super Tower -> Large Tile 
+C-                          Update Version Number and add alternate Version Num
+C-
+C----------------------------------------------------------------------
+C
+C     Base address of the Level 1 Trigger Data Block
+C     ==============================================
+C
+      INTEGER    BASE_ADDRESS
+      PARAMETER (BASE_ADDRESS = 1)
+C
+      INTEGER    CURRENT_EVENT
+      PARAMETER (CURRENT_EVENT = BASE_ADDRESS)
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+      INTEGER    WORD_COUNT_L
+      PARAMETER (WORD_COUNT_L = 2 )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Scalers
+C     =======
+C
+      INTEGER    SCALER_L
+      PARAMETER (SCALER_L = 5)
+C
+      INTEGER    SP_TRG_SCALERS,    SP_TRG_SCALERS_L
+      PARAMETER (SP_TRG_SCALERS   = CURRENT_EVENT,
+     +           SP_TRG_SCALERS_L = 2 * SCALER_L * NUM_TOT_TRG)
+C
+      INTEGER    TRG_NUM_SCALER
+      PARAMETER (TRG_NUM_SCALER = SP_TRG_SCALERS + SP_TRG_SCALERS_L)
+C
+      INTEGER    DBLOCK_NUM_SCALER
+      PARAMETER (DBLOCK_NUM_SCALER = TRG_NUM_SCALER + SCALER_L)
+C
+      INTEGER    LEVEL15_CYCLE_SCALER
+      PARAMETER (LEVEL15_CYCLE_SCALER = DBLOCK_NUM_SCALER + SCALER_L)
+C
+      INTEGER    LEVEL15_POTENTIAL_SCALER
+      PARAMETER (LEVEL15_POTENTIAL_SCALER 
+     &           = LEVEL15_CYCLE_SCALER + SCALER_L)
+C
+      INTEGER    BEAM_CROSS_SCALER
+      PARAMETER (BEAM_CROSS_SCALER 
+     &           = LEVEL15_POTENTIAL_SCALER + SCALER_L) 
+C
+      INTEGER    GATED_BEAM_CROSS_SCALER
+      PARAMETER (GATED_BEAM_CROSS_SCALER = BEAM_CROSS_SCALER + SCALER_L)
+C
+      INTEGER    FASTZ_GOOD_SCALER
+      PARAMETER (FASTZ_GOOD_SCALER = GATED_BEAM_CROSS_SCALER + SCALER_L)
+      INTEGER    F2_SCALER 
+      PARAMETER (F2_SCALER   = FASTZ_GOOD_SCALER + SCALER_L)
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     FSTD for Specific Triggers
+C     ==========================
+C
+      INTEGER    SP_TRG_FSTD,    SP_TRG_FSTD_L
+      PARAMETER (SP_TRG_FSTD   = F2_SCALER + SCALER_L,
+     +           SP_TRG_FSTD_L = 8                              )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     ANDOR Input Bits
+C     ================
+C
+      INTEGER    ANDOR_L
+      PARAMETER (ANDOR_L = 32)
+C
+      INTEGER    ANDOR_01_TO_16,  ANDOR_17_TO_32
+      PARAMETER (ANDOR_01_TO_16 = SP_TRG_FSTD + SP_TRG_FSTD_L,
+     +           ANDOR_17_TO_32 = ANDOR_01_TO_16 + ANDOR_L)
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Front End Busy
+C     ==============
+C
+      INTEGER    FRONT_END_BUSY,    FRONT_END_BUSY_L
+      PARAMETER (FRONT_END_BUSY   = ANDOR_17_TO_32 + ANDOR_L,
+     +           FRONT_END_BUSY_L = 4 * 4                    )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Fired Specific Triggers
+C     =======================
+C
+      INTEGER    SP_TRG_FIRED,    SP_TRG_FIRED_L
+      PARAMETER (SP_TRG_FIRED   = FRONT_END_BUSY + FRONT_END_BUSY_L,
+     +           SP_TRG_FIRED_L = 4 * 4                             )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Start Digitize on Trig-ACQ cables
+C     =================================
+C
+      INTEGER    START_DIGITIZE,    START_DIGITIZE_L
+      PARAMETER (START_DIGITIZE   = SP_TRG_FIRED + SP_TRG_FIRED_L,
+     +           START_DIGITIZE_L = 4                             )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Front End Busy and 2nd Level Disables
+C     =====================================
+C
+      INTEGER    FRONT_END_DSBL,    FRONT_END_DSBL_L
+      PARAMETER (FRONT_END_DSBL   = START_DIGITIZE + START_DIGITIZE_L,
+     +           FRONT_END_DSBL_L = 4                              )
+C
+      INTEGER    SCND_LVL_DSBL,    SCND_LVL_DSBL_L
+      PARAMETER (SCND_LVL_DSBL   = FRONT_END_DSBL + FRONT_END_DSBL_L,
+     +           SCND_LVL_DSBL_L = 4                              )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     CBUS TSS
+C     ========
+C
+      INTEGER    CBUS_TSS,    CBUS_TSS_L
+      PARAMETER (CBUS_TSS   = SCND_LVL_DSBL + SCND_LVL_DSBL_L,
+     +           CBUS_TSS_L = 1                               )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Global Quantities
+C     =================
+C
+      INTEGER    GLOBAL_L
+      PARAMETER (GLOBAL_L = 3)
+C
+      INTEGER    EM_ET_TOTAL
+      PARAMETER (EM_ET_TOTAL   = CBUS_TSS + CBUS_TSS_L)
+C
+      INTEGER    HD_ET_TOTAL
+      PARAMETER (HD_ET_TOTAL   = EM_ET_TOTAL + GLOBAL_L)
+C
+      INTEGER    PX_TOTAL
+      PARAMETER (PX_TOTAL      = HD_ET_TOTAL + GLOBAL_L)
+C
+      INTEGER    PY_TOTAL
+      PARAMETER (PY_TOTAL      = PX_TOTAL    + GLOBAL_L)
+C
+      INTEGER    UNASSIGNED,    UNASSIGNED_L
+      PARAMETER (UNASSIGNED   = PY_TOTAL + GLOBAL_L,
+     +           UNASSIGNED_L = 4                   )
+C
+      INTEGER    TOT_ET_TOTAL
+      PARAMETER (TOT_ET_TOTAL = UNASSIGNED + UNASSIGNED_L)
+C
+      INTEGER    MPT_TOTAL
+      PARAMETER (MPT_TOTAL    = TOT_ET_TOTAL + GLOBAL_L)
+C
+      INTEGER    EM_L2_TOTAL
+      PARAMETER (EM_L2_TOTAL  = MPT_TOTAL + GLOBAL_L)
+C
+      INTEGER    HD_L2_TOTAL
+      PARAMETER (HD_L2_TOTAL  = EM_L2_TOTAL + GLOBAL_L)
+C
+      INTEGER    TOT_L2_TOTAL
+      PARAMETER (TOT_L2_TOTAL = HD_L2_TOTAL + GLOBAL_L)
+C
+      INTEGER    HOT_TOWER_FINAL,    HOT_TOWER_FINAL_L
+      PARAMETER (HOT_TOWER_FINAL   = TOT_L2_TOTAL + GLOBAL_L,
+     +           HOT_TOWER_FINAL_L = 2 * (TOT_ET_REF_MAX -
+     +                                    EM_ET_REF_MIN + 1) )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Level 0 and 1.5 Information
+C     ===========================
+C
+      INTEGER    FAST_VERTEX,    FAST_VERTEX_L
+      PARAMETER (FAST_VERTEX   = HOT_TOWER_FINAL + HOT_TOWER_FINAL_L,
+     +           FAST_VERTEX_L = 1)
+C
+      INTEGER    L0_RESERVED,    L0_RESERVED_L
+      PARAMETER (L0_RESERVED   = FAST_VERTEX + FAST_VERTEX_L,
+     +           L0_RESERVED_L = 3)
+C
+      INTEGER    L1_5_RESERVED,    L1_5_RESERVED_L
+      PARAMETER (L1_5_RESERVED   = L0_RESERVED + L0_RESERVED_L,
+     +           L1_5_RESERVED_L = 4)
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Trigger Tower FADC values
+C     =========================
+C
+      INTEGER    WORD_COUNT_1
+      PARAMETER (WORD_COUNT_1 = L1_5_RESERVED + L1_5_RESERVED_L)
+C
+      INTEGER    TT_FADC,    TT_FADC_L
+      PARAMETER (TT_FADC   = WORD_COUNT_1 + WORD_COUNT_L,
+     +           TT_FADC_L = (PHI_MAX  - PHI_MIN  + 1)/2
+     +                     * (ETA_MAX  - ETA_MIN  + 1)
+     +                     * (NEG_ETA  - POS_ETA  + 1)
+     +                     * (HD_TOWER - EM_TOWER + 1)       )
+C
+C-------------------------------------------------------------------------------
+C
+C     Event Length
+C     ============
+C
+      INTEGER    EVENT_LENGTH
+      PARAMETER (EVENT_LENGTH =  SP_TRG_SCALERS_L +
+     +   (8*SCALER_L) +
+     +   SP_TRG_FSTD_L +  (2 * ANDOR_L) +  FRONT_END_BUSY_L      +
+     +   SP_TRG_FIRED_L +  START_DIGITIZE_L +  FRONT_END_DSBL_L  +
+     +   SCND_LVL_DSBL_L +  CBUS_TSS_L +  (4 * GLOBAL_L)         +
+     +   UNASSIGNED_L +  (5 * GLOBAL_L) +  HOT_TOWER_FINAL_L     +
+     +   FAST_VERTEX_L +  L0_RESERVED_L +  L1_5_RESERVED_L       +
+     +   WORD_COUNT_L +  TT_FADC_L       )
+C
+C-------------------------------------------------------------------------------
+C
+C     Previous Event
+C     ==============
+C
+      INTEGER    WORD_COUNT_2
+      PARAMETER (WORD_COUNT_2 = CURRENT_EVENT + EVENT_LENGTH )
+C
+      INTEGER    PREVIOUS_EVENT
+      PARAMETER (PREVIOUS_EVENT = WORD_COUNT_2 + WORD_COUNT_L )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Jet Lists
+C     ========= 
+C
+      INTEGER    JET_MAX,       JET_LIST_L
+      PARAMETER (JET_MAX = 32 , JET_LIST_L = 2 + (4 * JET_MAX) )
+C
+      INTEGER    WORD_COUNT_3,     EM_ET_JET_LIST
+      PARAMETER (WORD_COUNT_3    = PREVIOUS_EVENT + EVENT_LENGTH,
+     +           EM_ET_JET_LIST  = WORD_COUNT_3   + WORD_COUNT_L   )
+C
+      INTEGER    WORD_COUNT_4,     TOT_ET_JET_LIST
+      PARAMETER (WORD_COUNT_4    = EM_ET_JET_LIST + JET_LIST_L,
+     +           TOT_ET_JET_LIST = WORD_COUNT_4   + WORD_COUNT_L )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Masks of Jet Patterns
+C     =====================
+C
+      INTEGER    WORD_COUNT_5
+      PARAMETER (WORD_COUNT_5    = TOT_ET_JET_LIST + JET_LIST_L )
+C
+      INTEGER    JET_PTTRN_MSK,    JET_PTTRN_MSK_L
+      PARAMETER (JET_PTTRN_MSK   = WORD_COUNT_5 + WORD_COUNT_L,
+     +           JET_PTTRN_MSK_L = (PHI_MAX - PHI_MIN + 1)/16
+     +                           * (ETA_MAX - ETA_MIN + 1)
+     +                           * (NEG_ETA - POS_ETA + 1)
+     +                           * (TOT_ET_REF_MAX - EM_ET_REF_MIN + 1))
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     TRD Hot Tower Table
+C     ===================
+C
+      INTEGER    WORD_COUNT_6
+      PARAMETER (WORD_COUNT_6    = JET_PTTRN_MSK + JET_PTTRN_MSK_L )
+C
+      INTEGER    TRD_TABLE,    TRD_TABLE_L
+      PARAMETER (TRD_TABLE   = WORD_COUNT_6 + WORD_COUNT_L,
+     +           TRD_TABLE_L = 320                          )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Specific Trigger Programming with respect to the Jet Lists
+C     ==========================================================
+C
+      INTEGER    WORD_COUNT_7
+      PARAMETER (WORD_COUNT_7    = TRD_TABLE + TRD_TABLE_L )
+C
+      INTEGER    JET_PROGRAMMING,    JET_PROGRAMMING_L
+      PARAMETER (JET_PROGRAMMING   = WORD_COUNT_7 + WORD_COUNT_L,
+     +           JET_PROGRAMMING_L = 4 *
+     +                              (TOT_ET_REF_MAX - EM_ET_REF_MIN + 1)
+     +                                  )
+C
+C     Reserved words
+C     --------------
+C
+      INTEGER    END_RESERVED,    END_RESERVED_L
+      PARAMETER (END_RESERVED   = JET_PROGRAMMING + JET_PROGRAMMING_L,
+     +           END_RESERVED_L = 2 )
+C
+C     Programmed and Fired Trigger Masks
+C     ----------------------------------
+C
+      INTEGER    JET_FIRED,    JET_FIRED_L
+      PARAMETER (JET_FIRED   = END_RESERVED + END_RESERVED_L,
+     +           JET_FIRED_L = 2 *
+     +                        (TOT_ET_REF_MAX - EM_ET_REF_MIN + 1) )
+C
+C       Specific Trigger programming of the Large Tile Reference Sets
+C
+      INTEGER    LRG_TILE_JET_PROGRAMMING, LRG_TILE_JET_PROGRAMMING_L
+      PARAMETER (LRG_TILE_JET_PROGRAMMING   = JET_FIRED + JET_FIRED_L,
+     +           LRG_TILE_JET_PROGRAMMING_L = 32)
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Large Tile Jet Patterns
+C     ==========================================================
+C
+      INTEGER    WORD_COUNT_8
+      PARAMETER (WORD_COUNT_8 = LRG_TILE_JET_PROGRAMMING 
+     &  + LRG_TILE_JET_PROGRAMMING_L)
+C
+      INTEGER    LRG_TILE_JET_PTTRN_MSK, LRG_TILE_JET_PTTRN_MSK_L
+      PARAMETER (LRG_TILE_JET_PTTRN_MSK = WORD_COUNT_8 + WORD_COUNT_L,
+     +           LRG_TILE_JET_PTTRN_MSK_L = 40 )
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Level 1.5
+C     ==========================================================
+C
+      INTEGER    WORD_COUNT_9
+      PARAMETER (WORD_COUNT_9 = LRG_TILE_JET_PTTRN_MSK
+     &                        + LRG_TILE_JET_PTTRN_MSK_L)
+C
+      INTEGER    LEVEL15_DEAD_BEAMX_SCALER
+      PARAMETER (LEVEL15_DEAD_BEAMX_SCALER 
+     &             = WORD_COUNT_9 + WORD_COUNT_L)
+C
+      INTEGER    LEVEL15_PASS_SCALER
+      PARAMETER (LEVEL15_PASS_SCALER 
+     &           = LEVEL15_DEAD_BEAMX_SCALER + SCALER_L)
+C
+      INTEGER    LEVEL15_FAIL_SCALER
+      PARAMETER (LEVEL15_FAIL_SCALER = LEVEL15_PASS_SCALER + SCALER_L)
+C
+      INTEGER    LEVEL15_TIME_OUT_SCALER
+      PARAMETER (LEVEL15_TIME_OUT_SCALER 
+     &             = LEVEL15_FAIL_SCALER + SCALER_L)
+C
+      INTEGER    L15_RESERVED_SCALER, L15_RESERVED_SCALER_L
+      PARAMETER (L15_RESERVED_SCALER   
+     &             = LEVEL15_TIME_OUT_SCALER + SCALER_L,
+     &           L15_RESERVED_SCALER_L = 4 * SCALER_L)
+C
+      INTEGER    L15_STATUS, L15_STATUS_L
+      PARAMETER (L15_STATUS  
+     &              = L15_RESERVED_SCALER + L15_RESERVED_SCALER_L,
+     &           L15_STATUS_L = 2 * (32 / 8) + 4 * 2 )
+C
+      INTEGER    L15_RESERVED, L15_RESERVED_L
+      PARAMETER (L15_RESERVED   = L15_STATUS + L15_STATUS_L,
+     &           L15_RESERVED_L = 16 )
+C
+      INTEGER    L15_DBLOCK_L
+      PARAMETER (L15_DBLOCK_L = 4 * SCALER_L 
+     &                        + L15_RESERVED_SCALER_L
+     &                        + L15_STATUS_L
+     &                        + L15_RESERVED_L )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Absolute Time
+C     ==========================================================
+C
+      INTEGER    WORD_COUNT_10
+      PARAMETER (WORD_COUNT_10 = L15_RESERVED + L15_RESERVED_L)
+C
+      INTEGER    ABSOLUTE_TIME, ABSOLUTE_TIME_L
+      PARAMETER (ABSOLUTE_TIME   = WORD_COUNT_10 + WORD_COUNT_L,
+     &           ABSOLUTE_TIME_L = 4 + 8 )
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+C
+C     Additional Scalers
+C     ==========================================================
+C
+      INTEGER    WORD_COUNT_11
+      PARAMETER (WORD_COUNT_11 = ABSOLUTE_TIME + ABSOLUTE_TIME_L ) 
+C
+      INTEGER    SCALER_68KSTATE_IDLE
+      PARAMETER (SCALER_68KSTATE_IDLE = WORD_COUNT_11 + WORD_COUNT_L)
+C
+      INTEGER    SCALER_68KSTATE_DBBBUSY
+      PARAMETER (SCALER_68KSTATE_DBBBUSY 
+     &             = SCALER_68KSTATE_IDLE + SCALER_L)
+C
+      INTEGER    SCALER_68KSTATE_PREP_DATA
+      PARAMETER (SCALER_68KSTATE_PREP_DATA 
+     &             = SCALER_68KSTATE_DBBBUSY + SCALER_L)
+C
+      INTEGER    SCALER_68KSTATE_WAITVBD
+      PARAMETER (SCALER_68KSTATE_WAITVBD 
+     &             = SCALER_68KSTATE_PREP_DATA + SCALER_L)
+C
+      INTEGER    SCALER_68KSTATE_WAITDMA
+      PARAMETER (SCALER_68KSTATE_WAITDMA
+     &             = SCALER_68KSTATE_WAITVBD + SCALER_L)
+C
+      INTEGER    SCALER_68KSTATE_DISPLAY
+      PARAMETER (SCALER_68KSTATE_DISPLAY 
+     &             = SCALER_68KSTATE_WAITDMA + SCALER_L)
+C
+      INTEGER    NUM_TOT_BUNCH
+      PARAMETER (NUM_TOT_BUNCH = 6)
+C
+      INTEGER    BUNCH_LEVEL1, BUNCH_LEVEL1_L
+      PARAMETER (BUNCH_LEVEL1 
+     &             = SCALER_68KSTATE_DISPLAY + SCALER_L,
+     &           BUNCH_LEVEL1_L = NUM_TOT_BUNCH * SCALER_L )
+C
+      INTEGER    BUNCH_LEVEL0_GOOD, BUNCH_LEVEL0_GOOD_L
+      PARAMETER (BUNCH_LEVEL0_GOOD   = BUNCH_LEVEL1 + BUNCH_LEVEL1_L,
+     &           BUNCH_LEVEL0_GOOD_L = NUM_TOT_BUNCH * SCALER_L )
+C
+      INTEGER    LEVEL15_SKIP_SCALER
+      PARAMETER (LEVEL15_SKIP_SCALER 
+     &             = BUNCH_LEVEL0_GOOD + BUNCH_LEVEL0_GOOD_L)
+C
+      INTEGER    DATABLOCK_BUILDER_CYCLE_SCALER
+      PARAMETER (DATABLOCK_BUILDER_CYCLE_SCALER 
+     &             = LEVEL15_SKIP_SCALER + SCALER_L)
+C
+      INTEGER    ADDITIONAL_RESERVED_SCALERS, 
+     &           ADDITIONAL_RESERVED_SCALERS_L
+      PARAMETER (ADDITIONAL_RESERVED_SCALERS 
+     &             = DATABLOCK_BUILDER_CYCLE_SCALER + SCALER_L, 
+     &           ADDITIONAL_RESERVED_SCALERS_L = 4 * SCALER_L)
+C
+      INTEGER    MISC_FOREIGN, MISC_FOREIGN_L
+      PARAMETER (MISC_FOREIGN 
+     &             = ADDITIONAL_RESERVED_SCALERS 
+     &               + ADDITIONAL_RESERVED_SCALERS_L,
+     &           MISC_FOREIGN_L = 44 * SCALER_L )
+C
+      INTEGER    ADDITIONAL_SCALER_L
+      PARAMETER (ADDITIONAL_SCALER_L = 6 * SCALER_L
+     &                               + BUNCH_LEVEL1_L
+     &                               + BUNCH_LEVEL0_GOOD_L
+     &                               + 2 * SCALER_L
+     &                               + ADDITIONAL_RESERVED_SCALERS_L
+     &                               + MISC_FOREIGN_L )
+C-------------------------------------------------------------------------------
+C
+C     Level 1 Trigger Data Block
+C     ==========================
+C                                                            16-bit word length
+C                                                            ------------------
+      INTEGER    DATA_BLOCK_LENGTH
+      PARAMETER (DATA_BLOCK_LENGTH = (2 * EVENT_LENGTH) 
+     +                             + (2 * JET_LIST_L)
+     +                             + JET_PTTRN_MSK_L + TRD_TABLE_L
+     +                             + JET_PROGRAMMING_L + END_RESERVED_L
+     +                             + JET_FIRED_L + (6 * WORD_COUNT_L) 
+     +                             + LRG_TILE_JET_PROGRAMMING_L
+     +                             + LRG_TILE_JET_PTTRN_MSK_L
+     +                             + L15_DBLOCK_L
+     +                             + ABSOLUTE_TIME_L
+     +                             + ADDITIONAL_SCALER_L
+     +                             + (4 * WORD_COUNT_L)  )
+C
+C       The following was the length for revision A of the Data Block:
+CC
+CC                                                            16-bit word length
+CC                                                            ------------------
+C      INTEGER    DATA_BLOCK_LENGTH
+C      PARAMETER (DATA_BLOCK_LENGTH = (2 * EVENT_LENGTH)
+C     +                             + (2 * JET_LIST_L)
+C     +                             + JET_PTTRN_MSK_L
+C     +                             + TRD_TABLE_L
+C     +                             + JET_PROGRAMMING_L
+C     +                             + END_RESERVED_L
+C     +                             + JET_FIRED_L
+C     +                             + (6 * WORD_COUNT_L) )
+C                                                            32-bit word length
+C                                                            ------------------
+      INTEGER    DATA_BLOCK_MAX
+      PARAMETER (DATA_BLOCK_MAX = DATA_BLOCK_LENGTH/2)
+C
+C
+C-------------------------------------------------------------------------------
+C
+C     Pointers to topics which can be handled as INTEGER items
+C     ========================================================
+C
+      INTEGER    EVENT_MAX
+      PARAMETER (EVENT_MAX = EVENT_LENGTH/2)
+      INTEGER    I_CURRENT_EVT,    I_PREVIOUS_EVT
+      PARAMETER (I_CURRENT_EVT  = ((CURRENT_EVENT  - BASE_ADDRESS)/2)+1,
+     +           I_PREVIOUS_EVT = ((PREVIOUS_EVENT - BASE_ADDRESS)/2)+1)
+C
+      INTEGER    I_EM_ET_JET,     I_TOT_ET_JET
+      PARAMETER (I_EM_ET_JET  = ((EM_ET_JET_LIST  - BASE_ADDRESS)/2)+1,
+     +           I_TOT_ET_JET = ((TOT_ET_JET_LIST - BASE_ADDRESS)/2)+1)
+C
+      INTEGER    I_JET_PATTERN
+      PARAMETER (I_JET_PATTERN = ((JET_PTTRN_MSK - BASE_ADDRESS)/2)+1)
+C
+      INTEGER    I_TRD_TABLE
+      PARAMETER (I_TRD_TABLE = ((TRD_TABLE - BASE_ADDRESS)/2)+1)
+C
+      INTEGER    I_JET_FIRED
+      PARAMETER (I_JET_FIRED = ((JET_FIRED - BASE_ADDRESS)/2)+1)
+C
+C----------------------------------------------------------------------
+C
+C     Parameters dealing with headers and trailers
+C
+      INTEGER    TRGR_HEADER_LENGTH,     TRGR_TRAILER_LENGTH
+      PARAMETER (TRGR_HEADER_LENGTH = 6, TRGR_TRAILER_LENGTH = 4)
+      INTEGER    TRGR_BANK_LENGTH
+      PARAMETER (TRGR_BANK_LENGTH = TRGR_HEADER_LENGTH
+     +                            + DATA_BLOCK_MAX + 1
+     +                            + TRGR_TRAILER_LENGTH  )
+C
+      INTEGER    CRATE_ID, BIT_29
+      INTEGER    VERSION_NUMBER, VERSION_NUMBER_ALT
+      PARAMETER (CRATE_ID =  11, BIT_29 = 30)
+      PARAMETER (VERSION_NUMBER = 9, VERSION_NUMBER_ALT = 7)
+C
+C-------------------------------------------------------------------------------
+C
+C     Parameters to be used with the BITBYT CernLib package
+C     =====================================================
+C
+      INTEGER    BYTE_LENGTH,     WORD_LENGTH,
+     +           LONG_WORD_LENGTH
+      PARAMETER (BYTE_LENGTH      = 8,
+     +           WORD_LENGTH      = 2 * BYTE_LENGTH,
+     +           LONG_WORD_LENGTH = 4 * BYTE_LENGTH)
+C
+      INTEGER    FIRST_BYTE,   SECOND_BYTE,
+     +           THIRD_BYTE,   FOURTH_BYTE
+      PARAMETER (FIRST_BYTE  = 1,
+     +           SECOND_BYTE = FIRST_BYTE  + BYTE_LENGTH,
+     +           THIRD_BYTE  = SECOND_BYTE + BYTE_LENGTH,
+     +           FOURTH_BYTE = THIRD_BYTE  + BYTE_LENGTH )
