@@ -1,0 +1,273 @@
+\START          CAJETS_RCP ! control file for CLUSTERS package
+\SIZE        403       148
+!------------------------------------------------------------------------------
+!   Name:       CAJETS_RCP
+!   Purpose:    Control file for CAJETS package
+!   Created:    22-APR-1989     Nick Hadley,Rajendran Raja
+!   Modified:   02-OCT-1989     H.Prosper,C.Stewart,J.Blazey
+!   Modified:   11-OCT-1989     H.Prosper,N.Hadley,J.Blazey
+!   Modified:   13-DEC-1989     Harrison B. Prosper
+!   Modified:   13-JAN-1990     Harrison B. Prosper
+!   Modified:   23-MAR-1990     Boaz Klima - no PJET
+!   Modified:   13-SEP-1990     Harrison B. Prosper - added MAXIMUM_CAL_CLUSTERS
+!   Modified:   3-OCT-1990      Chip Stewart NEW FORMAT
+!   Modified:   4-JAN-1992      G.C.Blazey Add extra cone algorithms for L1 bits
+!   Modified:   12-JAN-1992     N.A. Graf Add subcone cone calculations
+!   Version:    V3.00
+!   Modified:   18-JAN-1993     Alex Smith: added MUON algorithm switches
+!   Version:    V3.01
+!   Modified:   28-May-1993     Alex Smith: added more MUON algorithm switches
+!   Version:    V3.02
+!   Modified:   7-JAN-1994      G.C.Blazey      Changed RUN IB filters
+!   Modified:   20-JAN-1994     G.C.Blazey      Changed RUN IB filters
+!   Modified:   15-FEB-1994     G.C.Blazey      Changed RUN IB filters
+!   Updated:    18-MAR-1994     Chip Stewart    Changed Nearest Neighbor
+!   Updated:    24-MAR-1994     G.C.Blazey      Added Jet_30 for extra alg.
+!   Updated:    18-OCT-1994     G.C.Blazey      Added V10 extra Alg.
+!   Updated:    07-JUN-1995     G.C.Blazey      Added *nol0 and deleted *.QDF
+!                                               filters from extra alg. list.
+!   Updated:    18-SEP-1995   Bob Hirosky/Brad Abbott:  new alg list
+!                               include -0.7 cone for D0 angle jets
+!                               and 0.3 0.0 3.0 algorithm
+!   Updated:     1-NOV-1995   Bob Hirosky   ADD: 'JET_15_NOL0','JET_30_NOL0',
+!                                           'JET_GAP_SD','JET_GAP_POM'
+!                                           TO XTRA ALG LIST + MOVE D0 ANGLE
+!                                           ALG FROM XTRA TO STANDARD LIST
+!   Updated:     3-JAN-1996   Daniel Elvira ADD:'JET_MAXA' to extra algo list
+!
+!   Updated:     5-JAN-1996   Brad Abbott   ADD: JET_GAP_12,JET_GAP_MNS,
+!                                                JET_GAP_PLS,JET_MID_12,
+!                                                JET_MNS_12,JET_PLS_12,
+!                                                JET_10,JET_12,JET_GAP_10
+!                                                to extra algo list
+!   Updated      27-FEB-1996  John Krane  ADD low energy jet triggers:
+!                             JET_GAP_12-LNR,JET_GAP_12H-LNR,JET_GAP_12MI-LNR,
+!                             JET_GAP_12HMI-LNR,JET_GAP_MNS-LNR,JET_GAP_PLS-LNR,
+!                             JET_15_NOL0-LNR,JET_GAP_SD-LNR,JET_GAP_SD12-LNR,
+!                             JET_30-LNR,JET_50-LNR,JET_12-LNR,JET_MID_12-LNR,
+!                             JET_MNS_12-LNR,JET_PLS_12-LNR,JET_GAP_MID-LNR,
+!                             JET_10-LNR,JET_10_QMP-LNR,JET_12_GM-LNR,
+!                             JET_12B-LNR,JET_MID_12B-LNR,JET_MNS_12B-LNR,
+!                             JET_PLS_12B-LNR,JET_GAP_10-LNR,JET_GAP_10H-LNR,
+!                             JET
+!   Updated:    25-MAR-1996   Jill Perkins   Removed LNR filters and special
+!                             run QNT filters, and replaced with QGT filters:
+!                             ZERO_BIAS_QGT,MIN_BIAS_QGT,JET_GAP_12_QGT,
+!                             JET_GAP_15_QGT,JET_GAP_18_QGT,JET_GAP_MNS_QGT,
+!                             JET_GAP_PLS_QGT,JET2_GAP_PLS_QGT,JET_GAP_MSD_QGT,
+!                             JET_GAP_PSD_QGT,JET_GAP_SD_QGT,JET_20_BADS_QGT,
+!                             JET_15_BADS_QGT,JET_20_NOL0_QGT,JET_20_QGT,
+!                             JET_GM_QGT
+!------------------------------------------------------------------------------
+ \ARRAY HBOOK_DIRECTORY
+      'CALORIMETER'
+      'CAJETS'
+ \END
+!------------------------------------------------------------------------------
+!              RUNTIME SELECTION SWITCHES:
+!------------------------------------------------------------------------------
+DO_ANALYSIS             TRUE   ! Do User analysis
+DROP_CACL               TRUE   ! Selectively drops CACL banks (CAJETS_DROP_DST)
+CELL_ETMIN              1.     ! Minimum Cell ET for JETS+16 word
+COVEP_CELL_ETMIN        -1.0   ! Minimum Cell ET for JETS+40 word
+!------------------------------------------------------------------------------
+!              JET ALGORITHMS: THERE IS A 20 ALGORITHM LIMIT
+!       EACH ALGORITHM IS LISTED AS AN ARRAY WITH PREFIX "ALGORITHM_"
+!       THE ORDER OF PARAMETERS FOR THE CONE AND NN ALGORITHMS IS:
+!       CONE: 1='CONE' 2=RADIUS_OF_CONE(R)  3=MIN_JET_ET(R)  4=ET_SPLIT_FRAC(R)
+!             5=MIN_CLUSTER_SEPARATION(R)   6=SEED_MIN_ET(R)   7=CAND_MIN_ET(R)
+!             8=PRECLU_MIN_ET(R)
+!       NN:   1:2='NEIGHBOR' 3=DO_NEIGHBOR_ENERGY(L) 4=ETA_NEIGHBOR_LIMIT(I)
+!             5=PHI_NEIGHBOR_LIMIT(I)  6=MINIMUM TOWER ET(R)
+!             7=CLUSTER SEED THRESHOLD(R) 8=CLUSTER ET THRESHOLD(R)
+!             9=CLUSTER_EM_RATIO_THRESHOLD(R)  10=JET_ET_THRESHOLD(R)
+!             11=POWER_FOR_SHOWER_CENTER(R)    12=MAXIMUM_CAL_CLUSTERS(I)
+!       MUON: 1='MUON' 2=RADIUS_OF_CONE(R)  3=MIN_JET_ET(R)  4=ET_SPLIT_FRAC(R)
+!             5=MIN_CLUSTER_SEPARATION(R)   6=SEED_MIN_ET(R)   7=CAND_MIN_ET(R)
+!             8=PRECLU_MIN_ET(R)
+!------------------------------------------------------------------------------
+\ARRAY ALGORITHM___CONE_DEFAULT    !3 underscores to force algorithm order
+ 'CONE'
+!------------------------------------------------------------------------------
+!              ETA,PHI CONE ALGORITHM:
+!------------------------------------------------------------------------------
+!   Constants for subroutine CONCLI
+!------------------------------------------------------------------------------
+ 0.7  ! RADIUS_OF_CONE          = cone for finding jets
+ 8.0  ! MIN_JET_ET              = minimum ET for a jet
+!------------------------------------------------------------------------------
+!   Constants for subroutine SPLINI
+!------------------------------------------------------------------------------
+ 0.5  ! ET_SPLIT_FRAC           = fraction of energy shared before COMBINE
+ 0.01 ! MIN_CLUSTER_SEPARATION  = minimum separation between clusters
+!------------------------------------------------------------------------------
+!   Constants for subroutine CLUPRI
+!------------------------------------------------------------------------------
+ 1.0  ! SEED_MIN_ET             = SEED MINIMUM ET
+ 1.0  ! CAND_MIN_ET             = candidate minimum ET
+ 1.0  ! PRECLU_MIN_ET           = minimum ET for a PRECLUSTER
+\END
+\ARRAY ALGORITHM__NEIGHBOR_DEFAULT
+ 'NEIGHBOR'
+!------------------------------------------------------------------------------
+!              NEAREST NEIGHBOR ALGORITHM:
+!------------------------------------------------------------------------------
+!   Constants for subroutine CNEIGH_CATE; all energies are in GeV.
+!------------------------------------------------------------------------------
+ FALSE  !  DO_NEIGHBOR_ENERGY      = Use ET if FALSE; use ENERGY if TRUE
+ 2      !  ETA_NEIGHBOR_LIMIT      = Search +/- this number for nearest neighbor
+ 2      !  PHI_NEIGHBOR_LIMIT      = Search +/- this number for nearest neighbor
+ 0.05   !  MINIMUM_TOWER_ET        = Minimum tower Et (GeV) for clustering
+ -0.8   !  CLUSTER SEED THRESHOLD  = Connection accepted if Et (neigh)>|seed|
+ 1.0    !  CLUSTER_ET_THRESHOLD    = Pre-cluster accepted if ET > Et-THR
+ 0.0    !  CLUSTER_EM_RATIO_THRESHOLD = Cluster dropped if EM_RATIO less than
+ 5.0    !  JET_ET_THRESHOLD        = Minimum Jet Et
+ 1.0    !  POWER_FOR_SHOWER_CENTER = Used for energy weighting for shower centre
+ 255    !  MAXIMUM_CAL_CLUSTERS    = Maximum number of CACL banks (8-bit limit)
+\END
+\ARRAY ALGORITHM_CONE_2
+ 'CONE' 0.5 8.0 0.5 0.01 1.0 1.0 1.0
+\END
+\ARRAY ALGORITHM_CONE_3
+ 'CONE' 0.3 8.0 0.5 0.01 1.0 1.0 1.0
+\END
+\ARRAY ALGORITHM_CONE_4         ! D0 angles 0.7 cone
+ 'CONE' -0.7 8.0 0.5 0.01 1.0 1.0 1.0
+\END
+!
+!------------------------------------------------------------------------------
+!              EXTRA ALGORITHMS
+!------------------------------------------------------------------------------
+!   Construct additional algorithms for the L1 bits listed in EXTRA_ALG_L1BITS.
+!   The extra algorithms MUST be indicated by the suffix "_XXX".
+!------------------------------------------------------------------------------
+!
+! For the extra algorithm with jet radius SUBCONES_JETRAD,  one
+! calculates the energy in subcones, keeping the direction fixed.
+! For these jets the bank JTCS (JeT Cone Size) bank is filled (hangs off CAPH)
+! Code is in CAJETS_ADDON.FOR (N. Graf)
+!
+!------------------------------------------------------------------------------
+!
+DO_EXTRA           TRUE         ! Add extra bits
+SUBCONES_JETRAD   1.0           ! See above for explanation
+SUBCONES_CELLE    .FALSE.       ! If true use energy in subcones, else Et
+BOOK_JTCS         .TRUE.
+CALCULATE_N90     .TRUE.
+!
+!\ARRAY EXTRA_L1BITS                     ! Maximum of 32 allowed.
+!15 16 17 18 19 20 21
+!\END
+\ARRAY   EXTRA_L2NAMES
+'JET_END_LOW'                            !1A global triggers not in 1b
+'JET_END_MED'
+'JET_LOW'
+'JET_MEDIUM'
+'JET_HIGH'
+'JET_3_HIGH'
+'JET_MULTI'
+'JET_MULTI_X'
+'JET_GAP_MED'
+'MU_1_EM_JET'                            ! GLOBAL RUNS
+'GIS_DIJET'
+'EM1_GIS'
+'EM1_GIS_HIGH'
+'EM2_GIS_GAM'
+'JET_CAL'
+'JET_MIN'
+'JET_FAR_END'
+'JET_30'
+'JET_50'
+'JET_85'
+'JET_MAX'
+'JET_140'
+'JET_GAP_LOW'
+'JET_GAP_HIGH'
+'JET_GAP_LHE'
+'JET_GAP_LME'
+'JET_GAP_HHE'
+'JET_GAP_HME'
+'JET_GAP_MHE'
+'MIN_BIAS'
+'JET_20_NOL0'
+'JET_15_NOL0'
+'JET_30_NOL0'
+'JET_GAP_SD'
+'JET_GAP_POM'
+'JET_GAP_SAME'
+'JET_FAR_SUP'
+'JET_FAR_MAX'
+'JET_MAXA'
+'JET_GAP_10'
+'JET_GAP_12'
+'JET_GAP_MNS'
+'JET_GAP_PLS'
+'JET_MID_12'
+'JET_MNS_12'
+'JET_PLS_12'
+'JET_10'
+'JET_12'
+'ZERO_BIAS_QGT'                          ! Special Runs
+'MIN_BIAS_QGT'
+'JET_GAP_12_QGT'
+'JET_GAP_15_QGT'
+'JET_GAP_18_QGT'
+'JET_GAP_MNS_QGT'
+'JET_GAP_PLS_QGT'
+'JET2_GAP_PLS_QGT'
+'JET_GAP_MSD_QGT'
+'JET_GAP_PSD_QGT'
+'JET_GAP_SD_QGT'
+'JET_20_BADS_QGT'
+'JET_15_BADS_QGT'
+'JET_20_NOL0_QGT'
+'JET_20_QGT'
+'JET_GM_QGT'
+'JET'                                    ! A Dummy
+\END
+!
+\ARRAY ALGORITHM_CONE_5_XXX
+ 'CONE' 1.0 8.0 0.5 0.01 1.0 1.0 1.0
+\END
+!
+\ARRAY ALGORITHM_CONE_6_XXX         ! new eta efficiency alg
+ 'CONE' 0.7 8.0 0.5 0.01 0.3 0.0 3.0
+\END
+!
+!
+!------------------------------------------------------------------------------
+! *** MUON ALGORITHM:
+!------------------------------------------------------------------------------
+DO_MUON_JFIND           .FALSE.     ! Turn on/off muon-based jet finding
+DROP_UNASSOC_JETS       .FALSE.    ! Drop all JETS banks thaT have a muon
+USE_MUJET_DEBUG_TOOLS   .FALSE.     ! Write output for MUJET debugging
+                                   ! fraction of zero
+DROP_DR                    0.7     ! Radius about muon to keep JETS
+MUJET_DEBUG_LUNIT         30       ! logical unit for MUJET debug output
+
+MUJETS_IFW4_MAX             1      ! Max IFW4 value to do MUJETS for (2max)
+DROP_UNASSOC_JETS       .TRUE.     ! Drop ass. JETS banks that are outside cone
+    DROP_DR                1.0     ! Radius about muon to keep JETS
+USE_MUJET_DEBUG_TOOLS   .TRUE.     ! Write output for MUJET debugging
+    MUJET_DEBUG_LUNIT       30     ! logical unit for MUJET debug output
+
+\ARRAY ALGORITHM___MUON_DEFAULT    !3 underscores to force algorithm order
+ 'MUON'
+!   Constants for subroutine CONCLI
+!------------------------------------------------------------------------------
+ 0.7  ! RADIUS_OF_CONE          = cone for finding jets
+ 8.0  ! MIN_JET_ET              = minimum ET for a jet
+!------------------------------------------------------------------------------
+!   Constants for subroutine SPLINI
+!------------------------------------------------------------------------------
+ 0.5  ! ET_SPLIT_FRAC           = fraction of energy shared before COMBINE
+ 0.01 ! MIN_CLUSTER_SEPARATION  = minimum separation between clusters
+!------------------------------------------------------------------------------
+!   Constants for subroutine CLUPRI
+!------------------------------------------------------------------------------
+ 1.0  ! SEED_MIN_ET             = SEED MINIMUM ET
+ 1.0  ! CAND_MIN_ET             = candidate minimum ET
+ 1.0  ! PRECLU_MIN_ET           = minimum ET for a PRECLUSTER
+\END
+!------------------------------------------------------------------------------
+\STOP

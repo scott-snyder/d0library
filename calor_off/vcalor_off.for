@@ -4,9 +4,9 @@ C D0 library release version function.
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      Character*72 Function VISAZEB()
-      VISAZEB = ' ISAZEB'//
-     X                   '  TEST V2.15_01'//
-     X                   ' 14-AUG-1997 08:41:11.73'
+      Character*72 Function VCALOR_OFF()
+      VCALOR_OFF = ' CALOR_OFF'//
+     X                   '  OFFICIAL V1.60'//
+     X                   ' 14-JUL-1997 09:21:50.31'
       Return
       End

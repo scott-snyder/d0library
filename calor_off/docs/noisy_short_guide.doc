@@ -1,0 +1,106 @@
+                                                           September 20, 1993
+                                                           Updated  6-MAR-1994
+                                                           Updated 14-MAY-1995
+                                                           Ian Adam
+                                                                
+
+USING THE NOISY PACKAGE
+=======================
+
+
+INTRODUCTION
+------------
+
+This document describes how to get started in running the NOISY package.  It 
+does not describe all the options available in the package.  More complete 
+documentation can be found in D0$CALOR_OFF:NOISY.DOC.  There are also a number
+of D0 notes which are useful for detailed questions, e.g., 1274, 1399.
+
+
+BUILDING A WORKING PROGRAM
+--------------------------
+
+Example:
+
+1) Run the program builder:
+
+$   LIBTEST ALL
+$   PBD/FRAME=D0USER/NAME=NOISY/PACK=(CALOR,NOISY_TRIG1,NOISY,CAHITS,NOIANL)
+/ZEBCOM=3000000/ZEBSTP=3000000
+
+These are large common block sizes, you may want to experiment with them.
+
+RUNNING THE PROGRAM
+-------------------
+
+Example command file:
+
+$   DEFINE DATAFILE       YOUR_MC_DATA.STA
+$   DEFINE PILEFILE_LIST  PILE.LIST
+$   DEFINE MYOUTFILE      YOUR_MC_DATA_WITH_NOISE.STA
+$   @NOISY_D0USER.COM
+$
+$   DEFINE PEDS_HIS_FILE  D0$BETA:[STP]NOISY_PEDS_59138.HST4
+$   DEFINE SPICE_DAT      D0$STP:D0ALPHA.SPICE
+$   DEFINE NOISY_RCP      YOUR_VERSION_OF_NOISY_RCP.RCP
+$   D0USER/NOSMG
+OUTPUT
+STA
+MYOUTFILE
+X
+N
+Y
+
+CAD1
+CAD2
+CAEP
+
+MANUAL
+0
+N
+DATAFILE
+X
+N
+10
+0
+Finish
+$EXIT:
+$   EXIT
+
+The first commands in the file set up necessary logicals.  The D0USER input will
+process 10 events and write the output to an exchange mode file, keeping the
+CAD1, CAD2 and CAEP banks.  
+
+You may also want to make sure that the CAEH bank is dropped, since it is very 
+large and will make your NOISY output files difficult to manage.  In addition, 
+if you try to run RECO on the NOISY output file it will crash if the CAEH bank 
+is present before CAHITS runs (this is true for v12.10 and earlier versions.)  
+
+PILEFILE_LIST should be a logical which points to a text file with a list of
+filenames for the pileup stream.
+
+
+SETTING UP NOISY_RCP
+--------------------  
+
+Examples:
+
+1) To add noise to a MC event and zero-suppress (and nothing else)
+
+    Set DO_SIGNAL                      true
+    Set DO_PAST, DO_PRESENT, DO_FUTURE false
+    Set DO_ELECTRONICS, DO_URANIUM     true
+    Set DO_ZSP                         true
+    Set N_SIGMA                        2.0 
+
+2) To add N multiple interactions in the same crossing as your signal (and
+   nothing else)
+
+    Set DO_SIGNAL                      true
+    Set DO_PAST, DO_FUTURE             false
+    Set DO_PRESENT                     true
+    Set DO_ELECTRONICS, DO_URANIUM     false
+    Set DO_ZSP                         false
+    Set CELL_SYMCUT                    0.0
+    Set FIXNUM                         N
+

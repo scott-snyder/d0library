@@ -1,0 +1,143 @@
+\START          ISARCP_RCP        ! Name of control file
+\SIZE        168       104
+!------------------------------------------------------------------------------
+!   Name:       ISARCP.RCP
+!   Purpose:    Control file for ISARCP PROGRAM
+!   Created:    21-OCT-1989     Rajendran Raja
+!   Updated:    21-DEC-1990     Harrison B. Prosper
+!   Updated:    13-NOV-1992     Brent May, Chip Stewart
+!------------------------------------------------------------------------------
+ NUMBER_OF_EVENTS       1650    !total number of events to generate
+ RUN_NUMBER             1001    !Runnumber for this run
+ GTUNIT_ID              725     !ID for GTUNIT calls
+!------------------------------------------------------------------------------
+!  I/O PARAMETERS
+!------------------------------------------------------------------------------
+ COMMAND_UNIT   0               !these unit numbers will be set by program
+ PRINT_UNIT     0
+ OUTPUT_UNIT    0
+ DECAY_UNIT     0
+!---------------------------------------------------------------------
+!   You should define the following logicals in a local SETUP_USER.COM
+!---------------------------------------------------------------------
+\ARRAY PRINT_FILE
+ 'PRINT_FILE'                   !ISAJET Print file name
+\END
+\ARRAY OUTPUT_FILE
+ 'OUTPUT_FILE'                  !ISAJET Output file name
+\END
+\ARRAY COMMAND_FILE
+ 'COMMAND_FILE'                 !ISAJET Command file name
+\END
+!------------------------------------------------------------------------------
+\ARRAY DECAY_FILE
+ 'D0$ISAJET:DECAY.DAT'          !Decay tables file
+ \END
+\ARRAY RANDOM_SEED_SAVE_FILE
+ 'ISARCP.SEED'                  !Final random number seed
+\END
+!------------------------------------------------------------------------------
+!  ISARCP PARAMETERS
+!------------------------------------------------------------------------------
+DO_MASS_CHECK           FALSE    !Check input mass against mass in ISAJ bank
+\ARRAY MASS_CHECK
+    6           !Top/Top-bar (ISAJET particle ID code)
+    2.0         !Masses should differ by no more than this (GeV)
+\END
+!-----------------------------
+DO_MASS_DISTRIBUTION    FALSE
+\ARRAY MASS_DISTRIBUTION
+    'UNIFORM'   !Distribution
+    110.0       !Lower bound (GeV)
+    140.0       !Upper bound (GeV)
+\END
+!-----------------------------
+DO_EDIT                 FALSE   !Filter events
+PRINT_EVENT_NUMBER     10       !Announce every nth event completion
+!
+\ARRAY EDIT_LIST
+      'CUT '                    !Cut events where WORD 1 of ISAQ
+      'ISAQ'                    !EQ any one of the following particle
+      'WORD 1 '                 !IDs
+      'EQ'
+       11  12  13  14  15  16   !Cut out events with leptons
+      -11 -12 -13 -14 -15 -16
+\END
+!------------------------------------------------------------------------------
+!               PJET ALGORITHM PARAMETERS
+!------------------------------------------------------------------------------
+NUMBER_ALGORITHMS         1     ! number of PJET algorithms to try
+!------------------------------------------------------------------------------
+\ARRAY ALGORITHM_01
+ 0.30           ! cone for finding p-jets
+10.0            ! minimum ET for a p-jet
+   1            ! maximum number of iterations
+   0            ! 1 - DONT INCLUDE INITIAL RADIATION - 0 INCLUDE ALL PARTONS
+   0            ! 1 - INCLUDE MUONS                  - 0 DONT INCLUDE MUONS
+ 'CONE'         ! ALGORITHM TPYE 'CONE' OR 'ANGLE'
+   0.0          ! Splitting (>0 EKS, <0 Et fract: see PJHD.ZEB)
+\END
+\ARRAY ALGORITHM_02
+ 0.35  5.0  1  0 0  'ANGLE'
+\END
+\ARRAY ALGORITHM_03
+ 0.4  5.0  2  0 0  'PART'  0.
+\END
+\ARRAY ALGORITHM_04
+ 0.7  5.0  10  0 0  'PART'  0.
+\END
+!------------------------------------------------------------------------------
+!  ISAZEB PARAMETERS
+!------------------------------------------------------------------------------
+ DO_READ_SEED   .TRUE.
+ WRITE_PARTICLES_BANK           .TRUE.
+ WRITE_PSEUDO_CALORIMETER_BANK  .FALSE.
+ WRITE_LEPTONS_BANK             .TRUE.
+ PRINT_DECAY_TABLE              .TRUE.
+!------------------------------------------------------------------------------
+! HBOOK PARAMETERS
+!------------------------------------------------------------------------------
+ HBOOK_SAVE   .TRUE.
+\ARRAY  HBOOK_SAVE_FILE
+ 'HBOOK.SAVE'
+\END
+\ARRAY  HBOOK_DIRECTORY
+ 'ISARCP'
+\END
+!------------------------------------------------------------------------------
+! IS1TRK CONSTANTS
+!------------------------------------------------------------------------------
+!-------------------IS1TRK CONSTANTS-----------------------------------
+ DO_ONE_TRACK_EVENTS  FALSE
+ \ARRAY ETA_PHI_CELL  !eta/PHI INDICES of cells to be populated
+       1 1   1 2
+ \END
+ PARTICLE_ID    14       !Isajet particle ID. (12 = e-; -12 e+)
+                         ! 120 Pi+  -120 P-, 14 Mu-  -14 Mu+
+!--------------------------
+! THREE METHODS TO SET PARTICLE MOMENTUM
+!--------------------------
+! SET PARTICLE MOMENTUM TO 15 GEV
+ PARTICLE_MOMENTUM 15.        ! Momentum spectrum
+!--------------------------
+! SET PARTICLE MOMENTUM TO 15 GEV +- 2.0  (UNIFORM DISTRIBUTION 13 TO 17 GEV)
+! \ARRAY PARTICLE_MOMENTUM       ! Momentum spectrum
+! 15. 2.
+!\END
+!--------------------------
+! SET PARTICLE MOMENTUM ACCORDING TO A 'HISTOGRAM' DISTRIBUION
+! SEE ISARCP.DOC FOR DETAILS
+! \ARRAY PARTICLE_MOMENTUM       ! Momentum spectrum
+! 1. 10.   2. 100.   3. 300.   5. 500.   10. 300.
+! 20. 100.   50. 50.   100. 20.
+\END
+!
+ \ARRAY PRIMARY_VERTEX
+  0.0  0.0  0.0          !Primary vertex co-ordinates
+ \END
+ VERTEX_Z_SIGMA  25.0    !Vertex Z sigma in centimeters
+ CELL_HISTOGRAM_WINDOW_X  10.0   !+/- about cell corner
+ CELL_HISTOGRAM_WINDOW_Y  10.0   !+/- about cell corner
+ CELL_HISTOGRAM_WINDOW_Z  10.0   !+/- about cell corner
+!------------------------
+ \STOP

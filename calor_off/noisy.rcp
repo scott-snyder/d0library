@@ -1,0 +1,137 @@
+\START    NOISY_RCP
+\SIZE        139       127
+!----------------------------------------------------------------------
+!    Name:       NOISY.RCP
+!    Package:    NOISY
+!    Library:
+!    Purpose:    Control of NOISY package
+!    Version     1.0
+!    Created:    26-JUL-1991   Allen I. Mincer
+!    Modified     1-JUN-1992   Allen I. Mincer
+!    Modified     8-MAR-1993   Allen I. Mincer
+!    Modified     7-SEP-1993   Ian Adam
+!----------------------------------------------------------------------
+!
+!------------------------------------------------------------------------------
+!   Control flags for NOISY
+!------------------------------------------------------------------------------
+ DO_PAST                TRUE   !Turn on Pileup from past events
+ DO_PRESENT             TRUE   !Turn on Multiple interactions in this vertex
+ DO_FUTURE              TRUE   !Turn on Future contribution to present event
+ DO_SIGNAL              TRUE   !Turn on Current ( set F for pedestal run)
+ DO_ELECTRONICS         TRUE   !Turn on electronics noise
+ DO_URANIUM             TRUE   !Turn on Uranium noise
+ DO_TRACK_PILEUP        FALSE  !Add tracks of multiple interactions.
+ DO_TRIG12              FALSE  ! Do separate calculation for Trigger level 1
+!------------------------------------------------------------------------------
+!   Control flags for Trigger level 1
+!   LEVEL 1 past and future not yet implemented
+!------------------------------------------------------------------------------
+ DO_PAST1               FALSE   !Turn on Pileup from past events
+ DO_PRESENT1            TRUE    !Turn on Multiple interactions in this vertex
+ DO_FUTURE1             FALSE   !Turn on Future contribution to present event
+ DO_SIGNAL1             TRUE    !Turn on Current ( set F for pedestal run)
+!------------------------------------------------------------------------------
+!   Parameters for pileup
+!------------------------------------------------------------------------------
+ NUMBPILE               50      !Number noise events per signal event
+ NUMBSWITCH             1       !Number noise events exchanged each event
+ OCCUPY               0.194     !Mean occupancy per crossing
+ FIXNUM                -1       !If >0 Use this number of events per crossing
+ DOUBLE_VERTEX        1.00      !Fraction of double vertices suviving
+ VAL_MIN              0.001     !Minimum bucket contribution fraction recorded
+!------------------------------------------------------------------------------
+!   Electronics parameters
+!------------------------------------------------------------------------------
+ BASE_SUBTRACT          TRUE    !Do baseline subtraction
+ T_SAMP                  2.00   !Sampling time (microseconds)
+ T_CROSS                 3.50   !Beam crossing time (microseconds)
+ USE_EXPSIG             FALSE   !If true, use simple exponential signal model
+ T_DECAY                 0.00   !Signal decay time (microseconds) in exp model
+ USE_GAU_NOISE          FALSE   !If true, use simple gaussian for noise
+ USE_EMP_NOISE          TRUE    !Use measured noise distribution
+!------------------------------------------------------------------------------
+!   Electronic and Uranium noise parameters
+!------------------------------------------------------------------------------
+ NOISE_AVG             0.0     ! Average noise for gaussian model (GeV)
+ NOISE_SIGMA           0.050   ! Sigma for gaussian noise model (GeV)
+!------------------------------------------------------------------------------
+!   Cell cut parameters
+!------------------------------------------------------------------------------
+ DO_ZSP                TRUE    !do zero suppression according to noise dist'ns
+ N_SIGMA                2.0    !suppress at N sigma
+! NB: If DO_ZSP is true, CELL_SYMCUT should be set to zero.
+ CELL_SYMCUT           0.00    !Symmetric about 0 cell cut (GeV)
+ CELL_LOWCUT       -9999.99     !Cell low cut (GeV)
+!------------------------------------------------------------------------------
+!   Random number generation
+!------------------------------------------------------------------------------
+ RAN_SEED              976523   !Seed for RAN/RNDM random number generator
+!------------------------------------------------------------------------------
+!   Geometry cuts - useful for looking at noise in small detector regions
+!------------------------------------------------------------------------------
+ DO_GEOCUT             FALSE    ! Fill only detector cells in following region
+ NLAYMIN                   1    ! minimum layer (layer runs from 1 to NLYRL)
+ NLAYMAX                 100    ! maximum layer
+ NPHIMIN                   1    ! minimum phi  (phi runs from 1 to NPHIL)
+ NPHIMAX                 100    ! maximum phi
+ NETAMIN                -100    ! minimum eta (eta runs from -NETAL to +NETAL)
+ NETAMAX                 100    ! maximum eta
+!------------------------------------------------------------------------------
+!   CAD bank usage parameters
+!------------------------------------------------------------------------------
+  DROP_SIG_CAD        FALSE     !Drop signal CAD, use CAEP for calculation
+  DROP_OLD_CAD        TRUE      !DROP original CAD banks after adding pileup
+  SAVE_LEVEL1         FALSE      !SAVE level 1 CAD banks as LQ(level 2 banks)
+  USE_LEVEL1          FALSE     !USE level 1 banks instead of lev2 (for debug)
+!------------------------------------------------------------------------------
+!   DATA_FILES specifies the data files to be read
+!------------------------------------------------------------------------------
+ \ARRAY PILE_FILES
+    1                           ! Number of files or filelists to process
+    999999                      ! Number of events to process/file
+    'PILEFILE_LIST'             ! Name of Data file
+    'NOFILE'                    ! Name of Calibration file
+ \END
+!------------------------------------------------------------------------------
+!   TRIGGER BIT SELECTION
+!------------------------------------------------------------------------------
+ PRINT_TRIGGER_MESSAGE  FALSE   !If true events which fail will be flagged.
+ SELECT_TRIGGERS        FALSE
+ \ARRAY TRIGGER_BITS
+   1   !CAL_BEAM
+   !2  !CAL_PEDS
+   !3  !INTERSPERSED PEDS
+ \END
+!------------------------------------------------------------------------------
+!   SPICE DATA file definition
+!------------------------------------------------------------------------------
+ \ARRAY SPICE_FILE
+       'SPICE_DAT'             !SPICE OUTPUT file name
+ \END
+!------------------------------------------------------------------------------
+!   Print file definition and other output switches
+!------------------------------------------------------------------------------
+ PRINT_EVENT_NUMBER      1
+ PRINT_OUTPUT            TRUE
+ LIST_NOI_HIST           FALSE   ! List the noise histograms used
+ \ARRAY NOISY_OUT_FILE
+       'NOISY_OUT'             !Output file name
+ \END
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+ \ARRAY HBOOK_DIRECTORY
+      'NOISY'
+ \END
+!------------------------------------------------------------------------------
+!   Analysis Cuts
+!------------------------------------------------------------------------------
+ DO_NOISY_ANAL          FALSE   !Turn on Histogram analysis
+!------------------------------------------------------------------------------
+!   Histogram definitions
+!------------------------------------------------------------------------------
+\ARRAY HISTOGRAMS
+!
+\END
+\STOP    !   NOISY_RCP

@@ -1,0 +1,104 @@
+$!------------------------------------------------
+$!
+$! Name      : CALOR_OFF.LNK
+$!
+$! Purpose   : Standard link file for CALOR_OFF
+$!
+$! Arguments : [p1]     NODEBUG, DEBUG 
+$!                      NODEBUG is the default
+$!             [P2]     DI3000         
+$!
+$! Created  13-OCT-1990 15:26:33.83 by CLNK
+$!                      version V1.4 13-Oct-1990
+$! Modified 29-JAN-1991   Harrison B. Prosper 
+$!      Bug fix
+$! Modified  8-FEB-1991   Harrison B. Prosper 
+$!      Check for usr$beta
+$! Modified 10-DEC-1991   Harrison B. Prosper 
+$!      Simplify
+$!
+$!------------------------------------------------
+$   ON ERROR     Then Goto EXIT
+$   ON CONTROL_Y Then Goto EXIT
+$
+$   WR        :== WRITE SYS$OUTPUT
+$
+$!       Program name
+$
+$   Program   = "CALOR_OFF"
+$
+$!       Link options
+$
+$   switches  = "/NOMAP"
+$
+$!       Decode arguments
+$
+$   DI3000    = ""
+$   DEBUG     = ""
+$   IF F$EXTRACT(0,1,p1) .EQS. "D"      THEN DEBUG  = "TRUE"
+$   IF F$EXTRACT(0,3,p2) .EQS. "DI3"    THEN DI3000 = "TRUE"
+$
+$   IF DEBUG
+$   THEN
+$       switches     = switches+"/DEBUG"
+$       Deb          = "DEB_"
+$   ELSE
+$       Deb          = ""
+$   ENDIF
+$
+$!------------------------------------------------
+$!      Check if pgbd_sources_object and
+$!      user_libraries strings are defined.
+$!------------------------------------------------
+$
+$   IF F$TYPE(PGBD_SOURCES_OBJECT) .EQS. ""
+$   THEN
+$       PGBD_SOURCES_OBJECT     = ""
+$   ENDIF
+$
+$   IF F$TYPE(USER_LIBRARIES) .EQS. ""
+$   THEN
+$       USER_LIBRARIES          = ""
+$   ENDIF
+$   
+$   IF F$TYPE(TASK) .EQS. ""
+$   THEN
+$       TASK = ""
+$   ELSE    
+$       TASK = TASK + "_"
+$   ENDIF
+$!------------------------------------------------
+$!      Name of executable file
+$!------------------------------------------------
+$   program_name = task+deb+program
+$   WR "  "
+$   WR " Linking Program     "+program_name
+$   WR "  "
+$   WR "    With"
+$   IF DI3000
+$   THEN
+$       WR "        DI3000"
+$       Link_Command = "DI3LOAD"
+$       Program_name = Program_Name + " SHARE"
+$   ELSE
+$       Link_Command = "LINK"
+$   ENDIF
+$   
+$   WR "  "
+$   WR "        ''PGBD_SOURCES_OBJECT'"
+$   WR "  "
+$   WR "        ''USER_LIBRARIES'"
+$   WR "  "
+$   WR "        D0$CALOR_OFF:''DEB'CALOR_OFF.OPT/OPT"
+$   WR "  "
+$!------------------------------------------------
+$!  Link command
+$!------------------------------------------------
+$   'LINK_COMMAND' -
+'PGBD_SOURCES_OBJECT'-
+'USER_LIBRARIES'-
+D0$CALOR_OFF:'DEB'CALOR_OFF/OPT-
+'SWITCHES'/EXE='PROGRAM_NAME'
+$
+$EXIT:
+$   EXIT

@@ -1,0 +1,197 @@
+ 16-AUG-1990 : Modifications released by Chip Stewart
+ 
+    - HOOK routines from NWA
+        - TB90_CALOR_HIST.FOR  -  from caldata
+        - TB90_CALOR_UNPACK.FOR - PACKAGE TO MAKE CAEP BANKS 
+        - TB90_STATUS_PAGE.FOR  - PACKAGE TO WRITE SUMMARY FILE
+        - TB90_CALOR_HIST_BEGIN.FOR - MENU ITEM FOR CHANGING CUT PARAMETERS
+        - TB90_CALOR_DST.FOR - TB90 DST maker
+        - TB90_CALOR_CHANNEL.RCP - Package to watch bad channels 
+        - TB90_CALOR_PDGN_CHK.FOR - PACKAGE TO CHECK PEDS/GNS
+
+    - RCP   files to control TGB90 packages 
+        - TB90_CALOR_DST.RCP 
+        - TB90_CALOR_UNPACK.RCP 
+        - TB90_CALOR_PDGN_CHK.RCP 
+        - TB90_CALOR_HIST.RCP 
+
+    - COM files to print plots from TB90_CALOR_HIST in CALDATA
+        - MAKEPLOTLN.COM 
+        - RUN_DISPLAY_LN03.COM 
+
+ 20-AUG-1990 : Modifications released by Chip Stewart
+ 
+    - HOOK routines from NWA
+        - TB90_STATUS_PAGE.FOR  - modified to Read RCP files at BEGIN RUN HOOK
+                                  and RCP control by TB90_STATUS_PAGE
+
+    - RCP   files to control TGB90 packages 
+        - TB90_CALOR_HIST.RCP   - Updated From CALDATA
+        - TB90_STATUS_PAGE.RCP   - Controls TB90_STATUS_PAGE package.
+
+
+    The CAPH bank can now be a linear chain of banks. Each calorimeter
+reconstruction algorithm routine will create its own CAPH bank:
+
+    Package Name        Algorithm Name
+    ----------------------------------
+    CAPHEL              ELECTRON
+
+    CAJETS              CONE_JET
+
+                        NN_JET
+
+    Each algorithm name defines a CAPH path. To select a particular
+CAPH path use
+
+        CALL SET_CAPH (algorithm-name,template,ier)
+
+For example, to select the CAPH path pertaining to the electron
+algorithm one would use
+
+        CALL SET_CAPH ('ELECTRON',0,IER)
+
+The zero in the second argument signifies that the path should be set
+to the first CAPH bank pertaining to the electron algorithm. (In principle,
+one could have more than one electron algorithm path each with different
+cuts, for example.) To reset the path to the previously set path one
+would call
+
+        CALL RESET_CAPH
+
+Note, SET_CAPH .... RESET_CAPH can be nested.
+
+That is:
+
+        CALL SET_CAPH('ELECTRON',0,IER)
+                :       :               ------- Electron path active
+           CALL SET_CAPH('CONE_JET',0,IER)
+                :       :               ------- Cone Jet path active
+           CALL RESET_CAPH
+                :       :               ------- Electron path active
+        CALL RESET_CAPH
+
+works! USE WITH CAUTION!!!!
+
+
+    The TEMPLATE can be used for more involved path settings: namely,
+to set a CAPH path depending on the value of one or more words within the
+bank. THAT FEATURE NEEDS TO BE TESTED!!
+
+    The format of the template is
+
+        TEMPLATE(1)     N       Number of words to check
+        TEMPLATE(2)     OFFSET  Offset of word within bank
+        TEMPLATE(3)     VALUE   Value of word at specified offset
+
+There should be N pairs of (OFFSET,VALUE); one per word to be checked
+in setting the CAPH path. TEMPLATE should be declared as a REAL array.
+
+Here is a listing of the new CAPH.ZEB file:
+
+C=======================================================================
+C
+C  Bank Name : CAPH
+C  Author    : Serban D. Protopopescu
+C  Date      :  1-MAY-1989
+C  Modified  :  1-DEC-1989  Harrison B. Prosper (Now a linear chain)
+C  Tree description : PROC_TREE
+C
+C  Bank description : Linear chain of headers for calorimeter
+C                     processed data. The algorithm numbers are
+C                     defined in D0$PARAMS:CAPH.DEF.
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C     -5          Ref.   link spare
+C     -4          Ref.   link spare
+C     -3          Ref.   link to HSTR
+C     -2          Struc. link to JETS
+C     -1          Struc. link to CACL
+C      0          Next   link to CAPH
+C     +1          Up     link to PROC
+C     +2          Origin link to PROC or CAPH
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'CAPH'
+C             -3         NL = 5
+C             -2         NS = 2
+C             -1         ND = 10
+C              0         Status
+C             +1    I    Bank version (=2)
+C             +2    I    Number of clusters (CACL banks)
+C             +3    I    Number of jets (JETS banks)
+C             +4    I    Algorithm NUMBER
+C             +5    I    Algorithm VERSION
+C             +6    R    Spare
+C             +7    R    Spare
+C             +8    R    Spare
+C             +9    R    Spare
+C             +10   R    Spare
+C=======================================================================
+
+words 6-10 are algorithm dependent and have yet to be defined. Suggestions
+to D0SF12::HARRY.
+
+
+    CALOR_OFF users:
+
+        This release makes some changes in the way CALOR_OFF
+    handles dumping events and writing events to output streams. 
+        For dumping, there is now a new flag 'DUMP_THIS_EVENT'. If you
+    set this flag true in your analysis program for a particular event
+    (using CALL FLGSET('DUMP_THIS_EVENT',.TRUE.)), that event will be
+    dumped.  This is independent of any request for the first N events to 
+    be dumped. I. e., if you have asked for the first 10 events to be
+    dumped, and also set DUMP_THIS_EVENT true for the 25th event, the
+    dump file contains events 1-10 and 25. If no events were requested 
+    in CALFRAME_RCP and you set DUMP_THIS_EVENT for event 25, you will
+    get a dump file with just event 25.  DUMP_THIS_EVENT is reset to
+    .FALSE. after each dump, so to dump a string of events you must set
+    it .TRUE. for each of them.
+        There is also a new flag 'WRITE_THIS_EVENT', but its operation
+    is a little different. There are 2 old flags in CALFRAME_RCP which
+    affect event writing:
+                WRITE_STREAM_STA   write the standard output
+                WRITE_STREAM_DST   Write the DST output
+    Now, the user can set the flag WRITE_THIS_EVENT  to override the 
+    CALFRAME selections.  
+ 
+        The following options exist:
+ 
+        (1) At least one of WRITE_STREAM_STA, WRITE_STREAM_DST .TRUE.
+            in CALFRAME_RCP.
+                The output file(s) are opened and begin/end run records
+                are always written. 
+                (a) The user touches no flags: All events are written to
+                    the selected stream(s).
+                (b) The user sets the flag 'WRITE_THIS_EVENT' .FALSE. on
+                    the first call to his processing routine. No events
+                    are written except those for which the user sets 
+                    'WRITE_THIS_EVENT .TRUE. in his processing routine
+                    for that event.
+                (c) The user mainpulates the flags WRITE_STREAM_STA and
+                    WRITE_STREAM_DST directly to delete events from the
+                    streams. ** NOTE ** if the user sets these flags
+                    .FALSE. for a particular event, he is responsible
+                    for resetting them .TRUE. in order to get any more
+                    events output.
+        (2) Both WRITE_STREAM_STA and WRITE_STREAM_DST are .FALSE. in
+            CALFRAME_RCP.
+                The output files are NOT opened.  No events of any
+                type are output. The user CANNOT start an output
+                stream by setting 'WRITE_THIS_EVENT' .TRUE.
+        Comments on these changes to Wyatt Merritt (FNAL::MERRITT)
+         
+    With this release CAPHEL (the photon-electron algorithm package) makes
+    use of the H matrix analysis as the standard method. Accordingly, new 
+    banks have been appended to the PELC and PPHO banks, called HMTE and HMTP,
+    respectively. The H matrix analysis has been limited to those clusters
+    having less than 100GeV EM energy, as the parameterization for higher 
+    energies has not been thoroughly checked. Also, only the H matrix analysis
+    based on the longitudinal shower shape has been used. Therefore, before
+    using the Chi-squared or probability from the HMTE/P banks, one must check
+    that IQ(LHMTE/P+2) = 1. 
+    Please address all comments on the photon/electron finding to D0SF12::NGRAF.
+
+    

@@ -1,0 +1,129 @@
+\START          CALFRAME_RCP        ! Name of Calorimeter Frame control file
+\SIZE        149       103
+!------------------------------------------------------------------------------
+!   Name:       CALFRAME.RCP
+!   Purpose:    Control file for Calorimeter Offline Frame
+!   Created:    12-JUN-1989     Rajendran Raja, made a separate FRAME RCP
+!   Updated:    12-OCT-1989     Harrison B. Prosper
+!                               This is now STRICTLY for the calor off frame
+!                               All overall calor package control is in
+!                               CALEVT.RCP
+!   Updated:    13-DEC-1989     Harrison B. Prosper
+!                               Adapted to to new CINJOB routine
+!   Updated:     4-Jun-1990     Harrison B. Prosper
+!                               Added PWC and TB90_CALOR_UNPACK switches
+!   Updated:    26-Jul-1990     Harrison B. Prosper
+!                               Added Trigger selection block
+!   Updated:    13-Sep-1990     Harrison B. Prosper
+!                                 Added path selection
+!   Updated:    19-May-1992     Harrison B. Prosper
+!                                 Added Input mode control to data_files
+!   Updated:     2-Jun-1992     Harrison B. Prosper
+!                                 Added Output mode control to data_files
+!    Updated:    23-SEP-1993   Rajendran Raja
+!                                 Added error handling parameters
+!   Version:    V1.34
+!------------------------------------------------------------------------------
+!  Reconstruction Path to be set by CALOR_OFF frame
+!------------------------------------------------------------------------------
+ PATH                   'RECO'  !Path to be set by frame
+!------------------------------------------------------------------------------
+!   Control flags for CALOR_OFF frame
+!------------------------------------------------------------------------------
+ DO_CALOR               TRUE    !Control flag for required package
+ DO_ZTRAKS              T       !Initialize VERTEX and ZTRAKS
+ DO_CAHITS              T       !Control flag for CAD Unpacking package
+ DO_CAJETS              T       !Control flag for Jet-finding package
+ DO_CAPHEL              T       !Control flag for Photon/Electron package
+ DO_HMATRIX             T
+ DO_CAJNEP              F
+!----------------------------------------------------------------------
+! Switches to control PIXIE package (must be linked in)
+!----------------------------------------------------------------------
+ DO_PIXIE               FALSE   !Control flag for PIXIE EVENT DISPLAY
+ EVENT_DISPLAY          FALSE   !If TRUE and DO_PIXIE TRUE call event display
+                                !on FIRST event
+!------------------------------------------------------------------------------
+!   General parameters used in CALOR_OFF
+!------------------------------------------------------------------------------
+ ZEBRA/IOS_CODE          0      !ZEBRA error code returned by EVTIN
+ ZEBRA/RUN_DIVISION     20      !Run division number in /ZEBCOM/
+ CAL_USER              501      !For GTUNIT purposes
+ PRINT_EVENT_NUMBER     10      !Prints RUN and event number every nth event.
+ NUMBER_OF_WARNINGS   9999      !Number of warnings to print
+ NUMB_EVENT_DUMPS        0      !Number of events to dump
+ WRITE_BOR            TRUE      !Selectively writes out begin run records
+ WRITE_EOR            TRUE      !Selectively writes out end run records
+!----------------------------------------------------------------------
+! error handling for VMS overflows etc
+!----------------------------------------------------------------------
+\ARRAY ERROR_HANDLING
+!Error number,contin,count,type,log,maxlim - arguments for errset
+!contin = .true. will continue after error is detected
+!count = .true. Count error against maximum error limit
+!type = .true. Pass control to an ERR transfer label if specified,
+!LOG = .true. Produce an error message for this error
+!MAXLIM = .true. Maximum number of errors allowed before abort.
+!
+ 70  .true. .true. .false. .true. 100  !integer overflow
+ 71  .true. .true. .false. .true. 100  !integer zero divide
+ 72  .true. .true. .false. .true. 100  !floating overflow
+ 73  .true. .true. .false. .true. 100  !zero divide
+ 74  .true. .true. .false. .true. 100  !floating underflow
+\END
+!
+!------------------------------------------------------------------------------
+!   DATA_FILES specifies the data files to be read
+!------------------------------------------------------------------------------
+ \ARRAY DATA_FILES
+    1                           ! Number of files or filelists to process
+    99999                       ! Number of events to process/file
+    'DATAFILE'                  ! Logical Name of Data-File
+    'X'                         ! Input Mode 'X' - Exchange, ' ' - Native
+ \END
+!------------------------------------------------------------------------------
+!   TRIGGER BIT SELECTION
+!------------------------------------------------------------------------------
+ PRINT_TRIGGER_MESSAGE  FALSE   !If true events which fail will be flagged.
+ SELECT_TRIGGERS        FALSE
+ \ARRAY TRIGGER_BITS
+   1   !CAL_BEAM
+   !2  !CAL_PEDS
+   !3  !INTERSPERSED PEDS
+ \END
+!------------------------------------------------------------------------------
+!  Standard Output stream
+!------------------------------------------------------------------------------
+ STAND_OUT      TRUE !If true, Standard output will be generated
+ \ARRAY STAND_OUT_FILE
+       'STANDARD_OUT'           !Standard output file
+       'X'                      !Output Mode 'X' - Exchange, ' ' - Native
+ \END
+!------------------------------------------------------------------------------
+!  DST Condensed Output stream
+!------------------------------------------------------------------------------
+ DST_OUT        FALSE  !If true, DST output will be generated
+ \ARRAY DST_OUT_FILE
+       'DST_OUT'                !DST output file
+       'X'                      !Output Mode 'X' - Exchange, ' ' - Native
+ \END
+!------------------------------------------------------------------------------
+!   HBOOK save file definition
+!------------------------------------------------------------------------------
+ HBOOK_SAVE     FALSE
+ \ARRAY HBOOK_FILE
+       'HBOOK_SAVE'             !Save file name
+ \END
+!------------------------------------------------------------------------------
+!   Dump file definition
+!------------------------------------------------------------------------------
+ \ARRAY DUMP_FILE
+       'CALORIMETER_DMP'        !Dump file name
+ \END
+!------------------------------------------------------------------------------
+!   Print file definition
+!------------------------------------------------------------------------------
+ \ARRAY PRINT_FILE
+       'CALORIMETER_OUT'        !Print file name
+ \END
+ \STOP

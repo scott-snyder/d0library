@@ -1,0 +1,301 @@
+
+This file is D0$CALOR_OFF:CAFIX.DOC             R. Astur 3/15/94
+                                                updated  7/1/94 (see <<5>>)
+                                                updated 12/1/94 (see <<6>>)
+
+                    CAFIX CORRECTION PACKAGE
+
+    The CAFIX package is intended to work on D0 DST's/STA's.  It will
+apply the D0 standard Jet, photon, electron and missing ET corrections
+and overwrite the old JETS/PELC/PPHO with the new results as well as
+producing new PNUT4 and PNUT5 banks which are intended to be the corrected
+versions of PNUT2 and PNUT3. If the PNUT4 or PNUT5 are present they are
+dropped and recreated.
+
+-----------------------------------------------------------------------
+                    
+                    Table of Contents
+
+    <<1>> How to get started quickly with CAFIX
+
+    <<2>> Description of corrections applied
+
+    <<3>> Relevant RCP parameters
+
+    <<4>> Related software 
+
+    <<5>> Changes for MET_CORRECTION V2.1/ JET_CORRECTION V4.1 7/1/94
+
+    <<6>> Changes for MET_CORRECTION V2.1/ JET_CORRECTION V4.1 7/1/94
+
+------------------------------------------------------------------------
+
+
+<<1>>   HOW TO GET STARTED QUICKLY WITH CAFIX
+
+
+    Since many of the routines used by CAFIX have been recently released
+you should seriously consider remaking your analysis program with the
+CAFIX package included using PROGRAM BUILDER.  This way program builder 
+will make a .lnk and .com file which knows which libraries you need and
+which RCP files must be defined.
+    For example, if you are doing analysis with the DST package you could add
+in the CAFIX package as follows:
+ 
+/* 12/94 Note that now you need CALOR in your package list! */
+
+    $   PBD/FRAME=D0USER/PACK=(CALOR,CAFIX,DST)/ZEBCOM=3000000 -
+            /ZEBSTP=2000000/SWITCH
+
+    It is important that CAFIX comes before your analysis package so that the
+corrections are made BEFORE you do your analysis. It is also a good idea to
+leave the SWITCH option in. This way you are able to TURN ON/OFF the CAFIX 
+package if you want and easily redo your analysis with/without corrections.
+
+--------------------------------------------------------------------------
+
+    <<2>> Description of Corrections Applied
+
+    a) Correction of photons and electrons: CORRECTEM is called to
+    correct some (not all) of the PELC and PPHO banks.  In the case
+    where a PELC/PPHO is corrected, the old values are overwritten with
+    the corrected values.  See section <<4>> for routines which get
+    the uncorrected values.  Only PELC/PPHO which satisfy the quality
+    mask specified by ECORRECT_MASK in CORRECTEM.RCP, are 
+    corrected. See CLEANEM.RCP for information about how this mask is defined.
+    (Note: setting this mask to 0  would mean that all PELC/PPHO 
+    would be corrected). From the electron ID point of view, we recommend 
+    using the default ECORRECT_MASK which is set to '$00080' in CORRECTEM.RCP.
+    The EM correction is then applied only to isolated PELC and PPHO, this is
+    appropriate as the energy scale is derived using isolated electrons. For 
+    DST and STA's constructed using D0RECO V11 and above, this bit is set if 
+    the isolation fraction of the PELC and PPHO banks is greater than 15%.
+
+
+    b) Correction of jets is done for all JETS bank and all algorithms.
+    ( Note: that is the intention, but in this first release, the nearest
+      neighbor algorithm is still not supported). If a jet contains
+    a corrected PELC/PPHO (as defined above), the rest of the jet is
+    corrected separately (using the em fraction dependant jet correction) and 
+    the resulting corrected jet is the sum of the corrected electron/photon and
+    the corrected rest of the jet.  Corrections for out-of-cone showering and
+    noise/underlying event subtractions are controlled by switches in CAFIX.RCP.
+
+
+    c) Correction of Missing ET is done as follows.
+        - Differential 4 vectors (VCOR banks) are formed from the corrected
+          electrons/photons and jets
+        - Any VCOR banks made from subtraction of main ring energy (done
+          only on events which were not micro-blanked) are identified
+        - A soft recoil correction is applied and a resulting VCOR is made.
+More on this:
+
+( 'soft recoil vector'
+    is defined as:
+        -MET   - sum of found jets  - sum of found electrons/photons
+
+       Thus the 'soft recoil vector' is the vector sum of all cells in the
+calorimeter which were not a part of a found jet/electron/photon.  This idea
+makes the most sense in events there is one object (e.g. a photon or a Z)
+and nothing found on the opposite side. Often the other side contains a soft
+jet which was not found by the Reconstruction program. This object needs to
+be corrected and we call this correction the 'soft correction'. The amount
+of correction is taken from the correction needed in Z+0 Jet events. )
+
+    The final result of modifying the old Missing Et Vector by all these
+corrections is stored in PNUT4. This is the corrected calorimeter missing ET. 
+    Next the muon corrected missing ET is calculated by adding in the
+'good' found muons of the bank to the corrected calorimeter missing ET to
+make a PNUT5 bank.  'Good' muons are defined by the good muon mask in
+CAFIX.RCP.  Refer to CLEANMU.RCP for the definition of this mask.  By
+default only muons that pass 'usual' muon quality cuts are used. But
+you can change this by changing this mask.
+
+
+----------------------------------------------------------------------------
+
+    <<3>>   Relevant RCP parameters
+
+    CAFIX.RCP
+        -   CORR_LEVEL_PNUT         - If DO_MET_CORRECTION is TRUE, then
+                                    - the value of CORR_LEVEL_PNUT controls
+                                    - to what extent the MET correction is
+                                    - done: 0=not at all, 1=make PNUT4, 
+                                    - 2=make PNUT4 and PNUT5
+        -   DO_EM_CORRECTION        - turn EM correction ON/OFF
+        -   DO_JET_CORRECTION       - turn JET correction ON/OFF
+                                    - (Note: If OFF, some jets can still
+                                    -  be corrected if the jet has a
+                                    -  electron/photon in it and this
+                                    -  object is corrected)
+        -       DO_ZSP_CORRECTION   - turn noise correction ON/OFF
+        -       DO_UND_CORRECTION   - turn underlying event correction ON/OFF
+        -       ISYS                - 0=nominal correction,1=low,2=high
+        -   DO_MET_CORRECTION       - turn MET correction ON/OFF
+        -       JET_TEMPLATE        - choose jet algorithm to be used
+        -       DO_SOFT_CORRECTION  - turn soft recoil vector correct ON/OFF
+        -       GOOD_MUON_MASK      - defines GOOD muons    (see CLEANMU)
+    
+    CORRECTEM.RCP
+        -   ECORRECT_MASK           - defines which PELC/PPHO to correct
+                                      This uses the electron/photon quality
+                                       mask stored in PELC/PPHo word 30. 
+
+    QCD_JET_CORRECTION.RCP
+!        -   DO_TOPMC_CORR           - If TRUE use correction from TOP group
+                                    - good for R=.7 only, no eta dependence.
+                                    - If FALSE use JET_ET_MCCORR which is
+                                    - both eta,Et and conesize dependant but
+                                    - was derived from old montecarlo
+        -   DO_ETA_CORRECTION       - TRUE (default is to do eta correction)
+        -   DO_EMF_CORRECTION       - TRUE (default). If TRUE, Jet is
+                                    - corrected differently depending on
+                                    - its electromagnetic fraction
+        -   EMF_REGIONS             - 1 0 1 (default). Controls which regions
+                                    - of the calorimeter the EMF correction
+                                    - is applied. ( CC ICD EC ). By default
+                                    - corrections are done in CC and EC only.
+---------------------------------------------------------------------------
+
+
+    <<4>>   Related Software uses to access corrected and uncorrected values
+
+
+    Missing ET:
+        Uncorrected cal and cal+muon are always stored in PNUT2 and PNUT3
+    banks. Use GTPNUT(IPNUT....) or GZPNUT(IPNUT) to access this information.
+    Corrected cal and cal+muon are stored in PNUT4 and PNUT5. You can
+    use GTPNUT,GZPNUT in the same way to access this information.
+
+    Photons/Electrons:
+        GTPELC/GTPPHO returns uncorrected values if no correction has
+been done and corrected values if correction has been done as this is
+what is stored in PELC/PPHO bank. You can always get the uncorrected
+values by calling GTPELC_GET_UNCORRECTED,GTPPHO_GET_UNCORRECTED before
+EACH call to GTPELC/GTPPHO.
+
+
+        CALL GTPELC_GET_UNCORRECTED
+        CALL GTPELC(1,E,ET.....)            ! ET is uncorrected ET (for this
+C                                           ! call only! )
+C
+        CALL GTPELC(1,E,ET,....)            ! ET could be corrected ET now
+ 
+    Jets:
+      UNCORRECT_JETS_BANK(LJETS,OVERWRITE,IER) : will modify the JETS bank
+    specified and return it to its uncorrected state if OVERWRITE=.TRUE.
+    If OVERWRITE=.FALSE., the bank is unchanged, but a subsequent call
+    to GET_UNCORRECT_JETS_BANK(E,PHI,THETA,ETA,EMF) returns the uncorrected
+    values.
+      JETS_BANK_CORRECTED(LJETS,FLAG,IS_CORRECTED,IER):
+      IS_CORRECTED is returned as TRUE if the correction specified by FLAG
+    has been done:
+        FLAG = 'COR'    : JETS bank has been corrected in some way
+             = 'OOC'    : Out-of-Cone showering correction has been applied
+             = 'ZSP'    : Noise subtraction has been done
+             = 'UND'    : Underlying event subtraction has been done
+
+
+
+
+------------------------------------------------------------------------------
+                                                          July 1, 1994 R Astur
+<<5>>   Documented changes for MET Correction V2.1/JET Correction V4.1
+
+    1) SOFT CORRECTION. Now, the default setting in CAFIX.RCP is that
+this correction is OFF. Using this correction leads to better balance
+of events, but increases the MET resolution, sometimes dramatically.
+Also, its behavior when it is ON has been changed. Since this correction
+seems to do the best in gamma + no jets / Z->ee + no jets and does not
+seem to matter for the +jets cases, this correction is automatically disabled
+whenever at least one  hadronic (EMF < .70  using the default MET jet 
+algorithm- see CAFIX.RCP, default is R=.7) jet is present.
+
+    2) Added/modified RCP switches.
+CAFIX.RCP
+    REPEAT_CORRECTION - Previously, when you run CAFIX, JET and MET corrections
+                        are redone if they had been done previously. (EM
+                        corrections are not redone if they have been done
+                        before). If REPEAT_CORRECTION was FALSE, MET corrections
+                        were not redone but JET corrections still were. Now,
+                        neither correction is redone if CAFIX has been run
+                        before and REPEAT_CORRECTION is FALSE. WARNING:
+                        CAFIX is run for some non-microblanked events in RECO
+                        to correct for mainring in the CH. If you leave
+                        REPEAT_CORRECTION FALSE, such events would be skipped!
+
+    USE_JET_CORRECTION - This new switch is under the DO_MET_CORRECTION switch.
+                         By default this flag is TRUE and Jet Corrections are
+                         used in the correction of MET. If this switch is
+                         turned FALSE, they will not be.
+
+    CORRECT_EM_JETS    - This new switch is under the DO_MET_CORRECTION switch.
+                         By default, jets which contain 'good' em objects
+                         (photons/electrons) have the 'good' em object corrected
+                         by the EM correction routine (CORRECT_EM), but if
+                         there is sufficient hadronic activity after the
+                         removal of the em object (the jet might be made up of
+                         a small jet and a em cluster), then the remainder is
+                         corrected using the jet correction and the two are
+                         added. (If above threshold.) Setting this switch 
+                         FALSE, disables the correction of this remainder.
+
+    ISYS                -This parameter is under DO_JET_CORRECTION, ISYS=0
+                         gives you the nominal jet correction. 1,2 give you
+                         the low and high error band around the correction
+                         (one sigma). Before, ISYS was used only for the
+                         jet correction (but met correction used only nominally
+                          corrected jets). Now the ISYS correction is propagated
+                         to MET as well. So if you ask for the high jet
+                         correction you will get a different met correction.
+
+    3) New Monte Carlo corrections for JETS
+
+        QCD_JET_CORRECTION.RCP has a parameter called MC_JET_CORR. This
+        parameter chooses which mc jet correction will be used. (The
+        routines can tell if the input data file was generated with
+        a montecarlo and automatically switch to the mc correction.)
+        You have a choice of 4 corrections. The default is the MPF correction
+        derived from ISAJET mc events. This correction is very derived in much
+        the same way as the data correction is done. It has both the MPF
+        and underlying event corrections. It lacks a noise correction because
+        there is no noise (unless you run NOISY) in the mc. It lacks out-of-cone
+        corrections (but for R=.7,R=.5, this is small). It also lacks the
+        eta and emf corrections. This difference might be important in the
+        intercryostat-region and forward region.
+
+    4) Low ET jet correction change. Previously, the mpf portion of the
+       jet correction, decreases below E=13 GeV (that is, there is less
+        correction). This is due to the reconstruction threshold being at
+        8 GeV. The correction was done in energy but the bias is in Et.
+        Thus now jets with ET<13 but E>13 will be corrected less than they
+        were previously. The mc mpf correction (see 3) above) is handled in
+        the same way.
+
+    5) Jet HV correction default for ntuple users.
+    If you run on DST/STA's, the routine
+    can figure out if you are analyzing data, the run number and the RECO
+    version so that the appropriate HV corrections are made. Although you
+    cannot run CAFIX outside of the usual D0 ZEBRA DST/STA environment,
+    you *can* call QCD_JET_CORRECTION directly to do corrections in a
+    standalone program or in NTUPLES. This jet correction is *NOT* the same
+    as you would get in CAFIX but the difference is small and has to do with
+    jets with 'good' em objects in it. If you do this, the routine CANNOT
+    determine the appropriate HV correction, so it issues a message and
+    takes the default. The default used to be correct for version 10 of RECO,
+    now that has been changed to be correct for version 11 of RECO. The
+    parameter is HVSCALE_DEFAULT and it is in QCD_JET_CORRECTION.RCP.
+-----------------------------------------------------------------------------
+                                                            Changes Nov, 1994
+<<6>>   Documented changes for MET Correction V2.1/JET Correction V4.2
+
+    1) Large bug fix over version 4.1. Jets forward of eta=2.67 were corrected
+        by 20-50% too much in version 4.1 (not 4.0). This is fixed.
+
+    2) Small bulge produced near ET=24 GeV for R=.3,R=.5. Fixed.
+
+    3) Noise/underlying event in ICD region modified. Small change.
+
+    NOTE: As of this date, you must include the CALOR package when running
+          CAFIX.
+-------------------------------------------------------------------------------

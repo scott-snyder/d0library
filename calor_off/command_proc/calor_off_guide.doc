@@ -1,0 +1,330 @@
+
+                        CALOR_OFF SHORT GUIDE
+                        =====================
+                            Version V1.4
+
+                                                    B. Klima, H. B. Prosper
+                                                    Created   28-Feb-1990
+                                                    Updated    4-Jun-1990
+                                                    M. Narain, C. Stewart
+                                                    Updated   31-MAR-92
+                                                    Version   V1.3
+                                                    Minor amendments 
+                                                    J. Womersley 15-MAY-1992
+                                                    H.B. Prosper 28-MAY-1992
+                                                    General update
+                                                    R.Raja 4-MAY-1993
+                                                    Weight command
+                                                    R.Raja 16-May-1994
+                                                    Ntuples read in
+                                                    
+        CONTENTS
+
+
+    I.      SETTING UP A CALOR_OFF PROGRAM
+
+    II.     BUILDING COMBINED PACKAGES
+
+    III.    CODE DEVELOPMENT
+
+    IV.     CONTROLLING YOUR CALOR_OFF PROGRAM
+
+
+
+
+    I.      SETTING UP A CALOR_OFF PROGRAM
+            ---------------------------------------------
+
+    (1) Make sure that you have executed the following commands (we recommend
+        that you include them in your LOGIN.COM file):
+
+
+            @D0$DISK:[D0LIBRARY]D0LOCAL
+            LIBTEST ALL
+            @D0$BETA_UTIL:SETUP_LOCAL_CMS
+
+
+            NOTE:   To get detailed online help on the procedures 
+                    described below enter the command
+
+                    $ CMSHELP
+
+
+    (2) Create a  sub-directory e.g.  [.CALOR_OFF] in your  main directory. (It
+        need not  actually be  called  'CALOR_OFF',  but in what  follows we'll
+        assume that it is). This should be your working directory containing 
+        your source files.
+
+    (3) In your [.CALOR_OFF] directory invoke the command 
+
+            $ D0SETUP MMS
+
+        and answer the prompts.  You will be asked to enter:
+
+        Primary beta area:          Enter CALOR_OFF (or carriage return 
+                                    to get the default).
+
+        Combined package name:      You can have many COMBINED-PACKAGES.
+                                    (See section II below.)
+                                    Here you should enter the name of your
+                                    DEFAULT combined package. 
+
+        Link Objects:               Two carriage returns should be OK here!
+
+        USR$EXE:                    The area for the EXE file; you may wish to
+                                    change this, e.g. to USR$SCRATCH:[name].
+
+        USR$OUT:                    The area for output files; you may wish to
+                                    change this, e.g. to USR$SCRATCH:[name].
+
+        Program name:               Enter a name for the EXE e.g. TEST; the
+                                    default is CALOR_OFF.
+                                    
+        Framework name:             Enter CALOR_OFF.
+
+
+    (4) Execute the command
+
+            $ LIBBETA CALOR_OFF
+
+        to put CALOR_OFF into beta mode and copy the files
+
+            D0$CALOR_OFF:CALFRAME.RCP
+            D0$CALOR_OFF:SETUP_USER.COM 
+
+        to your working directory ([.CALOR_OFF]). CALFRAME.RCP is the RCP
+        file which controls the CALOR_OFF frame.
+
+
+    (5) Create a sub-directory [.PBD] in your CALOR_OFF directory for building
+        program-builder files. 
+
+
+
+    II.     BUILDING COMBINED PACKAGES
+            ---------------------------------------------
+
+    (1) In the directory  [.PBD] make a PBD file  describing your PACKAGE. See
+        D0$PBD:CAHITS.PBD for an example of a PBD file.
+
+    (2) Invoke  @D0$CALOR_OFF:SETUP to define the command:
+
+                MAKE_HOOKS
+
+    (3) In the directory [.PBD] invoke  MAKE_HOOKS to make your own .FOR (.OBJ)
+        hooks file.  Supply a list  of the  packages you want,  in the order in
+        which you want them to  be called. The package  CALOR will be linked in
+        automatically; do not  list it. The resulting  set of files is called a
+        COMBINED-PACKAGE. You can make many different combined-packages in this
+        directory.
+
+        Here is a list of (some of) the packages available in the library,
+        D0$PBD,
+
+                PWC                     1990 Test Beam vertex
+                TB90_CALOR_UNPACK       1990 Test Beam translator
+                ZTRAKS                  Fit CD tracks in three dimensions
+                PJET                    Monte Carlo parton jets
+                CAHITS                  Unpack CAD banks into CAEP etc.
+                MURECO                  Muon reconstruction
+                CAJETS                  Jet finding algorithms
+                CAJNEP                  Package to flag electron jets
+                CAPHEL                  Electron/Photon finding algorithm
+                PIXIE                   PIXIE framework
+                CALDIS                  Calorimeter display (needs PIXIE)
+                CALOR_HIST              Calorimeter histograming package
+
+
+
+    III.    CODE DEVELOPMENT
+            ---------------------------------------------
+
+    (1) Invoke  @D0$CALOR_OFF:SETUP to define the command:
+
+                SETUP_CALOR_OFF
+
+    (2) Develop your code in your [.CALOR_OFF] area.
+
+    (3) Whenever you ADD or DELETE files  from your working directory you MUST
+        invoke the  command USERLIB  to update  the list of  source files to be
+        compiled and loaded into your DEB_USERLIB.OLB object library.
+
+    (4) Invoke @MMS to create a DEBUG version of your new .EXE file. To skip
+        the LIBTEST ALL done by @MMS use the /SKIP switch:
+        
+            $ @MMS DEBUG/SKIP
+
+            NOTE:   Any @MMS switch, if used, must be attached to the FIRST
+                    argument of the @MMS command.
+
+        The above command will link in your default combined package. If you
+        wish to use a combined package other than the default one then invoke
+        the command
+
+            $ @MMS DEBUG/SKIP xxxxx
+
+        where xxxxx is the name of the alternate combined package.
+
+
+    (5) Invoke 
+            
+            $ SETUP_CALOR_OFF
+        
+        to define the logical names needed by the program. This command will
+        attempt to do the following:
+
+            a.  Look for a file called DEFINE.COM and execute it.
+
+            b.  Look for the Program Builder generated file 
+        
+                    USR$AREA:xxxxx_CALOR_OFF.COM, 
+                
+                where xxxxx is the name of the default combined package, 
+                and execute it. 
+
+            c.  Look for a file called SETUP_USER.COM and execute it.
+
+        If you wish to use an alternate combined package (and the associated
+        EXE file) supply the name of this combined package, xxxxx, with the
+        SETUP_CALOR_OFF command:
+        
+            $ SETUP_CALOR_OFF xxxxx
+
+    (5) Push button PF1 to run CALOR_OFFND (no debugger), or button PF4 to run
+        CALOR_OFFD (with the debugger).
+
+
+
+    IV.     CONTROLLING YOUR CALOR_OFF PROGRAM
+            ---------------------------------------------
+    
+    (1) CALFRAME_RCP
+
+        CALFRAME_RCP  is a  search-list, starting  with the  working directory,
+        which points to  the RCP file  which controls the  CALOR_OFF frame. The
+        array  DATA_FILES in  CALFRAME_RCP  is used to  specify  the files and,
+        optionally, the events to be  processed. We can now attach a weight
+        to the events in a given file. The structure of this array is
+        as follows:
+
+            \ARRAY DATA_FILES
+                nfiles              
+
+                nevents             This sub-structure is repeated NFILES times
+                data_filename
+                [command ll nn mm] (This is optional)
+                input mode 
+                weight  rr
+                    :  :
+             \END
+
+        where,
+
+        NFILES  :
+
+            Number of files or filelists to process.
+
+        NEVENTS : 
+
+            1. NEVENTS  is the  total number  of events  to be  processed for a
+               datafile or a file-list,
+
+            2. to  analyze  only  the  first N  events  from  each  file in the
+               file-list, set (NEVENTS = - N).
+
+        DATA_FILENAME :
+
+               Name  of  the  datafile  to be   processed.  To  analyse  a data
+               file-list  produced  with    "DIR/COL=1/NOHEAD/NOTRAIL" set this
+               variable to the logical 'DATAFILE_LIST'. We can now attach
+               a WEIGHT to the files in DATAFILE_LIST. This is done by adding
+               a floating point number after each file name. NTUPLES can also
+               be read in by setting this logical to READ_NTUPLE.
+
+        COMMAND LL NN MM ..
+
+               Event   control  COMMAND  =  'PROC',   'SKIP',   'PROC/EVENT' or
+               'SKIP/EVENT'. The quantities  LL, NN, MM etc. are integer values
+               defining the square wave event control.
+
+            Example 1
+
+               The  command  'SKIP' 100  200 30 70  5 will  skip the  first 100
+               events, process the next 200  events and skip over 30 events and
+               process the next 70 events etc.
+
+            Example 2
+        
+               The command  'PROC' 100 200 30  70 5 will  process the first 100
+               events, skip the next 200 events and so on.
+
+            Example 3
+
+                The  command   'PROC/EVENT'  41710  2345 41710  2360  etc. will
+                process only the specified events (run#, event#).
+ 
+            NOTE:   
+
+                If NEVENTS is  negative then this  command is executed for each
+                file specified in the file-list else all the files specified in
+                the file-list are treated as a single datafile.
+
+        INPUT MODE (ZEBRA exchange or native):
+
+            'X' - Exchange mode, 
+            ' ' - Native mode
+
+        WEIGHT 
+               This is an optional command, which if present has the
+               following structure.
+
+               'WEIGHT'  5.2
+               This will pass on the overall weight for events in the current
+               datafile as 5.2 . This information is available to the user
+               in the common block D0$INC:FILE_WT.INC which has the following
+               format.
+               COMMON /FILE_WT/ FILE_NAMES(MX_FILE),WEIGHTS(MX_FILE),IFILE
+               IFILE is the index of the latest file being processed.
+               The array WEIGHTS(IFILE) will contain the number 5.2. Previous
+               processed filenames are available in the array 
+               FILE_NAMES(1:IFILE). This feature is useful when trying to
+               compare files of varying luminosities.
+
+    CALFRAME_RCP can also be used to turn packages off which are linked into 
+    the program with a line:
+
+        DO_XXXXXX   TRUE    !Control flag for XXXXXX package
+
+    The parameters STAND_OUT, DST_OUT, HBOOK_SAVE can turn off/on corresponding
+    output from CALOR_OFF.
+
+    If READ_NTUPLE is entered into the logical for DATAFILE in the array
+    DATA_FILES, the program expects  the array NTUPLE_FILES with the
+    structure shown below.     It also needs NTUPLE_ID to be setup as well as
+    the array NTUPLE_DIRECTORY, if the NTUPLE occurs in a sub_directory.
+    The example here will expect NTUPLE ID 1000 in the directory
+    //FAKES/QCD_FAKE, where the top directory is //FAKES. The Ntuple will be
+    read into the PAW common Block /PAWIDN/. The FLAG READ_NTUPLE is set to 
+    true and can be checked using the routine FLGVAL in the user's code.
+    !
+    !----------------------------------------------------------------------
+    ! NTUPLE HANDLING PARAMETERS
+    !----------------------------------------------------------------------
+    NTUPLE_ID              1000    !ID OF THE NTUPLE
+    \ARRAY NTUPLE_FILES
+    !   Filename    TopDirectory    NewFile RecordLength
+        'FAKES  '     'FAKES'         FALSE      0 !Default NewFile=TRUE
+    \END
+    \ARRAY NTUPLE_DIRECTORY
+     '//FAKES/QCD_FAKE'
+    \END
+
+    (2) CALEVT_RCP
+
+    CALOR_OFF is always linked with the CALOR package and CALEVT_RCP controls
+    CALOR. CALOR controls zebra dumps and the bank contents of STANDARD and DST
+    output files. It also tells CALOR_OFF where to pick up the geometry STPFILE
+    relevant to calorimeter analysis.
+
+    GEOMETRY_FILE    'D0$STP:CAL_STPFILE.DAT'  ! calorimeter geometry table
+

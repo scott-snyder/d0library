@@ -71,7 +71,7 @@ C
         CALL HBOOK1(6,'ET HAD MAX CELL$',50,0.,100.,0.)
         CALL HBOOK1(7,'Missing ET $',50,0.,100.,0.)
         CALL HBOOK1(8,'ET MAX JET$',50,0.,200.,0.)
-        CALL HBOOK1(9,'Charged Particles eta$',60,-3.0,3.0)
+        CALL HBOOK1(9,'Charged Particles eta$',60,-3.0,3.0,0.)
         FIRST=.FALSE.
       ENDIF
 C

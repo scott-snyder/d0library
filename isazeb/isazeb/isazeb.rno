@@ -1,0 +1,344 @@
+.literal
+
+                                             D0 Note#406
+                                             SDP Nov. 25,1991
+                                             VERSION 2.72
+
+                ISAZEB
+
+        I/O for ISAJET using ZEBRA
+
+  
+
+
+      [1] Introduction
+ 
+
+      [2] Brief description of subroutines
+
+
+      [3] Brief description of Zebra banks
+
+
+      [4] Running jobs
+
+
+      [5] Program builder packages
+.end literal
+.page
+.literal
+
+
+   [1] Introduction
+   ================
+
+
+      The  ISAZEB  library  contains  subroutines  which replace  the usual
+output package for ISAJET with one  using the CERN package ZEBRA. Basically
+ISAZEB replaces the subroutines ISWBG, ISAWND and ISAWEV in ISAJET with its
+own  versions. The  version of  ISAJET in  D0$ISAJET  is always  the latest
+available but without P=ISATAPE, so it cannot be used to generate jobs with
+the normal ISAJET  output format. It  is assumed that  it will be used with
+ISAZEB. There is now a standard ZEBRA version of ISAJET,  the data stucture
+is almost  identical to ISAZEB but  differs from the  one in ISAZEB in that
+the bank ISAE is the top  bank. In ISAZEB the top  bank is the HEAD bank as
+for all D0 data, in addition ISAZEB contains D0 specific utilities.
+
+    Momenta and masses of the partons are rescaled from the final particles
+so that  they match  exactly (this  is not so in  the  non-ZEBRA version of
+ISAJET).  Resonances decaying  strongly are  not part of  the particle list
+while particles with heavy quarks decaying weakly are part of a vertex list
+with  the  corresponding  vertex   position and   appropriate  links to the
+particles  belonging  to that  vertex.  Thus there  is no need  to generate
+secondary vertices for charmed or other heavy quark particles and the event
+structure makes  it easy to find  which particles come  from the decay of a
+heavy quark. The association of  particles with parent partons is also made
+easy by   reference  links. For  simple   calorimeter  studies  ISAZEB also
+provides output  in terms of energy  sums over  calorimeter cells and banks
+containing only  the leptons (see  section [3]). If  only those are written
+instead of particle banks the  resulting files are more compact and require
+considerably  less CPU time  to analyze  (albeit the  information is rather
+limited). In addition jets are  calculated by using a cone algorithm on the
+partons,  these can  be useful  for  studying  efficiencies of  jet finding
+algorithms and comparing results to theoretical jets. The results of parton
+jets are in Zebra banks PJET. All the banks and the tree can be found in
+D0$ZEB$ISA.
+
+      The main program to generate ISAJET events with ISAZEB is ISARUN.EXE.
+You can make ISARUN.EXE with the link file D0$ISAZEB:ISARUN.LNK. An example
+of a  program to  analyze output  files  produced by  ISARUN.EXE is the one
+generated  by     D0$ISAZEB:ISAZEB_USER.LNK  (see  section  [4]). A utility
+subroutine   ISZJET  is  also  available  to  find jets  using  the data in
+calorimeter   cells  provided by  ISAZEB.  There are  also  Program Builder
+packages  (ISAGEN and  ISANALYZE) available  to generate or  analyze events
+with the  D0USER  framework,  this  makes it  possible for  example to dump
+events  or  examine  histograms  while   generating the  events  if running
+interactively. See D0$DOUSER:D0USER_GUIDE.MEM  for additional information. 
+
+.END LITERAL
+.PAGE
+.LITERAL
+
+
+  [2] Brief description of main subroutines
+  =========================================
+
+
+      ISAZEB replaces  the standard  ISAJET I/O  subroutines ISAWBG, ISAWND
+and ISAWEV with its own.  The first two are very  simple and write a begin-
+and end-of-run  records. Subroutine  ISAWEV is the  main driving subroutine
+for writing out an event. It calls: 
+
+QRECAL  to recalculate momenta and masses of partons starting
+        from the final particles
+ISABFL  fill ISAB bank (begin of run bank)
+ISAEFL  fill ISAE bank (main header)
+ISAFFL  fill ISAF bank (end of run bank)
+ISAJFL  fill ISAJ banks (primary jets)
+ISAQFL  fill ISAQ banks (secondary partons, both initial and final)
+ISAPFL  fill ISV1 and ISP1 banks (vertices and particles)
+ISACFL  fill ISAC and ISCL banks (calorimeter description and 
+        calorimeter cells with non-zero energy deposited). 
+        Entry point ISACIN calculates all numbers needed for 
+        calorimeter description.
+ISALFL  fill ISAL banks (leptons)
+PJETFL  fill PJET banks (jets obtained from partons)
+        PJPSET can be called to change defaults
+
+      Other subroutines of interest are:
+GENVTX  generate secondary vertices (for heavy quark decays)
+INTVTX  generate a primary vertex
+ISMEAR  generates smeared calorimeter data (modifies ISCL banks)
+ISZJET  find jets using ISCL banks
+ISZUSR  example of a user subroutine for analysis
+
+The following subroutines are part of the ISAGEN package:
+ISGBEG   called at begin of run stage
+ISGDIA   called for user dialog
+ISGEND   called at end of run stage
+ISGEVT   called to generate an event
+ISGINI   called at job initialization stage
+ISADMP   called for event dump
+ISA_DUMP is another version of ISADMP with dialog
+ISEDIT   called before writing event to file
+
+The following subroutines are part of the ISANALYZE package:
+ISANAL   called for event analysis
+ISAOBR   called at begin of run
+ISAOER   called at end of run
+ISADMP   called for event dump
+ISEDIT   called before writing event to file
+
+Additional subroutines:
+ISA_CAEPFL      fill CAEP bank under FAKE using ISAJET tracks
+ISA_CAEPFL_INI  initialization for using ISA_CAEPFL
+
+      There are utility subroutines for each Zebra bank following the rules
+described in  D0$DOCS:ZEBRA_RULES.MEM, i.e.  PRISAQ prints contents of bank
+ISAQ, GZISAQ gives the pointer to  ISAQ, GTISAQ supplies contents, etc. The
+sources for the  utility  subroutines are in  D0$ISAJET_UTIL$ZEBRA and are
+part of the GENERAL.OLB. Before using a GTxxxx subroutine you should look
+at the source to find out what the arguments are.
+
+      Main programs in ISAZEB library:
+CHKISZ  for CHECK_ISAZEB
+ISARUN  for ISARUN
+ISZHST  for ISAZEB_USER
+TRACKS  for TRACKS
+ISAIBM  version of ISARUN for IBM
+ISMAIN  version of ISARUN for Cyber
+see section [4] for a description of the jobs.
+
+    The code is in 3 subdirectories:
+D0$ISAZEB$ISAZEB   interfaces to Zebra, mostly self-contained with some
+                   references to suborutines in D0$ISAJET_UTIL$ZEBRA
+D0$ISAZEB$ISARCP   used in main program ISARCP driven by RCP file
+D0$ISAZEB$COMPACK  subroutines that use COMPACK utilities or call subroutines
+                   using COMPACK utilities. Used mostly for D0USER packages.
+.END LITERAL
+.PAGE
+.LITERAL
+
+
+    [3] Brief description of Zebra banks
+    ====================================
+
+      The beginning and end of run  records have Zebra banks named ISAB and
+ISAF while the whole event hangs  from Zebra bank ISAE (linked to HEAD with
+structural  link  17). A  complete   description of  the banks  is given in
+D0$ZEB$ISA.
+
+ISAB data describing event generation              (in beginning record)
+ISCM copy of command file used for event generation(       "           ) 
+ISAF cumulative results from run (in end record)
+ISAE general event information such as weight, type, etc.
+ISAJ primary jet momenta and masses
+ISAQ final and initial partons (momenta and masses)
+ISV1 primary and short lived vertices (heavy quarks), includes
+     id,mass and 4-momenta of decaying particle
+ISP1 particles associated with ISV1 (connected via a structural link)
+     id,mass and 4-momenta
+ISAC simple calorimeter description (no depth)
+ISCL energy deposition and cell description in calorimeter cell
+ISMR description of smearing parameters
+ISAL stable leptons (including neutrinos):id,mass and 4-momenta
+     with reference links to calorimeter cell and ISP1 if they
+     exist
+ISJT jets found by subroutine ISZJET.
+PJHD header for PJET banks
+PJET jets found adding over partons
+PJPT pointers to parton banks (ISAQ) contributing to a jet in PJET
+
+      Whether   banks    ISV1,ISP1,ISAC,ISCL  and  ISAL are  written out is
+optional. The ISARUN job  asks user to chose an  option ISAP, ISAC or ISAL.
+If ISAP is selected then  ISV1 and ISP1 are  written out, if ISAC then ISAC
+and  ISCL are   written out  and  if ISAL  then  ISAL  is  written out. Any
+combination can be selected, the  instruction ISAPISACISAL causes all banks
+to be written out. 
+
+      The banks ISJT are created by calling ISZJET, the banks ISAC and ISCL
+must be available. One can create  the banks ISAC,ISCL and/or ISAL starting
+from a file  containing ISV1 and  ISP1 by calling  ISACFL and/or ISALFL for
+each event.  The ISJT  banks form a  stand  alone linear  structure. If one
+wishes to attach that  linear structure to the  event tree find a free link
+in HEAD and use the Zebra utility ZSHUNT (see Zebra manual, section 3.1.3) 
+
+.END LITERAL
+.PAGE
+.LITERAL
+
+
+   [4] Running jobs
+   ================
+
+      There are a number of .LNK files in [D0LIBRARY.ISAZEB] to create
+.EXE files that use or create ISAJET Zebra banks:
+
+ISARUN 
+this is the main program that runs ISAJET with an interactive  
+dialog to generate ISAJET instructions. The output file has the events
+in Zebra banks. User can provide any of 3 logical functions to reduce the
+size of output files:
+1) EDIT(I)     = if false event will not be written out
+                 I is event number
+                 Zebra banks have not yet been generated, so
+                 user must work from standard ISAJET common blocks
+2) ISEDIT()    = same as EDIT but Zebra banks have been filled
+3) PEDIT(ID,P) = if false particle will not be included in
+                 the list of particles written out
+                 ID= particle ID, P(4)= particle momentum vector
+
+To change the defaults for finding parton jets call PJPSET
+(entry point in D0$ISAJET_UTIL$ZEBRA:PJPGET.FOR)
+
+TRACKS 
+a simple program to make ISAJET like events by hand for
+testing purposes (i.e. events with only one or a few particles)
+
+CHECK_ISAZEB 
+will printout events from a file produced by ISARUN or TRACKS
+
+ISAZEB_USER 
+a sample job  to analyze  ISAJET events in  Zebra format.  It requires user
+subroutines  ISZUSR  and  ISZUSD, an  example of  ISZUSR is  provided (with
+ISZUSD as an entry point) in  [D0LIBRARY.ISAZEB.SOURCE]. This example calls
+ISZJET to find jets  using pseudo-calorimeter  data generated by ISAZEB (in
+banks ISAC and ISCL). The results of ISZJET are in Zebra banks ISJT. 
+
+      All the jobs have a  simple dialog in their  respective main programs
+that prompts the user for names of files with data and selection of various
+options. The dialog should be self  explanatory. For a detailed description
+of the   options  available  with  ISAJET  (when   running  ISARUN) consult
+D0$ISAJET:ISAJET.DOC.
+
+
+    It is also  possible to  generate and  analyze ISAJET  events using the
+Program Builder packages ISAGEN and ISANALYZE in D0USER, see section below.
+
+.END LITERAL
+.PAGE
+.LITERAL
+
+
+  [5] Program builder packages
+  ============================
+
+    
+    There is  one  program  builder package  (ISAGEN)  that can  be used to
+generate ISAJET data and 3  additional packages that use ISAJET data. These
+packages  are  designed to run  with  D0USER, they  have an  initialization
+dialog started by chosing 'User dialog' option in the Setup menu of D0USER.
+
+ISAGEN: generate ISAJET events, has option to generate single track events
+        and option to read a file of partons to evolve and hadronize.
+        The parton file must be written in the following form
+
+        WRITE(UNIT) TITLE
+        WRITE(UNIT) CMSE,ETMIN,RMIN
+        WRITE(UNIT) REAC
+        WRITE(UNIT) NPRTNS,WEIGHT
+        WRITE(UNIT) ((PRTNS(I,J),I=1,4),IDS(J),J=1,NPRTNS)
+
+        where
+        TITLE= 80 characters
+        CMSE,ETMIN,RMIN= c-of-mass energy, Et min, R min of partons
+        REAC= 8 characters, ISAJET type reaction (ie TWOJET, DRELLYAN)
+        NPRTNS,WEIGHT= number of partons, event weight
+        PRTNS(4,NPRTNS)= 4-momenta
+        IDS(NPRTNS)= parton IDS
+
+        for DRELLYAN if the W(Z) decays are in the parton list they must
+        be last ones given and follow the W(Z).
+ 
+        The interface ISEDIT can be used to decide whether an event should
+        be written out. If ISEDIT returns false the event is not written
+        out. Before events are to be written user must pick an output
+        stream by selecting option 'Output Data Files' and following
+        dialog. The user at this point can specify banks he may wish to
+        drop. 
+
+
+ISANALYZE: example package to analyze a file with ISAJET events. The
+        subroutine D0$ISAZEB$COMPACK:ISANAL.FOR gives a detailed example
+        of how to access ISAJET information and loop through various
+        banks. That subroutine can be used as a template for individual
+        ones. Note one can select events to be written to an output file
+        setting ISANALYZE to true or false (if false events are not
+        written out). Before events can be written out an output stream
+        must be opened by selecting option 'Output Data Files'.
+
+
+ISA_MERGE: package to merge events from two separate ISAJET files.
+
+ISA_CAEP : package to make a fake CAEP bank starting from ISAJET
+           information. The CAEP bank generated is kept under the
+           FAKE header bank and the FAKE path must be picked to use it.
+
+
+Any of the above packages can be combined to run together, the most
+common combination is ISAGEN and ISANALYZE:
+
+$ PBD/FRAME=D0USER/NAME=ISARUN/PACKAGES=(ISAGEN,ISANALYZE)
+
+will  generate  ISARUN_D0USER.FOR,  .LNK , .COM  and .OPT for  the combined
+package.    You  can   supply  your  own   event   analysis  by   modifying
+D0$ISAZEB$COMPACK:ISANAL.FOR and adding it to ISARUN_D0USER.OPT. 
+
+$ @ISARUN_D0USER.LNK (DEBUG)
+will generate (DEB_)ISARUN_D0USER.EXE
+
+to run:
+$ @ISARUN_D0USER
+$ D0USER/FULL
+
+See D0$D0USER:D0USER_GUIDE.MEM and D0$DOCS:PROGRAM_BUILDER.DOC for more 
+details.
+
+There are combined package in D0$PBD that allow that generate FAKE data,
+FAKE_COMBINED.PBD will generate calculate missing ET and JETS
+FAKE_TRIGGERS_COMBINED.PBD will generate fake trigger towers. 
+To use a combined package simply:
+
+$ PBD/FRAME=D0USER/NAME=FAKE
+which then generates FAKE_D0USER.FOR, .LNK, .COM and .OPT.
+.END LITERAL

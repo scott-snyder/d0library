@@ -1,0 +1,140 @@
+                                                                2-AUG-1991
+                                                                Jan Guida
+                                                                Chip Stewart
+
+
+                    Capacitance banks for D0 calorimeter
+                    ------------------------------------
+
+
+   The following utilities now exist for storing/reading capacitance
+   values for all channels in the calorimeter.  The capacitance values  are
+   stored according to their electronics address, by ADC crate.  The
+   electronics address is 384*ADC + 48*BLS + 12*TOWER + DEPTH + 1 (=1-4608).
+
+      A new set of ZEBRA banks has been created, hanging under SCAL in STP.
+   The header  bank is CCPH.  Hanging under CCPH is CCPT, CCPC and CCUA.
+   The CCPT bank contains the total capacitance values (cell plus cable).
+   These values  are measured after the cryostat is filled with liquid
+   argon.  The CCPC  bank contains the cell capacitance values.  This does
+   not include the  cables or the readout boards.  These values are from
+   warm measurements,  since cold measurements are not possible.  The CCUA
+   bank contains the  effective uranium area values.  This does not include
+   uranium which is  shielded by a readout board.
+
+      The format of all three banks (CCPT, CCPC, CCUA) is the same. There
+   is one bank per ADC crate - making a linear chain of up to 12 banks.
+   The first seven words are header and the rest are the data.  The data
+   is packed into integer*2 words.  All of the capacitance values are  in
+   picofarads.  The uranium area is tentatively in cm**2.   (See the ZEB
+   files in D0$ZEB$SCAL for details.)
+
+   The raw data for the capacitance and U-area files are stored in
+   D0$STP$GEOCAL:.  The files are named according to their corresponding
+   ADC  crate number and type of data.  For example CPT_007.DAT contains
+   total  capacitance values for ADC crate 7.  CPC_007.DAT contains cell
+   capacitance values for ADC crate 7.  CUA_007.DAT contains the
+   effective-uranium area values for ADC crate 7.
+
+   The CAL_POSTGEO routine calls routines to read the raw capacitance
+   files and write out a zebra file containing all the capacitance values.
+   This file will be stored in D0$STP, as CCPT_STPFILE.DAT (for the CCPT
+   bank), for example.  The CAPSTP routine reads the zebra file and puts
+   results into ZEBSTP, for reference by the user.
+
+   Also hanging under SCAL there is a link reserved for a CNSH (Calorimeter
+   NoiSe Header) bank. As of now only the routines to book CNSH are coded.
+   None of the code or files are yet in a release (anticipate a beta
+   release in CALOR_UTIL/STP as soon as the next test release of those
+   libraries comes out - within a week?). As of now only  total capacitance
+   for CRATES 7, 17, 8, & 18 measurements are available. Other crates will
+   become available as they are cabled up. Work is in progress to fill the
+   CCPC cell capacitance tables with reasonable numbers. It is not yet
+   known exactly how to measure the effective Uranium area of a cell. 
+
+
+           ZEBRA STRUCTURE FOR CALORIMETER STATIC CONSTANTS
+           ================================================
+
+Author: ATZ
+Date: 17 January 1987
+Version: 1.1
+Updated: 31 JULY 1991 CS, JMG - added CCPH capacitance bank, CNSH noise bank
+Version: 1.2
+
+
+                        +-------------------------+
+                        |          SCAL           |
+                        | Static Constant Header  |
+                        +-------------------------+
+        _________________|    |    |   |   |    |_______________________
+        |              _______|    |   |   |_________________          |
+        |              |           |   |__________          |          |
+        |              |           |             |          |          |
+  +----------+   +---------+  +---------+  +---------+ +---------+  +---------+
+  |   CPDH   |   |  CGNH   |  |  CTBH   |  |  CGEH   | |  CCPH   |  |  CNSH   |
+  |    -1    |   |   -2    |  |   -3    |  |   -4    | |   -5    |  |   -6    |
+  +----------+   +---------+  +---------+  +---------+ +---------+  +---------+
+     |    |         |    |                               |   |  |
+     |    |         |    |_____________                  |   |  |
+     |    |         |________         |            ______|   |  |_________
+     |    |_______          |         |           |          |           |
+     |           |          |         |           |          |           |
+   +------+   +------+   +------+  +------+    +-------+   --------   +-------+
+   | CPD1  \  | CPD8  \  | CGN1  \ | CGN8  \   | CCPT   \  | CCPC  \  | CCUA   \
+   |  -1   /  |  -2   /  |  -1   / |  -2   /   |  -1    /  |  -2   /  |  -3    /
+   +------+   +-------   +------+  +------+    +-------+   +-------   +-------+
+    |  |___      | |____     |         |
+    |     |      |     |     |         |
+ +------+ |   +------+ |  +------+   +------+
+ | CPB1 | |   | CPB8 | |  | CGB1 |   | CGB8 |
+ |  -1  | |   |  -1  | |  |  -1  |   |  -1  |
+ +------+ |   +------+ |  +------+   +------+
+      +------+     +------+
+      | CPZ1 |     | CPZ8 |
+      |  -2  |     |  -2  |
+      +------+     +------+
+
+  Bank             Description
+============================================================================
+  SCAL     Calibration static constants header
+  CPDH     Calorimeter pedestal header
+  CGNH     Calorimeter gain header
+  CTBH     Test Beam geometry constants header
+  CCPH     Calorimeter CaPacitance header bank
+  CNSH     Calorimeter NoiSe header bank
+  CGEH     Calorimeter geometry constants header
+  CPD1     Calorimeter pedestals (X1 GAIN - linear structure in ADC cards)
+  CPD8     Calorimeter pedestals (X8 GAIN - linear structure in ADC cards)
+  CPB1     Calorimeter pedestals Bad Channels (X1 GAIN)
+  CPZ1     Calorimeter Zero Suppression Parameters (X1 GAIN)
+  CGN1     Calorimeter gains     (X1 GAIN - linear structure in ADC cards)
+  CGN8     Calorimeter gains     (X8 GAIN - linear structure in ADC cards)
+  CPB8     Calorimeter pedestals Bad Channels (X8 GAIN)
+  CPZ8     Calorimeter Zero Suppression Parameters (X8 GAIN)
+  CCPT     Calorimeter CaPacitance Total (cell+cable) bank
+  CCPC     Calorimeter CaPacitance Cell (cell only) bank
+  CCUA     Calorimeter Uranium Area bank
+==============================================================================
+
+   Routine                     Use
+   -------                     ---
+   CAPSTP (STPFILE,IERR)       Reads capacitance STPFILE (eg. 'CPT_STPFILE')
+                               into ZEBSTP.
+   GTCCPC(CRATE,CHAN,CAP,IER)  Returns CCPC bank capactiance for ICRATE & ICHAN,
+   GTCCPT "                       "    CCPT  " 
+   GTCCUA                         "    CCUA "     
+   GZCCPC ()                   Returns address of first CCPC bank in chain. 
+   GZCCPH ()                                       "    CCPH  " 
+   GZCCPT ()                                       "    CCPT  " 
+   GZCCUA ()                                       "    CCUA  "    
+   GZCNSH ()                                       "    CNSH  "    
+   GZCCPC_CRATE (CRATE)        Returns address of CCPC bank for CRATE
+   GZCCPT_CRATE (CRATE)                      "    CCPT  " 
+   GZCCUA_CRATE (CRATE)                      "    CCUA  "    
+   PRCCPH (UNIT,L,N,C,I)       Print CCPH bank information.
+   PRCCPC (UNIT,L,N,C,I)       Print CCPC bank information.
+   PRCCPT (UNIT,L,N,C,I)       Print CCPH bank information.
+   PRCCUA (UNIT,L,N,C,I)       Print CCUA bank information.
+
+

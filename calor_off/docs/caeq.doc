@@ -1,0 +1,142 @@
+This file is            D0$CALOR_OFF:CAEQ.DOC                   R. Astur 
+                                                                2/24/94
+
+
+    This document describes the use/format of the CAEQ bank
+which will will be retained in the 1B DST's.
+
+
+BRIEF DESCRIPTION:
+-----------------
+
+    CAEQ is a compressed form of the CAEP bank which contains each of
+the calorimeter hits in GeV. For each channel CAEQ contains the eta,phi and
+layer index of the hit and the energy in the cell in GeV.  CAEP requires two 
+words per channel while CAEQ requires only one word.  Thus CAEQ takes half
+the space of CAEP.  CAEQ is a 'compressed' form of CAEP.  This compression
+is achieved by dropping the low order address byte which CAEP contains and
+storing the energy in 'counts'.  The stored energy saturates at -10 GeV
+on the low side and roughly 420 GeV on the high side.  The precision used
+is 2 MeV below 8 GeV and 50 MeV above 8 GeV.
+
+
+Using CAEQ:
+----------
+
+    CAEQ banks will now be made in RECO in the CAHITS package. CAEQ will
+hang from the PROC bank.  Just as CAEQ is produced from CAEP during
+the reconstruction process, a CAEP can be made from CAEQ anytime later
+by rerunning the CAHITS package on a file with CAEQ banks present.
+
+
+a) To make CAEQ:
+
+    CAEQ production from CAEP is controlled by RCP switches in CAHITS.RCP.
+By default these switches are enabled.
+
+-------------------- From CAHITS.RCP -------------------------------------
+
+DO_CAEQFL       T           ! Make a CAEQ from the CAEP. Drop old CAEQ if 
+                            ! present
+
+-----------------------------------------------------------------------
+
+    When DO_CAEQFL is TRUE and CAEP exists, the old CAEQ (if present) is
+dropped and a new one is made from CAEP.
+
+
+b) To remake CAEP from an existing CAEQ:  The CAEP bank is used by
+the various calorimeter reconstruction routines to make other banks
+(like CAEH and CATE) which in turn are used for jet,electron,photon,tau
+and missing ET reconstruction.  Thus it is desirable to have a CAEP
+bank present in case reconstruction must be redone.  This is why
+CAEQ banks will be kept on DST's, because one can then remake a CAEP and
+redo calorimeter reconstruction.
+
+    To remake the CAEP bank, you only need to include the CALOR,CAHITS
+packages (CALOR is automatically included in CALOR_OFF, but not D0USER),
+and run on some sample of data that contains CAEQ banks (1B DST's)
+    The following switches control this:
+
+---------------------------- From CAHITS.RCP -------------------------
+
+DO_CAEPFL       T           ! Make CAEP
+    CAEQ_TO_CAEP    F       ! If TRUE, drop CAEP (if present) and make CAEP
+                            ! from CAEQ
+
+---------------------------------------------------------------------
+
+    When running CAHITS, one normally has DO_CAEPFL set to TRUE, that
+is, one wants to produce a CAEP.  If CAEQ_TO_CAEP is TRUE and a CAEQ 
+exists, the CAEP (if present) is dropped a new one is made from CAEQ.
+
+
+Format of CAEQ:
+---------------
+    Each word of CAEQ holds the Energy, eta index (-37:37), phi index
+(1:64) and layer index (1:17) of the corresponding calorimeter hit.
+Note that the Byte  1 of the CAEP address word is not kept.
+
+** Future version **
+
+    The next iteration of CAEQ will hold Byte 1 of the first CAEP address
+word in word 0 of CAEQ.  Additionally, one of CAEP user bits will be set
+to flag CAEP banks that were made with CAEQ.
+
+********************
+
+--------------------------- This is CAEQ.ZEB --------------------------
+C=======================================================================
+C
+C  Bank Name : CAEQ
+C  Author    : Richard V. Astur
+C  Date      :  7-FEB-1994
+C  Tree description : PROC
+C
+C  Bank description : Compressed CAEQ for new DST/STA
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to 
+C     +1          Up     link to PROC
+C     +2          Origin link to PROC
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'CAEQ'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = 6 + NCELL
+C              0         Status
+C=======================================================================
+C             +1    I    Version=2
+C             +2    I    NH     - Number of header words (=6)
+C             +3    I    NCELLS - Number of cells in bank
+C             +4    F    OFFSET - Bias added to each cell (=10.0)
+C             +5    F    SCALE_1- X1 scale maps energy from -OFFSET:SCALE_1(=8)
+C             +6    F    PREC_2 - Energy precision for E above SCALE_1 (=.05)
+C             +7    I    Packed energy word for first cell
+C             +
+C             +
+C          +6+NCELL I    Packed energy word for last cell
+C======================================================================
+C   VERSION 2       for use in run 1B
+C
+C   Bits 0-6    IETA index (mapped from -37:37 to 1:74 )
+C   Bits 7-12   IPHI index (mapped from 0:63 to 1:64 )
+C   Bits 13-17  ILAYER index (1-17)
+C   Bit  18     Scale bit 0=low scale, 1=high scale
+C   Bit  19-31  Integerized energy (0-8191)
+C   If Scale bit = 0, energy mapped is from -OFFSET to SCALE_1
+C   If Scale bit = 1, energy mapped is from SCALE_1 to PREC_2*8191
+C
+C   Version 2
+C   OFFSET      = -10. GeV
+C   SCALE_1     = 8. GeV  ! .02 GeV resolution
+C   PREC_2      = .05  GeV
+C=================================================================
+C   VERSION 1   used in 1A - QCD microSTA's
+C   OFFSET      = -.5
+C   SCALE_1     = 8.91 GeV  ! .01 GeV resolution
+C   PREC_2      = .05  GeV
+C 
+

@@ -1,0 +1,199 @@
+                                                                J. Linnemann
+                                                                13 Aug 1991
+                                                                C Stewart
+                                                                A Peryshkin
+                                                                21 Apr 1992
+                        CADMAKE Package
+
+    CADMAKE is a package which  rebuilds a CAD bank, provided it can find a
+ CAEP  bank. It is  controled  via a  CADMAKE_RCP  which should  be defined
+ before  running the program  which includes  CADMAKE.  CADMAKE is based on
+ FLCAD, the routine used in D0GEANT  to make CAD banks. The RCP control was
+ introduced  to allow  for both plate  and  mixture CAEP  energy scales. 
+ 
+ When running CADMAKE on mixture MC  data, the conversion from GeV to ADC counts
+ in CADMAKE_RCP  should be the  precise inverse  of the the  conversion from ADC
+ counts to GeV in CAEPFL.  If one changes the  defaults in either CADMAKE_RCP or
+ MIX_CSF.RCP then one cannot be assured  that the RECO CAEP bank is the same  as
+ the original GEAN CAEP bank. 
+
+ If  creating CAD  banks  from real  (non-MC)  CAEP banks  CADMAKE  will use the
+ MIXTURE sampling weights in calculating ADC counts - this is partially based on
+ the assumption  that real data CAEP  banks will have a  total cell energy scale
+ and not  just live  energy. The  CAD bank  that is  written by  CADMAKE will be
+ labled with either PLATE or MIXTURE (MIXTURE for both MC mixture and real data)
+ flags  so  that  CAHITS is  able  to  construct a   'RECO' CAEP  bank  with the
+ appropriate energy scale.
+ 
+NOTES:
+
+    1) The CAD bank will NOT be reconstituted exactly as input if zero
+supression was in force when the CAEP bank was made.  Note that the DEFAULT
+CAHITS.RCP file, which governs this, has a 0 MeV zero supression per channel
+as its default.
+
+    2) Even if no zero supression was used in making the CAEP bank, the vagaries
+of rounding might result in single channel differences between an original CAD
+bank an a reconstituted CAD bank.  If you REALLY want the original CAD bank, go
+back to the RAW tapes.  However, I have been unable to verify any differences.
+
+    3) If you want control of the gain value assumed in building the CAD bank,
+you WILL need to modify the CAMAKE_RCP file.
+
+    4) It is also memory-hungry--it takes about 100K words in ZEBCOM to build
+       the new CAD banks.
+
+    5) Warning on the meaning of the ECUT_ZERO_SUPRESS parameter:
+        It is actually a cut on the absolute value of E which is to be
+        supressed.  If the parameter is 0.0, a FULL bank is created, even if 
+        you are running from a data CAEP bank.  Thus, the default cut is .1 MeV
+        which will give you a normal-sized bank.
+
+ PLATE GEOMETRY ENERGY SCALE:
+ ---------------------------
+ To arrive at a value for Live Argon GeV per ADC count for 
+ plate geometry test beam load 2 Eta=0.45, Phi=31.6
+ 25 GeV electron data was compared to Plate level D0 Monte Carlo
+ live CAEP bank energies. Floor by floor, the ratio of TB data 
+ ADC counts (gain corrected but without sampling weights) to MC
+ live Ar energy (GeV) was calculated:
+
+ Floor  TB ADC counts   MC live E (GeV)   ADC/live GeV   live GeV/ADC 
+ -----  -------------   ---------------   -------------  --------- 
+     1      562         0.1007              5583          0.1791 E-3
+     2      1499        0.314               4773          0.2095 E-3
+     3      5037        1.155               4361          0.2292 E-3
+     4      1316        0.2812              4681          0.2136 E-3
+  Total     8517        1.866               4563          0.2191 E-3
+
+ Due in non-uniformities in eta for TB load 2 data it is not possible
+ to determine the live GeV per ADC count with more precision. The current 
+ difference  between TB data and MC is of the order of 5%. Therefore the 
+ estimated systematic error on the live GeV per ADC counts is also 5%.  
+
+RCP file:
+\START    CADMAKE_RCP
+\SIZE         87        79
+!----------------------------------------------------------------------
+!    Name:       CADMAKE.RCP
+!    Package:    CADMAKE
+!    Library:    CALOR_OFF
+!    Purpose:    Contains conversion factors from MC energy (plates & mixtures)
+!                to CAD bank ADC counts for calorimeter cells.
+!
+!    Version     V1.0
+!    Created:    18-MAR-1992   Chip Stewart
+!----------------------------------------------------------------------
+ ECUT_ZERO_SUPRESS  1.0E-4  !CAD bank zero supression limit
+ PATH               'RECO'  !CAEP path; use GEAN for use with D0GEANT
+ DELETE_EXISTING_CAD     T  !Disposition of existing CAD banks
+!----------------------------------------------------------------------
+!   Factors to convert from ADC counts to total energy
+!----------------------------------------------------------------------
+\ARRAY A_MIXTURE
+   10*0.003205128
+\END
+\ARRAY A_PLATES
+! 4384 pg. 12 of A. spadafora note 1378 DATA weight set 2 / MC
+! 16.244 /3.705x10**3 (adc/live GeV)
+! 4384 pg. 12 of A. spadafora note 1378 DATA weight set 2 / MC
+! 16.244 /3.705x10**3 (adc/live GeV)
+    2*0.0002222        !   CC/EC
+    3*0.003205128   !   CCMG/ICD/ECMG
+    5*0.0002222      !   CCFH/ECIH/ECMH/CCCH/ECOH
+\END
+!----------------------------------------------------------------------
+!CCEM
+!----------------------------------------------------------------------
+\ARRAY W_CCEM_MIXTURE
+ 2*1.0     ! LYR 1-2
+ 5*1.9091  ! LYR 3-7 EM FLOOR 3,4 ATTENUATOR 1.9091
+\END
+\ARRAY W_CCEM_PLATES
+ 2*1.0     ! LYR 1-2
+ 5*1.9091  ! LYR 3-7 EM FLOOR 3,4 ATTENUATOR 1.9091
+\END
+!----------------------------------------------------------------------
+! ECEM
+!----------------------------------------------------------------------
+\ARRAY W_ECEM_MIXTURE
+ 2*1.33      ! LYR 1-7
+ 5*2.539103  ! LYR 3-7 EM FLOOR 3,4 ATTENUATOR 1.9091
+\END
+\ARRAY W_ECEM_PLATES
+ 2*1.        ! LYR 1-7
+ 5*1.9091    ! LYR 3-7 EM FLOOR 3,4 ATTENUATOR 1.9091
+\END
+!----------------------------------------------------------------------
+! CCMG
+!----------------------------------------------------------------------
+\ARRAY W_CCMG_MIXTURE
+ 5*0.0624
+\END
+\ARRAY W_CCMG_PLATES
+ 5*0.0624
+\END
+!----------------------------------------------------------------------
+! ICD
+!----------------------------------------------------------------------
+\ARRAY W_ICD_MIXTURE
+ 6*0.1248
+\END
+\ARRAY W_ICD_PLATES
+ 6*0.1248
+\END
+!----------------------------------------------------------------------
+! ECMG
+!----------------------------------------------------------------------
+\ARRAY W_ECMG_MIXTURE
+ 6*0.0624
+\END
+\ARRAY W_ECMG_PLATES
+ 6*0.0624
+\END
+!----------------------------------------------------------------------
+! CCFH
+!----------------------------------------------------------------------
+\ARRAY W_CCFH_MIXTURE
+ 3*1.87
+\END
+\ARRAY W_CCFH_PLATES
+ 3*1.0
+\END
+!----------------------------------------------------------------------
+! ECIH
+!----------------------------------------------------------------------
+\ARRAY W_ECIH_MIXTURE
+ 4*1.87 7.53
+\END
+\ARRAY W_ECIH_PLATES
+ 5*1.0
+\END
+!----------------------------------------------------------------------
+! ECMH
+!----------------------------------------------------------------------
+\ARRAY W_ECMH_MIXTURE
+ 4*1.87  7.53
+\END
+\ARRAY W_ECMH_PLATES
+ 5*1.0
+\END
+!----------------------------------------------------------------------
+! CCCH
+!----------------------------------------------------------------------
+\ARRAY W_CCCH_MIXTURE
+ 7.59
+\END
+\ARRAY W_CCCH_PLATES
+ 1.0
+\END
+!----------------------------------------------------------------------
+! ECOH
+!----------------------------------------------------------------------
+\ARRAY W_ECOH_MIXTURE
+ 3*7.53
+\END
+\ARRAY W_ECOH_PLATES
+ 3*1.0
+\END
+\STOP    !   CADMAKE_RCP

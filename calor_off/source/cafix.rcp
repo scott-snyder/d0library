@@ -1,0 +1,93 @@
+\START    CAFIX_RCP
+\SIZE        105        97
+!----------------------------------------------------------------------
+!    Name:       CAFIX.RCP
+!    Package:    CAFIX
+!    Library:    D0$CALOR_OFF
+!    Purpose:    Control for CAFIX
+!                RCP file which controls Reco corrections
+!    Version     V1.00
+!    Created:    14-JAN-1993   Harrison B. Prosper
+!    Updated:     5-FEB-1993   Harrison B. Prosper
+!                   Default is to fill GLOB bank but do no VCOR
+!    Updated:     9-Apr-1993   Harrison B. Prosper
+!                   Change CORR_LEVEL_PNUT
+!    Updated:     2-JAN-1994   Richard V. Astur
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+REPEAT_CORRECTION                   TRUE   ! Replace old correction with new
+                                           ! this applies to JET and MET
+                                           ! correction. If FALSE, corrections
+                                           ! are skipped if MET corrections
+                                           ! have already been done.
+BUILD_GLOB                          TRUE   ! Force building of GLOB bank
+    CORR_LEVEL_MAIN_RING    2   !0:OFF, 1:MICRO-BLANK (ON), 2:ALWAYS
+    CELL_ENERGY_THRESHOLD   0.3 !GeV Used in CORRMR for GLOBFL
+    NEGATIVE_CELL_ENERGY_THRESH 0.300 0.100
+
+!---------------------------------------------------------------------
+! EM Correction: Controlled by CORRECTEM.RCP. Only PELC/PPHO's which
+!                satisfy the ECORRECT_MASK of CORRECTEM.RCP will be
+!                corrected.
+!--------------------------------------------------------------------
+
+DO_EM_CORRECTION                    TRUE   ! Correct electrons/photons
+
+!---------------------------------------------------------------------
+! JET Correction: Correct jets controlled by QCD_JET_CORRECTION.RCP
+!                 Jets which contain PELC/PPHO's which are corrected by
+!                 CORRECT_EM first have them removed, then the rest of the
+!                 jet is corrected and then the corrected PELC/PPHO is added
+!                 back in.  All JETS banks are modified.
+!--------------------------------------------------------------------
+
+DO_JET_CORRECTION                   TRUE   ! Correct jet algorithms
+    DO_ZSP_CORRECTION               TRUE   ! Do noise correction
+    DO_UND_CORRECTION               TRUE   ! Correct for underlying event
+    DO_CONE_CORRECTION              TRUE   ! Correct for showering losses
+    ISYS                               0   ! 0=Nominal correction
+                                           ! 1=low correction, 2=high correction
+                                           ! low = nominal - one sigma error
+!---------------------------------------------------------------------
+! MET Correction:   MET is corrected by adding to the MET 4-vector:
+!                       a) the 4-vector differential from corrected
+!                       electrons/pelcs from CORRECTEM
+!                       b) the 4-vector differential from corrected jets
+!                       (noise subtracted in both corrected and uncorrected)
+!                       c) the 4-vector differential from removing CH ring
+!                       in non-microblanked events
+!                       d) the 4-vector differential from correcting the
+!                       vector sum of all cells in the calorimeter which are
+!                       not associated with a jet/pelc/ppho (soft recoil)
+!                       Only done when no hadronic jets present if DO_
+!                       SOFT_CORRECTION is TRUE.
+!
+!                       The result is put in PNUT4
+!                       A PNUT5 bank (corrected MET with muons) is made by
+!                       adding in only those muons which satisfy the CLEANMU
+!                       mask defined below (GOOD_MUON_MASK). See CLEANMU.RCP
+!                       for information on how this mask is defined.
+!--------------------------------------------------------------------------
+! MET correction switch : Controls whether MET correction is done or not
+!--------------------------------------------------------------------------
+DO_MET_CORRECTION                   TRUE   ! Do Missing ET Correction
+!--------------------------------------------------------------------------
+! Specific control for correcting MET (if DO_MET_CORRECTION = .TRUE. )
+!---------------------------------------------------------------------------
+CORR_LEVEL_PNUT         2   ! 0:OFF, 1:PNUT(4), 2:PNUT(4) and PNUT(5)
+    USE_JET_CORRECTION              TRUE   ! Use corrected jets to correct MET
+    CORRECT_EM_JETS                 TRUE   ! If TRUE, use JET CORRECTION to
+                                           ! correct the remainder of an EM JET
+                                           ! after the PELC/PPHO is removed
+                                           ! (if it is above jet threshold)
+    \ARRAY JET_TEMPLATE                    ! Template of Jet algorithm
+      2.   6.   .7   8.   .5  0.   0.      ! to use when correcting MET
+    \END
+    DO_SOFT_CORRECTION               FALSE ! Correct soft recoil
+        SOFT_RECOIL_CUTOFF             25. ! Dont correct soft recoil if its
+                                           ! ET is above this value (GeV)
+        \ARRAY RECOIL_CORRECT              ! Parameters for correction
+            .0669   .665
+        \END
+    GOOD_MUON_MASK               $54081000 ! Standard cleanmu mask (hex)
+\STOP    !   CAFIX_RCP

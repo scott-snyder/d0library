@@ -1,0 +1,50 @@
+      LOGICAL FUNCTION ITEST_BANK(LBANK,IWORD,COMPA,LIST,NLIST)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : TO TEST WORD IWORD IN BANK AT LBANK (ZEBCOM) 
+C-                         COMPARING IT TO LIST OF LENGTH NLIST AND SETTING
+C-                         RETURN VALUE OF ITEST_BANK TRUE IF CONDITION IS MET
+C-                              
+C-   Inputs  : LBANK [I]    = BANK ADDRESS
+C-             IWORD [I]    = WORD NUMBER WITH LBANK
+C-             COMPA [I]    = TYPE OF COMPARISON TO BE MADE EQ,NE,GT,LT,GE,LE
+C-                            1=LT,2=LE,3=EQ,4=NE,5=GE,6=GT
+C-             LIST(*) [I]  = LIST OF VALUES TO BE COMPAIRED WITH 
+C-             NLIST  [I]   = NUMBER OF VALUES IN LIST
+C-   Outputs : NONE
+C-   Controls: NONE
+C-
+C-   Created  12-FEB-1990   Chip Stewart
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INTEGER LBANK,IWORD,COMPA,LIST(*),NLIST,IDATA,I
+      LOGICAL TEST
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+C----------------------------------------------------------------------
+      TEST = .FALSE.
+    1 IDATA = IQ(LBANK+IWORD)
+      DO I = 1, NLIST
+        GOTO (11,12,13,14,15,16 ) COMPA
+   11   IF (IDATA.LT.LIST(I)) TEST=.TRUE.
+        GOTO 20
+   12   IF (IDATA.LE.LIST(I)) TEST=.TRUE.
+        GOTO 20
+   13   IF (IDATA.EQ.LIST(I)) TEST=.TRUE.
+        GOTO 20
+   14   IF (IDATA.NE.LIST(I)) TEST=.TRUE.
+        GOTO 20
+   15   IF (IDATA.GE.LIST(I)) TEST=.TRUE.
+        GOTO 20
+   16   IF (IDATA.GT.LIST(I)) TEST=.TRUE.
+        GOTO 20
+   20   CONTINUE
+        IF (TEST) GOTO 21
+      END DO
+   21 CONTINUE
+      ITEST_BANK=TEST
+      IF (TEST) GOTO 999
+      LBANK = LQ(LBANK)
+      IF (LBANK.GT.0) GOTO 1
+  999 RETURN
+      END

@@ -1,0 +1,147 @@
+      LOGICAL FUNCTION ISARCP_INI()
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-     Initialization hook for ISAJET
+C-
+C-   Updated  11-NOV-1989   Rajendran Raja  (BASED ON ISGINI)
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$INC:ISABNK.INC'
+      INCLUDE 'D0$INC:ISAUNT.INC'
+C
+      INCLUDE 'D0$INC:ITAPES.INC'
+      INCLUDE 'D0$INC:IDRUN.INC'
+      INCLUDE 'D0$INC:ISALNK.INC'
+      INCLUDE 'D0$INC:PRIMAR.INC'
+      INCLUDE 'D0$INC:PARTCL.INC'
+      INCLUDE 'D0$INC:NODCAY.INC'
+C
+      INTEGER IEVTAP,IDKY,ICOMAND
+      CHARACTER*40 V,VISAZEB,VISAJE
+C
+      CHARACTER*80 FILDKY,FILEVT,FILCOM,FILLIS,FILEX,FILNAM,FILPRT
+      LOGICAL NEWCOM,QPART,QCAL,QLEP
+      INTEGER NCHAR
+      LOGICAL PRTABLE, OK
+      INTEGER GTUNIT_ID,LOUT,IER
+      REAL    XYZ(3),PXYZ(3)
+      INTEGER ID
+C
+      LOGICAL DO_ONE_TRACK
+      INTEGER IEVTS
+      LOGICAL ISARCP_BEG
+      INTEGER IFL
+      INTEGER JDUMY,ITEVT1
+      DATA JDUMY/-1/
+C----------------------------------------------------------------------
+      ISARCP_INI=.TRUE.
+C
+      CALL INZBRA                       ! INITIALIZE ZEBRA
+      CALL INZCOM(2)                    ! Initialize /ZEBCOM/
+      CALL INPAWC                       ! Initialize HBOOK4
+C
+C ****  Read parameters into RCP bank
+C
+      CALL INRCP ('ISARCP_RCP',IER)
+      IF(IER.NE.0)CALL ERRMSG('ISARCP','ISARCP',
+     &  'CANNOT OPEN RCP FILE ','W')
+C
+      CALL EZPICK('ISARCP_RCP')
+      CALL EZGET('GTUNIT_ID',GTUNIT_ID,IER)
+      CALL EZGET('DO_ONE_TRACK_EVENTS',DO_ONE_TRACK,IER)
+C
+      CALL EZ_FILE_OPEN(GTUNIT_ID,'PRINT_FILE','OF',
+     &  LOUT,FILPRT,IER)
+      IF(IER.NE.0)THEN
+        CALL ERRMSG('ISARCP','ISARCP',
+     &  'COULD NOT OPEN PRINTOUT FILE','W')
+      ENDIF
+C
+      CALL HOUTPU(LOUT)                 ! set HBOOK printout to LOUT
+      CALL HERMES(LOUT)                 ! set HBOOK error message
+C
+      CALL DHDIR('ISARCP_RCP','HBOOK_DIRECTORY',IER,' ')
+C         ! Create/Set HBOOK directory for CAHits
+      IF ( IER.NE.0 ) THEN
+        CALL ERRMSG('ISARCP','ISARCP_INI',
+     &    ' ERROR SETTING HBOOK DIRECTORY ','W')
+      ENDIF
+C
+      V=VISAJE()
+      WRITE(LOUT,1)V
+    1 FORMAT('0',/,10X,A40)
+C
+C ****  OUTPUT FILE
+C
+      CALL EZ_FILE_OPEN(GTUNIT_ID,'OUTPUT_FILE','OU',
+     &  ITEVT,FILEVT,IER)
+      IF(IER.NE.0)THEN
+C        CALL ERRMSG('ISARCP','ISARCP',
+C     &  'COULD NOT OPEN EVENT OUTPUT FILE','W')
+      ENDIF
+      CALL FZFILE (ITEVT,0,'O')
+C
+      IEVTAP=-ITEVT     ! no provision for handling unstable particles
+C
+      IF(.NOT.DO_ONE_TRACK)THEN
+        CALL EZ_FILE_OPEN(GTUNIT_ID,'DECAY_FILE','IF',
+     &  IDKY,FILDKY,IER)
+C
+        IF(IER.NE.0)THEN
+          CALL ERRMSG('ISARCP','ISARCP',
+     &  'COULD NOT OPEN DECAY TABLE FILE','W')
+        ENDIF
+C
+        CALL EZGET('PRINT_DECAY_TABLE',PRTABLE,IER)
+        IF(.NOT.PRTABLE)THEN
+          IDKY=-IDKY
+        ENDIF
+C
+        CALL EZ_FILE_OPEN(GTUNIT_ID,'COMMAND_FILE','IF',
+     &  ICOMAND,FILEVT,IER)
+        IF(IER.NE.0)THEN
+          CALL ERRMSG('ISARCP','ISARCP',
+     &    'COULD NOT OPEN COMMAND FILE','W')
+          NEWCOM=.TRUE.
+        ENDIF
+C
+        IF(NEWCOM) CALL ISASET(IDKY,IEVTAP,ICOMAND,LOUT)
+C
+        CALL EZSET('COMMAND_UNIT',ICOMAND,IER)
+        CALL EZSET('DECAY_UNIT',IDKY,IER)
+      ENDIF
+C
+      CALL EZGET('WRITE_PARTICLES_BANK',QPART,IER)
+      CALL EZGET('WRITE_PSEUDO_CALORIMETER_BANK',QCAL,IER)
+      CALL EZGET('WRITE_LEPTONS_BANK',QLEP,IER)
+      CALL ISBKST(QPART,QCAL,QLEP)
+C
+      CALL MZLINK(IXCOM,'/ISALNK/',LVD,PQREF(3),LVD)
+C
+C          Setup for ZEBRA only
+C
+      ISUNIT=IABS(IEVTAP)
+      FILISA=FILEVT
+      V=VISAZEB()
+      WRITE(LOUT,1)V
+C
+C  Set up flags to select type of output
+C
+      ITEVT1 = ITEVT
+      CALL ISAINI(IDKY,JDUMY,ICOMAND,LOUT)   ! INITIALIZE ISAJET
+      ITEVT = ITEVT1
+C
+      CALL EZSET('PRINT_UNIT',LOUT,IER)
+      CALL EZSET('OUTPUT_UNIT',ITEVT,IER)
+C
+C ****  
+C
+      CALL PJET_RCP('ISARCP_RCP')
+C
+      ISARCP_INI = IER.EQ.0
+C
+  999 RETURN
+      END

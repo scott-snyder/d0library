@@ -1,0 +1,211 @@
+
+                                                    C. Stewart 
+                                                    Created   21-May-1990
+                                                    S. Abachi
+                                                    Updated      Oct-1990 
+                                                    H. Prosper
+                                                    Updated   23-Dec-1990
+                                                    Version   V1.2
+
+
+                        ISARCP short Guide
+                        ==================
+
+    ISARCP is an ISAJET interface which is controled via Run Control Parameter
+    (RCP) files. The input to ISARCP consists of an RCP file (defined as
+    ISARCP_RCP), which controls the program framework, and  an ISAJET command 
+    file (optional), which controls the ISAJET parameters (eg. the physics).
+    If the ISAJET command file is not found then the program prompts for any
+    information it needs in the standard ISAJET dialog.
+
+    The output from ISARCP is a file of ISAJET events in ZEBRA format, and
+    (optionally) a file with ISAJET event printout. 
+
+    RUNNING ISARCP
+    ---------------
+
+    (1) Find an ISARCP EXE in D0$CMS:[ISARCP] (D0$ROOT:[ISAZEB] not on D0SFT
+        cluster), or make an EXE by creating an ISARCP area then linking with:
+
+           D0$ISAZEB:DEB_ISAZEB/INCLUDE=(ISARCP)/L,-
+           D0$ROOT:[ISAJET]ISAJET/INCLUDE=(ALDATA)/L,-
+           D0$PIXIE:DEB_PIXIE/LIB,-
+           D0$CALOR_UTIL:DEB_CALOR_UTIL/LIB,-
+           D0$GENERAL:DEB_GENERAL/INCLUDE=(DBANK)/L,-
+           D0$CERNLIB:HBOOK4/L,PACKLIB/LIBRARY,GENLIB/LIBRARY,KERNLIB/LIBRARY
+
+    (2) Create an ISARCP.RCP file in your area - begin by copying one from
+        the D0$CMS:[ISARCP] area. The commands are explained below.
+
+    (3) Copy the file SETUP_USER.COM from D0$CMS:[ISARCP] and modify the
+        logicals COMMAND_FILE, etc. appropriately.
+
+    (4) Execute 
+
+        $ @D0$CMS:[ISARCP]SETUP_ISARCP YOUR_RCP_FILE
+
+        to define the logicals ISARCP_RCP and to execute your local
+        SETUP_USER.COM.
+         
+         *** IMPORTANT *** The You must use the name ISARCP_RCP with the
+             \START parameter in YOUR_RCP_FILE.RCP. This is the assumed
+             name of the RCP bank.
+    
+        If the switch DO_ONE_TRACK_EVENTS  is set to TRUE then single
+        track events will be generated.
+
+    (4) Run the program
+    
+    (5) Call Chip Stewart (x2827 - FNAL::STEWART) with any problems.
+    
+    ISARCP_RCP PARAMETERS
+    ----------------------
+    A sample ISARCP_RCP file: 
+    
+\START          ISARCP_RCP        ! Name of RCP bank
+\SIZE 500 200
+!------------------------------------------------------------------------------
+!   Name:       ISARCP.RCP
+!   Purpose:    Control file for ISARCP PROGRAM
+!   Created:    21-OCT-1989     Rajendran Raja
+!   Updated:    04-JAN-1990     Chip Stewart
+!   Updated:    21-DEC-1990     Harrison B. Prosper
+!------------------------------------------------------------------------------
+ NUMBER_OF_EVENTS       50      !total number of events to generate
+ RUN_NUMBER             1001    !Runnumber for this run
+ GTUNIT_ID              725     !ID for GTUNIT calls
+!------------------------------------------------------------------------------
+!  I/O PARAMETERS
+!------------------------------------------------------------------------------
+ COMMAND_UNIT   0               !these unit numbers will be set by program
+ PRINT_UNIT     0
+ OUTPUT_UNIT    0
+ DECAY_UNIT     0
+!---------------------------------------------------------------------
+!   You should define the following logicals in a local SETUP_USER.COM
+!---------------------------------------------------------------------
+\ARRAY PRINT_FILE
+ 'PRINT_FILE'                   !ISAJET Print file name
+\END
+\ARRAY OUTPUT_FILE
+ 'OUTPUT_FILE'                  !ISAJET Output file name
+\END
+\ARRAY COMMAND_FILE
+ 'COMMAND_FILE'                 !ISAJET Command file name
+\END
+!------------------------------------------------------------------------------
+\ARRAY DECAY_FILE
+ 'D0$ISAJET:DECAY.DAT'          !Decay tables file
+ \END
+\ARRAY RANDOM_SEED_SAVE_FILE
+ 'ISARCP.SEED'                  !Final random number seed
+\END
+!------------------------------------------------------------------------------
+!  ISARCP PARAMETERS
+!------------------------------------------------------------------------------
+DO_MASS_CHECK           FALSE   !Check input mass against mass in ISAJ bank
+\ARRAY MASS_CHECK
+    6           !Top/Top-bar (ISAJET particle ID code)
+    5.0         !Masses should differ by no more than this (GeV)
+\END
+!-----------------------------
+DO_MASS_DISTRIBUTION    FALSE
+\ARRAY MASS_DISTRIBUTION
+    'UNIFORM'   !Distribution
+    100.0       !Lower bound (GeV)
+    110.0       !Upper bound (GeV)
+\END
+!-----------------------------
+DO_EDIT                 FALSE   !Filter events 
+\ARRAY EDIT_LIST        
+      'CUT '                    !Cut events where WORD 1 of ISAQ
+      'ISAQ'                    !EQ any one of the following particle
+      'WORD 1 '                 !IDs
+      'EQ'
+       11  12  13  14  15  16   !Cut out events with leptons
+      -11 -12 -13 -14 -15 -16 
+\END      
+!------------------------------------------------------------------------------
+!               PJET ALGORITHM PARAMETERS
+!------------------------------------------------------------------------------
+NUMBER_ALGORITHMS         0     ! number of PJET algorithms to try
+!------------------------------------------------------------------------------
+\ARRAY ALGORITHM_01
+ 0.45           ! cone for finding jets
+ 5.0            ! minimum ET for a jet
+   1            ! maximum number of iterations
+   0            ! 1 - DONT INCLUDE INITIAL RADIATION - 0 INCLUDE ALL PARTONS
+   0            ! 1 - INCLUDE MUONS                  - 0 DONT INCLUDE MUONS
+ 'CONE'         ! ALGORITHM TPYE 'CONE' OR 'ANGLE'
+\END
+\ARRAY ALGORITHM_02
+ 0.35  5.0  1  0 0  'ANGLE'
+\END
+\ARRAY ALGORITHM_03
+ 0.4  5.0  2  0 0  'PART'
+\END
+\ARRAY ALGORITHM_04
+ 0.7  5.0  10  0 0  'PART'
+\END
+!------------------------------------------------------------------------------
+!  ISAZEB PARAMETERS
+!------------------------------------------------------------------------------
+ DO_READ_SEED   .TRUE.
+ WRITE_PARTICLES_BANK           .TRUE.
+ WRITE_PSEUDO_CALORIMETER_BANK  .FALSE.
+ WRITE_LEPTONS_BANK             .TRUE.
+ PRINT_DECAY_TABLE              .TRUE.
+!------------------------------------------------------------------------------
+! HBOOK PARAMETERS
+!------------------------------------------------------------------------------
+ HBOOK_SAVE   .TRUE.
+\ARRAY  HBOOK_SAVE_FILE 
+ 'HBOOK.SAVE' 
+\END
+\ARRAY  HBOOK_DIRECTORY
+ 'ISARCP'
+\END
+!------------------------------------------------------------------------------
+! IS1TRK CONSTANTS
+!------------------------------------------------------------------------------
+!-------------------IS1TRK CONSTANTS-----------------------------------
+ DO_ONE_TRACK_EVENTS  FALSE
+ \ARRAY ETA_PHI_CELL  !eta/PHI INDICES of cells to be populated
+       1 1   1 2       
+ \END
+ PARTICLE_ID    14       !Isajet particle ID. (12 = e-; -12 e+)
+                         ! 120 Pi+  -120 P-, 14 Mu-  -14 Mu+
+!--------------------------
+! THREE METHODS TO SET PARTICLE MOMENTUM 
+!--------------------------
+! SET PARTICLE MOMENTUM TO 15 GEV
+ PARTICLE_MOMENTUM 15.        ! Momentum spectrum
+!--------------------------
+! SET PARTICLE MOMENTUM TO 15 GEV +- 2.0  (UNIFORM DISTRIBUTION 13 TO 17 GEV)
+! \ARRAY PARTICLE_MOMENTUM       ! Momentum spectrum
+! 15. 2.
+!\END
+!--------------------------
+! SET PARTICLE MOMENTUM ACCORDING TO A 'HISTOGRAM' DISTRIBUION 
+! SEE ISARCP.DOC FOR DETAILS
+! \ARRAY PARTICLE_MOMENTUM       ! Momentum spectrum
+! 1. 10.   2. 100.   3. 300.   5. 500.   10. 300.
+! 20. 100.   50. 50.   100. 20.
+\END
+!
+ \ARRAY PRIMARY_VERTEX
+  0.0  0.0  0.0          !Primary vertex co-ordinates
+ \END
+ VERTEX_Z_SIGMA  25.0    !Vertex Z sigma in centimeters
+ CELL_HISTOGRAM_WINDOW_X  10.0   !+/- about cell corner
+ CELL_HISTOGRAM_WINDOW_Y  10.0   !+/- about cell corner
+ CELL_HISTOGRAM_WINDOW_Z  10.0   !+/- about cell corner
+!------------------------
+ \STOP
+
+    PARTICLE_MOMENTUM is replaced by MOMENTUM_SPEC, which is a histogram
+    according which a random momentum spectrum is to be generated. If instead
+    of an spectrum only one value given then it acts like before and runs with
+    that sigle momentum value without randomizing.  Randomizing for one value
+    can be achived by giving a pair of numbers such as "15.0 2.0". This
+    will cause the momentum 15.0 to be randomized uniformly between 15.0+-2.0

@@ -1,0 +1,233 @@
+From:	FNAL::AIHARA       12-AUG-1992 16:19:13.20
+Subj:	TB90L1 CAHITS
+
+To whom it may concern:
+
+	The following is intended to describe how to combine 
+TB90_CALOR_UNPACK and CAHITS to get the correct energy scale for LOAD I
+testbeam data.
+CAHITS does not unpack LOAD I testbeam data unfortunately.
+
+General idea is to use TB90_CALOR_UNPACK to get unpacked, pedestal-subtracted
+and gain-corrrected ADCs in CAEP bank and to fill pointers.
+and then use CAHITS to convert ADC to energy (GeV) and to recreate CAEP bank.
+
+1) Create combined package by including TB90_CALOR_UNPACK and CAHITS in this
+   order.  (This order is essential.)
+   PWC package works for both Load I and Load II data and you can include PWC
+   anywhere before your user routine. (PWC,TB90_...,CAHITS or 
+   TB90_...,CAHITS,PWC or whatever).  
+
+2) Check if your_combined_package.OPT contains the following 
+   obsolete libraries: 
+  
+      D0$ONLINE:ONLINE_UTIL.OLB
+      D0$DBL3:CALIB.OLB
+   
+   If they are in OPT file, remove them.  They are incompatible with current
+   DBL3 library.  DBL3 related routines will be automatically linked, so you
+   do not need to specify it in your OPT file.
+   (Chip Stewert has modified his Tb90_CALOR_UNPACK.PBD, so  chances are you
+    may not need to worry about this.)
+
+3) TB90_CALOR_UNPACK.RCP look like this:
+
+!------------------------------------------------------------------------------
+!   TRIGGER BIT SELECTION
+!------------------------------------------------------------------------------
+ PRINT_TRIGGER_MESSAGE  TRUE !If true events which fail will be flagged.
+ SELECT_TRIGGERS        TRUE 
+ \ARRAY TRIGGER_BITS
+   1   !CAL_BEAM
+   !2  !CAL_PEDS
+   !3  !INTERSPERSED PEDS
+ \END
+
+\ARRAY HBOOK_DIRECTORY
+     'CALORIMETER'
+     'TB90_CALOR_UNPACK'
+\END
+!------------------------------------------------------------------------------
+!   Constants for subroutine TB90_CAEPFL
+!------------------------------------------------------------------------------
+
+ZERO_SUPRESS    .TRUE.   ! zero suppress even if already done in hardware
+
+ENERGY_CUTOFF    0.0     ! cutoff for zero suppresion (in GeV energy units)
+
+SIGMA_CUTOFF     2.0     ! cutoff for zero suppresion (in ADC counts)
+
+FILL_PTCAEP     .TRUE.    ! DON't call CPTCAZ if PTCAEP is not USED
+!*** This is important.***
+
+
+PEDESTAL_FILE 'DBL3'     ! default ped run (closest preceding ped run)
+                         ! 'DBL3@2226' choses peds from (or preceding) run 2226
+
+GAINS_FILE    'DBL3'     ! default ped run (closest preceding ped run)
+                         ! 'DBL3@2226' choses peds from (or preceding) run 2226
+
+CRATES           7      ! ADC Crate number 7 at NWA
+
+DO_PEDSUB    .TRUE.      ! TURN ON PEDESTAL SUBTRACTION IF NEEDED
+
+DO_GNSCOR    .TRUE.      ! TURN ON GAINS CORRECTIONS
+
+DO_PEDCOR    .TRUE.      ! TURN ON DBL3 *8 PEDESTAL CORRECTION 
+!*** for this you need TB90_PEDCOR.RCP***
+
+OVERWRITE_CAEP .TRUE.
+
+GAIN_NORMALIZATION  1900.
+
+WEIRD_GAIN_CUT       500.
+LOW_GAIN_CUT         500.
+HIGH_GAIN_CUT       5000.
+
+LOW_PED_CUT*1       2025 
+HIGH_PED_CUT*1      2825 
+LOW_PED_CUT*8        150
+HIGH_PED_CUT*8       450 
+
+STATUS_MASK       196607 ! STATUS_VERTEX = 0002FFFF in hex - KS 25-JUL-1990
+
+FILL_TBES         .FALSE. ! FILL TBES bank
+
+ADC_TO_GEV        273. ! adc counts per GeV
+
+CONVERT_TO_GEV    .FALSE.  ! convert from counts to GeV (defines energy units)
+!*** This is important, too.***
+
+\ARRAY CAPACITANCE_GAIN_CORR 
+   1.0 1.0 1.0 1.0
+\END
+
+\ARRAY SAMPLING_FRACTION_CORR
+   1.0 1.0 1.0 1.0 
+   0.0 0.0 0.0 0.0 0.0 0.0
+   1.5 1.5 1.5 1.5
+   6.0 1.5 6.0
+\END
+
+\STOP
+
+4) CAHIST.RCP look like this:
+
+!------------------------------------------------------------------------------
+!   Constants for package CAHITS
+!------------------------------------------------------------------------------
+     DO_CAEPFL        T       ! create CAEP banks from raw CAD1, CAD2 banks.
+     DO_CAEHFL        T       ! create CAEH banks from CAEP and primary vertex
+     DO_CATEFL        T       ! create CATE tower bank from CAEH cells
+     DO_C1PMET        T       ! create PNUT1 bank (missing Et w/o ICD/MG info)
+     DO_C2PMET        T       ! create PNUT2 bank (missing Et with ICD/MG info)
+     DO_ANALYSIS      F       ! SKIP CHTANL IF DO_ANALYSIS IS FALSE
+     FILL_PTCAEP      T       ! FILL PTCAEP in CAEPFL with hit cells
+!------------------------------------------------------------------------------
+!   Constants for subroutine CAEPFL
+!------------------------------------------------------------------------------
+    CAD_STPFILE 'D0$STP:CAD_STPFILE.DAT' ! use CAD_STPFILE for addressing
+    CSF_STPFILE 'D0$STP:CSF_STPFILE.DAT' ! use CSF_STPFILE for energy conversion
+    CAHITS_ERROR_LOG ! 'CAHITS_ERROR_LOG'! file to store bad channels
+    NEED_CAD1        T                   ! no CAEP created if CAD1 -
+    NEED_CAD2        T                   ! - or CAD2 are not in raw data.
+    DO_ADDR_CHECK    T
+      CAD_ADDR_CHECK_PRESCALE      1
+      ERRMSG_LIMIT_PDGN            0
+    DO_ZERO_SUPRESS  F        ! zero suppress even if already done in hardware
+      ENERGY_CUTOFF  0.0      ! cutoff for zero suppresion in CAEP energy units
+      SIGMA_CUTOFF   3.0      ! cutoff in multiples of pedestal sigma.
+    DO_GNSCOR        F
+      GAINS_FILE               'DBL3'
+      GAIN_NORMALIZATION        6000.    ! Convention at D0
+      GAIN_NORMALIZATION_NWA    1900.    ! Convention at NWA
+      EM_GAIN        1.9091     ! EM  LYR 3-7 10.5 pf factor for DO_GNSCOR FALSE
+      ICD_GAIN       0.2683     ! ICD LYR 9   20.5 pf factor when DO_GNSCOR TRUE
+    DO_PEDSUB        F
+      PEDESTAL_FILE            'DBL3'
+      PEDESTAL_SIGMAS  F      ! Fetch pedestal sigmas even when DO_PEDSUB FALSE
+    DO_ADC_TO_GEV      T      ! If TRUE use A*W from CSFW bank; If F use A*W=1
+      CSF_CORRECTIONS  T      ! IF TRUE use C from CSFC bank. IF F use C=1
+      BUILD_CSF        F      ! Build sampling weights from user CSF_RCP
+      DROP_CALIB_BANKS T      ! DROP CPDH,CGNH tree after CGEVFL
+!------------------------------------------------------------------------------
+!   Name of the DBL3 default file for CALIB data
+!------------------------------------------------------------------------------
+    DBCALIB$CAL  'dbl3$cal:dbcalib$cal.dat'
+!----------------------------------------------------------------------
+!   Data driven sampling weights from word 4 of CAD bank crate header
+!       If TB data then bit 2**30=1; If MC data bit 2**29=1
+!----------------------------------------------------------------------
+      DATA_DRIVE_CSF   T
+        CSF_RCP_D0_MIX 'D0$CALOR_OFF:MIX_CSF.RCP'
+        CSF_RCP_D0_PLT 'D0$CALOR_OFF:PLT_CSF.RCP'
+        CSF_RCP_TB_MIX 'D0$CALOR_OFF:MIX_CSF.RCP'
+        CSF_RCP_TB_PLT 'D0$CALOR_OFF:PLT_CSF.RCP'
+        CSF_RCP_TB     'D0$CALOR_OFF:TB_CSF.RCP'
+!----------------------------------------------------------------------
+!  CAEPFL: Processing existing CAEP banks:
+!  0=If input already has CAEP bank then skip CAEPFL
+!  1=FORCE new CAEP bank from CAD banks even when CAEP already exists in data.
+!  2=FORCE new CAEP bank from existing CAEP bank: convert energy units
+!          (CAEP in ADC counts, live GeV, or Total GeV) - NEEDS OLD_CAEP_CSF_RCP
+!----------------------------------------------------------------------
+      OLD_CAEP       2
+      OLD_CAEP_CSF_RCP 'D0$CALOR_OFF:UNIT_CSF.RCP'
+!----------------------------------------------------------------------
+!  CAEPFL: BAD CHANNEL CONTROL:
+!  Relevant CALIB bad channel bits
+!  0            'Histogram does not exist',
+!  1            'Too many over/underflows',
+!  3            'Sigma of histogram is zero(too small)',
+!  5            'Zero entries inside window',
+!  6            'Peak of histogram above limit ',
+!  7            'Peak of histogram below limit ',
+!----------------------------------------------------------------------
+    \ARRAY  BAD_CHANNEL_CPB8_BITS
+!       0 1 3 5 6 7
+    \END
+    \ARRAY  BAD_CHANNEL_CPB1_BITS
+!       0 1 3 5 6 7
+    \END
+    \ARRAY  BAD_CHANNEL_CGB8_BITS
+      -7  ! Ignore CALIB gain for channels with peak below limit
+    \END
+    \ARRAY  BAD_CHANNEL_CGB1_BITS
+      -7
+    \END
+    \ARRAY  KEEP_CHANNELS  !override CALIB bad channel bits for these cells
+!        -12 34 6
+    \END
+    \ARRAY  BAD_CHANNELS   !set these channels to zero even if CALIB bits OK
+!        -12 31 2  ! ETA PHI LYR
+    \END
+!------------------------------------------------------------------------------
+!   Constants for subroutine CAEHFL
+!------------------------------------------------------------------------------
+    ALPHA               12.0        !   Sigma(R) = dr^2/alpha etc.
+    \ARRAY  SIGMA_EM                !   Sigma = A*E^2 + K*B*E + K^2*Sigma(Ped)
+      0.0                         !   A
+      5.0                         !   B
+    \END
+    \ARRAY  SIGMA_HAD
+        0.0  5.0
+    \END
+    \ARRAY  SIGMA_ICD
+        0.0  5.0
+    \END
+    \ARRAY  SIGMA_MSG
+        0.0  5.0
+    \END
+    CELL_WEIGHT             1.0    ! Phase space weight of cell
+    USE_MONTE_CARLO_VERTEX    F    ! If TRUE get ISV1 vtx - else use VERT vtx
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+\ARRAY HBOOK_DIRECTORY
+     'CALORIMETER'
+     'CAHITS'
+\END
+\STOP
+
+
+4)

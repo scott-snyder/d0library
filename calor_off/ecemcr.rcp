@@ -1,0 +1,122 @@
+\START    ECEMCR_RCP
+\SIZE        160       110
+!----------------------------------------------------------------------
+!    Name:       ECEMCR.RCP
+!    Package:
+!    Library:
+!    Purpose:    Control Routines needed for ECEM Correction routines
+!    Version
+!    Created:     6-NOV-1992   Anthony L. Spadafora
+!----------------------------------------------------------------------
+!           Testing Parameters
+!------------------------------------------------------------------------------
+ ECEMCR_DEBUG          .FALSE.
+ USE_CACL_XYZ          .FALSE.    !CALCULATE THETA,PHI FROM CLUST X,Y,Z,
+                                  !F=NAR VERSION (N8401)  BETA (8.2)
+                                  !T= Beta B8401
+ PWCTRK                .FALSE.    !get test beam track for ntuple
+ USE_PWC_TRK           .FALSE.    !TB studies:use pwc track instead of cluster
+ PWC_OFFSET_X            1.24      ! cm
+ PWC_OFFSET_Y            0.0       ! cm
+ USE_ISA_TRK           .FALSE.    !MC studies:use isajet trk instead of cluster
+ PWC_PNOM               100.
+!------------------------------------------------------------------------------
+! Switches controlling ECEM corrections to apply
+!------------------------------------------------------------------------------
+ ECEM_DO_DELTA         .TRUE.   
+ ECEM_DO_BOLT          .TRUE.   
+ ECEM_DO_CRACK         .TRUE.    
+ ECEM_DO_OUT_RAD       .TRUE.    
+ ECEM_DO_NEW_CELL_E    .FALSE. 
+ IETA_MIN                14 !min detector IETA
+ THRESH_DE              0.1 ! (in GeV) Corrections less than this are ignored,
+                            !  greater than this are flagged as being applied.
+!------------------------------------------------------------------------------
+!       ECEM CORRECTION:  ADDITIVE OFFSET (DELTA) in GeV
+!------------------------------------------------------------------------------
+! Correction in eta bins 0.1 for eta < 3.2. last bin covers eta .ge. 3.2
+!
+ ECEM_DELTA_FIRST_IETA  14
+ ECEM_DELTA_LAST_IETA   35
+\ARRAY ECEM_DELTA_DE
+!  14   15   16   17   18   19   20   21   22   (10*hi_edge  of eta bin
+  .30  .30  .30  .30  .30  .30  .30  .30  .30   ! e.g. 14 = 1.3 - 1.4
+!
+!  23   24   25   26   27   28   29   30   31   32   33  34  35
+  .43  .43  .43  .43  .43  .43  .43  .43  .43  .43  .43  .43  .43
+\END
+\ARRAY ECEM_DELTA_ERR_DE      !Estimate of systematic error in GeV
+!  14   15   16   17   18   19   20   21   22   10*hi_edge  of eta bin
+  .02  .02  .02  .02  .02  .02  .02  .02  .02
+!
+!  23   24   25   26   27   28   29   30   31   32   33
+  .02  .02  .02  .02  .02  .02  .02  .02  .02  .02  .02
+\END
+!
+!------------------------------------------------------------------------------
+!       ECEM CORRECTION: OUTER RADIUS
+!------------------------------------------------------------------------------
+ECEM_OUT_RAD_R0              84.0    !minimum R [cm] for O.R. correction
+ECEM_OUT_RAD_RMAX           100.0    !maximal R [cm] for O.R. corr.
+ECEM_OUT_RAD_DEDR            -0.015    ! slope [GeV/cm] dE/dR for O.R. corr.
+ECEM_OUT_RAD_ERR_FRAC         0.25   ! error returned is ERR_FRAC*DE
+ECEM_OUT_RAD_ERR_FRAC_IETA14  1.0    ! large error for tower 14
+!------------------------------------------------------------------------------
+!
+!       ECEM CORRECTION: ANTI-WARP BOLTS
+!               Lengths and positions are in centimeters.
+!               Energys are in GeV.
+!------------------------------------------------------------------------------
+ECEM_BOLT_ERR_FRACTION          0.25           ! error = d(corr) / corr
+ECEM_BOLT_E_FRACTION            -.0400         ! maximum fractional correction
+ECEM_BOLT_TAN_CORR              0.75           !
+ECEM_BOLT_R_SIGMA               6.06           ! sigma r (cm.)
+ECEM_BOLT_R_SIGMA_FRACTION      0.6            ! fraction of 2nd gaussian (b)
+ECEM_BOLT_R_SIGMA_RATIO         3.0            ! r_sigma_b / r_sigma_a
+ECEM_BOLT_PHI_SIGMA             0.7            ! sigma phi (cm.)
+ECEM_BOLT_PHI_SIGMA_FRACTION    0.7            ! fraction of quartic
+ECEM_BOLT_PHI_SIGMA_RATIO       0.5            ! r_sigma_4 / r_sigma_2
+ECEM_BOLT_POS_LENGTH            0.967          ! L_rad (cm.)
+ECEM_BOLT_POS_E_SCALE           450.           ! E_zero (GeV)
+ECEM_BOLT_POS_OFFSET            -0.45          ! R(peak) - R(bolt) (cm.)
+!
+!------------------------------------------------------------------------------
+!       ECEM CORRECTION: URANIUM PLATE CRACK
+!               Lengths and positions are in centimeters.
+!               Energys are in GeV.
+!------------------------------------------------------------------------------
+ECEM_CRACK_ERR_FRACTION         0.25           ! error = d(corr) / corr
+ECEM_CRACK_E_FRACTION           0.047          ! maximum fractional correction
+ECEM_CRACK_X_SIGMA_ZERO         0.644          ! sigma x
+ECEM_CRACK_POS_LENGTH           0.484          ! L_rad (cm.)
+ECEM_CRACK_POS_E_SCALE          1000.          ! E_zero (GeV)
+ECEM_CRACK_POS_OFFSET           0.1            ! X(peak) - X(crack) (cm.)
+!
+!------------------------------------------------------------------------------
+!       ECEM GEOMETRY: ANTI-WARP BOLTS (temporary)
+!               Lengths and positions are in inches.
+!               Angles are in degrees.
+!------------------------------------------------------------------------------
+ECEM_BOLT_GEOM_NUMBER           5              ! Number of bolts defined
+ECEM_BOLT_GEOM_SECTIONS         8              ! Number of bolts sections
+\ARRAY ECEM_BOLT_GEOM_RADIUS                   ! Bolt radius (inches)
+    14.247   18.615   26.326   26.326   29.326
+\END
+\ARRAY ECEM_BOLT_GEOM_ANGLE                    ! Bolt phi (degrees)
+    22.5      0.0     15.0     30.0      0.0
+\END
+!
+!------------------------------------------------------------------------------
+!       ECEM GEOMETRY: URANIUM PLATE CRACK (temporary)
+!               Lengths and positions are in inches.
+!------------------------------------------------------------------------------
+ECEM_CRACK_GEOM_NUMBER          2              ! Number of cracks defined
+ECEM_CRACK_GEOM_SECTIONS        1              ! Number of cracks sections
+\ARRAY ECEM_CRACK_GEOM_X                       ! Crack x at y=0 (inches)
+    13.183  -13.183
+\END
+\ARRAY ECEM_CRACK_GEOM_DXDY                    ! Crack dx/dy
+     0.0      0.0
+\END
+!
+\STOP    !   ECEMCR_RCP

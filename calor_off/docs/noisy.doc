@@ -1,0 +1,879 @@
+                                                      NOISY.DOC
+
+                                                      Allen I. Mincer
+                                                      Peter Nemethy
+                                                      Amber Boehnlein
+
+                                                      4 December 1991
+
+                                                      Revised 29-JUL-1993
+                                                                     AIM
+
+                                                      Revised 20-SEP-1993
+                                                                 Ian Adam
+
+                                                      Revised 08-JUN-1994
+                                                                     AIM
+
+                          THE NOISY PACKAGE
+                          -----------------
+
+[1.] INTRODUCTION
+
+   NOISY is a set of packages which adds to the simulated detector response 
+effects coming from sources other than the signal event. For the calorimeter
+this includes electronics and uranium noise, multiple interactions in the 
+bucket in which the event has occurred, and pileup from events in other 
+buckets. Noise is added cell by cell and new CAD banks are created.  For
+tracking, NOISY combines FADC hits from multiple interactions in the signal
+bucket and creates modified CDDn banks.
+
+   The NOISY_TRIG1 package adds to CAD banks from the signal event the 
+effects of multiple interactions in the current bucket to create a new set 
+of CAD banks which can be used in trigger level 1 analysis.  NOISY retains the 
+information from NOISY_TRIG1 about which events occurred in the current 
+bucket and also adds the other effects listed above to create trigger level
+2 and offline analysis CAD banks.  The level 1 and level 2 switches are 
+independent so that effects can be added or not at each level independently.  
+At either level the signal can be turned off for pedestal studies.  
+ 
+  A standard analysis package, NOIANL is also available.  This plots cell,
+tower and overall event parameters.  This package requires CAHITS to have 
+been previously run.
+
+  For use with the calorimeter only, the order in which to build these 
+packages is therefore:
+CALOR, NOISY_TRIG1, LEVEL1-CODE, NOISY, LEVEL2-CODE, CAHITS, NOIANL.
+
+  To use the package with tracking, the ZTRAKS package must be called before 
+NOISY.  This does not, however, allow ZTRAKS analysis of the combined event.
+The procedure is therefore to link packages in the order CALOR, NOISY_TRIG1, 
+ZTRAKS, NOISY, and write an output STA file; BEING CAREFUL TO DROP tracking
+hits banks in the output stream.  The combined events can then be analyzed.
+
+  The following sections describe how the individual effects are implemented
+and how to run the package.
+
+[2.] ELECTRONIC and URANIUM NOISE
+
+   At present, two possibilities exist for the simulation of detector 
+and uranium noise, a simple gaussian model and a simulation based on
+data.  They can be selected by RCP switches.
+
+   The gaussian version models electronic plus uranium noise as a Gaussian
+of width and average, both in GeV, specified in the RCP file.  These 
+parameters are used for most of the cells.  Since the ICD's are scintillators
+and are not close to uranium, they have negligible noise on the scale
+considered here. The massless gaps have electronic noise only and therefore 
+assigned a sigma one third that of other cells. Sampling fraction corrections
+of the massless gaps, done in reconstruction,  which amplify their relative 
+contribution to the measured energy will also amplify their noise contribution. 
+
+   The data model is based on pedestal distributions from noise runs 59138 and
+61429, taken on Jan 18 and 29, 1993.  The pedestal distributions are made 
+separately for each ieta and layer, merged in iphi.  See D0 note 774 for more 
+information about calorimeter addressing.  When this method of generating the 
+noise is used, the histogram number corresponding to each channel in layer and 
+eta. The histogram numbers are used by the HBOOK function HRNDM1 which generates
+a random number based on the histogram distribution.  The ADC counts are then 
+converted to energy and added to the cell noise array.  If the RCP switches for 
+both types of noise are true, only the data model is used.  After all effects
+have been included (signal, noise, multiple interactions and pileup), the cells
+can be zero-suppressed using the sigmas of the noise distributions or using an
+absolute cut on cell energy.  The zero-suppression options are RCP selected.
+
+[3.] PILEUP and MULTIPLE INTERACTIONS
+
+   Pileup from events in other buckets and multiple interactions in the 
+current bucket are simulated by using a second event input stream for 
+pileup events.  This input stream must have been previously created by
+GEANT.
+
+   The simulation begins by using the average number of interactions per
+bucket to calculate the Poisson probabilty P(N) for getting N interactions per 
+bucket.  
+
+   A SPICE electronics calculation is then used to determine the fractional 
+contribution f(j) of events in past and future buckets j to the present bucket,
+where f(j) is defined as follows:  A signal of X GeV in a given cell in the 
+current bucket adds f(0)*X GeV to the energy measured in that cell, where 
+f(0)=1. A signal of X GeV in the bucket just before this one will contribute
+f(-1)*X GeV to the cell energy measured in the current bucket.  A signal of X 
+GeV two buckets before the current one will add f(-2)*X GeV to the cell energy 
+measured in the current bucket, and so on.  If the base to peak sampling
+time is greater than the beam crossing time then there are also contributions 
+from future buckets, f(1), f(2),...
+
+   For every signal event, the Poisson distribution is used to generate
+the number of interactions in the current bucket N(0), in the buckets 
+preceding the current bucket N(-1), N(-2)..., and in the buckets following 
+the current bucket N(1), N(2)...for buckets j with f(j) greater than a cut 
+specified in the RCP file.  For the current bucket, there are thus N(0)
+interactions in the current bucket in addition to the signal event.
+N(0) pileup events are therefore added cell by cell to the current event.
+For N(-1) greater than 0, N(-1) events are added cell by cell to the current
+event where each cell for these events is multiplied by f(-1) the 
+fractional contribution from the previous bucket.  In total, M events 
+contribute to pileup and each event i contributes with weight w(i),  where  
+
+      M = ... + N(-2) + N(-1) + N(0) + N(1) + N(2) + ...    and 
+
+      w(i) = f(j) for event i occuring in bucket j if f(j) > cut.  
+
+Events are then read in from the pileup event run stream and are added cell 
+by cell to the current events using the weight w(i).
+
+   The pileup event run stream should properly consist of events corresponding
+to the full inelastic cross section.  These events can be approximated by a
+combination of ISAJET MINBIAS and TWOJET events.  For details on the correct 
+events to use see D0 note 1274.  For such pileup events, OCCUPY in NOISY_RCP
+should be set to the mean number of interactions per crossing as calculated 
+from the full inelastic cross section, the luminosity, and the number of 
+bunches. 
+
+  
+  A user who is interested in pileup from only a subset of events (eg. twojet
+with Pt greater than some value) should use those events for the pileup
+stream and set OCCUPY using the appropriate cross section.  The one
+point which requires more careful consideration is the probability of 
+multiple interactions in the current bucket.  Three cases need to separately 
+treated: Signal and pileup events disjoint sets, signal a subset but negligible
+fraction of pileup events, and signal overlapping substantially with pileup 
+events.  
+
+  For the case of disjoint signal and pileup events, the probability of a 
+signal event and k pileup events is just the product of the probabilities of 
+getting a signal event and the probability of getting k pileup events.  As 
+long as OCCUPY is set to the average number of pileup events, the generation
+based on the Poisson distribution using this number is therefore a 
+completely correct approach.  This would be the case, for example, for
+a W event signal with 2 jet $P_t > 50 GeV/c$ as pileup.
+
+  The signal a negligible subset of the pileup is the case for W event signal 
+and complete inelastic cross section as pileup. The above algorithm is a good 
+approximation for this case since we trigger on the existence of a W event 
+and then ask for the random occurence of k background events, just given 
+by the Poisson probability P(k).  There is a small correction factor due to 
+the possibility of triggering on a W in the inelastic pileup event, but 
+as long as this is small the calculation is correct.  ( Another way of seeing 
+this is as follows: The actual probability for this occurring is the Poisson
+probability P(k+1) of k+1 events times the probability of at least one of 
+these events being a W.  For small probability events, this is just equal to
+(k+1)*(probability of an event being a W).  This product is proportional
+to the Poisson probability P(k). )
+
+  An example of the third case would be two jet $P_t>50 GeV/c$ events with 
+two jet $P_t>50 GeV/c$ pileup, where the physics question might be how 
+often do these look like four jet events.  For this case, the trigger on twojet
+events is not independent of the pileup sample and one should actually use 
+the Poisson probability P(k+1) for the probability of 1 signal event and k
+pileup events.  The mechanism for handling such cases is at present not yet
+built into the program.
+   
+  A switch in the RCP file is available which allows setting a fixed number
+of interactions per crossing instead of picking from a Poisson distribution.
+If FIXNUM is greater than 0 it will be the fixed number of interactions
+per crossing.
+
+  If one wishes to use NOISY to overlay one event from each stream in 
+pairs and add them with the same amplitude, the switches to use would
+therefore be:
+  FIXNUM = 1
+  DO_SIGNAL and DO_PRESENT both TRUE.
+  DO_PAST and DO_FUTURE both FALSE.
+  NUMBPILE = NUMBSWITCH = 1.
+
+[4.] TRACKING
+
+   For multiple interactions in the current bucket, NOISY will, with 
+DO_TRACK_PILEUP set true, combine the raw tracking data for signal and 
+extra events.  At present NOISY is not equipped to handle crate structure, 
+so this can only be done for monte carlo events.  Crate structure can be 
+included and will be in the future.
+
+   NOISY starts with the CDDn ( n=1,2,3,4 for VTX, CDC, FDC, TRD ) banks
+of the signal event.  For an FADC which has no entry for the signal, the 
+new entry is added to the end of the old list and the trailer word is 
+rewritten.  
+
+   For an FADC which already has a signal entry, the entry is 
+unpacked into a time slice array and the old entry deleted.  The pileup 
+event is then unpacked into time slices and added to the signal time slice 
+array.  When the signal and pileup event have no time slice in common, this 
+merge is straightforward.  When there is time slice overlap, then the 
+procedure for VTX, CDC, and FDC is:
+
+   1. Subtract the pedestal from the entries.
+   2. Do the bilinear conversion.
+   3. Add the entries.
+   4. Undo the bilinear conversion.
+   5. Check for over or underflow and add pedestal.
+
+Note that this procedure results in a pedestal width which on the average is 
+wider by the square root of the number of time slices combined than it 
+should be, but is the best one can do under the circumstances.  Note also that 
+this will not properly combine time slices that have been zero supressed in 
+either the signal or pileup event or both.
+
+   For the TRD no bilinear conversion is done, so the procedure for 
+overlapping time slices is to add them together and subtract the pedestal 
+from the sum.  Over and underflow are then checked for.  Since TRD zero 
+supression uses the entire time array, any FADC which has been zero supressed
+in signal and/or pileup event will not be done properly.  The only way around
+this would be not to do zero supression, but this approximation is probably 
+sufficient for most studies.
+
+   For all sub-detectors, the time array is then re-packed and put at the end
+of the appropriate CDDn bank.
+
+   As mentioned in the introduction, NOISY uses ZTRAKS routines and RCP files 
+in combining events so ZTRAKS must be included.  Since ZTRAKS is called 
+first, the HITS banks will not include pileup and must therefore be dropped
+from the output stream.  Also, various default RCP files drop some of the CDDn 
+banks from the STA output stream.  This files must be changed so that the 
+output files contain the CDDn banks which can then be analyzed for pileup 
+effects.
+
+[5.] SOME IMPORTANT IMPLEMENTATION DETAILS
+
+   NOISY can use signal and pileup events which have either CAD or CAEP 
+banks available.  For signal files, the default is to use CAD banks and 
+CAEP banks are dropped.  A switch in the RCP file (DROP_SIG_CAD) is available 
+which allows dropping the CAD banks and forcing the use of CAEP banks. This 
+is useful if signal and pileup files have a different CAD bank structure.  
+If DROP_SIG_CAD is true, the old CAD banks are dropped, new CAD banks are 
+created out of the CAEP banks, and the old CAEP banks are then dropped.  
+The default for pileup files is to use CAEP banks.  If none are available, 
+CAEP banks are created out of CAD banks and CAD banks are then dropped.  
+NOISY will not work correctly if conflicting CAD versions are used in the 
+two input files.
+ 
+   For D-ZERO alpha, approximately 50 pileup events are needed for each 
+signal event.  In order to minimize the number of pileup events needed, 
+NOISY reuses the pileup events and replaces only some for each signal event.  
+A typical run of 1000 signal events with NUMBPILE set to 50 and NUMBSWITCH
+set to 1 will therefore need a total of 1049 pileup events: for each signal
+event, 50 pileup events are used, 1 is dropped, and 49 are stored for the 
+next event. Every event will therefore be somewhat correlated with the 49 
+events before it and the 49 after it. Since the bulk of events have low 
+fractional contribution, the correlation is smaller than might be thought 
+since the program picks at random for each signal event which pileup event is 
+in which bucket. This correlation can be further reduced by dropping more 
+events at the expense of using more pileup events.
+
+   The pileup events are stored in the ZEBNOI common since they must not 
+be erased every signal event or every run ( The old inplementation which had
+used ZEBWRK has been changed ). A common size of 100000 is large enough for 
+about 50 pileup events.  Some limits are hard-wired in include files.  These
+include:
+
+-  Total number of pileup + signal events = NEV_MAX (default 105 )
+   in EVENT_HEAD_LINKS.INC and NVT_MAX (default 105) in 
+   NOISY_STORE_LINKS.INC
+
+-  Total number of pileup events = KMAX ( default 104 ) in NOISY.INC
+
+For D0-alpha electronics it has been found that 50 events are sufficient
+to represent pileup event though up to 100 are occassionally called for.
+
+   The output of the NOISY package is a new set of CAD banks containing the 
+modified cell energies. One can RCP select which of any or all of the three 
+CAD banks ( signal, NOISY trigger level 1, and NOISY trigger level 2; 
+NOITYP =0,1,2 respectively ) to keep.  The last kept banks are available
+by LCAD1=LQ(LHEAD-IZCAD1) and LCAD2=LQ(LHEAD-IZCAD2).  Older banks can be 
+accessed with LQ(LCAD). The program NOI_CAD_PICK(NOITYP) can be called to 
+shuffle the CAD bank order to put first ( and therefore default ) the 
+selected CAD bank NOITYP. NOI_CAD_PICK can be called at any time during the 
+program and from that point on the default CAD bank will be NOITYP. The 
+default (some of which can be modified by RCP control) put level 1 banks first
+after the NOISY_TRIG1 call and level 2 first after the NOISY call.  NOITYP
+is stored in the CAD zebra bank.
+     
+   Any other packages which use calorimeter information must be put AFTER
+the NOISY package in the program builder.  In particular, CAHITS must come 
+after NOISY.  For the same reason, the standard analysis package for NOISY
+which does various cell and tower histograms could not be made part of NOISY.
+Instead, a second package, NOIANL exists, which must come after CAHITS.
+
+   Since NOISY is CPU time expensive, switches have been built into the 
+RCP file to allow study of a particular eta, phi, and layer region of 
+the detector while switching off the rest.
+
+   Switches are available but are at present commented out to include 
+tracking effects of multiple interactions.  When the code is available it 
+will use the identical events for calorimeter and tracking pileup.
+
+[6.] INPUT FILES
+
+   The necessary input files are:
+
+A GEANT output file containing NUMBSWITCH * (NSIGNAL-1) + NUMBPILE
+         pileup events where NSIGNAL is the number of signal events
+         and NUMBPILE and NUMBSWITCH are the RCP parameters for the number
+         of pileup events per signal event and the number switched for each
+         new signal event.  This file must be supplied by the user by 
+         running through GEANT the appropriate pileup events for her 
+         analysis.
+
+DATAFILE or DATFILE_LST containing the signal event input stream
+
+PILEFILE_LIST contains the pileup event stream definition
+
+SPICE_DAT contains the output spice calculations.  The package includes the 
+          following choices one of which must be logically identified
+          with the command DEFINE SPICE_DAT XXXXX.SPICE
+
+          D0ALPHA.SPICE - current electronics.
+
+          D0UPGRADE_BIPOLAR.SPICE - Bipolar shaping, once considered
+                  as a candidate for D0 upgrade electronics
+
+          D0UPGRADE_UNIPOLAR.SPICE - Fast (700 ns.rise time) unipolar shaping.
+
+          D0UPGRADE_FAST.SPICE - Very fast (400 ns. rise time) unipolar 
+                  shaping, a good description of the presently proposed
+                  D0 beta electronics.
+
+[7.] OUTPUT FILES
+
+   The NOIANL output plots are in //PAWC/NOIANL
+
+   In addition, there exists an output file NOISY_OUT that contains
+informative and diagnostic output from the package. The printing of this 
+output file can be supressed by a switch in the RCP file.  A sample of this 
+output file follows. Comments about the output are bracketed by ***********.  
+Note that some of the output has been modified to illustrate various points.
+
+****************************************************
+    The output file starts with a list of the RCP 
+    switches used.
+    These switches are explained in the section 
+    describing RCP parameters. 
+****************************************************
+
+  DO_PAST T
+  DO_PRESENT T
+  DO_FUTURE T
+  DO_SIGNAL T
+  DO_ELECTRONICS T
+  DO_URANIUM T
+  DO_TRIG12 T
+  DO_PAST1 F
+  DO_PRESENT1 T
+  DO_FUTURE1 F
+  DO_SIGNAL1 T
+  DO_TRACK_PILEUP T
+  NUMBPILE           50
+  NUMBSWITCH           1
+  OCCUPY  0.1940000    
+  FIXNUM           -1
+  DOUBLE_VERTEX   1.000000    
+  DO_ZSP T
+  N_SIGMA   2.000000    
+  CELL_SYMCUT  0.0000000E+00
+  CELL_LOWCUT  -9999.990    
+  RAN_SEED      976523
+  NOISE_AVG  0.0000000E+00
+  NOISE_SIGMA  5.0000001E-02
+  BASE_SUBTRACT T
+  T_SAMP   2.000000    
+  T_CROSS   3.500000    
+  T_DECAY  0.0000000E+00
+  VAL_MIN  1.0000000E-03
+  USE_EXPSIG F
+  USE_GAU_NOISE F
+  USE_EMP_NOISE T
+  DROP_SIG_CAD T
+  DROP_OLD_CAD T
+  SAVE_LEVEL1 F
+  USE_LEVEL1 F
+  DO_GEOCUT F
+  NLAYMIN           1
+  NLAYMAX          17
+  NPHIMIN           1
+  NPHIMAX          64
+  NETAMIN         -37
+  NETAMAX          37
+
+*********************************************************
+
+     SPICE file used, followed by spice pulse shape
+
+*********************************************************
+
+
+  SPICE DATA FILE: USER$DISK:[MINCER.NOISY2]D0ALPHA.SPICE
+
+
+  SPICE: D0 ORIGINAL ELECTRONICS     CDET=4.7 NF$                   
+  T_SHIFT,AMP_MAX   2.200000      0.7500000    
+
+
+  SPICE:TIME,AMPLITUDE           1  -2.200000      0.0000000E+00
+  SPICE:TIME,AMPLITUDE           2  -2.000000      4.2053332E-05
+  SPICE:TIME,AMPLITUDE           3  -1.800000      4.0533334E-02
+  SPICE:TIME,AMPLITUDE           4  -1.600000      0.1626667    
+  SPICE:TIME,AMPLITUDE           5  -1.400000      0.3281333    
+  SPICE:TIME,AMPLITUDE           6  -1.200000      0.4930667    
+  SPICE:TIME,AMPLITUDE           7  -1.000000      0.6374667    
+  SPICE:TIME,AMPLITUDE           8 -0.8000001      0.7549334    
+  SPICE:TIME,AMPLITUDE           9 -0.6000000      0.8460000    
+  SPICE:TIME,AMPLITUDE          10 -0.4000001      0.9142666    
+  SPICE:TIME,AMPLITUDE          11 -0.2000000      0.9638667    
+  SPICE:TIME,AMPLITUDE          12 -2.3841858E-07  0.9986667    
+  SPICE:TIME,AMPLITUDE          13  0.2000000       1.022400    
+  SPICE:TIME,AMPLITUDE          14  0.3999999       1.037467    
+  SPICE:TIME,AMPLITUDE          15  0.8000000       1.050533    
+  SPICE:TIME,AMPLITUDE          16   1.800000       1.036000    
+  SPICE:TIME,AMPLITUDE          17   3.800000      0.9642667    
+  SPICE:TIME,AMPLITUDE          18   5.800000      0.8918667    
+  SPICE:TIME,AMPLITUDE          19   7.800000      0.8232000    
+  SPICE:TIME,AMPLITUDE          20   17.80000      0.5386667    
+  SPICE:TIME,AMPLITUDE          21   27.80000      0.3322667    
+  SPICE:TIME,AMPLITUDE          22   37.80000      0.1837333    
+  SPICE:TIME,AMPLITUDE          23   47.80000      7.8159995E-02
+  SPICE:TIME,AMPLITUDE          24   51.80000      4.5479998E-02
+  SPICE:TIME,AMPLITUDE          25   55.80000      1.7013334E-02
+  SPICE:TIME,AMPLITUDE          26   57.80000      4.3093334E-03
+  SPICE:TIME,AMPLITUDE          27   59.80000     -7.5733331E-03
+  SPICE:TIME,AMPLITUDE          28   61.80000     -1.8453334E-02
+  SPICE:TIME,AMPLITUDE          29   63.80000     -2.8573334E-02
+  SPICE:TIME,AMPLITUDE          30   65.80000     -3.7906665E-02
+  SPICE:TIME,AMPLITUDE          31   67.80000     -4.6493333E-02
+  SPICE:TIME,AMPLITUDE          32   72.80000     -6.5159999E-02
+  SPICE:TIME,AMPLITUDE          33   77.80000     -8.0426671E-02
+  SPICE:TIME,AMPLITUDE          34   87.80000     -0.1020667    
+  SPICE:TIME,AMPLITUDE          35   97.80000     -0.1148533    
+  SPICE:TIME,AMPLITUDE          36   107.8000     -0.1212000    
+  SPICE:TIME,AMPLITUDE          37   117.8000     -0.1232133    
+  SPICE:TIME,AMPLITUDE          38   127.8000     -0.1220533    
+  SPICE:TIME,AMPLITUDE          39   137.8000     -0.1188000    
+  SPICE:TIME,AMPLITUDE          40   147.8000     -0.1142133    
+  SPICE:TIME,AMPLITUDE          41   157.8000     -0.1087067    
+  SPICE:TIME,AMPLITUDE          42   167.8000     -0.1027200    
+  SPICE:TIME,AMPLITUDE          43   177.8000     -9.6560001E-02
+  SPICE:TIME,AMPLITUDE          44   187.8000     -9.0346664E-02
+  SPICE:TIME,AMPLITUDE          45   197.8000     -8.4346659E-02
+  SPICE:TIME,AMPLITUDE          46   207.8000     -7.8413330E-02
+  SPICE:TIME,AMPLITUDE          47   217.8000     -7.2826669E-02
+  SPICE:TIME,AMPLITUDE          48   227.8000     -6.7506664E-02
+  SPICE:TIME,AMPLITUDE          49   237.8000     -6.2479999E-02
+  SPICE:TIME,AMPLITUDE          50   280.0000      0.0000000E+00
+
+
+****************************************************************
+       Calculated bucket fractions for the SPICE file used
+       with contribution greater than the VAL_MIN parameter.
+       Maximum of 79 past and 20 future.  This is example is 
+       current electronics and bucket spacing so that there 
+       is no contribution from future buckets.
+****************************************************************
+
+
+ BUCKET=-27    %=   -0.24
+ BUCKET=-26    %=   -0.31
+ BUCKET=-25    %=   -0.35
+ BUCKET=-24    %=   -0.43
+ BUCKET=-23    %=   -0.51
+ BUCKET=-22    %=   -0.59
+ BUCKET=-21    %=   -0.69
+ BUCKET=-20    %=   -0.78
+ BUCKET=-19    %=   -0.91
+ BUCKET=-18    %=   -1.04
+ BUCKET=-17    %=   -1.20
+ BUCKET=-16    %=   -1.41
+ BUCKET=-15    %=   -1.50
+ BUCKET=-14    %=   -1.73
+ BUCKET=-13    %=   -1.97
+ BUCKET=-12    %=   -2.27
+ BUCKET=-11    %=   -2.49
+ BUCKET=-10    %=   -2.84
+ BUCKET= -9    %=   -3.24
+ BUCKET= -8    %=   -3.50
+ BUCKET= -7    %=   -4.02
+ BUCKET= -6    %=   -4.57
+ BUCKET= -5    %=   -5.12
+ BUCKET= -4    %=   -5.67
+ BUCKET= -3    %=   -6.21
+ BUCKET= -2    %=   -7.03
+ BUCKET= -1    %=   -6.89
+ BUCKET=  0    %=  100.00
+
+
+*******************************************************
+
+Following are some calculated numbers:
+
+Energy sums for positive and negative contributions:
+E SUM: gotten by summing over all buckets
+SUM * OCCUP : gotten by multiplying weight by poisson
+              avaerage occupancy.
+
+BLS signal loss = percent of peak lost in measurement
+*******************************************************
+
+  POS E SUM AND SUM*OCCUP:   1.062153      0.2060576
+  NEG E SUM AND SUM*OCCUP: -0.6795563     -0.1318339
+
+
+  BLS SIGNAL LOSS IN %:  4.2109471E-03
+
+*******************************************************
+
+  Differential and integral Poisson probability 
+  distribution as calculated for the average occupancy
+  given in the RCP file.
+
+*******************************************************
+
+  JJ-1,POISSON,INTEG           0  0.8236579      0.8236579
+  JJ-1,POISSON,INTEG           1  0.1597896      0.9834476
+  JJ-1,POISSON,INTEG           2  1.5499596E-02  0.9989471
+  JJ-1,POISSON,INTEG           3  1.0023072E-03  0.9999495
+  JJ-1,POISSON,INTEG           4  4.8611895E-05  0.9999981
+  JJ-1,POISSON,INTEG           5  1.8861416E-06   1.000000
+  JJ-1,POISSON,INTEG           6  6.0985251E-08   1.000000
+
+**********************************************************
+   File used for pileup events
+**********************************************************    
+
+  NCRNCH: OPENING PILEUP EVENT FILEDAT$DISK2:[MINCER]MIX_MB_2J3.GEN
+
+*****************************************************************
+ Some pileup statistics:
+ Number of events run, average number of pileup events used, 
+ standard deviation of number of pileup events, and maximum number
+ of pileup events.  Note that the actual number of pileup events 
+ used is limited by the NUMBPILE parameter in the RCP file.  If this 
+ is less than the maximum the full pileup is not being calculated. 
+ The maximum is also limited by parameters in NOISY.INC
+ For the case below, NUMBPILE was set to at least 91. IF NUMBPILE was 
+ exactly 91 then some pileup  may have been missed since at least 91 
+ pileup events were needed.  For D0ALPHA, a study done shows that 
+ effects from greater than 50 are small even though there are 
+ contributions greater than VAL_MIN=0.001 beyond this value.
+******************************************************************
+
+ NUM EVENTS, AV NUM PILEUP,SIGMA,MAX     1000.0   57.4190    7.8018   91
+
+
+[8.] RCP PARAMETERS
+
+  An RCP file follows.  Comments added for this note are bracketed by ****.
+
+
+\START    NOISY_RCP                                                             
+\SIZE        131       119
+!----------------------------------------------------------------------
+!    Name:       NOISY.RCP
+!    Package:    NOISY
+!    Library:
+!    Purpose:    Control of NOISY package
+!    Version     1.0
+!    Created:    26-JUL-1991   Allen I. Mincer
+!    Modified     1-JUN-1992   Allen I. Mincer
+!----------------------------------------------------------------------
+!
+!------------------------------------------------------------------------------
+!   Control flags for NOISY
+!------------------------------------------------------------------------------
+
+
+
+**********************************************************************
+
+ Contributions from past and future buckets, multiple interactions in 
+ the current bucket, and electronics or uranium noise can be separately 
+ turned on or off.  
+
+ In the current program implementation electronics and uranium noise 
+ are simulated together, so both these switches must be set to 
+ FALSE if no noise is desired.
+
+ For determination of pedestal distributions the signal event can 
+ also be turned off.
+
+ Tracking pileup can be separately turned on or off.
+
+**********************************************************************
+
+ DO_PAST                TRUE    !Turn on Pileup from past events
+ DO_PRESENT             TRUE    !Turn on Multiple interactions in this vertex
+ DO_FUTURE              TRUE    !Turn on Future contribution to present event
+ DO_SIGNAL              TRUE    !Turn on Current ( set F for pedestal run)
+ DO_ELECTRONICS         TRUE    !Turn on electronics noise
+ DO_URANIUM             TRUE    !Turn on Uranium noise
+ DO_TRACK_PILEUP        TRUE    !Add tracks of multiple interactions.
+
+
+**********************************************************************
+
+ The next section controls the switches for the level 1 NOISY_TRIG1
+ package.  At present, only signal and multiple interactions in the 
+ current bucket are available for level 1
+ 
+**********************************************************************
+
+ DO_TRIG12              TRUE   ! Do separate calculation for Trigger level 1
+!------------------------------------------------------------------------------
+!   Control flags for Trigger level 1
+!   LEVEL 1 past and future not yet implemented
+!------------------------------------------------------------------------------
+ DO_PAST1               FALSE   !Turn on Pileup from past events
+ DO_PRESENT1            TRUE    !Turn on Multiple interactions in this vertex
+ DO_FUTURE1             FALSE   !Turn on Future contribution to present event
+ DO_SIGNAL1             TRUE    !Turn on Current ( set F for pedestal run)
+!------------------------------------------------------------------------------
+!   Parameters for pileup
+!------------------------------------------------------------------------------
+
+****************************************************************************
+ NUMBPILE and NUMBSWITCH are the number of pileup events used per signal
+ event and the number switched event by event.
+
+ OCCUPY is the mean number of interactions per crossing, determined by the 
+ user from the luminosity, number of bunches, and inelastic cross section.
+ A Poisson distribution with mean OCCUPY is used to determine the number of
+ interactions per bunch. 0.194 corresponds to a luminosity of 10E.30 with
+ 6 bunches on 6 bunches and a cross section of 55.5 mb.
+
+ If FIXNUM is greater than 0, the number of interactions per crossing
+ is set equal to FIXNUM.
+****************************************************************************
+
+ NUMBPILE              50       !Number noise events per signal event
+ NUMBSWITCH             1       !Number noise events exchanged each event
+ OCCUPY               0.194     !Mean occupancy per crossing
+ FIXNUM                -1       !If >0 use this number of events per crossing
+
+****************************************************************************
+ As a rough estimate of double vertex detection one can set the parameter 
+ DOUBLE_VERTEX to less than 1.0  DOUBLE_VERTEX is the fraction of 
+ multiple vertex events not rejected by cuts.  This would not in general
+ be used together with tracking pileup.
+
+****************************************************************************
+
+ DOUBLE_VERTEX        1.00      !Fraction of double vertices suviving
+
+****************************************************************************
+ VAL_MIN is the minimum fractional bucket contribution for which 
+ pileup events are used.  This switch is meaningful if some of the NUMBPILE
+ events have fraction less than VAL_MIN.  Otherwise, only NUMBPILE events
+ are used regardless of VAL_MIN.
+****************************************************************************
+ 
+ VAL_MIN              0.001     !Minimum bucket contribution fraction recorded
+!------------------------------------------------------------------------------
+!   Electronics parameters
+!------------------------------------------------------------------------------
+****************************************************************************
+
+One can choose to use a spice file electronics shape by defining the logical
+SPICE_DAT below.  Alternatively, a simple triangle plus exponential pulse
+shape can be used by setting USE_EXPSIG to true.
+
+BASE_SUBTRACT should be set TRUE for bunch by bunch subtraction, as is the 
+case for D0 alpha.  It should be set false for no baseline subtraction, 
+or for baseline sampling only before each super bunch. As described above, 
+two parametrizations of electronics and uranium noise currently exist:
+
+1. Gaussian:  for USE_GAU_NOISE set TRUE, if either
+   DO_ELECTRONICS or DO_URANIUM are set TRUE, then a simple gaussian 
+   generator is used for all celss with mean NOISE_AVG and sigma
+   NOISE_SIGMA common to all cells, except:
+     
+     Massless gaps have a sigma of NOISE_SIGMA/3.  The actual value is then
+     changed by the rescaling done for these cells in CAHITS.
+     
+     ICD cells have sigma=0.0
+
+2. If USE_GAU_NOISE is set FALSE and USE_EMP_NOISE is set to TRUE, and
+   DO_ELECTRONICS OR D0_URANIUM are set to TRUE, the histogram file containing
+   the central calorimeter pedestal distributions is used to generate the
+   noise for the central calorimeter cells.  The end cap calorimeters, massless
+   gaps and ICD cells are treated as in the Gaussian parameterization.
+
+****************************************************************************
+
+ BASE_SUBTRACT           TRUE   !Do baseline subtraction
+ T_SAMP                  2.00   !Sampling time (microseconds)
+ T_CROSS                 3.50   !Beam crossing time (microseconds)
+ USE_EXPSIG             FALSE   !If true, use simple exponential signal model
+ T_DECAY                 0.00   !Signal decay time (microseconds) in exp model
+ USE_GAU_NOISE          FALSE   !If true, use simple gaussian for noise
+ USE_EMP_NOISE          TRUE    !If true, use pedestal distributions for noise
+
+!------------------------------------------------------------------------------
+!   Electronic and Uranium noise parameters
+!------------------------------------------------------------------------------
+ NOISE_AVG             0.0     ! Average noise for gaussian model (GeV)
+ NOISE_SIGMA           0.05    ! Sigma for gaussian noise model (GeV)
+!------------------------------------------------------------------------------
+!   Cell cut parameters
+!------------------------------------------------------------------------------
+
+****************************************************************************
+ A first approximation to zero supression is included in the package 
+ by setting CELL_SYMCUT.  This parameter is a symmetric cut on all cells 
+ in GeV so that cells with absolute value of energy less than this number
+ are set to zero. The value of 0.15 is approximately 3 sigma on noise.  As the
+ electronics plus uranium noise simulation becomes more refined this 
+ can be replaced by a cell by cell sigma cut.
+
+ CELL_LOWCUT is a one sided lower bound.  A CELL_LOWCUT of 0.0 thus keeps 
+ only positive cell energies, a possible analysis strategy.  CELL_LOWCUT
+ of -99999. will keep all cells with energy gretaer than -99999. GeV 
+ ( as long as theoir absolute value is greater than CELL_SYMCUT). 
+
+ Note that CAHITS zero supression must be turned off for using the NOISY
+ package, since it calls CAEPFL at intermediate stages of adding up cell
+ energy.
+
+****************************************************************************
+ DO_ZSP                TRUE    !do zero suppression according to noise dist'ns
+ N_SIGMA                2.0    !suppress at N sigma
+! NB: If DO_ZSP is true, CELL_SYMCUT should be set to zero.
+ CELL_SYMCUT           0.15     !Symmetric about 0 cell cut (GeV)
+ CELL_LOWCUT         -9999.9   !Cell low cut (GeV)
+!------------------------------------------------------------------------------
+!   Random number generation
+!------------------------------------------------------------------------------
+
+*******************************************************************************
+ Note that this package uses a random number whose seed is set below.
+ The generator has been changed form the VAX generator to the CERN RNDM.
+*******************************************************************************
+ RAN_SEED              976523   !Seed for RAN random number generator
+*******************************************************************************
+
+ The following switch and parameters are available for zeroing all but a 
+ specific eta, phi, layer section of the calorimeter.  They are useful for 
+ studying noise effects of individual towers.
+*******************************************************************************
+!------------------------------------------------------------------------------
+!   Geometry cuts - useful for looking at noise in small detector regions
+!------------------------------------------------------------------------------
+ DO_GEOCUT             FALSE    ! Fill only detector cells in following region
+ NLAYMIN                   1    ! minimum layer (layer runs from 1 to NLYRL)
+ NLAYMAX                 100    ! maximum layer
+ NPHIMIN                   1    ! minimum phi  (phi runs from 1 to NPHIL)
+ NPHIMAX                 100    ! maximum phi
+ NETAMIN                -100    ! minimum eta (eta runs from -NETAL to +NETAL)
+ NETAMAX                 100    ! maximum eta
+
+*******************************************************************************
+ The following four parameters control the CAD bank storing.  
+
+ DROP_SIG_CAD if TRUE, will drop original non-NOISE CAD banks immediately
+   after reading event.  CAEP banks ( which must therefore be present) will 
+   be used to calculate the signal.
+
+ DROP_OLD_CAD if TRUE, will drop the original non-NOISE CAD banks.
+
+ SAVE_LEVEL1  if FALSE, will drop trigger level 1 CAD banks.
+
+ IF USE_LEVEL1 is TRUE, then the CAD banks created by NOISY_TRIG1 will be 
+ stored  after the NOISY call and the NOISY CAD (level 2) banks will not 
+ be stored. This is  useful for debugging since it allows the reconstruction 
+ code to run on  level 1 banks without rerunning the program builder to change 
+ package order.
+
+ If all three banks are saved, then they will be kept in the order of 
+ default bank level 2; LEVEL_1=LQ(LEVEL_2); ORIGINAL=LQ(LEVEL_1).
+ The order can be changed by calling NOI_CAD_PICK.
+ 
+*******************************************************************************
+!------------------------------------------------------------------------------
+!   CAD bank usage parameters
+!------------------------------------------------------------------------------
+  DROP_SIG_CAD        FALSE     !DROP signal CAD, use CAEP for calculation
+  DROP_OLD_CAD        TRUE      !DROP original CAD banks after adding pileup
+  SAVE_LEVEL1         TRUE      !SAVE level 1 CAD banks as LQ(level 2 banks)
+  USE_LEVEL1          FALSE     !USE level 1 banks instead of lev2 (for debug)
+!------------------------------------------------------------------------------
+!   PILE_FILES specifies the files to be read for pileup
+!------------------------------------------------------------------------------
+ \ARRAY PILE_FILES
+    1                           ! Number of files or filelists to process
+    10000                       ! Number of events to process/file
+    'PILEFILE_LIST'             ! Name of Data file
+    'NOFILE'                    ! Name of Calibration file
+ \END
+!------------------------------------------------------------------------------
+!   TRIGGER BIT SELECTION
+!------------------------------------------------------------------------------
+ PRINT_TRIGGER_MESSAGE  FALSE   !If true events which fail will be flagged.
+ SELECT_TRIGGERS        FALSE
+ \ARRAY TRIGGER_BITS
+   1   !CAL_BEAM
+   !2  !CAL_PEDS
+   !3  !INTERSPERSED PEDS
+ \END
+!------------------------------------------------------------------------------
+!   SPICE DATA file definition
+!------------------------------------------------------------------------------
+ \ARRAY SPICE_FILE
+       'SPICE_DAT'             !SPICE OUTPUT file name
+ \END
+!------------------------------------------------------------------------------
+!   Print file definition
+!------------------------------------------------------------------------------
+ PRINT_OUTPUT     TRUE
+ \ARRAY NOISY_OUT_FILE
+       'NOISY_OUT'             !Output file name
+ \END
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+ \ARRAY HBOOK_DIRECTORY
+      'NOISY'
+ \END
+!------------------------------------------------------------------------------
+!   Analysis Cuts
+!------------------------------------------------------------------------------
+****************************************************************************
+ Default analysis exists only in the NOIANL package which contains an
+ RCP switch for turning histograms on and off.
+****************************************************************************
+
+ DO_NOISY_ANAL          FALSE   !Turn on Histogram analysis
+!------------------------------------------------------------------------------
+!   Histogram definitions
+!------------------------------------------------------------------------------
+\ARRAY HISTOGRAMS
+!
+!         Created 2-Oct-1990    Rajendran Raja
+\END
+\STOP    !   NOISY_RCP
+
+
+
+
+\START    NOIANL_RCP                                                            
+\SIZE         33        32
+!----------------------------------------------------------------------
+!    Name:       NOIANL.RCP
+!    Package:    NOIANL
+!    Library:
+!    Purpose:    Control standard NOISY package analysis
+!    Version
+!    Created:    20-SEP-1991   Allen I. Mincer
+!----------------------------------------------------------------------
+!
+!------------------------------------------------------------------------------
+!   Control flags for NOIANL
+!------------------------------------------------------------------------------
+ DO_NOIANL          TRUE   !Turn on Histogram analysis
+!------------------------------------------------------------------------------
+!   Print file definition
+!------------------------------------------------------------------------------
+!
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+ \ARRAY HBOOK_DIRECTORY
+      'NOIANL'
+ \END
+\STOP    !   NOIANL_RCP
