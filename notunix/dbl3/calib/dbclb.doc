@@ -1,0 +1,126 @@
+
+    The following document describes how DBL3 is used for electronic
+calibration at D0.
+
+    The data is stored and retrieved from the database by means of paths and 
+keys.  DBL3 utilizes either 7 or 9 system keys, set when it is initialized, 
+(the calibration uses 7 system keys) and approximately 90 user keys.  For the
+calibration database, we use 2 of the systems keys (begin and end validity) and
+1 user key (crate number), to insert and retrieve the calibration data.  Other 
+programs may use other system and/or user keys.  These system keys, including
+insertion time, are available.  The calibration database also uses some of the 
+other system and user defined keys for informative purposes.
+
+    The calibration database has the following path structure.
+
+                                 D0STP
+                                   |
+           ___________________________________________________
+           |            |       |       |       |            |
+        MCALIB       VCALIB  DCALIB  FCALIB  TCALIB       CCALIB  
+           |            |       |       |       |            | 
+           |                            |                    |
+    _______________________      _______________         __________
+    |      |      |       |      |      |      |          |       |
+   PEDS  GAINS  TIMES   DTIME   PEDS  GAINS  TIMES       PEDS   GAINS
+    |      |      |       |      |      |      |          |       |
+           |                            |                         |
+        ________                     ________                 _________
+        |      |                     |      |                 |       |
+       Hist  Const                  Hist  Const              Hist   Const
+
+
+        To obtain CDC Gains histograms, one must set the path to 
+//D0STP/DCALIB/GAINS/HIST before fetching/inserting data.  Once the path has 
+been set, the user makes use of keys to fetch/insert the data (HIST = CLBH).
+
+    For each path the data is accessed through three keys, start validity, 
+end validity and crate number.  The start and end validity numbers are 
+normally just the calibration run numbers.  For a particular run the start 
+validity run number is defined to be the run number for the calibration run.  
+The end validity run number is the the run number of the next calibration run 
+minus one.  If there is no next calibration run, this number is then 999999999.
+    When creating a database, a dummy calibration bank is inserted for each
+path and crate (module).  The validity range for these dummy banks is
+1-999999999.  The bank structure inserted into the database consists of the top 
+level bank (XPDH for pedestals) and a substructure underneath it. Each of these 
+structures represent a single crate (module for muons).  The zebra bank 
+structure, for calibration can be found in D0$ZEB. 
+
+
+    There are routines which will allow one to
+1)  add a calibration or histogram file to the database,
+2)  read a calibration from the data,
+3)  list what data is available in the database (by run and crate number),
+4)  delete data from the database,
+5)  modify the existing validity range for a run,
+6)  update another database.
+
+
+
+    The steps performed in order to add a calibration file (or histogram file)
+to the database are that the user supply the calibration type and the zebra
+bank to be inserted into the database.  Then the pathname is found.  The run
+number and crate number are known, since this information is in the zebra bank. 
+The program then retrieves the validity range for the run number of interest.
+It modifies the keys to the new ones, then enters the new data into the
+database.
+
+        - Obtains a calibration bank in zebra format.
+        - Initializes the database.
+        - Sets the path to the correct directory (RZCDIR).
+        - Sets up the key structure for the run to be inserted.
+        - Fetches the key structure of the existing run for that validity range.
+        - Modifies validity ranges (keys) for existing runs as necessary.
+        - Inserts the new data into the database.
+        - Closes database.
+
+    Example of inserting a run into the database:
+
+    Initial state of database:
+
+    Run number          Start Validity Range        End Validity Range
+      1000                         1                      1999
+      2000                      2000                      2999
+      3000                      3000                      9999
+
+    Now insert run 2500:
+
+    Run number          Start Validity Range        End Validity Range
+      1000                         1                      1999
+      2000                      2000                      2499
+      2500                      2500                      2999
+      3000                      3000                      9999
+
+
+    In order to retrieve a calibration file from the database the user 
+supplies the crate number, run number and calibration type.  For a given path,
+crate and run number, there exists a unique calibration run which satisfies the
+validity condition. If the user wishes to retrieve a calibration run 
+corresponding to run number 2800 in the above example, there exists only one 
+calibration run (Run 2500) which has the correct validty range values, i.e.
+2500 < 2800 < 2999.  The data strucuture may then be shunted under any existing 
+zebra bank structure.  Therefore to obtain the data from the database, the user
+        - Initializes the database.
+        - Sets the path to the correct directory (RZCDIR).
+        - Keys on the Crate number and begin/end validity.
+        - Fetches data into memory. (Return address of top level bank)
+        - Closes database.
+                                                                     
+    The ablility exists to make a list of all calibration files in the database.
+One may list all files, or just the files for a particular crate, or files 
+with validity ranges before or after a particular run, or files created or 
+inserted before or after a given date.
+
+    If a calibration run is found to be bad, that run may be deleted from the
+database.  In order to do this the validity ranges for the preceeding and
+proceeding runs must be modified accordingly.
+
+    If it is found that a particular calibration's validity range should be
+modified, rather than using the default value, this can also be done.  In most
+cases this means that either the preceeding or proceeding run's validity ranges 
+must also be modified; this is done automatically.
+
+    The ablility to read a calibration file from one database and insert it in
+a second database also exists.
+
