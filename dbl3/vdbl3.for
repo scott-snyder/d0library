@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VDBL3()
       VDBL3 = ' DBL3'//
-     X                   '  OFFICIAL V1.21'//
-     X                   ' 16-JUL-1997 10:52:02.08'
+     X                   '  TEST V1.21_01'//
+     X                   ' 10-OCT-1997 11:59:30.40'
       Return
       End

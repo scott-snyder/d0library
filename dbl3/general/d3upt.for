@@ -14,6 +14,7 @@ C-   Controls:
 C-
 C-   Created  23-OCT-1992   Lars Rasmussen
 C-   Mod      24-AUG-1994   Will save last convertions, l0r
+C-   Updated   7-AUG-1997   Bob Hirosky  -- include format fix from sss
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -88,7 +89,7 @@ C
       YE = YE + 1900
 C
       WRITE (STIM,801,ERR=999) DA,MONT(MO),YE,HO,MI,SE
-801   FORMAT (I2.2,'-',A3,'-',I4.4,' ',I2.2,':',I2.2,':',I2.2)
+801   FORMAT (I2.2,'-',A3,'-',I4.4,' ',I2.2,':',I2.2,':',I2.2,'.00')
       IF (.NOT. SYS$BINTIM(STIM,VTIM)) RETURN
       D3UUT = .TRUE.
 C

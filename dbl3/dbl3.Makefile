@@ -1,11 +1,11 @@
 SHELL = /bin/sh
-CCFLAGS = -c -dollar -G 0 -woff 275 -DD0FLAVOR=SIUNIX -Wf,-XNl8192 -I$(d0test)/unix/source -I$(d0library)/unix/source -I$(d0test)/c_inc -I$(d0library)/c_inc
-LCCFLAGS = -c -dollar -woff 275 -DD0FLAVOR=SIUNIX -Wf,-XNl8192 -I$(d0test)/unix/source -I$(d0library)/unix/source -I$(d0test)/c_inc -I$(d0library)/c_inc
-F77FLAGS = -c -nocpp -static -col72 -backslash -G 0 -Olimit 2500 -Wo,-loopunroll,2
+CCFLAGS = -c -dollar -G 0 -woff 275 -DD0FLAVOR=SIUNIX -Wf,-XNl8192 -I$(d0gamma)/unix/source -I$(d0test)/unix/source -I$(d0library)/unix/source -I$(d0test)/c_inc -I$(d0library)/c_inc
+LCCFLAGS = -c -dollar -woff 275 -DD0FLAVOR=SIUNIX -Wf,-XNl8192 -I$(d0gamma)/unix/source -I$(d0test)/unix/source -I$(d0library)/unix/source -I$(d0test)/c_inc -I$(d0library)/c_inc
+F77FLAGS = -c -nocpp -static -col72 -backslash -G 0 -Nn15000 -Wb,-force_branch_fixup -Olimit 3000 -Wo,-loopunroll,2
 DEBUG = -O0 -g2
 OPT = -O2
 ARFLAGS = crsl
-SCRATCH = $(d0library)/admin/tmp/d0librar/userlib/10007/dbl3
+SCRATCH = $(d0library)/tmp/d0librar/userlib/10423/dbl3
 FLAVOR = SIUNIX
 CC = cc
 LEX = lex
@@ -14,189 +14,189 @@ F77 = f77
 .SUFFIXES:
 debug :\
   deb_dbl3.a
-deb_dbl3.a : $(d0root)/dbl3/deb_dbl3.a
+deb_dbl3.a : $(d0root)/test/dbl3/deb_dbl3.a
 	@ echo deb_dbl3.a is up to date
-$(d0root)/dbl3/deb_dbl3.a:: $(SCRATCH)/nothing.nl
-$(d0root)/dbl3/deb_dbl3.a::\
-  $(d0root)/dbl3/deb_dbl3.a(dbabrd.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbabwr.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbacpl.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbacti.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbaird.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbaiwr.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbauxi.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbbook.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbcdic.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbcfri.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbchck.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbchfi.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbchky.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbclos.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbcmpr.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbcmpz.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbcomp.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbconc.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbcrdr.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbcrsd.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbctob.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbctoi.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbctor.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdckh.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdckv.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdelk.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdelt.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdhea.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdisd.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdish.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdisp.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdisv.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdkyh.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdkyv.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdont.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbdprg.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbeali.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbedas.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbedky.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbefor.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbehlp.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbenam.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbend.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbendf.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbenfz.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbentb.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbentr.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbflin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbfpat.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbfree.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbfrst.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbfrus.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbftio.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbfzin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbfzop.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbfzup.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbfzwr.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbget.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbgets.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbgnam.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbgpid.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbhunt.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbifch.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbifrc.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbildf.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbildu.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbinct.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbinin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbinit.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbioty.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbizin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbjoin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbkept.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbkeyr.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbkeys.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbkeyt.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbkin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbkout.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbktyp.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbkvin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbkxin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbkyse.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbkytg.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dblast.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dblinc.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dblind.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dblkey.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dblmod.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dblogl.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dblook.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbmdip.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbmdir.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbnode.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbntop.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbopen.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbopts.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbout.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbpack.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbpath.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbpeek.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbpktm.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbpkts.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbplbk.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbplnt.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbplob.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbplov.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbplti.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbprdt.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbpres.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbprgd.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbprin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbprky.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbprnt.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbproc.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbpurg.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbpurk.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrali.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrdda.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrdio.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrenk.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrepl.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrgck.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrgcv.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrhlp.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrky1.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrnam.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbropn.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrtfz.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrvnt.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrvpl.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbrzin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbsave.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbsblc.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbsdir.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbseky.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbsnam.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbsopn.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbspur.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbsrtm.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbtbcr.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbtbpr.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbtemp.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbtime.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbtopn.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbtous.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbucmp.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbucmz.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbudic.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbuncp.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbupck.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbupfz.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbupiz.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbupky.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbuptm.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbupts.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbuse.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbusin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbutim.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbutis.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbuvtx.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbvhea.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbview.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbvin.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbvldt.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbvout.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbvwpr.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbwrdp.o)\
-  $(d0root)/dbl3/deb_dbl3.a(dbxini.o)\
-  $(d0root)/dbl3/deb_dbl3.a(idbtyp.o)
-	ar $(ARFLAGS) $(d0root)/dbl3/deb_dbl3.a `ls $(SCRATCH)/a1/*.o 2> /dev/null`
-	ar $(ARFLAGS) $(d0root)/dbl3/deb_dbl3.a `ls $(SCRATCH)/a2/*.o 2> /dev/null`
-	ar $(ARFLAGS) $(d0root)/dbl3/deb_dbl3.a `ls $(SCRATCH)/a3/*.o 2> /dev/null`
-	ar $(ARFLAGS) $(d0root)/dbl3/deb_dbl3.a `ls $(SCRATCH)/a4/*.o 2> /dev/null`
-	ar $(ARFLAGS) $(d0root)/dbl3/deb_dbl3.a `ls $(SCRATCH)/a5/*.o 2> /dev/null`
-	ar $(ARFLAGS) $(d0root)/dbl3/deb_dbl3.a `ls $(SCRATCH)/a6/*.o 2> /dev/null`
-	ar $(ARFLAGS) $(d0root)/dbl3/deb_dbl3.a `ls $(SCRATCH)/a7/*.o 2> /dev/null`
-	ar $(ARFLAGS) $(d0root)/dbl3/deb_dbl3.a `ls $(SCRATCH)/a8/*.o 2> /dev/null`
-	ar $(ARFLAGS) $(d0root)/dbl3/deb_dbl3.a `ls $(SCRATCH)/a9/*.o 2> /dev/null`
+$(d0root)/test/dbl3/deb_dbl3.a:: $(SCRATCH)/nothing.nl
+$(d0root)/test/dbl3/deb_dbl3.a::\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbabrd.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbabwr.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbacpl.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbacti.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbaird.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbaiwr.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbauxi.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbbook.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbcdic.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbcfri.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbchck.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbchfi.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbchky.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbclos.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbcmpr.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbcmpz.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbcomp.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbconc.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbcrdr.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbcrsd.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbctob.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbctoi.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbctor.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdckh.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdckv.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdelk.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdelt.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdhea.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdisd.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdish.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdisp.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdisv.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdkyh.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdkyv.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdont.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbdprg.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbeali.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbedas.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbedky.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbefor.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbehlp.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbenam.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbend.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbendf.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbenfz.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbentb.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbentr.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbflin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbfpat.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbfree.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbfrst.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbfrus.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbftio.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbfzin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbfzop.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbfzup.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbfzwr.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbget.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbgets.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbgnam.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbgpid.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbhunt.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbifch.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbifrc.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbildf.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbildu.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbinct.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbinin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbinit.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbioty.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbizin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbjoin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbkept.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbkeyr.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbkeys.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbkeyt.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbkin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbkout.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbktyp.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbkvin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbkxin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbkyse.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbkytg.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdblast.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdblinc.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdblind.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdblkey.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdblmod.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdblogl.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdblook.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbmdip.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbmdir.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbnode.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbntop.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbopen.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbopts.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbout.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbpack.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbpath.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbpeek.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbpktm.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbpkts.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbplbk.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbplnt.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbplob.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbplov.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbplti.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbprdt.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbpres.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbprgd.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbprin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbprky.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbprnt.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbproc.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbpurg.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbpurk.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrali.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrdda.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrdio.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrenk.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrepl.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrgck.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrgcv.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrhlp.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrky1.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrnam.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbropn.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrtfz.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrvnt.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrvpl.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbrzin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbsave.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbsblc.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbsdir.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbseky.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbsnam.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbsopn.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbspur.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbsrtm.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbtbcr.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbtbpr.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbtemp.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbtime.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbtopn.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbtous.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbucmp.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbucmz.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbudic.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbuncp.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbupck.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbupfz.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbupiz.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbupky.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbuptm.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbupts.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbuse.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbusin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbutim.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbutis.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbuvtx.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbvhea.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbview.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbvin.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbvldt.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbvout.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbvwpr.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbwrdp.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xdbxini.o)\
+  $(d0root)/test/dbl3/deb_dbl3.a(xidbtyp.o)
+	ar $(ARFLAGS) $(d0root)/test/dbl3/deb_dbl3.a `ls $(SCRATCH)/a1/*.o 2> /dev/null`
+	ar $(ARFLAGS) $(d0root)/test/dbl3/deb_dbl3.a `ls $(SCRATCH)/a2/*.o 2> /dev/null`
+	ar $(ARFLAGS) $(d0root)/test/dbl3/deb_dbl3.a `ls $(SCRATCH)/a3/*.o 2> /dev/null`
+	ar $(ARFLAGS) $(d0root)/test/dbl3/deb_dbl3.a `ls $(SCRATCH)/a4/*.o 2> /dev/null`
+	ar $(ARFLAGS) $(d0root)/test/dbl3/deb_dbl3.a `ls $(SCRATCH)/a5/*.o 2> /dev/null`
+	ar $(ARFLAGS) $(d0root)/test/dbl3/deb_dbl3.a `ls $(SCRATCH)/a6/*.o 2> /dev/null`
+	ar $(ARFLAGS) $(d0root)/test/dbl3/deb_dbl3.a `ls $(SCRATCH)/a7/*.o 2> /dev/null`
+	ar $(ARFLAGS) $(d0root)/test/dbl3/deb_dbl3.a `ls $(SCRATCH)/a8/*.o 2> /dev/null`
+	ar $(ARFLAGS) $(d0root)/test/dbl3/deb_dbl3.a `ls $(SCRATCH)/a9/*.o 2> /dev/null`
 	rmdirp $(SCRATCH)
 $(SCRATCH)/nothing.nl:
 	rmdirp $(SCRATCH)
@@ -209,1024 +209,1024 @@ $(SCRATCH)/nothing.nl:
 	mkdirp $(SCRATCH)/a7
 	mkdirp $(SCRATCH)/a8
 	mkdirp $(SCRATCH)/a9
-$(d0root)/dbl3/deb_dbl3.a(dbabrd.o):\
-  $(d0root)/dbl3/dbl3/dbabrd.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbabrd.o):\
+  $(d0library)/dbl3/dbl3/dbabrd.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbabrd.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbabrd.f ;\
 	mv dbabrd.o $(SCRATCH)/a1/dbabrd.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbabwr.o):\
-  $(d0root)/dbl3/dbl3/dbabwr.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbabwr.o):\
+  $(d0library)/dbl3/dbl3/dbabwr.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbabwr.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbabwr.f ;\
 	mv dbabwr.o $(SCRATCH)/a1/dbabwr.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbacpl.o):\
-  $(d0root)/dbl3/dbl3/dbacpl.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbacpl.o):\
+  $(d0library)/dbl3/dbl3/dbacpl.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbacpl.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbacpl.f ;\
 	mv dbacpl.o $(SCRATCH)/a1/dbacpl.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbacti.o):\
-  $(d0root)/dbl3/dbl3/dbacti.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbacti.o):\
+  $(d0library)/dbl3/dbl3/dbacti.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbacti.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbacti.f ;\
 	mv dbacti.o $(SCRATCH)/a1/dbacti.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbaird.o):\
-  $(d0root)/dbl3/dbl3/dbaird.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbaird.o):\
+  $(d0library)/dbl3/dbl3/dbaird.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbaird.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbaird.f ;\
 	mv dbaird.o $(SCRATCH)/a1/dbaird.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbaiwr.o):\
-  $(d0root)/dbl3/dbl3/dbaiwr.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbaiwr.o):\
+  $(d0library)/dbl3/dbl3/dbaiwr.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbaiwr.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbaiwr.f ;\
 	mv dbaiwr.o $(SCRATCH)/a1/dbaiwr.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbauxi.o):\
-  $(d0root)/dbl3/dbl3/dbauxi.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbauxi.o):\
+  $(d0library)/dbl3/dbl3/dbauxi.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbauxi.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbauxi.f ;\
 	mv dbauxi.o $(SCRATCH)/a1/dbauxi.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbbook.o):\
-  $(d0root)/dbl3/dbl3/dbbook.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbbook.o):\
+  $(d0library)/dbl3/dbl3/dbbook.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbbook.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbbook.f ;\
 	mv dbbook.o $(SCRATCH)/a1/dbbook.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbcdic.o):\
-  $(d0root)/dbl3/dbl3/dbcdic.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbcdic.o):\
+  $(d0library)/dbl3/dbl3/dbcdic.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbcdic.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbcdic.f ;\
 	mv dbcdic.o $(SCRATCH)/a1/dbcdic.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbcfri.o):\
-  $(d0root)/dbl3/dbl3/dbcfri.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbcfri.o):\
+  $(d0library)/dbl3/dbl3/dbcfri.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbcfri.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbcfri.f ;\
 	mv dbcfri.o $(SCRATCH)/a1/dbcfri.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbchck.o):\
-  $(d0root)/dbl3/dbl3/dbchck.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbchck.o):\
+  $(d0library)/dbl3/dbl3/dbchck.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbchck.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbchck.f ;\
 	mv dbchck.o $(SCRATCH)/a1/dbchck.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbchfi.o):\
-  $(d0root)/dbl3/dbl3/dbchfi.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbchfi.o):\
+  $(d0library)/dbl3/dbl3/dbchfi.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbchfi.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbchfi.f ;\
 	mv dbchfi.o $(SCRATCH)/a1/dbchfi.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbchky.o):\
-  $(d0root)/dbl3/dbl3/dbchky.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbchky.o):\
+  $(d0library)/dbl3/dbl3/dbchky.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbchky.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbchky.f ;\
 	mv dbchky.o $(SCRATCH)/a1/dbchky.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbclos.o):\
-  $(d0root)/dbl3/dbl3/dbclos.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbclos.o):\
+  $(d0library)/dbl3/dbl3/dbclos.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbclos.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbclos.f ;\
 	mv dbclos.o $(SCRATCH)/a1/dbclos.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbcmpr.o):\
-  $(d0root)/dbl3/dbl3/dbcmpr.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbcmpr.o):\
+  $(d0library)/dbl3/dbl3/dbcmpr.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbcmpr.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbcmpr.f ;\
 	mv dbcmpr.o $(SCRATCH)/a1/dbcmpr.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbcmpz.o):\
-  $(d0root)/dbl3/dbl3/dbcmpz.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbcmpz.o):\
+  $(d0library)/dbl3/dbl3/dbcmpz.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbcmpz.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbcmpz.f ;\
 	mv dbcmpz.o $(SCRATCH)/a1/dbcmpz.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbcomp.o):\
-  $(d0root)/dbl3/dbl3/dbcomp.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbcomp.o):\
+  $(d0library)/dbl3/dbl3/dbcomp.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbcomp.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbcomp.f ;\
 	mv dbcomp.o $(SCRATCH)/a1/dbcomp.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbconc.o):\
-  $(d0root)/dbl3/dbl3/dbconc.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbconc.o):\
+  $(d0library)/dbl3/dbl3/dbconc.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbconc.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbconc.f ;\
 	mv dbconc.o $(SCRATCH)/a1/dbconc.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbcrdr.o):\
-  $(d0root)/dbl3/dbl3/dbcrdr.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbcrdr.o):\
+  $(d0library)/dbl3/dbl3/dbcrdr.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbcrdr.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbcrdr.f ;\
 	mv dbcrdr.o $(SCRATCH)/a1/dbcrdr.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbcrsd.o):\
-  $(d0root)/dbl3/dbl3/dbcrsd.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbcrsd.o):\
+  $(d0library)/dbl3/dbl3/dbcrsd.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbcrsd.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbcrsd.f ;\
 	mv dbcrsd.o $(SCRATCH)/a1/dbcrsd.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbctob.o):\
-  $(d0root)/dbl3/dbl3/dbctob.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbctob.o):\
+  $(d0library)/dbl3/dbl3/dbctob.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbctob.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbctob.f ;\
 	mv dbctob.o $(SCRATCH)/a2/dbctob.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbctoi.o):\
-  $(d0root)/dbl3/dbl3/dbctoi.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbctoi.o):\
+  $(d0library)/dbl3/dbl3/dbctoi.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbctoi.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbctoi.f ;\
 	mv dbctoi.o $(SCRATCH)/a2/dbctoi.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbctor.o):\
-  $(d0root)/dbl3/dbl3/dbctor.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbctor.o):\
+  $(d0library)/dbl3/dbl3/dbctor.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbctor.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbctor.f ;\
 	mv dbctor.o $(SCRATCH)/a2/dbctor.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdckh.o):\
-  $(d0root)/dbl3/dbl3/dbdckh.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdckh.o):\
+  $(d0library)/dbl3/dbl3/dbdckh.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdckh.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdckh.f ;\
 	mv dbdckh.o $(SCRATCH)/a2/dbdckh.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdckv.o):\
-  $(d0root)/dbl3/dbl3/dbdckv.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdckv.o):\
+  $(d0library)/dbl3/dbl3/dbdckv.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdckv.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdckv.f ;\
 	mv dbdckv.o $(SCRATCH)/a2/dbdckv.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdelk.o):\
-  $(d0root)/dbl3/dbl3/dbdelk.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdelk.o):\
+  $(d0library)/dbl3/dbl3/dbdelk.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdelk.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdelk.f ;\
 	mv dbdelk.o $(SCRATCH)/a2/dbdelk.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdelt.o):\
-  $(d0root)/dbl3/dbl3/dbdelt.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdelt.o):\
+  $(d0library)/dbl3/dbl3/dbdelt.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdelt.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdelt.f ;\
 	mv dbdelt.o $(SCRATCH)/a2/dbdelt.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdhea.o):\
-  $(d0root)/dbl3/dbl3/dbdhea.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdhea.o):\
+  $(d0library)/dbl3/dbl3/dbdhea.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdhea.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdhea.f ;\
 	mv dbdhea.o $(SCRATCH)/a2/dbdhea.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdisd.o):\
-  $(d0root)/dbl3/dbl3/dbdisd.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdisd.o):\
+  $(d0library)/dbl3/dbl3/dbdisd.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdisd.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdisd.f ;\
 	mv dbdisd.o $(SCRATCH)/a2/dbdisd.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdish.o):\
-  $(d0root)/dbl3/dbl3/dbdish.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdish.o):\
+  $(d0library)/dbl3/dbl3/dbdish.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdish.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdish.f ;\
 	mv dbdish.o $(SCRATCH)/a2/dbdish.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdisp.o):\
-  $(d0root)/dbl3/dbl3/dbdisp.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdisp.o):\
+  $(d0library)/dbl3/dbl3/dbdisp.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdisp.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdisp.f ;\
 	mv dbdisp.o $(SCRATCH)/a2/dbdisp.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdisv.o):\
-  $(d0root)/dbl3/dbl3/dbdisv.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdisv.o):\
+  $(d0library)/dbl3/dbl3/dbdisv.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdisv.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdisv.f ;\
 	mv dbdisv.o $(SCRATCH)/a2/dbdisv.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdkyh.o):\
-  $(d0root)/dbl3/dbl3/dbdkyh.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdkyh.o):\
+  $(d0library)/dbl3/dbl3/dbdkyh.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdkyh.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdkyh.f ;\
 	mv dbdkyh.o $(SCRATCH)/a2/dbdkyh.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdkyv.o):\
-  $(d0root)/dbl3/dbl3/dbdkyv.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdkyv.o):\
+  $(d0library)/dbl3/dbl3/dbdkyv.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdkyv.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdkyv.f ;\
 	mv dbdkyv.o $(SCRATCH)/a2/dbdkyv.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdont.o):\
-  $(d0root)/dbl3/dbl3/dbdont.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdont.o):\
+  $(d0library)/dbl3/dbl3/dbdont.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdont.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdont.f ;\
 	mv dbdont.o $(SCRATCH)/a2/dbdont.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbdprg.o):\
-  $(d0root)/dbl3/dbl3/dbdprg.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbdprg.o):\
+  $(d0library)/dbl3/dbl3/dbdprg.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbdprg.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbdprg.f ;\
 	mv dbdprg.o $(SCRATCH)/a2/dbdprg.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbeali.o):\
-  $(d0root)/dbl3/dbl3/dbeali.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbeali.o):\
+  $(d0library)/dbl3/dbl3/dbeali.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbeali.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbeali.f ;\
 	mv dbeali.o $(SCRATCH)/a2/dbeali.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbedas.o):\
-  $(d0root)/dbl3/dbl3/dbedas.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbedas.o):\
+  $(d0library)/dbl3/dbl3/dbedas.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbedas.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbedas.f ;\
 	mv dbedas.o $(SCRATCH)/a2/dbedas.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbedky.o):\
-  $(d0root)/dbl3/dbl3/dbedky.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbedky.o):\
+  $(d0library)/dbl3/dbl3/dbedky.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbedky.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbedky.f ;\
 	mv dbedky.o $(SCRATCH)/a2/dbedky.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbefor.o):\
-  $(d0root)/dbl3/dbl3/dbefor.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbefor.o):\
+  $(d0library)/dbl3/dbl3/dbefor.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbefor.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbefor.f ;\
 	mv dbefor.o $(SCRATCH)/a2/dbefor.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbehlp.o):\
-  $(d0root)/dbl3/dbl3/dbehlp.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbehlp.o):\
+  $(d0library)/dbl3/dbl3/dbehlp.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbehlp.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbehlp.f ;\
 	mv dbehlp.o $(SCRATCH)/a3/dbehlp.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbenam.o):\
-  $(d0root)/dbl3/dbl3/dbenam.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbenam.o):\
+  $(d0library)/dbl3/dbl3/dbenam.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbenam.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbenam.f ;\
 	mv dbenam.o $(SCRATCH)/a3/dbenam.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbend.o):\
-  $(d0root)/dbl3/dbl3/dbend.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbend.o):\
+  $(d0library)/dbl3/dbl3/dbend.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbend.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbend.f ;\
 	mv dbend.o $(SCRATCH)/a3/dbend.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbendf.o):\
-  $(d0root)/dbl3/dbl3/dbendf.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbendf.o):\
+  $(d0library)/dbl3/dbl3/dbendf.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbendf.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbendf.f ;\
 	mv dbendf.o $(SCRATCH)/a3/dbendf.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbenfz.o):\
-  $(d0root)/dbl3/dbl3/dbenfz.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbenfz.o):\
+  $(d0library)/dbl3/dbl3/dbenfz.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbenfz.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbenfz.f ;\
 	mv dbenfz.o $(SCRATCH)/a3/dbenfz.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbentb.o):\
-  $(d0root)/dbl3/dbl3/dbentb.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbentb.o):\
+  $(d0library)/dbl3/dbl3/dbentb.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbentb.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbentb.f ;\
 	mv dbentb.o $(SCRATCH)/a3/dbentb.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbentr.o):\
-  $(d0root)/dbl3/dbl3/dbentr.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbentr.o):\
+  $(d0library)/dbl3/dbl3/dbentr.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbentr.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbentr.f ;\
 	mv dbentr.o $(SCRATCH)/a3/dbentr.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbflin.o):\
-  $(d0root)/dbl3/dbl3/dbflin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbflin.o):\
+  $(d0library)/dbl3/dbl3/dbflin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbflin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbflin.f ;\
 	mv dbflin.o $(SCRATCH)/a3/dbflin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbfpat.o):\
-  $(d0root)/dbl3/dbl3/dbfpat.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbfpat.o):\
+  $(d0library)/dbl3/dbl3/dbfpat.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbfpat.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbfpat.f ;\
 	mv dbfpat.o $(SCRATCH)/a3/dbfpat.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbfree.o):\
-  $(d0root)/dbl3/dbl3/dbfree.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbfree.o):\
+  $(d0library)/dbl3/dbl3/dbfree.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbfree.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbfree.f ;\
 	mv dbfree.o $(SCRATCH)/a3/dbfree.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbfrst.o):\
-  $(d0root)/dbl3/dbl3/dbfrst.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbfrst.o):\
+  $(d0library)/dbl3/dbl3/dbfrst.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbfrst.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbfrst.f ;\
 	mv dbfrst.o $(SCRATCH)/a3/dbfrst.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbfrus.o):\
-  $(d0root)/dbl3/dbl3/dbfrus.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbfrus.o):\
+  $(d0library)/dbl3/dbl3/dbfrus.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbfrus.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbfrus.f ;\
 	mv dbfrus.o $(SCRATCH)/a3/dbfrus.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbftio.o):\
-  $(d0root)/dbl3/dbl3/dbftio.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbftio.o):\
+  $(d0library)/dbl3/dbl3/dbftio.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbftio.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbftio.f ;\
 	mv dbftio.o $(SCRATCH)/a3/dbftio.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbfzin.o):\
-  $(d0root)/dbl3/dbl3/dbfzin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbfzin.o):\
+  $(d0library)/dbl3/dbl3/dbfzin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbfzin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbfzin.f ;\
 	mv dbfzin.o $(SCRATCH)/a3/dbfzin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbfzop.o):\
-  $(d0root)/dbl3/dbl3/dbfzop.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbfzop.o):\
+  $(d0library)/dbl3/dbl3/dbfzop.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbfzop.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbfzop.f ;\
 	mv dbfzop.o $(SCRATCH)/a3/dbfzop.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbfzup.o):\
-  $(d0root)/dbl3/dbl3/dbfzup.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbfzup.o):\
+  $(d0library)/dbl3/dbl3/dbfzup.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbfzup.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbfzup.f ;\
 	mv dbfzup.o $(SCRATCH)/a3/dbfzup.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbfzwr.o):\
-  $(d0root)/dbl3/dbl3/dbfzwr.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbfzwr.o):\
+  $(d0library)/dbl3/dbl3/dbfzwr.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbfzwr.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbfzwr.f ;\
 	mv dbfzwr.o $(SCRATCH)/a3/dbfzwr.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbget.o):\
-  $(d0root)/dbl3/dbl3/dbget.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbget.o):\
+  $(d0library)/dbl3/dbl3/dbget.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbget.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbget.f ;\
 	mv dbget.o $(SCRATCH)/a3/dbget.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbgets.o):\
-  $(d0root)/dbl3/dbl3/dbgets.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbgets.o):\
+  $(d0library)/dbl3/dbl3/dbgets.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbgets.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbgets.f ;\
 	mv dbgets.o $(SCRATCH)/a3/dbgets.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbgnam.o):\
-  $(d0root)/dbl3/dbl3/dbgnam.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbgnam.o):\
+  $(d0library)/dbl3/dbl3/dbgnam.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbgnam.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbgnam.f ;\
 	mv dbgnam.o $(SCRATCH)/a3/dbgnam.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbgpid.o):\
-  $(d0root)/dbl3/dbl3/dbgpid.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbgpid.o):\
+  $(d0library)/dbl3/dbl3/dbgpid.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbgpid.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbgpid.f ;\
 	mv dbgpid.o $(SCRATCH)/a4/dbgpid.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbhunt.o):\
-  $(d0root)/dbl3/dbl3/dbhunt.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbhunt.o):\
+  $(d0library)/dbl3/dbl3/dbhunt.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbhunt.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbhunt.f ;\
 	mv dbhunt.o $(SCRATCH)/a4/dbhunt.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbifch.o):\
-  $(d0root)/dbl3/dbl3/dbifch.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbifch.o):\
+  $(d0library)/dbl3/dbl3/dbifch.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbifch.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbifch.f ;\
 	mv dbifch.o $(SCRATCH)/a4/dbifch.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbifrc.o):\
-  $(d0root)/dbl3/dbl3/dbifrc.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbifrc.o):\
+  $(d0library)/dbl3/dbl3/dbifrc.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbifrc.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbifrc.f ;\
 	mv dbifrc.o $(SCRATCH)/a4/dbifrc.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbildf.o):\
-  $(d0root)/dbl3/dbl3/dbildf.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbildf.o):\
+  $(d0library)/dbl3/dbl3/dbildf.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbildf.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbildf.f ;\
 	mv dbildf.o $(SCRATCH)/a4/dbildf.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbildu.o):\
-  $(d0root)/dbl3/dbl3/dbildu.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbildu.o):\
+  $(d0library)/dbl3/dbl3/dbildu.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbildu.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbildu.f ;\
 	mv dbildu.o $(SCRATCH)/a4/dbildu.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbin.o):\
-  $(d0root)/dbl3/dbl3/dbin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbin.o):\
+  $(d0library)/dbl3/dbl3/dbin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbin.f ;\
 	mv dbin.o $(SCRATCH)/a4/dbin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbinct.o):\
-  $(d0root)/dbl3/dbl3/dbinct.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbinct.o):\
+  $(d0library)/dbl3/dbl3/dbinct.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbinct.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbinct.f ;\
 	mv dbinct.o $(SCRATCH)/a4/dbinct.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbinin.o):\
-  $(d0root)/dbl3/dbl3/dbinin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbinin.o):\
+  $(d0library)/dbl3/dbl3/dbinin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbinin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbinin.f ;\
 	mv dbinin.o $(SCRATCH)/a4/dbinin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbinit.o):\
-  $(d0root)/dbl3/dbl3/dbinit.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbinit.o):\
+  $(d0library)/dbl3/dbl3/dbinit.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbinit.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbinit.f ;\
 	mv dbinit.o $(SCRATCH)/a4/dbinit.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbioty.o):\
-  $(d0root)/dbl3/dbl3/dbioty.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbioty.o):\
+  $(d0library)/dbl3/dbl3/dbioty.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbioty.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbioty.f ;\
 	mv dbioty.o $(SCRATCH)/a4/dbioty.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbizin.o):\
-  $(d0root)/dbl3/dbl3/dbizin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbizin.o):\
+  $(d0library)/dbl3/dbl3/dbizin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbizin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbizin.f ;\
 	mv dbizin.o $(SCRATCH)/a4/dbizin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbjoin.o):\
-  $(d0root)/dbl3/dbl3/dbjoin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbjoin.o):\
+  $(d0library)/dbl3/dbl3/dbjoin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbjoin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbjoin.f ;\
 	mv dbjoin.o $(SCRATCH)/a4/dbjoin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbkept.o):\
-  $(d0root)/dbl3/dbl3/dbkept.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbkept.o):\
+  $(d0library)/dbl3/dbl3/dbkept.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbkept.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbkept.f ;\
 	mv dbkept.o $(SCRATCH)/a4/dbkept.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbkeyr.o):\
-  $(d0root)/dbl3/dbl3/dbkeyr.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbkeyr.o):\
+  $(d0library)/dbl3/dbl3/dbkeyr.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbkeyr.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbkeyr.f ;\
 	mv dbkeyr.o $(SCRATCH)/a4/dbkeyr.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbkeys.o):\
-  $(d0root)/dbl3/dbl3/dbkeys.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbkeys.o):\
+  $(d0library)/dbl3/dbl3/dbkeys.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbkeys.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbkeys.f ;\
 	mv dbkeys.o $(SCRATCH)/a4/dbkeys.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbkeyt.o):\
-  $(d0root)/dbl3/dbl3/dbkeyt.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbkeyt.o):\
+  $(d0library)/dbl3/dbl3/dbkeyt.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbkeyt.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbkeyt.f ;\
 	mv dbkeyt.o $(SCRATCH)/a4/dbkeyt.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbkin.o):\
-  $(d0root)/dbl3/dbl3/dbkin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbkin.o):\
+  $(d0library)/dbl3/dbl3/dbkin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbkin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbkin.f ;\
 	mv dbkin.o $(SCRATCH)/a4/dbkin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbkout.o):\
-  $(d0root)/dbl3/dbl3/dbkout.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbkout.o):\
+  $(d0library)/dbl3/dbl3/dbkout.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbkout.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbkout.f ;\
 	mv dbkout.o $(SCRATCH)/a4/dbkout.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbktyp.o):\
-  $(d0root)/dbl3/dbl3/dbktyp.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbktyp.o):\
+  $(d0library)/dbl3/dbl3/dbktyp.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbktyp.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbktyp.f ;\
 	mv dbktyp.o $(SCRATCH)/a4/dbktyp.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbkvin.o):\
-  $(d0root)/dbl3/dbl3/dbkvin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbkvin.o):\
+  $(d0library)/dbl3/dbl3/dbkvin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbkvin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbkvin.f ;\
 	mv dbkvin.o $(SCRATCH)/a5/dbkvin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbkxin.o):\
-  $(d0root)/dbl3/dbl3/dbkxin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbkxin.o):\
+  $(d0library)/dbl3/dbl3/dbkxin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbkxin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbkxin.f ;\
 	mv dbkxin.o $(SCRATCH)/a5/dbkxin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbkyse.o):\
-  $(d0root)/dbl3/dbl3/dbkyse.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbkyse.o):\
+  $(d0library)/dbl3/dbl3/dbkyse.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbkyse.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbkyse.f ;\
 	mv dbkyse.o $(SCRATCH)/a5/dbkyse.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbkytg.o):\
-  $(d0root)/dbl3/dbl3/dbkytg.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbkytg.o):\
+  $(d0library)/dbl3/dbl3/dbkytg.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbkytg.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbkytg.f ;\
 	mv dbkytg.o $(SCRATCH)/a5/dbkytg.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dblast.o):\
-  $(d0root)/dbl3/dbl3/dblast.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdblast.o):\
+  $(d0library)/dbl3/dbl3/dblast.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dblast.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dblast.f ;\
 	mv dblast.o $(SCRATCH)/a5/dblast.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dblinc.o):\
-  $(d0root)/dbl3/dbl3/dblinc.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdblinc.o):\
+  $(d0library)/dbl3/dbl3/dblinc.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dblinc.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dblinc.f ;\
 	mv dblinc.o $(SCRATCH)/a5/dblinc.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dblind.o):\
-  $(d0root)/dbl3/dbl3/dblind.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdblind.o):\
+  $(d0library)/dbl3/dbl3/dblind.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dblind.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dblind.f ;\
 	mv dblind.o $(SCRATCH)/a5/dblind.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dblkey.o):\
-  $(d0root)/dbl3/dbl3/dblkey.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdblkey.o):\
+  $(d0library)/dbl3/dbl3/dblkey.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dblkey.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dblkey.f ;\
 	mv dblkey.o $(SCRATCH)/a5/dblkey.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dblmod.o):\
-  $(d0root)/dbl3/dbl3/dblmod.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdblmod.o):\
+  $(d0library)/dbl3/dbl3/dblmod.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dblmod.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dblmod.f ;\
 	mv dblmod.o $(SCRATCH)/a5/dblmod.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dblogl.o):\
-  $(d0root)/dbl3/dbl3/dblogl.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdblogl.o):\
+  $(d0library)/dbl3/dbl3/dblogl.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dblogl.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dblogl.f ;\
 	mv dblogl.o $(SCRATCH)/a5/dblogl.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dblook.o):\
-  $(d0root)/dbl3/dbl3/dblook.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdblook.o):\
+  $(d0library)/dbl3/dbl3/dblook.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dblook.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dblook.f ;\
 	mv dblook.o $(SCRATCH)/a5/dblook.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbmdip.o):\
-  $(d0root)/dbl3/dbl3/dbmdip.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbmdip.o):\
+  $(d0library)/dbl3/dbl3/dbmdip.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbmdip.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbmdip.f ;\
 	mv dbmdip.o $(SCRATCH)/a5/dbmdip.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbmdir.o):\
-  $(d0root)/dbl3/dbl3/dbmdir.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbmdir.o):\
+  $(d0library)/dbl3/dbl3/dbmdir.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbmdir.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbmdir.f ;\
 	mv dbmdir.o $(SCRATCH)/a5/dbmdir.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbnode.o):\
-  $(d0root)/dbl3/dbl3/dbnode.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbnode.o):\
+  $(d0library)/dbl3/dbl3/dbnode.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbnode.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbnode.f ;\
 	mv dbnode.o $(SCRATCH)/a5/dbnode.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbntop.o):\
-  $(d0root)/dbl3/dbl3/dbntop.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbntop.o):\
+  $(d0library)/dbl3/dbl3/dbntop.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbntop.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbntop.f ;\
 	mv dbntop.o $(SCRATCH)/a5/dbntop.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbopen.o):\
-  $(d0root)/dbl3/dbl3/dbopen.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbopen.o):\
+  $(d0library)/dbl3/dbl3/dbopen.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbopen.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbopen.f ;\
 	mv dbopen.o $(SCRATCH)/a5/dbopen.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbopts.o):\
-  $(d0root)/dbl3/dbl3/dbopts.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbopts.o):\
+  $(d0library)/dbl3/dbl3/dbopts.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbopts.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbopts.f ;\
 	mv dbopts.o $(SCRATCH)/a5/dbopts.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbout.o):\
-  $(d0root)/dbl3/dbl3/dbout.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbout.o):\
+  $(d0library)/dbl3/dbl3/dbout.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbout.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbout.f ;\
 	mv dbout.o $(SCRATCH)/a5/dbout.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbpack.o):\
-  $(d0root)/dbl3/dbl3/dbpack.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbpack.o):\
+  $(d0library)/dbl3/dbl3/dbpack.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbpack.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbpack.f ;\
 	mv dbpack.o $(SCRATCH)/a5/dbpack.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbpath.o):\
-  $(d0root)/dbl3/dbl3/dbpath.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbpath.o):\
+  $(d0library)/dbl3/dbl3/dbpath.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbpath.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbpath.f ;\
 	mv dbpath.o $(SCRATCH)/a5/dbpath.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbpeek.o):\
-  $(d0root)/dbl3/dbl3/dbpeek.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbpeek.o):\
+  $(d0library)/dbl3/dbl3/dbpeek.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbpeek.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbpeek.f ;\
 	mv dbpeek.o $(SCRATCH)/a6/dbpeek.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbpktm.o):\
-  $(d0root)/dbl3/dbl3/dbpktm.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbpktm.o):\
+  $(d0library)/dbl3/dbl3/dbpktm.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbpktm.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbpktm.f ;\
 	mv dbpktm.o $(SCRATCH)/a6/dbpktm.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbpkts.o):\
-  $(d0root)/dbl3/dbl3/dbpkts.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbpkts.o):\
+  $(d0library)/dbl3/dbl3/dbpkts.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbpkts.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbpkts.f ;\
 	mv dbpkts.o $(SCRATCH)/a6/dbpkts.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbplbk.o):\
-  $(d0root)/dbl3/dbl3/dbplbk.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbplbk.o):\
+  $(d0library)/dbl3/dbl3/dbplbk.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbplbk.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbplbk.f ;\
 	mv dbplbk.o $(SCRATCH)/a6/dbplbk.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbplnt.o):\
-  $(d0root)/dbl3/dbl3/dbplnt.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbplnt.o):\
+  $(d0library)/dbl3/dbl3/dbplnt.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbplnt.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbplnt.f ;\
 	mv dbplnt.o $(SCRATCH)/a6/dbplnt.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbplob.o):\
-  $(d0root)/dbl3/dbl3/dbplob.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbplob.o):\
+  $(d0library)/dbl3/dbl3/dbplob.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbplob.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbplob.f ;\
 	mv dbplob.o $(SCRATCH)/a6/dbplob.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbplov.o):\
-  $(d0root)/dbl3/dbl3/dbplov.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbplov.o):\
+  $(d0library)/dbl3/dbl3/dbplov.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbplov.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbplov.f ;\
 	mv dbplov.o $(SCRATCH)/a6/dbplov.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbplti.o):\
-  $(d0root)/dbl3/dbl3/dbplti.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbplti.o):\
+  $(d0library)/dbl3/dbl3/dbplti.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbplti.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbplti.f ;\
 	mv dbplti.o $(SCRATCH)/a6/dbplti.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbprdt.o):\
-  $(d0root)/dbl3/dbl3/dbprdt.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbprdt.o):\
+  $(d0library)/dbl3/dbl3/dbprdt.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbprdt.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbprdt.f ;\
 	mv dbprdt.o $(SCRATCH)/a6/dbprdt.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbpres.o):\
-  $(d0root)/dbl3/dbl3/dbpres.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbpres.o):\
+  $(d0library)/dbl3/dbl3/dbpres.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbpres.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbpres.f ;\
 	mv dbpres.o $(SCRATCH)/a6/dbpres.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbprgd.o):\
-  $(d0root)/dbl3/dbl3/dbprgd.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbprgd.o):\
+  $(d0library)/dbl3/dbl3/dbprgd.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbprgd.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbprgd.f ;\
 	mv dbprgd.o $(SCRATCH)/a6/dbprgd.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbprin.o):\
-  $(d0root)/dbl3/dbl3/dbprin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbprin.o):\
+  $(d0library)/dbl3/dbl3/dbprin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbprin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbprin.f ;\
 	mv dbprin.o $(SCRATCH)/a6/dbprin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbprky.o):\
-  $(d0root)/dbl3/dbl3/dbprky.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbprky.o):\
+  $(d0library)/dbl3/dbl3/dbprky.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbprky.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbprky.f ;\
 	mv dbprky.o $(SCRATCH)/a6/dbprky.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbprnt.o):\
-  $(d0root)/dbl3/dbl3/dbprnt.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbprnt.o):\
+  $(d0library)/dbl3/dbl3/dbprnt.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbprnt.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbprnt.f ;\
 	mv dbprnt.o $(SCRATCH)/a6/dbprnt.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbproc.o):\
-  $(d0root)/dbl3/dbl3/dbproc.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbproc.o):\
+  $(d0library)/dbl3/dbl3/dbproc.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbproc.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbproc.f ;\
 	mv dbproc.o $(SCRATCH)/a6/dbproc.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbpurg.o):\
-  $(d0root)/dbl3/dbl3/dbpurg.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbpurg.o):\
+  $(d0library)/dbl3/dbl3/dbpurg.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbpurg.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbpurg.f ;\
 	mv dbpurg.o $(SCRATCH)/a6/dbpurg.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbpurk.o):\
-  $(d0root)/dbl3/dbl3/dbpurk.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbpurk.o):\
+  $(d0library)/dbl3/dbl3/dbpurk.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbpurk.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbpurk.f ;\
 	mv dbpurk.o $(SCRATCH)/a6/dbpurk.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrali.o):\
-  $(d0root)/dbl3/dbl3/dbrali.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrali.o):\
+  $(d0library)/dbl3/dbl3/dbrali.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrali.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrali.f ;\
 	mv dbrali.o $(SCRATCH)/a6/dbrali.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrdda.o):\
-  $(d0root)/dbl3/dbl3/dbrdda.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrdda.o):\
+  $(d0library)/dbl3/dbl3/dbrdda.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrdda.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrdda.f ;\
 	mv dbrdda.o $(SCRATCH)/a6/dbrdda.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrdio.o):\
-  $(d0root)/dbl3/dbl3/dbrdio.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrdio.o):\
+  $(d0library)/dbl3/dbl3/dbrdio.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrdio.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrdio.f ;\
 	mv dbrdio.o $(SCRATCH)/a6/dbrdio.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrenk.o):\
-  $(d0root)/dbl3/dbl3/dbrenk.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrenk.o):\
+  $(d0library)/dbl3/dbl3/dbrenk.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrenk.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrenk.f ;\
 	mv dbrenk.o $(SCRATCH)/a7/dbrenk.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrepl.o):\
-  $(d0root)/dbl3/dbl3/dbrepl.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrepl.o):\
+  $(d0library)/dbl3/dbl3/dbrepl.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrepl.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrepl.f ;\
 	mv dbrepl.o $(SCRATCH)/a7/dbrepl.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrgck.o):\
-  $(d0root)/dbl3/dbl3/dbrgck.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrgck.o):\
+  $(d0library)/dbl3/dbl3/dbrgck.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrgck.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrgck.f ;\
 	mv dbrgck.o $(SCRATCH)/a7/dbrgck.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrgcv.o):\
-  $(d0root)/dbl3/dbl3/dbrgcv.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrgcv.o):\
+  $(d0library)/dbl3/dbl3/dbrgcv.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrgcv.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrgcv.f ;\
 	mv dbrgcv.o $(SCRATCH)/a7/dbrgcv.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrhlp.o):\
-  $(d0root)/dbl3/dbl3/dbrhlp.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrhlp.o):\
+  $(d0library)/dbl3/dbl3/dbrhlp.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrhlp.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrhlp.f ;\
 	mv dbrhlp.o $(SCRATCH)/a7/dbrhlp.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrky1.o):\
-  $(d0root)/dbl3/dbl3/dbrky1.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrky1.o):\
+  $(d0library)/dbl3/dbl3/dbrky1.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrky1.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrky1.f ;\
 	mv dbrky1.o $(SCRATCH)/a7/dbrky1.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrnam.o):\
-  $(d0root)/dbl3/dbl3/dbrnam.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrnam.o):\
+  $(d0library)/dbl3/dbl3/dbrnam.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrnam.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrnam.f ;\
 	mv dbrnam.o $(SCRATCH)/a7/dbrnam.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbropn.o):\
-  $(d0root)/dbl3/dbl3/dbropn.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbropn.o):\
+  $(d0library)/dbl3/dbl3/dbropn.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbropn.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbropn.f ;\
 	mv dbropn.o $(SCRATCH)/a7/dbropn.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrtfz.o):\
-  $(d0root)/dbl3/dbl3/dbrtfz.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrtfz.o):\
+  $(d0library)/dbl3/dbl3/dbrtfz.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrtfz.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrtfz.f ;\
 	mv dbrtfz.o $(SCRATCH)/a7/dbrtfz.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrvnt.o):\
-  $(d0root)/dbl3/dbl3/dbrvnt.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrvnt.o):\
+  $(d0library)/dbl3/dbl3/dbrvnt.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrvnt.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrvnt.f ;\
 	mv dbrvnt.o $(SCRATCH)/a7/dbrvnt.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrvpl.o):\
-  $(d0root)/dbl3/dbl3/dbrvpl.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrvpl.o):\
+  $(d0library)/dbl3/dbl3/dbrvpl.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrvpl.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrvpl.f ;\
 	mv dbrvpl.o $(SCRATCH)/a7/dbrvpl.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbrzin.o):\
-  $(d0root)/dbl3/dbl3/dbrzin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbrzin.o):\
+  $(d0library)/dbl3/dbl3/dbrzin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbrzin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbrzin.f ;\
 	mv dbrzin.o $(SCRATCH)/a7/dbrzin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbsave.o):\
-  $(d0root)/dbl3/dbl3/dbsave.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbsave.o):\
+  $(d0library)/dbl3/dbl3/dbsave.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbsave.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbsave.f ;\
 	mv dbsave.o $(SCRATCH)/a7/dbsave.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbsblc.o):\
-  $(d0root)/dbl3/dbl3/dbsblc.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbsblc.o):\
+  $(d0library)/dbl3/dbl3/dbsblc.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbsblc.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbsblc.f ;\
 	mv dbsblc.o $(SCRATCH)/a7/dbsblc.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbsdir.o):\
-  $(d0root)/dbl3/dbl3/dbsdir.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbsdir.o):\
+  $(d0library)/dbl3/dbl3/dbsdir.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbsdir.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbsdir.f ;\
 	mv dbsdir.o $(SCRATCH)/a7/dbsdir.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbseky.o):\
-  $(d0root)/dbl3/dbl3/dbseky.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbseky.o):\
+  $(d0library)/dbl3/dbl3/dbseky.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbseky.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbseky.f ;\
 	mv dbseky.o $(SCRATCH)/a7/dbseky.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbsnam.o):\
-  $(d0root)/dbl3/dbl3/dbsnam.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbsnam.o):\
+  $(d0library)/dbl3/dbl3/dbsnam.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbsnam.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbsnam.f ;\
 	mv dbsnam.o $(SCRATCH)/a7/dbsnam.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbsopn.o):\
-  $(d0root)/dbl3/dbl3/dbsopn.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbsopn.o):\
+  $(d0library)/dbl3/dbl3/dbsopn.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbsopn.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbsopn.f ;\
 	mv dbsopn.o $(SCRATCH)/a7/dbsopn.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbspur.o):\
-  $(d0root)/dbl3/dbl3/dbspur.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbspur.o):\
+  $(d0library)/dbl3/dbl3/dbspur.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbspur.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbspur.f ;\
 	mv dbspur.o $(SCRATCH)/a7/dbspur.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbsrtm.o):\
-  $(d0root)/dbl3/dbl3/dbsrtm.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbsrtm.o):\
+  $(d0library)/dbl3/dbl3/dbsrtm.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbsrtm.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbsrtm.f ;\
 	mv dbsrtm.o $(SCRATCH)/a7/dbsrtm.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbtbcr.o):\
-  $(d0root)/dbl3/dbl3/dbtbcr.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbtbcr.o):\
+  $(d0library)/dbl3/dbl3/dbtbcr.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbtbcr.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbtbcr.f ;\
 	mv dbtbcr.o $(SCRATCH)/a8/dbtbcr.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbtbpr.o):\
-  $(d0root)/dbl3/dbl3/dbtbpr.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbtbpr.o):\
+  $(d0library)/dbl3/dbl3/dbtbpr.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbtbpr.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbtbpr.f ;\
 	mv dbtbpr.o $(SCRATCH)/a8/dbtbpr.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbtemp.o):\
-  $(d0root)/dbl3/dbl3/dbtemp.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbtemp.o):\
+  $(d0library)/dbl3/dbl3/dbtemp.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbtemp.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbtemp.f ;\
 	mv dbtemp.o $(SCRATCH)/a8/dbtemp.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbtime.o):\
-  $(d0root)/dbl3/dbl3/dbtime.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbtime.o):\
+  $(d0library)/dbl3/dbl3/dbtime.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbtime.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbtime.f ;\
 	mv dbtime.o $(SCRATCH)/a8/dbtime.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbtopn.o):\
-  $(d0root)/dbl3/dbl3/dbtopn.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbtopn.o):\
+  $(d0library)/dbl3/dbl3/dbtopn.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbtopn.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbtopn.f ;\
 	mv dbtopn.o $(SCRATCH)/a8/dbtopn.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbtous.o):\
-  $(d0root)/dbl3/dbl3/dbtous.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbtous.o):\
+  $(d0library)/dbl3/dbl3/dbtous.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbtous.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbtous.f ;\
 	mv dbtous.o $(SCRATCH)/a8/dbtous.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbucmp.o):\
-  $(d0root)/dbl3/dbl3/dbucmp.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbucmp.o):\
+  $(d0library)/dbl3/dbl3/dbucmp.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbucmp.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbucmp.f ;\
 	mv dbucmp.o $(SCRATCH)/a8/dbucmp.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbucmz.o):\
-  $(d0root)/dbl3/dbl3/dbucmz.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbucmz.o):\
+  $(d0library)/dbl3/dbl3/dbucmz.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbucmz.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbucmz.f ;\
 	mv dbucmz.o $(SCRATCH)/a8/dbucmz.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbudic.o):\
-  $(d0root)/dbl3/dbl3/dbudic.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbudic.o):\
+  $(d0library)/dbl3/dbl3/dbudic.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbudic.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbudic.f ;\
 	mv dbudic.o $(SCRATCH)/a8/dbudic.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbuncp.o):\
-  $(d0root)/dbl3/dbl3/dbuncp.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbuncp.o):\
+  $(d0library)/dbl3/dbl3/dbuncp.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbuncp.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbuncp.f ;\
 	mv dbuncp.o $(SCRATCH)/a8/dbuncp.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbupck.o):\
-  $(d0root)/dbl3/dbl3/dbupck.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbupck.o):\
+  $(d0library)/dbl3/dbl3/dbupck.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbupck.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbupck.f ;\
 	mv dbupck.o $(SCRATCH)/a8/dbupck.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbupfz.o):\
-  $(d0root)/dbl3/dbl3/dbupfz.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbupfz.o):\
+  $(d0library)/dbl3/dbl3/dbupfz.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbupfz.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbupfz.f ;\
 	mv dbupfz.o $(SCRATCH)/a8/dbupfz.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbupiz.o):\
-  $(d0root)/dbl3/dbl3/dbupiz.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbupiz.o):\
+  $(d0library)/dbl3/dbl3/dbupiz.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbupiz.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbupiz.f ;\
 	mv dbupiz.o $(SCRATCH)/a8/dbupiz.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbupky.o):\
-  $(d0root)/dbl3/dbl3/dbupky.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbupky.o):\
+  $(d0library)/dbl3/dbl3/dbupky.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbupky.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbupky.f ;\
 	mv dbupky.o $(SCRATCH)/a8/dbupky.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbuptm.o):\
-  $(d0root)/dbl3/dbl3/dbuptm.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbuptm.o):\
+  $(d0library)/dbl3/dbl3/dbuptm.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbuptm.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbuptm.f ;\
 	mv dbuptm.o $(SCRATCH)/a8/dbuptm.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbupts.o):\
-  $(d0root)/dbl3/dbl3/dbupts.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbupts.o):\
+  $(d0library)/dbl3/dbl3/dbupts.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbupts.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbupts.f ;\
 	mv dbupts.o $(SCRATCH)/a8/dbupts.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbuse.o):\
-  $(d0root)/dbl3/dbl3/dbuse.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbuse.o):\
+  $(d0library)/dbl3/dbl3/dbuse.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbuse.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbuse.f ;\
 	mv dbuse.o $(SCRATCH)/a8/dbuse.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbusin.o):\
-  $(d0root)/dbl3/dbl3/dbusin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbusin.o):\
+  $(d0library)/dbl3/dbl3/dbusin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbusin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbusin.f ;\
 	mv dbusin.o $(SCRATCH)/a8/dbusin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbutim.o):\
-  $(d0root)/dbl3/dbl3/dbutim.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbutim.o):\
+  $(d0library)/dbl3/dbl3/dbutim.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbutim.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbutim.f ;\
 	mv dbutim.o $(SCRATCH)/a8/dbutim.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbutis.o):\
-  $(d0root)/dbl3/dbl3/dbutis.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbutis.o):\
+  $(d0library)/dbl3/dbl3/dbutis.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbutis.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbutis.f ;\
 	mv dbutis.o $(SCRATCH)/a8/dbutis.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbuvtx.o):\
-  $(d0root)/dbl3/dbl3/dbuvtx.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbuvtx.o):\
+  $(d0library)/dbl3/dbl3/dbuvtx.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbuvtx.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbuvtx.f ;\
 	mv dbuvtx.o $(SCRATCH)/a9/dbuvtx.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbvhea.o):\
-  $(d0root)/dbl3/dbl3/dbvhea.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbvhea.o):\
+  $(d0library)/dbl3/dbl3/dbvhea.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbvhea.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbvhea.f ;\
 	mv dbvhea.o $(SCRATCH)/a9/dbvhea.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbview.o):\
-  $(d0root)/dbl3/dbl3/dbview.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbview.o):\
+  $(d0library)/dbl3/dbl3/dbview.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbview.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbview.f ;\
 	mv dbview.o $(SCRATCH)/a9/dbview.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbvin.o):\
-  $(d0root)/dbl3/dbl3/dbvin.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbvin.o):\
+  $(d0library)/dbl3/dbl3/dbvin.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbvin.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbvin.f ;\
 	mv dbvin.o $(SCRATCH)/a9/dbvin.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbvldt.o):\
-  $(d0root)/dbl3/dbl3/dbvldt.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbvldt.o):\
+  $(d0library)/dbl3/dbl3/dbvldt.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbvldt.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbvldt.f ;\
 	mv dbvldt.o $(SCRATCH)/a9/dbvldt.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbvout.o):\
-  $(d0root)/dbl3/dbl3/dbvout.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbvout.o):\
+  $(d0library)/dbl3/dbl3/dbvout.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbvout.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbvout.f ;\
 	mv dbvout.o $(SCRATCH)/a9/dbvout.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbvwpr.o):\
-  $(d0root)/dbl3/dbl3/dbvwpr.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbvwpr.o):\
+  $(d0library)/dbl3/dbl3/dbvwpr.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbvwpr.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbvwpr.f ;\
 	mv dbvwpr.o $(SCRATCH)/a9/dbvwpr.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbwrdp.o):\
-  $(d0root)/dbl3/dbl3/dbwrdp.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbwrdp.o):\
+  $(d0library)/dbl3/dbl3/dbwrdp.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbwrdp.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbwrdp.f ;\
 	mv dbwrdp.o $(SCRATCH)/a9/dbwrdp.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(dbxini.o):\
-  $(d0root)/dbl3/dbl3/dbxini.f
+$(d0root)/test/dbl3/deb_dbl3.a(xdbxini.o):\
+  $(d0library)/dbl3/dbl3/dbxini.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/dbxini.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/dbxini.f ;\
 	mv dbxini.o $(SCRATCH)/a9/dbxini.o ;\
 	)
-$(d0root)/dbl3/deb_dbl3.a(idbtyp.o):\
-  $(d0root)/dbl3/dbl3/idbtyp.f
+$(d0root)/test/dbl3/deb_dbl3.a(xidbtyp.o):\
+  $(d0library)/dbl3/dbl3/idbtyp.f
 	(cd $(d0root);\
-	$(F77) $(F77FLAGS) $(DEBUG) dbl3/dbl3/idbtyp.f ;\
+	$(F77) $(F77FLAGS) $(DEBUG) $(d0library)/dbl3/dbl3/idbtyp.f ;\
 	mv idbtyp.o $(SCRATCH)/a9/idbtyp.o ;\
 	)
 pre:

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VNODI3000()
+      VNODI3000 = ' NODI3000'//
+     X                   '  OFFICIAL V1.21'//
+     X                   ' 24-AUG-1990 13:47:24.19'
+      Return
+      End

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VISAJET_UTIL()
+      VISAJET_UTIL = ' ISAJET_UTIL'//
+     X                   '  OFFICIAL V1.22'//
+     X                   ' 20-JUN-1994 15:50:12.63'
+      Return
+      End
