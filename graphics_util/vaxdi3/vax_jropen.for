@@ -1,4 +1,5 @@
       SUBROUTINE JROPEN(NAME)
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C  OPEN A RETAINED SEGMENT
       INCLUDE 'D0$INC:DI3INC.INC'
       DATA NSMXX/100/
@@ -7,8 +8,13 @@ C
       IF(NSEGS.GE.NSMXX) GO TO 1000
       NSEGS=NSEGS+1
       ISEGNM=NAME
-      IF(IDEBUG.GT.8)TYPE 888,NSEGS,NAME,RJ4
+      IF(IDEBUG.GT.8)write (*,888),NSEGS,NAME,RJ4
+C&IF LINUX
+C&  888 FORMAT(' SEG',I2,I7,/,'  WI:',4F6.2,/,'  VP:',4F6.2,/,'  VS:',
+C&     &       4F6.2)
+C&ELSE
   888 FORMAT(' SEG',I2,I,/,'  WI:',4F,/,'  VP:',4F,/,'  VS:',4F)
+C&ENDIF
       PUTS=.FALSE.
       NUMSEG(NSEGS)=NAME
       INDS1(NSEGS)=ISPTR

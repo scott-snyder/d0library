@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VXFRAME()
+      VXFRAME = ' XFRAME'//
+     X                   '  OFFICIAL V0.01'//
+     X                   '  3-JUN-1993 11:00:30.22'
+      Return
+      End

@@ -1,0 +1,67 @@
+      SUBROUTINE MULIB_STAT(MULIB,ISA_PARTID,ISA_ENERGY,TOT_ENERGY,
+     &	NUM_GMUH,NUM_HITS)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : ANALYSES AN MULIB BANK
+C-
+C-   Inputs  : MULIB = MULIB ARRAY CONTAINING MUONLIBRARY INFO
+C-   Outputs : ISA_PARTID = ISAJET ID OF PARENT PARTICLE IN MULIB BANK
+C-             ISA_ENERGY = ENERGY OF ISAJET TRACK
+C-             TOT_ENERGY = ENERGY AT ENTRY INTO CALORIMETER
+C-             HITS in MUON CHAMBER
+C-             NUM_GMUH = NUMBER OF GMUH TRACKS
+C-             NUM_HITS = TOTAL NUMBER OF HITS STORED
+C-   Controls:
+C-
+C-   Created   26-MAY-1993   Jasbir Singh
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$PARAMS:CAL_OFFLINE.PARAMS'
+      REAL    MULIB(*)
+      INTEGER ISA_PARTID
+      REAL    VERTEX(3),PRIMARY_MASS,PMOM
+      REAL    ISA_ENERGY,TOT_ENERGY
+      REAL    TOT_CAL_ENERGY,CALEXIT_XYZ(3)
+      REAL    ETAM_PRIMARY,IPHIM_PRIMARY
+      INTEGER NUM_GMUH,NUM_HITS,PT_GMUH,NUMHITS
+      INTEGER INDEX,I,PTCUR
+      INTEGER IL,IE,IP
+C----------------------------------------------------------------------
+      TOT_ENERGY = 0.
+      ISA_PARTID = MULIB(5)              ! ISAJET ID OF PARENT
+      ISA_ENERGY = MULIB(9)
+      ETAM_PRIMARY = MULIB(10)
+      IPHIM_PRIMARY =MULIB(11)
+      PRIMARY_MASS  = MULIB(12)  !MASS
+      VERTEX(1) = MULIB(13)
+      VERTEX(2) = MULIB(14)
+      VERTEX(3) = MULIB(15)
+
+C-------------------------------------
+	PT_GMUH = 2
+        PT_GMUH = MULIB(PT_GMUH)
+ 1000  CONTINUE
+        CALEXIT_XYZ(1) = MULIB(PT_GMUH+17)
+        CALEXIT_XYZ(2) =  MULIB(PT_GMUH+18)
+        CALEXIT_XYZ(3) =  MULIB(PT_GMUH+19)
+        CALL HFILL(101,CALEXIT_XYZ(1),0.,1.)
+        CALL HFILL(102,CALEXIT_XYZ(2),0.,1.)
+        CALL HFILL(103,CALEXIT_XYZ(3),0.,1.)
+        PMOM =  MULIB(PT_GMUH+20)
+        CALL HFILL(104,PMOM,0.,1.)
+        NUMHITS=MULIB(PT_GMUH+22)          ! NUMBER OF HITS PER GMUH BANK
+        CALL HFILL(105,NUMHITS,0.,1.)
+C
+      NUM_HITS = NUM_HITS + NUMHITS
+      TOT_ENERGY = TOT_ENERGY + MULIB(PT_GMUH+20)
+C
+C ****  THE ENERGIES BELOW ARE WHAT ARE LEFT OVER AFTER HITS
+C ****  ARE STORED AWAY.
+C
+C
+      PT_GMUH = MULIB(PT_GMUH)
+      IF(PT_GMUH.NE.0)GO TO 1000        ! MORE GMUH STUFF
+C
+  999 RETURN
+      END

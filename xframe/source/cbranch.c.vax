@@ -1,0 +1,185 @@
+/*
+        cbranch.c
+         Created           : 28-OCT-1992 by Drew Baden
+
+   	    starting with the bank at iq[0], find the number of banks in
+        the chain
+*/
+
+#include <stdio.h>                   /* I/O definitions                       */
+#include "D0$XFRAME$SOURCE:D0X_C.H"
+#include "d0$xframe$source:TREE.H"
+#include "d0$xframe$source:TREEP.H"
+
+WidgetClass  XstreeWidgetClass;
+Widget zebra_tree;
+int tree_width = 3000;
+int tree_height = 3000;
+/* w is an integer who's value is the address of the parent widget of
+   				the parent bank
+   store is pointer to event store
+   link is the offset from lq[0]
+   iq and lq are the zebra arrrays
+   zp is the offset from iq[0]
+*/
+
+retree(w,tag,reason)
+Widget w;
+int *tag;
+unsigned long *reason;
+{
+	int select = *tag;
+	int pos,size,incr,page;
+	Arg wargs[10];
+	Widget scrollbar;
+	char bank[5];
+	
+	strcpy(bank,"HEAD");
+	bank[4] = '\0';
+/*
+  increment tree width and height
+*/
+	tree_width += select*500;
+	tree_height += select*500;
+/*
+  save scrollbar positions
+*/
+	XtSetArg(wargs[0], XmNverticalScrollBar, &scrollbar);
+	XtGetValues(tree_scroll, wargs, 1);
+	XmScrollBarGetValues(scrollbar,&pos,&size,&incr,&page);
+/*
+  make new tree
+*/
+	XtUnmanageChild(zebra_tree);
+	select = -2;     /* new tree widget */
+#ifdef D0FLAVOR
+	fd0util_(&select,&select,bank);
+#else
+	fd0util(&select,&select,bank);
+#endif
+	XtManageChild(zebra_tree);
+/*
+  put back scrollbar position
+*/
+	XmScrollBarSetValues(scrollbar,pos,size,incr,page,True);
+
+}
+
+cbranch(parent,store,link,iq,lq,zp)
+Widget parent;
+int iq[], lq[], *zp, *store, link;
+{
+EQUIV bank, xbank;
+Widget ztree();
+int ok = 0, i, ns, idat, nl, offset = *zp, chain, state;
+int maxns, n, it, ich, isl[400];
+Widget daughter;
+char bname[5], bname2[5];
+Arg wargs[10];
+/*
+  	if parent is NULL, then nothing exists - create tree widget
+*/
+	if ( parent == NULL ) {
+		n = 0;
+		XtSetArg(wargs[n], XmNautoUnmanage, True); n++;
+		XtSetArg(wargs[n], XmNborderWidth, 0); n++;
+		XtSetArg(wargs[n], XmNwidth, tree_width); n++;
+		XtSetArg(wargs[n], XmNheight, tree_height); n++;
+		zebra_tree = XtCreateWidget("tree", XstreeWidgetClass,
+                                tree_scroll, wargs, n);
+		}
+/*
+    now go thru everything
+*/
+	bank.iname = iq[offset-4];
+	strcpy(bname,bank.name);
+	bname[4] = 0;
+#ifdef D0FLAVOR
+	n = nzbank_(store,zp);
+#else
+	n = nzbank(store,zp);
+#endif
+/*
+    loop over this bank tree...
+*/
+	ich = offset;
+	it = 0;
+#ifdef D0FLAVOR
+	fbankok_(&iq[offset-4],&iq[lq[offset+1]-4],&ok,&state);
+#else
+	fbankok(&iq[offset-4],&iq[lq[offset+1]-4],&ok,&state);
+#endif
+	if (state) {
+/*
+  full tree 
+*/
+	daughter = ztree(parent,bname,link,n,offset);
+/*
+    if this is a chain, make a list of the pointers
+*/
+	ich = offset;
+	maxns = 0;
+	for (i=0; i<400; i++) isl[i]=0;
+	do {
+		ns = iq[offset-2];      /* number of structural links */
+		maxns =  (ns > maxns) ? ns : maxns ;
+		if ( ns > 0 ) {         /* any structural links? */
+			for ( i= 1; i<=ns; i++ ) {  /* loop over them, add to isl array*/
+				idat = lq[offset-i];
+				if ( idat > 0 ) isl[i] = idat;
+			}
+		}
+		offset = lq[offset];
+		}
+	while ( offset );
+
+	offset = ich;
+/*
+  now go down the list of structural links
+*/
+
+	ns = maxns; 				/* number of structural links */
+	for (i=1; i <= ns; i++) {
+		idat = isl[i];
+		   if ( idat > 0 ) {
+		   	cbranch(daughter,store,-i,&iq[0],&lq[0],&idat);
+		   }
+		}
+	}
+/*
+  partial tree 
+*/
+	else {
+	do {
+		it++;
+/*
+        only make a node if this bank is either 
+  				HEAD
+  				1 below HEAD
+  				first bank in the chain or in the list (which 
+  					is added by double clicking on the
+  					push button for the bank
+*/
+/*		if ( ( it == 1 ) || ( ok )  )*/
+		if ( ok )
+		{
+			daughter = ztree(parent,bname,link,n,offset);
+			ns = iq[offset-2];      /* number of structural links */
+			if ( ns > 0 ) 
+			{         							/* any structural links? */
+				for ( i= 1; i<=ns; i++ ) 
+				{  								/* loop over them */
+					idat = lq[offset-i];
+					if ( idat > 0 && ok )
+						cbranch(daughter,store,-i,&iq[0],&lq[0],&idat);
+				}
+			}
+		}
+		offset = lq[offset];
+		}
+	while ( offset );
+	}
+
+	offset = ich;
+
+}

@@ -1,0 +1,27 @@
+$!========================================================================
+$!
+$! Name      : MERGE1_BLND16
+$!
+$! Purpose   : first level merge of sorted files.
+$!
+$! Arguments : 
+$!
+$! Created  14-SEP-1990   Rajendran Raja
+$!
+$!========================================================================
+$   ON ERROR     THEN $ GOTO EXIT
+$   ON CONTROL_Y THEN $ GOTO EXIT
+$DEFINE BETA D0$CMS:[SHOWERLIBRARY]
+$SET DEF D0$CMS:[SHOWERLIBRARY]
+$@BETA:SETUP_SHOWERLIBRARY BLND16
+$SET DEF UF13:
+$@BETA:MERGE SORT_BLND16_UNSORT.DAT0 1 9
+$@BETA:MERGE SORT_BLND16_UNSORT.DAT 10 19
+$@BETA:MERGE SORT_BLND16_UNSORT.DAT 20 29
+$@BETA:MERGE SORT_BLND16_UNSORT.DAT 30 39
+$@BETA:MERGE SORT_BLND16_UNSORT.DAT 40 49
+$@BETA:MERGE SORT_BLND16_UNSORT.DAT 50 59
+$@BETA:MERGE SORT_BLND16_UNSORT.DAT 60 69
+$@BETA:MERGE SORT_BLND16_UNSORT.DAT 70 75
+$EXIT:
+$   EXIT

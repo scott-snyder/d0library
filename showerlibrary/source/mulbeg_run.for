@@ -1,0 +1,64 @@
+      LOGICAL FUNCTION MULBEG_RUN()
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : CALLED AT BEGINNING OF RUN FOR
+C-   OPENING SHOWERLIBRARY EVERY NTH FILE AND STARTING A NEW FILE.
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  12-SEP-1990   Rajendran Raja
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      LOGICAL FIRST
+      DATA FIRST/.TRUE./
+      CHARACTER*80 FILNAM,FILN
+      CHARACTER*2 NXTFIL
+      INTEGER NCHAR,IER
+      LOGICAL KEYED,OPEN_FILE
+      INTEGER RUNS_FILE,FILSEQ,SRECL
+      INTEGER IOSTAT_OPEN
+      INTEGER LEN3,IRUNS
+      INCLUDE 'D0$INC:MULCON.INC'
+      LOGICAL NEW,READ_ONLY,DO_MAKE_LIB
+C----------------------------------------------------------------------
+      IF ( FIRST ) THEN
+        FIRST = .FALSE.
+        CALL EZPICK('MUONLIBRARY_RCP')              ! select SHOWERLIB bank
+        CALL EZ_GET_CHARS('MUON_LIBRARY_NAME',NCHAR,FILN,IER)
+        CALL EZGET('KEYED_ACCESS',KEYED,IER)
+        CALL EZGET('RUNS_FILE',RUNS_FILE,IER)
+        CALL EZGET('FILE_SEQ_NO',FILSEQ,IER)
+        CALL EZGET('MUONLIBRARY_RECL',SRECL,IER)
+        CALL EZGET('DO_MAKE_LIB',DO_MAKE_LIB,IER)
+        CALL EZRSET
+        IRUNS = 0
+        OPEN_FILE = .TRUE.
+      ENDIF
+      IF((.NOT.KEYED).OR.(.NOT.DO_MAKE_LIB))GO TO 999
+      IF(IRUNS.EQ. RUNS_FILE)THEN
+        IRUNS = 0
+        OPEN_FILE = .TRUE.
+        CLOSE(UNIT = ISUNIT)
+      ENDIF
+      IRUNS = IRUNS + 1
+      IF(OPEN_FILE)THEN
+        WRITE(NXTFIL,1)FILSEQ
+    1   FORMAT(I2.2)
+        CALL ADDSTR(FILN,NXTFIL,FILNAM,LEN3)
+C
+C ****  IF KEYED ACCESS MODE AND ISUNIT .NE. 0, CLOSE FILE EVERY NTH
+C ****  RUN AND REOPEN A NEW FILE. THIS IS FOR EASY SORTING AND MERGING LATER.
+C
+        NEW = .TRUE.
+        READ_ONLY = .FALSE.
+        CALL MUONLIB_OPEN(ISUNIT,FILNAM,SRECL,
+     &    NEW,KEYED,READ_ONLY,IER)
+        OPEN_FILE = .FALSE.
+        FILSEQ = FILSEQ + 1             ! BUMP FILE SEQ NUMBER
+      ENDIF
+C
+  999 RETURN
+      END
