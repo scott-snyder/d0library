@@ -1,0 +1,90 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name:    lnk
+#
+# Purpuse: Link object files and libraries to produce an executable.
+#
+# Usage: 
+#
+#   lnk [-cd] [-o exe] file1 file2 ...
+#
+# Options:
+#
+# -c  - Use Computing Division cernlib (setup cern).  Default is D0cernlib.
+# -d  - Use debug libraries.  Default is non-debug.
+# -o  - Specify name of executable file (default is same as first file 
+#       argument).
+#
+# Arguments:
+#
+# file1, file2 - Object files (.o) or object archives (.a).
+#
+# Created 12-Feb-1991   Herbert B. Greenlee
+#
+# Notes:
+#
+# 1.  Standard link options:
+#
+#     a) Undefined globals are allowed (-U ld option).
+#
+# 2.  Standard link libraries:
+#
+#     a) (deb_)general.a
+#
+#     c) (deb_)unix.a
+#
+#     b) cernlib (packlib, mathlib, kernlib).  Non-debug.
+#
+#     d) System libraries (curses, fortran, c).
+#     
+#------------------------------------------------------------------------------
+#
+# Scan arguments for source files, locally processed options and debug options.
+# Other arguments are passed directly to f77 and cc. 
+#
+set prefix = ''
+set cernlib = ( `uff $d0cernlib/packlib.a` \
+		`uff $d0cernlib/mathlib.a` \
+		`uff $d0cernlib/kernlib.a` )
+set exe = ''
+set argv = (`getopt cdo: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -c:
+    set cernlib = ( `uff $CRNLIB/libpacklib.a` \
+		    `uff $CRNLIB/libmathlib.a` \
+		    `uff $CRNLIB/libkernlib.a` )
+    shift
+    breaksw
+  case -d:
+    set prefix = 'deb_'
+    shift
+    breaksw
+  case -o:
+    set exe = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop --
+if( $#argv == 0 )then
+  echo "Usage: lnk [-cd] [-o exe] file1 file2 ..."
+  exit 1
+endif
+if( "$exe" == '' )set exe = $argv[1]:r
+#
+# Define standard options and libraries
+#
+set stdopts = $ldflags
+set stdlibs = ( `uff $d0general/${prefix}general.a` \
+	    `uff $d0unix/${prefix}unix.a` \
+	    $cernlib \
+            $syslibs )
+#
+# Define link command
+#
+set lnk = "$f77 -o $exe $stdopts $argv $stdlibs"
+echo $lnk
+eval $lnk

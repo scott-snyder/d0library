@@ -1,0 +1,71 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : d0pwd
+#
+# Purpose   : Converts machine dependent hard (linkless) path to machine
+#             independent soft path.
+#
+# Usage:
+#
+#    d0pwd
+#
+# Created 19-Oct-1994   Herbert B. Greenlee
+#
+# This script does not use any options or arguments.  If any are specified,
+# they are ignored.
+#
+# The following hard-coded pathname conversions are made:
+#
+# /tmp_mnt/<path> -> /<path>
+# /exports/usr/people -> /`hostname -s`/usr0
+# /exposts/data<n> -> /`hostname -s`/data<n>
+# /exports/fatmen/d0library -> /d0library
+# /exports/fatmen/production -> /production
+# /exports/fatmen/usr/products -> /usr/products
+# /exports/fatmen/usr/local -> /usr/local
+#
+# In all cases, d0pwd verifies that returned soft path is equivalent with
+# the hard path returned by pwd.  If not, d0pwd returns works the same as pwd.
+#
+#------------------------------------------------------------------------------
+#
+# Get hard path.
+#
+set hardpath = `pwd`
+#
+# Do substitutions to get machine independent soft path.
+#
+if( $hardpath =~ /tmp_mnt/* )then
+  set softpath = /`echo $hardpath | cut -f3- -d/`
+else if( $hardpath =~ /exports/usr/people* )then
+  set softpath = /`hostname -s`/usr0/`echo $hardpath | cut -f5- -d/`
+else if( $hardpath =~ /exports/data* )then
+  set softpath = /`hostname -s`/`echo $hardpath | cut -f3- -d/`
+else if( $hardpath =~ /exports/fatmen/d0library* )then
+  set softpath = /d0library/`echo $hardpath | cut -f5- -d/`
+else if( $hardpath =~ /exports/fatmen/production* )then
+  set softpath = /production/`echo $hardpath | cut -f5- -d/`
+else if( $hardpath =~ /exports/fatmen/usr/products* )then
+  set softpath = /usr/products/`echo $hardpath | cut -f6- -d/`
+else if( $hardpath =~ /exports/fatmen/usr/local* )then
+  set softpath = /usr/local/`echo $hardpath | cut -f6- -d/`
+else
+  set softpath = $hardpath
+endif
+#
+# Remove a terminating / from $softpath, if there is one.
+#
+if( $softpath =~ */ )then
+  @ len = `echo $softpath | wc -c` - 2
+  set softpath = `echo $softpath | cut -c1-$len`
+endif
+#
+# Verify that soft path is equivalent to hard path.
+#
+cd $softpath
+if( `pwd` == $hardpath )then
+  echo $softpath
+else
+  echo $hardpath
+endif

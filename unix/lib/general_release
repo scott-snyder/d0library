@@ -1,0 +1,26 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+unsetenv PWD
+###############################################################################
+#
+# Name:  general_release
+#
+# Purpose: UNIX release script for the general library.  Inserts version
+#          routine vgeneral.for into (deb_)general.a, which may not happen
+#          automatically.  If the general libraries don't exist, they are
+#          created.
+#
+# Created 8-Jan-1994  Herbert Greenlee
+#
+##############################################################################
+echo "Inserting vgeneral.for into (deb_)general.a"
+set version_for = `uff vgeneral.for`
+if( "$version_for" == '' )exit
+fort -g2 $version_for
+set version_obj = `archive_name $version_for`
+set com = "ar $arflags general.a $version_obj"
+echo $com
+eval $com
+set com = "ar $arflags deb_general.a $version_obj"
+echo $com
+eval $com

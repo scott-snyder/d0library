@@ -1,0 +1,376 @@
+.!  Created by Herbert Greenlee on 27-JUN-1991
+.!
+.PAGE SIZE  56,80
+.LEFT MARGIN  10
+.RIGHT MARGIN  70
+.LAYOUT  3,2
+.no autojustify
+.no justify
+.RIGHT ;Herbert Greenlee
+.RIGHT ;13-JAN-1992
+.BLANK 3  !--- underlined title on next line
+.CENTER ; ^&UNIX Conversion\&
+.BLANK 2
+.nfl accept
+.nfl underline
+.!------------ main text start here.
+This document is an attempt to communicate some of the things I have learned
+about UNIX and UNIX conversion.  This document also contains some proposals for
+changes to D0 offline coding standards.  It will be released in
+D0$UNIX$DOCS as UNIX_CONVERSION.MEM.
+
+.hl1 The UNIX Fortrans 
+
+This section contains some general comparisons between VAX fortran and the UNIX
+fortrans.  I have included some proposals for changes to D0 offline standards
+in order to take advantage of VAX fortran extensions that have been picked up
+by the UNIX system vendors.
+.p
+All of the UNIX vendors have included VAX fortran extensions in thier fortrans.
+Silicon Graphics claims (but does not quite deliver) 
+full support for VAX fortran extenesions, to the extent
+this is compatible with the differences in the operating systems and machine
+architectures. 
+The Fermilab Computing Division has defined a set of so-called mandatory and
+semi-mandatory VAX fortran extensions that UNIX platforms should support
+before they can be supported by the Computing Division (see CD document
+TN0057).  The following is a partial list of these that are
+most relevant to D0, in my opinion.
+.list
+.le
+Thirty one character symbolic names, including dollar sign and underscore
+characters.
+.le
+END DO and DO WHILE statements.
+.le
+IMPLICIT NONE statement.
+.le
+INCLUDE statement.
+.le
+INTEGER*2 and BYTE data types.
+.le
+Bit manipulation functions:  IAND, IOR, IEOR, NOT, ISHFT, IBITS, IBSET, BTEST,
+IBCLR and ISHFTC.
+.le
+The %VAL and %REF built-in functions.
+.end list
+All of the above VAX fortran extensions are supported by SGI
+IRIX, IBM AIX, DEC ULTRIX and Sun SunOS.  Furthermore, all of the above
+extensions (except dollar sign identifiers and %VAL and %REF), or an
+equivalent, are included in 
+the FORTRAN-90 language standard. 
+Several of the above items are already allowed by D0 offline standards.  
+I propose that all
+of the above extensions should be allowed.
+It should be noted that many of the above extensions are not
+supported by Amdahl VM/XA fortran, so relaxing D0 offline standards in this
+fashion 
+would make future migration to VM/XA more difficult (at least until FORTRAN-90
+comes along).
+
+.hl1 UNIX Conversion Issues
+
+This section addresses some of the specific problems of transporting VAX
+fortran to UNIX.
+
+.hl2 Filenames
+
+Filenames are necessarily machine dependent.  Like VMS,
+UNIX supports the concept of a default directory (called the working
+directory in UNIX).  VMS filenames that include only a name and type
+field 
+are valid in UNIX and refer to a file in the working directory.  UNIX does not
+impose any significant limitations on the length or content of filenames.
+One significant difference between VMS and UNIX filenames is the fact that case
+is significant in UNIX.  It is almost always more convenient
+in UNIX to specify filenames in lower case.  All files exported from VMS to
+UNIX using ftp or rcp are 
+converted to lower case.
+.p
+Many VMS programs use logical names to refer to files.  
+UNIX supports an object called a symbolic link
+that can be used to achieve the same functionality as file logical names.  
+Like logical names, symbolic links
+are recognized by the kernel and can be used anywhere an ordinary filename can
+be used.  File logical names do not require translation (except possibly to
+lower case).
+.p
+Standard conversions have been defined for filenames containing D0library
+directory logicals (see 
+D0$UNIX$DOCS:UNIX_ENVIRONMENT.MEM).  The run-time library function
+LIB$FIND_FILE has been 
+emulated so as to be able to translate D0library filenames into their
+equivalent on the local UNIX system (see D0$UNIX$DOCS:UNIX_LIBRARY.MEM).
+
+.hl2 UNIX INCLUDE
+
+As noted above, all UNIX fortrans support the INCLUDE statement.  INCLUDE
+statements are still machine dependent to the extent that filenames of the
+INCLUDEd files are machine dependent.  D0 INCLUDE
+statements typically point to a file containing a D0library 
+logical such as D0$INC.  INCLUDE file translation can only be done locally and 
+is handled on UNIX systems by a local preprocessor called vmstounix (see
+D0$UNIX$DOCS:UNIX_UTILITIES.MEM).  INCLUDEs that point
+to 
+VMS system TLBs (e.g. INCLUDE '($SSDEF)') are not transportable and should be
+avoided.  
+
+.hl2 Use of OPEN
+
+To first order, every OPEN statement needs a machine block.  It is
+helpful to minimize the number of OPEN statements by calling a separate
+subroutine, such as D0OPEN (as required by D0 offline standards).  The main
+problems are listed below.
+
+.list
+.le 
+Filenames.  
+.blank
+LIB$FIND_FILE can be used to translate most filenames of
+existing files.  In addition to converting D0library logicals, 
+LIB$FIND_FILE unconditionally converts filenames to
+lower case.  The CERNLIB routine CUTOL
+can also be used to convert to lower case.  Logical names do not 
+cause any difficulties and do not require conversion, except possibly to lower
+case.  Filenames containing
+subdirectories or non-D0library directory logicals require hand conversion and
+should therefore be avoided.
+.le
+Nonstandard keywords (especially READONLY).
+.blank
+The READONLY keyword should be omitted from UNIX code, as not all of the UNIX
+fortrans support it.  On the other hand, VMS requires the READONLY keyword to
+OPEN write-protected files.  A machine block is the only solution.
+Other nonstandard keywords, such as CARRIAGECONTROL
+should also be omitted from the UNIX code.
+.le 
+The STATUS keyword.
+.blank
+The STATUS='NEW' option operates differently in UNIX than in VMS.
+In VMS, STATUS='NEW' creates a new version of a file.  In UNIX,
+which does not support the concept of file versions, 
+STATUS='NEW' causes a program to crash if the specified
+file already exists.  STATUS='NEW' is not 100% fatal, but it
+causes trouble in practice.  My strong preference is to use STATUS='UNKNOWN' on
+UNIX systems when opening files for writing.
+.end list
+The above recommendations constitute an almost mechanical procedure for
+converting OPENs.  
+
+.hl2 Machine architecture and EQUIVALENCE.
+
+A transportability problem exists
+due to the fact that VAX and RISC processors have the opposite correlation of
+significance and subaddress of short types in larger types.  INTEGER data are 
+usually transported so as to preserve significance rather than subaddress.
+In particular, this is true of ZEBRA integer and bitstring data.  
+.p
+The only machine independent way to access bytes and words in 
+longwords is via significance.  The bit manipulation routines described in
+section 1 (item 6) number bits according to significance and are
+therefore are machine independent.  Code that packs or 
+unpacks bytes or words in longwords according to subaddress (e.g. using 
+EQUIVALENCE) is efficient but machine dependent.  
+I propose the use of a machine dependent parameter block similar to the
+following (which is 
+released in D0$PARAMS:BYTE_ORDER.PARAMS) to perform machine independent packing
+and unpacking using EQUIVALENCE.  It will be necessary arrange that this
+parameter block gets converted to the local UNIX flavor at release time.
+.blank
+.no fill
+C----------------------------------------------------------
+C-
+C-   Created  19-DEC-1991   Herbert Greenlee
+C-
+C-   The purpose of this parameter block is to pack and 
+C-   unpack bytes and words in integer longwords on VAX 
+C-   and RISC processors.  The parameter BYTE1 always 
+C-   points to the least significant byte of a long 
+C-   integer.  WORD1 points to the less significant word 
+C-   of a long integer.
+C-
+C----------------------------------------------------------
+      INTEGER BYTE1, BYTE2, BYTE3, BYTE4
+      INTEGER WORD1, WORD2
+C&IF VAXVMS, VAXELN
+      PARAMETER (BYTE1=1, BYTE2=2, BYTE3=3, BYTE4=4)
+      PARAMETER (WORD1=1, WORD2=2)
+C&ELSE
+C&      PARAMETER (BYTE1=4, BYTE2=3, BYTE3=2, BYTE4=1)
+C&      PARAMETER (WORD1=2, WORD2=1)
+C&ENDIF
+C-----------------------------------------------------------
+.blank
+.fill
+The following code fragment is an example of the use of this parameter block
+to perform machine independent byte packing.
+.blank
+.no fill
+      INCLUDE 'D0$PARAMS:BYTE_ORDER.PARAMS'
+      INTEGER IETA, IPHI, ILYR
+      INTEGER PAKADR
+      BYTE BYTES(4)
+      EQUIVALENCE (PAKADR,BYTES)
+                .
+                .
+                .
+      BYTES(BYTE4)=IETA
+      BYTES(BYTE3)=IPHI
+      BYTES(BYTE2)=ILYR
+      BYTES(BYTE1)  = 0
+.fill
+
+.hl2 Concatenation
+
+Some of the UNIX fortrans (including SGI) don't allow passed length
+(CHARACTER*(*)) character
+variables to be used in concatenation expressions (// operator) in actual
+arguments.  To my knowledge, such constructions should be legal in FORTRAN-77
+(that is, this is a compiler bug).
+The problem appears to be that there is no compile-time upper limit
+on the size of the temporary variable needed to store the result of the
+concatenation expression.  The solution is to evaluate the concatenation
+expression using an
+explicitly declared temporary character variable.  For example, use
+.blank
+.no fill
+      CTEMP = ' Read in '//RCP_FILE
+      CALL INTMSG(CTEMP)
+.fill
+.blank
+instead of
+.blank
+.no fill
+      CALL INTMSG(' Read in '//RCP_FILE)
+.fill
+.blank
+This problem almost always occurs in calls to ERRMSG, INTMSG, OUTMSG or similar
+routines.
+
+.hl2 VMS System and run-time library routines.
+
+These are transportable in some cases.  Many VMS run-time and system
+routines have been emulated, and it is always possible to emulate additional
+ones (see D0$UNIX$DOCS:UNIX_LIBRARY.MEM).  
+Here are some guidelines for
+calling run-time and system routines in a way that can be emulated.
+.list
+.le
+Except as noted below, the number and types of the actual arguments should
+agree with the argument 
+list specified in VMS documentation.  This is nothing more than the usual
+FORTRAN-77 requirement, but it is not required by VAX fortran.  %VAL
+arguments are OK.  Optional arguments may be null.  Trailing null arguments
+should not be omitted.
+.le
+Use consistent declarations.  It is best to declare the routine and its result
+variable as LOGICAL if you want to test the return value (INTEGER is also
+acceptable).  Avoid explicit or  
+implicit type conversions between INTEGER and LOGICAL, as these are machine
+dependent. 
+.le
+The VMS condition handling facility depends on the VAX specific representation
+of LOGICAL variables and can not be emulated.
+If possible, test only for success or failure by testing the return value as a
+LOGICAL value (.TRUE. = success).  If the return value has been declared as an
+integer, then 
+test success or failure by testing whether the return value is odd or even.
+Avoid testing for specific return conditions, other than
+success/failure.  
+.le
+Avoid using system TLB modules (e.g. INCLUDE '($SSDEF)').  If necessary,
+the parameters defined in the system TLBs can always be declared by hand.
+.le
+It is OK to call LIB$SIGNAL and LIB$STOP (but don't expect very informative
+error messages).
+.end list
+
+.hl2 Common block names.
+
+Common block names should be distinct from PROGRAM, FUNCTION and SUBROUTINE
+names (as required by D0 coding standards).
+
+.hl2 Use of EXTERNAL.
+
+There are several instances in D0 software where non-standard intrinsic or
+library functions have been declared EXTERNAL in the ELSE part of a machine
+block.  These machine blocks serve no purpose and should be removed.
+
+.hl2 Use of machine blocks.
+
+There appears to be an insidious tendency in D0 to enclose machine dependent
+code in a machine block without specifying any alternate flavor beside VAXVMS.
+This does nothing to facilitate UNIX conversion, but it makes machine dependent
+code harder to find.
+The very best way to make machine dependent code conspicuous is to to arrange
+that it generate 
+compiler errors.  The next best way is to generate link errors (e.g. missing
+run-time library routines).  Putting machine dependent code in an ELSE-less 
+machine block
+does the exact opposite of this.  If necessary, compiler errors can be
+generated by hand.  For example:
+.no fill
+.blank
+C&IF VAXVMS
+      CALL LIB$SPAWN(COMMAND)
+C&ELSE
+C&ERROR
+C&ENDIF
+.blank
+.fill
+
+.hl1 The mechanics of code migration
+
+In this section, I will briefly describe source code migration procedures, as
+currently practiced.  The first step is to copy source files (usually using
+ftp) from their
+D0library directory on some VMS node to the corresponding directory on a UNIX
+node.  The D0library directory structure in UNIX is parallel to that in
+VMS.  
+It is perhaps not widely known that VAX fortran files are not processed by
+D0FLAVOR 
+before or after being transported.  Instead, there are two UNIX specific 
+VAX fortran
+preprocessors called vmstounix and tasteofd0 (see 
+D0$UNIX:UNIX_UTILITIES.MEM).
+.p
+The primary 
+source file is always VAX fortran (extension .for), even under UNIX.  
+VAX fortran source code is
+preprocessed each time it is compiled.  The UNIX fortran file (extension .f)
+is retained after compilation so that is available to the debugger.  
+There are two 
+utilities (mmstomake and userlib) for building preprocessor dependencies into
+makefiles (see D0$UNIX:UNIX_UTILITIES.MEM).  
+This philosophy of postponing preprocessing as long as possible is the right
+one, in my opinion.  This differs from my understanding of the D0FLAVOR
+philosophy, which was that VAX
+fortran files would be processed through D0FLAVOR once and for all before being
+exported.  
+
+.hl2 Verification tools
+
+The most important function of D0FLAVOR is verification (D0FLAVOR/CHECK).
+Currently, D0FLAVOR, and the coding standards it embodies, need to be
+revised in the light of new developments and experience.  Currently, D0FLAVOR
+makes mistakes in both directions.  That is, it 
+complains about things that are not a problem (such as bit intrinsic
+functions), and it 
+misses things that are a problem (such as COMMON names that are the same as
+routine names).  Also, it changes code in ways that are inappropriate
+(such as commenting IMPLICIT NONE).
+.p
+While it is true that D0FLAVOR can and should be made more reliable, 
+it also needs to be recognized that D0FLAVOR by itself can never be a
+sufficient 
+test of transportability.  
+D0FLAVOR can be made to bless the most egregiously
+machine dependent code by the simple expedient of enclosing the offending code
+in a machine block.  Sometimes, entire
+routines have been enclosed in one big machine block without any alternate
+flavor.  D0 currently has no mechanism or incentive to scrutinize machine
+blocks.  As a minimal check, I encourage
+developers and czars to test-compile their code on different machines.
+Eventually, this could be required by the D0library release procedure.  This
+can be done from a VAX using the CHECK_UNIX command procedure 
+(see D0$UNIX:VMS_UTILITIES.MEM).

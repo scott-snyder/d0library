@@ -1,0 +1,140 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : mail_error_log
+#
+# Purpuse   : Mail error log files to local librarian and/or czars.
+#
+# Usage     :
+#
+# % mail_error_log [-lctu] section1 section2 ...
+#
+# Options:
+#
+# -l   - Mail to local librarian.
+# -c   - Mail to czar.
+# -t   - Test mode (do not actually send mail).
+# -u   - Unconditional mail (do not check sent list, error.mail).
+#
+# Arguments:
+#
+# sectionn - Library section(s)
+#
+# Notes:
+#
+# 1.  At least one of -l and -c should be specified.  If neither is specified,
+#     no mail will be sent.
+#
+# 2.  A record of who has been sent mail is kept in the top area of the
+#     library in a file called error.mail.  Mail is not sent twice to the
+#     same recipient unless the -u option is specified.
+#
+# Created 30-Jul-1994   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set librarian = 0
+set czar = 0
+set test_mode = 0
+set uncond = 0
+set argv = (`getopt lctu $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -l:
+    set librarian = 1
+    shift
+    breaksw
+  case -c:
+    set czar = 1
+    shift
+    breaksw
+  case -t:
+    set test_mode = 1
+    shift
+    breaksw
+  case -u:
+    set uncond = 1
+    shift
+    breaksw
+  endsw
+end
+shift    # drop --
+if( $#argv == 0 )then
+  set sections = ( `lib_sect` )
+else
+  set sections = ( $argv )
+endif
+set node = `hostname`
+#
+# Get sections to mail
+#
+foreach section ( $sections )
+  set mailing_list = ''
+#
+# Get logfile, if any
+#
+  set logfile = `uff '$d0'$section/error.log`
+  if( "$logfile" == '' )continue
+  set dir = $logfile:h
+  set mailfile = $dir/error.mail
+  set library = $dir:t
+  set version = `ufa "$dir/000_${library}_v*.*" | line | sed "s@.*000_${library}_\(v.*\)@\1@"`
+  set len = `cat $logfile | wc -c`
+#
+# Create mail message header.
+#
+  rm -f mail_header >& /dev/null
+  if( $len == 0 )then
+    cat << end_header > mail_header
+Version $version of $library was released without errors on ${node}.
+end_header
+  else
+    cat << end_header > mail_header
+Errors occured during the release of version $version of $library on ${node}.
+The contents of the error.log file follow.
+=============================================================================
+end_header
+  endif
+#
+# Create mailing list.
+#
+  if( $librarian )then
+    set mailing_list = ( $mailing_list $USER )
+  endif
+  if( $czar )then
+    set mailing_list = ( $mailing_list `d0czar $library | cut -f2-` )
+  endif
+#
+# Remove any previously sent addresses from the mailing list.  Then append
+# mailing list to mailfile
+#
+  if( -f $mailfile && ! $uncond )then
+    set mailing_list = \
+      `echo $mailing_list | tr ' ' '\012' | sort | comm -23 - $mailfile`
+  endif
+#
+# Append mailing list to $mailfile (error.mail).
+#
+  if( -f $mailfile && -w $mailfile )then
+    echo $mailing_list | tr ' ' '\012' | cat - $mailfile | sort -u >! \
+      ${mailfile}.new
+    mv -f ${mailfile}.new $mailfile
+  endif
+  if( ! -f $mailfile && -w $mailfile:h )then
+    echo $mailing_list | tr ' ' '\012' | sort -u >! $mailfile
+  endif
+#
+# Send mail
+#
+  if( $#mailing_list > 0 )then
+    set subject = "$node release of $library version $version"
+    set cmd = "Mail -s '$subject' $mailing_list"
+    echo "$cmd"
+    if( ! $test_mode )then
+      cat mail_header $logfile | Mail -s "$subject" $mailing_list > /dev/null
+    endif
+  endif
+end
+if( -f mail_header )rm -f mail_header

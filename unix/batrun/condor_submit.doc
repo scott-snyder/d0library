@@ -1,0 +1,594 @@
+
+
+
+   Version 4.1b                                              CONDOR_SUBMIT(1)
+
+
+
+
+
+   NAME
+     condor_submit - queue jobs for execution on remote machines
+
+   SYNOPSIS
+     condor_submit description_file
+
+   DESCRIPTION
+     Condor_submit is the program for submitting jobs to the Condor facility.
+     Condor_submit reads a description file which contains commands that
+     direct the queueing of jobs.  A description file may contain specifica-
+     tions for the queueing of many condor jobs.  All jobs queued by a single
+     invocation of condor_submit must share the same executable, and are
+     referred to as a "job cluster".  It is advantageous to submit multiple
+     jobs as a single cluster because only one copy of the checkpoint file is
+     needed to represent all jobs in a cluster until they begin execution.
+     Detailed instructions for creating description files follow.
+
+   LINKING INSTRUCTIONS
+
+     To understand how a condor application program should be linked, first
+     consider how a normal UNIX program is linked.  UNIX provides a startup
+     routine and a library, (crt0.o and libc.a) which are normally linked
+     with all user programs.  The startup routine does some work which must
+     be completed before main() is called, and the library provides, (among
+     other things) subroutines which access the UNIX system calls, (system
+     call stubs).
+
+     Condor needs to do its own work before main() is called, and to provide
+     its own system call stubs which do remote system calls to the machine
+     from which the job is submitted.  Therefore condor provides its own ver-
+     sion of crt0.o and libc.a, (condor_rt0.o and libcondor.a).  These may be
+     found in the directory "/usr/uw/condor/lib".
+
+     Since the UNIX compilers automatically link in crt0.o and libc.a, you
+     must link condor programs by calling ld(1) directly.  In most cases the
+     arguments to ld should be exactly those which the compiler would use in
+     linking your program for normal execution, but you must substitute
+     "condor_rt0.o" for "crt0.o" and "libcondor.a" for "libc.a".  On those
+     systems where programs are linked with shared libraries by default, you
+     must explicitly tell the linker to use static linking, since Condor does
+     not support the use of shared libraries.  If you do not know what argu-
+     ments your compiler would pass to ld to link your program, you may need
+     to actually invoke the compiler to find out.  On some systems you can
+     pass the -v flag to the compiler which will then print out the actual ld
+     command used.  If your ld does not support the -v flag, you can suspend
+     the link and use ps to find out the arguments to ld.  Examples and hints
+     on how to link condor programs for various platforms follow:
+
+     C Programs: ULTRIX4.*, BSD4.3, and DYNIX
+          ld -o a.out /usr/uw/condor/lib/condor_rt0.o a.o b.o c.o
+          /usr/uw/condor/lib/libcondor.a
+
+
+                                                                            1
+
+
+
+
+
+
+   CONDOR_SUBMIT(1)                                              Version 4.1b
+
+
+          On these platforms a straight forward substitution of "condor_rt0"
+          and "libcondor.a" for "crt0" and "libc.a" is appropriate.
+
+     C Programs: SunOs4.*
+          ld -o a.out -dc -e start -Bstatic /usr/uw/condor/lib/condor_rt0.o
+          a.o b.o c.o /usr/uw/condor/lib/libcondor.a
+
+          Here the standard substitutions are made, but it is also necessary
+          to tell the linker to avoid the use of shared libraries since con-
+          dor does not support shared libraries.
+
+     C Programs: AIX3.1
+          A specially configured version of the xlc compiler called condorcc
+          is provided.  Link C programs by calling conodorcc in place of cc.
+
+     FORTRAN Programs: ULTRIX4.*
+          ld -o a.out -G 8 -g0 -nocount /usr/uw/condor/lib/condor_rt0.o
+          -count a.o b.o c.o  -nocount /usr/uw/condor/lib/libcondor.a -u main
+          -lF77 -lI77 -lU77 -lm /usr/uw/condor/lib/libcondor.a
+
+          On these platforms FORTRAN programs use several libraries by
+          default.  You must be sure to include them in your link instruc-
+          tions as well.
+
+     FORTRAN Programs: BSD4.3
+          ld -o a.out -X main_flags /usr/uw/condor/lib/condor_rt0.o a.o b.o
+          c.o -lU77 -lF77 -lI77 -lm /usr/uw/condor/lib/libcondor.a
+
+     FORTRAN Programs: DYNIX
+          ld -o a.out -X /usr/uw/condor/lib/condor_rt0.o a.o b.o c.o -lf -u
+          __flsbuf /usr/uw/condor/lib/libcondor.a
+
+     FORTRAN Programs: SunOs4.*
+          ld -dc -dp -e start -Bstatic -u _MAIN_ -u _main -X -o a.out
+          /usr/uw/condor/lib/condor_rt0.o /usr/lib/Fcrt1.o -L/usr/lib/fsoft
+          a.o b.o c.o -lF77 -lI77 -lU77 -lm /usr/uw/condor/lib/libcondor.a
+
+     FORTRAN Programs: AIX3.1
+          A specially configured version of the xlf compiler called condorxlf
+          is provided.  Link FORTRAN programs by calling conodorxlf in place
+          of xlf.
+
+     DeNet Programs:
+          The DeNet simulation package has been locally modified to properly
+          link condor programs when the "-condor" flag is invoked.
+
+     Other Languages
+          If you wish to link programs written in languages other than C or
+          FORTRAN for execution with condor, Three points should be kept in
+          mind.  First be sure to make the standard substitutions for
+          "crt0.o" and "libc.a".  Second, be sure to avoid the use of any
+          shared libraries.  Third, include whatever other libraries and spe-
+          cial flags which the compiler normally uses for linking.
+
+
+
+   2
+
+
+
+
+
+
+   Version 4.1b                                              CONDOR_SUBMIT(1)
+
+
+   JOB DESCRIPTION FILE
+
+     Each condor job description file describes one cluster of jobs to be
+     placed in the condor execution pool.  All jobs in a cluster must share
+     the same executable, but they may have different input and output files,
+     and different program arguments.  The description file must contain one
+     or more of the following commands:
+
+     executable  = <name>
+               The name of the executable file for this job cluster.  Only
+               one executable command may be present in a description file.
+
+     requirements = <boolean_expression>
+               This is a list of requirements which a remote machine must
+               meet to execute any jobs in the cluster.  Currently three
+               kinds of requirements are supported; "Memory", "Arch", and
+               "OpSys".
+
+               "Memory", is the amount of physical memory you believe is
+               required on the remote workstation to keep it from thrashing.
+               The "Memory" requirement is expressed in megabytes.
+
+               Taken together the "Arch" and "OpSys" requirements describe
+               the particular kind of UNIX platform for which your executable
+               has been compiled.  The platforms supported by the current
+               version of condor are:
+
+
+                       Arch      Opsys     Description
+
+                       R6000     AIX31     IBM R6000 (AIX3.1)
+                       MIPS      ULTRIX40  DECstation (Ultrix 4.0 or 4.2)
+                       MC68020   BSD43     HP Bobcat (Berkeley 4.3)
+                       VAX       ULTRIX    Dec Vax (ULTRIX 3.2)
+                       SPARC     SUNOS41   SUN 4  (SunOS 4.1 or 4.1.1)
+                       MC68020   SUNOS41   Sun 3 (SunOS 4.1 or 4.1.1)
+                       IBM032    BSD43     IBM RT (Berkeley 4.3)
+                       SGI       IRIX332   4D  Workstation  (IRIX   3.3.1   or
+                       3.3.2)
+
+
+               If "Arch" and "OpSys" requirements are not specified in the
+               description file, defaults which match the submitting machine
+               are supplied.  The job must have been compiled and linked on a
+               machine which matches the "Arch" and "OpSys" requirements.
+               The requirements command is a boolean expression using C like
+               operators, e.g.  Memory >= 8 && OpSys == "SUNOS40" && Arch ==
+               "SPARC".  Only one requirements command may be present in a
+               description file.
+
+     preferences = <boolean_expression>
+               This is a list of characteristics which would be preferable in
+               a remote machine executing jobs in this cluster.  The condor
+               software will attempt to supply remote machines which meet the
+
+
+                                                                            3
+
+
+
+
+
+
+   CONDOR_SUBMIT(1)                                              Version 4.1b
+
+
+               preferences, but if no such machines are available it will
+               then supply machines which meet only the requirements.  Only
+               one preferences command may be present in a description file.
+
+     image_size = <size>
+               This command tells Condor the maximum virtual image size to
+               which you believe your program will grow during its execution.
+               Condor will then execute your job only on machines which have
+               enough resources, (swap space and file system space), to sup-
+               port executing and checkpointing your job.  If you do not
+               specify the image size of your job in the description file,
+               Condor will make some assumptions about its size.  If the
+               image size of your job is underestimated, it may crash due to
+               inability to acquire more address space, e.g. malloc().  If
+               the image size is overestimated, Condor may have difficulty
+               finding machines which have the required resources.
+
+     input = <pathname>
+     output = <pathname>
+     error = <pathname>
+               Condor assumes that its jobs are long-running, and that the
+               user will not wait at the terminal for their completion.
+               Because of this, the standard files which normally access the
+               terminal, (stdin, stdout, and stderr), must refer to files.
+               If these commands are not specified, the standard files will
+               all refer to /dev/null.
+
+     arguments = <argument_list>
+               List of arguments to be supplied to the program on the command
+               line.
+
+     environment = <parameter_list>
+               List of condor environment parameters of the form "<parameter>
+               = <value>".  Currently the only parameter supported is
+               CONDOR_CORESIZE.  If CONDOR_CORESIZE is not specified in the
+               command file, the user's environment is checked to see if the
+               variable is set.  If CONDOR_CORESIZE is not set by either the
+               command file or an environment variable, the user's resource
+               limit "coredumpsize" is used.
+
+     priority = <prio>
+               Condor job priorities range from -20 to +20, with 0 being the
+               default.  Jobs with higher numerical priority will run before
+               jobs with lower numerical priority.
+
+     notification = <when>
+               Owners of condor jobs are notified by mail when certain events
+               occur.  If <when> is set to "ALWAYS", the owner will be noti-
+               fied whenever the job is checkpointed, and when it completes.
+               If <when> is set to "COMPLETE" (the default), the owner will
+               be notified when the job terminates.  If <when> is set to
+               "ERROR", the owner will only be notified if the job terminates
+               abnormally.  Finally, if <when> is set to "NEVER", the owner
+               will not be mailed, regardless what happens to the job.
+
+
+   4
+
+
+
+
+
+
+   Version 4.1b                                              CONDOR_SUBMIT(1)
+
+
+     queue
+               Place one copy of the job in the condor queue.  If desired,
+               new input, output, error, and arguments commands may be issued
+               between queue commands.
+
+     Macros
+               Parameterless macros in the form of $(macro_name) may be
+               inserted anywhere in condor description files.  Macros can be
+               defined by lines in the form of <macro_name> = <string>.  Two
+               pre-defined macros are supplied by the description file
+               parser.  The  $(Cluster) macro supplies the number of the job
+               cluster, and the $(Process) macro supplies the number of the
+               job.  These macros are intended to aid in the specification of
+               input and output files, and may be used to supply a condor
+               process with its own cluster and process numbers on the com-
+               mand line.
+
+     Comments
+               Blank lines and lines beginning with a '#' are ignored by the
+               job description parser.
+
+     Example Description Files
+
+
+                       ####################
+                       #
+                       # Simple condor job description file
+                       #
+                       ####################
+
+                       Executable     = foo
+                       Queue
+
+
+               This is about the simplest job description file possible.  It
+               queues up one copy of the program "foo" for execution by con-
+               dor. Condor will attempt to run the job on a machine which has
+               the same architecture and operating system as the machine from
+               which it was submitted.  Since no input, output, and error
+               commands were given, the files stdin, stdout, and stderr will
+               all refer to "/dev/null".  (The program may produce output by
+               explicitly opening a file and writing to it.)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                            5
+
+
+
+
+
+
+   CONDOR_SUBMIT(1)                                              Version 4.1b
+
+
+                       ####################
+                       #
+                       # Example: queueing multiple jobs with differing
+                       # command line arguments and stdout files.
+                       #
+                       ####################
+
+                       Executable     = foo
+                       Error          = foo.error
+
+                       Arguments      = 15 2000
+                       Output         = foo.out1
+                       Queue
+
+                       Arguments      = 30 2000
+                       Output         = foo.out2
+                       Queue
+
+                       Arguments      = 45 6000
+                       Output         = foo.out3
+                       Queue
+
+
+
+          This example queues three jobs for execution by condor.  The first
+          will be given command line arguments of "15" and "2000", and will
+          write its standard output to "foo.out1".  The second will be given
+          command line arguments of "30" and "2000", and will write its stan-
+          dard output to "foo.out2".  Similarly the third will have arguments
+          of "45" and "6000", and will use "foo.out3" for its standard out-
+          put.  Standard error output, (if any), from all three programs will
+          appear in "foo.error".
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   6
+
+
+
+
+
+
+   Version 4.1b                                              CONDOR_SUBMIT(1)
+
+
+                       ####################
+                       #
+                       # Example: Show off fancy features including
+                       # use of pre-defined macros.
+                       #
+                       ####################
+
+                       Executable     = foo
+                       Initialdir     = /var/home/mike/condor_work
+                       Requirements   = Memory >= 16 && OpSys == "AIX31"
+                                        && Arch == "R6000"
+                       Preferences    = Memory >= 64
+                       Image_Size     = 11 Meg
+
+                       Error          = err.$(Process)
+                       Input          = in.$(Process)
+                       Output         = out.$(Process)
+
+                       Arguments      = $(Cluster) $(Process)
+                       Environment    = CONDOR_CORESIZE = 0
+
+                       Queue
+                       Queue
+
+
+          This file queues 2 copies of program "foo" which must have been
+          compiled and linked for R6000's running AIX 3.1.  Condor will not
+          attempt to run the processes on machines which have less than 16
+          megabytes of physical memory, and will run them on machines which
+          have at least 64 megabytes if such machines are available.  Both
+          processes will have "/var/home/mike/condor_work" as their initial
+          working directory.  Stdin, stdout, and stderr will refer to "in.0",
+          "out.0", and "err.0" for process 0, and its command line arguments
+          will be "<cluster_id> 0", where <cluster_id> is the condor cluster
+          number assigned to this pair of processes.  Stdin, stdout, and
+          stderr will refer to "in.1", "out.1", and "err.1" for process 1,
+          and its command line arguments will be "<cluster_id> 1".
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                            7
+
+
+
+
+
+
+   CONDOR_SUBMIT(1)                                              Version 4.1b
+
+
+                       ####################
+                       #
+                       # Example: demonstrate use of multiple
+                       # directories for data organization.
+                       #
+                       ####################
+
+                       Executable     = loop.condor
+                       input          = test.data
+                       output         = loop.out
+                       error          = loop.error
+
+                       Initialdir     = run_1
+                       Queue
+
+                       Initialdir     = run_2
+                       Queue
+
+
+          This file queues 2 copies of program "loop.condor".  The first copy
+          will run in directory "run_1", and the second will run in directory
+          "run_2".  In both cases the names of the files used for stdin,
+          stdout, and stderr will be "test.data", "loop.out", and
+          "loop.error", but the actual files will be different as they are in
+          different directories.  This is often a convenient way to organize
+          your data if you have a large group of condor jobs to run.
+
+   BUGS
+
+     There are a number of limitations on the kind of program which can be
+     executed by condor.  See "condor_intro(1)" for a full list.
+
+     The shell's file redirection syntax e.g. "a.out < infile > outfile" can-
+     not be used with condor jobs because the shell handles the redirection,
+     and does not supply the names of the files to its user program.  Also
+     since condor only handles single process jobs, it cannot execute shell
+     scripts.
+
+     Many FORTRAN runtime systems expect to catch signals which the user pro-
+     gram may generate, this is not possible with condor, because signals are
+     not supported.  FORTRAN jobs may produce some error messages at startup
+     time, but should run normally if there are no errors.  If errors occur,
+     and the program is compiled to produce core dumps, the core will be
+     returned to the initiating machine.
+
+   AUTHORS
+     Allan Bricker and Mike Litzkow
+
+   SEE ALSO
+     condor_intro.1, condor_q.1, condor_globalq.1, condor_prio.1,
+     condor_rm.1, condor_status.1, condor_summary.1, condor_config.5,
+     condor_control.8, condor_master.8, condor_off.8, condor_on.8, "Condor
+     Installation Guide", "Condor Technical Summary"
+
+
+
+   8
+
+
+
+
+
+
+   Version 4.1b                                              CONDOR_SUBMIT(1)
+
+
+   COPYRIGHT INFORMATION
+     Copyright 1986, 1987, 1988, 1989, 1990, 1991 by the Condor Design Team
+     See condor_intro(1) for a full statement of rights and permissions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                            9
+
+
+

@@ -1,0 +1,61 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : archive_name
+#
+# Purpose   : Generate (hopefully unique) 14 character maximum names for
+#             library archives and object files.  Input filenames read
+#             from command line or from standard input (one per line).
+#
+# Usage     :
+#
+#   archive_name file1 file2 ...
+#
+#   or
+#
+#   cat file_list | archive_name
+#
+# Created 28-SEP-1991   Herbert B. Greenlee
+#
+# This script generates 14-character maximum names for .o files.  The root
+# part of the .o filename is the same as the root part of the input filename
+# unless the latter is longer than 12 characters.  In that case, a new
+# 12-character root name is generated using a deterministic algorithm.
+#
+#------------------------------------------------------------------------------
+set stdin = 0
+if( $#argv == 0 )then
+  set stdin = 1
+  set argv = dummy
+endif
+foreach source ( $argv )
+loop:
+  if( $stdin )then
+    set source = `line`
+    if( "$source" == '' )exit
+  endif
+  set tail = $source:t
+  set root = $tail:r
+#
+# Bugger test beam filenames to make them unique
+#
+  if( `echo $root | cut -c1-2` == 'tb')then
+    set root = `echo $root | sed 's/tb90/T/;s/_cc/C/;s/_ec/E/;s/volume/V/;s/module/M/;s/plate/P/'`
+  endif
+  set len = `echo $root | wc -c`      # count includes terminating null
+  if ( $len <= 13 ) then
+    echo ${root}.o
+  else
+    @ c1 = 1
+    @ c2 = 5
+    @ c3 = $len - 4
+    @ c4 = $len - 1
+    set sum = `echo $root | sum | tr ' ' '\012' | line`
+    set len_sum = `echo $sum | wc -c`
+    @ c5 = $len + $len_sum - 4
+    @ c6 = $len + $len_sum
+    echo ${root}${sum}.o | cut "-c${c1}-${c2},${c3}-${c4},${c5}-${c6}"
+  endif
+  if( $stdin )goto loop
+end
+

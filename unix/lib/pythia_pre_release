@@ -1,0 +1,57 @@
+#! /bin/csh -f
+###############################################################################
+#
+# Name:  pythia_pre_release
+#
+# Purpose: UNIX release script for pythia d0library section.  This script 
+#          performs the following actions:
+#
+#          1.  Deletes pythia.mms to inhibit normal library building.
+#
+#          2.  Split pythia57.for into separate source files for compilation.
+#
+#          3.  Generates and executes makefile for pythia.a.
+#
+# Usage Notes
+#
+# 1.  This script should be executed from the top directory of the pythia
+#     library section.
+#
+# Created 8-Oct-1997  Herbert Greenlee
+#
+##############################################################################
+#
+# Delete pythia.mms to disable usual build phase.  This scipt supersedes.
+#
+rm -f pythia.mms >& /dev/null
+rm Makefile >& /dev/null
+rm source/jetset74.f >& /dev/null
+rm source/pythia57.f >& /dev/null
+#
+# Preprocess and split pythia57.for into separate routines.
+#
+if( -f source/pythia57.for )then
+  tasteofd0 $D0FLAVOR < source/pythia57.for | vmstounix > source/pythia_unsplit.f
+  d0fsplit source/pythia_unsplit.f
+  rm source/pythia_unsplit.f
+endif
+#
+# Preprocess and split jetset74.for into separate routines.
+#
+if( -f source/jetset74.for )then
+  tasteofd0 $D0FLAVOR < source/jetset74.for | vmstounix > source/jetset_unsplit.f
+  d0fsplit source/jetset_unsplit.f
+  rm source/jetset_unsplit.f
+endif
+#
+# Generate makefiles
+#
+ufn `ufl '$d0pythia/source/*.for' | grep -v source/pythia57.for | grep -v source/jetset74.for` '$d0pythia/source/*.f' | \
+  userlib -c $d0root -l pythia.a -
+#
+# Build libraries. 
+#
+make for
+make pre
+make debug
+make opt

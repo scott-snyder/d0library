@@ -1,0 +1,56 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : archive_update
+#
+# Purpose   : Generate makefile dependencies for archive libraries.
+#
+# Usage     :
+#
+# % archive_update archive_library
+#
+# Arguments:
+#
+# archive_library - The name of the archive library.
+#
+# Usage notes:
+#
+# 1.  Object files are read from standard input, one per line.
+#
+# 2.  The library file argument may be specified as an absolute or relative
+#     pathname.
+#
+# 3.  No checking of the filenames is done.
+#
+# 4.  Output is written to standard output in the following format:
+#
+#     library.a::\
+#       library.a(object_file_1.o)\
+#       library.a(object_file_2.o)\
+#            .
+#            .
+#            .
+#       library.a(object_file_n.o)
+#
+# 5.  Updating rules are not included in the output.  They are the 
+#     of the calling procedure.
+#
+# Created 17-NOV-1991   Herbert B. Greenlee
+# modify for AIX 4.1 make bug 6/26/97  jms
+# Updated 4-Feb-1998   Herbert Greenlee
+#    Removed previous AIX modification that turned library modules into fake
+#    targets, causing full recompilation on each invocation.
+#
+#------------------------------------------------------------------------------
+set library = $1
+d0echo "${library}::\c"
+while( 1 )
+  set o_file = `line`
+  if( $status )break
+# modify next line for AIX 4.1 make bug 6/26/97  jms
+# Removed 2/4/98 hbg
+  d0echo "\\\n  ${library}(${o_file:t})\c"
+#  d0echo "\\\n  ${library}(x${o_file:t})\c"
+end
+d0echo

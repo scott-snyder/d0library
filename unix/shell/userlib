@@ -1,0 +1,312 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : userlib
+#
+# Purpose   : generate a makefile to maintain a library that depends
+#             on source files specified on the command line.
+#
+# Usage:
+#
+#    userlib [-dn] [-f flavor] [-o makefile] [-c comp_dir] [-l library] \
+#    file1 file2 ...
+#
+# Options:
+#
+# -d  - Generate only debug dependencies (default is debug and non-debug).
+# -n  - Generate only non-debug dependencies (default is debug and non-debug).
+# -f  - Specify flavor (default $D0FLAVOR).
+# -o  - Specify output file (default makefile).
+# -c  - Specify compilation directiry (default is working directory).
+# -l  - Specify library file (default userlib.a in current directory).
+#
+# Created 28-SEP-1991   Herbert B. Greenlee
+#
+# Recognized source file types:
+#
+# .lex
+# .c
+# .for - VAX fortran
+# .f   - UNIX fortran
+#
+# Notes:
+#
+# 1.  If the -c option is specified, then all compilations are performed in
+#     the specified directory.
+#
+# 2.  If the -c option is not specified, then all pathnames in the makefile
+#     are absolute.
+#
+# 3.  If the files argument consists of a  single -, then filenames are read
+#     from standard input.
+#
+#------------------------------------------------------------------------------
+#
+# Brief help message
+#
+if($#argv == 0) then
+help:
+  echo 'usage: userlib [-dn] [-f flavor] [-l library] [-c comp_dir] [-o makefile] file ...'
+  exit 1
+endif
+#
+# scan options
+#
+set debug = 1
+set opt = 1
+set flavor = $D0FLAVOR
+set makefile = makefile
+set compdir = ''
+set library = userlib.a
+set argv = (`getopt dnf:o:c:l: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -d:
+    set opt = 0
+    shift
+    breaksw
+  case -n:
+    set debug = 0
+    shift
+    breaksw
+  case -f:
+    set flavor = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -o:
+    set makefile = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -c:
+    set compdir = "-c $argv[2]"
+    repeat 2 shift
+    breaksw
+  case -l:
+    set library = $argv[2]
+    repeat 2 shift
+    breaksw
+  default:
+    echo "userlib: bad option $argv[1]
+    goto help
+  endsw
+end
+if ( `uname -s` == 'Linux' && $#argv == 1 ) then
+  set argv[1] = "-"           # GNU getopt swallows a trailing dash
+else
+  shift                       # drop -- terminating options
+endif
+#
+# Generate absolute pathnames for debug and non-debug archive library
+#
+if( $library !~ /* )set library = `d0pwd`/$library
+set deb_library = $library:h/deb_$library:t
+#
+# Remaining arguments are source files.
+#
+if($#argv == 0)goto help
+#
+# Set up empty scratch area
+#
+set name = $library:t
+set name = $name:r
+set tmpdir = `d0tmpdir -c userlib`
+set scratch = $tmpdir/$name
+rm -rf $scratch >& /dev/null
+mkdirp $scratch
+#
+# Output make macros.  These can be edited directly in the resulting
+# makefile.
+#
+echo "#" >! $scratch/makefile
+echo "# Macros:" >> $scratch/makefile
+echo "#" >> $scratch/makefile
+set cinc = ( `ufa '$d0unix/source' '$d0c_inc'` )
+set cinc = "{`echo $cinc | tr -s ' ' ','`}"
+set inc_opts = ( -I$cinc )
+echo "SHELL = /bin/sh" >! $scratch/makefile
+echo "CCFLAGS = -c $ccflags $inc_opts" >> $scratch/makefile
+echo "LCCFLAGS = -c $lccflags $inc_opts" >> $scratch/makefile
+echo "F77FLAGS = -c $f77flags" >> $scratch/makefile
+echo "DEBUG = $debflags" >> $scratch/makefile
+echo "OPT = $optflags" >> $scratch/makefile
+echo "ARFLAGS = $arflags" >> $scratch/makefile
+echo "SCRATCH = $tmpdir/$name" >> $scratch/makefile
+echo "FLAVOR = $flavor" >> $scratch/makefile
+echo "CC = $cc" >> $scratch/makefile
+echo "LEX = lex" >> $scratch/makefile
+echo "F77 = $f77" >> $scratch/makefile
+echo ".IGNORE:" >> $scratch/makefile
+echo ".SUFFIXES:" >> $scratch/makefile
+#
+# Make two fake targets "debug" and "opt" which have the debug and non-debug
+# target libraries are their respective dependents.
+#
+if( $debug )then
+  d0echo "debug :\\" >> $scratch/makefile
+  echo "  $deb_library:t" >> $scratch/makefile
+endif
+if( $opt )then
+  d0echo "opt :\\" >> $scratch/makefile
+  echo "  $library:t" >> $scratch/makefile
+endif
+set lib_scratch = '$(SCRATCH)'
+#
+# Get a sorted list of source files and dependencies from the argument list.
+# Edit dependent sources (.c and .f files with dependent .lex or .for files)
+# out of the list (the sort -ur command below does this).
+#
+set maxsub = 20
+echo "Scanning source files"
+if( $#argv == 1 && "$argv[1]" == '-' )then
+  ufa | \
+    lib_depend -d $lib_scratch -m $maxsub | \
+    sort -r +1 -3 \
+    > $scratch/nonunique
+  cat $scratch/nonunique | \
+    sort -um +1 -2 | \
+    sort +1 -2 \
+    > $scratch/dependencies
+else
+  echo $argv | \
+    ufa | \
+      lib_depend -d $lib_scratch -m $maxsub | \
+      sort -r +1 -3 \
+      > $scratch/nonunique
+    cat $scratch/nonunique | \
+      sort -um +1 -2 | \
+      sort +1 -2 \
+      > $scratch/dependencies
+endif
+if( ! -f $scratch/dependencies )exit 1
+#
+# Check for uniqueness
+#
+echo 'Checking uniqueness'
+set n0 = `cut -f1 $scratch/nonunique | wc -l`
+set n1 = `cut -f1 $scratch/dependencies | wc -l`
+set n2 = `cut -f1 $scratch/dependencies | sort -u | wc -l`
+d0echo "$n1 source files\n$n2 archive files"
+if( $n1 == $n2 )then
+  echo 'Uniqueness OK'
+else
+  echo 'Error: Archive modules not unique'
+  exit 1
+endif
+#
+# Make a list of the archive subdirectories generated by lib_depend
+#
+@ nsubdir = ( $n0 + $maxsub - 1 ) / $maxsub
+set subdirs = ''
+set i = 1
+while( $i <= $nsubdir )
+  set subdirs = ( $subdirs a$i )
+  @ i = $i + 1
+end
+#
+# Generate dependencies and updating rules for debug archive library
+#
+if( $debug )then
+  echo "Generating dependencies for $deb_library:t"
+  echo "$deb_library:t : $deb_library" >> $scratch/makefile
+  d0echo "\t@ echo $deb_library:t is up to date" >> $scratch/makefile
+  echo "${deb_library}:: $lib_scratch/nothing.nl" >> $scratch/makefile
+  cut -f1 $scratch/dependencies | archive_update $deb_library \
+  >> $scratch/makefile
+  foreach subdir ( $subdirs )
+    d0echo '\tar $(ARFLAGS)' "$deb_library" '`ls' "$lib_scratch/$subdir/*.o" '2> /dev/null`'\
+      >> $scratch/makefile
+  end
+  d0echo "\trmdirp $lib_scratch" >> $scratch/makefile
+endif
+#
+# Generate dependencies and updating rules for non-debug archive library
+#
+if( $opt )then
+  echo "Generating dependencies for $library:t"
+  echo "$library:t : $library" >> $scratch/makefile
+  d0echo "\t@ echo $library:t is up to date" >> $scratch/makefile
+  echo "${library}:: $lib_scratch/nothing.nl" >> $scratch/makefile
+  cut -f1 $scratch/dependencies | archive_update $library \
+    >> $scratch/makefile
+  foreach subdir ( $subdirs )
+    d0echo '\tar $(ARFLAGS)' "$library" '`ls' "$lib_scratch/$subdir/*.o" '2> /dev/null`'\
+      >> $scratch/makefile
+  end
+  d0echo "\trmdirp $lib_scratch" >> $scratch/makefile
+endif
+#
+# Generate dependencies for scratch directory
+#
+echo "$lib_scratch/nothing.nl:" >> $scratch/makefile
+d0echo "\trmdirp $lib_scratch" >> $scratch/makefile
+foreach subdir ( $subdirs )
+  d0echo "\tmkdirp $lib_scratch/$subdir" >> $scratch/makefile
+end
+#
+# Generate debug object file dependencies and updating rules
+#
+if( $debug )then
+  echo "Generating dependencies for debug object files"
+  object_update $compdir -d -f $flavor -l $deb_library < $scratch/dependencies \
+    >> $scratch/makefile
+endif
+#
+# Generate non-debug object file dependencies and updating rules
+#
+if( $opt )then
+  echo "Generating dependencies for non-debug object files"
+  object_update $compdir -f $flavor -l $library < $scratch/dependencies \
+    >> $scratch/makefile
+endif
+#
+# Generate preprocessor dependencies.  This is done once for both debug and
+# non-debug make.
+#
+echo "Generating preprocessor dependencies"
+#
+# Make a fake target "pre" that preprocesses all files.
+#
+d0echo "pre:\c" >> $scratch/makefile
+sed -n 's/^.*[ 	]\(.*\)[ 	].*/\1/p' $scratch/dependencies | \
+  awk '{printf "\\\n  %s",$0}' >> $scratch/makefile
+d0echo >> $scratch/makefile
+#
+# Actual dependencies are generated below.
+#
+sed -n 's/^.*[ 	]\(.*\)[ 	]\(.*\)/\1 \2/p' $scratch/dependencies | \
+  pre_update -f $flavor >> $scratch/makefile
+#
+# Make a fake target "for" that touches all VAX fortran sources.
+#
+echo "Generating source list"
+echo "for:" >> $scratch/makefile
+sed -n 's/^.*[ 	].*[ 	]\(.*.for\).*/	touch \1/p' $scratch/dependencies \
+  >> $scratch/makefile
+#
+# A complete and correct makefile now resides in the scatch area.
+#
+# Here various editing tasks are performed to make the makefile more
+# "transportable."
+#
+# 1.  Reverse substitute environment variables d0root, d0library, d0test
+#     and d0gamma wherever possible.  Future invokations of the makefile will
+#     inherit these variables from the environment.
+#
+# Generate awk script to change from absolute to relative compilation:
+#
+# Define sed script for reverse substitution:
+#
+if( ! $?d0root )set d0root = xxxxxxxxxx
+if( ! $?d0gamma )set d0gamma = xxxxxxxxxx
+if( ! $?d0test )set d0test = xxxxxxxxxx
+if( ! $?d0library )set d0library = xxxxxxxxxx
+if( ! $?prod )set prod = xxxxxxxxxx
+set rev_sub = \
+  "s@${d0root}@"'$(d0root)@g;'"s@${d0gamma}@"'$(d0gamma)@g;'"s@${d0test}@"'$(d0test)@g;'"s@${d0library}@"'$(d0library)@g;'"s@${prod}@"'$(prod)@g'
+#
+# Do it.
+#
+sed "$rev_sub" $scratch/makefile >! $makefile
+done:
+rmdirp $tmpdir

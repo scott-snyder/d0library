@@ -1,0 +1,467 @@
+                                                                     batrun.doc
+                                                                               
+                                                                        Page: 1
+     
+                                                           Michael Wendling
+                                                                 7-FEB-1994
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     				BATRUN
+     
+     		   Batch Processing at Iowa State
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+                                                                     batrun.doc
+                                                                               
+                                                                        Page: 2
+     
+     
+     
+     
+     			     INTRODUCTION
+     
+     
+     
+     
+     Iowa State University has implemented a campus-wide computer network
+     based on Project Athena developed at MIT, and renamed locally Project
+     Vincent. The objective of Project Vincent is to provide powerful,
+     local computing resources to individual faculty and researchers, with
+     all the benefits of network services. During nighttime hours, however,
+     the major portion of this resource is underutilized.  Batrun (Batch
+     After Twilight Running), is an effective batch processor that has been
+     designed to capture these unused cycles.  The guts of Batrun are
+     derived from Condor, a facility for executing UNIX jobs on remote
+     machines, developed by Allan Bricker and Michael J. Litzkow at the
+     University of Wisconsin.
+     
+     
+     
+     
+     
+     
+     
+     
+     From start to finish, using Batrun at Iowa State might go something
+     like this:
+     
+     		1.  Generate events at your site. (e.g.FNALD0)
+     		2.  Zftp your events to Iowa State
+     		3.  Ftp any user specific code to Iowa State
+     		4.  Run quick_convert.csh on your code
+     		5.  Run userlib to generate a makefile
+     		6.  Run make to generate userlib.a
+     		7.  Edit full_d0geant_isu_lnk.csh as necessary 
+     		8.  Run full_d0geant_isu_lnk.csh
+     		9.  Edit setup_link.csh as necessary
+     		10. Run setup_link.csh
+     		11. Run geant on a few event to make sure it works
+     		12. Run setup_batrun.csh
+     		13. Create a batrun command file
+     		14. Submit batrun job
+     		15. Monitor job and be patient
+     		16. Run make_copy_fz_rcp
+     		17. Run copy_fz.x to concatenate output
+     		18. Zftp data back to vax.
+     
+     
+     
+     
+     
+     
+     
+     
+                                                                     batrun.doc
+                                                                               
+                                                                        Page: 3
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     				CONTENTS
+     
+     	1  Zftp . . . . . . . . . . . . . . . . . . . . . . . . 1
+     	2  Add  . . . . . . . . . . . . . . . . . . . . . . . . 3
+     	3  Quick_convert.csh  . . . . . . . . . . . . . . . . . 3
+     	4  Full_d0geant_isu_lnk.csh . . . . . . . . . . . . . . 3
+     	5  Setup_user.csh . . . . . . . . . . . . . . . . . . . 3
+     	6  Setup_batrun.csh . . . . . . . . . . . . . . . . . . 4
+     	7  Batrun.cmd command file. . . . . . . . . . . . . . . 5
+     	8  Batrun job submission, monitoring and removal. . . . 6
+     	9  Make_copy_fz_rcp . . . . . . . . . . . . . . . . . . 6
+     		
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+                                                                     batrun.doc
+                                                                               
+                                                                        Page: 4
+     
+     This document describes Batrun utility programs and scripts in the
+     $d0unix/batrun section of d0library as well as programs and commands
+     that are local to the Iowa State Unix farm.
+     
+     If the reader is unfamiliar with UNIX, it is suggested that he or she
+     consult $d0unix/docs/unix_guide.mem before reading this document.
+     
+     All executable files in $d0unix/batrun are linked to the top level of
+     the unix library section (i.e. $d0unix).  Sourcing d0local.login adds
+     this directory to the execute search list stored in the PATH
+     environment variable.  Provided that d0local.login has been sourced,
+     any of the utilities described here may be invoked by typing their
+     names followed by any options and arguments.  All calling sequences
+     adhere to standard unix conventions as described in intro(1).
+     
+     
+     1.  Zftp
+     
+     Zftp (Zebra file transfer protocol) is similar to ftp except that it
+     allows for the transfer of native mode zebra files from one platform
+     to another.  In this way one can easily generate monte carlo events on
+     VAX, zftp them to Iowa State and zftp the processed events back to
+     VAX.  Online help is available at the ZFTP> prompt.  To transfer
+     native mode files across platforms, use the commands getfz and putfz.
+     
+     Usage:
+     
+     % zftp remote_host_name
+     
+     Example:
+     
+     	% zftp d0isu1.fnal.gov
+     	Name (d0isu1.fnal.gov:sartre): wendling
+     	Password (d0isu1.fnal.gov:wendling):         
+     	Connected to d0isu1.fnal.gov on TCP port 2489 ....
+     	User WENDLING accepted.
+     	ZFTP> help
+     
+     	From  /...
+     
+     	 1:   KUIP     Command Processor commands.
+     	 2:   MACRO    Macro Processor commands.
+     	 3:   ZFTP     To transfer Text files, RZ or FZ files using TCP/IP.
+     
+     	 Enter a number ('Q'=command mode): q
+     
+     	ZFTP> putfz t2b2e_160_1000.isa
+     	 XZPUTF. record length for native FZ file defaulted to 3600 bytes
+     	
+     	 FZLOGL.  File at LUN=  1, Diagnostic log level= 0
+     		
+     	 FZLOGL.  File at LUN=998, Diagnostic log level= 0
+     	
+     	 FZIN.    LUN=   1 End of Run        0
+     	 FZOUT.   LUN= 998 Write End-of-Run        0
+     	 FZIN.    LUN=   1 Zebra EoF
+                                                                     batrun.doc
+                                                                               
+                                                                        Page: 5
+     	
+     	 File transfer completed
+     	
+     	 FZENDI.  For input file at LUN=  1, Last activity= 4, OPT= T
+     	          Number of objects read : 
+     	                  0 System EOF
+     	                  1 Zebra  EOF
+     	                  1 End-of-Run
+     	                  0 Start-of-Run
+     	               1002 Pilot records
+     	               1002 Non-empty d/s selected
+     	                  0 Empty d/s selected
+     	                  0 Read or Data errors
+     	                  9 Mega-words +
+     	             278226 words
+     	              19536 Good logical records
+     	ZFTP> quit
+     	  
+     
+     2.  Add
+     
+     The 'add' alias is not part of d0library but is created upon login to
+     the Iowa State Unix farm.  Since it is both non-standard and required
+     to use Batrun, it is briefly described here.
+     
+     The add alias mounts a file system (or 'locker') on /home.  In
+     addition it extends ones path ($PATH) to include /home/locker/bin/dec
+     and manpath ($MANPATH) to include /home/locker/man, if such
+     directories exist.
+     
+     Usage:
+     
+     % add locker
+     
+     Example:
+     
+     % add batrun
+     
+     
+     3. Quick_convert.csh
+     
+     Quick_convert.csh converts VAX style fortran code to $D0FLAVOR style
+     fortran code by processing source files through $d0unix/tasteofd0 and
+     $d0unix/vmstounix.  Input is assumed to have a VAX style extension,
+     xxx.for, while output is directed to the Unix style extension, xxx.f.
+     
+     Usage:
+     
+     % quick_convert.csh file(s)
+     
+     Arguments:
+     	
+     file(s) - a list of files to be converted, may contain wildcards.
+     
+     Example:
+     
+     % quick_convert *.for
+                                                                     batrun.doc
+                                                                               
+                                                                        Page: 6
+     
+     
+     4.  Full_d0geant_isu_lnk.csh
+     
+     Executing $d0unix/full_d0geant_isu_lnk.csh with the -b flag will link
+     a batrun version of full_d0geant.  Often a user may wish to copy this
+     script to their local area and make edits.  Unix tools such as
+     $d0unix/userlib and $d0unix/force_load may be used to include user
+     code in the link.
+     
+     Usage:
+     
+     % full_d0geant_isu_lnk.csh [-o] [-d] [-b]
+     
+     Options:
+     
+      -o   - Link a optimized version of full_d0geant (default)
+      -d   - Link a debug version of full_d0geant
+      -b   - Link a batrun version of full_d0geant
+     
+     
+     3.  Setup_links.csh
+     
+     This script is used to create links to d0geant input and output files.
+     The default file is $d0unix/batrun/shell/setup_links.csh.  The user is
+     required to copy this file to their local area (where d0geant will be
+     run) and make edits as appropriate.
+     
+     Usage:
+     
+     % setup_links.csh
+     
+     
+     4.  Setup_batrun.csh
+     
+     A user edited copy of setup_links.csh must exist in the current
+     directory.
+     
+     Setup_batrun.csh will create a series of directories beneath the
+     current directory and execute setup_links.csh in each.  Edits will be
+     made to the file fort.9 (ffread data cards) so that each in each
+     directory, 'step' events are processed.  The first directory created
+     will be $PWD/0, the second, $PWD/1, up to $PWD/(ndir-1).  Directory
+     $PWD/0 will trigger the first 'step' events.  Directory $PWD/1 will
+     trigger the next 'step' events, and so on.  Therefore, ndir*step =
+     (total number of events to be processed)
+     
+     Choosing 'step' carefully is important.  For the time being, a value
+     of 10 is suggested.
+     
+     If, after d0geant has run, an additional program is to be run on the
+     d0geant output (e.g. track reconstruction program), the user may run
+     setup_batrun.csh with the -e option.  This will cause setup_batrun.csh
+     to execute setup_user.csh in existing directories.
+     
+     Usage:
+     
+                                                                     batrun.doc
+                                                                               
+                                                                        Page: 7
+     % setup_batrun.csh [-v] [-e ndir] [-n ndir step] [-r ndir]
+     
+     Options:
+     
+     -v   - Verbose
+     -e   - Execute setup_links.csh in <ndir> existing directories
+     -n   - Create <ndir> directories and execute setup_user.csh in each
+     -r   - Removes <ndir> directories
+     
+     Arguments:
+     
+     ndir - the number of directories to be used
+     step - the number of events to be triggered in each directory
+     
+     
+     5.  Batrun command file
+     
+     In order to submit a batrun job, the user must create a command file.
+     An example command file is $d0unix/batrun/batrun.cmd.  In addition,
+     command files are documented in $d0unix/batrun/docs.
+     
+     
+     6.  Batrun job submission, monitoring and removal
+     
+     Submitting, monitoring and removing batch jobs is done via a series of
+     commands, condor_xxxxxx.  Condor commands are made available by using
+     the add alias.
+     
+     % add condor
+     
+     These commands are described in manual pages that can be read online
+     (i.e. % man condor_xxxxxx) or in $d0unix/batrun/docs.
+     
+     A. condor_submit - queue jobs for execution on remote machines
+     
+     Usage:
+     		
+     % condor_submit [-q] command_file
+     		
+     Options:
+     		
+     -q 	- prevents the echo of submission information 
+     	
+     Arguments:
+     			
+     command_file - name of command file
+     
+     
+     B. condor_q - display the local condor job queue
+     
+     Usage:
+     		
+     % condor_q
+     
+     C. condor_globalq - display queues on all machines
+     	
+     Usage:
+                                                                     batrun.doc
+                                                                               
+                                                                        Page: 8
+     	
+     % condor_globalq [-p] [-u user]
+     
+     Options:
+     
+     -p   display the jobs in the order they are prioritized
+     
+     -u   display queued jobs for a particular user
+     
+     D. condor_status - display status of machines in Batrun pool
+     
+     Usage:
+     		
+     % condor_status
+     
+     E. condor_rm - remove jobs from the queue
+     
+     Usage:
+     		
+     % condor_rm cluster_id[.proc_id]
+     
+     
+     7. make_copy_fz_rcp
+     
+     To concatenate zebra output files the user may run copy_fz.x.  This
+     product is documented in $d0util/files/copy_fz.doc.  copy_fz.x is rcp
+     driven.  Since there may be hundreds of files to concatenate, the
+     copy_fz_rcp file may be quite lengthy.  Make_copy_fz_rcp is provided
+     to produce copy_fz_rcp automatically.
+     
+     Usage:
+     
+     % make_copy_fz_rcp  <parent-dir> <filename> <output> <range>
+     
+     Arguments:
+     
+     parent-dir - root directory of numbered run directories
+     filename   - filename in each run directory of events
+     output     - path and filename of concatenated event file
+     range      - space-delimited list of numbers and ranges to concatenate
+     
+     Example:  
+     
+     % make_rcp /scratch/d0 t2b2x_160_1000.gean xxx.out 1-5

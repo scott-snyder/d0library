@@ -1,0 +1,1367 @@
+.!
+.!  Created by Herbert Greenlee on 27-JUN-1991
+.!
+.STYLE HEADERS 4,0
+.PAGE SIZE  56,80
+.LEFT MARGIN  10
+.RIGHT MARGIN  70
+.no autojustify
+.no justify
+.RIGHT ;Herbert Greenlee
+.RIGHT ;5-Jun-1992
+.BLANK 20  !--- underlined title on next line
+.CENTER ; ^&D0 UNIX User Guide\&
+.PAGE
+.REQUIRE "UNIX_GUIDE.RNT"
+.PAGE
+.!------------ main text start here.
+.nfl accept
+.nfl underline
+.nfl lowercase
+.nfl space
+
+.hl1 Introduction.
+
+This document is intended as a tutorial introduction to using UNIX in D0.  It
+is not intended as a tutorial in UNIX in general.
+For the latter, the reader is refered to the sources described below and cited
+at the end of this document.
+
+.hl2 ^^Additional documentation.
+
+There are several potentially useful sources of additional documentaion,
+including the following:
+.list
+.le
+Vendor documentation.
+.le
+Fermilab Computing Division documents.
+.le
+D0 documentation.
+.le
+Books.
+.end list
+People often complain about the quality UNIX vendor documentation, and it is
+certainly 
+true that it is inferior to Dec's VMS documentation.  Nevertheless, the vendor
+documentation is an indispensible piece of the puzzle.
+The trend is for vendors to provide much of their documentation online without
+a corresponding printed version.  The vendor documentation can be accessed on
+line 
+using the commands man and apropos.  The vendors also provide
+X window programs (xman on Silicon Graphics and info on IBM), to access the
+online documentaion.  
+.p
+The Fermilab Computing Division provides a wide range of documents that are
+useful for UNIX.  Particularly useful is document number GU001, "UNIX at
+Fermilab," which is a tutorial introduction to many aspects of UNIX.  Other
+documents 
+cover specific Computing Divison products.  A partial list of documents 
+is given in the references.
+.p
+There are several documents (in addition to this one) available in d0library in
+D0$UNIX$DOCS.  In particular, the reference documents UNIX_UTILITIES.MEM and
+UNIX_LIBRARY.MEM give details on standalone utilities (programs and scripts)
+and library routines respectively that are skipped over in this document.
+.p
+Finally, there is a vast literature commercially available reference and
+tutorial books that many people, including me, have found useful.  I encourage
+anyone who is interested in UNIX to exploit this resource.  I have included
+some examples in the references.
+
+.hl2 ^^The D0 environment.
+
+In UNIX documentation, the word environment is often used in a narrow sense to
+refer to the set of all environment variables in a process.  In this documnent,
+the term "D0 environment" will be used in a broader sense to refer to the set of
+environment variables, shell variables and aliases that are defined in every
+shell, the executable files that exist in directories specified in the PATH
+environment variable, and library routines.  The term "Fermi environment" (see
+below) should be understood in a similarly broad sense.  The term 
+"environment," without a modifier, should be understood in the narrow sense
+(i.e. only environment variables).  
+
+Scripts, programs and data files that are associated with the D0 environment
+are released in the unix section of d0library (i.e. under D0$UNIX in VMS).
+This unix d0library section contains the following four groups.
+.lm +6
+.no fill
+.blank
+shell  -- Shell scripts.
+source -- Source code.
+vms    -- VMS command procedures.
+docs   -- Documentaion.
+.blank
+.fill
+.lm -6
+The source group contains source code for library routines (mainly VMS run-time
+library and system routine emulators) as well as a number of stand alone
+utility programs.  All executable files (scripts, compiled programs, VMS .COM
+files) are copied or linked to the top directory of the unix library section as
+part of the release procedure.
+
+.hl2 ^^The Fermi environment.
+
+The Fermilab Computing Division has also defined a standard environment.  The
+D0 environment can be installed independently of the Fermi environment.
+However, I recommend 
+that all D0 UNIX systems install both environments.
+The main reason for this is that D0 does not distribute a UNIX
+version of CERNLIB via d0library.  Instead, we are relying on the cern product
+distributed by the Computing Division.  
+
+.hl2 ^^UNIX flavors.
+
+The Fermilab Computing Division supports the following four flavors of UNIX:
+Silicon Graphics/IRIX, IBM/AIX, Dec/ULTRIX and Sun.  The first two of
+these flavors (Silicon Graphics and IBM) are supported at higher priority than 
+the last two because of the production farms.  
+ALL of these flavors are in use at various D0 institutions.  A fifth flavor
+(Hewlett-Packard) is used by D0, but is not supported by the Computing
+Division.
+Fermilab supported versions of CERNLIB are available for the four Fermilab
+supported flavors of UNIX.
+The five D0 supported flavors of UNIX are known 
+to D0FLAVOR as the specific flavors SIUNIX, IBMAIX, ULTRIX, SUNOS and HPUX
+respectively and 
+collectively as the generic flavor UNIX.  
+
+.hl1 UNIX Concepts
+
+This section gives a brief summary of key UNIX concepts, with the emphasis on 
+how these concepts are used in the D0 environment.  Some of the correspondences
+to equivalent concepts in the VMS D0 environment are pointed out.  
+
+.hl2 ^^The UNIX kernel and shells.
+
+The UNIX operating system is divided into kernel and shell.  The kernel,
+together with the standard system libraries,
+provides a programming interface to the computer and serves as the lowest level
+of the operating system.  As a user, you interact with the kernel via a shell,
+which is a program, in no way priveleged or special, that provides a user
+interface to the system's programming 
+interface.  Unlike VMS, which uses a single shell (DCL), UNIX has three
+standard shells:  sh (the Bourne shell), csh 
+(the c shell) and ksh (the Korn shell).  There are also third party and public
+domain alternatives to the standard shells.  One of these that is particularly
+interesting is the t shell (tcsh), which is a superset of the c shell.  The t
+shell features command line recall and editing using arrow keys, 
+which is one of the features that VMS users miss most in UNIX.
+Like DCL, each of the shells provides 
+an interpretive programming language and can be used to execute procedures,
+called scripts, written in that language.  One's login shell is set by the 
+system administrator.  Once you are logged in, however, you can execute any of
+the shells, and you can also execute scripts written in any of the shell
+programming languages. 
+The D0 environment (also the Fermi environment) uses the c shell as its
+standard shell (the t shell also works).
+The two pieces of the D0 environment that are special to
+the c shell are those involving aliases and search lists (see below).
+
+.hl2 ^^Library routines
+
+The unix section of d0library is distributed with a utility library and several
+standalone programs.  the utility library mainly consists of emulators for various
+VMS run-time library and system routines.  In UNIX, there is (currently) no
+standard way to generate system calls from fortran.  Therefore,
+all system level programming is in c.  To maximize portability, an attempt is
+made to stick with POSIX-compliant system calls and ANSI c.  One non-ANSI
+feature that is being used is dollar signs in identifiers, which is obviously
+necessary to emulate VMS routines.  The fortran-c interface is potentially a
+weak link in this scheme, since no standard exists for calling c language
+routines from fortran.  The three D0-supported flavors of UNIX all
+use the same fortran argument passing mechanism, so that no changes are
+needed in fortran-callable c routines among these three flavors of UNIX.
+It would be possible, although painful, to make the fortran-c interface machine
+dependent.  
+
+.hl2 ^^Environment variables and shell variables.
+
+Environment variables and shell variables are similar to global and local
+symbols in DCL.  Either kind of variable can be evaluated in a shell command by
+preceding it with a $ (dollar sign).  Environment variables, but not shell
+variables, are inherited by child processes from the parent process.  This is
+true whether the child process is another shell or a user program.  In the
+latter case, the value of any environment variable can be obtained using the
+standard library routine getenv, which is exists in both fortran and c
+versions.
+
+.hl3 ^^Directory environment variables.
+
+UNIX, like VMS, organizes disk files into a hierarchical directory structure.
+Important D0 directories are stored in environment
+variables.  Here is a summary:
+.no fill
+.blank
+Environment Default          VAX
+Variable    Value            Equivalent       Description
+============================================================
+.blank
+d0library   System           D0$DISK:         Root of
+            dependent        [D0LIBRARY]      d0library
+.blank
+d0test      $d0library/test  D0$DISK:         Root of
+                             [D0LIBRARY.TEST] test library
+.blank
+d0gamma     $d0library/gamma D0$GAMMA:        Root of
+                                              gamma library
+.blank
+d0xxx       $d0library/xxx   D0$xxx:,         Root of 
+                             D0$xxx$ROOT:,    section xxx
+.blank
+dbl3        System           System           Root of dbl3
+            dependent        dependent        data area
+.blank
+dbl3xxx     $dbl3/xxx        DBL3$xxx:        Dbl3 detector
+                                              data area
+.blank
+dbl3serv    System           No               Root of dbl3
+            dependent        equivalent       journal data
+.blank
+dbl3servxxx $dbl3serv/xxx    DBL3SERV$xxx:    Dbl3 detector
+                                              journal data
+.blank
+prod        System           System           Root of prod.
+            dependent        dependent        release area
+.blank
+prodxxx     $prod/xxx        PROD$xxx:,       Prod. area for
+                             PROD$xxx$ROOT:   package xxx
+.blank
+.fill
+Because of limited environment space, environment variables are defined only
+for the top level of d0library sections.  
+
+.hl3 ^^Test libraries and search lists.
+
+The VMS D0 environment uses search list logical names to access test mode
+libraries.  UNIX does have a concept that is completely equivalent to search
+list logical names.  In the D0 environment, search lists
+are implemented as environment variables using syntax that is special to the
+c shell.  This syntax consists of words separated by commas and
+enclosed in braces.  For example, the command
+.blank
+setenv d0inc "{$d0test/inc,$d0library/inc}"
+.blank
+defines the environment variable d0inc to be a search list pointing first to
+the test version and then to the official version of the inc section of
+d0library, 
+in effect putting the inc library into test mode.  The command libtest provides
+an easier and better way to do this:
+.blank
+libtest inc
+.blank
+Either of the following commands puts the inc library section back into
+official mode.
+.blank
+setenv inc $d0library/inc
+.blank
+or
+.blank
+nolibtest inc
+.blank
+The commands libtest and nolibtest are aliases that work only in the c shell.
+.p
+The search list concept described in this section is only meaningful to the c
+shell but not to the kernel.  Kernel level file accesses (e.g. using the
+fortran OPEN statement) can not make use of search lists directly.  Even at
+the level of the shell, there are some differences in the way search lists work
+in VMS and UNIX.  The differences between VMS and UNIX are always such that
+extra programming is required in UNIX.  Much, but not all, of the extra
+programming is hidden.  For example, files opened using D0OPEN, and files
+included from d0library (e.g. from D0$INC) automatically interpret D0 logical
+names as search lists, when this is appropriate.
+
+.hl3 ^^Non-directory environment variables.
+
+There are several other environment variables that do not refer to directories
+and that do not have equivalents in VMS.  These are as follows:
+.no fill
+.blank
+Environment
+Variable       Description
+============================================================
+.blank
+D0FLAVOR       Local UNIX flavor (SIUNIX, IBMAIX, ULTRIX).
+.blank
+VAXLIB_NODE    VAX node used for fetching libraries using
+               ftp.
+.blank
+ZFTP_NODE      VAX node used for fetching STP data files
+               using zftp.
+.blank
+.fill
+
+.hl2 ^^Symbolic links.
+
+A symbolic link is a file that points to another object (e.g. a file or a
+directory).  The
+closest VMS equivalent is a non-search-list logical name.  Symbolic links 
+differ from logical names in the fact that they reside on disk, rather than
+in a separate name space.  The target file or directory of a symbolic link does
+not have to exist at the time the symbolic link is created.  
+Symbolic links are
+important because they are the only way to redirect file I/O at the level of
+the kernel.  A typical use of symbolic links in D0 is to
+point to an RCP file.  The following example shows how to create a symbolic
+link.
+.no fill
+.blank
+ln -sf `uff $d0d0reco/d0reco.rcp` d0reco_rcp
+.blank
+.fill
+
+.hl2 Commands.
+
+In the the c shell, a command can be any of the following:
+.list
+.le
+An alias.  An alias can be used for any other kind of command, including
+other aliases.
+.le
+A built-in shell command.
+.le
+An executable file.  
+.end list
+
+.hl3 Aliases.
+
+Aliases are basically abbreviations for other (presumably more complicated)
+commands.  Aliases are shell dependent.  The alias piece of the D0
+environment only works in the c shell.  Aliases are used sparingly.
+Whenever possible, D0 commands are implemented
+as executable files instead.  
+.p
+Aliases have two distinct uses in the D0 environment.  The first is to
+implement functions that can not be implemented as executable files because
+they modify the environment.
+Currently, the only
+examples of this are libtest and nolibtest.  The setup command in the Fermi
+environment is an alias for the same reason.
+The second use of aliases is to redefine 
+some standard UNIX commands that work differently in different flavors of UNIX.
+This is done to provide system independent versions of these commands for use
+in shell scripts.  The changes from the native versions of these commands
+are not be very noticable from the point of view of an interactive user.
+The following three UNIX commands have currently been redefined in this way:
+echo, awk and nm.
+.p
+Subshells do not inherit the parent shell's aliases.  If desired, aliases must
+be redefined each time a shell is forked.  This can be done using the .cshrc
+file (see below).
+
+.hl3 ^^Executable files.
+
+A file is executable if the user who is invoking it has execute permission.
+An executable file is invoked by typing the name of the file.  Unlike aliases
+and built-in shell commands, executable 
+files are always executed in a child process.  
+.p
+An executable file may contain a program image or a script.  
+When a file is executed, the 
+system decides which kind it is based on its contents.
+In the case of a script, the system also decides which
+interpreter (typically one of the shells) to invoke.  
+
+.hl3 ^^The PATH environment variable.
+
+An executable file may be invoked using an absolute or relative pathname.  In
+the latter case, the shell attempts to complete the pathname using the
+directories specified in the PATH environment variable.  It is important to
+always have a correct PATH environment variable.  Many standard UNIX commands,
+such as cat and ls, are external to the shell.  As far as the shell is
+concerned, these are just programs that live in directories specified in 
+PATH.  The standard PATH that one gets at login does not
+contain the current working directory.  Most users will want to add the current
+working directory (specified as a period) to their PATH.  The D0 environment
+and the Fermi environment both require that certain directories be added to the
+user's PATH.  This is normally done automatically at login time.  Also, the D0
+command libtest and the Fermi command setup may change the PATH dynamically.
+
+.hl1 ^^Using the D0 Environment.
+
+.hl2 ^^Initializing the D0 environment.
+
+As part of its startup procedure, the c shell looks for the two files .cshrc
+and .login in the user's home directory.  These files do the same job as the
+file login.com in VMS.  Login shells execute the commands in both files, first 
+ .cshrc, then .login, at startup time.  (As a mnemonic device, note that the
+two files are invoked in alphabetical order.)  Non-login shells (subshells)
+only execute the commands in .cshrc.  The file .login is typically used to do
+things such as checking for mail, setting the user's terminal preferences, and
+defining environment variables.  The file .cshrc is typically used to define
+aliases and shell variables.
+.p
+The unix section of d0library is distributed with two files, d0local.cshrc and
+d0local.login, whose purpose is to initialize the D0 environment.  These files
+should be "sourced" (i.e. executed using the built-in shell
+command source) 
+from one's .cshrc and .login  
+files respectively.
+Some of the environment variables defined in d0local.login are system
+dependent.  For this reason, it is usually not appropriate to source the
+versions of these files that reside in d0library.  On most systems, customized
+versions will reside outside of d0library and users should source
+these.  (However, it is safe to source the library versions of the d0local
+files on d0sgi6.fnal.gov.)  
+Wherever they reside, these files must be sourced using an
+absolute pathname.  Here are examples of .cshrc and .login files showing how to
+initialize the D0 environment, as well as some other possibilities.
+.no fill
+.blank
+..cshrc:
+.blank
+#
+# Setup Fermi and D0 environments
+#
+source /usr/local/etc/fermi.cshrc
+source /usr/local/etc/d0local.cshrc
+#
+# Skip if not interactive
+#
+if ( $?USER == 0 || $?prompt == 0 ) exit
+#
+# Fermi products
+#
+setup cedit
+setup edt
+#
+# VMS like commands
+#
+alias dir ls -CF
+alias del rm -i
+alias ed edt
+.blank
+..login:
+.blank
+#
+# Setup Fermi and D0 environments
+#
+source /usr/local/etc/fermi.login
+source /usr/local/etc/d0local.login
+#
+# Fermi products
+#
+setup cern cnl203
+setup pvi          # DI3000
+#
+# Put libraries in test mode
+#
+libtest all
+#
+# Skip rest of script if not interactive
+#
+if( $?USER == 0 || $?prompt == 0 )exit
+#
+# Setup terminal
+#
+.fl accept
+stty kill _^U
+stty erase _^H
+.nfl accept
+#
+# Setup command history
+#
+set history=100     # retain the last 100 commands
+.blank
+.fill
+User's should find out from their system manager where the customized
+versions of the d0local files reside.  Instructions for system managers on how
+to customize the d0local files are given in the administrator's guide, below.
+.p
+It is the job of d0local.login to define standard D0 environment variables.  If
+the environment variable d0library is defined before d0local.login in invoked,
+then d0local.login doesn't 
+change it.  If d0library is undefined, then the library version of 
+d0local.login gives it the default value /d0library, which is correct for
+d0sgi6.fnal.gov.  The 
+library version of d0local.login does not provide default definitions for any
+environment variables other than d0library.
+The library
+version of d0local.login does automatically sense the type of system it is
+running on and defines the environment variable D0FLAVOR accordingly.
+.p
+It is the job of d0local.cshrc to define stardard D0 aliases and shell
+varaibles.  The library version of d0local.cshrc has an extensive
+machine-dependent section where such things as machine independent aliases and
+compiler options are defined.
+.p
+All explicit machine dependence in D0 shell scripts is located in one of the
+two d0local files.
+
+.hl2 ^^Redirecting X output.
+
+To redirect X output from VMS to a UNIX box, use a command such as the
+following:
+.no fill
+.blank
+$ SET DISPLAY/CREATE/NODE=d0sgi5.fnal.gov/TRANSPORT=TCPIP
+.blank
+.fill
+To redirect X output from UNIX to an arbitrary X display, use a command such
+the following:
+.no fill
+.blank
+setenv DISPLAY d0xt01.fnal.gov:0.0
+.blank
+.fill
+This command can also be used to redirect gl output from one Silicon Graphics
+box to another.  The first digit (after the colon) represent server number.
+The second digit (after the period) represents the screen number.
+
+.hl2 Using SMG.
+
+The D0 environment includes a package of SMG emulator routines whose purpose is
+to be able to run COMPACK and DBANK directly from d0library.  The SMG emulator
+routines 
+make use of the curses screen management library, which is standard on UNIX
+systems (and is available in VMS as well).  The concepts underlying SMG and
+curses are very similar. 
+.p
+There are two modes in which SMG programs can be run: dumb mode and window
+mode.  Dumb mode
+(which is the similar to the way SMG works in VMS) means that SMG will control
+the user's 
+terminal.  Dumb mode is fine for running a COMPACK program from a dumb terminal
+or a good vt100 terminal emulator (e.g. from a VAXstation).  Dumb mode does
+not work well with certain of the UNIX terminal emulators and does not work at
+all with the UNIX window debuggers.  To correct these deficiencies, the SMG
+emulator package has been given the ability to do its SMG I/O in a separate
+window.  The choice of window mode or dumb mode is controlled environment
+variables.  There are three environment variables that are relevant to the SMG
+emulator:  SMGTTY, SMGTERM and DISPLAY.
+.p
+To select window mode, set SMGTTY to the name of a terminal emulator to be run
+in a separate window.
+Currently allowed values are xterm and wsh on Silicon Graphics and aixterm on
+IBM.  If SMGTTY has any other value, or is undefined, the SMG emulator
+will run in dumb mode.
+.p
+The environment variable SMGTERM can be used to tell curses, via the SMG
+emulator, what kind of terminal is being used for SMG/curses I/O.  If SMGTERM
+is undefined, then the 
+value of the TERM environment variable is used instead.  TERM is normally
+defined at login.  SMGTERM is mainly useful in window mode when the terminal
+emulator running in the SMG/curses window is of a different type than the main
+terminal.  SMGTERM and SMGTTY must have consistent values.  For example, if
+SMGTTY has the value xterm, then SMGTERM should be given a value like vt100 or
+vt220. 
+.p
+The environment variable DISPLAY is not directly read by the SMG emulator or
+curses, but
+it can be used in window mode to ship SMG/curses I/O over the network as
+described in the previous section.
+
+.hl1 Program Development.
+
+.hl2 ^^Writing shell scripts.
+
+Here are some general hints for write c shell scripts.
+.list
+.le
+The first line of the script should be "#! /bin/csh -f".  This tells the kernel
+to invoke csh as the interpreter.  The -f option (fast) is recommended but not
+mandatory.  It tells csh to not execute the current user's .cshrc, which may
+contain non-standard aliases for standard UNIX commands.
+.le
+The line continuation character is \ (backslash).  Backslash must be the
+last character in the line, including spaces and tabs.
+.le
+The comment character is #.  All characters after # in a line are ignored.
+.le
+Do not include command prompts in the script (unlike DCL).
+.le
+Make the script executable by typing the command "chmod +x <script>".
+.le
+Invoke the script by typing the name of the file it is in.
+.le
+Make sure that your PATH environment variable contains the current working
+directory (.) and any other directories you want to execute scripts (or
+programs) from.  You can make a directory for your personal scripts 
+(e.g. ~/bin) and add this directory to your PATH in your .login file.
+.le
+You can trace the execution of a script by typing "csh -xv <script>".
+.end list
+
+.hl2 ^^VAX fortran and UNIX fortran.
+
+This section is concerned with the operational differences between VAX fortran
+and UNIX fortran, rather than with language differences.
+All UNIXes use the file 
+type .f for fortran source files.  D0 has the convention that VAX fortran
+source 
+files have the file type .for.  The main operational difference between VAX
+fortran and UNIX fortran is that VAX fortran has statements such as the
+following:
+.no fill
+.blank
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+.blank
+.fill
+The UNIX fortrans all allow include statements, but of course do not understand
+VAX file syntax.  Also machine blocks must be processed when converting from
+VAX fortran to UNIX fortran.
+.p
+Two preprocessors are currently used to convert VAX fortran to UNIX fortran.
+Vmstounix converts VAX include statements to UNIX include statements.
+Tasteofd0 converts machine blocks (like d0flavor).  
+.p
+.p
+D0library contains both kinds of sources in the same directories.  The VAX
+fortran is retained for code development purposes.  The UNIX fortran is
+retained for debugging. 
+When developing VAX fortran code on a UNIX platform, the UNIX fortran source
+file should 
+never be edited directly.  Instead, edit the VAX fortran and run the
+preprocessors.  This is done automatically by utilities described 
+below.
+
+.hl2 Compiling.
+
+The fortran compiler is called f77 on Silicon Graphics and
+ULTRIX and xlf on IBM.  I do not recommend attempting to compile programs by
+invoking the fortran compilers directly.  D0library code 
+is compiled with a large number of system dependent 
+options.  Not all of the options used for d0library code are necessarily needed
+for all programs, but they do not do any harm.  A library script called fort is
+available to compile programs using the standard d0library options.  
+The following two examples show how to compile a VAX fortran (.for) file in
+non-debug and debug mode respectively:
+.no fill
+.blank
+fort myprog.for        # Non-debug, optimized
+fort -g myprog.for     # Debug, non-optimized
+.blank
+.fill
+In both cases, a UNIX fortran (.f) and object (.o) file are created.
+(provided the compilation is successfull).  
+The -g option, which also
+happens to be the standard compiler debug option, is intercepted by fort.
+Any other standard compiler option may be included in the command line and will
+be passed directly to the compiler.  An example of a useful option on Silicon
+Graphics is -listing, which makes a listing (.L) file in the current working
+directory.
+.p
+Besides VAX fortran (.for), fort knows how to compile UNIX fortran (.f), c (.c)
+and lex (.lex) source files.  The language is determined by the file type.  All
+of these languages require compilation options that are system dependent.
+VAX fortran is preprocessed to UNIX fortran using the 
+D0 VAX fortran preprocessors 
+tasteofd0 and vmstounix.  Lex is preprocessed to c.  When compiling
+the preprocessed languages (.for and .lex), fort writes the preprocessor output
+(.f and .c) into the same directory as the original source, which need not be
+the current working directory.  Object file output is always in the current
+working directory.
+.p
+In all cases, fort echoes the preprocessor and compiler commands it invokes to
+standard output, so you can see what it is doing and what the standard options
+are.
+
+.hl2 Linking.
+
+The linkage editor is called ld.  It is not too convenient to invoke ld
+directly, because standard system libraries are not included in the link by
+default.  In UNIX, the easy way to get system and language libraries included
+by default is to use a compiler as a linker.
+The compilers always invoke ld to create an executable image unless 
+the -c option is specified on the command line.  (The fort script always
+includes -c among its standard options.)
+In addition to
+language sources, one is allowed to specify object files (.o files) and object 
+libraries (.a files) as compiler arguments.  No obscure options
+are required when 
+using the compiler as a linker.  
+
+.hl3 ^^Simple linking
+
+The following example shows how to compile and
+link a simple one-module program.
+.no fill
+.blank
+fort myprog.for
+f77 -o myprog myprog.o        # Use xlf on IBM.
+.blank
+.fill
+These commands will create an executable file called myprog in the current
+working directory.  The -o option is not required.  It overrides the default
+name of the executable file, which is a.out.  Options can be passed directly to
+ld from 
+the compiler using the -Wl compiler option.  One ld option that is sometimes
+required is the -U option on Silicon Graphics (allow unsatisfied externals).
+To link with the -U option, one would use the following
+command: 
+.no fill
+.blank
+f77 -o myprog -Wl,-U myprog.o
+.blank
+.fill
+Note that -U is separated from -Wl using a comma with no intervening spaces.
+
+.hl3 ^^Linking with d0library.
+
+The most graceful way to accomplish complex linking is to use a shell script.
+The following example shows the complete text of a simple but non-trivial link
+script.  At present, there is no way to generate such scripts
+automatically (e.g. using program builder or the make utilities).  I have not
+found this to be a problem.
+.no fill
+.blank
+#! /bin/csh -f
+f77 -o myprog myprog.o \
+  `uff $d0general/deb_general.a` \
+  `uff $d0unix/deb_unix.a` \
+  `uff $d0cernlib/packlib.a` \
+  `uff $d0cernlib/genlib.a` \
+  `uff $d0cernlib/kernlib.a` \
+  -lcurses
+.blank
+.fill
+Note the following things about this script:
+.list
+.le
+The command uff is a filter that is distibuted in the unix section of d0library.
+Basically, uff, which stands for "find first," changes the behavior of c shell
+search lists to that of VMS search lists.  The backquote, or grave accent,
+characters (not apostrophes) effect so-called command substitution.  That is,
+the standard output from uff becomes part of the command line.  The above
+uff-and-backquote syntax allows one to choose test or official libraries
+interactively using the libtest and nolibtest commands, just like in VMS.
+.le
+The above link command shows the standard order for linking the various
+libraries.  Two of the libraries are special to UNIX: deb_unix.a (in d0library)
+and -lcurses.  The syntax -lcurses tells f77 to link with the system library
+libcurses.a.  Curses is the UNIX equivalent of SMG.  Curses calls are generated
+by SMG emulator routines in (deb_)unix.a (see below).
+.end list
+
+.hl3 ^^Forcing an object module to load.
+
+The only machine independent way to force load an object module, such as a main
+program or dbank, is to extract it from the library and include the
+extracted .o file in the link command.  The following example shows a script
+that does this.
+.no fill
+.blank
+#! /bin/csh -f
+ar x `uff $d0general/general.a` dbank.o
+f77 -o myprog myprog.o dbank.o \
+  `uff $d0general/deb_general.a` \
+  `uff $d0unix/deb_unix.a` \
+  `uff $d0cernlib/packlib.a` \
+  `uff $d0cernlib/genlib.a` \
+  `uff $d0cernlib/kernlib.a` \
+  -lcurses
+.blank
+.fill
+The first command invokes the archiver (ar) with the extract (x) option to
+extract the dbank object module from the general library.  The following script
+shows another way to do this that works on Silicon Graphics and ULTRIX, but not
+IBM.
+.no fill
+.blank
+#! /bin/csh -f
+f77 -o myprog myprog.o -Wl,-u,dbank_ \
+  `uff $d0general/deb_general.a` \
+  `uff $d0unix/deb_unix.a` \
+  `uff $d0cernlib/packlib.a` \
+  `uff $d0cernlib/genlib.a` \
+  `uff $d0cernlib/kernlib.a` \
+  -lcurses
+.blank
+.fill
+The second method makes use of the -u linker option.  The argument of the -u
+option (dbank_ in this case) is a symbol name, not a module name.  The trailing
+underscore is appended by the fortran compiler to all global symbols.
+
+.hl2 Using DBANK.
+
+To use dbank, it is first necessary to link an executable in which the main
+dbank module has been force-loaded, as described above.  To run dbank, all of
+the rules for running SMG programs apply.  It is desirable to run SMG
+in window mode, if possible, to avoid interference with debugger output.  When
+using a window debugger, this is essential.
+To run in window mode, define the environment
+variables SMGTTY and SMGTERM as follows:
+.no fill
+.blank
+setenv SMGTTY xterm      # use aixterm on IBM
+setenv SMGTERM vt100
+.blank
+.fill
+If one is debugging over the network, then the environment variable DISPLAY
+should also be defined so that the window will be opened remotely.
+.p
+The dbx command to invoke dbank is:
+.no fill
+.blank
+ccall dbank()
+.blank
+.fill
+Once dbank has been invoked, all of the normal dbank commands work.
+
+.hl2 ^^Using make.
+
+Make is a standard UNIX utility that is similar to MMS in VMS.  I strongly
+recommend using make (and MMS) for any kind of serious program development.
+Make is also used by the UNIX d0library release procedures.
+.p
+Make is invoked by typing "make," with or without options and arguments.  Make
+runs from a special kind of 
+script, called a makefile, which is similar to an .MMS file in VMS.  A makefile contains a series of "targets," each of which
+may 
+specify one or more "dependents."  Dependents may themselves be used as
+targets, allowing nested dependencies.  Makefiles may also specify a set of
+updating rules (implicit or explicit) for building targets from dependents.
+The updating rules are invoked only for targets that are out of date with
+respect to their dependents.  Targets and
+dependents may be disk files, elements of libraries or any arbitrary character
+string.  The last type of target is called a "fake target."  Fake targets are
+always considered to be out of date with respect to their dependents.
+.p
+The unix section of d0library contains two scripts, mmstomake and userlib, for
+creating makefiles.  Mmstomake is used by the library release procedures to
+build makefiles from .MMS files.  Userlib is similar to the VMS beta utility of
+the same name.  Userlib creates a makefile for building a library from
+an arbitrary list of sources.  Like fort, userlib knows the updating rules for
+VAX fortran (.for), UNIX fortran (.f), c (.c) and lex (.lex) source files.  The
+following example shows how to invoke userlib:
+.no fill
+.blank
+userlib -d *.for
+.blank
+.fill
+The above command will generate a makefile to update the library deb_userlib.a
+from all VAX fortran source files in the current working directory.  The -d
+option is optional.  If -d is omitted, then the resulting makefile will contain
+two sets of updating rules for a debug and non-debug version of the target
+library (i.e. deb_userlib.a and userlib.a).  D0library makefiles contain debug
+and non-debug updating rules, but most users will be satisfied with only debug
+updating rules.  Userlib runs faster that way.
+.p
+Regardless of whether they are generated by mmstomake or userlib, the resulting
+makefiles may contain one or all of the following fake targets.
+.no fill
+.blank
+debug -- Used to update debug, non-optimized libraries.
+opt   -- Used to update non-debug, optimized libraries.
+pre   -- Used to invoke preprocessing (i.e. .for to .f 
+         and .lex to .c).
+.blank
+.fill
+One would use the following command to update deb_userlib.a using the makefile
+generated by the above userlib command.
+.no fill
+.blank
+make debug
+.blank
+.fill
+This command updates the fake target debug, which in turn updates the debug
+library deb_userlib.a.  Note that preprocessor updating is invoked
+automatically from the nested dependencies that are built into the makefile.
+It is (usually) not necessary to update the fake target pre explicitly. 
+
+.hl3 ^^Force-loading an entire object library.
+
+On Silicon Graphics and ULTRIX, it is necessary to force-load the entire
+contents of alpha- and beta-release libraries that have been updated by make,
+just like in VMS.  (This is supposedly not necessary with the IBM linker.)
+The following script shows how to do this using the script force_load, which is
+in the unix section of d0library.
+.no fill
+.blank
+#! /bin/csh -f
+make debug
+f77 -o myprog \
+  `force_load deb_userlib.a` \
+  `uff $d0general/deb_general.a` \
+  `uff $d0unix/deb_unix.a` \
+  `uff $d0cernlib/packlib.a` \
+  `uff $d0cernlib/genlib.a` \
+  `uff $d0cernlib/kernlib.a` \
+  -lcurses
+.blank
+.fill
+Force_load generates a series of -u linker options which, when
+command-substituted into a link statement, cause the entire contents of the
+library to load.  Note that it is not necessary to include the main program
+module (myprog.o) explicitly in the link statement, if it is included in
+deb_userlib.a.
+
+.hl2 Debugging.
+
+The standard UNIX debugger is called dbx.  It is invoked as follows.
+.no fill
+.blank
+dbx myprog
+.blank
+.fill
+Dbx takes a single argument, which is the name of an executable file.  The
+executable file (myprog in the above example) should be compiled in debug mode
+and linked with debug libraries.  The linker (ld) does not have a
+debug option and just running a program that has
+been compiled in debug mode does not enter the dubber automatically.
+.p
+Silicon
+Graphics and IBM both provide a window based interface to dbx.  These are
+called edge (Silicon Graphics) and xde (IBM).  Both are improvements over
+plain dbx.  Both accept all regular dbx commands in addition to their own
+special commands.  Edge and xde are invoked in the same way as dbx:
+.no fill
+.blank
+edge myprog    # Silicon Graphics
+xde myprog     # IBM
+.blank
+.fill
+The window debuggers can be invoked over the network if the DISPLAY environment
+variable has been set.  However, note that xde is based on the X protocol, but
+edge is not.  Edge can be run 
+over the network (in IRIX 4.0) from one Silicon Graphics box to another,
+but not from an X terminal.
+
+.hl1 Graphics
+
+This section is mainly concerned with doing graphics on Silicon Graphics
+machines, although some of the things described here are actually machine
+independent.  It is left as an exersize for the reader to figure out what
+parts of this section are machine independent.  I have no experience doing
+graphics on any UNIX machine other than Siliconn Graphics.  Native mode
+graphics on Silicon Graphics makes use of the Silicon Graphics Graphics
+Library (gl).
+
+.hl2 DI3000
+
+The Precision Visuals proprietary version of DI3000 is available from the
+Fermilab Computing Division under a site license as a product called pvi.
+This product can be accessed by typing "setup pvi."  This makes available the
+executables setdrv (for choosing drivers) and di3load (link script).
+Di3load can be invoked with any argument or option that is understood by f77,
+and di3load has its own options as well.  It is not necessary to explicitly
+include gl 
+libraries when using di3load.  It is necessary include CERNLIB graphics
+libraries.  The normal order for these is graflib followed by grafDI3 and then
+the other CERNLIB libraries (packlib etc.). 
+Drivers are available for
+several devices, including gl (setdrv sgi), postscript, X, talaris, tektronix,
+etc.  Refer to CD document TUN004 for more details.
+
+.hl3 DI3000 emulators
+
+Emulators for converting DI3000 to gl, X and Evans & Sutherland are being
+developed, or have been developed by D0 groups.  I do not know the
+details on how to access and use these emulators.
+
+.hl2 PAW
+
+The Computing Division's cern product is distributed with DI3000 and X
+windows versions of PAW (pawDI3 and pawX11).  Type "setup cern" and then 
+invoke the version of PAW that you want. 
+
+.hl1 Administrator's Guide.
+
+.hl2 ^^Installing the D0 environment.
+
+Here are step by step instructions for installing the D0 environment for the
+first time.
+.list
+.le
+Create an administrative account which will have ownership of d0library.  The
+username for this account is arbitrary (d0librar has often been used).  The
+home directory for this account is also arbitrary.  The home directory may
+coincide with the root of d0library, but does not have to.  Make sure that
+the d0library home and root directories
+exist and have the correct ownership and group membership.
+.le
+Log into the d0library account.
+Create a .netrc file in the home directory of the d0library account.  This file
+should have login information for one or more remote VAXes which will serve as
+d0library servers.  The .netrc file should contain one or more entries with
+the following format:
+.no fill
+.blank
+machine <node>
+login <username>
+password <password>
+.blank
+.fill
+Fill in your favorite internet node (e.g. d0sfa.fnal.gov), username and
+password.  The .netrc file must be read-protected against everyone except the
+owner.  Ftp won't use unprotected .netrc files.  Use the command 
+"chmod go-r .netrc" to change the default protection. 
+The D0SFT and FNALD0 clusters have a special account with a username
+of UNIX that has been set up to serve UNIX library fetches. 
+.le
+Set your current working directory to the d0library root directory and create
+the following subdirectories: c_inc, inc, links, params, zeb, general and unix.
+Create dummy version tag files, 000_<name>_v0.00, in each directory so that
+these directories will be recognized as valid d0library sections.
+Once this is done, set your current working directory to the unix subdirectory.
+Create two subdirectories in the unix directory called source and
+shell. 
+.le
+Go into ftp and fetch (from a VAX) the entire contents of the source and shell 
+groups of the unix section of 
+d0library into
+the source and shell subdirectories.  The ftp mget command may be used to fetch
+many files in one command.  Use the prompt command to turn off confirmation for
+individual files.
+If there is a test release of unix, just fetch the test release files on top of
+the official release files.  Exit from ftp.
+.le
+Make all of the files in the shell subdirectory executable and link them to the
+current (unix) directory.  The following commands may be used:
+.no fill
+.blank
+chmod +x shell/*
+ln shell/* .
+.blank
+.fill
+.le
+Create customized versions of d0local.login and d0local.cshrc for your machine
+in a non-d0library directory (such as /usr/local/etc).  The customized versions
+of the d0local files may also be placed in the root directory of d0library,
+since this directory is not affected by library releases.
+The local version
+of d0local.login should define the following three machine dependent
+environment variables: 
+d0library, VAXLIB_NODE and ZFTP_NODE.  The library version of d0local.login
+provides a default value for the d0library environment varialbe only if
+d0library is undefined.  This 
+value 
+is correct for the node d0sgi6.fnal.gov.  The library version of d0local.login
+does not provide default values for VAXLIB_NODE and ZFTP_NODE.  There are
+no mandatory customizations for d0local.cshrc.
+.p
+One way to customize the library versions of the d0local files is to copy them
+to the local directory and edit them.  I don't recommend
+doing this, however, because then these files will have to be updated every
+time a new version is released.  Instead, the local version of d0local.login
+should define d0library, VAXLIB_NODE and ZFTP_NODE and then source the library
+version of d0local.login.  D0local.cshrc should source the library version of 
+d0local.cshrc.  Here is an example of a local version of d0local.login that
+defines the required environment variables and sources a library version (test
+or official) of d0local.login:
+.no fill
+.blank
+#-------------------------------------------------------
+#
+# Name      : d0local.login
+#
+# Purpuse   : Customized d0local.login
+#
+# Created 6-May-1992   Herbert B. Greenlee
+#
+#-------------------------------------------------------
+#
+# Set environment variables
+#
+setenv VAXLIB_NODE	d0sf14.fnal.gov
+setenv ZFTP_NODE	d0sf14.fnal.gov
+setenv d0library	/usr/d0librar
+#
+# Source library d0local.login.  First try test, then 
+# official.
+#
+foreach login ( /usr/d0librar/test/unix/d0local.login \
+                /usr/d0librar/unix/d0local.login )
+  if( -f $login )break
+end
+source $login
+.blank
+.fill
+.le
+Source the local versions of the d0local files (d0local.cshrc first, then 
+d0local.login).  When this is done, check your environment (e.g. using
+printenv) to make sure that it is reasonable.  Make sure that d0library, d0unix
+and VAXLIB_NODE are correctly defined.  
+.le
+Modify d0library's .cshrc and .login files to source the local versions of
+d0local.login and d0local.cshrc.  It is also recommended to source fermi.cshrc
+and fermi.login to set up the Fermi environment.  However, this does not have
+to be done 
+immediately and is not necessary to complete the installation of the D0
+environment. 
+Other D0 accounts should do the same.
+.le
+From the top directory of the unix library, execute the installation script
+unix_release.  This is normally done automatically during test and official
+releases.  If all goes well, this script will build all required libraries and
+executables.  The following libraries should have been created:  unix.a,
+deb_unix.a, mains.a and deb_mains.a.  
+Make sure that the following executables have been created:  uff,
+ufa, ufl, vff, vfa, vfl, vmstounix, tasteofd0.  These executables will be
+needed to release other d0library sections.  Minor problems, such as the
+failure of some library routines to compile, may be ignored temporarily.  This
+step completes the initial hand release of the unix library section.
+.le
+Once the hand release of the unix section is successful, it is a good idea to
+release it again using the library release procedure.  The command to do this
+is "test_release unix" or "official_release unix."  If you do a test relesae,
+then type "libtest unix" afterward.  This step is partly a confidence
+building measure, but also fetches some files that were not fetched during the
+hand release, such as release notes and documentation.  
+.end list
+This completes the installation of the D0 environment.  One can now procede to
+the installation of the rest of d0library.
+
+.hl2 ^^D0library maintenence.
+
+The unix section of d0library contains three main d0library maintenence
+scripts: official_release, test_release and update_library.
+Official_release and test_release can be used to
+do an official or test release of a single d0library section.  
+Test_release can also be used to
+do a gamma release.  At a higher level, the script update_library invokes
+official_release and test_release, as necessary, to do a global update of
+d0library.
+
+.hl3 ^^Choosing d0library sections to be updated.
+
+The universe of d0library sections, as far as the release procedures are
+concerned, is defined by a text file called "sections."  The unix library is
+distributed with a default sections file in the shell group.  The default
+sections file ($d0unix/shell/sections) may be used as is without doing
+anything, or it may be customized for a particular node.  To do the latter,
+copy the default sections file to the root directory of d0library (where it
+will not be affected by library releases) and edit it there.  The sections file
+is accessed by just one d0library script (lib_sect), which looks in both
+directories ($d0library and $d0unix/shell).  Lib_sect can be invoked
+interactively to type the list of known d0library sections.
+
+.hl3 ^^Releasing a d0library section.
+
+Before a d0library section can be releseed to UNIX, if must first be released
+to a VMS node.  Official_release and test_release are then invoked as follows:
+.no fill
+.blank
+official_release <section>    # official release
+test_release <section>        # test release
+test_release -g <section>     # gamma release
+.blank
+.fill
+For a normal library section, official_release and test_release
+attempt to fetch all text files from a d0library section on a VMS node (the
+default node is $VAXLIB_NODE) to the local UNIX node.  The directory structure
+of the section of preserved.  Then the section .MMS file is converted to a
+makefile, which is used by make to build the libraries.  The build phase always
+takes place in a "libtest all" environment, even for official releases.
+The official release procedure always rebuilds a library section from scratch,
+rather than merely officializing a test version.  Both release procedures
+create a file called release.log in the top directory of the fetched library
+section.  Release.log contains all output generated by the release.  Another
+file called error.log is generated by parsing error messages out of release.
+log.  Problems,
+such as compilation errors, are recorded there. 
+
+.hl3 ^^Updating all of d0library.
+
+The script update_library performs a global update of d0library.  Only those
+sections whose versions are out of date with respect to the VMS version 
+are updated.  Update_library is invoked as follows.
+.no fill
+.blank
+update_library -to
+.blank
+.fill
+The order in which library sections are released is important.
+Update_library updates library sections according to the following six
+step process.
+.list
+.le
+Official versions of c_inc, inc, links, params, zeb.
+.le
+Test versions of c_inc, inc, links, params and zeb.
+.le
+Official version of complex sections (general).
+.le
+Official versions of all other sections.
+.le
+Test version of complex sections (general).
+.le
+Test versions of all other sections.
+.end list
+The most important
+dependencies are that a) the test versions of inc, links, params and zeb should
+be up to date before any other official or test library is released and that
+b) the official versions of general's component libraries (compack, d0hplt,
+errmsg_util, event_util, isajet_util, offline_util, srcp_util and zebra_util) 
+should be up to date before the test release of general.  
+.p
+The unix library
+section does not have any explicit dependencies with other library sections and
+does not need to be strictely up to date before update_library is invoked,
+although there obviously has to be a working version in d0library since the
+release procedures live there.
+
+.hl3 ^^Customizing releases of library sections.
+
+Both of the release scripts, official_release and test_release, provide two
+hooks where an arbitrary script can be invoked during a library release.
+After fetching files, but before building libraries, the release
+scripts looks for an executable file with the name <section>_pre_release in the
+top directory of the library being released.
+After building
+libraries, the release scripts looks for an executable file with the
+namne <section>_release.  In either case, any such file that is found is
+executed.  Several library sections currenly have such scripts, including,
+dbl3, stp and unix.
+
+.hl3 Cernlib.
+
+D0library does not distribute anything that is of interest to UNIX in its
+cernlib section.  It is hard-coded into update_library never to
+update the cernlib section of d0library, regardless of the contents of the
+sections file.  Official_release and test_release have no built-in protection
+against trying to release the cernlib section of d0library.  
+.p
+It is possible, but not essential, to set up the cernlib section of d0library
+by hand so that cernlib looks like any other section of d0library as far as
+linking programs is concerned.  This allows users to choose different versions
+of cernlib using libtest and nolibtest, for example.  The basic idea is to
+create symbolic links from d0cernlib to the Fermi cernlib libraries.  This does
+not take any significant amount of disk space.  Here is an example of a script
+to set up the official d0cernlib area.
+
+.no fill
+.blank
+#! /bin/csh -f
+set d0cernlib = $d0library/cernlib
+touch $d0cernlib/000_cernlib_cnl203
+setup cern cnl203
+ln -sf $CRNLIB/libpacklib.a $d0cernlib/packlib.a
+ln -sf $CRNLIB/libgenlib.a  $d0cernlib/genlib.a
+ln -sf $CRNLIB/libkernlib.a $d0cernlib/kernlib.a
+ln -sf $CRNLIB/libgraflib.a $d0cernlib/graflib.a
+ln -sf $CRNLIB/libgrafDI3.a $d0cernlib/grafDI3.a
+ln -sf $CRNLIB/libgeant.a   $d0cernlib/geant.a
+.blank
+.fill
+A utility procedure called d0cernlib exists to handle the making of these 
+symbolic links in a general way.
+
+.hl2 ^^The Fermi environment and Fermi products.
+
+The Fermilab Computing Divison distributes a number of "products" for UNIX.
+These include locally written, public domain (e.g. GNU emacs) and 
+proprietary (e.g. DI3000) products.  The locally written and public domain
+products are freely available to any node, on or off site.  The proprietary
+products are usually available under a site license, and are not available to
+off-site nodes.
+
+.hl3 ^^Product maintenance (ups, upd, upp)
+
+Ups (unix-product-support) and upd
+(unix-product-distribution) should be the first two Fermi products to be
+installed.  Ups manages a database of installed products on
+any given node.  Upd performs the actual distribution and installation of new
+products.  The first installation of both ups and upd must be done by hand.
+The procedures for doing this are described in CD documents PN426 and PN435.
+To use upd, you need to register your node on a product distribution node (e.g.
+fnsg01.fnal.gov).
+Once ups and upd are installed, other products, including subsequent versions
+of ups and upd, can be installed using the standard procedures.  Once a product
+is installed, it can be made available for use by issuing a setup command.
+Setup 
+is part of the ups product, which is the only product that does not have to be
+explicitly set up.  Ups is set up automatically when the Fermi environment is
+initialized by fermi.cshrc.
+.p
+Upd works in "pull" mode.  The product upp (unix-product-pull) may be used to
+automate various 
+aspects of the product updating cycle.  The actions performed by upp range from
+mail notification of new product releases, to automatic installation (in effect
+a push).  Upp is not required by the Fermi environment, and I have not
+personally used it. 
+
+.hl3 ^^DCD Utilities (funkern, futil, systools, fulib)
+
+The funkern, futil and systools products provide various low level utilities.
+These 
+products should be installed immediately after ups and upd in the order just
+given.  The futil product contains the useful utility flpr, which allows
+one to print on VMS print queses directly from UNIX.  The systools product
+contains the Fermi environment initialization files fermi.login and 
+fermi.cshrc.  The fulib product contains a library of c callable routines used
+by various other products.  It is only needed if you want to locally recompile
+executables contained in other products.
+
+.hl3 Cernlib
+
+Cernlib is distributed, via upd, in several separate pieces:
+.no fill
+.blank
+      cern_doc_ups -- Documentation and setup files.
+      cern_bin     -- Executables (e.g. zftp).
+      cern_lib     -- Libraries.
+      cern_pam     -- Pam files (cnl203 and earlier).
+      cern_car     -- Car files (v92a and later).
+      cern_misc    -- Files for building libraries.
+      cern_src     -- Source files.
+.blank
+.fill
+When installing cern, the above tar files should be obtained using upd,
+unpacked in a single 
+directory and declared to ups as a single product (cern).  Not all of the
+of the above pieces need to be installed an all nodes. 
+
+.hl3 Other products.
+
+Here are brief descriptions of some other Fermi products.
+.no fill
+.blank
+      cedit    -- C shell command history and editing.
+      pvi      -- Precision Visuals DI3000 (proprietary).
+      edt      -- EDT+ text editor (proprietary).
+      emacs    -- GNU emacs text editor (public domain).
+      nedit    -- User friendly X based text editor.
+      allocate -- Tape device allocation.
+      rbio     -- Labeled tape I/O (requires allocate).
+.blank
+.fill
+
+.hl1 References.
+
+The following book is a tutorial introduction to many aspects of UNIX and is
+available from the Fermilab Stockroom.
+
+.list
+.le
+Bourne, Philip E., UNIX for VMS Users, Digital Press (1990).
+.end list
+
+Anyone who is interested in any kind of system programming in UNIX will want to
+learn c.  I have found the following books to be useful in this regard.
+
+.list
+.number list 2
+.le
+Kernighan, Brian W. and Dennis M. Ritchie, The C Programming Language, 2nd
+edition, Prentice Hall, Englewood Cliffs, NJ (1988).
+.le
+Lewine, Donald, POSIX Programmer's Guide, O'Reilly & Associates, Sebastopol,
+CA (1991).
+.end list
+
+The following are Fermilab Computing Division Documents that I have found to be
+useful.
+
+.list
+.number list 4
+
+.le
+UNIX at Fermilab, GU0001.
+.le
+Cutts-Bone, Sandra and Kevin E. Leininger, Overview of Product Installation &
+Distribution on Unix Machines, GU0006.
+.le
+UPS User's Guide, PN426.
+.le
+Bliss, William, Jonathon Streets, Lourdu Udumula, Margaret Vatava and Kevin
+Leininger, UNIX Product Distribution User's Guide, PN435.
+.le
+Gurbani, Vijay, and Janet Weber, upp Client User Guide, PU0134.
+.le
+Wicks, Matthew J., DCD User Guide 3.3, DCD3.3.
+.le
+Shah, H., VT100/VT200 Emulation on a SGI Workstation, TSGI004.
+.le
+Reid, Donna, Running DI3000 on UNIX Systems, TUN004.
+.end list

@@ -1,0 +1,179 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name:    comp
+#
+# Purpuse: Compile various sources to object files.  Recognized source types
+#          are .for (VAX fortran), .f (fortran-77) .lex and .c.
+#
+# Usage:
+#
+#   comp [-f flavor] [-t] [options] file1 file2 ...
+#
+# Options:
+#
+# -f  - Specify UNIX flavor (.for only).  Default is $D0FLAVOR.
+#
+# VAX fortran (.for) files are processed through vmstounix and tasteofd0 or
+# d0flavor and then passed to f77 (xlf) as .f files.
+#
+# Lex files are preprocessed by lex and then compiled by cc.
+#
+# The optimization option -O2 is specified for both cc and f77 unless a debug
+# (-g) option has been specified on the command line.
+#
+# Created 16-OCT-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Specify default options
+#
+set f77 = "$f77 -c $f77flags"
+set cinc = ( `ufa '$d0unix/source' '$d0c_inc'` )
+set cinc = "{`echo $cinc | tr -s ' ' ','`}"
+set inc_opts = ( -I$cinc )
+set lcc = "$cc -c $lccflags $inc_opts"
+set cc = "$cc -c $ccflags $inc_opts"
+#
+# Scan arguments for source files, locally processed options and debug options.
+# Other arguments are passed directly to f77 and cc.
+#
+set debug = ''
+set for_files = ''
+set f_files = ''
+set lex_files = ''
+set c_files = ''
+set flavor = $D0FLAVOR
+set opts = ''
+while ($#argv > 0)
+  if( "$argv[1]" =~ \-g* )then
+    set debug = $argv[1]
+    shift
+    continue
+  else if( "$argv[1]" == \-f )then
+    set flavor = $argv[2]
+    repeat 2 shift
+    continue
+  else if( "$argv[1]" =~ *.for )then
+    set for_files = ( $for_files $argv[1] )
+    shift
+    continue
+  else if( "$argv[1]" =~ *.f )then
+    set f_files = ( $f_files $argv[1] )
+    shift
+    continue
+  else if( "$argv[1]" =~ *.lex )then
+    set lex_files = ( $lex_files $argv[1] )
+    shift
+    continue
+  else if( "$argv[1]" =~ *.c )then
+    set c_files = ( $c_files $argv[1] )
+    shift
+    continue
+  else
+    set opts = ( "$opts:q $argv[1]" )
+    shift
+    continue
+  endif
+end
+#
+# Add debug and optimization options
+#
+if( "$debug" == '' )then
+  set opts = "$opts:q $optflags"
+else
+  set opts = "$opts:q $debflags"
+endif
+set f77 = "$f77:q $opts"
+set cc = "$cc:q $opts"
+set lcc = "$lcc:q $opts"
+set comp = 0
+#
+# Preprocess .for files to .f files here
+#
+if( $#for_files > 0 )then
+  foreach for ( $for_files )
+    if( ! -f $for )continue
+    set f = ${for:r}.f
+    unset command
+#    if( $?USE_D0FLAVOR && `uff $d0util/d0flavor.x` != '' )then
+#      set command = "d0flavor.x -$D0FLAVOR -OUTPUT=$f $for"
+#    else
+      set command = "tasteofd0 $flavor < $for | vmstounix > $f"
+#    endif
+    foreach cmd ( $command:q )
+      echo $cmd
+      csh -f -c $cmd:q
+    end
+    if( ! `echo $f_files | fgrep -c $f` ) set f_files = ( $f_files $f )
+  end
+endif
+#
+# Compile .f files here
+#
+if( $#f_files > 0 )then
+  foreach f ( $f_files )
+    if( ! -f $f )continue
+    if( $f !~ /* )set f = `d0pwd`/$f        # Use absolute pathname
+    set o1 = ${f:r}.o
+    set o1 = $o1:t
+    set o2 = `archive_name $f`
+    unset command
+    set command = "$f77:q $f"
+    if( $o1 != $o2 ) set command = ( $command:q "mv $o1 $o2" )
+    foreach cmd ( $command:q )
+      set comp = 1
+      echo $cmd
+      csh -f -c $cmd:q
+    end
+  end
+endif
+#
+# Preprocess .lex files to .c files here
+#
+if( $#lex_files > 0 )then
+  foreach lex ( $lex_files )
+    if( ! -f $lex )continue
+    set c = ${lex:r}.c
+    unset command
+    set command = "lex -t $lex > $c"
+    foreach cmd ( $command:q )
+      echo $cmd
+      csh -f -c $cmd:q
+    end
+    if( ! `echo $c_files | fgrep -c $c` ) set c_files = ( $c_files $c )
+  end
+endif
+#
+# Compile .c files here
+#
+if( $#c_files > 0 )then
+  foreach c ( $c_files )
+    if( ! -f $c )continue
+    if( $c !~ /* )set c = `d0pwd`/$c             # Use absolute pathname
+    set o1 = ${c:r}.o
+    set o1 = $o1:t
+    set o2 = `archive_name $c`
+    unset command
+    if( -f ${c:r}.lex )then
+      set command = "$lcc:q $c"
+      if( $o1 != $o2 ) set command = ( $command:q "mv $o1 $o2" )
+    else
+      set command = "$cc:q $c"
+      if( $o1 != $o2 ) set command = ( $command:q "mv $o1 $o2" )
+    endif
+    foreach cmd ( $command:q )
+      set comp = 1
+      echo $cmd
+      csh -f -c $cmd:q
+    end
+  end
+endif
+#
+# Generate an error message of neither compiler was invoked (f77 or cc)
+#
+if( $comp == 0 )then
+  echo "comp: No files were compiled"
+  exit 1
+endif

@@ -1,0 +1,107 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : atoa
+#
+# Purpose   : Transfer modules from one archive library into another.
+#
+# Usage:
+#
+# % atio [-i] <destination-library> <source-library>
+#
+# Options   :
+#
+# -i   - Read a list of object modules to transfer from standard input.  If 
+#        missing, copy all modules in source library.
+#
+# Arguments : Two archive libraries, destination and source.
+#
+# Created 4-Jan-1995   Herbert B. Greenlee
+#
+# Usage notes:
+#
+# 1.  Exactly two archive libraries should be specified as arguments.
+#
+# 2.  The -i option is intended for the private, recursive use of atoa.
+#
+#------------------------------------------------------------------------------
+#
+# Quick help
+#
+if($#argv == 0) then
+help:
+  echo "usage: atoa [-i] <destination-library> <source-library>"
+  exit 1
+endif
+#
+# Scan options
+#
+set input = 0
+set argv = (`getopt i $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -i:
+    set input = 1
+    shift
+    breaksw
+  default:
+    echo "atoa: bad option $argv[1]"
+    goto help
+  endsw
+end
+shift                       # Get rid of terminating --
+if($#argv != 2) goto help
+set dest = $argv[1]
+set src = $argv[2]
+if( ! -f $src ) goto help
+if( ! $input )then
+  ar t $src | grep '\.o' | atoa -i $dest $src
+  exit $status
+endif
+#
+# Make sure source archive has absolute path
+#
+if( $src !~ /* )set src = $cwd/$src
+#
+# Remember the current working directory
+#
+set dir = $cwd
+#
+# Create an empty temporary directory.
+#
+set tmpdir = `d0tmpdir -c atoa`
+#
+# Prepare to loop over object modules.
+#
+set nmax = 20
+set eof = 0
+set modules = ''
+object_loop:
+#
+# Read $nmax object modules from standard input or until EOF.
+#
+  set modules = ( $modules `line` )
+  if( $status )then
+    set eof = 1
+    goto object_done
+  endif
+  if( $#modules < $nmax )goto object_loop
+object_done:
+if( "$modules" == '' )goto exit
+#
+# Extract $modules from source archive into $tmpdir.
+#
+cd $tmpdir
+ar x $src $modules
+cd $dir
+#
+# Load object modules into destination archive.
+#
+ar $arflags $dest $tmpdir/*
+if( $eof )goto exit
+rm $tmpdir/*
+set modules = ''
+goto object_loop
+exit:
+rmdirp $tmpdir >& /dev/null

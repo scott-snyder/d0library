@@ -1,0 +1,77 @@
+#!/bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : prestage
+#
+# Purpose   : Prestage a list of FATMEN generic names.
+#
+# Usage: Generic names (possibly containing wildcards) are read from
+#        the command line or from standard input.
+#
+#    prestage [-h rhost] <generic-name-1> <generic-name-2> ...
+#
+#       -or-
+#
+#    cat file_names | prestage
+#
+# Created 12-May-1994   Herbert Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# initialization
+#
+set noglob = 1
+set rhost = ''
+#
+# scan options
+#
+set argv = (`getopt h: $argv:q`)
+while("$argv[1]" != '--')
+    switch($argv[1])
+    case -h:
+        set rhost = $argv[2]
+        repeat 2 shift
+        breaksw
+    endsw
+end
+shift		# drop --
+#
+# make sure that all required variables are defined (supply defaults)
+#
+if( "$rhost" == '' && $?FATMEN_NODE )then
+  set rhost = $FATMEN_NODE
+endif
+if( "$rhost" == '' )then
+  set rhost = $VAXLIB_NODE
+endif
+#
+# Make temp file
+#
+set tmpdir = `d0tmpdir -c prestage`
+set file_list = $tmpdir/file_list$$
+#
+# Get list of files to prestage
+#
+if( $#argv > 0 )then
+  ufa $argv:q | grep -i '//fnal/d0' > $file_list
+else
+  cat | ufa | grep -i '//fnal/d0' > $file_list
+endif
+set n = `cat $file_list | wc -l`
+if( $n == 0 )goto done
+#
+# Copy file list to VAX
+#
+ftp $rhost << END
+put $file_list prestage_$$.lis
+quit
+END
+#
+# Remote execute FATMEN prestage
+#
+d0rexec $rhost '@d0$unix$vms:fatmen_prestage' "prestage_$$.lis"
+#
+# Done delete temporary files
+#
+done:
+rmdirp $tmpdir

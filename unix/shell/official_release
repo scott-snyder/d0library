@@ -1,0 +1,296 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : Official_release
+#
+# Purpose   : Get official library section
+#
+# Usage     :
+#
+# % official_release [-nv] [-h rhost] [-u ruser] [-d dir] section
+#
+# Options   :
+#
+# -s   - Leave in scratch area.
+# -h   - Specify remote host (VAX).
+# -u   - Specify remote user.
+# -d   - Local directory to hold release.
+# -l   - Do not generate log file (output to stdout only).
+#
+# Arguments :
+#
+# section - Library section to get
+#
+# Created 18-NOV-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Remember original args
+#
+set oldargv = ( $argv )
+#
+# Scan options
+#
+set rhost = ''
+set ruser = ''
+set ldir = ''
+set leave_in_scratch = 0
+set log = 1
+set argv = (`getopt sh:u:d:l $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -h:
+    set rhost = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -s:
+    set leave_in_scratch = 1
+    shift
+    breaksw
+  case -u:
+    set ruser = "-u $argv[2]"
+    repeat 2 shift
+    breaksw
+  case -d:
+    set ldir = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -l:
+    set log = 0
+    shift
+    breaksw
+  endsw
+end
+shift    # drop --
+if( $rhost == '' && $?ZFTP_NODE )then
+  set rhost = $ZFTP_NODE
+endif
+if( $rhost == '')then
+  set rhost = $VAXLIB_NODE
+endif
+#
+# Interpret argument
+#
+if( $#argv == 0 )then
+  echo "Usage: official_release [-sv] [-u ruser] [-h rhost] [-d ldir] section"
+  exit
+endif
+set lib_section = $1
+#
+# Generate significant directories and filenames
+#
+if( $ldir == '' )then
+  set official_root = $d0library/$lib_section
+  setenv d0root $d0library/scratch
+else
+  set official_root = $ldir
+  setenv d0root $ldir:h/scratch
+endif
+setenv d0scratch $d0root
+set test_root = $d0test/$lib_section
+set gamma_root = $d0gamma/$lib_section
+set mms_file = ${lib_section}.mms
+#
+# Make sure root of official library sections exists.
+#
+if( ! -d $official_root )then
+  mkdirp $official_root
+  if( ! -d $official_root )exit 1
+endif
+#
+# If we want to generate a logfile, then call official_release recursively.
+#
+if( $log )then
+  set templogfile = $official_root:h/${lib_section}.log
+  official_release -l $oldargv |& tee $templogfile
+  set release_status = $status
+  set log_dir = $official_root
+  if( -d $d0scratch/$lib_section )set log_dir = $d0scratch/$lib_section
+  mv $templogfile $log_dir/release.log
+  error_filter $log_dir/release.log >& $log_dir/error.log
+  exit $release_status
+endif
+#
+# Do libtest of all library sections except unix (unix could be in gamma mode).
+#
+foreach sect ( `lib_sect` )
+  if( $sect != unix )then
+    set argv = ( $sect )
+    source `uff $d0unix/libtest.csh`
+  endif
+end
+#
+# Set up scratch area
+#
+set scratch = $d0scratch/$lib_section
+rm -rf $scratch
+mkdirp $scratch
+if( ! -d $scratch )then
+  echo "Unable to create scarch area"
+  exit 1
+endif
+cd $scratch
+#
+# Define the library environment variable to be a search list pointing first
+# to the scratch area and then to the official area.  This effectively takes
+# the target library section out of test mode also.
+#
+if( $lib_section == unix )then
+  setenv d0$lib_section "{$scratch,$official_root}"
+else
+  setenv d0$lib_section "$scratch"
+endif
+#
+# Fetch files into scratch area
+#
+mixfetch -h $rhost $ruser -d $scratch 'd0$disk:[d0library.'${lib_section}'...]*.*'
+#
+# Copy all .csh files from subdirectories to top directory of library.
+#
+find $scratch -type f -name \*.csh -exec cp {} $scratch \; >& /dev/null
+#
+# Exit with error status if $scratch has no files (fetch failed).
+#
+set nscratch = `ls -R $scratch | wc -w`
+if( $nscratch == 0 )then
+  echo "No files fetched, giving up."
+  exit 1
+endif
+#
+# Convert .inc, .link, .def and .params files to the local flavor
+#
+find $scratch -name '*.inc' -exec local_flavor {} \;
+find $scratch -name '*.link' -exec local_flavor {} \;
+find $scratch -name '*.def' -exec local_flavor {} \;
+find $scratch -name '*.params' -exec local_flavor {} \;
+#
+# Execute any executable release files in the top directory.
+#
+cd $scratch
+set pre_release_file = `uff $d0unix/lib/${lib_section}_pre_release $scratch/${lib_section}_pre_release`
+if( -x "$pre_release_file" )then
+  $pre_release_file
+endif
+#
+# Build phase.
+#
+if( -f $mms_file )then
+  echo "Generating debug makefile"
+  mmstomake -c $d0root -d -o Makefile $mms_file
+  if ( -f Makefile ) then
+    make -f Makefile for
+    make -f Makefile pre
+    make -f Makefile debug
+  endif
+  echo "Generating non-debug makefile"
+  mmstomake -c $d0root -n -o makefile $mms_file
+  if( -f makefile )then
+    make -f makefile opt
+  endif
+endif
+#
+# Compile any .for files in the top directory (including, but not limited to,
+# the version subroutine).
+#
+foreach for_file ( `ufa "$scratch/*.for"` )
+  fort -g2 $for_file
+end
+#
+# Insert version subroutine into libraries.
+#
+echo "Inserting version subroutines into libraries"
+set version_for = `uff 'v*.for'`
+if( -f $mms_file )then
+  set libs = ''
+  foreach lib ( `mms_filter -l $mms_file | sed 's/.olb/.a/'` )
+    set libs = ( $libs `vff $lib:q` )
+  end
+else
+  set libs = (`ufa "$scratch/*.a" | grep -v deb_`)
+endif
+if( $#version_for != 0 )then
+  set version_obj = `archive_name $version_for`
+  foreach lib ( $libs )
+    set com = "ar $arflags $lib $version_obj"
+    echo $com
+    eval $com
+    set deb_lib = $lib:h/deb_$lib:t
+    set com = "ar $arflags $deb_lib $version_obj"
+    echo $com
+    eval $com
+  end
+endif
+#
+# Mother-daughter processing:  Copy modules from daughter into mother library.
+#
+# Special processing for daughter libraries goes here.
+#
+foreach mother ( `lib_sect -c` )
+  foreach daughter ( `lib_sect @$mother` )
+    if( "$daughter" == "$lib_section" )then
+      set mother_dir = $official_root:h/$mother
+      if( -d $mother_dir )then
+        if( -f ${daughter}.a ) \
+          echo "Copying modules from ${daughter}.a into $mother_dir/${mother}.a"
+        if( -f ${daughter}.a ) \
+          atoa $mother_dir/${mother}.a ${daughter}.a
+        if( -f deb_${daughter}.a ) \
+          echo "Copying modules from deb_${daughter}.a into $mother_dir/deb_${mother}.a"
+        if( -f deb_${daughter}.a ) \
+          atoa $mother_dir/deb_${mother}.a deb_${daughter}.a
+      endif
+    endif
+  end
+end
+#
+# Special processing for mother libraries goes here.
+#
+foreach mother ( `lib_sect -c` )
+  if( "$mother" == "$lib_section" )then
+    foreach daughter ( `lib_sect @$mother` )
+      set daughter_dir = $official_root:h/$daughter
+      if( -f $daughter_dir/${daughter}.a ) \
+        echo "Copying modules from $daughter_dir/${daughter}.a into ${mother}.a"
+      if( -f $daughter_dir/${daughter}.a ) \
+        atoa ${mother}.a $daughter_dir/${daughter}.a
+      if( -f $daughter_dir/deb_${daughter}.a ) \
+        echo "Copying modules from $daughter_dir/deb_${daughter}.a into deb_${mother}.a"
+      if( -f $daughter_dir/deb_${daughter}.a ) \
+        atoa deb_${mother}.a $daughter_dir/deb_${daughter}.a
+    end
+  endif
+end
+#
+# Execute any executable release files in the top directory.
+#
+cd $scratch
+set release_file = `uff $d0unix/lib/${lib_section}_release $scratch/${lib_section}_release`
+if( -x "$release_file" )then
+  $release_file
+endif
+#
+# Move stuff from scratch into official area (clear old contents first).
+# Skip this step if -s was specified on command line.
+#
+if( $leave_in_scratch != 0 )exit
+echo "Deleting old contents of library."
+#rm -rf $official_root
+set junkdir = $official_root:h/junk
+mkdirp $junkdir
+mv $official_root $junkdir
+rm -rf $junkdir
+echo "Moving files from scratch to official area."
+mv $scratch $official_root:h
+#
+# Delete test and gamma libraries, if they exist
+#
+if( -d $test_root )then
+  echo "Deleting test library"
+  rm -rf $test_root
+endif
+if( -d $gamma_root )then
+  echo "Deleting gamma library"
+  rm -rf $gamma_root
+endif
+rehash

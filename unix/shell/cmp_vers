@@ -1,0 +1,104 @@
+#! /bin/csh -f
+alias awk `uff /usr/bin/nawk /usr/bin/awk`
+#------------------------------------------------------------------------------
+#
+# Name      : cmp_vers
+#
+# Purpuse   : Compare library version numbers between the local (UNIX) node
+#             and a remote (VAX) node.
+#
+# Usage     :
+#
+# % cmp_vers [-dgto] [-h rhost]
+#
+# Options:
+#
+# -d   - Print only those libraries that have different versions.
+# -g   - Debug mode.
+# -t   - Compare test versions.
+# -o   - Compare official versions.
+# -h   - Specify remote host.  If not specified, the name of the remote host
+#        is $VAXLIB_NODE.
+#
+# Arguments:
+#
+# rhost - Remove host (VAX).
+#
+# Notes:
+#
+# 1.  Omitting -t and -o compares the latest version whether or not it
+#     is test or official.
+#
+# Created 20-NOV-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set test = 0
+set official = 0
+set current = 0
+set diff = 0
+set debug = 0
+set rhost = ''
+set tmpdir = `d0tmpdir -c cmp_vers`
+set temp = $tmpdir
+set argv = (`getopt dgtoh: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -d:
+    set diff = 1
+    shift
+    breaksw
+  case -g:
+    set debug = 1
+    shift
+    breaksw
+  case -o:
+    set official = 1
+    shift
+    breaksw
+  case -t:
+    set test = 1
+    shift
+    breaksw
+  case -h:
+    set rhost = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop --
+if( $debug )then
+  set debug_opt = '-g'
+else
+  set debug_opt = ''
+endif
+if( $rhost == '' )then
+  set rhost = $VAXLIB_NODE
+endif
+if( ! $official && ! $test )set current = 1
+#
+# Get versions
+#
+if( $test )then
+  lib_sect -vt > ${temp}.local
+  lib_sect -vt $debug_opt -h $rhost > ${temp}.remote
+endif
+if( $official )then
+  lib_sect -vo > ${temp}.local
+  lib_sect -vo $debug_opt -h $rhost > ${temp}.remote
+endif
+if( $current )then
+  lib_sect -v > ${temp}.local
+  lib_sect -v $debug_opt -h $rhost > ${temp}.remote
+endif
+lib_sect | join - ${temp}.local | tr ' ' '\011' | join - ${temp}.remote | \
+  tr ' ' '\011' > ${temp}.combined
+if( $diff )then
+  awk '{if( $2 != $3 )print}' ${temp}.combined
+else
+  cat ${temp}.combined
+endif
+done:
+rmdirp $tmpdir

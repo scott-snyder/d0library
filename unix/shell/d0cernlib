@@ -1,0 +1,106 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : d0cernlib
+#
+# Purpuse   : Make symbolic links to or copies of cernlib libraries in
+#             d0library from another area (e.g. fnal products).
+#
+# Usage:
+#
+#   d0cernlib <d0cernlib directory> <cernlib directory> <version> <copy>
+#
+# Arguments:
+#
+# <d0cernlib directory> - Directory where d0cernlib libraries live.  
+#                         Usually $d0library/cernlib, $d0test/cernlib, 
+#                         or $d0gamma/cernlib.
+#
+# <cernlib directory>   - Area where cernlib libraries are kept.  In the 
+#                         Fermi products environment, this should be $CRNLIB 
+#                         or $CERN_DIR/lib.
+#
+# <geant directory>     - Area where geant libraries and object modules
+#                         are kept.  In the Fermi products environment, 
+#                         this is $GEANT_DIR.
+#
+# <version>             - Cernlib version for tag file (e.g. v92b).
+#
+# <copy>                - 0 = Make symbolic link.
+#                         1 = Make copy.
+#
+# Usage notes.
+#
+# 1.  Each of the arguments is mandatory.
+#
+# 2.  The old contents of the specified d0cernlib area are unconditionally
+#     deleted.
+#
+# 3.  Files with extension .a, .o, and .dat in either the cernlib or geant
+#     area are linked or copied to the top area of the d0 cernlib area.
+#
+# 4.  File names are preserved, except that an initial 'lib' is removed from
+#     the names of archive files (if present).
+#
+# 5.  The only relevance of the version argument is that a file with the name
+#     000_cernlib_<version> is created in the d0cernlib area.
+#
+# Created  23-Oct-1992  Herbert Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Parse arguments
+#
+if( $#argv != 5 )then
+help:
+  echo "Usage: d0cernlib <d0cernlib dir> <cernlib dir> <geant dir> <version> <copy>"
+  exit 1
+endif
+set d0cernlib = $argv[1]
+set cernlib = $argv[2]
+set geant = $argv[3]
+set version = $argv[4]
+set copy = $argv[5]
+#
+# Make sure that d0cernlib is an absolute path.
+#
+if( $d0cernlib !~ /* )set d0cernlib = `d0pwd`/$d0cernlib
+#
+# Make some checks on the reasonableness of the arguments.
+#
+if( ! -d $cernlib )goto help
+if( ! -d $geant )goto help
+if( $copy != 0 && $copy != 1 )goto help
+rm -rf $d0cernlib >& /dev/null          # Delete old contents (if any)
+mkdirp $d0cernlib                       # Create new (empty) directory
+touch $d0cernlib/000_cernlib_$version   # Create d0 versio|n file
+#
+# Loop over files
+#
+foreach file \
+  (`ufa "$cernlib/*.[ao]" "$cernlib/*.dat" "$geant/*.[ao]" "$geant/*.dat"`)
+  set name = $file:t
+  if( $name =~ lib*.a )set name = `echo $name | sed 's/^lib//'`
+  set d0name = $d0cernlib/$name
+  d0echo "$file\t->\t$d0name"
+  if( $copy )then
+    cp $file $d0name
+  else
+    ln -s $file $d0name
+  endif
+end
+#
+# Make sure that we have a (dummy) deb_ version of the geant 
+# libraries/objects so program builder programs can be linked.
+#
+foreach file (`ufa "$geant/*.[ao]"`)
+  set name = $file:t
+  if( $name =~ lib*.a )set name = `echo $name | sed 's/^lib//'`
+  if( $name =~ deb_* )continue
+  set deb_name = deb_$name
+  set d0name = $d0cernlib/$name
+  set deb_d0name = $d0cernlib/$deb_name
+  if( -e $deb_d0name )continue  
+  d0echo "$d0name\t->\t$deb_d0name"
+  ln -s $d0name $deb_d0name
+end  

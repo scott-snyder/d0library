@@ -1,0 +1,81 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : Daily update
+#
+# Purpose   : Example cron script to update d0library.
+#
+# Usage     : (invoked via cron)
+#
+# % daily_update
+#
+# Created 2-DEC-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Setup standard environment etc.
+#
+source ~/.cshrc
+source ~/.login
+#
+# Interlock (e.g. in case multiple crons are running).
+#
+/etc/mknod LOCK p >& /dev/null
+if( $status != 0 )exit $status
+#
+# Define TMPDIR (optional -- may be omitted or done in .login).
+#
+if( ! $?TMPDIR )setenv TMPDIR $d0library/tmp
+#
+# Update d0dad catalogue (uncomment on d0sgi cluster)
+#
+#touch d0dad_update.log
+#`uff $d0d0dad/source/d0dad_translate.csh` >>& d0dad_update.log
+#
+# Pick a pingble node (optional -- may be done in .login).
+#
+foreach node ( d0gs01 d0gs02 d0gs03 d0gs04 d0gs05 d0gs06 )
+
+if( $D0FLAVOR == ULTRIX ) then
+  set testnode = \
+    (`ping $node.fnal.gov 4 4 | sed -n 's/^\(.*\) packets transmitted, \(.*\) packets received.*$/\1 \2/p'`)
+else
+  set testnode = \
+    (`ping -c 4 -q $node | sed -n 's/^\(.*\) packets transmitted, \(.*\) packets received.*$/\1 \2/p'`)
+endif
+  if( $testnode[1] == $testnode[2] )break
+end
+#
+if( $D0FLAVOR == ULTRIX ) then
+ setenv VAXLIB_NODE $node.fnal.gov
+else
+ setenv VAXLIB_NODE $node
+endif
+#
+# Generate log file name
+#
+set logfile = "~/Lib`date +%d%b%Y`.log"
+echo "Updating D0library from node $VAXLIB_NODE" >! $logfile
+#
+# Always update docs (entry points, whod0 etc.)
+#
+official_release docs >>& $logfile
+#
+# Conditional update of everything else
+#
+update_library -to >>& $logfile
+#
+# Feedback.  Uncomment if desired.  Use -l option for mail to local
+# librarian.  Use -c option for mail to czars (d0czar).  Use -lc for both.
+#
+#libtest all
+#mail_error_log -lc >>& $logfile
+#
+# Clean up old log files, $TMPDIR (optional, but recommended)
+#
+find ~ -mtime +7 -name \*.log -exec rm {} \;
+find $TMPDIR -type f -mtime +1 -exec rm {} \;
+#
+# Remove interlock
+#
+rm LOCK

@@ -1,0 +1,92 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : rebuild_current
+#
+# Purpose   : Recompile pass release in top directory of production 
+#             release.
+#
+# Usage     :
+#
+# % rebuild_current [-l] [-d dir] package
+#
+# Options   :
+#
+# -d   - Local directory to hold release.
+# -l   - Do not generate log file (output to stdout only).
+#
+# Arguments :
+#
+# package - production package.
+#
+# Created 17-Jun-1992   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Remember original args
+#
+set oldargv = ( $argv )
+#
+# Scan options
+#
+set ldir = ''
+set log = 1
+set argv = (`getopt d:l $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -d:
+    set ldir = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -l:
+    set log = 0
+    shift
+    breaksw
+  endsw
+end
+shift    # drop --
+#
+# Interpret argument
+#
+if( $#argv != 1 )then
+  echo "Usage: rebuild_current [-l] [-d ldir] package"
+  exit
+endif
+set package = $1
+#
+# Generate significant directories and filenames
+#
+if( $ldir == '' )then
+  set production_root = $prod/$package
+else
+  set production_root = $ldir
+endif
+set scratch = $production_root
+#
+# If we want to generate a logfile, then call rebuild_current recursively.
+#
+if( $log )then
+  set templogfile = $production_root:h/${package}.log
+  rebuild_current -l $oldargv |& tee $templogfile
+  set release_status = $status
+  mv $templogfile $production_root/release.log
+  error_filter $production_root/release.log >& $production_root/error.log
+  exit $release_status
+endif
+#
+# Define environment variables for this production release
+#
+libprod -c -r $scratch $package
+#
+# Build phase.  Compile top level routines.
+#
+cd $scratch
+echo "Compiling files in directory $scratch"
+ufl "$scratch/*.for" "$scratch/*.c" | userlib -l ${package}.a -
+if( -f makefile )then
+  make for
+  make pre
+  make debug
+  make opt
+endif

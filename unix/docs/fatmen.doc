@@ -1,0 +1,109 @@
+
+
+						H. Greenlee
+						May 16, 1994
+
+
+                              FATMEN in UNIX
+
+
+        The VMS file translation utilities built into D0OPEN, 
+        PARSE_FILES/SEARCH_FILES and other utilities based on the 
+	LIB$FIND_FILE emulator have been modified to work with FATMEN 
+	generic names.  This means that input to standard d0 programs, 
+	such as the d0user frame, can be specified as FATMEN generic 
+	names, including wildcards where appropriate (but Krzysztof 
+	does not like wildcards -- see section on prestaging).  As in 
+	VMS, tape resident files are staged and read from the staging 
+	area on D0FS.
+
+	How to use FATMEN generic names
+	-------------------------------
+
+	The LIB$FIND_FILE emulator uses remote execution of the FATMEN
+	shell to expand FATMEN wildcards and to locate and if necessary 
+	stage the files corresponding FATMEN generic names.  Remote
+	execution takes place on the VMS node specified in the environment
+	variable FATMEN_NODE defined in /usr/local/etc/d0local.login
+	on the local sgi and ibm clusters.
+
+	For remote execution to work smoothly, it is necessary to 
+	configure one's accounts in UNIX and VMS as follows:
+
+	1.  Remote user validation is via the .netrc mechanism.  You must 
+	    enter $FATMEN_NODE into your .netrc file.  Refer to the ftp
+	    man page for the format of .netrc.  Remember to read-protect
+	    your .netrc ("chmod go-r .netrc").  You do not need a remote
+            .rhosts file.  Here is an example of a .netrc entry:
+
+	    machine d0gs04.fnal.gov
+	    login greenlee
+	    password xyz123
+
+	2.  It is best to modify your login.com on $FATMEN_NODE to do
+	    nothing when it is invoked by a remote execution -- not
+	    even d0local.com.  This can be accomplished by following
+	    the instructions in d0news message 971 in the general
+	    folder on FNALD0 (set archive).  This d0news message 
+	    recommends putting the following commands before d0local.com:
+
+	    $ tt = f$extract( 0, 3, f$trnlnm( "tt" ) - "_" - ":" )
+	    $ if ( (tt .eqs. "WSA") .or. (tt .eqs. "MBA") ) then exit
+
+	3.  You can test your configuration by issuing a simple remote
+	    execution interactively in UNIX:
+
+	    % d0rexec $FATMEN_NODE "sh log tt"
+
+	    You should see the output of the VMS command and nothing else.
+
+
+	Stand Alone Utilities.
+	----------------------
+
+	The standard interactive file translation utilities can now be
+	used with FATMEN generic names.  These utilities accept one or
+	more filenames, which can be specified on the command line or
+	via standard input.  The uf utilities generate output in the 
+	form of FATMEN generic names.  That is, they only expand wildcards
+	and do filtering.  The vf utilities also perform a find operation.
+	They stage the file if necessary and generate output in the form
+	of UNIX absolute pathnames pointing to D0FS.  A full description
+	of the use of these utilities for regular files is found in 
+	d0$unix$docs:unix_utilities.mem.  Here is a summary of their use
+	with generic names.
+
+	ufa 	 - Expand wildcards.
+	uff 	 - Expand wildcard but only output the first match.
+	ufl, ufn - Expand wildcards and ensure uniqueness (e.g. print
+		   only one match) for all fields of a generic name 
+		   following the run number (for data) or generator 
+		   (for Monte Carlo).
+
+	vfa	 - Expand wildcards and find all of the files specified.
+	vff	 - Expand and find the first file specified.
+
+	The utilities vfl and vfn work as they do for normal VMS
+	filenames (that is they ensure the uniqueness of the tail and
+	name portion of the output filenames), but it is better to
+	use ufl or ufn to filter the generic names first and then pipe
+	the output to vfa.  For example, use
+
+	% cat fatmen_names | ufl | vfa > file_names
+
+	rather than
+
+	% cat fatmen_names | vfl > file_names
+
+	Prestaging
+	----------
+
+	Krzystof now recommends prestaging files.  Since full tape staging
+	is about to be turned off, prestaging will be necessary to get
+	reasonable performance.  A new standalone utility has been
+	defined to access the prestage utility (@D0$FATMEN:PRESTAGE) 
+	via remote execution.  Like the file filters, prestage
+	accepts fatmen names via the command line or standard input.
+	For example:
+
+	% cat fatmen_names | prestage

@@ -1,0 +1,75 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : aixatoo
+#
+# Purpose   : Convert an AIX archive library to an object module for faster
+#             linking.
+#
+# Arguments : One archive library
+#
+# Created 8-Jun-1992   Herbert B. Greenlee
+#
+# Usage notes:
+#
+# 1.  Exactly one archive library should be specified as an argument.
+#
+# 2.  An object file having the same name as the archive library is created
+#     in the current working directory.
+#
+#------------------------------------------------------------------------------
+#
+# Quick help
+#
+if($#argv == 0) then
+help:
+  echo "usage: aixatoo library"
+  exit 1
+endif
+set archive = $argv[1]
+#
+# Make sure that archive file exists.
+#
+if( ! -f $archive )then
+  echo "aixatoo: $archive does not exist"
+  exit 1
+endif
+echo "Aixatoo: converting archive library $archive to object module."
+#
+# See if there are any main programs in the library.
+#
+set mains = ( `main_list $archive` )
+if( "$mains" == '' )goto nomains
+#
+# Create an empty $tmpdir
+#
+set tmpdir = `d0tmpdir -c aixatoo`
+#
+# Make a temporary copy of the library from which we will delete main programs.
+#
+cp $archive $tmpdir
+set archive = $tmpdir/$archive:t
+foreach main ( $mains )
+  echo "Aixatoo: removing main program module $main from $archive:t."
+  ar dl $archive $main
+end
+#
+# Done extracting main programs.
+#
+nomains:
+#
+# Generate name of object file.  Delete an existing object file if one exists.
+#
+set object = $archive:t
+set object = ${object:r}.o
+if( -f $object )rm $object
+#
+# Do the deed.
+#
+echo "Aixatoo: linking."
+ld -r -o $object $archive
+#
+# Clean up.
+#
+exit:
+rmdirp $tmpdir >& /dev/null

@@ -1,0 +1,406 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : Test_release
+#
+# Purpose   : Get Test release, gamma, or beta library section
+#
+# Usage     :
+#
+# % test_release [-gbnv] [-h rhost] [-u ruser] [-d ldir] section
+#
+# Options   :
+#
+# -s   - Leave in scratch area.
+# -g   - Gamma release (default is test).
+# -b   - Beta release (default is test).
+# -f   - Specify files to fetch.
+# -h   - Specify remote host (VAX).
+# -u   - Specify remote user.
+# -d   - Local directory to hold release.
+# -l   - Do not generate log file (output to stdout only).
+#
+# Arguments :
+#
+# section - Library section to get
+#
+# Created 18-NOV-1991   Herbert B. Greenlee
+# Updated 10-NOV-1992   Lupe Howell Added Beta release option
+#
+#------------------------------------------------------------------------------
+#
+# Remember original args
+#
+set oldargv = ( "$argv" )
+#
+# Scan options
+#
+set rhost = ''
+set ruser = ''
+set ldir = ''
+set files = ''
+set leave_in_scratch = 0
+set gamma = 0
+set beta = 0
+set log = 1
+set noglob = 1
+set argv = (`getopt f:gbsh:u:d:l $argv`)
+unset noglob
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -f:
+    set files = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -g:
+    set gamma = 1
+    shift
+    breaksw
+  case -b:
+    set beta = 1
+    shift
+    breaksw
+  case -h:
+    set rhost = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -s:
+    set leave_in_scratch = 1
+    shift
+    breaksw
+  case -u:
+    set ruser = "-u $argv[2]"
+    repeat 2 shift
+    breaksw
+  case -d:
+    set ldir = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -l:
+    set log = 0
+    shift
+    breaksw
+  endsw
+end
+shift    # drop --
+if( $rhost == '' && $?ZFTP_NODE )then
+  set rhost = $ZFTP_NODE
+endif
+if( $rhost == '')then
+  set rhost = $VAXLIB_NODE
+endif
+#
+# Gamma or Beta release
+#
+if ( $gamma ) then
+    set release_opt = '-g'
+    set gamma_opt = '-g'
+else if ( $beta ) then
+    set release_opt = '-b'
+    set beta_opt = '-b'
+else
+  set release_opt = '-t'
+  set gamma_opt = ''
+  set beta_opt = ''
+endif
+#
+# Interpret argument
+#
+if( $#argv == 0 )then
+  echo "Usage: test_release [-gbsv] [-u ruser] [-h rhost] [-d ldir] section"
+  exit
+endif
+set lib_section = $1
+#
+# Generate significant directories and filenames
+#
+set official_root = $d0library/$lib_section
+setenv d0root $d0library/scratch
+if( $gamma )then
+  set test_root = $d0gamma/$lib_section
+else if ( $beta ) then
+    set test_root = $d0beta/$lib_section
+else
+  set test_root = $d0test/$lib_section
+endif
+if( $ldir != '' )then
+  set test_root = $ldir
+  set temp = $test_root:h
+  setenv d0root $temp:h
+endif
+if( $gamma ) then
+  setenv d0scratch $d0root/gamma
+else if ( $beta ) then
+  setenv d0scratch $d0root/beta
+else
+  setenv d0scratch $d0root/test
+endif
+echo "NEW test_release test_root= $test_root"
+echo "d0scratch= $d0scratch"
+echo "official_root=$official_root"
+set mms_file = ${lib_section}.mms
+set cms_file = cms_groups.list
+#
+# Make sure root of test and official library sections exists.
+#
+if( ! -d $official_root )then
+  mkdirp $official_root
+  if( ! -d $official_root )exit 1
+endif
+if( ! -d $test_root )then
+  mkdirp $test_root
+  if( ! -d $test_root )exit 1
+endif
+#
+# If we want to generate a logfile, then call test_release recursively.
+#
+if( $log )then
+  set templogfile = $test_root:h/${lib_section}.log
+  test_release -l $oldargv |& tee $templogfile
+  set release_status = $status
+  set log_dir = $test_root
+  if( -d $d0scratch/$lib_section )set log_dir = $d0scratch/$lib_section
+  mv $templogfile $log_dir/release.log
+  error_filter $log_dir/release.log >& $log_dir/error.log
+  exit $release_status
+endif
+#
+# Do libtest of all library sections except unix (unix could be in gamma mode).
+# If a gamma release, then assume the user knows what they're doing, and don't
+# make explicit libtest.
+#
+foreach sect ( `lib_sect` )
+  if( $sect != unix && ! $gamma )then
+    set argv = ( $sect )
+    source `uff $d0unix/libtest.csh`
+  endif
+end
+#
+# Set up scratch area
+#
+set scratch = $d0scratch/$lib_section
+rm -rf $scratch
+mkdirp $scratch
+if( ! -d $scratch )then
+  echo "Unable to create scarch area"
+  exit 1
+endif
+cd $scratch
+#
+# Define the library environment variable to be a search list pointing first
+# to the scratch area, then to the test area and then to the official area.
+#
+setenv d0$lib_section "{$scratch,$official_root}"
+#
+# Fetch files into scratch area
+#
+if( $gamma && "$files" == '' )then
+  set files = 'd0$beta:[gamma.'${lib_section}'...]*.*'
+endif
+if( $beta && "$files" == '' )then
+  set files = 'd0$beta:['${lib_section}'...]*.*'
+endif
+if( ! $gamma && "$files" == '' )then
+  set files = 'd0$disk:[d0library.test.'${lib_section}'...]*.*'
+endif
+if( ! $beta && "$files" == '' )then
+  set files = 'd0$disk:[d0library.test.'${lib_section}'...]*.*'
+endif
+if( "$files" == '' )then
+  echo "test_release: no files specified"
+  exit 1
+else
+  echo "Fetching files from $files"
+endif
+mixfetch -h $rhost $ruser -d $scratch "$files"
+#
+# Delete admin_util subdirectory if one exists.
+#
+if( -d $scratch/admin_util )then
+  rm -rf $scratch/admin_util
+endif
+#
+# Copy all .csh files from subdirectories to top directory of library.
+#
+find $scratch -type f -name \*.csh -exec cp {} $scratch \; >& /dev/null
+#
+# Exit with error status if $scratch has no files (fetch failed).
+#
+set nscratch = `ls -R $scratch | wc -w`
+if( $nscratch == 0 )then
+  echo "No files fetched, giving up."
+  exit 1
+endif
+#
+# Make sure a test subdirectory exists for each official subdirectory, and vice
+# versa (this differs from the VAX).  Skip this step for dspack, which does
+# not use incremental test releases, and which would be otherwise messed up.
+#
+if( $lib_section != dspack )then
+  foreach subdir (`ls -p $official_root | sed -n 's;\(.*\)/;\1;p'`)
+    if ( -d $official_root/$subdir && ! -d $scratch/$subdir ) then
+      echo "Creating $scratch/$subdir"
+      mkdirp $scratch/$subdir
+      if( ! -d $scratch/$subdir )exit 1
+    endif
+  end
+  foreach subdir (`ls -p $scratch | sed -n 's;\(.*\)/;\1;p'`)
+    if ( -d $scratch/$subdir && ! -d $official_root/$subdir ) then
+      echo "Creating $official_root/$subdir"
+      mkdirp $official_root/$subdir
+      if( ! -d $official_root/$subdir )exit 1
+    endif
+  end
+endif
+#
+# Convert .inc, .link, .def and .params files to the local flavor
+#
+find $scratch -name '*.inc' -exec local_flavor {} \;
+find $scratch -name '*.link' -exec local_flavor {} \;
+find $scratch -name '*.def' -exec local_flavor {} \;
+find $scratch -name '*.params' -exec local_flavor {} \;
+#
+# Copy official archive libraries (if any) to scratch area (but not for beta
+# release).
+#
+#if( ! $beta )cp $official_root/*.a $scratch >& /dev/null
+#
+# Execute any executable pre_release files in the top directory.
+#
+cd $scratch
+set pre_release_file = `uff $d0unix/lib/${lib_section}_pre_release $scratch/${lib_section}_pre_release $official_root/${lib_section}_pre_release`
+if( -x "$pre_release_file" )then
+  $pre_release_file $release_opt
+endif
+#
+# Obsolete phase.
+#
+if( -f $mms_file && -f $cms_file )then
+  echo "Obsolete phase"
+  set libs = ( `mms_filter -l $mms_file | sed 's/\.olb/.a/' | sed 's/:/:deb_/' | vfl` )
+  set libs = ( $libs `mms_filter -l $mms_file | sed 's/\.olb/.a/' | vfl` )
+  set obsoletes = ( `cms_group_contents $cms_file obsolete | archive_name` )
+  foreach obsolete ( $obsoletes )
+    foreach lib ( $libs )
+      set bang = `ar t $lib | egrep -c "^$obsolete"'$'`
+      if( $bang )echo "Deleting object module $obsolete from $lib"
+      if( $bang )ar dl $lib $obsolete
+    end
+  end
+endif
+#
+# Build phase.
+#
+if( -f $mms_file )then
+  echo "Generating debug makefile"
+  mmstomake -c $d0root -d -o Makefile $mms_file
+  if ( -f Makefile ) then
+    make -f Makefile for
+    make -f Makefile pre
+    make -f Makefile debug
+  endif
+  echo "Generating non-debug makefile"
+  mmstomake -c $d0root -n -o makefile $mms_file
+  if( -f makefile )then
+    make -f makefile opt
+  endif
+endif
+#
+# Compile any .for files in the top directory (including, but not limited to,
+# the version subroutine).
+#
+foreach for_file ( `ufa "$scratch/*.for"` )
+  fort -g2 $for_file
+end
+#
+# Compile and insert version subroutine into libraries.
+#
+echo "Inserting version subroutines into libraries"
+set version_for = `uff 'v*.for'`
+if( -f $mms_file )then
+  set libs = ''
+  foreach lib ( `mms_filter -l $mms_file | sed 's/.olb/.a/'` )
+    set libs = ( $libs `vff $lib:q` )
+  end
+else
+  set libs = (`ufa "$scratch/*.a" | grep -v deb_`)
+endif
+if( $#version_for != 0 )then
+  set version_obj = `archive_name $version_for`
+  foreach lib ( $libs )
+    set com = "ar $arflags $lib $version_obj"
+    echo $com
+    eval $com
+    set deb_lib = $lib:h/deb_$lib:t
+    set com = "ar $arflags $deb_lib $version_obj"
+    echo $com
+    eval $com
+  end
+endif
+#
+# Mother-daughter processing:  Copy modules from daughter into mother library.
+#
+# Special processing for daughter libraries goes here.
+#
+foreach mother ( `lib_sect -c` )
+  foreach daughter ( `lib_sect @$mother` )
+    if( "$daughter" == "$lib_section" )then
+      set mother_dir = $test_root:h/$mother
+      if( -d $mother_dir )then
+        if( -f ${daughter}.a ) \
+          echo "Copying modules from ${daughter}.a into $mother_dir/${mother}.a"
+        if( -f ${daughter}.a ) \
+          atoa $mother_dir/${mother}.a ${daughter}.a
+        if( -f deb_${daughter}.a ) \
+          echo "Copying modules from deb_${daughter}.a into $mother_dir/deb_${mother}.a"
+        if( -f deb_${daughter}.a ) \
+          atoa $mother_dir/deb_${mother}.a deb_${daughter}.a
+      endif
+    endif
+  end
+end
+#
+# Special processing for mother libraries goes here.
+#
+foreach mother ( `lib_sect -c` )
+  if( "$mother" == "$lib_section" )then
+    foreach daughter ( `lib_sect @$mother` )
+      set daughter_dir = $test_root:h/$daughter
+      set dtr_lib = \
+        `uff $daughter_dir/${daughter}.a $d0test/$daughter/${daughter}.a $d0library/$daughter/${daughter}.a`
+      if( "$dtr_lib" != '' ) \
+        echo "Copying modules from $dtr_lib into ${mother}.a"
+      if( "$dtr_lib" != '' ) \
+        atoa ${mother}.a $dtr_lib
+      set deb_dtr_lib = \
+        `uff $daughter_dir/deb_${daughter}.a $d0test/$daughter/deb_${daughter}.a $d0library/$daughter/deb_${daughter}.a`
+      if( "$deb_dtr_lib" != '' ) \
+        echo "Copying modules from $deb_dtr_lib into deb_${mother}.a"
+      if( "$deb_dtr_lib" != '' ) \
+        atoa deb_${mother}.a $deb_dtr_lib
+    end
+  endif
+end
+#
+# Execute any executable release files in the top directory.
+#
+cd $scratch
+echo " Execute "
+set release_file = `uff $d0unix/lib/${lib_section}_release $scratch/${lib_section}_release $official_root/${lib_section}_release`
+if( -x "$release_file" )then
+  $release_file $release_opt
+endif
+#
+# Move stuff from scratch into test area (clear old contents first).
+# Skip this step if -s was specified on command line.
+#
+if( $leave_in_scratch != 0 )exit
+echo "Deleting old contents of library."
+set junkdir = $test_root:h/junk
+mkdirp $junkdir
+mv $test_root $junkdir
+rm -rf $junkdir
+echo "Moving files from scratch to test area."
+mv $scratch $test_root:h
+rehash

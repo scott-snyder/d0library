@@ -1,0 +1,42 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : rmdirp
+#
+# Purpuse   : This script the deletes the named directories, including any
+#             contents and subdirectories (rm -rf ...) and also recursively
+#             deletes parent directories that are a) owned by the current user
+#             and b) empty (except don't delete $TMPDIR).
+#
+# Usage     :
+#
+# % rmdirp dir1 dir2 ...
+#
+# Created 22-Apr-1992   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+if ( $#argv < 1 )then
+  echo "Usage: rmdirp dir1 dir2 ..."
+  exit 1
+endif
+#
+# Loop over arguments.
+#
+foreach dir ( $argv )
+  if ( $dir !~ /* ) set dir = $cwd/$dir    # Force absolute pathname
+  if ( ! -d $dir ) continue
+  rm -rf $dir >& /dev/null
+  if ( -d $dir ) continue
+#
+# Successfully deleted directory.  Now continue and delete parents.
+#
+parent_loop:
+  set dir = $dir:h
+  if( ! -d $dir || ! -o $dir )continue
+  if( $?TMPDIR )then
+    if( $dir == $TMPDIR )continue
+  endif
+  rmdir $dir >& /dev/null
+  if( -d $dir )continue
+  goto parent_loop
+end

@@ -1,0 +1,46 @@
+#!/bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : d0module
+#
+# Purpose   : Print the name of a library module in which a symbol is defined.
+#             As a side effect, extract the module if it does not already
+#             exist in the cwd.
+#
+# Usage:
+#
+#    d0module <symbol> <library>
+#
+# Created 29-Mar-1994   Carmem Silva
+#
+#------------------------------------------------------------------------------
+#
+# Quick help
+#
+if($#argv < 2) then
+help:
+  echo 'usage: d0module symbol library'
+  exit 1
+endif
+#
+# Find module using d0nm
+#
+set symbol = $1
+set lib = `vff $2`
+set module = `d0nm $lib | grep -i "[ 	]${symbol}_"\$ | grep ' T ' | line | cut -d: -f1`
+#
+# If no symbol name, try module name (BLOCK DATA).
+#
+if( "$module" == '' )then
+  set module_name = `archive_name $symbol`
+  set module = `ar t $lib | grep $module_name | line`
+endif
+if( "$module" == '' )exit
+#
+# Extract.
+#
+ar x $lib $module
+#
+# Print module name to stdout.
+#
+echo $module

@@ -1,0 +1,76 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : main_bld
+#
+# Purpose   : Build all main programs in a given archive library.
+#
+# Usage     :
+#
+# % main_bld library
+#
+# Arguments : Archive library.
+#
+# Created 6-DEC-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Quick help
+#
+if($#argv == 0) then
+help:
+  echo "usage: main_bld library"
+  exit 1
+endif
+#
+# Scan options
+#
+set argv = (`getopt - $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  default:
+    echo "main_bld: bad option $argv[1]"
+    goto help
+  endsw
+end
+shift                       # Get rid of terminating --
+if( $#argv == 0 ) goto help
+#
+# Interpret argument(s)
+#
+arg_loop:
+  if( $#argv == 0 ) exit
+  set archive = $argv[1]
+  shift
+  if( $archive:t =~ deb_* )then
+    set prefix = deb_
+  else
+    set set prefix = ''
+  endif
+#
+# Library link list
+#
+  set libs = ( \
+    `uff $d0unix/${prefix}unix.a` \
+    $syslibs )
+
+  if( ! -f $archive ) then
+    echo "Non-existent archive $archive"
+    exit 1
+  endif
+  set mains = (`main_list $archive`)
+  foreach object ( $mains )
+    set exe = $object:r
+    d0echo "\nBuilding main program $exe"
+    ar x $archive $object
+    if(`d0nm $object | grep -c yylex` == 0 )then
+      set com = "$cc -o $exe $ccflags $object $libs"
+    else
+      set com = "$cc -o $exe $lccflags $object $lexlib $libs"
+    endif
+    echo $com
+    eval $com
+    rm $object
+  end
+goto arg_loop

@@ -1,0 +1,171 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : rebuild_prod
+#
+# Purpose   : Recompile production release.
+#
+# Usage     :
+#
+# % rebuild_prod [-l] [-d dir] package
+#
+# Options   :
+#
+# -d   - Local directory to hold release.
+# -l   - Do not generate log file (output to stdout only).
+#
+# Arguments :
+#
+# package - production package.
+#
+# Created 17-Jun-1992   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Remember original args
+#
+set oldargv = ( $argv )
+#
+# Scan options
+#
+set ldir = ''
+set log = 1
+set argv = (`getopt d:l $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -d:
+    set ldir = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -l:
+    set log = 0
+    shift
+    breaksw
+  endsw
+end
+shift    # drop --
+#
+# Interpret argument
+#
+if( $#argv != 1 )then
+  echo "Usage: rebuild_prod [-l] [-d ldir] package"
+  exit
+endif
+set package = $1
+#
+# Generate significant directories and filenames
+#
+if( $ldir == '' )then
+  set production_root = $prod/$package
+else
+  set production_root = $ldir
+endif
+set scratch = $production_root
+#
+# If we want to generate a logfile, then call rebuild_prod recursively.
+#
+if( $log )then
+  set templogfile = $production_root:h/${package}.log
+  rebuild_prod -l $oldargv |& tee $templogfile
+  set release_status = $status
+  mv $templogfile $production_root/release.log
+  error_filter $production_root/release.log >& $production_root/error.log
+  exit $release_status
+endif
+#
+# Define environment variables for this production release
+#
+libprod -s -r $scratch $package
+#
+# Recompile gamma releases.  Loop over library sections
+#
+foreach section (`lib_sect`)
+  if( ! -d $scratch/$section )continue
+#
+# Execute any executable release files in the top directory.
+#
+  cd $scratch/$section
+  set mms_file = ${section}.mms
+  set pre_release_file = `uff $d0unix/lib/${section}_pre_release $scratch/$section/${section}_pre_release`
+  if( -x "$pre_release_file" )then
+    $pre_release_file
+  endif
+  if( -f $mms_file )then
+    echo "Generating makefile for section $section"
+    mmstomake $mms_file
+    if( -f makefile )then
+      make for
+      make pre
+      make debug
+      make opt
+    endif
+  endif
+#
+# Execute any executable release files in the top directory.
+#
+  set release_file = `uff $d0unix/lib/${section}_release $scratch/$section/${section}_release`
+  if( -x "$release_file" )then
+    $release_file
+  endif
+#
+# Compile any .for files in the top directory (including, but not limited to,
+# the version subroutine).
+#
+  if( 1 ) then
+    foreach for_file ( `ufa "$scratch/$section/*.for"` )
+      fort -g2 $for_file
+    end
+  endif
+#
+# Insert version subroutine into libraries.
+#
+  echo "Inserting version subroutines into libraries"
+  set version_for = `uff 'v*.for'`
+  if( -f $mms_file )then
+    set libs = ''
+    foreach lib ( `mms_filter -l $mms_file | sed 's/.olb/.a/'` )
+      set libs = ( $libs `vff $lib:q` )
+    end
+  else
+    set libs = (`ufa "$scratch/*.a" | grep -v deb_`)
+  endif
+  if( $#version_for != 0 && -f $mms_file )then
+    set version_obj = `archive_name $version_for`
+    set libs = ''
+    foreach lib ( `mms_filter -l $mms_file | sed 's/.olb/.a/'` )
+      set libs = ( $libs `vff $lib:q` )
+    end
+    foreach lib ( $libs )
+      set com = "ar $arflags $lib $version_obj"
+      echo $com
+      eval $com
+      set deb_lib = $lib:h/deb_$lib:t
+      set com = "ar $arflags $deb_lib $version_obj"
+      echo $com
+      eval $com
+    end
+  endif
+#
+# Mother-daughter processing:  Copy modules from daughter into mother library.
+#
+# Special processing for daughter libraries goes here.
+#
+  foreach mother ( `lib_sect -c` )
+    foreach daughter ( `lib_sect @$mother` )
+      if( "$daughter" == "$section" )then
+        set mother_dir = $scratch/$mother
+        if( -d $mother_dir )then
+          if( -f ${daughter}.a ) \
+            echo "Copying modules from ${daughter}.a into $mother_dir/${mother}.a"
+          if( -f ${daughter}.a ) \
+            atoa $mother_dir/${mother}.a ${daughter}.a
+          if( -f deb_${daughter}.a ) \
+            echo "Copying modules from deb_${daughter}.a into $mother_dir/deb_${mother}.a"
+          if( -f deb_${daughter}.a ) \
+            atoa $mother_dir/deb_${mother}.a deb_${daughter}.a
+        endif
+      endif
+    end
+  end
+end

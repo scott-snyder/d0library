@@ -1,0 +1,88 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : pre_update
+#
+# Purpose   : Generate makefile dependencies and updating rules for
+#             preprocessor files.
+#
+# Usage     :
+#
+# % pre_update -f flavor
+#
+# Options:
+#
+# -f   - Specify UNIX flavor.  Default $D0FLAVOR.
+#
+# 1.  Source and preprocessor files are read from standard input, one each
+#     per line.
+#
+# 2.  No checking of the filenames is done.
+#
+# 3.  Standard preprocessor commands are:
+#
+#     tasteofd0 $(FLAVOR) < vax_fortran_file | vmstounix > fortran_77_file
+#
+#     or:
+#
+#     d0flavor.x -$(FLAVOR) < -OUTPUT=fortran_77_file vax_fortran_file
+#
+#     and:
+#
+#     lex -t lex_file > c_file
+#
+# Created 17-NOV-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set flavor = $D0FLAVOR
+set argv = (`getopt f: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -f:
+    set flavor = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop final --
+#
+# Use d0flavor?
+#
+#set use_d0flavor=0
+#if( $?USE_D0FLAVOR && `uff $d0util/d0flavor.x` != '' )set use_d0flavor=1
+#
+# Loop over files
+#
+while( 1 )
+  set next = ( `line` )
+  if( $status )break
+  if( $#next < 2 )continue
+  set source_file = $next[1]
+  set pre_file = $next[2]
+  set type = $pre_file:e
+#
+# Generate dependencies and updating rules here.
+#
+  switch( $type )
+  case for:
+    d0echo "${source_file}:\\\n  $pre_file\c"
+    for_depend < $pre_file
+    d0echo
+#    if( $use_d0flavor )then
+#      d0echo '\td0flavor.x -$(FLAVOR)' "-OUTPUT=$source_file $pre_file"
+#    else
+      d0echo '\ttasteofd0 $(FLAVOR) <' "$pre_file | vmstounix > $source_file"
+#    endif
+    breaksw
+  case lex:
+    d0echo "${source_file}:\\\n  $pre_file\c"
+    lex -t $pre_file | c_depend
+    d0echo
+    d0echo "\tlex -t $pre_file > $source_file"
+    breaksw
+  endsw
+end

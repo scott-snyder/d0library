@@ -1,0 +1,286 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : Search_release
+#
+# Purpose   : Look for questionable code in an official or test library
+#
+# Usage     :
+#
+# % search_release [-got] section
+#
+# Options   :
+#
+# -g   - Gamma.
+# -o   - Official (default).
+# -t   - Test.
+#
+# Arguments :
+#
+# section - Library section to check
+#
+# Notes:
+#
+# 1.  Only one of -g, -o and -t should be specified.  If none is specified,
+#     -o is the default.
+#
+# Created 17-JAN-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+if ( $D0FLAVOR == ULTRIX ) alias egrep grep
+#
+# Scan options
+#
+set gamma = 0
+set official = 0
+set test = 0
+set opt = ''
+set argv = (`getopt got $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -g:
+    set gamma = 1
+    shift
+    set opt = ( $opt -g )
+    breaksw
+  case -o:
+    set official = 1
+    shift
+    set opt = ( $opt -o )
+    breaksw
+  case -t:
+    set test = 1
+    shift
+    set opt = ( $opt -t )
+    breaksw
+  endsw
+end
+shift    # drop --
+if( $official )then
+  set test = 0
+  set gamma = 0
+endif
+if(! $test && ! $gamma )set official = 1
+#
+# Interpret argument
+#
+if( $#argv == 0 )exit
+set lib_section = $1
+if( $official )then
+  d0echo "\nSearching library section $lib_section (official)"
+  set lib_root = $d0library/$lib_section
+  libtest -o $lib_section
+endif
+if( $test )then
+  d0echo "\nSearching library section $lib_section (test)"
+  set lib_root = $d0test/$lib_section
+  libtest -t $lib_section
+endif
+if( $gamma )then
+  d0echo "\nSearching library section $lib_section (gamma)"
+  set lib_root = $d0gamma/$lib_section
+  libtest -g $lib_section
+endif
+set official_root = $d0library/$lib_section
+#
+# Make sure $lib_root exists
+#
+if(! -d $lib_root )then
+  d0echo "\n$lib_root does not exist\n"
+  goto done
+endif
+#
+# Make sure mms file exists
+#
+set mms_file = $lib_root/{$lib_section}.mms
+if(! -f $mms_file )then
+  d0echo "\nNo mms file for this library section\n"
+  goto done
+endif
+#
+# Set up temporary directory
+#
+set tmpdir = `d0tmpdir -c search_release`
+#
+# Get a list of source files
+#
+set sources = $tmpdir/sources
+mms_filter -s $lib_root/${lib_section}.mms | \
+sed 's/^\([^ 	]*[ 	]*[^ 	]*\).*$/\1/' | \
+cut -f2 | \
+vfa | \
+sort >! $sources
+set ns = `cat $sources | wc -l`
+d0echo "\n$ns source files"
+#
+# Get a list of missing source files
+#
+set missing = $tmpdir/missing
+check_release $opt $lib_section | \
+sort -u | \
+sed -n "s@^\(${d0library}.*\.f\)@\1or	Compilation_error@p" | \
+sort >! $missing
+set nm = `cat $missing | wc -l`
+d0echo "\n$nm files with compilation errors"
+#
+# Get a list of sources files with INTEGER*2 or BYTE and EQUIVALENCE
+#
+set equiv = $tmpdir/equiv
+set script = $tmpdir/script
+cat << eof >! $script
+#! /bin/csh -f
+if ( $D0FLAVOR == ULTRIX ) alias egrep grep
+while( 1 )
+  set file = \`line\`
+  if( \$status ) exit
+  @ n1 = \`egrep -ic "      byte" \$file\` + \`egrep -ic "      integer\*2" \$file\`
+  set n2 = \`egrep -ic "      equivalence" \$file\`
+  if( \$n1 && \$n2 )d0echo "\$file\\tEQUIVALENCE"
+end
+eof
+chmod +x $script
+$script < $sources | sort >! $equiv
+set ne = `cat $equiv | wc -l`
+d0echo "\n$ne files with BYTE or INTEGER*2 and EQUIVALENCE"
+#
+# Get a list of sources files with machine blocks
+#
+set mach = $tmpdir/mach
+set script = $tmpdir/script
+cat << eof >! $script
+#! /bin/csh -f
+if ( $D0FLAVOR == ULTRIX ) alias egrep grep
+while( 1 )
+  set file = \`line\`
+  if( \$status ) exit
+  set n = \`egrep -ic "^c&if " \$file\`
+  if( \$n )d0echo "\$file\\tMachine_block"
+end
+eof
+chmod +x $script
+$script < $sources | sort >! $mach
+set ne = `cat $mach | wc -l`
+d0echo "\n$ne files with machine blocks"
+#
+# Get a list of sources files with OPEN
+#
+set open = $tmpdir/open
+set script = $tmpdir/script
+cat << eof >! $script
+#! /bin/csh -f
+if ( $D0FLAVOR == ULTRIX ) alias egrep grep
+while( 1 )
+  set file = \`line\`
+  if( \$status ) exit
+  set n = \`egrep -ic "[ 	]open[ 	]*\(" \$file\`
+  if( \$n )d0echo "\$file\\tOPEN"
+end
+eof
+chmod +x $script
+$script < $sources | sort >! $open
+set no = `cat $open | wc -l`
+d0echo "\n$no files with OPEN"
+#
+# Get a list of sources files with RTL calls
+#
+set rtl = $tmpdir/rtl
+set script = $tmpdir/script
+cat << eof >! $script
+#! /bin/csh -f
+if ( $D0FLAVOR == ULTRIX ) alias egrep grep
+while( 1 )
+  set file = \`line\`
+  if( \$status ) exit
+  set n = \`egrep -ic '[^a-z,0-9,A-Z][dlmops][imnpt][bghklrs]\\\$[a-z]' \$file\`
+  if( \$n )d0echo "\$file\\tRTL"
+end
+eof
+chmod +x $script
+$script < $sources | sort >! $rtl
+set no = `cat $rtl | wc -l`
+d0echo "\n$no files with RTL calls"
+#
+# Get a list of sources files with VMS system calls and logicals.
+#
+set sys = $tmpdir/sys
+set script = $tmpdir/script
+cat << eof >! $script
+#! /bin/csh -f
+if ( $D0FLAVOR == ULTRIX ) alias egrep grep
+while( 1 )
+  set file = \`line\`
+  if( \$status ) exit
+  set n = \`egrep -ic '[^a-z,0-9,A-Z]sys\\\$[a-z]' \$file\`
+  if( \$n )d0echo "\$file\\tSYS"
+end
+eof
+chmod +x $script
+$script < $sources | sort >! $sys
+set no = `cat $sys | wc -l`
+d0echo "\n$no files with VMS system calls or logicals"
+#
+# Get a list of sources files with TLB includes
+#
+set tlb = $tmpdir/tlb
+set script = $tmpdir/script
+cat << eof >! $script
+#! /bin/csh -f
+if ( $D0FLAVOR == ULTRIX ) alias egrep grep
+while( 1 )
+  set file = \`line\`
+  if( \$status ) exit
+  set n = \`grep -ic '      include.*(.*)' \$file\`
+  if( \$n )d0echo "\$file\\tTLB"
+end
+eof
+chmod +x $script
+$script < $sources | sort >! $tlb
+set no = `cat $tlb | wc -l`
+d0echo "\n$no files with TLB INCLUDEs"
+#
+# Join files
+#
+set comb = $tmpdir/comb
+join -a1 -a2 $missing $mach | tr ' ' '	' | \
+join -a1 -a2 - $equiv | tr ' ' '	' | \
+join -a1 -a2 - $open | tr ' ' '	' | \
+join -a1 -a2 - $rtl | tr ' ' '	' | \
+join -a1 -a2 - $sys | tr ' ' '	' | \
+join -a1 -a2 - $tlb | tr ' ' '	' | \
+sed "s@$d0library/@@" | tr ' ' '	' | \
+sort >! $comb
+set nt = `cat $comb | wc -l`
+d0echo "\n$nt total files with (potential) problems\n"
+#
+# Here we reformat the output file
+# First find the longest filename
+#
+set script = $tmpdir/script
+cat << eof >! $script
+#! /bin/csh -f
+if ( $D0FLAVOR == ULTRIX ) alias egrep grep
+set max = 0
+while( 1 )
+  set next = \`line\`
+  if( \$status )then
+    echo \$max
+    exit
+  endif
+  @ n = \`echo "\$next" | tr ' ' '	' | cut -f1 | wc -c\` - 1
+  if( \$n > \$max )set max = \$n
+end
+eof
+chmod +x $script
+set max_len = `$script < $comb`
+@ cut_len = $max_len + 8
+set problems = $tmpdir/problems
+cat $comb | \
+cut -f1 | \
+sed 's/^\(.*\)$/\1                                        /' | \
+cut -c1-$cut_len >! $problems
+cat $comb | cut -f2- | paste $problems -
+done:
+if( $?tmpdir )then
+  rmdirp $tmpdir
+endif

@@ -1,0 +1,136 @@
+#! /bin/csh -f
+###############################################################################
+#
+# Name:  dbl3_pre_release
+#
+# Purpose: UNIX release script for dbl3 d0library section.  This script
+#          performs the following actions:
+#
+#          1.  Deletes dbl3.mms to inhibit normal library building.
+#
+#          2.  Generates source files from dbl3.car or dbl3.pam using
+#              patchy.
+#
+#          3.  Deletes any files that are not members of the PROD_FULL_D0RECO
+#              group.
+#
+#          4.  Generates and executes makefiles to build only those libraries
+#              that are needed in UNIX.
+
+#
+# Usage Notes:
+#
+# 1.  This script should be executed from the top directory of the dbl3
+#     library section.
+#
+# 2.  This script should be released via the VMS d0library release procedures
+#     so that is gets to the top directory of the dbl3 library section.
+#
+# 3.  An appropriate version of cernlib (or equivalent) must be setup external
+#     to this script.  In particular, the following must be true:
+#
+#     a)  The ypatchy executable must appear somewhere in PATH.
+#
+# Created 20-Apr-1992  Herbert Greenlee
+#
+##############################################################################
+#
+# Delete dbl3.mms to disable usual build phase.  This scipt supersedes.
+#
+rm -f dbl3.mms >& /dev/null
+#
+# Find zebra pam.
+#
+set zebra_pam = ''
+#set zebra_pam = `uff $d0dbl3/dbl3/zebra.pam`
+#set zebra_opt = ''
+if( $zebra_pam == '' )then
+  set zebra_pam = `uff $d0dbl3/dbl3/zebra.car`
+  set zebra_opt = ', t=c'
+endif
+if( $zebra_pam == '' )then
+  echo "Zebra pam file not found."
+endif
+#
+# Look for dbl3 pam.
+#
+set dbl3_pam = ''
+#set dbl3_pam = `uff $d0dbl3/dbl3/dbl3.pam`
+#set opt = ''
+if( $dbl3_pam == '' )then
+  set dbl3_pam = `uff $d0dbl3/dbl3/dbl3.car`
+  set dbl3_opt = ', t=c'
+endif
+if( $zebra_pam != '' && $dbl3_pam != '' )then
+  set patchy = 1
+else
+  set patchy = 0
+endif
+#
+# Generate dbl3.f file.
+#
+if( $patchy )then
+  ln -sf $zebra_pam zebra.car
+  ln -sf $dbl3_pam dbl3.car
+  set dbl3_f = ${dbl3_pam:r}.f
+  cat << end_ypatchy >! dbl3.cra
++exe.
++use, unix, *zsgi.
++use, *dblib.
++pam, 11, r=qcde, t=a $zebra_opt . zebra.car
++pam, 12, t=a $dbl3_opt . dbl3.car
++quit.
+end_ypatchy
+  echo "- $dbl3_f dbl3.cra tty .go" | ypatchy
+#
+# Split source file into separate routines.  Modify labeled END first
+# statements because they confuse fsplit.
+#
+  d0fsplit $dbl3_f
+  rm $dbl3_f >& /dev/null
+#
+# Use CMS_GROUPS.LIST to delete any files that are not part of the
+# PROD_FULL_D0RECO group.
+#
+if( -f cms_groups.list )then
+  echo 'Deleting fortran files not in group PROD_FULL_D0RECO'
+  cms_group_contents cms_groups.list release | sort > release.list
+  cms_group_contents cms_groups.list prod_full_d0reco | sort > prod_full_d0reco.list
+  comm -13 prod_full_d0reco.list release.list | grep '\.for' > delete.list
+  foreach file (`cat delete.list`)
+    set files = `ufa "$d0dbl3/*/$file"`
+    echo "rm $files"
+    rm $files >& /dev/null
+  end
+endif
+#
+# Generate makefiles
+#
+setenv d0root $d0library/scratch
+mkdirp $d0root
+ufl '$d0dbl3/dbl3/*.f' | userlib -c $d0root -l dbl3.a -d -o dbl3.Makefile -
+ufl '$d0dbl3/dbl3/*.f' | userlib -c $d0root -l dbl3.a -n -o dbl3.makefile -
+ufl '$d0dbl3/calib/*.for' \
+     '$d0dbl3/dboffline/*.for' \
+     '$d0dbl3/general/*.for' \
+     '$d0dbl3/server/*.for' | \
+     userlib -c $d0root -l d0dbl3.a -d -o d0dbl3.Makefile -
+ufl '$d0dbl3/calib/*.for' \
+     '$d0dbl3/dboffline/*.for' \
+     '$d0dbl3/general/*.for' \
+     '$d0dbl3/server/*.for' | \
+     userlib -c $d0root -l d0dbl3.a -n -o d0dbl3.makefile -
+#
+# Build libraries.  Remove dbl3.o module from previous official release (if
+# any).
+#
+ar d dbl3.a dbl3.o >& /dev/null
+ar d deb_dbl3.a dbl3.o >& /dev/null
+foreach makefile ( *.Makefile )
+  make -f $makefile for
+  make -f $makefile pre
+  make -f $makefile debug
+end
+foreach makefile ( *.makefile )
+  make -f $makefile opt
+end

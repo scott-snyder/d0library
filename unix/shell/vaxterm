@@ -1,0 +1,109 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : vaxterm
+#
+# Purpose   : Pop a decterm on a UNIX box
+#
+# Usage     :
+#
+# % vaxterm [-rwv] [-f font] [-l #lines] [-n node] [-s server] 
+#                                             [-o "attribute_list"] host
+#
+# Options   :
+#
+#   -r - Use rsh instead of d0rexec
+#   -n - Node on which to pop decterm    (default from $DISPLAY)
+#   -s - Server number                   (default from $DISPLAY)
+#   -w - Pop as open window (usually iconified at start)
+#   -v - Verbose, print some information before popping window
+#   -l - number of lines (default: 40)
+#   -f - font
+#   -o - Options to add to decterm window attributes list. On vms do
+#            help create /term /window
+#
+# Arguments :
+#
+#   host - Name of vax/alpha node
+#
+# Created 20-OCT-1994   John D Hobbs
+#
+#------------------------------------------------------------------------------
+#
+set XNode=`printenv DISPLAY | cut -f1 -d:`
+if( "$XNode" == '' )set XNode = `hostname`
+set XServer=`printenv DISPLAY | cut -f2 -d: | cut -f1 -d'.'`
+set rhost=0
+set opts = " "
+set rows = '""'
+set tellme = 0
+set font = '""'
+
+# Parse command line options
+
+set argv = (`getopt vwrn:s:o:l:f: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -l:
+    set rows = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -f:
+    set font = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -n:
+    set XNode = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -s:
+    set XServer = "$argv[2]"
+    repeat 2 shift 
+    breaksw
+  case -r:
+    set rhost = 1
+    shift
+    breaksw
+  case -o:
+    if( $opts != "" ) set opts = $opts,
+    set opts = $opts"$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -w:
+    if( $opts != "" ) set opts = $opts,
+    set opts = $opts'initial_state="WINDOW"'
+    shift
+    breaksw
+  case -v:
+    set tellme = 1
+    shift
+    breaksw
+  endsw
+end
+shift
+
+# If no host, flag and exit
+
+if( $#argv == 0 ) then
+  echo "Usage: vaxterm [-rvw] [-f font] [-l #lines] [-n xnode] [-s xserver] [-o attr_options] host"
+  goto doneit
+endif
+
+# Set vax node to login to and Let user know what's up
+
+set vaxnode=$1
+if( $tellme == '1' ) then
+  echo XNode = $XNode
+  echo XServerID = $XServer
+  echo Vax Node = $vaxnode
+  echo Font = $font
+  echo '#lines =' $rows
+endif
+
+if( $rhost == '0' ) then
+  $d0library/unix/d0rexec $vaxnode '@d0$unix$vms:dtremote' $XNode $XServer $rows $font $opts
+else
+  rsh $vaxnode '@d0$unix$vms:dtremote' $XNode $XServer $rows $font $opts
+endif
+
+doneit:

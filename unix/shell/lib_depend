@@ -1,0 +1,111 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : lib_depend
+#
+# Purpose   : Generate a list of dependent files from a list of source files.
+#
+# Usage     :
+#
+# % lib_depend [-v] [-d object_dir] [-m maxsub]
+#
+# Options   :
+#
+# -v  - VAX mode.  If specified, source files are assumed to be in VAX file
+#       syntax.  The default is UNIX.
+# -d  - Specify the directory to be used for object files.  If not specified,
+#       the directory is the same as the source file directory.
+# -m  - Specify the maximum number of archiveable files in a subdirectory.
+#
+# Usage notes:
+#
+# 1.  Source files are read from standard input, one per line.
+#
+# 2.  Recognized source file types are:  .f (Fortran 77), .for (VAX Fortran),
+#     .c and .lex.
+#
+# 3.  Dependent files are written to standard output.  Each output line
+#     contains the following 2 or 3 files seperated by tabs.
+#
+#     1)  Archivable object file.  The filename (tail) part of the absolute
+#         pathname has a maximum of 15 characters, including the final .o.
+#         The directory part of the pathname is specified using the -d option,
+#         or else is the same as the source file.
+#
+#     2)  Language source file (.f or .c) specified as an absolute pathname.
+#
+#     3)  Preprocessor input (.for or .lex), if necessary, specified as an
+#         absolute pathname.  Preprocessor and language source files are
+#         always in the same directory.
+#
+# Created 17-NOV-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set vax = 0
+set object_dir = ''
+set maxsub = 0
+set argv = (`getopt vd:m: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -v:
+    set vax = 1
+    shift
+    breaksw
+  case -d:
+    set object_dir = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -m:
+    set maxsub = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop final --
+set nfile = 0
+set ndir = 1
+set d0cwd = `d0pwd`
+while( 1 )
+  set source_file = `line`
+  if( $status )break
+  if( $vax )set source_file = `vff $source_file`
+  if( $source_file !~ /* )set source_file = $d0cwd/$source_file
+  if( ! -f $source_file )continue
+  set type = $source_file:e
+  if( $type != for && $type != f && $type != lex && $type != c )continue
+  @ nfile = $nfile + 1
+  if( $nfile > $maxsub && $maxsub > 0 )then
+    @ ndir = $ndir + 1
+    set nfile = 1
+  endif
+  if( $object_dir == '' )then
+    set a_dir = $source_file:h
+  else
+    set a_dir = $object_dir
+    if( $maxsub != 0 )set a_dir = ${a_dir}/a$ndir
+  endif
+  switch( $type )
+  case for:
+    set f_file = $source_file:r.f
+    set a_file = ${a_dir}/`archive_name $source_file`
+    d0echo "$a_file\t$f_file\t$source_file"
+    breaksw
+  case f:
+    set a_file = ${a_dir}/`archive_name $source_file`
+    d0echo "$a_file\t$source_file"
+    breaksw
+  case lex:
+    set c_file = $source_file:r.c
+    set a_file = ${a_dir}/`archive_name $source_file`
+    d0echo "$a_file\t$c_file\t$source_file"
+    breaksw
+  case c:
+    set a_file = ${a_dir}/`archive_name $source_file`
+    d0echo "$a_file\t$source_file"
+    breaksw
+  endsw
+end

@@ -1,0 +1,86 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : d0nm
+#
+# Purpuse   : Produce a listing of an archive library in a machine independent
+#             format (machine dependent script).
+#
+# Arguments : Archive library
+#
+# Created 12-Nov-1992   Herbert B. Greenlee
+#
+# Updated 16 May 1994   John Drinkard  - put in Sun hook
+# Updated    Jan 1995   sss - for GNU nm
+#
+#------------------------------------------------------------------------------
+#
+# Machine dependent aliases and shell variables
+#
+set sys = `uname -s`
+if( $sys =~ IRIX* )then
+  set sys = IRIX
+  set syslv = `uname -r`
+  if( $syslv =~ 6.* ) set sys = IRIX.6
+endif
+if( $sys == AIX )then
+  set syslv = `uname -v`
+  if( $syslv < 4 )set sys = AIX.3
+endif
+#
+# IBM/AIX 3
+#
+if( $sys == AIX.3 )then
+  /usr/ucb/nm -go $argv | sed 's/:/:	/'
+#
+# IBM/AIX 4
+#
+else if( $sys == AIX )then
+  nm -BAgx $argv | awk -F'[' '{ if ( $2 == "" ) print $1 ; else print $2 }' \
+             | sed -e 's/]//' -e 's/:/:	/'
+#
+# Dec/ULTRIX
+#
+else if( $sys == ULTRIX )then
+  nm -Bgo $argv | cut -f2- -d:
+#
+# Linux (GNU toolsuite)
+#
+else if ($sys == Linux) then
+  nm -go $argv | awk '{i = index ($1, ":");        \
+                       mstr = substr ($0, 1, i-1); \
+                       $1 = substr ($0, i+1);      \
+                       i = index ($1, ":");        \
+                       if (i > 0) {                \
+                         mstr = substr ($0, 1, i-1); \
+                         $1 = substr ($0, i+1);    \
+                       }                           \
+                       rest = $0;                  \
+                       if (\!match (rest, "^[0-9a-f]+"))                \
+                         rest = "00000000"  substr (rest, 9);           \
+                       if (match (mstr, "[^/]*$"))                      \
+                         mstr = substr (mstr, RSTART, RLENGTH);         \
+                       if (match (mstr, "\\(.*\\)"))                    \
+                         mstr = substr (mstr, RSTART+1, RLENGTH-2);     \
+                       print mstr ":", rest;}'
+#
+# SGI/IRIX 4,5
+#
+else if( $sys == IRIX )then
+  nm -Bgo $argv | cut -f2- -d: | sed 's@/* *:@:@'
+#
+# SGI/IRIX 6
+#
+else if( $sys == IRIX.6 )then
+  nm -Bgo $argv | cut -f2- -d: | sed 's@/* *:@: @'
+#
+# Sun
+#
+else if( $sys == SunOS )then
+  nm -go $argv | cut -f2- -d:
+#
+# SGI/IRIX 3.3
+#
+else
+  nm -Bgo $argv | cut -f2- -d:
+endif

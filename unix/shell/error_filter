@@ -1,0 +1,98 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : Error_filter
+#
+# Purpose   : Given a release.log file, produce a list of error lines with
+#             context
+#
+# Usage     :
+#
+# % error_filter [-c <lines>] <log_file>
+#
+# Options   :
+#
+# -c   - Number of lines of context to include in the output (default 3).
+#
+# Arguments :
+#
+# log_file - File to use as input.
+#
+# Usage Notes:
+#
+# 1.  This script searches for the keywords "error" and "warning" in log files.
+#     Certain kinds of errors are known to be harmless and are filtered out.
+#
+# 2.  The current working directory must be writable.
+#
+# Created 20-Jan-1993   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set context = 3
+set argv = (`getopt c: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -c:
+    set context = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop --
+#
+# Interpret argument
+#
+if( $#argv == 0 )then
+  echo "Usage: error_filter [-c lines] log_file"
+  exit
+endif
+set log_file = $1
+if( ! -f $log_file )then
+  echo "error_filter: $log_file does not exist"
+  exit 1
+endif
+#
+# Set up empty temporary directory
+#
+set tmpdir = `d0tmpdir -c error_filter`
+#
+# Create a copy of the log file from which harmless errors have been removed.
+#
+egrep -v '[sS][eE][cC][oO][nN][dD].*[mM][aA][iI][nN]' $log_file | \
+  egrep -v '[sS][eE][cC][oO][nN][dD].*[vV][mM][sS]' | \
+  egrep -v '[Nn]o suffix list' | \
+  egrep -v 'u-code .* instead of .*' | \
+  cat > \
+  $tmpdir/error.log
+#
+# Create a copy of the log file from which all errors have been removed.
+#
+cat $tmpdir/error.log | \
+  egrep -v '[^_a-zA-Z0-9.][eE][rR][rR][oO][rR][^;._a-zA-Z0-9]' | \
+  egrep -v '^[eE][rR][rR][oO][rR][^;._a-zA-Z0-9]' | \
+  egrep -v '[^_a-zA-Z0-9][wW][aA][rR][nN][iI][nN][gG][^;._a-zA-Z0-9]' | \
+  egrep -v '^[wW][aA][rR][nN][iI][nN][gG][^;._a-zA-Z0-9]' | \
+  egrep -v '[Ss]egmentation *fault' | \
+  egrep -v '[Cc]ore *dumped' | \
+  egrep -v '[Bb]us *error' | \
+  egrep -v '[Ii]llegal *instruction' | \
+  egrep -v ' \(U\) | \(S\) | \(E\) | \(W\) ' | \
+  egrep -v '[^ -I]-I |[^ ]-S |[^ ]-W |[^ ]-E |[^ ]-F ' > \
+  $tmpdir/non_error.log
+#
+# Do comparison of error and non-error versions of the log file with context.
+#
+if( $D0FLAVOR == SIUNIX )then
+  diff -c$context $tmpdir/non_error.log $tmpdir/error.log |& \
+    grep -v 'No differences encountered' |& \
+    grep -v 'There are no differences between the files'
+else
+  diff -C$context $tmpdir/non_error.log $tmpdir/error.log |& \
+    grep -v 'No differences encountered' |& \
+    grep -v 'There are no differences between the files'
+endif
+rmdirp $tmpdir

@@ -1,0 +1,153 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : Fix_production_release
+#
+# Purpose   : Add orphan orutines to libraries interactively.
+#
+# Usage     :
+#
+# % fix_production_release [-ynl] [-d dir] package
+#
+# Options   :
+#
+# -d   - Top directory of production release.
+# -y   - Answer yes to all interactive queries.
+# -n   - Answer no to all interactive queries.  (Just gives list of missing 
+#        routines.)
+# -l   - Produce a list of orphaned files and do nothing else.
+#
+# Arguments :
+#
+# package - production package.
+#
+# Created 26-Aug-1992   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set ldir = ''
+set yes = 0
+set no = 0
+set list = 0
+set nins = 0
+set argv = (`getopt d:ynl $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -d:
+    set ldir = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -y:
+    set yes = 1
+    shift
+    breaksw
+  case -n:
+    set no = 1
+    shift
+    breaksw
+  case -l:
+    set list = 1
+    shift
+    breaksw
+  endsw
+end
+shift    # drop -- 
+#
+# Interpret argument
+#
+if( $#argv != 1 )then
+  echo "Usage: production_release [-l] [-u ruser] [-h rhost] [-d ldir] package"
+  exit
+endif
+set package = $1
+libprod $package
+#
+# Generate significant directories and filenames
+#
+if( $ldir == '' )then
+  set production_root = $prod/$package
+else
+  set production_root = $ldir
+endif
+#
+# Loop over library sections
+#
+foreach sect (`lib_sect`)
+  if(! -d $production_root/$sect )continue
+  if( $sect == cernlib || $sect == unix || $sect == util || $sect == stp)continue
+#
+# Compare source files in section to source files listed in mms file
+#
+  set mms_file = $production_root/$sect/${sect}.mms
+  if(! -f $mms_file )continue
+  if(! $list )echo "Checking section $sect"
+  mms_filter -s $mms_file | \
+    cut -f2 | \
+    vfa | \
+    sort > mms_files
+  find $production_root/$sect -name \*.for -print | \
+    grep -v v${sect}.for | \
+    sort > for_files
+  set missing = (`comm -13 mms_files for_files`)
+  set nmiss = $#missing
+  if( $nmiss == 0 )continue
+  if( $list )then
+    echo $missing | tr ' ' '\012'
+    continue
+  endif
+#
+# Found missing routines.  Get list of libraries.
+#
+  set libs = (`mms_filter -l $mms_file | sed 's/.olb/.a/' | vfa`)
+  set nlib = $#libs
+  if( $nlib == 0 )continue
+  set imiss = 0
+missloop:
+  @ imiss = $imiss + 1
+  if( $imiss > $nmiss )goto missdone
+  set ilib = 0
+libloop:
+  @ ilib = $ilib + 1
+  if( $ilib > $nlib )goto libdone
+  set miss = $missing[$imiss]
+  set lib = $libs[$ilib]
+  set obj = `archive_name $miss`
+  set deb_lib = `echo $lib | sed 's/\([^/]*\.a\)/deb_\1/'`
+  d0echo "\nInsert $miss into $lib ?\c"
+  set ans = ''
+  if( $yes )then
+    set ans = 'y'
+    echo $ans
+  endif
+  if( $no )then
+    set ans = 'n'
+    echo $ans
+  endif
+  if( $ans == '')set ans = `line | cut -c1 | tr '[A-Z]' '[a-z]'`
+  if( $ans == y )then
+    set cmd = "fort $miss"
+    echo $cmd
+    eval $cmd
+    set cmd = "ar $arflags $lib $obj"
+    echo $cmd
+    eval $cmd
+    set cmd = "fort -g $miss"
+    echo $cmd
+    eval $cmd
+    set cmd = "ar $arflags $deb_lib $obj"
+    echo $cmd
+    eval $cmd
+    @ nins = $nins + 1
+    rm $obj
+  endif
+  goto libloop
+libdone:
+  goto missloop
+missdone:
+  rm for_files
+  rm mms_files
+end
+if(! $list )echo "Finished: $nins insertions"

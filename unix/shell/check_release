@@ -1,0 +1,162 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : Check_release
+#
+# Purpose   : Check status of a given test or official library.
+#
+# Usage     :
+#
+# % check_release [-got] section
+#
+# Options   :
+#
+# -g   - Gamma.
+# -o   - Official (default).
+# -t   - Test.
+#
+# Arguments :
+#
+# section - Library section to check
+#
+# Notes:
+#
+# 1.  Only one of -g, -o and -t should be specified.  If none is specified,
+#     -o is the default.
+#
+# Created 3-DEC-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set gamma = 0
+set official = 0
+set test = 0
+set argv = (`getopt got $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -g:
+    set gamma = 1
+    shift
+    breaksw
+  case -o:
+    set official = 1
+    shift
+    breaksw
+  case -t:
+    set test = 1
+    shift
+    breaksw
+  endsw
+end
+shift    # drop --
+if( $official )then
+  set test = 0
+  set gamma = 0
+endif
+if(! $test && ! $gamma )set official = 1
+#
+# Interpret argument
+#
+if( $#argv == 0 )exit
+set lib_section = $1
+if( $official )then
+  d0echo "\nChecking library section $lib_section (official)"
+  set lib_root = $d0library/$lib_section
+endif
+if( $test )then
+  d0echo "\nChecking library section $lib_section (test)"
+  set lib_root = $d0test/$lib_section
+endif
+if( $gamma )then
+  d0echo "\nChecking library section $lib_section (gamma)"
+  set lib_root = $d0gamma/$lib_section
+endif
+#
+# Check for existence of library directory.
+#
+if(! -d $lib_root )then
+  echo "????? Library directory for section $lib_section does not exist"
+  exit 1
+endif
+cd $lib_root
+#
+# Check for existence of version file and release notes.
+#
+set version_file = `uff 000\*v\*.\*`
+if(! -f "$version_file" )then
+  echo "????? No version file for section $lib_section"
+  exit 1
+endif
+set version = \
+  (`echo $version_file | sed -n 's/^.*\(v.*\)$/\1/p'`)
+if( $#version != 1 || "$version" == `` )then
+  echo "????? Bad version for section $lib_section"
+  exit 1
+endif
+set release_notes = ${version}-rel_notes
+if(! -f "$release_notes" )then
+  echo "????? Release notes for section $lib_section do not exist"
+  exit 1
+endif
+#
+# All further checks have to do with object archive libraries.
+# Note if an MMS file does not exist.
+#
+set mms_file = ${lib_section}.mms
+if(! -f "$mms_file" )then
+  echo "????? MMS file $mms_file does not exist"
+endif
+#
+# Get a list of makefiles.  Bail out if there are none.
+#
+set makefiles = (`ls | grep makefile`)
+if( $#makefiles == 0 )then
+  echo "????? Makefile does not exist for section $lib_section"
+  exit 1
+endif
+set archives = (`cat $makefiles | sed -n 's/^ *\(.*\.a\) *:: *\\$/\1/p'`)
+#
+# Analyze each archive library
+#
+set tmpdir = `d0tmpdir -c check_release`
+set make_objects = $tmpdir/make_objects
+set missing_sources = $tmpdir/missing_sources
+foreach archive ( $archives )
+  set arch = `echo $archive | sed 's@$(d0root)@'"$d0root@" | sed 's@$(d0library)@'"$d0library@"`
+  if(! -f $arch )then
+    echo "????? Archive $archive does not exist"
+    continue
+  endif
+#
+# First, make a list of object modules and their corresponding sources from the
+# makefile.
+#
+  cat $makefiles | \
+    sed -n "\@^$archive"'(.*) *:@{N;s@^.*(\(.*\)).*\n@\1@;s@\\@@;s@  *@	@p;}'|\
+    sort +0 -1 | \
+    sed 's@$(d0root)@'"$d0root@" | \
+    sed 's@$(d0library)@'"$d0library@" >! \
+    $make_objects
+#
+# Make a list of sources that are in the makefile that do not have
+# corresponding objects in the archive.
+#
+  ar t $arch | \
+  sort | \
+  join -o 1.1 2.2 -a2 -e MISSING - $make_objects | \
+  grep MISSING | \
+  cut -f2 -d' ' >! $missing_sources
+  set n = `cat $missing_sources | wc -w`
+  if( $n == 0 )then
+    d0echo "\n$archive is OK"
+  else
+    d0echo "\nMissing files in ${arch}:\n"
+    cat $missing_sources
+  endif
+end
+done:
+if( $?tmpdir )then
+  rmdirp $tmpdir
+endif

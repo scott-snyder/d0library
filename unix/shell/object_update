@@ -1,0 +1,195 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : object_update
+#
+# Purpose   : Generate makefile dependencies and updating rules for object 
+#             files
+#
+# Usage     :
+#
+# % object_update -d -f flavor -l library
+#
+# Options:
+#
+# -c   - Specify compilation directiry (default none, i.e. compile absolute 
+#        pathname).
+# -d   - Specify debug mode.  Default is non-debug.
+# -f   - Specify UNIX flavor.  Default $D0FLAVOR.
+# -l   - Specify an archive library to be used as a target.  If not specified,
+#        the object file itself is the target.
+#
+# 1.  Object and source files are read from standard input, one each
+#     per line.
+#
+# 2.  No checking of the filenames is done.
+#
+# 3.  Output for each object/source file pair is written to standard output 
+#     in the following format:
+#
+#     library(object_file.o):\     # or object_file.o:\
+#       source_file\
+#       include_file_1\
+#       include_file_2\
+#            .
+#            .
+#            .
+#       include_file_n
+#     \t(cd $compdir;\             # if -c option specified
+#     \tcompile_command;\
+#     \tmv compiler_output.o object_file.o)   # if necessary
+#
+# 4.  Standard debug mode compiler commands are:
+#
+#     $(F77) $(F77FLAGS) $(DEBUG) source_file
+#     $(CC) $(CCFLAGS) $(DEBUG) source_file
+#
+#     Non-debug compiler commands are:
+#
+#     $(F77) $(F77FLAGS) $(OPT) source_file
+#     $(CC) $(CCFLAGS) $(OPT) source_file
+#
+# Created 17-NOV-1991   Herbert B. Greenlee
+# modify for AIX 4.1 make bug 6/26/97  jms
+# Updated 4-Feb-1998   Herbert Greenlee
+#    Removed previous AIX modification that turned library modules into fake
+#    targets, causing full recompilation on each invocation.
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set library = ''
+set flavor = $D0FLAVOR
+set debug = 0
+set compdir = ''
+set argv = (`getopt df:l:c: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -d:
+    set debug = 1
+    shift
+    breaksw
+  case -f:
+    set flavor = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -l:
+    set library = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -c:
+    set compdir = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop final -- 
+#
+# Loop over files
+#
+while( 1 )
+  set next = ( `line` )
+  if( $status )break
+  set a_file = $next[1]
+  set source_file = $next[2]
+  if( $#next >= 3 )then
+    set pre_file = $next[3]
+  else
+    set pre_file = ''
+  endif
+  set o_file = $source_file:t
+  set o_file = ${o_file:r}.o     # Name of local object file (compiler output)
+  if( $library == '' )then
+    set target = $a_file
+  else
+# modify next line for AIX 4.1 make bug 6/26/97  jms
+# Removed 2/4/98 hbg
+    set target = "${library}(${a_file:t})"
+#    set target = "${library}(x${a_file:t})"
+  endif
+  if( $pre_file == '' )then
+    set type = $source_file:e
+  else
+    set type = $pre_file:e
+  endif
+  if( $compdir != '' )then
+    set compsrc = `echo $source_file | sed "s@^$compdir/@@"`
+  else
+    set compsrc = $source_file
+  endif
+#
+# Generate dependencies and updating rules here.
+#
+  switch( $type )
+  case for:
+    d0echo "${target}:\\\n  $source_file\c"
+    for_depend < $pre_file
+    d0echo
+    if( $compdir != '' )then
+      d0echo "\t(cd $compdir;\"
+    else
+      d0echo "\t(\"
+    endif
+    if( $debug )then
+      d0echo '\t$(F77) $(F77FLAGS) $(DEBUG)' "$compsrc" ';\'
+    else
+      d0echo '\t$(F77) $(F77FLAGS) $(OPT)' "$compsrc" ';\'
+    endif
+    if( $o_file:q != $a_file:q )d0echo "	mv $o_file" "$a_file" ';\'
+    d0echo '\t)'
+    breaksw
+  case f:
+    d0echo "${target}:\\\n  $source_file\c"
+    f_depend < $source_file
+    d0echo
+    if( $compdir != '' )then
+      d0echo "\t(cd $compdir;\"
+    else
+      d0echo "\t(\"
+    endif
+    if( $debug )then
+      d0echo '\t$(F77) $(F77FLAGS) $(DEBUG)' "$compsrc" ';\'
+    else
+      d0echo '\t$(F77) $(F77FLAGS) $(OPT)' "$compsrc" ';\'
+    endif
+    if( $o_file:q != $a_file:q )d0echo "	mv $o_file" "$a_file" ';\'
+    d0echo '\t)'
+    breaksw
+  case c:
+    d0echo "${target}:\\\n  $source_file\c"
+    c_depend < $source_file
+    d0echo
+    if( $compdir != '' )then
+      d0echo "\t(cd $compdir;\"
+    else
+      d0echo "\t(\"
+    endif
+    if( $debug )then
+      d0echo '\t$(CC) $(CCFLAGS) $(DEBUG)' "$compsrc" ';\'
+    else
+      d0echo '\t$(CC) $(CCFLAGS) $(OPT)' "$compsrc" ';\'
+    endif
+    if( $o_file:q != $a_file:q )d0echo "	mv $o_file" "$a_file" ';\'
+    d0echo '\t)'
+    breaksw
+  case lex:
+    d0echo "${target}:\\\n  $source_file\c"
+    lex -t $pre_file | c_depend
+    d0echo
+    if( $compdir != '' )then
+      d0echo "\t(cd $compdir;\"
+    else
+      d0echo "\t(\"
+    endif
+    if( $debug )then
+      d0echo '\t$(CC) $(LCCFLAGS) $(DEBUG)' "$compsrc" ';\'
+    else
+      d0echo '\t$(CC) $(LCCFLAGS) $(OPT)' "$compsrc" ';\'
+    endif
+    if( $o_file:q != $a_file:q )d0echo "	mv $o_file" "$a_file" ';\'
+    d0echo '\t)'
+    breaksw
+  endsw
+end

@@ -1,0 +1,158 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : cmsfetch
+#
+# Purpuse   : Fetch file(s) from the local CMS library on D0SFT.
+#
+# Usage :
+#
+# cmsfetch [-b] [-r] [-h rhost] [-u ruser] [-d ldir] file(s) cmslib
+#
+# Options:
+#
+#     -b    - Use BNL CMS library (default is local CMS library).
+#     -r    - Use rsh (default is d0rexec).
+#     rhost - remote host (default $VAXLIB_NODE).
+#     ruser - remote user.
+#     ldir  - local directory to receive fetched files.
+#
+# Arguments :
+#
+#     file(s) - One or more filenames to fetch.  This argument may contain
+#               a comma-separated list of filenames and VAX wildcards.  This
+#               argument should be quoted if it contains wildcards or spaces.
+#
+#     cmslib  - VAX CMS library (e.g. UNIX.CMS).
+#
+# Cmsfetch sources the file ~/.cmsinit (if it exists).  This file may
+# contain shell commands defining any of the following shell variables:
+#
+# rhost - Remote host
+# ruser - Remote user
+# lhost - Local host
+# luser - Local user
+# ldir  - Local directory to receive fetch files
+#
+# These variables may also be set in the environment.
+#
+# Notes:
+#
+# 1.  Typeless files (common in UNIX) should be specified with a final period
+#     to distinguish them from CMS groups.
+#
+# 2.  The values of rhost and ruser may be overridden by command line options.
+#     If rhost or ruser is not defined, a default remote host and the current
+#     user will be used.
+#
+# 3.  If lhost and luser are not defined, they default the the current host
+#     and user.
+#
+# 4.  All transactions are between trusted hosts.  This means that suitable
+#     .rhosts files must exist on both ends.
+#
+# 5.  The remote host's login.com must ensure that the logical names
+#     d0$unix$vms and usr$scratch are defined.
+#
+# Created 11-JUL-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# brief help message
+#
+if($#argv == 0 ) then
+help:
+    echo "usage: cmsfetch [-b] [-r] [-h rhost] [-u ruser] [-d ldir] file(s) cmslib"
+    exit 1
+endif
+#
+# initialization
+#
+if(-e ~/.cmsinit )source ~/.cmsinit	# init script
+set noglob = 1				# don't trash VAX wildcards
+#
+# scan options
+#
+set bnl = 0
+set rsh = 0
+set argv = (`getopt brh:u:d: $argv:q`)
+while("$argv[1]" != '--')
+    switch($argv[1])
+    case -b:
+        set bnl = 1
+        shift
+        breaksw
+    case -r:
+        set rsh = 1
+        shift
+        breaksw
+    case -h:
+        set rhost = $argv[2]
+        repeat 2 shift
+        breaksw
+    case -u:
+        set ruser = $argv[2]
+        repeat 2 shift
+        breaksw
+    case -d:
+        set ldir = $argv[2]
+        repeat 2 shift
+        breaksw
+    default:
+        echo "cmsfetch: bad option $argv"
+        goto help
+    endsw
+end
+shift		# drop --
+#
+# make sure that all required variables are defined (supply defaults)
+#
+if(! $?rhost ) set rhost = $VAXLIB_NODE
+if(! $?ruser ) set ruser = $user
+if(! $?lhost ) set lhost = `uname -n`
+if(! $?luser ) set luser = $user
+if(! $?ldir ) set ldir = $cwd
+#
+# set up an empty temporary directory for fetching
+#
+set tmpdir = `d0tmpdir cmsfetch`
+foreach file ( `ls $tmpdir` )
+    if( -f $tmpdir/$file ) rm -f $tmpdir/$file
+end
+#
+# scan arguments
+#
+if( $#argv < 2 ) then
+    echo "cmsfetch: insufficient arguments"
+    goto help
+endif
+set files = "$argv[1]"
+set cmslib = "$argv[2]"
+if( $#argv > 2) then
+    echo "cmsfetch: too many arguments"
+    goto help
+endif
+#
+# do it
+#
+if( $rsh == 0 )then
+  d0rexec $rhost -l $ruser '@d0$unix$vms:cmsfetch' "$files" "$cmslib" \
+    '"'"$lhost"'"' '"'"$luser"'"' '"'"$tmpdir"'"' "$bnl"
+else
+  rsh $rhost -l $ruser '@d0$unix$vms:cmsfetch' "$files" "$cmslib" \
+    '"'"$lhost"'"' '"'"$luser"'"' '"'"$tmpdir"'"' "$bnl"
+endif
+#
+# move files from temporary to their final location and set execute protection
+#
+foreach file ( `ls $tmpdir` )
+    if( `sed q $tmpdir/$file | cut -c1-2` == \#\! ) then
+        chmod +x $tmpdir/$file
+    else
+        chmod -x $tmpdir/$file
+    endif
+    if( -e $ldir/$file ) mv $ldir/$file $ldir/${file}~
+    mv $tmpdir/$file $ldir/$file
+end
+done:
+rmdirp $tmpdir

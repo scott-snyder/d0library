@@ -1,0 +1,2576 @@
+
+
+
+                                                      Herbert Greenlee
+                                                           15-AUG-1991
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  ____ _______                                  UNIX Library
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 1 -
+                                                                Page 2
+
+
+                                   CONTENTS
+
+        1       Introduction . . . . . . . . . . . . . . . . . . . . 4
+        1.1       Argument passing in UNIX . . . . . . . . . . . . . 4
+        1.2       VMS condition values . . . . . . . . . . . . . . . 4
+        2       Non-emulation Utility Routines . . . . . . . . . . . 5
+        2.1       FIND_FILE  . . . . . . . . . . . . . . . . . . . . 5
+        2.2       FIND_FILE_END  . . . . . . . . . . . . . . . . . . 6
+        2.3       UTC_TZ_OFFSET, D0_TZ_OFFSET  . . . . . . . . . . . 6
+        2.4       UNIX_TO_VMS_TIME . . . . . . . . . . . . . . . . . 6
+        2.5       VMS_TO_UNIX_TIME . . . . . . . . . . . . . . . . . 7
+        3       VAX Fortran System Subroutine Emulators  . . . . . . 7
+        3.1       DATE . . . . . . . . . . . . . . . . . . . . . . . 7
+        3.2       EXIT . . . . . . . . . . . . . . . . . . . . . . . 8
+        3.3       IDATE  . . . . . . . . . . . . . . . . . . . . . . 8
+        3.4       TIME . . . . . . . . . . . . . . . . . . . . . . . 9
+        4       LIB$ Emulation Routines  . . . . . . . . . . . . . . 9
+        4.1       LIB$DATE_TIME  . . . . . . . . . . . . . . . . . . 9
+        4.2       LIB$DAY  . . . . . . . . . . . . . . . . . . . .  10
+        4.3       LIB$DELETE_FILE  . . . . . . . . . . . . . . . .  10
+        4.4       LIB$FIND_FILE  . . . . . . . . . . . . . . . . .  11
+        4.5       LIB$FIND_FILE_END  . . . . . . . . . . . . . . .  11
+        4.6       LIB$GET_FOREIGN  . . . . . . . . . . . . . . . .  12
+        4.7       LIB$GET_VM . . . . . . . . . . . . . . . . . . .  12
+        4.8       LIB$RENAME_FILE  . . . . . . . . . . . . . . . .  13
+        4.9       LIB$SIGNAL . . . . . . . . . . . . . . . . . . .  13
+        4.10      LIB$STOP . . . . . . . . . . . . . . . . . . . .  14
+        4.11      LIB$WAIT . . . . . . . . . . . . . . . . . . . .  14
+        5       SMG$ Emulation Routines  . . . . . . . . . . . . .  14
+        5.1       SMG$BEGIN_PASTEBOARD_UPDATE  . . . . . . . . . .  15
+        5.2       SMG$CHANGE_VIEWPORT  . . . . . . . . . . . . . .  15
+        5.3       SMG$CHANGE_VIRTUAL_DISPLAY . . . . . . . . . . .  16
+        5.4       SMG$COPY_VIRTUAL_DISPLAY . . . . . . . . . . . .  17
+        5.5       SMG$CREATE_PASTEBOARD  . . . . . . . . . . . . .  17
+        5.6       SMG$CREATE_VIEWPORT  . . . . . . . . . . . . . .  18
+        5.7       SMG$CREATE_VIRTUAL_DISPLAY . . . . . . . . . . .  19
+        5.8       SMG$CREATE_VIRTUAL_KEYBOARD  . . . . . . . . . .  20
+        5.9       SMG$CURSOR_COLUMN  . . . . . . . . . . . . . . .  21
+        5.10      SMG$CURSOR_ROW . . . . . . . . . . . . . . . . .  21
+        5.11      SMG$DELETE_PASTEBOARD  . . . . . . . . . . . . .  21
+        5.12      SMG$DELETE_VIRTUAL_DISPLAY . . . . . . . . . . .  22
+        5.13      SMG$DELETE_VIRTUAL_KEYBOARD  . . . . . . . . . .  22
+        5.14      SMG$DISABLE_UNSOLICITED_INPUT  . . . . . . . . .  23
+        5.15      SMG$ENABLE_UNSOLICITED_INPUT . . . . . . . . . .  23
+        5.16      SMG$END_PASTEBOARD_UPDATE  . . . . . . . . . . .  24
+        5.17      SMG$ERASE_DISPLAY  . . . . . . . . . . . . . . .  24
+        5.18      SMG$ERASE_LINE . . . . . . . . . . . . . . . . .  25
+        5.19      SMG$ERASE_PASTEBOARD . . . . . . . . . . . . . .  25
+        5.20      SMG$GET_DISPLAY_ATTR . . . . . . . . . . . . . .  26
+        5.21      SMG$GET_PASTING_INFO . . . . . . . . . . . . . .  27
+        5.22      SMG$GET_VIEWPORT_CHAR  . . . . . . . . . . . . .  27
+
+                                - 2 -
+                                                                Page 3
+
+
+        5.23      SMG$MOVE_TEXT  . . . . . . . . . . . . . . . . .  28
+        5.24      SMG$MOVE_VIRTUAL_DISPLAY . . . . . . . . . . . .  29
+        5.25      SMG$PASTE_VIRTUAL_DISPLAY  . . . . . . . . . . .  30
+        5.26      SMG$PUT_CHARS  . . . . . . . . . . . . . . . . .  31
+        5.27      SMG$PUT_CHARS_WIDE . . . . . . . . . . . . . . .  32
+        5.28      SMG$PUT_LINE . . . . . . . . . . . . . . . . . .  33
+        5.29      SMG$PUT_WITH_SCROLL  . . . . . . . . . . . . . .  34
+        5.30      SMG$READ_FROM_DISPLAY  . . . . . . . . . . . . .  35
+        5.31      SMG$READ_KEYSTROKE . . . . . . . . . . . . . . .  36
+        5.32      SMG$READ_STRING  . . . . . . . . . . . . . . . .  37
+        5.33      SMG$REPAINT_SCREEN . . . . . . . . . . . . . . .  39
+        5.34      SMG$REPASTE_VIRTUAL_DISPLAY  . . . . . . . . . .  39
+        5.35      SMG$RETURN_CURSOR_POS  . . . . . . . . . . . . .  40
+        5.36      SMG$SET_CURSOR_ABS . . . . . . . . . . . . . . .  41
+        5.37      SMG$SET_CURSOR_MODE  . . . . . . . . . . . . . .  41
+        5.38      SMG$SET_DISPLAY_SCROLL_REGION  . . . . . . . . .  42
+        5.39      SMG$UNPASTE_VIRTUAL_DISPLAY  . . . . . . . . . .  42
+        6       STR$ Emulation Routines  . . . . . . . . . . . . .  43
+        6.1       STR$TRIM . . . . . . . . . . . . . . . . . . . .  43
+        6.2       STR$UPCASE . . . . . . . . . . . . . . . . . . .  43
+        7       SYS$ Emulation Routine . . . . . . . . . . . . . .  44
+        7.1       SYS$ASCTIM . . . . . . . . . . . . . . . . . . .  44
+        7.2       SYS$BINTIM . . . . . . . . . . . . . . . . . . .  45
+        7.3       SYS$GETTIM . . . . . . . . . . . . . . . . . . .  45
+        7.4       SYS$NUMTIM . . . . . . . . . . . . . . . . . . .  45
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 3 -
+                                                                          Page 4
+
+
+          1  Introduction
+
+          This document describes UNIX library routines.  The main
+          purpose of this library is emulation of VMS run-time library
+          routines on UNIX machines.  Many of the routines described
+          here are written in c, but most can be called from fortran.
+          Only the fortran calling sequences are described here.  The
+          c calling sequences are documented in the source files,
+          which can be found in the area D0$UNIX$SOURCE.
+
+
+
+          1.1  Argument passing in UNIX
+
+          Fortran 77 requires that the number and types of actual and
+          dummy arguments agree between calling and called routines.
+          The VMS languages, including fortran, do not require this.
+          Unfortunately, VMS run-time library routines take full
+          advantage of the variable argument list capabilities of VMS.
+          VMS-style variable lists cause problems for the UNIX
+          fortrans.  The main problems are as follows:
+
+          1.  In UNIX, there is no way for a called subroutine to
+              determine the number of actual arguments.
+
+          2.  Not all of the UNIX fortran compilers accept null
+              arguments in subroutine calls.  SGI allows null
+              arguments, IBM doesn't.  However, %VAL(0) works for null
+              arguments on both SGI and IBM.
+
+          3.  The UNIX fortran compilers generate extra arguments
+              (rather than descriptors) for the passed lengths of
+              character arguments.  This mechanism fails if the number
+              of actual and dummy arguments is not the same.
+
+          Because of limitations on variable argument lists, it is
+          impossible to fully emulate VMS run-time library routines in
+          UNIX.  If possible, programs that may be run under UNIX
+          should have all arguments specified in all subroutine and
+          function calls.  Null arguments should be specified
+          explicitly (e.g.  use CALL SMG$ERASE_DISPLAY(ID,,,,) rather
+          than CALL SMG$ERASE_DISPLAY(ID)).
+
+
+
+          1.2  VMS condition values
+
+          VMS run-time library routines return a 32-bit bit-encoded
+          condition value.  On VMS this condition value can be
+          interpreted by the calling program as a logical value (with
+          .true.  indicating success) or the condition value may
+
+                                     - 4 -
+                                                                          Page 5
+
+
+          intepreted as an integer and compared with standard
+          tabulated values, such as SS$_NORMAL.  Condition values may
+          also be passed to the library routine LIB$SIGNAL and
+          LIB$STOP to generate error messages and/or abort the
+          program.
+
+               Because of the way logical values are represented on
+          different machines, it is not possible to bit-encode
+          information into the return value of a function and still
+          retain the ability to interpret the value logically.  Zero
+          is the only machine independent representation of false.
+          Most of the VMS run-time library emulation routines return
+          either 0 (false) or 1 (true).  They do not try to bit-encode
+          additional information.  Sophisticated error checking and
+          recovery are usually not possible.  The variable that
+          receives the return value may be declared as either LOGICAL
+          or INTEGER.  In the latter case, the success of the
+          operation may be determined by comparing the return value
+          with the parameter SS$_NORMAL (=1).  The UNIX fortrans are
+          not as forgiving as VAX fortran regarding the inconsistent
+          use of integer and logical varialbes.
+
+               Emulation parameters are defined in the include files
+          SSDEF.DEF, SMGDEF.DEF and TRMDEF.DEF in D0$INC.
+
+
+
+          2  Non-emulation Utility Routines
+
+          2.1  FIND_FILE
+
+          Usage:
+
+                COND = FIND_FILE( IFILE, RFILE, CONTEXT)
+
+          Return value: 1 (.TRUE.)  - Success.
+                        0 (.FALSE.) - Failure.
+
+          Arguments:
+
+                IFILE -   Input file specification.
+                  type:   character
+                  access: read only
+
+                RFILE -   Resultant file specification.
+                  type:   character
+                  access: write only
+
+                CONTEXT - Context pointer.
+                  type:   integer*4
+                  access: modify
+
+                                     - 5 -
+                                                                          Page 6
+
+
+          This function accepts a UNIX-style filename in IFILE,
+          possibly containing environment vairables (preceded by $)
+          and csh wildcards (*, ?, []), and returns a matching
+          filename in RFILE.  Additional matching filenames (if any)
+          are returned on subsequent calls with the same context.
+          CONTEXT should be set to zero on the first call to FIND_FILE
+          with a particular IFILE.  FIND_FILE_END should be called
+          after the last call to deallocate the context.
+
+
+
+          2.2  FIND_FILE_END
+
+          Usage:
+
+                CALL FIND_FILE_END( CONTEXT)
+
+          Arguments:
+
+                CONTEXT - Context pointer.
+                  type:   integer*4
+                  access: modify
+
+          This subroutine should be called after the last call to
+          FIND_FILE to deallocate the context associated with a
+          particular file specification.
+
+
+
+          2.3  UTC_TZ_OFFSET, D0_TZ_OFFSET
+
+
+          Usage:
+
+                HOURS = UTC_TZ_OFFSET()
+                HOURS = D0_TZ_OFFSET()
+
+          These functions return the integer number of hours between
+          the local timezeone and UTC (UTC_TZ_OFFSET) or central
+          standard time (D0_TZ_OFFSET).  The sign of the offset is
+          such that it increases as you move west.  Daylight time
+          decreases the offset by one hour.  On UNIX systems, the
+          timezone is stored in the environment variable TZ.
+
+
+
+          2.4  UNIX_TO_VMS_TIME
+
+          Usage:
+
+                CALL UNIX_TO_VMS_TIME(UNIX_TIME, VMS_TIME)
+
+                                     - 6 -
+                                                                          Page 7
+
+
+          Arguments:
+
+                UNIX_TIME - UNIX absolute time (32-bit)
+                  type:   integer
+                  access: read only
+
+                VMS_TIME - VMS absolute time (64-bit)
+                  type:   integer (2-word array)
+                  access: write only
+
+          This routine converts a time in the UNIX internal binary
+          representation to an absolute time in the VMS internal
+          binary representation.  This conversion is timezone
+          dependent.
+
+
+
+          2.5  VMS_TO_UNIX_TIME
+
+
+          Usage:
+
+                CALL VMS_TO_UNIX_TIME(VMS_TIME, UNIX_TIME)
+
+          Arguments:
+
+                VMS_TIME - VMS absolute time (64-bit)
+                  type:   integer (2-word array)
+                  access: read only
+
+                UNIX_TIME - UNIX absolute time (32-bit)
+                  type:   integer
+                  access: write only
+
+          This routine converts an absolute time in the VMS internal
+          binary representation to a time in the UNIX internal binary
+          representation.  This conversion is timezone dependent.
+
+
+
+          3  VAX Fortran System Subroutine Emulators
+
+          These routines emulate VAX fortran system subroutines.
+
+
+
+          3.1  DATE
+
+          Usage:
+
+                CALL DATE(BUF)
+
+                                     - 7 -
+                                                                          Page 8
+
+
+          Arguments:
+
+                BUF - String containing today's date.
+                  type:   character*9
+                  access: write only
+
+          This subroutine returns the local system date as a
+          9-character string in the format dd-mmm-yy.
+
+
+
+          3.2  EXIT
+
+          Usage:
+
+                CALL EXIT(STATUS)
+
+          Arguments:
+
+                STATUS - Exit status (machine dependent).
+                  type:   integer
+                  access: read only
+
+          This routine exits the program and sets the exit status.
+          This routine is provided to allow programs that use the VMS
+          version of the EXIT subroutine to link properly.  Note the
+          following:  a) the interpretation of the status value is
+          totally different in UNIX than it is in VMS and b) calling
+          EXIT without an argument may cause your program to crash
+          (which is presumably not a disaster since it was exiting
+          anyway).
+
+
+
+          3.3  IDATE
+
+          Usage:
+
+                CALL IDATE(MONTH, DAY, YEAR)
+
+          Arguments:
+
+                MONTH - Month (1-12)
+                  type:   integer*4
+                  access: write only
+
+                DAY - Day of month (1-31)
+                  type:   integer*4
+                  access: write only
+
+                YEAR - Year of century (0-99)
+
+                                     - 8 -
+                                                                          Page 9
+
+
+                  type:   integer*4
+                  access: write only
+
+
+
+
+          3.4  TIME
+
+          Usage:
+
+                CALL TIME(BUF)
+
+          Arguments:
+
+                BUF - String containing today's date.
+                  type:   character*8
+                  access: write only
+
+          This subroutine returns the local system time of day as an
+          8-character string in the format hh:mm:ss.
+
+
+
+          4  LIB$ Emulation Routines
+
+          These routines emulate VMS LIB$ run-time library routines.
+
+
+
+          4.1  LIB$DATE_TIME
+
+          Usage:
+
+                COND = LIB$DATE_TIME(DATE_TIME)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DATE_TIME - System date and time
+                  type:   character
+                  access: write only
+
+          This function returns the local system date and time as a
+          20-character string in the following format:  dd-mmm-yyyy
+          hh:mm:ss.  The argument variable may be declared to have any
+          length.
+
+
+
+
+                                     - 9 -
+                                                                         Page 10
+
+
+          4.2  LIB$DAY
+
+          Usage:
+
+                COND = LIB$DAY(DAY_NUMBER, [USER_TIME], [DAY_TIME])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DAY_NUMBER - Number of days since the zero date.
+                  type:   integer*4
+                  access: write only
+
+                USER_TIME - Local numeric time.
+                  type:   integer*4 (2-word array)
+                  access: read only
+
+                DAY_TIME - Time since midnight in 10 msec units.
+                  type:   integer*4
+                  access: write only
+
+          This function returns the number of days since the VMS zero
+          date.  USER_TIME is a VMS 64-bit absolute time argument.  If
+          the USER_TIME argument is null, the current time is used.
+          The DAY_NUMBER is determined from the date part of
+          USER_TIME.  DAY_TIME is determined from the time part of
+          USER_TIME.  The resolution of DAY_TIME is one second despite
+          the fact that the units are 10 msec.
+
+
+
+          4.3  LIB$DELETE_FILE
+
+          Usage:
+
+                COND = LIB$DELETE_FILE(FILENAME)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                FILENAME
+                  type:   character
+                  access: read only
+
+          This routine deletes the named file.
+
+
+
+                                     - 10 -
+                                                                         Page 11
+
+
+          4.4  LIB$FIND_FILE
+
+          Usage:
+
+                COND = LIB$FIND_FILE( IFILE, RFILE, CONTEXT)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                IFILE -   Input file specification.
+                  type:   character
+                  access: read only
+
+                RFILE -   Resultant file specification.
+                  type:   character
+                  access: write only
+
+                CONTEXT - Context pointer.
+                  type:   integer*4
+                  access: modify
+
+          This function is like FIND_FILE except that it accepts a
+          VMS-style file specification.  The input file specification
+          may contain standard D0 logicals (beginning with D0$) and
+          VMS wildcards (*, %).  LIB$FIND_FILE translates the input
+          file specification into its UNIX equivalent and then calls
+          FIND_FILE.  The rules for handling CONTEXT are the same as
+          for FIND_FILE.  LIB$FIND_FILE also recognizes UNIX absolute
+          pathnames (i.e.  filenames beginning with /).  In this case,
+          VMS translation is inhibited.
+
+
+
+          4.5  LIB$FIND_FILE_END
+
+          Usage:
+
+                COND = LIB$FIND_FILE_END( CONTEXT)
+
+          Return value: SS$_NORMAL (.TRUE.).
+
+          Arguments:
+
+                CONTEXT - Context pointer.
+                  type:   integer*4
+                  access: modify
+
+          This subroutine should be called after the last call to
+          LIB$FIND_FILE to deallocate the context associated with a
+
+                                     - 11 -
+                                                                         Page 12
+
+
+          particular file specification.
+
+
+
+          4.6  LIB$GET_FOREIGN
+
+          Usage:
+
+                COND = LIB$GET_FOREIGN(RESULTANT_STRING, 
+               &  [PROMPT_STRING], [RESULTANT_LENGTH], [FLAGS])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                RESULTANT_STRING - Returned string.
+                  type:   character
+                  access: write only
+
+                PROMPT_STRING - Optional prompt.
+                  type:   character
+                  access: read only
+
+                RESULTANT_LENGTH - Length of returned string.
+                  type:   integer*2
+                  access: write only
+
+                FLAGS - Force prompt flag (bit 0).
+                  type:   integer*4
+                  access: read only
+
+          This function returns the portion of the command line
+          following the main command, which must be terminated by a
+          space.  If the command line is empty or if bit 0 of FLAGS is
+          true, then PROMPT_STRING is printed (if specified) and one
+          line is read from standard input.  The command line is
+          ignored if bit 0 of FLAGS is set.  If the flags argument is
+          specified, its bit 0 will be set so that subsequent calls to
+          lib$get_foreign will read from standard input.  The returned
+          string is unconditionally converted to upper case.  This
+          function only works with fortran main programs.
+
+
+
+          4.7  LIB$GET_VM
+
+          Usage:
+
+                COND = LIB$GET_VM( NUM_BYTES, BASE_ADR)
+
+
+                                     - 12 -
+                                                                         Page 13
+
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                NUM_BYTES - Number of bytes to allocate.
+                  type:   integer*4
+                  access: read only
+
+                BASE_ADR - Pointer to allocated region.
+                  type:   integer*4
+                  access: write only
+
+          This routine allocates a region of dynamic memory.
+
+
+
+          4.8  LIB$RENAME_FILE
+
+          Usage:
+
+                COND = LIB$RENAME_FILE(OLD_FILENAME, NEW_FILENAME)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                OLD_FILENAME
+                  type:   character
+                  access: read only
+
+                NEW_FILENAME
+                  type:   character
+                  access: read only
+
+          This routine changes the name of a file from OLD_FILENAME to
+          NEW_FILENAME.
+
+
+
+          4.9  LIB$SIGNAL
+
+          Usage:
+
+                CALL LIB$SIGNAL( %VAL(COND))
+
+          Arguments:
+
+                COND -    Condition value.
+                  type:   integer*4
+
+                                     - 13 -
+                                                                         Page 14
+
+
+                  access: read only
+
+          This subroutine prints a (not very informative) error
+          message.
+
+
+
+          4.10  LIB$STOP
+
+          Usage:
+
+                CALL LIB$STOP( %VAL(COND))
+
+          Arguments:
+
+                COND -    Condition value.
+                  type:   integer*4
+                  access: read only
+
+          This subroutine prints an error message and aborts the
+          program.
+
+
+
+          4.11  LIB$WAIT
+
+          Usage:
+
+                COND = LIB$WAIT(SECONDS)
+
+          Return value: 1 (.TRUE.)  - Success.
+                        0 (.FALSE.) - Failure.
+
+          Arguments:
+
+                SECONDS - Number of seconds to wait.
+                  type:   real*4
+                  access: read only
+
+          This routines suspends execution of the current process for
+          the specified number of seconds.  The time resolution is
+          approximately one second.
+
+
+
+          5  SMG$ Emulation Routines
+
+          These routines emulate VMS SMG$ run-time library routines.
+          They call routines in the curses library (-lcurses).  Row
+          and column numbers follow the VMS convention, which is that
+          the upper left corner of an object has (row,column) = (1,1).
+
+                                     - 14 -
+                                                                         Page 15
+
+
+          Arguments enclosed in square brackets are optional.  Missing
+          arguments may be specified as %VAL(0).
+
+
+
+          5.1  SMG$BEGIN_PASTEBOARD_UPDATE
+
+          Usage:
+
+                COND = SMG$BEGIN_PASTEBOARD_UPDATE(PASTEBOARD_ID)
+
+          Return value: SS$_NORMAL     (.TRUE.)  - Success.
+                        0              (.FALSE.) - Failure.
+
+          Arguments:
+
+                PASTEBOARD_ID - pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+          This routine begins batching of screen updates.  The screen
+          will not be changed until SMG$END_PASTEBOARD_UPDATE is
+          called.
+
+
+
+          5.2  SMG$CHANGE_VIEWPORT
+
+          Usage:
+
+                COND = SMG$CHANGE_VIEWPORT(DISPLAY_ID,
+               &  [VIEWPORT_ROW_START], [VIEWPORT_COLUMN_START],
+               &  [VIEWPORT_NUMBER_ROWS], [VIEWPORT_NUMBER_COLUMNS])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                VIEWPORT_ROW_START - First row of viewport in display.
+                  type:   integer*4
+                  access: read only
+
+                VIEWPORT_COLUMN_START - First column of viewport in 
+                                        display.
+                  type:   integer*4
+                  access: read only
+
+                                     - 15 -
+                                                                         Page 16
+
+
+                VIEWPORT_NUMBER_ROWS - Number of rows in viewport.
+                  type:   integer*4
+                  access: read only
+
+                VIEWPORT_NUMBER_COLUMNS - Number of columns in 
+                                          viewport.
+                  type:   integer*4
+                  access: read only
+
+          This routine changes the size and/or position of the
+          viewport associated with a virtual display.
+
+
+
+          5.3  SMG$CHANGE_VIRTUAL_DISPLAY
+
+          Usage:
+
+                COND = SMG$CHANGE_VIRTUAL_DISPLAY( DISPLAY_ID,
+               &  ROWS, COLUMNS, [DISPLAY_ATTRIBUTES],
+               &  [VIDEO_ATTRIBUTES], [CHAR_SET])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: write only
+
+                ROWS - Number of rows in display.
+                  type:   integer*4
+                  access: read only
+
+                COLUMNS - Number of columns in display.
+                  type:   integer*4
+                  access: read only
+
+                DISPLAY_ATTRIBUTES
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                The only implemented display attribute is
+                SMG$M_BORDER.
+
+                VIDEO_ATTRIBUTES - Default video attributes.
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                The following video attributes are implemented:
+
+                                     - 16 -
+                                                                         Page 17
+
+
+                SMG$M_BOLD, SMG$M_REVERSE, SMG$M_BLINK,
+                SMG$M_UNDERLINE.  This argument interacts with the
+                rendition arguments of other SMG routines.
+
+                CHAR_SET - Character set.
+                  type:   integer*4
+                  access: ignored
+
+          This routine changes the size or attributes of a virtual
+          display.
+
+
+
+          5.4  SMG$COPY_VIRTUAL_DISPLAY
+
+          Usage:
+
+                COND = SMG$COPY_VIRTUAL_DISPLAY(CURR_DISPLAY_ID,
+               &  NEW_DISPLAY_ID)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                CURR_DISPLAY_ID - Current display identifier.
+                  type:   integer*4
+                  access: read only
+
+                NEW_DISPLAY_ID - New display identifier.
+                  type:   integer*4
+                  access: write only
+
+          This routines makes a new virtual display which is a copy of
+          an existing virtual display.
+
+
+
+          5.5  SMG$CREATE_PASTEBOARD
+
+          Usage:
+
+                COND = SMG$CREATE_PASTEBOARD( NEW_PASTEBOARD_ID,
+               &       [OUTPUT_DEVICE], [PB_ROWS], [PB_COLUMNS],
+               &       [FLAGS])
+
+          Return value: SS$_NORMAL     (.TRUE.)  - Success.
+                        SMG$_PASALREXI (.TRUE.)  - Pasteboard already
+                                                   exists.
+                        0              (.FALSE.) - Failure.
+
+
+                                     - 17 -
+                                                                         Page 18
+
+
+          Arguments:
+
+                NEW_PASTEBOARD_ID - pasteboard identifier (new or
+                                    existing).
+                  type:   integer*4
+                  access: write only
+
+                OUTPUT_DEVICE - output file specification.
+                  type:   character
+                  access: ignored
+
+                This argument is currently unimplemented.  Output is
+                sent to standard output by default.
+
+                PB_ROWS - Number of rows in pasteboard.
+                  type:   integer*4
+                  access: write only
+
+                PB_COLUMNS - Number of columns in pasteboard.
+                  type:   integer*4
+                  access: write only
+
+                FLAGS
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+          SMG$CREATE_PASTEBOARD should be the first SMG$ routine
+          called.  It initializes curses and puts the terminal into
+          visual mode.  The terminal type is obtained from the
+          environment variable SMGTERM or TERM (if SMGTERM is
+          undefined).  TERM is part of the standard environment
+          defined at login.  SMG$CREATE_PASTEBOARD also reads the
+          environment variable SMGTTY.  If SMGTTY contains the string
+          "wsh", then a NEWS window is created for SMG input and
+          output.  If SMGTTY contains the string "xterm", then an X
+          window is created for SMG input and output.
+
+
+
+          5.6  SMG$CREATE_VIEWPORT
+
+          Usage:
+
+                COND = SMG$CREATE_VIEWPORT(DISPLAY_ID,
+               &  VIEWPORT_ROW_START, VIEWPORT_COLUMN_START,
+               &  VIEWPORT_NUMBER_ROWS, VIEWPORT_NUMBER_COLUMNS)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                                     - 18 -
+                                                                         Page 19
+
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                VIEWPORT_ROW_START - First row of viewport in display.
+                  type:   integer*4
+                  access: read only
+
+                VIEWPORT_COLUMN_START - First column of viewport in 
+                                        display.
+                  type:   integer*4
+                  access: read only
+
+                VIEWPORT_NUMBER_ROWS - Number of rows in viewport.
+                  type:   integer*4
+                  access: read only
+
+                VIEWPORT_NUMBER_COLUMNS - Number of columns in 
+                                          viewport.
+                  type:   integer*4
+                  access: read only
+
+          This routine associates a viewport of the specified size and
+          position with the specified virtual display.  The next time
+          the virtual display is (re-)pasted, only the text in the
+          viewport will be visible.
+
+
+
+          5.7  SMG$CREATE_VIRTUAL_DISPLAY
+
+          Usage:
+
+                COND = SMG$CREATE_VIRTUAL_DISPLAY( NUM_ROWS, 
+               &  NUM_COLUMNS, NEW_DISPLAY_ID, [DISPLAY_ATTRIBUTES],
+               &  [VIDEO_ATTRIBUTES], [CHAR_SET])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                NUM_ROWS - Number of rows in display.
+                  type:   integer*4
+                  access: read only
+
+                NUM_COLUMNS - Number of columns in display.
+                  type:   integer*4
+                  access: read only
+
+                NEW_DISPLAY_ID - Display identifier.
+
+                                     - 19 -
+                                                                         Page 20
+
+
+                  type:   integer*4
+                  access: write only
+
+                DISPLAY_ATTRIBUTES
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                The only implemented display attribute is
+                SMG$M_BORDER.
+
+                VIDEO_ATTRIBUTES - Default video attributes.
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                The following video attributes are implemented:
+                SMG$M_BOLD, SMG$M_REVERSE, SMG$M_BLINK,
+                SMG$M_UNDERLINE.  This argument interacts with the
+                rendition arguments of other SMG routines.
+
+                CHAR_SET - Character set.
+                  type:   integer*4
+                  access: ignored
+
+          This routine creates a virtual display.  
+
+
+
+          5.8  SMG$CREATE_VIRTUAL_KEYBOARD
+
+          Usage:
+
+                COND = SMG$CREATE_VIRTUAL_KEYBOARD( NEW_KEYBOARD_ID)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                NEW_KEYBOARD_ID - Keyboard identifier.
+                  type:   integer*4
+                  access: write only
+
+          This routine is provided for compatibility.  Input and
+          output are both initialized by smg$create_pasteboard.  Input
+          is always from standard input and can not be redirected.  If
+          smg$create_pasteboard has not already been called,
+          smg$create_virtual_keyboard calls it.  It is better to call
+          smg$create_pasteboard explicitly first.  The eqivalent VMS
+          routine has 5 arguments.  The extra arguments may be
+          specified, but they are ignored.
+
+
+                                     - 20 -
+                                                                         Page 21
+
+
+          5.9  SMG$CURSOR_COLUMN
+
+          Usage:
+
+                COLUMN = SMG$CURSOR_COLUMN( DISPLAY_ID)
+
+          Return value: Column number - Success.
+                        0             - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+          This routine returns the column position of the virtual
+          cursor in the specified virtual display.
+
+
+
+          5.10  SMG$CURSOR_ROW
+
+          Usage:
+
+                ROW = SMG$CURSOR_ROW( DISPLAY_ID)
+
+          Return value: Row number - Success.
+                        0          - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+          This routine returns the row position of the virtual cursor
+          in the specified virtual display.
+
+
+
+          5.11  SMG$DELETE_PASTEBOARD
+
+          Usage:
+
+                COND = SMG$DELETE_PASTEBOARD( PASTEBOARD_ID, [FLAGS])
+
+          Return value: SS$_NORMAL     (.TRUE.)  - Success.
+                        0              (.FALSE.) - Failure.
+
+          Arguments:
+
+
+                                     - 21 -
+                                                                         Page 22
+
+
+                PASTEBOARD_ID - pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+                FLAGS
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+          This routine deinitializes curses.  The terminal is returned
+          to non-visual
+          mode.
+
+
+
+          5.12  SMG$DELETE_VIRTUAL_DISPLAY
+
+          Usage:
+
+                COND = SMG$DELETE_VIRTUAL_DISPLAY( DISPLAY_ID)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+          This routine deletes the specified virtual display.
+
+
+
+          5.13  SMG$DELETE_VIRTUAL_KEYBOARD
+
+          Usage:
+
+                COND = SMG$DELETE_VIRTUAL_KEYBOARD( KEYBOARD_ID)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                KEYBOARD_ID - Keyboard identifier.
+                  type:   integer*4
+                  access: read only
+
+          This routine is a dummy.  Deinitialization is handled
+          completely by smg$delete_pasteboard.
+
+
+                                     - 22 -
+                                                                         Page 23
+
+
+          5.14  SMG$DISABLE_UNSOLICITED_INPUT
+
+          Usage:
+
+                COND = SMG$DISABLE_UNSOLICITED_INPUT(PASTEBOARD_ID)
+
+          Return value: SS$_NORMAL     (.TRUE.)  - Success.
+                        0              (.FALSE.) - Failure.
+
+          Arguments:
+
+                PASTEBOARD_ID - pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+          Turn off unsolicited input.
+
+
+
+          5.15  SMG$ENABLE_UNSOLICITED_INPUT
+
+          Usage:
+
+                COND = SMG$ENABLE_UNSOLICITED_INPUT(PASTEBOARD_ID,
+               &  AST_ROUTINE, AST_ARGUMENT)
+
+          Return value: SS$_NORMAL     (.TRUE.)  - Success.
+                        0              (.FALSE.) - Failure.
+
+          Arguments:
+
+                PASTEBOARD_ID - pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+                AST_ROUTINE - Subroutine to call when input is 
+                              available.
+                  type:   external
+                  access: read only
+
+                AST_ARGUMENT - Argument passed to AST_ROUTINE.
+                  type:   any
+                  access: read only
+
+          This routine causes the specified subroutine to be called
+          with the two arguments PASTEBOARD_ID and AST_ARGUMENT when
+          input is available.
+
+
+
+
+
+                                     - 23 -
+                                                                         Page 24
+
+
+          5.16  SMG$END_PASTEBOARD_UPDATE
+
+          Usage:
+
+                COND = SMG$END_PASTEBOARD_UPDATE(PASTEBOARD_ID)
+
+          Return value: SS$_NORMAL     (.TRUE.)  - Success.
+                        0              (.FALSE.) - Failure.
+
+          Arguments:
+
+                PASTEBOARD_ID - pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+          This routine outputs any accumulated screen updates turns
+          off batching of further updates.
+
+
+
+          5.17  SMG$ERASE_DISPLAY
+
+          Usage:
+
+                COND = SMG$ERASE_DISPLAY(DISPLAY_ID, [START_ROW],
+               &  [START_COLUMN], [END_ROW], [END_COLUMN])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                START_ROW - Starting row.
+                  type:   integer*4
+                  access: read only
+
+                START_COLUMN - Starting column.
+                  type:   integer*4
+                  access: read only
+
+                END_ROW - Last row.
+                  type:   integer*4
+                  access: read only
+
+                END_COLUMN - Last column.
+                  type:   integer*4
+                  access: read only
+
+                                     - 24 -
+                                                                         Page 25
+
+
+          This routine erases a display, or a rectangular are within a
+          display.
+
+
+
+          5.18  SMG$ERASE_LINE
+
+          Usage:
+
+                COND = SMG$ERASE_LINE(DISPLAY_ID, [LINE_NUMBER],
+               &  [COLUMN_NUMBER])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                LINE_NUMBER - Line to erase (default current).
+                  type:   integer*4
+                  access: read only
+
+                COLUMN_NUMBER - Starting column (default 
+                                current).
+                  type:   integer*4
+                  access: read only
+
+          This routine erases from the specified position to the end
+          of a line.
+
+
+
+          5.19  SMG$ERASE_PASTEBOARD
+
+          Usage:
+
+                COND = SMG$ERASE_PASTEBOARD( PASTEBOARD_ID)
+
+          Return value: SS$_NORMAL     (.TRUE.)  - Success.
+                        0              (.FALSE.) - Failure.
+
+          Arguments:
+
+                PASTEBOARD_ID - pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+          This routine acts as a dummy in UNIX.
+
+                                     - 25 -
+                                                                         Page 26
+
+
+          5.20  SMG$GET_DISPLAY_ATTR
+
+          Usage:
+
+                COND = SMG$GET_DISPLAY_ATTR( DISPLAY_ID, [HEIGHT], 
+               &  [WIDTH], [DISPLAY_ATTRIBUTES], [VIDEO_ATTRIBUTES],
+               &  [CHARACTER_SET], [FLAGS])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                HEIGHT - Number of rows in display.
+                  type:   integer*4
+                  access: write only
+
+                WIDTH - Number of columns in display.
+                  type:   integer*4
+                  access: write only
+
+                DISPLAY_ATTRIBUTES - Display attributes.
+                  type:   integer*4
+                  access: write only
+
+                VIDEO_ATTRIBUTES - Video attributes.
+                  type:   integer*4
+                  access: write only
+
+                CHARACTER_SET - Character set.
+                  type:   integer*4
+                  access: write only
+
+                FLAGS
+                  type:   integer*4
+                  access: write only
+
+                The only implemented flag is SMG$M_VIEWPORT.
+
+          This function obtains information about the specified
+          display.
+
+
+
+
+
+
+
+                                     - 26 -
+                                                                         Page 27
+
+
+          5.21  SMG$GET_PASTING_INFO
+
+          Usage:
+
+                COND = SMG$GET_PASTING_INFO( DISPLAY_ID,
+               &  PASTEBOARD_ID, PASTED_FLAG, [PASTEBOARD_ROW], 
+               &  [PASTEBOARD_COL])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                PASTEBOARD_ID - Pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+                PASTED_FLAG - Pasting status of display.
+                  type:   logical*4
+                  access: write only
+
+                PASTEBOARD_ROW - Row position of display.
+                  type:   integer*4
+                  access: write only
+
+                PASTEBOARD_COL - Column position of display.
+                  type:   integer*4
+                  access: write only
+
+          This routine returns information about whether and where the
+          specified display is pasted in the specified pasteboard.
+
+
+
+          5.22  SMG$GET_VIEWPORT_CHAR
+
+          Usage:
+
+                COND = SMG$GET_VIEWPORT_CHAR(DISPLAY_ID,
+               &  [VIEWPORT_ROW_START], [VIEWPORT_COLUMN_START],
+               &  [VIEWPORT_NUMBER_ROWS], [VIEWPORT_NUMBER_COLUMNS])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+
+                                     - 27 -
+                                                                         Page 28
+
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                VIEWPORT_ROW_START - First row of viewport in display.
+                  type:   integer*4
+                  access: write only
+
+                VIEWPORT_COLUMN_START - First column of viewport in 
+                                        display.
+                  type:   integer*4
+                  access: write only
+
+                VIEWPORT_NUMBER_ROWS - Number of rows in viewport.
+                  type:   integer*4
+                  access: write only
+
+                VIEWPORT_NUMBER_COLUMNS - Number of columns in 
+                                          viewport.
+                  type:   integer*4
+                  access: write only
+
+          This routine returns information about the viewport
+          associated with the specified display.
+
+
+
+          5.23  SMG$MOVE_TEXT
+
+          Usage:
+
+                COND = SMG$MOVE_TEXT(DISPLAY_ID, TOP_LEFT_ROW,
+               &  TOP_LEFT_COLUMN, BOTTOM_RIGHT_ROW,
+               &  BOTTOM_RIGHT_COLUMN, DISPLAY_ID2, [TOP_LEFT_ROW2],
+               &  [TOP_LEFT_COLUMN2], [FLAGS])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Source display identifier.
+                  type:   integer*4
+                  access: read only
+
+                TOP_LEFT_ROW - Position of source rectangle.
+                  type:   integer*4
+                  access: read only
+
+                TOP_LEFT_COLUMN - Position of source rectangle.
+                  type:   integer*4
+
+                                     - 28 -
+                                                                         Page 29
+
+
+                  access: read only
+
+                BOTTOM_RIGHT_ROW - Position of source rectangle.
+                  type:   integer*4
+                  access: read only
+
+                BOTTOM_RIGHT_COLUMN - Position of source rectangle.
+                  type:   integer*4
+                  access: read only
+
+                DISPLAY_ID2 - Destination display identifier.
+                  type:   integer*4
+                  access: read only
+
+                TOP_LEFT_ROW2 - Position of destination rectangle.
+                  type:   integer*4
+                  access: read only
+
+                TOP_LEFT_COLUMN2 - Position of destination rectangle.
+                  type:   integer*4
+                  access: read only
+
+                FLAGS - flags
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                The only implemented flag is SMG$M_TEXT_SAVE.  If this
+                flag is set, the original text is not erased in the
+                source virtual display.
+
+          This routine moves or copies a rectangular block of text
+          from one virtual display to another.  If the arguments
+          giving the position of the destination rectangle are
+          missing, the upper left corner of the rectangle set to the
+          position of the virtual cursor in the destination display.
+
+
+
+          5.24  SMG$MOVE_VIRTUAL_DISPLAY
+
+          Usage:
+
+                COND = SMG$MOVE_VIRTUAL_DISPLAY( DISPLAY_ID,
+               &  PASTEBOARD_ID, PASTEBOARD_ROW, PASTEBOARD_COLUMN, 
+               &  [TOP_DISPLAY_ID])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+
+                                     - 29 -
+                                                                         Page 30
+
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                PASTEBOARD_ID - Pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+                PASTEBOARD_ROW - Pasteboard row of row 1 of display.
+                  type:   integer*4
+                  access: read only
+
+                PASTEBOARD_COLUMN - Pasteboard column of column 1 of 
+                                    display.
+                  type:   integer*4
+                  access: read only
+
+                TOP_DISPLAY_ID - Paste display under this display.
+                  type:   integer*4
+                  access: read only
+
+          If the specified display is not already pasted, this routine
+          acts identically to SMG$PASTE_VIRTUAL_DISPLAY.  If the
+          specified display is already pasted, then it is moved to the
+          specified position.  In the latter case, the argument
+          TOP_DISPLAY_ID is ignored and the pasting order is preserved
+          (unlike SMG$REPASTE_VIRTUAL_DISPLAY).
+
+
+
+          5.25  SMG$PASTE_VIRTUAL_DISPLAY
+
+          Usage:
+
+                COND = SMG$PASTE_VIRTUAL_DISPLAY( DISPLAY_ID,
+               &  PASTEBOARD_ID, PASTEBOARD_ROW, PASTEBOARD_COLUMN, 
+               &  [TOP_DISPLAY_ID])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                PASTEBOARD_ID - Pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+
+                                     - 30 -
+                                                                         Page 31
+
+
+                PASTEBOARD_ROW - Pasteboard row of row 1 of display.
+                  type:   integer*4
+                  access: read only
+
+                PASTEBOARD_COLUMN - Pasteboard column of column 1 of 
+                                    display.
+                  type:   integer*4
+                  access: read only
+
+                TOP_DISPLAY_ID - Paste display under this display.
+                  type:   integer*4
+                  access: read only
+
+                If this argument contains a valid display identifier,
+                then the display DISPLAY_ID will be pasted under it.
+                Otherwise, DISPLAY_ID is pasted on top of all other
+                displays.  The recommended way to achieve tht latter
+                behaviour is to set TOP_DISPLAY_ID = 0.
+
+          This routine pastes a virtual display to the specified
+          pasteboard.
+
+
+
+          5.26  SMG$PUT_CHARS
+
+          Usage:
+
+                COND = SMG$PUT_CHARS( DISPLAY_ID, TEXT, [LINE_NUMBER],
+               &  [COLUMN_NUMBER], [FLAGS], [RENDITION_SET], 
+               &  [RENDITION_COMPLEMENT], [CHAR_SET])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                TEXT - Text to output.
+                  type:   Character
+                  access: read only
+
+                LINE_NUMBER - Display line number (default current).
+                  type:   integer*4
+                  access: read only
+
+                COLUMN_NUMBER - Display column number (default 
+                                current).
+
+                                     - 31 -
+                                                                         Page 32
+
+
+                  type:   integer*4
+                  access: read only
+
+                FLAGS
+                  type:   integer*4 (bit mask)
+                  access: ignored
+
+                RENDITION_SET - Video attributes.
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                RENDITION_COMPLEMENT - Video attributes.
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                CHAR_SET - Character set.
+                  type:   integer*4
+                  access: ignored
+
+          This routine places text at the specified position in the
+          specified virtual display, overwriting the previous
+          contents.
+
+
+
+          5.27  SMG$PUT_CHARS_WIDE
+
+          Usage:
+
+                COND = SMG$PUT_CHARS( DISPLAY_ID, TEXT, [LINE_NUMBER],
+               &  [COLUMN_NUMBER], [RENDITION_SET], 
+               &  [RENDITION_COMPLEMENT], [CHAR_SET])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                TEXT - Text to output.
+                  type:   Character
+                  access: read only
+
+                LINE_NUMBER - Display line number (default current).
+                  type:   integer*4
+                  access: read only
+
+                COLUMN_NUMBER - Display column number (default 
+
+                                     - 32 -
+                                                                         Page 33
+
+
+                                current).
+                  type:   integer*4
+                  access: read only
+
+                RENDITION_SET - Video attributes.
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                RENDITION_COMPLEMENT - Video attributes.
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                CHAR_SET - Character set.
+                  type:   integer*4
+                  access: ignored
+
+          In SMG, this routine outputs double width characters.  The
+          SMG emulator uses bold characters instead.
+
+
+
+          5.28  SMG$PUT_LINE
+
+          Usage:
+
+                COND = SMG$PUT_LINE( DISPLAY_ID, TEXT, [LINE_ADVANCE],
+               &  [RENDITION_SET], [RENDITION_COMPLEMENT], [FLAGS],
+               &  [CHAR_SET], [DIRECTION])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                TEXT - Text to output.
+                  type:   Character
+                  access: read only
+
+                LINE_ADVANCE - Line spacing (default = 1).
+                  type:   integer*4
+                  access: read only
+
+                RENDITION_SET - Video attributes.
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                RENDITION_COMPLEMENT - Video attributes.
+
+                                     - 33 -
+                                                                         Page 34
+
+
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                FLAGS
+                  type:   integer*4 (bit mask)
+                  access: ignored
+
+                CHAR_SET - Character set.
+                  type:   integer*4
+                  access: ignored
+
+                DIRECTION - Scroll direction.
+                  type:   integer*4
+                  access: read only
+
+                Valie directions are SMG$M_UP (forward) and SMG$M_DOWM
+                (reverse).
+
+          This routine outputs one line of text to the specified
+          display.  Control of line-wrapping (via FLAGS) is currently
+          unimplemented.
+
+
+
+          5.29  SMG$PUT_WITH_SCROLL
+
+          Usage:
+
+                COND = SMG$PUT_WITH_SCROLL( DISPLAY_ID, TEXT,
+               &  [DIRECTION], [RENDITION_SET], 
+               &  [RENDITION_COMPLEMENT], [FLAGS], [CHAR_SET])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                TEXT - Text to output.
+                  type:   Character
+                  access: read only
+
+                DIRECTION - Scroll direction.
+                  type:   integer*4
+                  access: read only
+
+                Valie directions are SMG$M_UP (forward) and SMG$M_DOWM
+                (reverse).
+
+                                     - 34 -
+                                                                         Page 35
+
+
+                RENDITION_SET - Video attributes.
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                RENDITION_COMPLEMENT - Video attributes.
+                  type:   integer*4 (bit mask)
+                  access: read only
+
+                FLAGS
+                  type:   integer*4 (bit mask)
+                  access: ignored
+
+                CHAR_SET - Character set.
+                  type:   integer*4
+                  access: ignored
+
+          This function is equivalent to SMG$PUT_LINE with
+          LINE_ADVANCE=1.
+
+
+
+          5.30  SMG$READ_FROM_DISPLAY
+
+          Usage:
+
+                COND = SMG$READ_FROM_DISPLAY(DISPLAY_ID, 
+               &  RETURNED_STRING, [TERMINATOR_STRING], [ROW])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                RETURNED_STRING - Text read from display.
+                  type:   Character
+                  access: write only
+
+                TERMINATOR_STRING - Terminators for back-searching.
+                  type:   integer*4
+                  access: ignored
+
+                ROW - Row to read.
+                  type:   integer*4
+                  access: read only
+
+          This routine reads text from the specified display.  If
+          neither of the last two arguments are specified, the text
+
+                                     - 35 -
+                                                                         Page 36
+
+
+          from the current virtual cursor position to the end of the
+          line is returned.  If the ROW argument is specified, that
+          entire line starting at column 1 is returned.  The
+          functionality of the TERMINATOR_STRING argument is currently
+          unimplemented and that argument is ignored.
+
+
+
+          5.31  SMG$READ_KEYSTROKE
+
+          Usage:
+
+                COND = SMG$READ_KEYSTROKE( KEYBOARD_ID, 
+               &  TERMINATOR_CODE, [PROMPT_STRING], [TIMEOUT], 
+               &  [DISPLAY_ID], [RENDITION_SET], 
+               &  [RENDITION_COMPLEMENT])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+          Arguments:
+
+                KEYBOARD_ID - Keyboard identifier.
+                  type:   integer*4
+                  access: read only
+
+                TERMINATOR_CODE - SMG key code.
+                  type:   integer*2
+                  access: write only
+
+                PROMPT_STRING - Prompt string.
+                  type:   character
+                  access: read only
+
+                TIMEOUT - Timeout in seconds.
+                  type:   integer*4
+                  access: ignored
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                This argument specifies which display to use for
+                output (i.e.  prompt).
+
+                RENDITION_SET - Output video attributes.
+                  type:   integer*4
+                  access: read only
+
+                RENDITION_COMPLEMENT - Output video attributes.
+                  type:   integer*4
+                  access: read only
+
+                                     - 36 -
+                                                                         Page 37
+
+
+          This routine reads a single keystroke (character or escape
+          sequence) from the specified keyboard.  The keystroke is not
+          echoed.
+
+
+
+          5.32  SMG$READ_STRING
+
+          Usage:
+
+                COND = SMG$READ_STRING( KEYBOARD_ID, RECEIVED_TEXT,
+               &  [PROMPT_STRING], [MAX_LENGTH], [MODIFIERS],
+               &  [TIMEOUT], [TERMINATOR_SET],
+               &  [RECEIVED_STRING_LENGTH], [TERMINATOR_CODE],
+               &  [DISPLAY_ID], [INI_STRING], [RENDITION_SET],
+               &  [RENDITION_COMPLEMENT])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                KEYBOARD_ID - Keyboard identifier.
+                  type:   integer*4
+                  access: read only
+
+                RECEIVED_TEXT - Buffer to receive input.
+                  type:   character
+                  access: write only
+
+                PROMPT_STRING - Prompt string.
+                  type:   character
+                  access: read only
+
+                MAX_LENGTH - Maximum number of characters to read.
+                  type:   integer*4
+                  access: read only
+
+                The maximum length of the read string is minimum of
+                this argument and the passed length of RECEIVED_TEXT.
+                There is also an absolute maximum length of 255
+                characters.
+
+                MODIFIERS - Input flags.
+                  type:   integer*4
+                  access: read only
+
+                Currently implemented modifiers are TRM$M_TM_PURGE and
+                TRM$M_TM_NOECHO.
+
+                TIMEOUT - Terminator timeout in seconds.
+
+                                     - 37 -
+                                                                         Page 38
+
+
+                  type:   integer*4
+                  access: ignored
+
+                This argument is ignored.  SMG$READ_STRING does not
+                return until a terminator is read.
+
+                TERMINATOR_SET - String termination characters.
+                  type:   integer*4 (bit mask)
+                  access: read only.
+
+                The default terminators are carriage return (ascii 13)
+                and escape sequences (such as arrow keys).  Null and
+                line feed (ascii 0 and 10) are internally translated
+                to carriage return so they act as terminators as well.
+                This argument implements the "short form" of the
+                corresponding argument in SMG$READ_STRING.  That is,
+                TERMINATOR_SET is a bit mask corresponding to ascii
+                control characters in the range 0-31.  Setting a bit
+                causes the corresponding control character to act as a
+                terminator.  Escape sequences always act as
+                terminators regardless of this argument.  UNIX erase
+                and kill characters are always interpreted locally and
+                can not be used as terminators.  It is permissible
+                (but not necessary) specify pass-by-descriptor
+                (%DESCR) on SGI.
+
+                RECEIVED_STRING_LENGTH - Number of characters input.
+                  type:   integer*2
+                  access: write only
+
+                This argument returns the actual number of characters
+                input (not including the terminator).  Unused space in
+                RECEIVED_TEXT is padded with spaces.
+
+                TERMINATOR_CODE
+                  type:   integer*2
+                  access: write only
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                This argument specifies which display to use for
+                output (i.e.  prompt and echo).
+
+                INI_STRING - Initialization string.
+                  type:   character
+                  access: ignored
+
+                RENDITION_SET - Output video attributes.
+                  type:   integer*4
+
+                                     - 38 -
+                                                                         Page 39
+
+
+                  access: read only
+
+                RENDITION_COMPLEMENT - Output video attributes.
+                  type:   integer*4
+                  access: read only
+
+          This routine reads a character string from the specified
+          keyboard.
+
+
+
+          5.33  SMG$REPAINT_SCREEN
+
+          Usage:
+
+                COND = SMG$REPAINT_SCREEN( PASTEBOARD_ID)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                PASTEBOARD_ID - pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+          This function refreshes the screen.
+
+
+
+          5.34  SMG$REPASTE_VIRTUAL_DISPLAY
+
+          Usage:
+
+                COND = SMG$REPASTE_VIRTUAL_DISPLAY( DISPLAY_ID,
+               &  PASTEBOARD_ID, PASTEBOARD_ROW, PASTEBOARD_COLUMN, 
+               &  [TOP_DISPLAY_ID])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                PASTEBOARD_ID - Pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+
+                                     - 39 -
+                                                                         Page 40
+
+
+                PASTEBOARD_ROW - Pasteboard row of row 1 of display.
+                  type:   integer*4
+                  access: read only
+
+                PASTEBOARD_COLUMN - Pasteboard column of column 1 of 
+                                    display.
+                  type:   integer*4
+                  access: read only
+
+                TOP_DISPLAY_ID - Paste display under this display.
+                  type:   integer*4
+                  access: read only
+
+          This routine repastes an already pasted virtual display.
+          The specified display will become the new top display unless
+          the argument TOP_DISPLAY_ID contains a valid display
+          identifier.
+
+
+
+          5.35  SMG$RETURN_CURSOR_POS
+
+          Usage:
+
+                COND = SMG$RETURN_CURSOR_ABS(DISPLAY_ID, [ROW],
+               &  [COLUMN])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                ROW
+                  type:   integer*4
+                  access: write only
+
+                COLUMN
+                  type:   integer*4
+                  access: write only
+
+          This function returns the position of the cursor in the
+          specified display.
+
+
+
+
+
+
+                                     - 40 -
+                                                                         Page 41
+
+
+          5.36  SMG$SET_CURSOR_ABS
+
+          Usage:
+
+                COND = SMG$SET_CURSOR_ABS(DISPLAY_ID, [ROW], [COLUMN])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                ROW
+                  type:   integer*4
+                  access: read only
+
+                COLUMN
+                  type:   integer*4
+                  access: read only
+
+          This function moves the cursor associated with the specified
+          virtual display to the specified row and column.
+
+
+
+          5.37  SMG$SET_CURSOR_MODE
+
+          Usage:
+
+                COND = SMG$SET_CURSOR_MODE(PASTEBOARD_ID, CURSOR_MODE)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                PASTEBOARD_ID - Pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+                CURSOR_MODE - Cursor mode (0 = visible, 1 = invisible)
+                  type:   integer*4
+                  access: read only
+
+          This routine makes the cursor visible or invisible.
+
+
+
+
+                                     - 41 -
+                                                                         Page 42
+
+
+          5.38  SMG$SET_DISPLAY_SCROLL_REGION
+
+          Usage:
+
+                COND = SMG$SET_DISPLAY_SCROLL_REGION(DISPLAY_ID,
+               &  [STARTING_LINE], [ENDING_LINE])
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                STARTING_LINE - First row of scroll region.
+                  type:   integer*4
+                  access: read only
+
+                ENDING_LINE - Last line of scroll region.
+                  type:   integer*4
+                  access: read only
+
+          This routine defines a software scrolling region within a
+          virtual display.
+
+
+
+          5.39  SMG$UNPASTE_VIRTUAL_DISPLAY
+
+          Usage:
+
+                COND = SMG$UNPASTE_VIRTUAL_DISPLAY(DISPLAY_ID,
+               &  PASTEBOARD_ID)
+
+          Return value: SS$_NORMAL (.TRUE.)  - Success.
+                        0          (.FALSE.) - Failure.
+
+          Arguments:
+
+                DISPLAY_ID - Display identifier.
+                  type:   integer*4
+                  access: read only
+
+                PASTEBOARD_ID - Pasteboard identifier.
+                  type:   integer*4
+                  access: read only
+
+          This routine unpastes the specified virtual display from the
+          specified pasteboard.
+
+                                     - 42 -
+                                                                         Page 43
+
+
+          6  STR$ Emulation Routines
+
+          These routines emulate VAX STR$ run-time library routines.
+
+
+
+          6.1  STR$TRIM
+
+          Usage:
+
+                COND = STR$TRIM(DESTINATION_STRING, SOURCE_STRING, 
+               &  [OUT_LEN])
+
+          Return value: 1 (.TRUE.)  - Success.
+                        0 (.FALSE.) - Failure.
+
+          Arguments:
+
+                DESTINATION_STRING - Result string.
+                  type:   character
+                  access: write only
+
+                SOURCE_STRING - Input string.
+                  type:   character
+                  access: read only
+
+                OUT_LEN - Length of result string.
+                  type:   integer*2
+                  access: write only
+
+          This routine deletes trailing spaces and tabs from the input
+          string and returns the resulting string and length.  If the
+          result string variable is shorter or longer than the
+          truncated input string, then the string is truncated or
+          padded with spaces respectively.  In the former case, the
+          returned length is reduced accordingly.
+
+
+
+          6.2  STR$UPCASE
+
+          Usage:
+
+                COND = STR$UPCASE(DESTINATION_STRING, SOURCE_STRING)
+
+          Return value: 1 (.TRUE.)  - Success.
+                        0 (.FALSE.) - Failure.
+
+          Arguments:
+
+                DESTINATION_STRING - Result string (upper case).
+
+                                     - 43 -
+                                                                         Page 44
+
+
+                  type:   character
+                  access: write only
+
+                SOURCE_STRING - Input string.
+                  type:   character
+                  access: read only
+
+          This routine converts the specified string to upper case.
+
+
+
+          7  SYS$ Emulation Routine
+
+          Theses routines emulate VMS system services.
+
+
+
+          7.1  SYS$ASCTIM
+
+          Usage:
+
+                COND = SYS$ASCTIM([TIMLEN], TIMBUF, [TIM])
+
+          Return value: 1 (.TRUE.)  - Success.
+                        0 (.FALSE.) - Failure.
+
+          Arguments:
+
+                TIMLEN - Number of characters in returned string.
+                  type:   integer*2
+                  access: write only
+
+                TIMBUF - Buffer to receive ASCII time.
+                  type:   character
+                  access: write only
+
+                TIM - Numeric system time.
+                  type:   integer*4 (2-word array)
+                  access: read only
+
+          This routine converts a VMS 64-bit absolute time (as
+          returned, for example, by SYS$GETTIM) to an ascii string
+          having the following format:  DD-MMM-YYYY HH:MM:SS.  If the
+          third argument is null, the current system time is used.
+          The value returned in TIMLEN is 20 or the passed length
+          TIMBUF, whichever is less.
+
+
+
+
+
+
+                                     - 44 -
+                                                                         Page 45
+
+
+          7.2  SYS$BINTIM
+
+          Usage:
+
+                COND = SYS$BINTIM(TIMBUF, TIM)
+
+          Return value: 1 (.TRUE.)  - Success.
+                        0 (.FALSE.) - Failure.
+
+          Arguments:
+
+                TIMBUF - Buffer containing ASCII time.
+                  type:   character
+                  access: read only
+
+                TIM - Numeric system time.
+                  type:   integer*4 (2-word array)
+                  access: write only
+
+          This routine converts a string containing an ASCII date and
+          time to a VMS 64-bit absolute time.  The input string should
+          be in the format DD-MMM-YYYY HH:MM:SS.  Extra characters
+          after the seconds field are ignored.
+
+
+
+          7.3  SYS$GETTIM
+
+          Usage:
+
+                COND = SYS$GETTIM(TIM)
+
+          Return value: 1 (.TRUE.)  - Success.
+                        0 (.FALSE.) - Failure.
+
+          Arguments:
+
+                TIM - System time.
+                  type:   integer*4 (2-word array)
+                  access: write only
+
+          This routine returns the local system time in VMS 64-bit
+          absolute time format.
+
+
+
+          7.4  SYS$NUMTIM
+
+          Usage:
+
+                COND = SYS$NUMTIM(TIMBUF, [TIM])
+
+                                     - 45 -
+                                                                         Page 46
+
+
+          Return value: 1 (.TRUE.)  - Success.
+                        0 (.FALSE.) - Failure.
+
+          Arguments:
+
+                TIMBUF - Buffer to receive date/time.
+                  type:   integer*2 (7-word array)
+                  access: write only
+
+                TIM - Numeric system time.
+                  type:   integer*4 (2-word array)
+                  access: read only
+
+          This routine converts a VMS 64-bit absolute time (as
+          returned, for example, by SYS$GETTIM) to a seven word array
+          (year, month, day, hour, minute, second, hundredths).  The
+          seventh word of the array (hundredths) is always returned as
+          zero in UNIX.  If the second argument in null, the current
+          time is used.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 46 -

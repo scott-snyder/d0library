@@ -1,0 +1,1006 @@
+.!
+.!  Created by Herbert Greenlee on 27-JUN-1991
+.!
+.STYLE HEADERS 4,0
+.PAGE SIZE  56,80
+.LEFT MARGIN  10
+.RIGHT MARGIN  70
+.LAYOUT  3,2
+.no autojustify
+.no justify
+.RIGHT ;Herbert Greenlee
+.RIGHT ;27-JUN-1991
+.BLANK 20  !--- underlined title on next line
+.CENTER ; ^&UNIX Utilities\&
+.PAGE
+.REQUIRE "UNIX_UTILITIES.RNT"
+.PAGE
+.!------------ main text start here.
+.nfl accept
+.nfl underline
+.nfl lowercase
+.nfl space
+This document describes UNIX utility programs and scripts in the unix section
+of the d0library.  
+.p
+All executable files reside or are linked to the top level of the
+unix library section (i.e. $d0unix).  Sourcing d0local.login adds this
+directory to the execute search list stored in the PATH environment
+variable.  Provided that d0local.login has been sourced, any of the utilities 
+described here may be invoked by typing their names followed by any options and
+arguments.  All calling sequences adhere to standard unix conventions as
+described in intro(1).
+
+.hl1 Atoo
+
+Pronounced Ay-Too-Oh (archive to object).  This script creates an object file
+in the current working directory that contains all of the modules in a
+specified archive library.
+This script provides the most machine
+independent and reliable 
+way to link the entire contents of a library.  
+.no fill
+.blank
+Usage:
+.blank
+% atoo library
+.blank
+.fill
+See also force_load.  Atoo is more reliable than force_load, but slower.
+
+.hl1 Check_release, search_release
+
+These scripts check the status of a library releases and print various
+informative messages.  Check_releases look for key files and reports if any are
+missing.  Check_release also produces a list of object modules missing
+from the object archive libraries because of compilation errors.
+Search_release is a superset of check_release.  In addition to calling
+check_release, search_release looks for potential VMS to UNIX conversion
+problems.  Search_release looks for the following items and prints a summary
+and a list of individual files.
+.list
+.le
+Files with compilation errors (check_release).
+.le
+Use of EQUIVALENCE.
+.le
+Machine blocks.
+.le
+Use of OPEN (rather than D0OPEN).
+.le
+VMS run-time and system library calls and system logicals.
+.le
+INCLUDEs from text libraries.
+.end list
+.no fill
+.blank
+Usage:
+.blank
+% check_release [-otg] section
+% serach_release [-otg] section
+.blank
+Options:
+.blank
+-o   - Official release.
+-t   - Test release.
+-g   - Gamma release.
+.blank
+Arguments:
+.blank
+section - Library section.
+.blank
+.fill
+
+
+.hl1 Cmp_vers
+
+This is a script to compare library versions between the local UNIX host and a
+remote VAX host.  The output consists of a list of library sections followed by
+the local and remote version numbers.  Version information is obtained 
+using lib_sect.
+.blank
+.no fill
+Usage:
+.blank
+% cmp_vers [-dto] [-h rhost]
+.blank
+Options:
+.blank
+-d   Print only library sections that have different
+     versions.
+-t   Test versions.
+-o   Official versions.
+-h   Specify remote VAX host (default $VAXLIB_NODE)
+
+.hl1 Cmsfetch, cmsupdate
+
+These shell scripts are
+similar to the D0 beta utilities of the same names.
+Cmsfetch retrieves one of more files from a VAX CMS library over the network.
+Cmsupdate puts one of more files into a CMS library.
+.no fill
+.blank
+Usage:
+.blank
+% cmsfetch [-b] [-h rhost] [-u ruser] [-d ldir] files cmslib
+% cmsupdate [-b] [-h rhost] [-u ruser] files cmslib group\
+  remark
+.blank
+Options:
+.blank
+-b   Use BNL CMS library (default is local CMS library).
+-h   Specify a remote VMS host (default = $VAXLIB_NODE).
+-u   Specify a remote user (default = the current user).
+-d   Specify a local directory to receive fetched files 
+     (default = the current directory).
+.blank
+Arguments:
+.blank
+files -  A list of files to fetch or update.  
+cmslib - CMS library.
+group  - CMS group.
+remark - CMS remark.
+.fill
+.blank
+The files  argument  should be specified as a comma-separated list (with  no
+spaces) of CMS element expressions (cmsfetch) or  unix filenames (cmsupdate). 
+This argument may  contain quoted VMS or UNIX wildcards.  Note that  when
+fetching typeless files (which are relatively  common in unix), the CMS element
+expression must include a final period, or it will be interpreted  by CMS as a
+group name.
+.p
+Cmsfetch and cmsupdate perform network transactions between trusted hosts 
+using rsh and rcp.  No passwords are involved.  
+In order to be able to use cmsfetch
+and cmsupdate, it is necessary to have a suitable list of trusted hosts 
+defined in your .rhosts files in the home directories of your 
+UNIX and VMS accounts (see hosts.equiv(4) and multinet documentation).
+.p
+At the present time, cmsupdate does not generate BNL files for elements that do
+not have them already.
+
+.hl1 comp, fort
+
+Comp compiles various kinds of source files to
+object files (.o) with standard options and preprocessors.  Fort is a synonym
+for comp which exists because of a naming conflict in AIX.
+.blank
+.no fill
+.blank
+Usage:
+.blank
+% fort [-t] [-f flavor] file1 file2 ...
+.blank
+Options:
+.blank
+-t   Touch intermediate and output files, but do not
+     recreate them.
+-f   Specify a UNIX flavor (default $D0FLAVOR).
+.blank
+Arguments:
+.blank
+file1, file2 - Source files.
+.blank
+.fill
+Recognized source file types are .for (VAX fortran), .f (fortran-77), .c
+and .lex.  The sequence of types is as follows:
+.blank
+.no fill
+      .for  ->  .f  ->  .o
+      .lex  ->  .c  ->  .o
+.fill
+.blank
+Standard options for the fortran compiler f77 are:
+.blank
+   -c -nocpp -static -vms_cc -col72 -backslash -G 3
+.blank
+Standard options for the c compiler cc are:
+.blank
+   -c -dollar -G 3 -I$d0unix/source
+.blank
+The following rules are always followed.
+.blank
+.list
+.le
+Preprocessor output (.f from .for and .c from .lex) goes in the same
+directory as the source file.
+.le
+Object file output goes in the current working directory.
+.le
+Absolute pathnames of source files are always used when invoking
+compilers.  This enables the debugger to find the right source file at
+debug time.
+.le
+Object filenames are guaranteed to have no more than 15 characters,
+which is the maximum allowed by the archiver.  See also lnk.
+.end list
+
+.hl1 D0cernlib
+
+This is a script to create symbolic links from d0cernlib to the directory where
+cernlib really lives.
+.no fill
+.blank
+Example (use Fermi cernlib):
+.blank
+% setup cern v92b
+% d0cernlib $d0library/cernlib $CRNLIB v92b
+.blank
+.fill
+
+.hl1 D0local.login, d0local.cshrc
+
+These utilities correspond to D0LOCAL.COM.  D0local.login and d0local.cshrc
+should be sourced in users' .login and .cshrc scripts respectively.
+D0local.login defines standard D0 environment variables and adds 
+$d0unix to the user's PATH.  D0local.cshrc defines standard D0 aliases and
+shell variables.  All explicit machine dependence between different
+UNIXes is localized in these scripts.  In particular, standard compilation
+commands and options are defined via a set of shell variables in d0local.cshrc.
+.no fill
+.blank
+Usage:
+.blank
+% source /usr/local/etc/d0local.login
+% source /usr/local/etc/d0local.cshrc
+.fill
+.blank
+Note that it is necessary to invoke both of these scripts using an absolute 
+pathname since
+the d0unix environment variable may not be defined at the time they are
+invoked.  The absolute directory in which the d0locals reside is system
+dependent.  Versions exist in d0library, but customized versions may also exist
+in some non-d0library directory (e.g. /usr/local/etc in the above example).
+
+.hl1 D0rexec
+.blank
+.no fill
+Usage:
+.blank
+% d0rexec node [-l user] [-p password] command
+.blank
+Options:
+.blank
+-l   Remote user (default current user).
+-p   Remote user's password (default from .netrc).
+.blank
+Arguments:
+.blank
+command - Remote command
+.blank
+.fill
+This program is similar to rsh, but uses the password/.netrc authentication
+mechanism to execute a command on a remote node.
+
+.hl1 D0rl
+
+This is a filter that is an interface to the POSIX function readlink.  A list
+of files is read from the command line or from standard input.  Files that
+are symbolic links are translated by readlink.  Others are simply echoed.  In
+either case, the output consists of a series of filenames that are written
+to standard output one per line.
+.blank
+.no FILL
+.blank
+Examples:
+.blank
+% d0rl *rcp
+% ls | d0rl
+.blank
+.fill
+
+.hl1 Fa, ufa, vfa, ff, uff, vff, fl, ufl, vfl, fn, ufn, vfn
+
+These are filters for lists of files.
+.blank
+Fa, ufa and vfa remove non-existent files from a list of files.
+.blank
+Ff, uff and vff return the first existing file in a list of files.  
+.blank
+Fl, ufl, vfl return the first instance of each filename (not considering the
+directory portion of the pathname) in a list of files.
+.blank
+Fn, ufn, vfn return the first instance of each filename (not considering the
+directory or extension portion of the pathname) in a list of files.
+.blank
+Each of these
+commands obtains the list of filenames from the argument list, or from standard
+input if the argument list is empty.  The filters that begin with the letter v
+(i.e. vfa, vff and vfl) translate VMS filenames according to the standard
+rules, as embodied in the lib$find_file emulator.  
+VMS filenames may contain D0 logicals and VMS
+wildcards (except ...).  
+The other filters (i.e. fa,
+ufa, ff, uff, fl, ufl, fn and ufn) expect UNIX filenames, which may contain csh
+wildcards and environment variables preceded by dollar signs.  VMS or UNIX
+filenames should be quoted if they contain special characters.  Ufa, uff, ufl and
+ufn are synonyms for fa, ff, fl and fn respectively.
+
+.no FILL
+.blank
+Examples:
+.blank
+% fa *          # List all files in the working directory.
+% ls | fa       # Ditto.
+% ff $d0general/general.a     # List current library (test
+                              # or official).
+% vff 'd0$general:general.a'  # Ditto.
+% vfl 'd0$offline_util$general:*.for'  # List of files 
+                                       # in a d0library 
+                                       # group.
+.fill
+
+.hl1 Force_load
+
+Force_load generates the link editor options necessary to force_load one or
+more archive libraries.  Force_load is intended to be embedded in link editor
+or compiler commands.
+.no fill
+.blank
+Usage:
+.blank
+% force_load [-cl] library1 library2 ...
+.blank
+Options:
+.blank
+-c   - Generate compiler options (default).
+-l   - Generate linker options.
+.blank
+Examples:
+.blank
+% ld ... `force_load -l userlib.a` ...
+% f77 ... `force_load userlib.a` ...
+% cc ... `force_load userlib.a` ... 
+.blank
+.fill
+Force_load does not work on IBM.  Force_load can also fail because it overflows
+the maximum argument length on a command line.  In these cases, the script atoo
+can be used instead (see).
+
+.hl1 Ftpfetch
+
+.blank
+.no fill
+Usage:
+.blank
+% ftpfetch [-h rhost] [-u ruser] [-d ldir] files
+.blank
+Options:
+.blank
+-h   Specify a remote VMS host (default = $VAXLIB_NODE).
+-u   Specify remote user.
+-d   Specify a local directory to receive fetched files 
+     (default = the current directory).
+.blank
+Arguments:
+.blank
+files -  A list of files to fetch or update.  
+.fill
+.blank
+This is a script to copy a directory tree of text files from VMS to UNIX.
+The files argument may
+contain quoted VMS wildcards, include the directory tree (...) wildcard.  In
+the latter case, files in subdirectories are copied to the corresponding
+subdirectories in UNIX.  If the appropriate UNIX subdirectory does not exist it
+is created.  The following files are not transferred:
+.list
+.le
+Any file with one of the following types:  .DIR, .EXE, .OBJ, .%LB, .BNL.
+.le
+Any file in a CMS subdirectory.
+.le
+Any file in an ADMIN_UTIL subdirectory.
+.le
+STP files: *STPFILE*.DAT.
+.le
+GEANT geometry files: *GSAVE*.DAT.
+.le
+Any file that does not belong to the directory tree descending from the first
+file in the list.
+.end list
+Network operations are performed using FTP.  If the -u option is specified, the
+user will be prompted for a password.  If the -u option is not specified, 
+login information is obtained from a .netrc file.
+.blank
+.no fill
+Example:
+.blank
+% ftpfetch -d $d0beta/unix 'd0$beta:[unix...]*.*'
+.fill
+.blank
+This procedure is similar to vmsfetch, but has significantly better 
+performance.
+
+.hl1 Libprod
+
+This utility defines environment variables for a production
+release.  Both d0library environment variables (d0<section>)
+and the package environment variable (prod<package>) are
+defined.
+
+.no fill
+.blank
+Usage:
+.blank
+% libprod [-cnp] [-r root] package
+.blank
+Options:
+.blank
+-c   Current version (new subdirectory ignored).
+-n   New version (default if new subdirectory exists).  
+-p   Print values of environment variables that are set.
+-r   Specify root of production area (default
+     $prod/package).
+-s   D0library environment variables point to section
+     subdirectories.  Package environment variable points to
+     root of production area.
+.blank
+Arguments:
+.blank
+package - Name of production package (e.g. full_d0reco).
+.blank
+.fill
+Only one of the options -c, -n or -s should be specified.
+If none is specified, -n is the default if a new subdirectory exists (otherwise
+-c).  In current
+mode, d0library environment variables are set to a search list that
+points first to the top directory of the
+production area, and then the the d0library subdirectory.  New mode adds the
+new subdirectory, if it exists.
+In subdirectory (-s) mode, d0library environment variables point only
+to d0library subdirectories in the production area.
+.p
+Libprod is an alias that invokes the script libprod.csh.  The effect
+of libprod is cancelled by nolibprod, which is simply an alias for nolibtest
+all.
+
+.hl1 Lib_sect
+
+This command prints information about d0library sections.
+.blank
+Usage:
+.blank
+% lib_sect [-cotv] [-h rhost] section1 section2 ...
+.blank
+.no fill
+Options:
+.blank
+-c   Specify compound libraries (e.g. general and
+     tracking_util).  Only effective if the argument list is
+     empty.
+-o   Official mode.
+-t   Test mode.
+-v   Print version numbers.
+-h   Specify remote (VAX) host.  If not specified, the local
+     (UNIX) host is assumed.
+.blank
+Arguments:
+.blank
+section1, section2 - A list of d0library sections.  If no
+     arguments are given, information about is returned for
+     all library sections (or all compound library sections
+     if -c has been specified).  All component libraries of
+     a compound library may be specified using arguments
+     such as @general and @tracking_util.
+.blank
+.fill
+If -v is not specified, the only action of this script is to print a list of
+d0library sections.  In this case, all other options (except -c) are
+ignored.  If the -v option is specified, then this script prints a list of
+d0library section and their associated version numbers for the local UNIX host
+or a remote VAX host (-h option).  Corrupted or non-existent sections are shown
+as version 0.
+Network access to the remote host is via
+FTP.  Login information on the remote host must be contained in a .netrc file.
+
+.hl1 Libtest, nolibtest, showlibtest
+
+These utilities correspond to the VMS utilities of the same names.  Libtest and
+nolibtest are really aliases (defined in d0local.cshrc) that source 
+the shell script $d0unix/libtest.csh.
+Showlibtest is a separate shell script.
+.no fill
+.blank
+Usage:
+.blank
+% libtest [-bgtop] [-a area] [section ... |all]
+.blank
+Options:
+.blank
+-a   Alpha mode.  The alpha area is specified as an argument 
+     to this option.
+-b   Beta mode (root $d0beta).
+-g   Gamma mode (root $d0gamma).
+-t   Test mode (root $d0test).  This is default.
+-o   Official mode (root $d0library).  Turns off all 
+     non-official libraries.
+-p   Print values of environment variables that are set.
+.blank
+Arguments:
+.blank
+section - A library section operate on (or all).
+.fill
+.blank
+Nolibtest is an alias for libtest -o.  Using libtest or nolibtest on the unix
+section of the d0library modifies environment variable PATH in addition to
+the environment variable d0unix.
+
+.hl1 Lnk
+
+This script invokes the link editor (via f77 or xlf) with standard options and
+libraries to produce 
+an executable from object files and archives.  Standard libraries include
+(deb_)general.a, cernlib libraries, (deb_)unix.a and system libraries.
+.no fill
+.blank
+Usage:
+.blank
+% lnk [-cd] [-o exe_file] arg1 arg2 ...
+.blank
+Options:
+.blank
+-c   Use fermi cernlib (default is d0cernlib).
+-d   Use debug d0 libraries (deb_ prefix).
+-o   Specify name of executable (default is same as first 
+     argument).
+.blank
+.fill
+The arguments may consist of object files, archives, or f77 or xlf options.  
+The
+latter should be preceded by at least one file argument or by double-hypen
+(--) to prevent them from being interpreted by the lnk script.  Fortran (.f)
+files should not normally be compiled by this script since standard compilation
+options are not included (use comp instead).
+.no fill
+.blank
+Examples:
+.blank
+% lnk my_file.o my_archive.a
+% lnk -- `force_load userlib.a`
+.blank
+.fill
+
+.hl1 Local_flavor
+
+This script converts file(s) in situ to the local flavor using tasteofd0.
+.blank
+.no fill
+Usage:
+.blank
+% local_flavor [-f flavor] file1 file2 ...
+.blank
+Options:
+.blank
+-f   Specify a flavor (default $D0FLAVOR).
+.blank
+Arguments:
+.blank
+file1, file2 - Files to convert.
+.blank
+.fill
+This script is used by the library release procedures, official_release and
+test_release to convert .inc, .def and .params files at release time.
+
+.hl1 Main_bld
+
+This script makes executables from all main programs in an archive library.
+Programs are linked using a standard set of D0 and UNIX libraries (including
+general and cernlib).  This script calls main_list to get a list of main program
+object modules.  The modules are extracted, linked and then deleted.
+.blank
+.no fill
+Usage:
+.blank
+% main_bld library
+.blank
+Arguments:
+.blank
+library - Object file archive library.
+.blank
+.fill
+
+.hl1 Main_list
+
+This script gives a list of object modules in an object file archive library
+that contain main programs.
+.blank
+.no fill
+Usage:
+.blank
+% main_list library
+.blank
+Arguments:
+.blank
+library - Object file archive library.
+.blank
+.fill
+
+.hl1 mkdirp
+
+This script creates one or more directories and recursively creates parent
+directories if necessary.  This script does the same job as the
+command mkdir -p on sgi.
+.blank
+.no fill
+Usage:
+.blank
+% mkdirp dir1 dir2 ...
+.blank
+.fill
+
+.hl1 Mms_filter
+
+This command analyzes MMS files produced by the D0 release procedure.  The 
+output consists of a sorted list of VMS filenames.  Dependent files 
+(-s option) are output on the same line, separated by tabs.
+.blank
+.no fill
+Usage:
+.blank
+% mms_filter [-lsp] [-o library] mms_file
+.blank
+Options:
+.blank
+-l   Print a list of target libraries contained in the MMS
+     file.
+-o   Print a list of object files associated with a given
+     target library.  Only the name field of the library is
+     significant.
+-s   Print a list of object files and their dependents (for
+     all libraries).  The first dependent is normally the 
+     source file.  Later dependents are typically include
+     files.
+-p   Print a list of parent library sections.
+.blank
+.fill
+Only one of the above options should be specified.  If none is specified, -l is
+assumed.  The following example will print a list of source files for all
+target libraries.
+.blank
+.no fill
+% mms_filter -s $mms_file | cut -f2
+.blank
+.fill
+This script is used by mmstomake, which converts MMS files to makefiles.
+
+.hl1 Mmstomake
+
+This command is a shell script that converts an MMS file created by the
+d0library release procedure into a makefile.
+.blank
+.no fill
+Usage:
+.blank
+% mmstomake [-f flavor] [-o makefile] mms_file
+.blank
+Options:
+.blank
+-f   Flavor (default $D0FLAVOR).
+-o   Output file (default makefile).
+.blank
+Arguments:
+.blank
+mms_file - D0library MMS file.
+.blank
+.fill
+This command should normally be executed by the owner of a library in the root 
+directory
+of a library section.  The resulting makefile is created in the current working
+directory.  The makefile contains updating rules for  
+debug and non-debug versions of all target libraries.  
+The target libraries do not have to reside in the local directory.
+.p
+The generated makefile contains three fake
+targets:  pre, debug and opt.  The fake targets debug and opt
+update all debug and non-debug target libraries respectively.  The fake target
+pre preprocesses all files that need preprocessing (mainly VAX fortran
+files).  In principle (and usually in practive), it is not necessary to update
+pre as a separate operation -- make will do preprocessing
+automatically based on the specified updating rules.  Nevertheless, it is
+recommended that fake target pre be updated first.
+.no fill
+.blank
+Example:
+.blank
+% mmstomake offline_util.mms
+% make pre
+% make debug        # or make deb_general.a
+% make opt          # or make general.a
+.fill
+
+.hl1 Official_release, test_release
+
+These scripts pull an official or test D0library section from VMS to UNIX and
+build it. 
+.blank
+.no fill
+Usage:
+.blank
+% official_release [-sv] [-h rhost] [-u ruser] [-d ldir] \
+  section
+% test_release [-gsv] [-h rhost] [-f files] [-u ruser] \
+  [-d ldir] section
+.blank
+Options:
+.blank
+-f   - Spicify files to fetch.  Default is 
+       'D0$DISK:[D0LIBRARY.TEST.section...]*.*' for test 
+       release and 'D0$GAMMA:[section...]*.*' for gamma 
+       release.  If included, this argument should be 
+       quoted.
+-g   - Specify gamma release (instead of test release).
+-h   - Specify remote host (default $VAXLIB_NODE).
+-s   - Leave in scratch area.
+-u   - Specify remote user.
+-v   - Check version number (do nothing if library is 
+       current).
+-d   - Specify local (UNIX) directory to receive release.
+.blank
+Arguments:
+.blank
+section - Library section.
+.blank
+.fill
+Thses scripts use zftpfetch to get text and zebra files from the remote (VMS)
+node. 
+If the -u option is not specified, there must be a valid .netrc file (see
+zftpfetch).
+Object archive libraries are built by make, which executes a makefile generated
+by mmstomake.  Official, test and gamma
+libraries are stored under $d0library, $d0test and $d0gamma respectively,
+unless the -d option has been specified.
+Official_release deletes
+a test or gamma release for the specified library section, if either exists.
+Fetching a child library will automatically force a parent library to be 
+updated, if the parent needs updating.  
+
+.hl1 production_release, pass_release
+
+These scripts pull a production release or a pass release respectively from 
+VMS into the production area.
+.blank
+.no fill
+Usage:
+.blank
+% production_release [-h rhost] [-u ruser] [-d dir] package
+% pass_release [-h rhost] [-u ruser] [-d dir] package
+.blank
+Options:
+.blank
+-h   - Specify remote host (default $VAXLIB_NODE).
+-u   - Specify remote user.
+-d   - Specify local (UNIX) directory to receive release
+       (default $prod/$package).
+.blank
+Arguments:
+.blank
+package - Production package (e.g. full_d0reco).
+.blank
+.fill
+Thses scripts use zftpfetch to get text files from the remote (VMS) node.
+If the -u option is not specified, there must be a valid .netrc file (see
+zftpfetch).
+Object archive libraries are built by make, which executes a makefile generated
+by mmstomake for each library section in the production
+release.  The production or pass release is stored under the
+directory $prod 
+unless the -d option has been specified.
+
+.hl1 rmdirp
+
+This script delete the named directories, including contents and subdirectories
+(using rm -rf ...) and also recursively deletes parent directories that are
+empty and owned by the current user.
+.blank
+.no fill
+Usage:
+.blank
+% rmdirp dir1 dir2 ...
+.blank
+.fill
+
+.hl1 Tasteofd0, vmstounix
+
+These are precompilers for VAX fortran files.  Tasteofd0 handles d0flavor-style
+conditional compilations.  Tasteofd0 accepts a single argument specifying the
+flavor to be selected.
+Vmstounix changes VMS filenames appearing in
+INCLUDEs to their UNIX equivalants.  Both tasteofd0 and vmstounix read from
+standard input and write to standard output.
+.blank
+.no fill
+Example:
+.blank
+% tasteofd0 SIUNIX < program.for | vmstounix > program.f
+.fill
+.blank
+As suggested by the above example, VAX fortran files normally have a type 
+of .for, while UNIX fortran normally have type .f.
+
+.hl1 Update_library
+
+This is a script to update all sections of the D0library that need updating.
+Whether a given section needs to be updated is determined by comparing the
+version number of the local D0library section to the version number on a remote
+(VAX) node.
+.blank
+.no fill
+Usage;
+.blank
+% update_library [-h rhost] [-ton]
+.blank
+Options:
+.blank
+-h   Specify a remote VMS host (default $VAXLIB_NODE).
+-o   Update official library sections.
+-t   Update test library sections.
+-n   No update mode.  (Just show which sections are out of
+     date.)
+.blank
+.fill
+Either or both of the -t and -o options may be specified.  If neither is
+specified, then this script does nothing.
+
+.hl1 Userlib
+.blank
+.no fill
+Usage:
+.blank
+% userlib [-dn] [-l library] [-o makefile] [-f flavor]\
+  [-c comp_dir] file1 file2 ...
+.blank
+Options:
+.blank
+-d   Generate dependencies only for debug library.
+-n   Generate dependencies only for non-debug library.
+-l   Specify archive library (default userlib.a).
+-o   Specify output file (default makefile).
+-f   Specify UNIX flavor (default $D0FLAVOR).
+-c   Specify compilation directory.
+.blank
+Arguments:
+.blank
+filen - One or more source files or -.
+.blank
+.fill
+This script generates a makefile for updating an archive library
+using the make utility.  
+By default the generated makefile contains rules for 
+updating both a debug and a non-debug version of the library.  The debug version
+of the library unconditionally gets a prefix deb_ (e.g. deb_userlib.a).  The
+debug and non-debug versions of the library can be updated using the fake
+targets "debug" and "opt" respectively.  The -d option suppresses generation of
+the 
+fake target opt and its dependents.  The -n option suppresses the fake target
+debug.  Libraries can be built by specifying their names or their fake targets
+as arguments to the make command.  For example.
+.blank
+.no fill
+% make debug          # Build debug library.
+% make opt            # Build non-debug library.
+% make deb_userlib.a  # Build deb_userlib.a
+% make userlib.a      # Build userlib.a
+% make                # Build default target (usually
+                      # debug).
+.fill
+.blank
+The generated makefile unconditionally contains a third fake target "pre" that
+can be used to update preprocessed files (e.g. VAX fortran).  It is not
+necessary to build the fake target pre explicitly, but it is sometimes
+convenient to do so.
+.p
+The -c option is intended for use during during library releases.  If
+specified, the -c option causes files to be compiled using a pathname
+relative to the specified directory, which must be stored in the environment
+variable d0scratch when the makefile is executed by make.  If the -c option is
+omitted, then only absolute pathnames will appear in the resulting makefile and
+d0scratch does not need to be defined.
+.p
+If the argument list consists of a single - (hyphen), then userlib reads
+the names of source files from standard input.  This is useful is there are
+too many source files for the command line.
+
+.hl1 Vmsfetch
+.blank
+.no fill
+Usage:
+.blank
+% vmsfetch [-h rhost] [-u ruser] [-l luser] [-d ldir] files
+.blank
+Options:
+.blank
+-h   Specify a remote VMS host (default = d0sf13).
+-u   Specify a remote user (default = the current user).
+-l   Specify a local user to receive fetched files 
+     (default = the current user).
+-d   Specify a local directory to receive fetched files 
+     (default = the current directory).
+.blank
+Arguments:
+.blank
+files -  A list of files to fetch or update.  
+.fill
+.blank
+This is a script to copy a directory tree of text files from VMS to UNIX.
+The files argument may
+contain quoted VMS wildcards, include the directory tree (...) wildcard.  In
+the latter case, files in subdirectories are copied to the corresponding
+subdirectories in UNIX.  If the appropriate UNIX subdirectory does not exist it
+is created.  Non-text files and files in [.CMS] subdirectories are ignored.
+As with cmsfetch, network operations are between trusted hosts.
+.blank
+.no fill
+Example:
+.blank
+% vmsfetch -d $d0beta/unix 'd0$beta:[unix...]*.*'
+.fill
+.blank
+This procedure is similar to ftpfetch.  Ftpfetch has better performance.
+
+.hl1 vms_file_type
+.blank
+.no fill
+Usage:
+.blank
+% vms_file_type [-h rhost] [-u ruser] file(s)
+.blank
+Options:
+.blank
+-h   Specify a remote VMS host (default = $ZFTP_NODE).
+-u   Specify a remote user (default = current user).
+.blank
+Arguments:
+.blank
+files -  A list of files to fetch or update.  
+.fill
+.blank
+Get a list of VMS files and types.  Used by zftpfetch.  Uses d0rexec command
+to remotely execute @d0$unix:file_type.com.  Require a valid .netrc file.
+.blank
+.no fill
+Example:
+.blank
+% vms_file_type -h d0sf21 'd0$beta:[unix...]*.*'
+.fill
+
+.hl1 Zftpfetch
+
+.blank
+.no fill
+Usage:
+.blank
+% zftpfetch [-h rhost] [-u ruser] [-d ldir] [-tmxgnr] files
+.blank
+Options:
+.blank
+-h   Specify a remote VMS host (default = $ZFTP_NODE).
+-u   Specify remote user.
+-d   Specify a local directory to receive fetched files 
+     (default = the current directory).
+-t   Fetch text files.
+-m   Fetch compack menu files.
+-x   Fetch data exchange mode FZ files.
+-g   Fetch geant exchange mode FZ files.
+-n   Fetch VAX native mode FZ files.
+-r   Fetch RZ files (native or exchange.
+.blank
+Arguments:
+.blank
+files -  A list of files to fetch or update.  
+.fill
+.blank
+This is a script to copy a directory tree of files from VMS to UNIX.
+The files argument may
+contain quoted VMS wildcards, include the directory tree (...) wildcard.  In
+the latter case, files in subdirectories are copied to the corresponding
+subdirectories in UNIX.  If the appropriate UNIX subdirectory does not exist it
+is created.  The files may be of any type that is transportable by zftp.
+The user must have a valid .netrc file.
+.blank
+.no fill
+Example:
+.blank
+% zftpfetch -d $d0library/stp \
+  'd0$disk:[d0library.stp...]*.*'
+.fill
+.blank

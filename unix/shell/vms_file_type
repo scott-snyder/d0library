@@ -1,0 +1,89 @@
+#! /bin/csh -f
+source ` uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : Vms_file_type
+#
+# Purpuse   : Get a list of VMS file types.  Uses rsh to do remote execution.
+#
+# Usage :
+#
+# vms_file_type [-h rhost] [-u ruser] file(s)
+#
+# Options:
+#
+# -h   - Specify remote host (VAX).  Default is $ZFTP_NODE.
+# -u   - Specify remote user.
+#
+# Arguments :
+#
+# file(s) - One or more VMS file specification.  This argument may
+#           contain (quoted) VMS wildcards, including directory
+#           wildcards.
+#
+# Example:
+#
+# % vms_file_type 'd0$disk:[d0library.stp...]*.*'
+#
+# Notes:
+#
+# 1.  A valid .rhosts file must exist on the remote VAX for the specified
+#     remote user.
+#
+# Created 7-Dec-1993   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# brief help message
+#
+if($#argv == 0 ) then
+help:
+    echo "usage: vms_file_type [-h rhost] [-u ruser] file(s)"
+    exit 1
+endif
+#
+# initialization
+#
+set noglob = 1				# don't trash VAX wildcards
+set rhost = ''
+set ruser = ''
+#
+# scan options
+#
+set argv = (`getopt h:u: $argv:q`)
+while("$argv[1]" != '--')
+    switch($argv[1])
+    case -h:
+        set rhost = $argv[2]
+        repeat 2 shift
+        breaksw
+    case -u:
+        set ruser = "-l $argv[2]"
+        repeat 2 shift
+        breaksw
+    endsw
+end
+shift		# drop --
+#
+# make sure that all required variables are defined (supply defaults)
+#
+if( "$rhost" == '' && $?ZFTP_NODE )then
+  set rhost = $ZFTP_NODE
+endif
+if( "$rhost" == '' )then
+  echo "vms_file_type: Invalid node"
+  goto help
+endif
+#
+# Require file arguments
+#
+if( $#argv < 1 ) then
+    echo "vms_file_type: insufficient arguments"
+    goto help
+endif
+#
+# Remote execute
+#
+foreach file ( $argv )
+  d0rexec $rhost $ruser '@d0$unix:file_type '"$file" | grep '^[a-zA-Z][ 	]'
+end

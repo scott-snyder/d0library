@@ -1,0 +1,54 @@
+#! /bin/csh -f
+#
+#  This script is started by the release procedures on the VAX after a release
+#  is completed to D0SFT.  Notification is sent out for all releases.  It is
+#  up to this script to decide whether to fetch the release.
+#
+#  VMS calling sequence:
+#
+#   $rshell/username=d0librar unix_node release library_section  version  type vms_node
+#
+#  where library_section = library name i.e. d0geant, calor_util etc.
+#        version         = library version to get (not actually used)
+#        type            = type of release (test, official, or production)
+#        vms_node        = library server node (optional argument).
+#
+#  If the last argument is omitted, the current default ($VAXLIB_NODE) is used.
+#  Only recognized library sections (as determined by the output of the 
+#  standard utility lib_sect) are released.
+#
+#
+
+set lib = `echo $1 | tr "[A-Z]" "[a-z]"`
+set tst = `echo $3 | tr "[A-Z]" "[a-z]"`
+set vrs = `echo $2 | tr "[A-Z]" "[a-z]"`
+set vms_node = `echo $4 | tr "[A-Z]" "[a-z]"`
+
+source $home/.cshrc
+source $home/.login
+
+if( $vms_node != '' )then
+  setenv VAXLIB_NODE $vms_node
+  setenv ZFTP_NODE $vms_node
+endif
+
+set reply = NOTIFY
+set fetch = true
+if(`lib_sect | grep -c $lib` == 0 )then
+  set reply = NONOTIFY
+  set fetch = false
+endif
+
+if ( $reply == 'NOTIFY' ) then
+  echo $reply
+  echo "Library $lib $tst version $vrs updated on `date`" >> update.log
+endif
+if ( $fetch == 'true' && $tst == 'test' ) then
+  test_release $lib >& ${lib}_$vrs.log &
+endif
+if ( $fetch == 'true' && $tst != 'test' ) then
+  official_release $lib >& ${lib}_$vrs.log &
+endif
+
+echo "Received notification for $tst release of the $lib library version $vrs"
+exit

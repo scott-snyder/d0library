@@ -1,0 +1,98 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : file_list
+#
+# Purpuse   : This script converts an ftp ls style VMS file list into a list
+#             of files where each file has a full file specification.
+#             Input is from standard input and output is to standard output.
+#
+# Usage :
+# 
+# file_list < $input_file > $output_file
+#
+# Notes:
+#
+# 1.  Certain (mainly binary) files are edited out of the list of filenames.
+#     Here is a list:
+#
+#     a)  Any file with the following types:  .DIR, .EXE, .OBJ, .%LB, .BNL.
+#
+#     b)  Files in CMS subdirectories.
+#
+#     c)  Files in an ADMIN_UTIL subdirectory.
+#
+#     d)  STP files: *STPFILE*.DAT.
+#
+#     e)  GEANT geometry files: *GSAVE*.DAT.
+#
+#     f)  Files that do not descend from the directory of the first file
+#         in the list.
+#
+#     g)  Files with null filenames
+#
+# Created 21-NOV-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+set noglob = 1
+set current_dir = ''
+set dir_root = ''
+#
+# Loop over lines and words from standard input
+#
+line_loop:
+  set next_line = (`line`)
+  if( $status )exit
+  if( $#next_line == 0 )goto line_loop
+  set word = `echo "$next_line[1]" | tr '[A-Z]' '[a-z]'`
+#
+# Determine whether the current word contains a directory or file specification
+# (or both or neither).
+#
+  if( $word:q =~ *\[*\]* )then
+    set dir_spec = 1
+  else
+    set dir_spec = 0
+  endif
+  if( $word:q =~ *.*\;* )then
+    set file_spec = 1
+  else
+    set file_spec = 0
+  endif
+#
+# If the current word does not contain a file specification, do not produce
+# any output (but remember a directory specification if there is one).
+#
+  if( ! $file_spec )then
+    if( $dir_spec )set current_dir = $word:q
+    goto line_loop
+  endif
+#
+# Here we know that the current word contains a file specifation.  Construct
+# the full file specification by appending the last directory, if necessary.
+#
+  if( $dir_spec )then
+    set file = $word:q
+  else
+    set file = "$current_dir:q$word:q"
+  endif
+#
+# Remember the root directory specification
+#
+  if( $dir_root == '' )set dir_root = `echo $file:q | sed 's/\].*$//'`
+#
+# Here we edit out bad files
+#
+  if( $file =~ *.dir* || $file =~ *.exe* || $file =~ *.obj* || \
+    $file =~ *.?lb* || $file =~ *.bnl* )goto line_loop
+  if( $file =~ *\[*.cms*\]* )goto line_loop
+  if( $file =~ *\[*.admin_util*\]* )goto line_loop
+  if( $file =~ *stpfile*.dat* )goto line_loop
+  if( $file =~ *gsave*.dat* )goto line_loop
+  if( $file !~ ${dir_root:q}* )goto line_loop
+  if( $file =~ *\].* )goto line_loop
+#
+# Got a good file.  Send it to standard output.
+#
+  echo $file:q
+goto line_loop

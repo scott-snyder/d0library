@@ -1,0 +1,67 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : force_load
+#
+# Purpose   : Force load all modules in an archive library
+#
+# Options   :
+#
+# -c   - Generate compiler options (default).
+# -l   - Generate linker options.
+#
+# Arguments : One or more archive libraries.
+#
+# Created 30-SEP-1991   Herbert B. Greenlee
+#
+# Including the output of this script in the option section of a compiler
+# link editor command forces all object modules in the library to load.
+# 
+# Example:
+#
+# % f77 ... `force_load -c userlib.a` ...
+#
+#------------------------------------------------------------------------------
+#
+# Quick help
+#
+if($#argv == 0) then
+help:
+  echo "usage: force_load [-cl] library1 library2 ..."
+  exit 1
+endif
+#
+# Scan options
+#
+set compiler = 1
+set argv = (`getopt cl $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -c:
+    set compiler = 1
+    shift
+    breaksw
+  case -l:
+    set compiler = 0
+    shift
+    breaksw
+  default:
+    echo "force_load: bad option $argv[1]"
+    goto help
+  endsw
+end
+shift                       # Get rid of terminating --
+if($#argv == 0) goto help
+foreach archive ( $argv )
+  if( ! -f $archive) continue
+  if( $compiler ) then
+    d0nm $archive | \
+      awk '/^.*:[ 	]*[0-9a-fA-F]*[ 	]*T/{printf " -Wl,-u,%s\n",$4}'
+      echo " $archive"
+  else
+    d0nm $archive | \
+      awk '/^.*:[ 	]*[0-9a-fA-F]*[ 	]*T/{printf " -u %s\n",$4}'
+      echo " $archive"
+  endif
+end

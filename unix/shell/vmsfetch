@@ -1,0 +1,124 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : vmsfetch
+#
+# Purpuse   : Fetch file(s) from a VMS directory (-tree).
+#
+# Usage :
+# 
+# vmsfetch [-h rhost] [-u ruser] [-l luser] [-d ldir] file(s)
+#
+# Options:
+#
+#     rhost - remote host (e.g. d0sf13)
+#     ruser - remote user
+#     luser - local user
+#     ldir  - local directory to receive fetched files
+#
+# Arguments : 
+# 
+#     file(s) - One or more VMS file specification.  This argument may 
+#               contain (quoted) VMS wildcards, including directory 
+#               wildcards.
+#
+# Vmsfetch sources the file ~/.cmsinit (if it exists).  This file may
+# contain shell commands defining any of the following shell variables:
+#
+# rhost - Remote host (with access to cms library, e.g. d0sf13)
+# ruser - Remote user
+# lhost - Local host
+# luser - Local user
+# ldir  - Local directory to receive fetch files
+#
+# These variables may also be set in the environment.
+#
+# Notes:
+#
+# 1.  The values of rhost and ruser may be overridden by command line options.
+#     If rhost or ruser is not defined, a default remote host and the current 
+#     user will be used.
+#
+# 2.  If lhost and luser are not defined, they default the the current host 
+#     and user.
+#
+# 3.  All transactions are between trusted hosts.  This means that suitable
+#     .rhosts files must exist on both ends.
+#
+# 4.  The remote host's login.com must ensure that the logical name
+#     usr$scratch is defined.
+#
+# 5.  Currently, only text files are fetched.
+#
+# 6.  If the VMS file specification points to a directory tree (... wildcard)
+#     Then a corresponding tree will be created on the UNIX end.
+#
+# 7.  Search list logical names are not allowed.  (Non-leading translations
+#     are ignored.)
+#
+# Created 11-JUL-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# brief help message
+#
+if($#argv == 0 ) then
+help:
+    echo "usage: vmsfetch [-h rhost] [-u ruser] [-l luser] [-d ldir] file(s)"
+    exit 1
+endif
+#
+# initialization
+#
+if(-e ~/.cmsinit )source ~/.cmsinit	# init script
+set noglob = 1				# don't trash VAX wildcards
+#
+# scan options
+#
+set argv = (`getopt h:u:l:d: $argv:q`)
+while("$argv[1]" != '--')
+    switch($argv[1])
+    case -h:
+        set rhost = $argv[2]
+        repeat 2 shift
+        breaksw
+    case -u:   
+        set ruser = $argv[2]
+        repeat 2 shift
+        breaksw
+    case -l:
+        set luser = $argv[2]
+        repeat 2 shift
+        breaksw
+    case -d:
+        set ldir = $argv[2]
+        repeat 2 shift
+        breaksw
+    default:
+        echo "vmsfetch: bad option $argv"
+        goto help
+    endsw
+end
+shift		# drop --
+#
+# make sure that all required variables are defined (supply defaults)
+#
+if(! $?rhost ) set rhost = d0sf13
+if(! $?ruser ) set ruser = $user
+if(! $?lhost ) set lhost = `uname -n`
+if(! $?luser ) set luser = $user
+if(! $?ldir ) set ldir = $cwd
+#
+# scan arguments
+#
+if( $#argv < 1 ) then
+    echo "vmsfetch: insufficient arguments"
+    goto help
+endif
+#
+# Get files
+#
+foreach file ( $argv )
+    rsh $rhost -l $ruser '@d0$unix$vms:copytxt'\
+      "$file" '"'"$lhost"'"' '"'"$luser"'"' '"'"$ldir"'"'
+end

@@ -1,0 +1,256 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : lib_sect
+#
+# Purpuse   : Output a list of local or remote version numbers.
+#
+# Usage     :
+#
+# % lib_sect [-cgotv] [-h rhost] [-d ldir] section1 section2 ...
+#
+# Options:
+#
+# -c   - Complex libraries (i.e. general and tracking_util).  This option is
+#        only effective if no sections are specified explicitly as arguments.
+# -s   - Simple libraries (i.e. everything except general and tracking_util).
+#        This option is only effective if no sections are specified explicitly
+#        as arguments.
+# -g   - Debug mode.  (Do not invoke ftp.)
+# -o   - Official versions.
+# -t   - Test versions.
+# -v   - Print out the current version of each library if specified.
+# -h   - Remote host (VAX).  Default is local (UNIX) node.
+# -d   - Local directory to look in for library section (overrides -o, -t)
+#
+# Arguments:
+#
+# sectionn - Library section(s)
+#
+# Notes:
+#
+# 1.  Library sections may be specified in one of three ways:
+#
+#     a) An empty argument list is equivalent to all sections or all complex
+#        or all simple sections if -c or -s is specified.  The list of all
+#        sections is contained in in the file $d0unix/shell/sections.  Complex
+#        sections (currently general and tracking util) are indicated within
+#        this file by specifying their names entirely in CAPITALS).
+#
+#     b) One of more sections may be specified explicitly.
+#
+#     c) All components of a complex library (e.g. general and tracking_util)
+#        may be specified by preceding the complex library name with @.  For
+#        example:
+#
+#        % lib_sect @general
+#
+# 2.  If the -v option is not specified, the only action of this script is to
+#     print a list of library sections.  In this case, all other options are
+#     ignored.
+#
+# 3.  If neither -o nor -t is specified, the latest (libtest all) version is
+#     used.  Only one of -o or -t should be specified.
+#
+# 4.  If the -h option is specified, the official, test or current versions on
+#     the specified remote VAX are printed.  If the -h option is not specified,
+#     the versions on the local UNIX host are printed.
+#
+# 5.  Nonexistent or corrupted library sections are printed with a version
+#     number of 0.
+#
+# Created 20-NOV-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set versions = 0
+set official = 0
+set test = 0
+set debug = 0
+set complex = 0
+set simple = 0
+set rhost = ''
+set ldir = ''
+set argv = (`getopt cgostvh:d: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -c:
+    set complex = 1
+    shift
+    breaksw
+  case -h:
+    set rhost = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -d:
+    set ldir = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -v:
+    set versions = 1
+    shift
+    breaksw
+  case -o:
+    set official = 1
+    shift
+    breaksw
+  case -s:
+    set simple = 1
+    shift
+    breaksw
+  case -t:
+    set test = 1
+    shift
+    breaksw
+  case -g:
+    set debug = 1
+    shift
+    breaksw
+  endsw
+end
+shift    # drop --
+set tmpdir = `d0tmpdir lib_sect`
+set sections_file = `uff $d0library/sections $d0unix/shell/sections`
+if( ! -f "$sections_file" )then
+  echo "sections file not found"
+  exit 1
+endif
+set req_sections_file = `uff $d0unix/shell/required_sections`
+if( ! -f "$req_sections_file" )then
+  echo "required sections file not found"
+  exit 1
+endif
+#
+# Parse the argument.  Get a list of library sections.
+#
+set sects_all = ( $argv )
+#
+# Expand indirect sections
+#
+set sects = ''
+foreach sect ( $sects_all )
+  set parent = `echo $sect | sed 's/^@//'`
+  if( $official )then
+     set lib_root = $d0library/$parent
+  else if( $test )then
+     set lib_root = $d0test/$parent
+  else
+    set lib_root = `echo '$d0'"$parent" | uff`
+  endif
+  if( $ldir != '' )set lib_root = $ldir
+  if( $sect == $parent )then
+    set sects = ( $sects $sect )
+  else if( `lib_sect -c | grep -c $parent` )then
+    set version_file = `ufa $lib_root/000\*v\*.\* | sort -r | line`
+    if( $#version_file != 1 )continue
+    if(! -f $version_file )continue
+    set version = `echo $version_file | sed 's/^.*000_.*_\(v[0-9]*.[0-9_]*\).*$/\1/'`
+    set rel_notes = $lib_root/${version}-rel_notes
+    if(! -f $rel_notes )continue
+    set sects = ( $sects `cut -f1 -d' ' $rel_notes | tr '[A-Z]' '[a-z]' | grep -v compack`)
+  endif
+end
+if( $#argv == 0 )then
+  set sects = ''
+  if( $complex )set sects = \
+    (`egrep '[A-Z]' $sections_file | tr '[A-Z]' '[a-z]'`)
+  if( $simple )set sects = \
+    ( $sects `egrep '[a-z]' $sections_file`)
+  if(! $complex && ! $simple )set sects = \
+    (`cat $sections_file | tr '[A-Z]' '[a-z]'`)
+#
+# Except when complex is specified, force sections list to include
+# the all required sections in $d0unix/shell/required_sections.
+#
+  if(! $complex )then
+    foreach required_section (`cat $req_sections_file`)
+      if(`echo $sects | grep -c $required_section` == 0) \
+        set sects = ( $required_section $sects )
+    end
+  endif
+endif
+if( "$sects" == '' )goto done
+#
+# Sort section names into increasing order
+#
+set sects = (`echo $sects | tr ' ' '\012' | sort -u`)
+if(! $versions )then
+  foreach sect ( $sects )
+    echo $sect
+  end
+  goto done
+endif
+#
+# Make sure all library sections have defined environment variables, even
+# if the corresponding official directory doesn't exist.
+#
+set noglob = 1
+foreach sect ( $sects )
+  if( `printenv d0$sect` == '' )then
+    setenv d0$sect $d0library/$sect
+  endif
+end
+#
+# Scan sections
+#
+if( $rhost != '' )goto remote
+#
+# Local scan
+#
+foreach sect ( $sects )
+  if( $official )then
+     set lib_root = $d0library/$sect
+  else if( $test )then
+     set lib_root = $d0test/$sect
+  else
+    set lib_root = `echo '$d0'"$sect" | uff`
+  endif
+  if( $ldir != '' )set lib_root = $ldir
+  set version_file = `ufa $lib_root/000\*v\*.\* | sort -r | line`
+  set version = 0
+  if( $#version_file == 1 )then
+    if( -f $version_file )then
+      set version = `echo $version_file | sed "s/^.*000_${sect}_//"`
+    endif
+  endif
+  d0echo "$sect\t$version"
+end
+goto done
+#
+# Remote scan
+#
+remote:
+foreach sect ( $sects )
+  if( $official )then
+    echo 'dir d0$disk:[d0library.'${sect}']000*v*.*' >> $tmpdir/ftp
+  else if( $test )then
+    echo 'dir d0$disk:[d0library.test.'${sect}']000*v*.*' >> $tmpdir/ftp
+  else
+    echo 'dir d0$disk:[d0library.'${sect}']000*v*.*' >> $tmpdir/ftp
+    echo 'dir d0$disk:[d0library.test.'${sect}']000*v*.*' >> $tmpdir/ftp
+  endif
+end
+if( $debug && ! -f debug_lib_sect.ftp )then
+  ftp $rhost < $tmpdir/ftp | tr "[A-Z]" "[a-z]" > debug_lib_sect.ftp
+endif
+if( $debug )then
+  set version_files = (`cat debug_lib_sect.ftp`)
+else
+  set version_files = (`ftp $rhost < $tmpdir/ftp | tr "[A-Z]" "[a-z]"`)
+endif
+foreach version_file ( $version_files )
+  set version = 0
+  if( $version_file =~ *000*v*.* )then
+     set sect = `echo $version_file | sed -n 's/^.*000_\(.*\)_v.*$/\1/p'`
+     set version = `echo $version_file | sed -n 's/^.*000_.*_\(v.*\);.*$/\1/p'`
+     d0echo "$sect\t$version" >> $tmpdir/vers
+  endif
+end
+touch $tmpdir/vers
+cat $tmpdir/vers | sort -r | sort -um +0 -1 | sort > $tmpdir/sort
+lib_sect $argv | join -a1 -e 0 -o 1.1 2.2 - $tmpdir/sort | tr ' ' '\011'
+done:
+rmdirp $tmpdir

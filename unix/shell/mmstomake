@@ -1,0 +1,329 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : mmstomake
+#
+# Purpose   : Convert an MMS file to a makefile for the purpose of building
+#             object libraries during releases.
+#
+# Usage     :
+#
+# % mmstomake [-dn] [-f flavor] [-o makefile] [-c compdir] mms_file
+#
+# Options   :
+#
+# -d  - Generate only debug dependencies (default is debug and non-debug).
+# -n  - Generate only non-debug dependencies (default is debug and non-debug).
+# -f  - Specify flavor (default $D0FLAVOR)
+# -o  - Specify makefile (default makefile)
+#
+# Arguments :
+#
+# mms_file - Library section whose MMS file is to be converted.
+#
+# Usage notes:
+#
+# 1.  This script will generate a makefile for the library whose root directory
+#     is located in the same directory as the mms_file specified in the
+#     argument.  The library name is obtained from the name of this directory
+#     (not the name of the mms file).
+#
+# 2.  The mms_file argument may be specified as an absolute or relative
+#     pathname.
+#
+# 3.  There may be more than one target library and target libraries may
+#     be located in different directories.
+#
+# Created 12-NOV-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Quick help
+#
+if($#argv == 0) then
+help:
+  echo 'usage: mmstomake [-dn] [-f flavor] [-o makefile] mms_file'
+  exit 1
+endif
+#
+# Scan options
+#
+set debug = 1
+set opt = 1
+set flavor = $D0FLAVOR
+set makefile = makefile
+set compdir = ''
+set argv = (`getopt dnf:o:c: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -d:
+    set opt = 0
+    shift
+    breaksw
+  case -n:
+    set debug = 0
+    shift
+    breaksw
+  case -f:
+    set flavor = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -o:
+    set makefile = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -c:
+    set compdir = "-c $argv[2]"
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop --
+#
+# Parse mms file argument.  Get significant directories.
+#
+if($#argv == 0 )goto help
+set mms_file = $1
+if( $mms_file !~ /* ) set mms_file = `d0pwd`/$mms_file  # Ensure absolute pathname
+if( ! -f $mms_file )then
+  echo "$mms_file not found"
+  exit 1
+endif
+set lib_root = $mms_file:h
+if( ! -d $lib_root )then
+  echo "Directory $lib_root not found"
+  exit 1
+endif
+set lib_section = $lib_root:t
+d0echo "Library section:  $lib_section\nRoot directory:   $lib_root"
+#
+# Set up empty scratch areas
+#
+set tmpdir = `d0tmpdir -c mmstomake`
+set scratch = $tmpdir/$lib_section
+set admin_area = $scratch/admin         # Directory for temporary files
+rm -rf $admin_area >& /dev/null
+mkdirp $admin_area
+#
+# Put the current library section into alpha mode with the library root as
+# the alpha directory.
+#
+libtest -o -a $lib_root $lib_section
+#
+# Get a list of target libraries
+#
+set parent_olbs = `mms_filter -l $mms_file`
+set parent_archives = ''
+set parent_names = ''
+foreach parent_olb ( $parent_olbs )
+  set d0_logical = `echo $parent_olb | sed 's/^\(.*\):.*$/\1/'`
+  set parent_name = `echo $parent_olb | sed 's/^.*:\(.*\).olb.*$/\1/'`
+  set version_file = `vff ${d0_logical:q}:000\*`
+  if(! -f $version_file )then
+    echo "Parent library $d0_logical:q is corrupt"
+    exit 1
+  endif
+  set parent_archive = $version_file:h/${parent_name}.a
+  set parent_archives = \
+    ( $parent_archives $parent_archive )
+  set parent_names = ( $parent_names $parent_name )
+end
+#
+# Extract a list of all objects and their associated sources from the
+# object file dependency section of the mms file.
+#
+mms_filter -s $mms_file | \
+  awk '{printf "%s\t%s\n",$1,$2}' > $admin_area/objects
+#
+# Output macro definitions
+#
+set cinc = ( `ufa '$d0unix/source' '$d0c_inc'` )
+set cinc = "{`echo $cinc | tr -s ' ' ','`}"
+set inc_opts = ( -I$cinc )
+echo "SHELL = /bin/sh" >! $admin_area/makefile
+echo "CCFLAGS = -c $ccflags $inc_opts" >> $admin_area/makefile
+echo "LCCFLAGS = -c $lccflags $inc_opts" >> $admin_area/makefile
+echo "F77FLAGS = -c $f77flags" >> $admin_area/makefile
+echo "DEBUG = $debflags" >> $admin_area/makefile
+echo "OPT = $optflags" >> $admin_area/makefile
+echo "ARFLAGS = $arflags" >> $admin_area/makefile
+echo "SCRATCH = $tmpdir:h/$lib_section" >> $admin_area/makefile
+echo "FLAVOR = $flavor" >> $admin_area/makefile
+echo "F77 = $f77" >> $admin_area/makefile
+echo ".IGNORE:" >> $admin_area/makefile
+echo ".SUFFIXES:" >> $admin_area/makefile
+#
+# Make two fake targets "debug" and "opt" which have all parent libraries
+# as their dependents.
+#
+if( $debug )then
+  d0echo "debug :\c" >> $admin_area/makefile
+  foreach parent_name ( $parent_names )
+    d0echo "\\\n  deb_${parent_name}.a\c" >> $admin_area/makefile
+  end
+endif
+if( $opt )then
+  d0echo "\nopt :\c" >> $admin_area/makefile
+  foreach parent_name ( $parent_names )
+    d0echo "\\\n  ${parent_name}.a\c" >> $admin_area/makefile
+  end
+endif
+d0echo >> $admin_area/makefile
+#
+# Loop over parent libraries (the hard way, so as to avoid nesting problems).
+#
+set maxsub = 20
+set k = 0
+parent_loop:
+@ k = $k + 1
+if( $k > $#parent_olbs )goto parent_end
+set library = $parent_archives[$k]
+set parent_root = $library:h
+set deb_library = $parent_root/deb_$library:t
+set parent_name = $parent_names[$k]
+set parent_scratch = '$(SCRATCH)/'"$parent_name"
+#
+# Get a list of objects associated with this parent library.  Use this list
+# to get a list of sources and their dependencies.
+#
+echo "Scanning source files for parent library $parent_name"
+mms_filter -o $parent_name $mms_file | \
+  join -o 2.2 - $admin_area/objects | \
+  lib_depend -vd "$parent_scratch" -m $maxsub \
+  > $admin_area/dependencies
+if( ! -f $admin_area/dependencies )exit 1
+#
+# Check for uniqueness
+#
+echo 'Checking uniqueness'
+set n1 = `cut -f1 $admin_area/dependencies | wc -l`
+set n2 = `cut -f1 $admin_area/dependencies | sort -u | wc -l`
+d0echo "$n1 source files\n$n2 archive files"
+if( $n1 == $n2 )then
+  echo 'Uniqueness OK'
+else
+  echo 'Error: Archive modules not unique'
+  exit 1
+endif
+#
+# Make a list of the archive subdirectories generated by lib_depend
+#
+@ nsubdir = ( $n1 + $maxsub - 1 ) / $maxsub
+set subdirs = ''
+set i = 1
+while( $i <= $nsubdir )
+  set subdirs = ( $subdirs a$i )
+  @ i = $i + 1
+end
+#
+# Generate dependencies and updating rules for debug archive library
+#
+if( $debug )then
+  echo "Generating dependencies for deb_${parent_name}.a"
+  echo "deb_${parent_name}.a : $deb_library" >> $admin_area/makefile
+  d0echo "\t@ echo deb_${parent_name}.a is up to date" >> $admin_area/makefile
+  echo "${deb_library}:: $parent_scratch/nothing.nl" >> $admin_area/makefile
+  cut -f1 $admin_area/dependencies | archive_update $deb_library \
+    >> $admin_area/makefile
+  foreach subdir ( $subdirs )
+    d0echo '\tar $(ARFLAGS)' "$deb_library" '`ls' "$parent_scratch/$subdir/*.o" '2> /dev/null`' \
+      >> $admin_area/makefile
+  end
+  d0echo "\trmdirp $parent_scratch" >> $admin_area/makefile
+endif
+#
+# Generate dependencies and updating rules for non-debug archive library
+#
+if( $opt )then
+  echo "Generating dependencies for ${parent_name}.a"
+  echo "${parent_name}.a : $library" >> $admin_area/makefile
+  d0echo "\t@ echo ${parent_name}.a is up to date" >> $admin_area/makefile
+  echo "${library}:: $parent_scratch/nothing.nl" >> $admin_area/makefile
+  cut -f1 $admin_area/dependencies | archive_update $library \
+    >> $admin_area/makefile
+  foreach subdir ( $subdirs )
+    d0echo '\tar $(ARFLAGS)' "$library" '`ls' "$parent_scratch/$subdir/*.o" '2> /dev/null`' \
+      >> $admin_area/makefile
+  end
+  d0echo "\trmdirp $parent_scratch" >> $admin_area/makefile
+endif
+#
+# Generate dependencies for scratch directory
+#
+echo "$parent_scratch/nothing.nl:" >> $admin_area/makefile
+d0echo "\trmdirp $parent_scratch" >> $admin_area/makefile
+foreach subdir ( $subdirs )
+  d0echo "\tmkdirp $parent_scratch/$subdir" >> $admin_area/makefile
+end
+#
+# Generate debug object file dependencies and updating rules
+#
+if( $debug )then
+  echo "Generating dependencies for debug object files"
+  object_update $compdir -d -f $flavor -l $deb_library < $admin_area/dependencies \
+    >> $admin_area/makefile
+endif
+#
+# Generate non-debug object file dependencies and updating rules
+#
+if( $opt )then
+  echo "Generating dependencies for non-debug object files"
+  object_update $compdir -f $flavor -l $library < $admin_area/dependencies \
+    >> $admin_area/makefile
+endif
+goto parent_loop
+parent_end:
+#
+# Generate preprocessor dependencies.  This is done once for all libraries.
+#
+echo "Generating preprocessor dependencies"
+cut -f2 $admin_area/objects | \
+  lib_depend -v > $admin_area/dependencies
+if( ! -f $admin_area/dependencies )exit 1
+#
+# Make a fake target "pre" that preprocesses all files.
+#
+d0echo "pre:\c" >> $admin_area/makefile
+sed -n 's/^.*[ 	]\(.*\)[ 	].*/\1/p' $admin_area/dependencies | \
+  awk '{printf "\\\n  %s",$0}' >> $admin_area/makefile
+d0echo >> $admin_area/makefile
+#
+# Actual dependencies are generated below.
+#
+sed -n 's/^.*[ 	]\(.*\)[ 	]\(.*\)/\1 \2/p' $admin_area/dependencies | \
+  pre_update -f $flavor >> $admin_area/makefile
+#
+# Make a fake target "for" that touches all VAX fortran sources.
+#
+echo "Generating source list"
+echo "for:" >> $admin_area/makefile
+sed -n 's/^.*[ 	].*[ 	]\(.*.for\).*/	touch \1/p' $admin_area/dependencies \
+  >> $admin_area/makefile
+#
+# A complete and correct makefile using only absolute pathnames now resides
+# in the scatch area.
+#
+# Here various editing tasks are performed to make the makefile more
+# "transportable."  A new makefile is generated in the library area.  The
+# changes are as follows:
+#
+# 1.  Reverse substitute environment variables d0root, d0library, d0test
+#     and d0gamma wherever possible.  Future invokations of the makefile will
+#     inherit these variables from the environment.
+#
+# sed script for reverse substitution:
+#
+if( ! $?d0root )set d0root = xxxxxxxxxx
+if( ! $?d0gamma )set d0gamma = xxxxxxxxxx
+if( ! $?d0test )set d0test = xxxxxxxxxx
+if( ! $?d0library )set d0library = xxxxxxxxxx
+if( ! $?prod )set prod = xxxxxxxxxx
+set rev_sub = \
+  "s@${d0root}@"'$(d0root)@g;'"s@${d0gamma}@"'$(d0gamma)@g;'"s@${d0test}@"'$(d0test)@g;'"s@${d0library}@"'$(d0library)@g;'"s@${prod}@"'$(prod)@g'
+#
+# Do it.
+#
+sed "$rev_sub" $admin_area/makefile >! $makefile
+done:
+rmdirp $tmpdir

@@ -1,0 +1,98 @@
+#! /bin/csh -f
+###############################################################################
+#
+# Name:  d0fsplit
+#
+# Purpose: Use fsplit to split one or more fortran source files.  This
+#          script differs from plain fsplit in the following ways:
+#
+#          1.  Labeled and commented END statements are allowed.
+#
+#          2.  The split files are converted to lower case names.
+#
+# Usage:
+#
+# % d0fsplit [-d dir] file1 file2 ...
+#
+# Options:
+#
+# -d   - Directory to receive split source files (default source directory).
+#
+# Arguments:
+#
+# file - File(s) to split
+#
+# Created 30-Dec-1993  Herbert Greenlee
+#
+##############################################################################
+#
+# Scan options
+#
+set split_dir = ''
+set argv = (`getopt d: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -d:
+    set split_dir = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop --
+#
+# Quick help
+#
+if( $#argv == 0 )then
+  echo "Usage:  d0fsplit file(s)"
+  exit
+endif
+#
+# Define temp file name
+#
+set tmpdir = `d0tmpdir d0fsplit`
+set cur_dir = $cwd
+#
+# Loop over file arguments
+#
+foreach file ( $argv )
+  if( $file !~ /* )set file = $cur_dir/$file
+  if( ! -f $file )then
+    echo "File $file not found"
+    break
+  endif
+  echo "Splitting $file"
+  set file_tail = $file:t
+  set name = $file_tail:r
+  set type = $file_tail:e
+  set temp_file = $tmpdir/$name.fx
+#
+# Convert labeled end statements.
+#
+  awk '/^ *[0-9][0-9]* *[eE][nN][dD] *$/{printf "%s     CONTINUE\n      END\n",$1;next};{print $0}' \
+    $file >! $temp_file
+  rm -rf $tmpdir/split >& /dev/null
+  mkdir $tmpdir/split
+  cd $tmpdir/split
+  fsplit $temp_file
+  cd $cur_dir
+  rm $temp_file
+#
+# Copy/rename split files to lower case.
+#
+  while(1)
+    set f_file = `uff "$tmpdir/split/*.f"`
+    if( "$f_file" == '' )break
+    set lc_file = `echo $f_file:t | tr '[A-Z]' '[a-z]'`
+    if( "$split_dir" != '')then
+      set lc_file = $split_dir/${lc_file:r}.$type
+    else
+      set lc_file = ${file:h}/${lc_file:r}.$type
+    endif
+    cp $f_file $lc_file
+    rm $f_file
+    echo $lc_file
+  end
+  rm -rf $tmpdir/split
+end
+done:
+rmdirp $tmpdir

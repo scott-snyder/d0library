@@ -1,0 +1,28 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : mkdirp
+#
+# Purpuse   : This script creates one or more directories and their parent
+#             directories, if necessary.  This script does the same job as 
+#             mkdir -p on sgi.
+#
+# Usage     :
+#
+# % mkdirp dir1 dir2 ...
+#
+# Created 27-Mar-1992   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+if ( $#argv < 1 )then
+  echo "Usage: mkdirp dir1 dir2 ..."
+  exit 1
+endif
+foreach dir ( $argv )
+  if ( $dir !~ /* ) set dir = $cwd/$dir    # Force absolute pathname
+  set parent_dir = $dir:h
+  if( $parent_dir != '' )then
+    if( ! -d $parent_dir )mkdirp $parent_dir
+  endif
+  if( ! -d $dir )mkdir $dir
+end

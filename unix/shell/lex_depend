@@ -1,0 +1,26 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : lex_depend
+#
+# Purpose   : This script generates a list of dependencies for .lex files
+#
+# Arguments : A single c source file
+#
+# Created 28-SEP-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+set lex_file = $argv[1]
+lex -t $lex_file > /tmp/lex.yy.c
+set files = (`sed -n 's/#include.*[<"]\(.*\)[>"]/\1/p' /tmp/lex.yy.c`)
+rm -f /tmp/lex.yy.c
+set first = 1
+foreach file ( $files )
+  set file = `uff $d0unix/source/$file`
+  if(! $first )d0echo ' \\'
+  set first = 0
+  d0echo " $file\c"
+  endif
+end
+d0echo

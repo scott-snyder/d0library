@@ -1,0 +1,46 @@
+#! /bin/csh -f
+###############################################################################
+#
+# Name:  isajet_pre_release
+#
+# Purpose: UNIX release script for isajet d0library section.  This script 
+#          performs the following actions:
+#
+#          1.  Deletes isajet.mms to inhibit normal library building.
+#
+#          2.  Split isajet.for into separate source files for compilation.
+#
+#          3.  Generates and executes makefile for isajet.a.
+#
+# Usage Notes
+#
+# 1.  This script should be executed from the top directory of the isajet
+#     library section.
+#
+# Created 10-Jun-1993  Herbert Greenlee
+#
+##############################################################################
+#
+# Delete isajet.mms to disable usual build phase.  This scipt supersedes.
+#
+rm -f isajet.mms >& /dev/null
+#
+# Preprocess and split isajet.for into separate routines.
+#
+if( -f source/isajet.for )then
+  tasteofd0 $D0FLAVOR < source/isajet.for | vmstounix > source/isajet_unsplit.f
+  d0fsplit source/isajet_unsplit.f
+  rm source/isajet_unsplit.f
+endif
+#
+# Generate makefiles
+#
+ufn `ufl '$d0isajet/source/*.for' | grep -v source/isajet.for` '$d0isajet/source/*.f' | \
+  userlib -c $d0root -l isajet.a -
+#
+# Build libraries. 
+#
+make for
+make pre
+make debug
+make opt

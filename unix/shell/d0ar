@@ -1,0 +1,86 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : d0ar
+#
+# Purpose   : D0ar is an ar clone allowing quoted wildcards as arguments 
+#             (protected against line too long error).  Arguments are passed 
+#             to ar after wildcard expansion using ufl.  D0ar is intended
+#             to be used to efficiently insert arbitrarily many files into
+#             an archive library.
+#
+# Usage:
+#
+#    d0ar options lib file1 file2 ...
+#
+# -l  - Specify library file (default userlib.a in current directory).
+#
+# Created 21-Mar-1996   Herbert B. Greenlee
+#
+# Notes:
+#
+# 1.  Arguments beginning with argument 3 (file1) are wildcard expanded
+#     using ufl.  
+#
+# 2.  If the expansion is too large for one command, d0ar makes multiple
+#     invocations of ar.
+#
+# 3.  If the expansion results in no matching files, d0ar silently does 
+#     nothing.
+#
+#------------------------------------------------------------------------------
+#
+# Brief help message
+#
+if($#argv < 3) then
+help:
+  echo 'usage: d0ar options lib file1 file2 ...'
+  exit 1
+endif
+#
+# Get arguments
+#
+set options = $argv[1]
+set lib = $argv[2]
+set files = ( $argv[3]:q )
+set max_char = 1000
+@ max_char = $max_char - `echo $lib | wc -c`
+@ max_char = $max_char - `echo $options | wc -c`
+#
+# Set up empty scratch area
+#
+set tmpdir = `d0tmpdir -c d0ar`
+rm -rf $tmpdir >& /dev/null
+mkdirp $tmpdir
+set list = $tmpdir/files
+#
+# Get list of files
+#
+ufl $files:q > $list
+set first = 1
+set last = `cat $list | wc -l`
+ar_loop:
+if( $first > $last )goto done
+#
+# Decide how many files to include in the next invocation of ar.
+#
+@ remain = ( $last - $first ) + 1
+set num = $remain
+loop:
+set nc = `tail -$remain $list | head -$num | wc -c`
+if( $nc > $max_char )then
+  @ num = $num / 2
+  goto loop
+endif
+echo "Inserting $num files ($remain remaining)"
+set files = `tail -$remain $list | head -$num`
+echo "ar $options $lib $files"
+eval "ar $options $lib $files"
+@ first = $first + $num
+goto ar_loop
+#
+# Invoke ar
+#
+done:
+rmdirp $tmpdir

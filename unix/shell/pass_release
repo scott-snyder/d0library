@@ -1,0 +1,155 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : pass_release
+#
+# Purpose   : Fetch and build the top area and [.new] subdirectory of a
+#             production release area.
+#
+# Usage     :
+#
+# % pass_release [-l] [-h rhost] [-u ruser] [-d dir] package
+#
+# Options   :
+#
+# -h   - Specify remote host (VAX).
+# -u   - Specify remote user.
+# -b   - Build only (do not fetch).
+# -f   - Fetch only (do not build).
+# -d   - Local directory to hold release.
+# -l   - Do not generate log file (output to stdout only).
+#
+# Arguments :
+#
+# package - production package.
+#
+# Created 17-Jun-1992   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Remember original args
+#
+set oldargv = ( $argv )
+#
+# Scan options
+#
+set rhost = ''
+set ruser = ''
+set ldir = ''
+set log = 1
+set fetch = 1
+set build = 1
+set argv = (`getopt bfh:u:d:l $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -b:
+    set fetch = 0
+    shift
+    breaksw
+  case -f:
+    set build = 0
+    shift
+    breaksw
+  case -h:
+    set rhost = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -u:
+    set ruser = "-u $argv[2]"
+    repeat 2 shift
+    breaksw
+  case -d:
+    set ldir = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -l:
+    set log = 0
+    shift
+    breaksw
+  endsw
+end
+shift    # drop --
+if( $rhost == '' && $?ZFTP_NODE )then
+  set rhost = $ZFTP_NODE
+endif
+if( $rhost == '')then
+  set rhost = $VAXLIB_NODE
+endif
+#
+# Interpret argument
+#
+if( $#argv != 1 )then
+  echo "Usage: pass_release [-l] [-u ruser] [-h rhost] [-d ldir] package"
+  exit
+endif
+set package = $1
+#
+# Generate significant directories and filenames
+#
+if( $ldir == '' )then
+  set production_root = $prod/$package
+else
+  set production_root = $ldir
+endif
+set scratch = $production_root
+#
+# If we want to generate a logfile, then call pass_release recursively.
+#
+if( $log )then
+  set templogfile = $production_root:h/${package}.log
+  pass_release -l $oldargv |& tee $templogfile
+  set release_status = $status
+  mv $templogfile $production_root/release.log
+  error_filter $production_root/release.log >& $production_root/error.log
+  exit $release_status
+endif
+#
+# Clean out new subdirectory
+#
+if( $fetch )then
+  find $scratch/new -type f -exec mv -f {} $scratch \;
+  rmdir $scratch/new
+endif
+#
+# Fetch files into new subdirectory
+#
+if( $fetch )then
+  mixfetch -h $rhost $ruser -d $scratch/new 'd0$prod:[d0production.'${package}'.new]*.*'
+endif
+#
+# Exit with error status if $scratch/new has no files (fetch failed).
+#
+set nfiles = `ls $scratch/new | wc -w`
+if( $nfiles == 0 )then
+  echo "No files fetched, giving up."
+  exit 1
+endif
+#
+# Convert .inc, .link, .def and .params files to the local flavor
+#
+if( $fetch )then
+  find $scratch/new -name '*.inc' -exec local_flavor {} \;
+  find $scratch/new -name '*.link' -exec local_flavor {} \;
+  find $scratch/new -name '*.def' -exec local_flavor {} \;
+  find $scratch/new -name '*.params' -exec local_flavor {} \;
+endif
+#
+# Define environment variables for this production release
+#
+libprod -r $scratch $package
+#
+# Build phase.  Compile top level routines.
+#
+if( ! $build )exit
+cd $scratch/new
+echo "Compiling files in directory $scratch/new"
+ufl "$scratch/new/*.for" "$scratch/new/*.c" | userlib -l ${package}.a -
+if( -f makefile )then
+  make for
+  make pre
+  make debug
+  make opt
+#  atoo deb_${package}.a
+#  atoo ${package}.a
+endif

@@ -1,0 +1,86 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : local_flavor
+#
+# Purpuse   : Convert one or more files in situ to the local flavor using
+#             tasteofd0.
+#
+# Usage     :
+#
+# % local_flavor [-f flavor] file1 file2 ...
+#
+# Options:
+#
+# -f   - Flavor (default $D0FLAVOR)
+#
+# Arguments:
+#
+# file - File(s) to convert
+#
+# Created 24-JAN-1992   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set flavor = $D0FLAVOR
+set argv = (`getopt f: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -f:
+    set flavor = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop --
+#
+# Use d0flavor?
+#
+#set use_d0flavor=0
+#if( $?USE_D0FLAVOR && `uff $d0util/d0flavor.x` != '' )set use_d0flavor=1
+#
+# Quick help
+#
+if( $#argv == 0 )then
+  echo "Usage:  local_flavor [-f flavor] file(s)"
+  exit
+endif
+#
+# Define temp file name
+#
+set tmpdir = `d0tmpdir local_flavor`
+set temp = $tmpdir/temp.tmp
+#
+# Loop over file arguments
+#
+foreach file ( $argv )
+  if( ! -f $file )then
+    echo "File $file not found"
+    break
+  endif
+#
+# Convert file to local flavor in temp file
+#
+#  if( $use_d0flavor )then
+#    d0flavor.x -$flavor -OUTPUT=$temp $file
+#  else
+    tasteofd0 $flavor < $file | vmstounix >! $temp
+#  endif
+  if(! -f $temp )then
+    echo "Failure to convert file $file"
+    break
+  endif
+#
+# See if files are different
+#
+  cmp $temp $file > /dev/null
+  if( $status == 1 )then
+    cp $temp $file
+    echo "File $file converted to flavor $flavor"
+  endif
+  rm -f $temp
+end
+done:
+rmdirp $tmpdir

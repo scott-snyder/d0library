@@ -1,0 +1,212 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : Update_library
+#
+# Purpose   : Update all sections of the d0library
+#
+# Usage     :
+#
+# % update_library [-not] [-h rhost]
+#
+# Options   :
+#
+# -n   - No update mode (just show what sections need updating).
+# -o   - Official sections.
+# -t   - Test sections.
+# -h   - Specifiy remote host (VAX).
+#
+# Notes:
+#
+# 1.  Either or both of the -o and -t options may be specified.  If neither
+#     is specified, then this script does nothing.
+#
+# Created 26-NOV-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set noupdate = 0
+set official = 0
+set test = 0
+set rhost = ''
+set argv = (`getopt noth: $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -n:
+    set noupdate = 1
+    shift
+    breaksw
+  case -o:
+    set official = 1
+    shift
+    breaksw
+  case -t:
+    set test = 1
+    shift
+    breaksw
+  case -h:
+    set rhost = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop --
+if( $rhost == '')then
+  set rhost = $VAXLIB_NODE
+endif
+set req_sections_file = `uff $d0unix/shell/required_sections`
+#
+# Official library sections, part 1.
+#
+if(! $official )goto official_end_1
+#
+# First get a list of current official VMS versions
+#
+  rm -f vms_official_versions >& /dev/null
+  lib_sect -vo -h $rhost > vms_official_versions
+  if(! -f vms_official_versions || `cat vms_official_versions | wc -l` == 0 )then
+    echo "Could not get VMS library official versions"
+    exit 1
+  endif
+#
+# Make sure official versions of c_inc, inc, links, params and zeb.
+#
+  foreach sect ( `cat $req_sections_file` )
+    set vms_version = `echo $sect | join -o 2.2 - vms_official_versions`
+    set unix_version = `lib_sect -vo $sect | cut -f2`
+    set latest_version = \
+      `echo $vms_version $unix_version | tr ' ' '\012' | sort -r | line`
+    if( $unix_version != $vms_version )then
+      set command = "official_release -h $rhost $sect"
+      echo $command
+      if(! $noupdate )eval $command
+    endif
+  end
+official_end_1:
+#
+# Test versions, part 1.
+#
+if(! $test )goto test_end_1
+#
+# First get a list of current test VMS versions
+#
+  rm -f vms_test_versions >& /dev/null
+  lib_sect -vt -h $rhost > vms_test_versions
+  if(! -f vms_test_versions || `cat vms_test_versions | wc -l` == 0 )then
+    echo "Could not get VMS library test versions"
+    exit 1
+  endif
+#
+# Make sure test versions of c_inc, inc, links, params and zeb are up to date.
+#
+  foreach sect ( `cat $req_sections_file` )
+    set vms_version = `echo $sect | join -o 2.2 - vms_test_versions`
+    set unix_version = `lib_sect -vt $sect | cut -f2`
+    set latest_version = \
+      `echo $vms_version $unix_version | tr ' ' '\012' | sort -r | line`
+    if( $unix_version != $vms_version )then
+      set command = "test_release -h $rhost $sect"
+      echo $command
+      if(! $noupdate )eval $command
+    endif
+    if( $vms_version == 0 && -d $d0test/$sect )then
+      set command = "rm -rf $d0test/$sect"
+      echo $command
+#      if(! $noupdate )eval $command
+    endif
+  end
+test_end_1:
+#
+# Official sections, part 2.
+#
+if(! $official )goto official_end_2
+#
+# Make sure that complex sections (general) are up to date.
+# cernlib.
+#
+  foreach sect ( `lib_sect -c` )
+    set vms_version = `echo $sect | join -o 2.2 - vms_official_versions`
+    set unix_version = `lib_sect -vo $sect | cut -f2`
+    set latest_version = \
+      `echo $vms_version $unix_version | tr ' ' '\012' | sort -r | line`
+    if( $unix_version != $vms_version )then
+      set command = "official_release -h $rhost $sect"
+      echo $command
+      if(! $noupdate )eval $command
+    endif
+  end
+official_end_2:
+#
+# Official sections, part 3.
+#
+if(! $official )goto official_end_3
+#
+# Update any sections that are still out of date.  No automatic updating of
+# cernlib.
+#
+  foreach sect ( `lib_sect` )
+    if( $sect == cernlib )continue
+    set vms_version = `echo $sect | join -o 2.2 - vms_official_versions`
+    set unix_version = `lib_sect -vo $sect | cut -f2`
+    set latest_version = \
+      `echo $vms_version $unix_version | tr ' ' '\012' | sort -r | line`
+    if( $unix_version != $vms_version )then
+      set command = "official_release -h $rhost $sect"
+      echo $command
+      if(! $noupdate )eval $command
+    endif
+  end
+official_end_3:
+#
+# Test library sections, part 2.
+#
+if(! $test )goto test_end_2
+#
+# Make sure that test version of complex sections (general) are up to date.
+#
+  foreach sect ( `lib_sect -c` )
+    set vms_version = `echo $sect | join -o 2.2 - vms_test_versions`
+    set unix_version = `lib_sect -vt $sect | cut -f2`
+    set latest_version = \
+      `echo $vms_version $unix_version | tr ' ' '\012' | sort -r | line`
+    if( $unix_version != $vms_version )then
+      set command = "test_release -h $rhost $sect"
+      echo $command
+      if(! $noupdate )eval $command
+    endif
+    if( $vms_version == 0 && -d $d0test/$sect )then
+      set command = "rm -rf $d0test/$sect"
+      echo $command
+#      if(! $noupdate )eval $command
+    endif
+  end
+test_end_2:
+#
+# Test library sections, part 3.
+#
+if(! $test )goto test_end_3
+#
+# Update any test sections that are still out of date.  No cernlib.
+#
+  foreach sect ( `lib_sect` )
+    if( $sect == cernlib )continue
+    set vms_version = `echo $sect | join -o 2.2 - vms_test_versions`
+    set unix_version = `lib_sect -vt $sect | cut -f2`
+    set latest_version = \
+      `echo $vms_version $unix_version | tr ' ' '\012' | sort -r | line`
+    if( $unix_version != $vms_version )then
+      set command = "test_release -h $rhost $sect"
+      echo $command
+      if(! $noupdate )eval $command
+    endif
+    if( $vms_version == 0 && -d $d0test/$sect )then
+      set command = "rm -rf $d0test/$sect"
+      echo $command
+#      if(! $noupdate )eval $command
+    endif
+  end
+test_end_3:
+exit
+ 

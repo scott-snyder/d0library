@@ -1,0 +1,53 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : cms_group_contents
+#
+# Purpose   : Analyze the specified cms_groups.list to show the contents
+#             of the specified group.
+#
+# Usage     :
+#
+# % cms_group_contents cms_groups_file group
+#
+# Options   :
+#
+# Arguments :
+#
+# cms_groups_file - cms_groups.list file.
+# group           - CMS group to display.
+#
+# Created 10-NOV-1994   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Quick help
+#
+if($#argv == 0) then
+help:
+  echo 'usage: cms_group_contents [-o] cms_groups_file group'
+  exit 1
+endif
+#
+# Get cms_groups.list file.
+#
+if($#argv < 2 )goto help
+set cms_file = $1
+if( ! -f $cms_file )then
+  echo "$cms_file not found"
+  exit 1
+endif
+#
+# Get group
+#
+set group = `echo $argv[2] | tr '[A-Z]' '[a-z]'`
+#
+# Analyze cms_groups.list file
+#
+cat $cms_file | \
+  cut -f1 -d\" | \
+  tr '[A-Z]' '[a-z]' | \
+  awk '/^[a-z0-9]/{group=$1};/\./{printf "%s\t%s\n",group,$1}' | \
+  egrep "^$group" | \
+  cut -f2

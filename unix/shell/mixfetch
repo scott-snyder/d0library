@@ -1,0 +1,448 @@
+#! /bin/csh -f
+source ` uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : mixfetch
+#
+# Purpuse   : Fetch file(s) from a VMS directory (-tree) using either ftp
+#             (if possible) or zftp.
+#
+# Usage :
+#
+# mixfetch [-h rhost] [-d ldir] [-u ruser] [-tbxgnr] file(s)
+#
+# Options:
+#
+# -q   - Debug (limit rsh use).
+# -h   - Specify remote host (VAX).  Default is $VAXLIB_NODE.
+# -u   - Specify remote user.
+# -d   - Specify local directory to receive fetched files.  Default is current
+#        directory.
+# -t   - Fetch text files using ftp ascii get
+# -m   - Fetch compack menu files using ftp binary get
+# -x   - Fetch data exchange mode FZ files (32760 byte records) using ftp binary get
+# -g   - Fetch geant exchange mode FZ files (3600 byte records) using ftp binary get
+# -n   - Fetch VAX native FZ files using zftp getfz
+# -r   - Fetch R format RZ files (native mode, 4096 byte records) using zftp getrz
+# -l   - Fetch L format RZ files (native mode, 32764 byte records) using zftp getrz
+# -e   - Fetch E format RZ files (exchange mode, 4096 byte records) using ftp binary get
+# -z   - Fetch Z format RZ files (exchange mode, 32764 byte records) using ftp binary get
+#
+# Arguments :
+#
+# file(s) - One or more VMS file specification.  This argument may
+#           contain (quoted) VMS wildcards, including directory
+#           wildcards.
+#
+# Example:
+#
+# % mixfetch -d $d0beta/unix 'd0$beta:[unix...]*.*'
+#
+# Notes:
+#
+# 1.  A default login would normally be attempted via the user's .netrc file.
+#     If no default login is defined, the user is prompted for username and
+#     password.
+#
+# 2.  If the VMS file specification points to a directory tree (... wildcard)
+#     Then a corresponding tree will be created on the UNIX end.  Non-existent
+#     directories on the UNIX end will be created automatically.
+#
+# 3.  Regardless of how the VMS files are defined (i.e. using wildcards or
+#     multiple arguments), the VMS files must be arranged in a directory tree.
+#     The root of the tree is taken from the directory specification of the
+#     first VMS file that matches the arguments.  Any files that do not
+#     descend from the root are not fetched.
+#
+# Created 7-Dec-1993   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# brief help message
+#
+if($#argv == 0 ) then
+help:
+    echo "usage: mixfetch [-h rhost] [-d ldir] [-tbxgnrlez] file(s)"
+    exit 1
+endif
+#
+# initialization
+#
+set noglob = 1				# don't trash VAX wildcards
+set rhost = ''
+set ruser = ''
+set ldir = ''
+set debug = 0
+set text = 0
+set menu = 0
+set fx = 0
+set fg = 0
+set fn = 0
+set rr = 0
+set rl = 0
+set re = 0
+set rz = 0
+#
+# scan options
+#
+set argv = (`getopt qh:u:d:tmxgnrlez $argv:q`)
+while("$argv[1]" != '--')
+    switch($argv[1])
+    case -q:
+        set debug = 1
+        shift
+        breaksw
+    case -h:
+        set rhost = $argv[2]
+        repeat 2 shift
+        breaksw
+    case -u:
+        set ruser = "-u $argv[2]"
+        repeat 2 shift
+        breaksw
+    case -d:
+        set ldir = $argv[2]
+        repeat 2 shift
+        breaksw
+    case -t:
+        set text = 1
+        shift
+        breaksw
+    case -m:
+        set menu = 1
+        shift
+        breaksw
+    case -x:
+        set fx = 1
+        shift
+        breaksw
+    case -g:
+        set fg = 1
+        shift
+        breaksw
+    case -n:
+        set fn = 1
+        shift
+        breaksw
+    case -r:
+        set rr = 1
+        shift
+        breaksw
+    case -l:
+        set rl = 1
+        shift
+        breaksw
+    case -e:
+        set re = 1
+        shift
+        breaksw
+    case -z:
+        set rz = 1
+        shift
+        breaksw
+    endsw
+end
+shift		# drop --
+#
+# make sure that all required variables are defined (supply defaults)
+#
+if( "$rhost" == '' && $?ZFTP_NODE )then
+  set rhost = $ZFTP_NODE
+endif
+if( "$rhost" == '' )then
+  set rhost = $VAXLIB_NODE
+endif
+@ total = $text + $menu + $fx + $fg + $fn + $rr + $rl + $re + $rz
+if( $total == 0 )then
+  set text = 1
+  set menu = 1
+  set fx = 1
+  set fg = 1
+  set fn = 1
+  set rr = 1
+  set rl = 1
+  set re = 1
+  set rz = 1
+endif
+if( $ldir == '' ) set ldir = $cwd
+set tmpdir = `d0tmpdir -c mixfetch`
+#
+# scan arguments
+#
+if( $#argv < 1 ) then
+    echo "mixfetch: insufficient arguments"
+    goto help
+endif
+#
+# Get remote file types.
+#
+if( $debug )then
+  set vms_files = vms_files
+else
+  set vms_files = $tmpdir/vms_files
+endif
+if( ! -f $vms_files )then
+  echo "Getting list of VMS files and types"
+  vms_file_type -h $rhost $ruser $argv:q | \
+    tr '[A-Z]' '[a-z]' | \
+    sed 's@^\(.*	\)\(.*\)$@\1'"'\2'@" > \
+    $vms_files
+endif
+set nfiles = `cat $vms_files | wc -l`
+if( "$nfiles" == 0 )then
+  echo "No files to fetch -- quitting"
+  goto done
+endif
+#
+# Get VMS root directory
+#
+set vms_root = \
+  `line < $vms_files | cut -d"'" -f2 | sed 's/\].*$//' | sed 's/\[/\\\[/' | sed 's/\./\\\./g'`
+#
+# Invoke ftp or zftp separately for each file type
+#
+foreach type ( text menu fx fg fn rr rl re rz )
+#
+# Construct an ftp or zftp script to fetch all files
+#
+  d0echo "cd ${vms_root}\]\nlcd $ldir" | tr -d '\\\\' >! $tmpdir/ftp
+  d0echo "cd '${vms_root}\]'\nlcd $ldir" | tr -d '\\\\' >! $tmpdir/zftp
+#
+# Get text files using ftp ascii get?
+#
+  if( $text && $type == text )then
+    echo ascii >> $tmpdir/ftp
+    cat $vms_files | \
+    grep '^t' | \
+    tr -d "'" | \
+    cut -f2 >! $tmpdir/temp
+    cat $tmpdir/temp | \
+    sed "s@$vms_root.@@" | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@\]@/@' | \
+    sed 's@\.;@;@' | \
+    sed 's@^\(.*\);.*$@\1@' | \
+    paste $tmpdir/temp - | \
+    sed "s@$vms_root@\[@" | \
+    tr '	' ' ' | \
+    sed -n 's/^\(.*\)$/get \1/p' >> $tmpdir/ftp
+  endif
+#
+# Get compack menu files using ftp binary get?
+#
+  if( $menu && $type == menu )then
+    echo binary >> $tmpdir/ftp
+    cat $vms_files | \
+    grep '^m' | \
+    tr -d "'" | \
+    cut -f2 >! $tmpdir/temp
+    cat $tmpdir/temp | \
+    sed "s@$vms_root.@@" | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@\]@/@' | \
+    sed 's@\.;@;@' | \
+    sed 's@^\(.*\);.*$@\1@' | \
+    paste $tmpdir/temp - | \
+    sed "s@$vms_root@\[@" | \
+    tr '	' ' ' | \
+    sed -n 's/^\(.*\)$/get \1/p' >> $tmpdir/ftp
+  endif
+#
+# Get exchange fz files using ftp binary get?
+#
+  if( $fx && $type == fx )then
+    echo binary >> $tmpdir/ftp
+    cat $vms_files | \
+    grep '^x' | \
+    tr -d "'" | \
+    cut -f2 >! $tmpdir/temp
+    cat $tmpdir/temp | \
+    sed "s@$vms_root.@@" | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@\]@/@' | \
+    sed 's@\.;@;@' | \
+    sed 's@^\(.*\);.*$@\1@' | \
+    paste $tmpdir/temp - | \
+    sed "s@$vms_root@\[@" | \
+    tr '	' ' ' | \
+    sed -n 's/^\(.*\)$/get \1/p' >> $tmpdir/ftp
+  endif
+#
+# Get geant exchange fz files using ftp binary get?
+#
+  if( $fg && $type == fg )then
+    echo binary >> $tmpdir/ftp
+    cat $vms_files | \
+    grep '^g' | \
+    tr -d "'" | \
+    cut -f2 >! $tmpdir/temp
+    cat $tmpdir/temp | \
+    sed "s@$vms_root.@@" | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@\]@/@' | \
+    sed 's@\.;@;@' | \
+    sed 's@^\(.*\);.*$@\1@' | \
+    paste $tmpdir/temp - | \
+    sed "s@$vms_root@\[@" | \
+    tr '	' ' ' | \
+    sed -n 's/^\(.*\)$/get \1/p' >> $tmpdir/ftp
+  endif
+#
+# Get native fz files using zftp getfz?
+#
+  if( $fn && $type == fn )then
+    cat $vms_files | \
+    grep '^n' | \
+    cut -f2 >! $tmpdir/temp
+    cat $tmpdir/temp | \
+    sed "s@'$vms_root.@@" | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@\]@/@' | \
+    sed 's@\.;@;@' | \
+    sed 's@^\(.*\);.*$@\1@' | \
+    paste $tmpdir/temp - | \
+    sed "s@$vms_root@\[@" | \
+    tr '	' ' ' | \
+    sed -n 'h;s/^.* \(.*\)$/lrm \1/p;g;s/^\(.*\)$/message getfz \1 -s/p;s/message //p' >> $tmpdir/zftp
+  endif
+#
+# Get rr files using zftp getrz?
+#
+  if( $rr && $type == rr )then
+    cat $vms_files | \
+    grep '^r' | \
+    cut -f2 >! $tmpdir/temp
+    cat $tmpdir/temp | \
+    sed "s@'$vms_root.@@" | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@\]@/@' | \
+    sed 's@\.;@;@' | \
+    sed 's@^\(.*\);.*$@\1@' | \
+    paste $tmpdir/temp - | \
+    sed "s@$vms_root@\[@" | \
+    tr '	' ' ' | \
+    sed -n 's/^\(.*\)$/message getrz \1 -s/p;s/message //p' >> $tmpdir/zftp
+  endif
+#
+# Get rl files using zftp getrz?
+#
+  if( $rl && $type == rl )then
+    cat $vms_files | \
+    grep '^l' | \
+    cut -f2 >! $tmpdir/temp
+    cat $tmpdir/temp | \
+    sed "s@'$vms_root.@@" | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@\]@/@' | \
+    sed 's@\.;@;@' | \
+    sed 's@^\(.*\);.*$@\1@' | \
+    paste $tmpdir/temp - | \
+    sed "s@$vms_root@\[@" | \
+    tr '	' ' ' | \
+    sed -n 's/^\(.*\)$/message getrz \1 -s/p;s/message //p' >> $tmpdir/zftp
+  endif
+#
+# Get re files using ftp binary get?
+#
+  if( $re && $type == re )then
+    echo binary >> $tmpdir/ftp
+    cat $vms_files | \
+    grep '^e' | \
+    tr -d "'" | \
+    cut -f2 >! $tmpdir/temp
+    cat $tmpdir/temp | \
+    sed "s@$vms_root.@@" | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@\]@/@' | \
+    sed 's@\.;@;@' | \
+    sed 's@^\(.*\);.*$@\1@' | \
+    paste $tmpdir/temp - | \
+    sed "s@$vms_root@\[@" | \
+    tr '	' ' ' | \
+    sed -n 's/^\(.*\)$/get \1/p' >> $tmpdir/ftp
+  endif
+#
+# Get rz files using ftp binary get?
+#
+  if( $rz && $type == rz )then
+    echo binary >> $tmpdir/ftp
+    cat $vms_files | \
+    grep '^z' | \
+    tr -d "'" | \
+    cut -f2 >! $tmpdir/temp
+    cat $tmpdir/temp | \
+    sed "s@$vms_root.@@" | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@^\(.*\)\.\(.*\].*\)$@\1/\2@' | \
+    sed 's@\]@/@' | \
+    sed 's@\.;@;@' | \
+    sed 's@^\(.*\);.*$@\1@' | \
+    paste $tmpdir/temp - | \
+    sed "s@$vms_root@\[@" | \
+    tr '	' ' ' | \
+    sed -n 's/^\(.*\)$/get \1/p' >> $tmpdir/ftp
+  endif
+#
+# Any files to get for this file type?  Go to next type if no.
+#
+  set nget = `cat $tmpdir/ftp $tmpdir/zftp | grep '^get' | grep -v '^get *$' | grep -v '^get[fr]z *-s$' | tee /dev/tty/ | wc -l`
+  echo "$nget $type files to fetch"
+  if( "$nget" == 0 )continue
+#
+# Make sure all directories exist
+#
+  echo "Checking directories"
+  set dirs = \
+    (`grep '^get' $tmpdir/ftp $tmpdir/zftp | cut -d' ' -f3 | sed -n 's@^\(.*\)/.*$@'"$ldir/\1@p" | sort -u`)
+  if(1)then
+    foreach dir ( $ldir $dirs )
+      if(! -d $dir )then
+        mkdirp $dir
+        echo "Creating $dir"
+      endif
+      if(! -d $dir )then
+        rm -f $tmpdir/ftp >& /dev/null
+        rm -f $tmpdir/zftp >& /dev/null
+        exit 1
+      endif
+    end
+  endif
+#
+# Fetch files
+#
+  echo "Fetching $type files"
+  if(`grep -c get $tmpdir/ftp` > 0 )then
+    cat $tmpdir/ftp
+    ftp $rhost < $tmpdir/ftp
+  endif
+  if(`grep -c get $tmpdir/zftp` > 0 ) zftp $rhost < $tmpdir/zftp
+#
+# Check for executable shell scripts
+#
+  if( $text && $type == text )then
+    echo "Checking for executable shell scripts"
+    grep '^get' $tmpdir/ftp $tmpdir/zftp | cut -d' ' -f3 | sed 's@^\(.*\)$@'"$ldir/\1@" | check_exec
+  endif
+end
+#
+# Done delete temporary files
+#
+done:
+rmdirp $tmpdir

@@ -1,0 +1,244 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : Production_release
+#
+# Purpose   : Get production release
+#
+# Usage     :
+#
+# % production_release [-l] [-h rhost] [-u ruser] [-d dir] package
+#
+# Options   :
+#
+# -h   - Specify remote host (VAX).
+# -u   - Specify remote user.
+# -b   - Build only (do not fetch).
+# -f   - Fetch only (do not build).
+# -d   - Local directory to hold release.
+# -l   - Do not generate log file (output to stdout only).
+#
+# Arguments :
+#
+# package - production package.
+#
+# Created 17-Jun-1992   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Remember original args
+#
+set oldargv = ( $argv )
+#
+# Scan options
+#
+set rhost = ''
+set ruser = ''
+set ldir = ''
+set log = 1
+set fetch = 1
+set build = 1
+set argv = (`getopt bfh:u:d:l $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -b:
+    set fetch = 0
+    shift
+    breaksw
+  case -f:
+    set build = 0
+    shift
+    breaksw
+  case -h:
+    set rhost = $argv[2]
+    repeat 2 shift
+    breaksw
+  case -u:
+    set ruser = "-u $argv[2]"
+    repeat 2 shift
+    breaksw
+  case -d:
+    set ldir = "$argv[2]"
+    repeat 2 shift
+    breaksw
+  case -l:
+    set log = 0
+    shift
+    breaksw
+  endsw
+end
+shift    # drop --
+if( $rhost == '' && $?ZFTP_NODE )then
+  set rhost = $ZFTP_NODE
+endif
+if( $rhost == '')then
+  set rhost = $VAXLIB_NODE
+endif
+#
+# Interpret argument
+#
+if( $#argv != 1 )then
+  echo "Usage: production_release [-l] [-u ruser] [-h rhost] [-d ldir] package"
+  exit
+endif
+set package = $1
+#
+# Generate significant directories and filenames
+#
+if( $ldir == '' )then
+  set production_root = $prod/$package
+else
+  set production_root = $ldir
+endif
+set scratch = $production_root
+#
+# Clean out production area
+#
+if( $fetch )then
+  rmdirp $production_root
+  mkdirp $production_root
+endif
+#
+# If we want to generate a logfile, then call production_release recursively.
+#
+if( $log )then
+  set templogfile = $production_root:h/${package}.log
+  production_release -l $oldargv |& tee $templogfile
+  set release_status = $status
+  mv $templogfile $production_root/release.log
+  error_filter $production_root/release.log >& $production_root/error.log
+  exit $release_status
+endif
+#
+# Fetch files into scratch area
+#
+if( $fetch )then
+  mixfetch -h $rhost $ruser -d $scratch 'd0$prod:[d0production.'${package}'...]*.*'
+endif
+#
+# Exit with error status if $scratch has no files (fetch failed).
+#
+set nfiles = `ls $scratch | wc -w`
+if( $nfiles == 0 )then
+  echo "No files fetched, giving up."
+  exit 1
+endif
+#
+# Convert .inc, .link, .def and .params files to the local flavor
+#
+if( $fetch )then
+  find $scratch -name '*.inc' -exec local_flavor {} \;
+  find $scratch -name '*.link' -exec local_flavor {} \;
+  find $scratch -name '*.def' -exec local_flavor {} \;
+  find $scratch -name '*.params' -exec local_flavor {} \;
+endif
+#
+# Define environment variables for this production release
+#
+libprod -s -r $scratch $package
+#
+# Build phase: Loop over library sections
+#
+if( ! $build )exit
+foreach section (`lib_sect`)
+  if( ! -d $scratch/$section )continue
+#
+# Execute any executable release files in the top directory.
+#
+  cd $scratch/$section
+  set mms_file = ${section}.mms
+  set pre_release_file = `uff $d0unix/lib/${section}_pre_release $scratch/$section/${section}_pre_release`
+  if( -x "$pre_release_file" )then
+    $pre_release_file
+  endif
+  if( -f $mms_file )then
+    echo "Generating makefile for section $section"
+    mmstomake $mms_file
+    if( -f makefile )then
+      make for
+      make pre
+      make debug
+      make opt
+    endif
+  endif
+#
+# Execute any executable release files in the top directory.
+#
+  set release_file = `uff $d0unix/lib/${section}_release $scratch/$section/${section}_release`
+  if( -x "$release_file" )then
+    $release_file
+  endif
+#
+# Compile any .for files in the top directory (including, but not limited to,
+# the version subroutine).
+#
+  if( 1 ) then
+    foreach for_file ( `ufa "$scratch/$section/*.for"` )
+      fort -g2 $for_file
+    end
+  endif
+#
+# Insert version subroutine into libraries.
+#
+  echo "Inserting version subroutines into libraries"
+  set version_for = `uff 'v*.for'`
+  if( -f $mms_file )then
+    set libs = ''
+    foreach lib ( `mms_filter -l $mms_file | sed 's/.olb/.a/'` )
+      set libs = ( $libs `vff $lib:q` )
+    end
+  else
+    set libs = (`ufa "$scratch/*.a" | grep -v deb_`)
+  endif
+  if( $#version_for != 0 && -f $mms_file )then
+    set version_obj = `archive_name $version_for`
+    set libs = ''
+    foreach lib ( `mms_filter -l $mms_file | sed 's/.olb/.a/'` )
+      set libs = ( $libs `vff $lib:q` )
+    end
+    foreach lib ( $libs )
+      set com = "ar $arflags $lib $version_obj"
+      echo $com
+      eval $com
+      set deb_lib = $lib:h/deb_$lib:t
+      set com = "ar $arflags $deb_lib $version_obj"
+      echo $com
+      eval $com
+    end
+  endif
+#
+# Mother-daughter processing:  Copy modules from daughter into mother library.
+#
+# Special processing for daughter libraries goes here.
+#
+  foreach mother ( `lib_sect -c` )
+    foreach daughter ( `lib_sect @$mother` )
+      if( "$daughter" == "$section" )then
+        set mother_dir = $scratch/$mother
+        if( -d $mother_dir )then
+          if( -f ${daughter}.a ) \
+            echo "Copying modules from ${daughter}.a into $mother_dir/${mother}.a"
+          if( -f ${daughter}.a ) \
+            atoa $mother_dir/${mother}.a ${daughter}.a
+          if( -f deb_${daughter}.a ) \
+            echo "Copying modules from deb_${daughter}.a into $mother_dir/deb_${mother}.a"
+          if( -f deb_${daughter}.a ) \
+            atoa $mother_dir/deb_${mother}.a deb_${daughter}.a
+        endif
+      endif
+    end
+  end
+end
+#
+# Compile top level routines.
+#
+cd $scratch
+echo "Compiling files in directory $scratch"
+ufl "$scratch/*.for" "$scratch/*.c" | userlib -l ${package}.a -
+if( -f makefile )then
+  make for
+  make pre
+  make debug
+  make opt
+endif

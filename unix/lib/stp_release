@@ -1,0 +1,44 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : Stp_release
+#
+# Purpose   : Build STP files at STP library release time.
+#
+# Usage     :
+#
+# % stp_release
+#
+# Created 7-FEB-1992   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Rename *.dat files to *.dat_vms
+#
+foreach dat ( *.dat )
+  set dat_vms = ${dat:r}.dat_vms
+  mv -f $dat $dat_vms
+end
+#
+# Now build and execute various main programs to build stp files
+#
+eval `uff $d0stp/cdc/cdwstp.csh`
+eval `uff $d0stp/fdc/fdwstp.csh`
+eval `uff $d0stp/trd/trwstp.csh`
+eval `uff $d0stp/vtx/vtwstp.csh`
+eval `uff $d0stp/geocal/cawstp.csh`
+eval `uff $d0stp/geocal/csfmake.csh`
+eval `uff $d0stp/geogen/gnwstp.csh`
+eval `uff $d0stp/samus/sawstp.csh`
+#eval `uff $d0stp/muon/mugstp.csh`
+#
+# Rename non-rebuilt *.dat_vms files back to *.dat
+#
+foreach dat_vms ( *.dat_vms )
+  set dat = ${dat_vms:r}.dat
+  if( ! -f $dat )mv $dat_vms $dat
+end
+#
+# Remove all symbolic links
+#
+find . -type l -exec rm {} \;

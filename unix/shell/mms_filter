@@ -1,0 +1,138 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+#------------------------------------------------------------------------------
+#
+# Name      : mms_filter
+#
+# Purpose   : Filter to print lists of various files extracted from mms files
+#             on standard output.
+#
+# Usage     :
+#
+# % mms_filter [-ls] [-o library] mms_file
+#
+# Options   :
+#
+# -l   - Print a list of target libraries in the mms_file.
+# -o   - Print a list of object files associated with the specified library.
+# -s   - Print a list of object files and dependents (including source files).
+# -p   - Print a list of parent library sections (foreign library sections
+#        containing target libraries).
+#
+# Arguments :
+#
+# mms_file - MMS file to be analyzed.
+#
+# Usage notes:
+#
+# 1.  Only one of -l -o -s and -p should be specified.  If none is specified, 
+#     -l is the default.
+#
+# 2.  In the case of the -o option, only the VMS name field of the library is 
+#     used.
+#
+# 3.  For the -l -o and -s options, output consists of sorted, lower case, VMS
+#     filenames.  Libraries have a null prefix (i.e. no deb_).  For the -p 
+#     option, output consists of a sorted, lower case list of library sections.
+#     The current library section is always omitted.
+#
+# 4.  The -l and -o options print a single filename per output line.  The -s 
+#     option prints associated filenames together on a single line, separated 
+#     by tabs.
+#
+# 5.  To get a list of sources associated with particular library, 
+#     join the output from the -o and -s options.
+#
+# Created 26-NOV-1991   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Quick help
+#
+if($#argv == 0) then
+help:
+  echo 'usage: mms_filter [-lsp] [-o library] mms_file'
+  exit 1
+endif
+#
+# Scan options
+#
+set library_mode = 0
+set object_mode = 0
+set source_mode = 0
+set parent_mode = 0
+set library = ''
+set argv = (`getopt lso:p $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -l:
+    set library_mode = 1
+    shift
+    breaksw
+  case -s:
+    set source_mode = 1
+    shift
+    breaksw
+  case -o:
+    set object_mode = 1
+    set library = \
+      `echo $argv[2] | sed 's/^.*:\(.*\)$/\1/' | sed 's/^\(.*\)\..*$/\1/'`
+    repeat 2 shift
+    breaksw
+  case -p:
+    set parent_mode = 1
+    shift
+    breaksw
+  endsw
+end
+shift    # drop -- 
+if(! $library_mode && ! $object_mode && ! $source_mode && ! $parent_mode ) \
+  set library_mode = 1
+set mms_file = $1
+if(! -f $mms_file )then
+  echo "mms_filter: $mms_file not found"
+  exit 1
+endif
+#
+# Libraries extracted in the following block (-l option).
+#
+if( $library_mode )then
+  tr '[A-Z]\011' '[a-z] ' < $mms_file | \
+    sed -n '/.olb.*(/s/^ *\(.*.olb\).*$/\1/p' | \
+    sed 's/$(prefix)//' | \
+    sort -u
+  exit
+endif
+#
+# Object files extracted in the following block (-o option).
+#
+if( $object_mode )then
+  tr '[A-Z]\011' '[a-z] ' < $mms_file | \
+    sed -n "/${library}"'.olb.*(/,/)/s/^.*=\(.*.obj\).*$/\1/p' | \
+    sort -u
+  exit
+endif
+#
+# Object file dependencies extracted here (-s option).
+#
+if( $source_mode )then
+  tr '[A-Z]\011' '[a-z] ' < $mms_file | \
+    awk '/.obj *:/{while(match($0,"-")){printf "%s",$0;getline}print}' | \
+    sed 's/.obj *:/.obj /' | \
+    sed 's/[,-]//g' | \
+    sed 's/  */	/g' | \
+    sort -u +0 -1
+  exit
+endif
+#
+# Parent libraries are extracted in the following block (-p option).
+#
+if( $parent_mode )then
+  set lib_section = $mms_file:t
+  set lib_section = $lib_section:r
+  tr '[A-Z]\011' '[a-z] ' < $mms_file | \
+    sed -n '/.olb.*(/s/^.*d0$\(.*\):.*$/\1/p' | \
+    grep -v "^$lib_section"'$' | \
+    sort -u
+  exit
+endif

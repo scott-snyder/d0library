@@ -1,0 +1,114 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : atoo
+#
+# Purpose   : Convert an archive library into an object module.
+#
+# Options   :
+#
+# -i   - Read object modules from standard input.  If missing, use
+#        all modules in library.
+#
+# Arguments : One archive library
+#
+# Created 8-Jun-1992   Herbert B. Greenlee
+#
+# Usage notes:
+#
+# 1.  Exactly one archive library should be specified as an argument.
+#
+# 2.  An object file having the same name as the archive library is created
+#     in the current working directory.
+#
+# 3.  The -i option is intended for the private, recursive use of atoo.
+#
+#------------------------------------------------------------------------------
+#
+# Quick help
+#
+if($#argv == 0) then
+help:
+  echo "usage: atoo [-i] library"
+  exit 1
+endif
+#
+# Scan options
+#
+set input = 0
+set argv = (`getopt i $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -i:
+    set input = 1
+    shift
+    breaksw
+  default:
+    echo "atoo: bad option $argv[1]"
+    goto help
+  endsw
+end
+shift                       # Get rid of terminating --
+if($#argv != 1) goto help
+set archive = $argv[1]
+if( ! $input )then
+  ar t $archive | grep '\.o' | atoo -i $archive
+  exit $status
+endif
+#
+# Make sure archive has absolute path
+#
+if( $archive !~ /* )set archive = $cwd/$archive
+#
+# Remember the current working directory
+#
+set dir = $cwd
+#
+# Create an empty $tmpdir
+#
+set tmpdir = `d0tmpdir -c atoo`
+#
+# Generate name of object file and other variables.  Delete an existing object
+# file.
+#
+set object = $archive:t
+set object = ${object:r}.o
+set temp_object = ${object:r}.temp
+if( -f $object )rm $object
+if( -f $temp_object )rm $temp_object
+set nmax = 20
+set eof = 0
+set modules = ''
+object_loop:
+#
+# Read $nmax object modules from standard input or until EOF.
+#
+  set modules = ( $modules `line` )
+  if( $status )then
+    set eof = 1
+    goto object_done
+  endif
+  if( $#modules < $nmax )goto object_loop
+object_done:
+if( "$modules" == '' )goto exit
+#
+# Extract $modules from archive into $tmpdir
+#
+cd $tmpdir
+ar x $archive $modules
+cd $dir
+#
+# Load current object modules in $tmpdir
+#
+if( -f $object )then
+  ld -r -o $temp_object $object $tmpdir/*.o
+  mv $temp_object $object
+else
+  ld -r -o $object $tmpdir/*.o
+endif
+if( $eof )goto exit
+rm $tmpdir/*.o
+set modules = ''
+goto object_loop
+exit:
+rmdirp $tmpdir >& /dev/null
