@@ -90,7 +90,7 @@ C
           IC(LCTHE+ISNUMB) = IC(LCMDL+ISNUMB)
           IC(LCTHE+ISNMSR) = NC         ! number of measurements
           IF(NC.GE.32) THEN
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&            IC(LCTHE+ISMCOD) = NOT(0)
 C&ELSE
             IC(LCTHE+ISMCOD) = JNOT(0)

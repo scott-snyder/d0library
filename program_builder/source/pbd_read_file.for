@@ -24,6 +24,7 @@ C-   Updated  17-DEC-1991   Herbert Greenlee
 C-       UNIX compatible version
 C-   Updated  28-MAY-1992   Hyon Joo Kehayias
 C-       ( Made to read only one combined package )
+C-   Updated   8-Jan-1996 sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -39,7 +40,7 @@ C
       INTEGER*2  FILE_LEN               ! FILE NAME LENGTH
       INTEGER*2  FILE_TYPE              ! FILE TYPE TO READ
       INTEGER*2  OFFSET                 ! OFFSET TO VALID_HOOK TABLE
-      INTEGER*2  I,J                    ! INDEX VARIABLES
+      INTEGER    I,J                    ! INDEX VARIABLES
       CHARACTER*32 TOKEN                ! TOKEN
       CHARACTER*80 FILE_NAME            ! FILE NAME
       CHARACTER*80 USER_FILE_NAME       ! USER FILE NAME

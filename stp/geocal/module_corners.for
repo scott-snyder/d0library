@@ -26,6 +26,7 @@ C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:ZEBSTP.INC'
       INCLUDE 'D0$INC:CLINKS.INC'
+      INCLUDE 'D0$INC:pi.def'
       INCLUDE 'D0$PARAMS:CLGA.PARAMS'
       INCLUDE 'D0$INC:CSHA.DEF'
       INCLUDE 'D0$INC:REGION.DEF'
@@ -58,11 +59,11 @@ C
       ZC = CARTES(C(LQCLGA+IGRCEN), 3, IC(LQCLGA+IGCOOR))*SGN  ! mean cell Z
       LQCSHA = LC(LQCLGA-IXCSHA)      ! pointer to shape bank
 C
-      IF( IC(LQCLGA + IGSHAP) .EQ. 'TRAP' ) THEN      ! CC cells
+      IF( IC(LQCLGA + IGSHAP) .EQ. 4HTRAP ) THEN      ! CC cells
         NS = 12              ! 12 side
         NC = 8               ! 8 corner
         DO 210 I = 0, 4, 4
-        TANALF = TAND( C( LQCSHA + IGPAR7 + I))     ! tan(alpha_i)
+        TANALF = TAN( C( LQCSHA + IGPAR7 + I)*pi/180)     ! tan(alpha_i)
         HI = C(LQCSHA + IGPAR4 + I)
         BL = C(LQCSHA + IGPAR5 + I)
         TL = C(LQCSHA + IGPAR6 + I)
@@ -90,7 +91,7 @@ C
         Z( I) = SGN*Z( I) + ZC
   220   CONTINUE
 C
-      ELSE IF( IC(LQCLGA + IGSHAP) .EQ. 'TRD1' ) THEN      ! CC modules
+      ELSE IF( IC(LQCLGA + IGSHAP) .EQ. 4HTRD1 ) THEN      ! CC modules
         NS = 12              ! 12 side
         NC = 8               ! 8 corner
         DO 240 I = 0, 4, 4
@@ -145,7 +146,7 @@ C
         Z( I) = SGN*Z( I) + ZC
   250   CONTINUE
 C
-      ELSE IF( IC(LQCLGA + IGSHAP) .EQ. 'TRD2' ) THEN      ! CC/CH modules
+      ELSE IF( IC(LQCLGA + IGSHAP) .EQ. 4HTRD2 ) THEN      ! CC/CH modules
         NS = 12              ! 12 side
         NC = 8               ! 8 corner
         DO 260 I = 0, 4, 4
@@ -202,15 +203,15 @@ C
         Z( I) = SGN*Z( I) + ZC
   280   CONTINUE
 C
-      ELSE IF( IC( LQCLGA + IGSHAP) .EQ. 'TUBS') THEN      ! EE lay 1,2
+      ELSE IF( IC( LQCLGA + IGSHAP) .EQ. 4HTUBS) THEN      ! EE lay 1,2
         NS = 12
         NC = 8
 C
         DO 310 I = 0, 4, 4
-        SINBEG = SIND(C(LQCSHA + IGPAR4))
-        COSBEG = COSD(C(LQCSHA + IGPAR4))
-        SINEND = SIND(C(LQCSHA + IGPAR5))
-        COSEND = COSD(C(LQCSHA + IGPAR5))
+        SINBEG = SIN(C(LQCSHA + IGPAR4)*pi/180)
+        COSBEG = COS(C(LQCSHA + IGPAR4)*pi/180)
+        SINEND = SIN(C(LQCSHA + IGPAR5)*pi/180)
+        COSEND = COS(C(LQCSHA + IGPAR5)*pi/180)
         RI = C(LQCSHA + IGPAR1)
         RO = C(LQCSHA + IGPAR2)
 C
@@ -228,16 +229,16 @@ C
   300   Z(I+J) = ZC + (-1.)**(I/4+1)*C(LQCSHA+IGPAR3)*SGN
   310   CONTINUE
 C
-      ELSE IF( IC( LQCLGA + IGSHAP) .EQ. 'CONS') THEN      ! EE lay 3,4;
+      ELSE IF( IC( LQCLGA + IGSHAP) .EQ. 4HCONS) THEN      ! EE lay 3,4;
 C                                        ! IH and MH calorimeter cells
         NS = 12
         NC = 8
 C
         DO 410 I = 0, 4, 4
-        SINBEG = SIND(C(LQCSHA + IGPAR6))
-        COSBEG = COSD(C(LQCSHA + IGPAR6))
-        SINEND = SIND(C(LQCSHA + IGPAR7))
-        COSEND = COSD(C(LQCSHA + IGPAR7))
+        SINBEG = SIN(C(LQCSHA + IGPAR6)*pi/180)
+        COSBEG = COS(C(LQCSHA + IGPAR6)*pi/180)
+        SINEND = SIN(C(LQCSHA + IGPAR7)*pi/180)
+        COSEND = COS(C(LQCSHA + IGPAR7)*pi/180)
         RI = C(LQCSHA + IGPAR2 + I/2)
         RO = C(LQCSHA + IGPAR3 + I/2)
 C
@@ -255,11 +256,11 @@ C
   400   Z(I+J) = ZC + (-1.)**(I/4+1)*C(LQCSHA+IGPAR1)*SGN
   410   CONTINUE
 C
-      ELSE IF(IC(LQCSHA + IGSHAP) .EQ. 'PCON') THEN        
-        SINBEG = SIND(C(LQCSHA+IGPAR1))   ! sin of begin angle
-        COSBEG = COSD(C(LQCSHA+IGPAR1))   ! cos "    "     "
-        SINEND = SIND(C(LQCSHA+IGPAR2))   ! sin of end angle
-        COSEND = COSD(C(LQCSHA+IGPAR2))   ! cos  "  "    "
+      ELSE IF(IC(LQCSHA + IGSHAP) .EQ. 4HPCON) THEN        
+        SINBEG = SIN(C(LQCSHA+IGPAR1)*pi/180)   ! sin of begin angle
+        COSBEG = COS(C(LQCSHA+IGPAR1)*pi/180)   ! cos "    "     "
+        SINEND = SIN(C(LQCSHA+IGPAR2)*pi/180)   ! sin of end angle
+        COSEND = COS(C(LQCSHA+IGPAR2)*pi/180)   ! cos  "  "    "
 C
         IF( C(LQCSHA+IGPAR3) .EQ. 4.) THEN  ! quadrilateral like shape
 C 
@@ -282,11 +283,11 @@ C
   520 CONTINUE
 C
         END IF
-      ELSE IF(IC(LQCSHA + IGSHAP) .EQ. 'PGON') THEN        
-        SINBEG = SIND(C(LQCSHA+IGPAR1))   ! sin of begin angle
-        COSBEG = COSD(C(LQCSHA+IGPAR1))   ! cos "    "     "
-        SINEND = SIND(C(LQCSHA+IGPAR2))   ! sin of end angle
-        COSEND = COSD(C(LQCSHA+IGPAR2))   ! cos  "  "    "
+      ELSE IF(IC(LQCSHA + IGSHAP) .EQ. 4HPGON) THEN        
+        SINBEG = SIN(C(LQCSHA+IGPAR1)*pi/180)   ! sin of begin angle
+        COSBEG = COS(C(LQCSHA+IGPAR1)*pi/180)   ! cos "    "     "
+        SINEND = SIN(C(LQCSHA+IGPAR2)*pi/180)   ! sin of end angle
+        COSEND = COS(C(LQCSHA+IGPAR2)*pi/180)   ! cos  "  "    "
 C
         IF( C(LQCSHA+IGPAR4) .EQ. 4.) THEN  ! quadrilateral like shape
 C 

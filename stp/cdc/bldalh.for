@@ -19,14 +19,14 @@ C----------------------------------------------------------------------
       INTEGER LAY, SEC, WIR, IP, LDRFT, LDALL, LDALS
       PARAMETER( NWWIRE = 7 )
       PARAMETER( NBWIRE = 7 )
-      DATA    MPDALH / 0, 4,  4,  2,  2 /
-      DATA    MPDALL / 0, 32, 32,  2,  2 /
-      DATA    MPDALS / 0, 0,  0,  0,  0 /
-      REAL    RAY( 0:6, 0:3 ), STAG( 0:6 ), PHI
       CHARACTER*4 CHAR4,CHAS4,CHAT4
       EQUIVALENCE (CHAR4,MPDALH(1))
       EQUIVALENCE (CHAS4,MPDALL(1))
       EQUIVALENCE (CHAT4,MPDALS(1))
+      DATA    MPDALH / 0, 4,  4,  2,  2 /
+      DATA    MPDALL / 0, 32, 32,  2,  2 /
+      DATA    MPDALS / 0, 0,  0,  0,  0 /
+      REAL    RAY( 0:6, 0:3 ), STAG( 0:6 ), PHI
       DATA    CHAR4 /'DALH'/
       DATA    CHAS4 /'DALL'/
       DATA    CHAT4 /'DALS'/

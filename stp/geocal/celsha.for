@@ -78,7 +78,7 @@ C
         C(LQCLYR + ICPA11) = PSI/RADIAN       ! TH2
         IF(IDEPTH .EQ. MNLYCH .AND. IETA .EQ.6 ) THEN
           IC(LQCLYR+ICNPAR) = 12
-          C(LQCLYR+ICSHAP) = 'TRD9'
+          C(LQCLYR+ICSHAP) = 4HTRD9
           NETA = IC(LQCLAY+ILNETA)
           NPHI = IC(LQCLAY+ILNPHI)
           C(LQCLYR+ICPA12) = 0.5*(  C(LQCLAY+ILZPD1+NETA+NPHI+1)
@@ -119,7 +119,7 @@ C
         DPHI = C(LQCLAY + ILDPHI)
 C
         IC(LQCLYR + ICNPAR) = 5        ! number of parameters
-        C(LQCLYR + ICSHAP) = 'TUBS'    ! description
+        C(LQCLYR + ICSHAP) = 4HTUBS    ! description
         C(LQCLYR + ICPAR1) = RMIN
         C(LQCLYR + ICPAR2) = RMAX
         C(LQCLYR + ICPAR3) = 0.5*DELZ
@@ -176,7 +176,7 @@ C                                        ! correct for added zones
         DPHI = C(LQCLAY + ILDPHI)
 C
         IC(LQCLYR + ICNPAR) = 5        ! number of parameters
-        C(LQCLYR + ICSHAP) = 'TUBS'    ! description
+        C(LQCLYR + ICSHAP) = 4HTUBS    ! description
         C(LQCLYR + ICPAR1) = RMIN
         C(LQCLYR + ICPAR2) = RMAX
         C(LQCLYR + ICPAR3) = 0.5*DELZ
@@ -233,7 +233,7 @@ C
         DPHI = C(LQCLAY + ILDPHI)
 C
         IC(LQCLYR + ICNPAR) = 5        ! number of parameters
-        C(LQCLYR + ICSHAP) = 'TUBS'    ! description
+        C(LQCLYR + ICSHAP) = 4HTUBS    ! description
         C(LQCLYR + ICPAR1) = RMIN
         C(LQCLYR + ICPAR2) = RMAX
         C(LQCLYR + ICPAR3) = 0.5*DELZ
@@ -269,7 +269,7 @@ C
         DPHI = C(LQCLAY + ILDPHI)
 C
         IC(LQCLYR + ICNPAR) = 15                 ! number of parameters
-        C(LQCLYR + ICSHAP) = 'PCON'              ! shape identifier
+        C(LQCLYR + ICSHAP) = 4HPCON              ! shape identifier
         C(LQCLYR + ICPAR1) = (PHI - 0.5*DPHI)/RADIAN       ! begin angle
         C(LQCLYR + ICPAR2) = (PHI + 0.5*DPHI)/RADIAN       ! end angle
         C(LQCLYR + ICPAR3) = 4.                  ! number of z positions

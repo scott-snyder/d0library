@@ -19,6 +19,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:MATRIX.INC'
       INCLUDE 'D0$INC:WRITE_UNIT.INC'
       INCLUDE 'D0$INC:MATRIX_LIST.INC'
+      INCLUDE 'D0$INC:pi.def'
       LOGICAL FIRST
       REAL    ANGLE(4),ZOFF(4),XC1,YC1,ZC1
       INTEGER ID(5),IER,IR,I,J,K,TRULEN
@@ -64,8 +65,8 @@ C
         CALL WRITE_MATRICES
       ENDIF
       DO IR = 1,4
-        XC1 = XC*COSD(ANGLE(IR)) + YC*SIND(ANGLE(IR))
-        YC1 = XC*(-SIND(ANGLE(IR))) + YC*COSD(ANGLE(IR))
+        XC1 = XC*COS(ANGLE(IR)*pi/180) + YC*SIN(ANGLE(IR)*pi/180)
+        YC1 = XC*(-SIN(ANGLE(IR)*pi/180)) + YC*COS(ANGLE(IR)*pi/180)
         IF (SHIFT.EQ.1 ) THEN
           ZC1 = ZC - ZOFF(IR)
         ELSE

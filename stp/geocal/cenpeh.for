@@ -48,8 +48,8 @@ C
       IQ(LQCENP+IGIDEN) = ICMFHE ! ENDCAL MFH ENDPLATE 
       IQ(LQCENP+IGNLAY) = 0
       IQ(LQCENP+IGMATE) = IMIRON
-      IQ(LQCENP+IGSHAP) = 'TRD1'
-      IQ(LQCENP+IGNAM ) = 'MFHE'
+      IQ(LQCENP+IGSHAP) = 4HTRD1
+      IQ(LQCENP+IGNAM ) = 4HMFHE
       IQ(LQCENP+IGCOOR) = 345
       IQ(LQCENP+IGPERP) = 3
       Q(LQCENP +IGRCEN) = Q(LQCLGA + IGRCEN)
@@ -69,7 +69,7 @@ C
       MCSHA(5) = IOCSHA
       CALL MZLIFT(IXCDV,LQCSHA,LQCGEH,-IXCSHA,MCSHA,0)
 C
-      IQ(LQCSHA+IGDESC) = 'TRD1'
+      IQ(LQCSHA+IGDESC) = 4HTRD1
       IQ(LQCSHA+IGNPAR) = 4
       Q(LQCSHA+ IGPAR1) = Q(LTUBE+IGPAR1)   ! MCH end plate inner width 
       Q(LQCSHA+ IGPAR2) = Q(LTUBE+IGPAR2)   ! MCH end plate outer width 
@@ -96,8 +96,8 @@ C
       IQ(LQCENP+IGIDEN) = ICMCHE            ! end cal MCH endplate
       IQ(LQCENP+IGNLAY) = 0
       IQ(LQCENP+IGMATE) = IMIRON
-      IQ(LQCENP+IGSHAP) = 'TRD1'
-      IQ(LQCENP+IGNAM ) = 'MCHE'
+      IQ(LQCENP+IGSHAP) = 4HTRD1
+      IQ(LQCENP+IGNAM ) = 4HMCHE
       IQ(LQCENP+IGCOOR) = 345
       IQ(LQCENP+IGPERP) = 3
       Q(LQCENP +IGZCEN) = Q(LQCLGA+IGZCEN)+Q(LTUBE+IGPAR3)+PLWDTH/2.
@@ -122,8 +122,8 @@ C
       IQ(LQCENP+IGIDEN) = ICIFHE ! ENDCAL IFH ENDPLATE 
       IQ(LQCENP+IGNLAY) = 0
       IQ(LQCENP+IGMATE) = IMIRON
-      IQ(LQCENP+IGSHAP) = 'TUBS'
-      IQ(LQCENP+IGNAM ) = 'IFHE'
+      IQ(LQCENP+IGSHAP) = 4HTUBS
+      IQ(LQCENP+IGNAM ) = 4HIFHE
       IQ(LQCENP+IGCOOR) = 345
       IQ(LQCENP+IGPERP) = 3
       Q(LQCENP +IGRCEN) = 0.
@@ -142,7 +142,7 @@ C
       MCSHA(5) = IOCSHA
       CALL MZLIFT(IXCDV,LQCSHA,LQCGEH,-IXCSHA,MCSHA,0)
 C
-      IQ(LQCSHA+IGDESC) = 'TUBS'
+      IQ(LQCSHA+IGDESC) = 4HTUBS
       IQ(LQCSHA+IGNPAR) = 5
       Q(LQCSHA+ IGPAR1) = Q(LTUBE+IGPAR1)   ! MCH end plate inner radius
       Q(LQCSHA+ IGPAR2) = Q(LTUBE+IGPAR2)   ! MCH end plate outer radius
@@ -170,8 +170,8 @@ C
       IQ(LQCENP+IGIDEN) = ICICHE            ! end cal MCH endplate
       IQ(LQCENP+IGNLAY) = 0
       IQ(LQCENP+IGMATE) = IMIRON
-      IQ(LQCENP+IGSHAP) = 'TUBS'
-      IQ(LQCENP+IGNAM ) = 'ICHE'
+      IQ(LQCENP+IGSHAP) = 4HTUBS
+      IQ(LQCENP+IGNAM ) = 4HICHE
       IQ(LQCENP+IGCOOR) = 345
       IQ(LQCENP+IGPERP) = 3
       Q(LQCENP +IGZCEN) = Q(LQCLGA+IGZCEN)+Q(LTUBE+IGPAR3)+PLWDTH/2.
@@ -194,8 +194,8 @@ C
       IQ(LQCENP+IGIDEN) = ICOCHE                ! ID
       IQ(LQCENP+IGNLAY) = 0
       IQ(LQCENP+IGMATE) = IMIRON                ! material code - Fe
-      IQ(LQCENP+IGSHAP) = 'TRAP'                ! shape
-      IQ(LQCENP+IGNAM ) = 'OCHE'                ! name
+      IQ(LQCENP+IGSHAP) = 4HTRAP                ! shape
+      IQ(LQCENP+IGNAM ) = 4HOCHE                ! name
       IQ(LQCENP+IGCOOR) = 345                   ! coordinate system
       IQ(LQCENP+IGPERP) = 9                     ! perpendicular coordinate
       Q(LQCENP +IGRCEN) = 74.8905 * INCH        ! r coordinate at mid point
@@ -219,7 +219,7 @@ C     OCH TRAP SHAPE INFO
 C
       MCSHA(4) = 13
       CALL MZLIFT(IXCDV,LQCSHA,LQCGEH,-IXCSHA,MCSHA,0)
-      IQ(LQCSHA+IGDESC) = 'TRAP'
+      IQ(LQCSHA+IGDESC) = 4HTRAP
       IQ(LQCSHA+IGNPAR) = 11
       Q(LQCSHA+ IGPAR1) = 0.55     ! OCH end plate half width 
       Q(LQCSHA+ IGPAR2) = 30.      ! OCH end plate dirn to other z face 

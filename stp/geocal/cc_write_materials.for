@@ -80,7 +80,7 @@ C----------------------------------------------------------------------
 C&IF VAXVMS,ULTRIX,SIUNIX,ALFOSF
      &  ,<NC>(1X,I4),<NC>(1X,F6.4))
 C&ENDIF
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&     &  )
 C& 2002 FORMAT(1X,I4)
 C& 3002 FORMAT(1X,F6.4)

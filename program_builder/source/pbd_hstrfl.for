@@ -12,6 +12,7 @@ C-
 C-   Modules called by this routine:  PBD_HST_BANK,PBD_MSG
 C-                                    DATE, TIME
 C-   Created  14-MAR-1992   Hyon Joo Kehayias
+C-   Updated  20-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -26,8 +27,12 @@ C
       CHARACTER*80 MESSAGE(2)           ! DISPLAY MESSAGES
       CHARACTER*80 MSG_BUF              ! MESSAGE BUFFER
       CHARACTER*80 ERROR_BUF            ! ERROR MESSAGE BUFFER
+C&IF LINUX
+C&      character*24 datetime
+C&ELSE
       CHARACTER*9  DATE_STR             ! ASCII DATE 
       CHARACTER*8  TIME_STR             ! ASCII TIME
+C&ENDIF
       CHARACTER*2  NUMSTR               ! ASCII NUMBER
       LOGICAL OPENED                    ! OPEN STATUS
 
@@ -65,9 +70,14 @@ C
 C
 C     Get current date and time
 C
+C&IF LINUX
+C&      call fdate (datetime)
+C&      date_time = comment_str//datetime
+C&ELSE
       CALL DATE ( DATE_STR )
       CALL TIME ( TIME_STR )
       DATE_TIME = COMMENT_STR//DATE_STR//' '//TIME_STR
+C&ENDIF
 
 100   FORMAT ( A )
       WRITE (8,100) COMMENT_LINE 

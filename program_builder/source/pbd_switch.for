@@ -18,6 +18,7 @@ C-   Created  19-JUL-1991   Hyon Joo Kehayias
 C-   Modified 22-APR-1993   Hyon Joo Kehayias
 C-   Modified 01-NOV-1993   Hyon Joo Kehayias
 C-    ( Generate dummy STSWCH if qualifier SWITCH is not set )
+C-   Updated   8-Jan-1996 sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -26,7 +27,7 @@ C----------------------------------------------------------------------
 C
 C     LOCAL DATA AREA
 C
-      INTEGER*2 I
+      INTEGER   I
       CHARACTER*80 PRG_MSG(6)           ! PROGRAM MESSAGES
       CHARACTER*80 MESSAGE              ! MESSAGE BUFFER
       CHARACTER*2 NUMSTR                ! ASCII PACKAGE NUMBER

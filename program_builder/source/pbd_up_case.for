@@ -8,6 +8,7 @@ C-   Outputs : OUTSTRING - Converted string STRING
 C-   Controls: 
 C-
 C-   Created  21-JUN-1991   Hyon Joo Kehayias
+C-   Updated   8-Jan-1996 sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -16,7 +17,7 @@ C----------------------------------------------------------------------
       CHARACTER*(*) INPSTRING	! INPUT STRING
       CHARACTER*(*) OUTSTRING	! OUTPUT STRING
       INTEGER*2 LENGTH          ! LENGTH OF INPUT STRING
-      INTEGER*2 CHARNUM		! ASCII CHARACTER IN INTEGER FORMAT
+      INTEGER   CHARNUM		! ASCII CHARACTER IN INTEGER FORMAT
       INTEGER*2 I               ! INDEX VARIABLE
 
       LENGTH = LEN ( INPSTRING )

@@ -20,6 +20,7 @@ C-   Updated  17-DEC-1991   Herbert Greenlee
 C-       UNIX compatible version
 C-   Updated  02-AUG-1993   Hyon Joo Kehayias
 C-      ( PBD_HST_BANK call is made after ZEBRA common init. calls )
+C-   Updated  20-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -36,8 +37,12 @@ C
       CHARACTER*80 MSG_BUF              ! MESSAGE BUFFER
       CHARACTER*80 ERROR_BUF            ! ERROR MESSAGE BUFFER
       CHARACTER*10 COM_NAME             ! ZEBRA COMMON BLOCK NAME
+C&IF LINUX
+C&      character*24 datetime
+C&ELSE
       CHARACTER*9  DATE_STR             ! ASCII DATE 
       CHARACTER*8  TIME_STR             ! ASCII TIME
+C&ENDIF
       CHARACTER*2  NUMSTR               ! ASCII NUMBER
       LOGICAL      OPENED               ! OPEN STATUS
 
@@ -74,9 +79,14 @@ C
 C
 C     Get current date and time
 C
+C&IF LINUX
+C&      call fdate (datetime)
+C&      date_time = comment_str//datetime
+C&ELSE
       CALL DATE ( DATE_STR )
       CALL TIME ( TIME_STR )
       DATE_TIME = COMMENT_STR//DATE_STR//' '//TIME_STR
+C&ENDIF
 C
 C     First build the main program to Book the Flags for the
 C        package selectors

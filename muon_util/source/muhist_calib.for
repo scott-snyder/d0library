@@ -24,6 +24,7 @@ C    PQ 10/93 change loop over raw hits to accommodate new MUD1 format
 C    DH 6/94 redo a-lyer deltaT logic
 C    RM 8/94 update for new t0 tuning code
 C    DH 9/94 fix error on calling deltaT tuning code
+C-   Updated  20-MAR-2004   sss - use idate2k instead of idate.
 C----------------------------------------------------------------------
       IMPLICIT NONE
 C
@@ -61,7 +62,7 @@ C
       IF(FIRST.EQ.0) THEN
         FIRST=1
         LTIME=OFFTIM()
-        CALL IDATE(I,J,K)
+        CALL IDATE2k(I,J,K)
         JDATE=I*10000+J*100+K
         CALL TIME(STIME)
         READ(STIME,'(I2,1X,I2,1X,I2)') I,J,K

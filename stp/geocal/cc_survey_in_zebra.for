@@ -9,6 +9,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created   2-MAR-1991   Stephen Kahn
+C-   Updated  22-MAR-2004   sss - use idate2k instead of idate.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -36,7 +37,7 @@ C
       IC(LCSRV + ISREGN) = 1            ! identifies CC
       CALL EZGET('SURVEY_DATE',SARRAY,IERR)
       IC(LCSRV + ISDATE) = INT_DATE(SARRAY)   ! date of survey
-      CALL IDATE( I, J, K)              ! today's date
+      CALL IDATE2k( I, J, K)              ! today's date
       IC(LCSRV + ISDAT2) = 10000*K + 100*I + J  ! yymmdd format
 C
 C ... CENTRAL CALORIMETER EM MODULES

@@ -23,6 +23,7 @@ C-   Updated  18-FEB-1991 for RCP option processing.  H. Kehayias
 C-   Updated  16-DEC-1992 for RCP option processing.  H. Kehayias
 C-   Updated  31-AUG-1993 to add RCP_TYPE as parameter to
 C-            setup com file.  H. Kehayias
+C-   Updated   8-Jan-1996 sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -42,7 +43,7 @@ C----------------------------------------------------------------------
       INTEGER*2     RCP_TYPE_LEN(20)    ! RCP TYPE NAME STRING LENGTH
       INTEGER*2     OPT_POS             ! RCP OPTION WORD POSITION
       INTEGER*2     NUM_TYPE            ! # OF RCP OPTIONS 
-      INTEGER*2     I, J                ! INDEX VARIABLES
+      INTEGER       I, J                ! INDEX VARIABLES
 
       CHARACTER*132 LINE                ! LINE BUFFER
       CHARACTER*80  ERROR_BUF(2)        ! ERROR MESSAGES

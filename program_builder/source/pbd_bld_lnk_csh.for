@@ -18,6 +18,7 @@ C-   Program Builder.
 C-
 C-   Created  10-FEB-1994   Carmem Silva
 C-      Adapted from PBD_BLD_LINK.FOR
+C-   Updated   8-Jan-1996 sss - compile with g77.
 C-                         
 C-
 C----------------------------------------------------------------------
@@ -34,7 +35,7 @@ C----------------------------------------------------------------------
       INTEGER*2    DEV_LEN              ! DEVICE NAME LENGTH
       INTEGER*2    DIR_LEN              ! DIRECOTRY SPEC STRING LENGTH
       INTEGER*2    TYPE_LEN             ! FILE TYPE STRING LENGTH
-      INTEGER*2    I, J, K ,INTC        ! INDEX VARIABLES
+      INTEGER*2    I, J, K              ! INDEX VARIABLES
       INTEGER*2    OBJ_COUNT ,AUX       ! INDEX VARIABLES
       INTEGER*2    LIB_INDEX(200)       ! LIBRARY INDEX ARRAY
       INTEGER*2    OBJ_LEN(200)         ! OBJ NAME LENGTH
@@ -83,8 +84,8 @@ C
        DO POS = 1,FRAME_LEN
         IF ( LGE(FRAME_NAME(POS:POS),'A') .AND. 
      &        LLE(FRAME_NAME(POS:POS),'Z') ) THEN
-           INTC = IBSET(ICHAR(FRAME_NAME(POS:POS)),5)
-           FRAME_NAME(POS:POS) = CHAR(INTC)
+           FRAME_NAME(POS:POS) = CHAR(
+     &                          IBSET(ICHAR(FRAME_NAME(POS:POS)),5))
         ENDIF
        ENDDO
      

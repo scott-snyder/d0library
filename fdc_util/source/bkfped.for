@@ -10,6 +10,7 @@ C-   Control : IFL = 0 Book FPED with FPDH as supporting bank
 C-             IFL = 1 Book FPED supported by previous bank (Linear str.)
 C-
 C-   Created  29-DEC-1988   Srini Rajagopalan
+C-   Updated  20-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -45,7 +46,7 @@ C
 C
 C ****  Get date and time 
 C
-      CALL IDATE(I,J,K)
+      CALL IDATE2k(I,J,K)
       JDATE = K + J*100 + I*10000
       CALL TIME(STIME)
       READ(UNIT=STIME,FMT='(I2,2(1X,I2))') I,J,K

@@ -9,6 +9,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created   21-JUL-1992   Stephen Kahn
+C-   Updated   22-MAR-2004   sss - use idate2k instead of idate.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -32,7 +33,7 @@ C
       IC(LCSRV + ISREGN) = 2            ! identifies ECN
       CALL EZGET('SURVEY_DATE',SARRAY,IERR)
       IC(LCSRV + ISDATE) = INT_DATE(SARRAY)   ! date of survey
-      CALL IDATE( I, J, K)              ! today's date
+      CALL IDATE2k( I, J, K)              ! today's date
       IC(LCSRV + ISDAT2) = 10000*K + 100*I + J  ! yymmdd format
 C
 C ... ECN CALORIMETER EM MODULES
@@ -43,7 +44,7 @@ C
       NMEAS = 5                         ! number of measurements
       CALL BKCMDL(LCMDL, NMEAS)         ! book CMDL -- Survey Module
                                         ! bank
-      C(LCMDL+ISMODL) = 'NCEM'          ! identifies module type
+      C(LCMDL+ISMODL) = 4HNCEM          ! identifies module type
       IC(LCMDL+ISNUMB) = 0              ! Kroon module location number
       IC(LCMDL+ISNMSR) = NMEAS          ! number of measurments for module
 C
@@ -71,7 +72,7 @@ C
       NMEAS = 8                         ! number of measurements
       CALL BKCMDL(LCMDL, NMEAS)         ! book CMDL -- Survey Module
                                         ! bank
-      C(LCMDL+ISMODL) = 'NCIH'          ! identifies module type
+      C(LCMDL+ISMODL) = 4HNCIH          ! identifies module type
       IC(LCMDL+ISNUMB) = 0              ! Kroon module location number
       IC(LCMDL+ISNMSR) = NMEAS          ! number of measurments for module
 C
@@ -107,7 +108,7 @@ C
 C
       NMEAS = 32
       CALL BKCMDL( LCMDL, NMEAS)        ! book CMDL -- Survey measurement bank
-      C( LCMDL + ISMODL) = 'NCMH'       ! identifies module type
+      C( LCMDL + ISMODL) = 4HNCMH       ! identifies module type
       C( LCMDL + ISNUMB) = 0            ! all measurments are put in one bank,
                                         ! so no number identifier is used
       IC(LCMDL + ISNMSR) = NMEAS        ! number of measurements in bank
@@ -170,7 +171,7 @@ C
       NMEAS = 64                       ! number of measurements per module
       CALL BKCMDL(LCMDL, NMEAS)       ! book CMDL -- Survey Module
                                         ! bank
-      C( LCMDL + ISMODL) = 'NCOH'     ! identifies module type
+      C( LCMDL + ISMODL) = 4HNCOH     ! identifies module type
       IC( LCMDL + ISNUMB) = 0         ! module serial number
       IC( LCMDL + ISNMSR) = NMEAS     ! number of measurements for module
       DO 350 I = 1, NMODUL
