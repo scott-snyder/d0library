@@ -29,7 +29,7 @@ C
 c
       integer linear,iok,gtchfr,drpfrm,nchain,kbank,backup
       integer iline4,i,j,nd,ns,nl,num,idat,nr,nlin
-      integer points(200)
+      integer points(2000)
       character*4 cline4,name,obank
 C
       character*1 ctemp
@@ -59,7 +59,7 @@ c     remember - on vax, it's cnl(1:1) and on unix, it's cnl(4:4)
 c
 ccccc      call getnlnull(inl,inull)
 c
-c     if we are navigating, go there and reset bank name
+c     if we are navigating, go there and reset bank name and address
 c
       if (accoff) then
         accoff = .false.
@@ -124,8 +124,8 @@ c
 c
 c         read in new .zeb file if appropriate - try recursive!
 c
-          cline4 = name
-          if (zstate.eq.1) call fd0util(-1,baddr,iline4)
+cccc          cline4 = name
+cccc          if (zstate.eq.1) call fd0util(-1,baddr,iline4)
 c
 c         calculate chain length and set pointers and report
 c
@@ -193,6 +193,7 @@ c
 c     report address and chain length
 c
       call csetadd(lbank,nchain)
+      call fbankaddr(lbank)
 c
 c     get format
 c

@@ -10,85 +10,89 @@
 /*---------------------------------------------------------------------
   search menu - 0=by run, 1=by event, 2=by bank
 ----------------------------------------------------------------------*/
-csearch(w,tag,reason)
+int number;
+char ch[100];
+Boolean cfirst = True;
+
+void csearch(w,tag,reason)
 Widget		w;
 int		*tag;
 unsigned long	*reason;
 {
 	char *text;
 	int select = *tag;
-	int number;
-	char ch[100];
+	int length, status;
 
-/*
-    grab the text, shove into ch, squeeze out blanks
-*/
-	text = XmTextGetString(search_text);
- 	strcpy(ch,text);
- 	squeeze(ch,' ');    /* squeeze out the blanks */
-/*
-    "switch"
-*/
+	if ( cfirst ) {
+		ch[0] = ' ';
+		ch[1] = '\0';
+		cfirst = False;
+	}
 	switch (select) {
 		case 0:   /* by run */
+		  xgetchar("Run number:",ch,ch,&status);
+		  length = strlen(ch);
+		  squeeze(ch,' ');    /* squeeze out the blanks */
  		  number = atoi(ch);
 #ifdef D0FLAVOR
-	      fsearch_(&select,&number);
+	      fsearch_(&select,ch,&number);
 #else
-	      fsearch(&select,&number);
+	      fsearch(&select,ch,&number);
 #endif
 	    break;
 		case 1:   /* by event */
+		  xgetchar("Event number:",ch,ch,&status);
+		  length = strlen(ch);
+		  squeeze(ch,' ');    /* squeeze out the blanks */
  		  number = atoi(ch);
 #ifdef D0FLAVOR
-	      fsearch_(&select,&number);
+	      fsearch_(&select,ch,&number);
 #else
-	      fsearch(&select,&number);
+	      fsearch(&select,ch,&number);
 #endif
 	    break;
 		case 2:             /* by bank */
+		  xgetchar("Bank Name:",ch,ch,&status);
+		  length = strlen(ch);
+		  squeeze(ch,' ');    /* squeeze out the blanks */
 	      cupcase(ch);
 #ifdef D0FLAVOR
- 		  fsearch_(&select,ch);
+ 		  fsearch_(&select,ch,&length);
 #else
- 		  fsearch(&select,ch);
+ 		  fsearch(&select,ch,&length);
 #endif
-	      ch[4] = '\0';
-	      XmTextSetString(bank_text,ch);
 		  break;
 		case 3:             /* by l1 name */
+		  xgetchar("Level 1 Trigger:",ch,ch,&status);
+		  length = strlen(ch);
+		  squeeze(ch,' ');    /* squeeze out the blanks */
 	      cupcase(ch);
 #ifdef D0FLAVOR
- 		  fsearch_(&select,ch);
+ 		  fsearch_(&select,ch,&length);
 #else
- 		  fsearch(&select,ch);
+ 		  fsearch(&select,ch,&length);
 #endif
 		  break;
 		case 4:             /* by l2 name */
+		  xgetchar("Level 2 Trigger:",ch,ch,&status);
+		  length = strlen(ch);
+		  squeeze(ch,' ');    /* squeeze out the blanks */
 	      cupcase(ch);
 #ifdef D0FLAVOR
- 		  fsearch_(&select,ch);
+ 		  fsearch_(&select,ch,&length);
 #else
- 		  fsearch(&select,ch);
+ 		  fsearch(&select,ch,&length);
 #endif
 		  break;
 	    default:
 	      cerrmsg("Illegal request SEARCH");
 	    }
 
-/*
-    reset to a blank and free up
-	text[0] = 0;
-	XmTextSetString(search_text,text);
-*/
-	XtFree(text);
 
   	return;
 }
 
-squeeze(s,c)   /* delete all c from s */
-char s[];
-char c;
+void squeeze(char *s,char c)   /* delete all c from s */
 {
 	int i, j;
 
@@ -100,7 +104,7 @@ char c;
 
 }
 
-cupcase(string)   /* converts from lower to upper */
+void cupcase(string)   /* converts from lower to upper */
 char string[];
 {
 	int i;
@@ -114,7 +118,7 @@ char string[];
 	return;
 }
 
-clowcase(string)   /* converts upper to lower */
+void clowcase(string)   /* converts upper to lower */
 char string[];
 {
 	int i;

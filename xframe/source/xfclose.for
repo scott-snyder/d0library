@@ -14,7 +14,7 @@ c
       include 'D0$XFRAME$SOURCE:d0map.inc'
 c
       character*80 msg
-      integer dummy
+      integer dummy,ierr
 c
 c
       if (file_type.eq.0) then
@@ -22,7 +22,14 @@ c
 c       close filename for data
 c
 cccc        call mzend
-        close(fzrz_lun)
+        if (fzrz_opened) then
+          call fzendi(fzrz_lun,'TQ')
+          close(fzrz_lun)
+          call rlunit(d0xuserunit,fzrz_lun,ierr)
+          if (ierr.ne.0) then
+            call fwarning(%ref('XFCLOSE Error releasing LUN'))
+          endif
+        endif
 c
       else if (file_type.eq.1) then
 c

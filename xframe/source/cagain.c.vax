@@ -10,23 +10,22 @@
 /*---------------------------------------------------------------------
     go navigates thru the zebra structure
 ----------------------------------------------------------------------*/
-cagain(w,tag,reason)
-Widget		w;
-int		*tag;
-unsigned long	*reason;
+void cagain(w,tag,reason)
+Widget        w;
+int        *tag;
+unsigned long    *reason;
 {
-	char *bank, *str;
-	int off, dum;
-
+    char *bank, *bank2, *str;
+    int off, dum;
 /*
-  		  			tag = 0, put data into window
-  		  			first get the linear chain number
+    tag = 0, put data into window
+    first get the offset from lq(0)
 */
-	str = XmTextGetString(xdbank_text_navigate);
-	off = atoi(str);
-	XtFree(str);
+    str = XmTextGetString(xdbank_text_navigate);
+    off = atoi(str);
+    XtFree(str);
 /*
-  	      			and pass it along into common
+    and pass it along into common
 */
     dum = 0;
 #ifdef D0FLAVOR
@@ -37,17 +36,38 @@ unsigned long	*reason;
     foenable(&dum);
 #endif
 /*
-    				get bank name
+    get bank name
 */
-	bank = XmTextGetString(bank_text);
+    bank = XmTextGetString(xdbank_bank_2);
 /*
-          			and finally, put up the text of data
+    set the cursor to "watch"
 */
-	dum = 0;
+    SetWatchCursor(nav_main);
+    SetWatchCursor(xdbank_main);
+/*
+    put up the text of data and .zeb
+*/
 #ifdef D0FLAVOR
-	fd0util_(&dum,&dum,bank);
+    dum = 0;
+    fd0util_(&dum,&dum,bank);
+    dum = -1;
+    bank2 = XmTextGetString(xdbank_bank_2);
+    off = strcmp(bank,bank2);
+    if (off != 0) fd0util_(&dum,&dum,bank2);
 #else
-	fd0util(&dum,&dum,bank);
+    dum = 0;
+    fd0util(&dum,&dum,bank);
+    dum = -1;
+    bank2 = XmTextGetString(xdbank_bank_2);
+    off = strcmp(bank,bank2);
+    if (off != 0) fd0util(&dum,&dum,bank2);
 #endif
-	XtFree(bank);
+    XtFree(bank);
+    XtFree(bank2);
+/*
+    reset the cursor from "watch"
+*/
+    SetDefaultCursor(nav_main);
+    SetDefaultCursor(xdbank_main);
+
 }

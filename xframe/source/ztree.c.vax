@@ -69,13 +69,17 @@ int link, lenb, address;
 	daughter =
     		XtCreateManagedWidget(temp, xmPushButtonWidgetClass,
     				zebra_tree, wargs, n);
-    XtAddCallback(daughter, XmNactivateCallback, bankbutton, address);
+    XtAddCallback(daughter, XmNactivateCallback, bankbutton, 
+    	(void*)address);
     XmStringFree(str);
     return(daughter);
 }
 
 
-void undotree()   /* called from D0X returning from navigator */
+void undotree(w,tag,reason)   /* called from D0X returning from navigator */
+Widget w;
+int *tag;
+unsigned long *reason;
 {
 	XtUnmanageChild(zebra_tree);
 }
@@ -110,7 +114,9 @@ int double_click;
 /*
   		get bank name from widget name
 */
-	str = XtName(thewidget); 	strcpy(bank,str);	bank[4] = 0;
+	str = XtName(thewidget);
+	strcpy(bank,str);
+	bank[4] = 0;
 /*
   double click means expand/contract
 */
@@ -131,6 +137,8 @@ int double_click;
 		XtGetValues(tree_scroll, wargs, 1);
 		XmScrollBarGetValues(scrollbar,&pos,&size,&incr,&page);
 		XtUnmanageChild(zebra_tree);
+		SetWatchCursor(nav_main);
+		SetWatchCursor(xdbank_main);
 		select = -2;     /* new tree widget */
 #ifdef D0FLAVOR
 		fd0util_(&select,&the_address,bank);
@@ -139,6 +147,8 @@ int double_click;
 #endif
 		XtManageChild(zebra_tree);
 		XmScrollBarSetValues(scrollbar,pos,size,incr,page,True);
+		SetDefaultCursor(nav_main);
+		SetDefaultCursor(xdbank_main);
 	}
 /*
   single click means process this bank
@@ -148,21 +158,26 @@ int double_click;
   		call cd0util to process
 */
 		select = -3;     /* data */
+		SetWatchCursor(nav_main);
+		SetWatchCursor(xdbank_main);
 #ifdef D0FLAVOR
 		fd0util_(&select,&the_address,bank);
 #else
 		fd0util(&select,&the_address,bank);
 #endif
 		select = -1;     /* .zeb file */
+	    str = XmTextGetString(xdbank_bank_2);
+	    dummy = strcmp(str,bank);
 #ifdef D0FLAVOR
-		fd0util_(&select,&the_address,bank);
+		if (dummy != 0) fd0util_(&select,&the_address,bank);
 #else
-		fd0util(&select,&the_address,bank);
+		if (dummy != 0) fd0util(&select,&the_address,bank);
 #endif
 /*
   		set bank name
 */
 		XmTextSetString(xdbank_bank_2,bank);
-		XmTextSetString(bank_text,bank);
+		SetDefaultCursor(nav_main);
+		SetDefaultCursor(xdbank_main);
 	}
 }

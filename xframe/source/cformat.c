@@ -5,12 +5,12 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
-
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+extern int the_address;
 /*---------------------------------------------------------------------
     sets the format (equal to the tag) [auto, float,  etc.]
 ----------------------------------------------------------------------*/
-cformat(w,tag,reason)
+void cformat(w,tag,reason)
 Widget		w;
 int		*tag;
 unsigned long	*reason;
@@ -24,17 +24,28 @@ unsigned long	*reason;
 	fformat(&select);
 #endif
 /*
-    				get bank name
+  get bank name
 */
-	bank = XmTextGetString(bank_text);
+	bank = XmTextGetString(xdbank_bank_2);
 /*
-  					now, call the fd0util routine with tag=0 for xdbank
+  fd0util routine with tag=-4 
 */
-	dum = 0;
+	dum = -4;
 #ifdef D0FLAVOR
-	fd0util_(&dum,&dum,bank);
+	fd0util_(&dum,&the_address,bank);
 #else
-	fd0util(&dum,&dum,bank);
+	fd0util(&dum,&the_address,bank);
 #endif
 	XtFree(bank);
 }
+
+#ifdef D0FLAVOR
+fbankaddr_(addr)
+#else
+fbankaddr(addr)
+#endif
+int *addr;
+{
+	    the_address = *addr;
+}
+	

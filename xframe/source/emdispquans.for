@@ -29,13 +29,18 @@ C
       REAL TRD_TRUNCATED_MEAN,TRD_ANODE(3),ETOT_LIKE,ETOT_LEFF
       REAL TRK_PHI,TRK_THETA,TRK_MIP,TRK_XPT,TRK_YPT,TRK_ZPT
       REAL VTX_PHI,VTX_THETA,VTX_MIP,VTX_XPT,VTX_YPT,VTX_ZPT
+C
+      INTEGER ICHAR4
+      CHARACTER*4 CCHAR4
+C
+      EQUIVALENCE (ICHAR4,CCHAR4)
 C----------------------------------------------------------------------
       VSN = IQ(LCLUS+1)
       NQUANS = 0
       IF(VSN.LT.2) THEN
 CC        CALL ERRMSG('OLD BANK VERSION','GET_EM_QUANS',
 CC     &    'Bank version too old (<2) - rerun CAPHEL! ','W')
-        CALL WARNING(
+        CALL FWARNING(
      &    %ref('Bank version too old (<2) - rerun CAPHEL!'))
         GOTO 999
       ENDIF
@@ -111,13 +116,14 @@ C
       QUANS(NQUANS) = CHISQ
       NAMQUANS(NQUANS) = 'TRUN CHISQ'
 C
-      IF (IQ(LCLUS-4).EQ.'PELC') THEN
+      ichar4 = iq(lclus-4)
+      IF (cchar4.EQ.'PELC') THEN
 C
         LZTRK = LQ(LCLUS-3)
         IF(LZTRK.LE.0) THEN
 cc          CALL ERRMSG('NOZTRACK','GET_EM_QUANS',
 cc     &      'No Ztrack associated with electron ! ','W')
-          CALL warning(
+          CALL Fwarning(
      &      %ref('No Ztrack associated with electron'))
           GOTO 999      ! No Ztrack associated with the electron
         ENDIF
@@ -125,7 +131,7 @@ cc     &      'No Ztrack associated with electron ! ','W')
         IF (LZFIT .LE. 0) THEN          ! This should not happen
 cc          CALL ERRMSG('NOZFIT','GET_EM_QUANS',
 cc     &      'No ZFIT info associated with electron ZTRK ! ','W')
-          CALL warning(
+          CALL Fwarning(
      &      %ref('No ZFIT info associated with electron ZTRK'))
           GOTO 999      ! No ZFIT info
         ENDIF

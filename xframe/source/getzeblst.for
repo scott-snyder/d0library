@@ -22,7 +22,7 @@ c
       INTEGER LWV,MWV,LUN,LEN3,INDEX,IERR,dotpos
       CHARACTER*50 FILNAM,FZEB,FZEBA,FNUL,RES_FILE
       DATA FNUL/' '/
-      EXTERNAL LIB$FIND_FILE
+      logical LIB$FIND_FILE
       logical ok
       INTEGER CONTEXT
       integer nl,null
@@ -48,27 +48,27 @@ cccccc     call getnlnull(nl,null)
 C
       LUN=13
       IF(BANK.EQ.' ') GO TO 103         ! error return
+C&IF VAXVMS
       CALL UPCASE(BANK,BANK)    !convert to upper case
-C
+C&ENDIF
+C&IF VAXVMS
       if (bank.eq.'HEAD') then
         filnam = d0zeblst(1:d0zeblst_length)//'event_head.ZEB'
       else
         filnam = d0zeblst(1:d0zeblst_length)//bank//'.ZEB'
       endif
-ccccccccc      FILNAM='D0$ZEBLST:'//BANK//'.ZEB'
+C&ELSE
+C&      if (bank.eq.'head') then
+C&        filnam = d0zeblst(1:d0zeblst_length)//'event_head.zeb'
+C&      else
+C&        filnam = d0zeblst(1:d0zeblst_length)//bank//'.zeb'
+C&      endif
+C&ENDIF
 C
    31 LWV=0
       CONTEXT = 0
-      dotpos = index(filnam,'.') + 1
-      CALL LIB$FIND_FILE(FILNAM,RES_FILE,CONTEXT)  !PERMITS WILDCARD
-c
-c     see if res_file is the same as filnam - if so, no good
-c
-      if ( res_file(dotpos:dotpos).eq.filnam(dotpos:dotpos) ) then
-        ierr = 1
-        return
-      endif
-C                                        ! SEARCH LIST
+      ok =  LIB$FIND_FILE(FILNAM,RES_FILE,CONTEXT)  !PERMITS WILDCARD
+      if (.not.ok) goto 103
       call lib$find_file_end(context)
       call d0open(lun,res_file,'IN',ok)
 cccccc      OPEN(UNIT=LUN,FILE=RES_FILE,STATUS='OLD',READONLY,ERR=101)
@@ -106,6 +106,7 @@ C
   102 CONTINUE
       RETURN
   103 IERR = 1
+      call xerrmsg('Could not access the .ZEB file')
 C
   999 RETURN
       END

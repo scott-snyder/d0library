@@ -5,18 +5,18 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
 extern Widget zebra_tree;
 /*---------------------------------------------------------------------
   sets d0$zeblst (or unix equivalent) or en(dis)ables display
 ----------------------------------------------------------------------*/
-czeblst(w,tag,reason)
+void czeblst(w,tag,reason)
 Widget		w;
 int		*tag;
 unsigned long	*reason;
 {
-	char *str, *bank;
-	int dum, what, select = *tag;
+	char *str, *bank, dbk[4];
+	int dum, what, select = *tag, length;
 	Arg arglist[20];
 	int tval;
 	int narg;
@@ -26,17 +26,18 @@ unsigned long	*reason;
 	switch (select) {
 		case 0:          /* sets d0$zeblst string */
 	        str = XmTextGetString(xdbank_text_zeblst);
+	        length = strlen(str);
 	        /* pass this along to the common */
 #ifdef D0FLAVOR
-		    fzeblst_(str);
+		    fzeblst_(str,&length);
 #else
-			fzeblst(str);
+			fzeblst(str,&length);
 #endif
 			XtFree(str);
 /*
   			now, call the fd0util routine with tag=1 for getzeblst
 */
-			bank = XmTextGetString(bank_text);
+			bank = XmTextGetString(xdbank_bank_2);
 			dum = -1;
 #ifdef D0FLAVOR
 			fd0util_(&dum,&dum,bank);
@@ -70,7 +71,7 @@ unsigned long	*reason;
 /*
                    and get the .zeb file
 */
-				   bank = XmTextGetString(bank_text);
+				   bank = XmTextGetString(xdbank_bank_2);
 				   dum = -1;
 #ifdef D0FLAVOR
 		   		   fd0util_(&dum,&dum,bank);
@@ -110,15 +111,15 @@ unsigned long	*reason;
 */
 			dum = 0;
 #ifdef D0FLAVOR
-			fblist_(&dum,&dum,&dum);
+			fblist_(&dum,dbk,&dum);
 #else
-			fblist(&dum,&dum,&dum);
+			fblist(&dum,dbk,&dum);
 #endif
 /*
     		and put up the tree
 */
 			XtUnmanageChild(zebra_tree);
-			bank = XmTextGetString(bank_text);
+			bank = XmTextGetString(xdbank_bank_2);
 			dum = -2;
 #ifdef D0FLAVOR
 			fd0util_(&dum,&dum,bank);
@@ -153,7 +154,7 @@ unsigned long	*reason;
 /*
                    and get the data
 */
-				   bank = XmTextGetString(bank_text);
+				   bank = XmTextGetString(xdbank_bank_2);
 				   dum = 0;
 #ifdef D0FLAVOR
 		   		   fd0util_(&dum,&dum,bank);
@@ -186,7 +187,7 @@ unsigned long	*reason;
     		and put up the tree
 */
 			XtUnmanageChild(zebra_tree);
-			bank = XmTextGetString(bank_text);
+			bank = XmTextGetString(xdbank_bank_2);
 			dum = -2;
 #ifdef D0FLAVOR
 			fd0util_(&dum,&dum,bank);

@@ -18,13 +18,15 @@ c
 c
       integer lpoint
 c
-      integer gzcaph,mycaph
+      integer gzcaph,mycaph,gzproc,lproc
 c
 c     initialize
 c
       lpoint = 0
 c
-      mycaph = gzcaph()
+      lproc = gzproc()
+      if (lproc.lt.1) return
+      mycaph = lq(lproc-4)
       if (mycaph.lt.1) return
 c
 c     loop over caph banks, find the correct one
@@ -39,6 +41,15 @@ c
             return
           endif
 c
+        else if (jcone.gt.4.5.and.jcone.lt.5.5) then
+c
+c         kt algorithm
+c
+          if (iq(mycaph+4).eq.5) then
+            lpoint = lq(mycaph-2)
+            return
+          endif
+
         else
 c
 c         cone algo

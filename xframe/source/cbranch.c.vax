@@ -11,6 +11,8 @@
 #include "d0$xframe$source:TREE.H"
 #include "d0$xframe$source:TREEP.H"
 
+#define MAXLINK 2000
+
 WidgetClass  XstreeWidgetClass;
 Widget zebra_tree;
 int tree_width = 3000;
@@ -23,7 +25,8 @@ int tree_height = 3000;
    zp is the offset from iq[0]
 */
 
-retree(w,tag,reason)
+void retree(w,tag,reason)  
+                   /* called via arrow buttons for changing scroll-bar size*/
 Widget w;
 int *tag;
 unsigned long *reason;
@@ -65,16 +68,16 @@ unsigned long *reason;
 
 }
 
-cbranch(parent,store,link,iq,lq,zp)
+void cbranch(parent,store,link,iq,lq,zp)
 Widget parent;
 int iq[], lq[], *zp, *store, link;
 {
 EQUIV bank, xbank;
 Widget ztree();
 int ok = 0, i, ns, idat, nl, offset = *zp, chain, state;
-int maxns, n, it, ich, isl[400];
+int maxns, n, it, ich, isl[MAXLINK];
 Widget daughter;
-char bname[5], bname2[5];
+char bname[5], bname2[5], msg[100];
 Arg wargs[10];
 /*
   	if parent is NULL, then nothing exists - create tree widget
@@ -119,7 +122,7 @@ Arg wargs[10];
 */
 	ich = offset;
 	maxns = 0;
-	for (i=0; i<400; i++) isl[i]=0;
+	for (i=0; i<MAXLINK; i++) isl[i]=0;
 	do {
 		ns = iq[offset-2];      /* number of structural links */
 		maxns =  (ns > maxns) ? ns : maxns ;
@@ -130,8 +133,7 @@ Arg wargs[10];
 			}
 		}
 		offset = lq[offset];
-		}
-	while ( offset );
+		} while ( offset );
 
 	offset = ich;
 /*
@@ -139,6 +141,7 @@ Arg wargs[10];
 */
 
 	ns = maxns; 				/* number of structural links */
+    if (ns >= MAXLINK) ns = MAXLINK;
 	for (i=1; i <= ns; i++) {
 		idat = isl[i];
 		   if ( idat > 0 ) {
@@ -176,8 +179,7 @@ Arg wargs[10];
 			}
 		}
 		offset = lq[offset];
-		}
-	while ( offset );
+		} while ( offset );
 	}
 
 	offset = ich;

@@ -8,14 +8,14 @@ tag = 0: go from hex to decimal
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
 
-xdecode(w,tag,reason)
+void xdecode(w,tag,reason)
 Widget		w;
 int		*tag;
 unsigned long	*reason;
 {
-	int value;
+	int value, andor, vres;
 	int select = *tag;
 	char *str;
 	char source[20], result[20];
@@ -31,14 +31,39 @@ unsigned long	*reason;
 		case 0:		/* hex to decimal conversion */
 			sscanf(source,"%X",&value);
 			sprintf(result,"%u",value);
+			XmTextSetString(decode_text,result);
 			break;
 		case 1:     /* decimal to hex conversion */
 			value = atoi(source);
 			sprintf(result,"%X",value);
+			XmTextSetString(decode_text,result);
+			break;
+		case 2:     /* do an and for joey */
+			sscanf(source,"%X",&value);  /* get the source*/
+			str = XmTextGetString(andortext);
+			strcpy(source,str);
+			XtFree(str);
+			if ( strlen(source) <1 ) return;
+			cupcase(source);
+			sscanf(source,"%X",&andor);
+			vres = value & andor;
+			sprintf(result,"%X",vres);
+			XmTextSetString(andorresult,result);
+			break;
+		case 3:     /* do an or for joey */
+			sscanf(source,"%X",&value);  /* get the source*/
+			str = XmTextGetString(andortext);
+			strcpy(source,str);
+			XtFree(str);
+			if ( strlen(source) <1 ) return;
+			cupcase(source);
+			sscanf(source,"%X",&andor);
+			vres = value | andor;
+			sprintf(result,"%X",vres);
+			XmTextSetString(andorresult,result);
 			break;
 		default:
 			printf("Illegal tag in XDECODE!!!\n");
 			return;
 		}
-	XmTextSetString(decode_text,result);
 }

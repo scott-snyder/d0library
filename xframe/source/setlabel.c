@@ -7,10 +7,10 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
 
-SetLabel(w,string)
-int *w;
+void SetLabel(w,string)
+Widget w;
 char *string;
 {
 	Arg arglist[20];
@@ -21,4 +21,14 @@ char *string;
 	 XmStringCreateLtoR(string,XmSTRING_DEFAULT_CHARSET)); narg++;
 	XtSetValues(w,arglist,narg);
 
+}
+
+#ifdef D0FLAVOR
+fsetflabel_(c)
+#else
+FSetFLabel(c)
+#endif
+char *c;
+{
+	SetLabel(fz_label,c);
 }

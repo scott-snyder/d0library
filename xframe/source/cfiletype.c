@@ -5,18 +5,20 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
-
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
+extern char pathtext[100];
 /*---------------------------------------------------------------------
     hook to set the file type (FZ, RZ, STP, output)
 ----------------------------------------------------------------------*/
-cfiletype(w,tag,reason)
+void cfiletype(w,tag,reason)
 Widget		w;
 int		*tag;
 unsigned long	*reason;
 {
 	int select = *tag;
     int mode = 1;
+    XmString tmp;
+    
 #ifdef D0FLAVOR
  		  ffiletype_(&mode,&select);
 #else
@@ -27,13 +29,19 @@ unsigned long	*reason;
 	switch (select) {
 		case 0:
 		   cset_store(w,&select,reason);
-	       XmTextSetString(path_text,"RECO"); /* default path RECO */
+	       tmp = XmStringCreateSimple("File type: FZ");
+	       strcpy(pathtext,"RECO");
 		   break;
 	    case 1:
 		   cset_store(w,&select,reason);
-	       XmTextSetString(path_text,"    "); /* default path ? */
+	       tmp = XmStringCreateSimple("File type: STP");
+	       strcpy(pathtext,"    ");
 		   break;
 		default:
 		   break;
-    	}
+	}
+	XtVaSetValues(fztype, XmNlabelString, tmp, NULL);
+	XmStringFree(tmp);
+	mode = 2;
+	czebra(w,&mode,reason);
 }

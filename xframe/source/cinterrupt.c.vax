@@ -4,7 +4,11 @@
 */
  
 #include <stdio.h>                   /* I/O definitions                       */
- 
+#ifdef D0FLAVOR
+void finterrupt_(int*);
+#else
+void finterrupt(int*);
+#endif
 /*---------------------------------------------------------------------
   pushed to interrupt SCAN, SKIP, SEARCH 
 ----------------------------------------------------------------------*/

@@ -1,4 +1,4 @@
-      SUBROUTINE PRBANK(bank,lun)
+      SUBROUTINE PRBANK(bank,addr,lun)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : 
@@ -15,12 +15,12 @@ c
       include 'd0$xframe$source:d0map.inc'
 c
       character*4 bank
-      integer lun
+      integer lun,addr
 c
       character*80 prt
-      integer i,names,nrow,extra,lzfidh
-      parameter (names=76)
-      character*4 banks(names)
+      integer i,names,nrow,extra,lzfidh,ipt
+      parameter (names=75)
+      character*4 banks(names),cfl
 c
       data banks/
      &  'CACL','CAD1','CAD2','CADT','CAEH','CAEP','CAPH','CASH',
@@ -30,7 +30,7 @@ c
      &  'ISAQ','ISAX','ISCL','ISJT','ISP1','ISP2','ISP3','ISRC',
      &  'ISV1','ISV2','JAUX','JETS','JNEP','JPTS','JTSH','L2EM',
      &  'MTRH','MUD1','MUOH','MUOT','PARH','PELC','PJET','PJHD','PJPT',
-     &  'PLV0','PMUO','PNUT','PPHO','PTAU','PVES','RECO','TPRL',
+     &  'PLV0','PMUO','PNUT','PPHO','PTAU','RECO','TPRL',
      &  'TRDT','TRGR','TSUM','TTRH','VERH','VERT','VTRH','VTXT',
      &  'ZFIT','ZTRH','ZTRK'/
 c
@@ -45,168 +45,180 @@ c
         return
       endif
 c
+c     check "addr" - if it's 0, then dump all banks, else dump the
+c     the bank at that address (assume that "bank" is still ok so you 
+c     don't have to dig out the bank name from the address)
+c
+      if (addr.eq.0) then
+        ipt = 0
+        cfl = 'ALL'
+      else
+        ipt = addr
+        cfl = 'ONE'
+      endif
+c
 c     check against known list:
 c
       if (bank.eq.'CACL') then
-        call PRCACL(lun,0,0,'ALL',0)
+        call PRCACL(lun,ipt,0,cfl,0)
       else if (bank.eq.'CAD1') then
-        call PRCAD1(lun,0,0,'ALL',1)
+        call PRCAD1(lun,ipt,0,cfl,1)
       else if (bank.eq.'CAD2') then
-        call PRCAD2(lun,0,0,'ALL',1)
+        call PRCAD2(lun,ipt,0,cfl,1)
       else if (bank.eq.'CADT') then
-        call PRCADT(lun,0,0,'ALL',0)
+        call PRCADT(lun,ipt,0,cfl,0)
       else if (bank.eq.'CAEH') then
-        call PRCAEH(lun,0,0,'ALL',0)
+        call PRCAEH(lun,ipt,0,cfl,0)
       else if (bank.eq.'CAEP') then
-        call PRCAEP(lun,0,0,'ALL',1)
+        call PRCAEP(lun,ipt,0,cfl,1)
       else if (bank.eq.'CAPH') then
-        call PRCAPH(lun,0,0,'ALL',0)
+        call PRCAPH(lun,ipt,0,cfl,0)
       else if (bank.eq.'CASH') then
-        call PRCASH(lun,0,0,'ALL',0)
+        call PRCASH(lun,ipt,0,cfl,0)
       else if (bank.eq.'CATD') then
-        call PRCATD(lun,0,0,'ALL',0)
+        call PRCATD(lun,ipt,0,cfl,0)
       else if (bank.eq.'CATE') then
-        call PRCATE(lun,0,0,'ALL',0)
+        call PRCATE(lun,ipt,0,cfl,0)
       else if (bank.eq.'CDD1') then
-        call PRCDD1(lun,0,0,'ALL',3)
+        call PRCDD1(lun,ipt,0,cfl,3)
       else if (bank.eq.'CDD2') then
-        call PRCDD2(lun,0,0,'ALL',3)
+        call PRCDD2(lun,ipt,0,cfl,3)
       else if (bank.eq.'CDD3') then
-        call PRCDD3(lun,0,0,'ALL',3)
+        call PRCDD3(lun,ipt,0,cfl,3)
       else if (bank.eq.'CDD4') then
-        call PRCDD4(lun,0,0,'ALL',3)
+        call PRCDD4(lun,ipt,0,cfl,3)
       else if (bank.eq.'DTRH') then
-cccc        call PRDTRH(lun,0,0,'ALL',6)
+cccc        call PRDTRH(lun,ipt,0,cfl,6)
         write(*,'('' ....PRDTRH not written yet....'')')
       else if (bank.eq.'DTRK') then
-        call PRDTRK(lun,0,0,'ALL',6)
+        call PRDTRK(lun,ipt,0,cfl,6)
       else if (bank.eq.'ERMG') then
-        call PRERMG(lun,0,0,'ALL',0)
+        call PRERMG(lun,ipt,0,cfl,0)
       else if (bank.eq.'ESUM') then
-        call PRESUM(lun,0,0,'ALL',0)
+        call PRESUM(lun,ipt,0,cfl,0)
       else if (bank.eq.'FDCT') then
-        call PRFDCT(lun,0,0,'ALL',3)
+        call PRFDCT(lun,ipt,0,cfl,3)
       else if (bank.eq.'FILT') then
-        call PRFILT(lun,0,0,'ALL',0)
+        call PRFILT(lun,ipt,0,cfl,0)
       else if (bank.eq.'FRES') then
-        call PRFRES(lun,0,0,'ALL',2)
+        call PRFRES(lun,ipt,0,cfl,2)
       else if (bank.eq.'FTRH') then
-CCCC        call PRFTRH(lun,0,0,'ALL',0)
+CCCC        call PRFTRH(lun,ipt,0,cfl,0)
         write(*,'('' ....PRFTRH not written yet....'')')
       else if (bank.eq.'HEAD') then
-        call PRHEAD(lun,0,0,'ALL',0)
+        call PRHEAD(lun,ipt,0,cfl,0)
       else if (bank.eq.'HITS') then
-        call PRHITS(lun,0,0,'ALL',0)
+        call PRHITS(lun,ipt,0,cfl,0)
       else if (bank.eq.'HMTE') then
-        call PRHMTE(lun,0,0,'ALL',0)
+        call PRHMTE(lun,ipt,0,cfl,0)
       else if (bank.eq.'HMTP') then
-        call PRHMTP(lun,0,0,'ALL',0)
+        call PRHMTP(lun,ipt,0,cfl,0)
       else if (bank.eq.'HSTR') then
-        call PRHSTR(lun,0,0,'ALL',0)
+        call PRHSTR(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISAC') then
-        call PRISAC(lun,0,0,'ALL',0)
+        call PRISAC(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISAE') then
-        call PRISAE(lun,0,0,'ALL',0)
+        call PRISAE(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISAJ') then
-        call PRISAJ(lun,0,0,'ALL',0)
+        call PRISAJ(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISAL') then
-        call PRISAJ(lun,0,0,'ALL',0)
+        call PRISAL(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISAM') then
-        call PRISAM(lun,0,0,'ALL',0)
+        call PRISAM(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISAQ') then
-        call PRISAQ(lun,0,0,'ALL',0)
+        call PRISAQ(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISAX') then
         call PRTEVZ(lun)
       else if (bank.eq.'ISCL') then
-        call PRISCL(lun,0,0,'ALL',0)
+        call PRISCL(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISJT') then
-        call PRISJT(lun,0,0,'ALL',0)
+        call PRISJT(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISP1') then
-        call PRISP1(lun,0,0,'ALL',0)
+        call PRISP1(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISP2') then
-        call PRISP2(lun,0,0,'ALL',0)
+        call PRISP2(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISP3') then
-        call PRISP3(lun,0,0,'ALL',0)
+        call PRISP3(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISP3') then
-        call PRISP3(lun,0,0,'ALL',0)
+        call PRISP3(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISRC') then
-        call PRISRC(lun,0,0,'ALL',0)
+        call PRISRC(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISV1') then
-        call PRISV1(lun,0,0,'ALL',0)
+        call PRISV1(lun,ipt,0,cfl,0)
       else if (bank.eq.'ISV2') then
-        call PRISV2(lun,0,0,'ALL',0)
+        call PRISV2(lun,ipt,0,cfl,0)
       else if (bank.eq.'JAUX') then
-        call PRJAUX(lun,0,0,'ALL',0)
+        call PRJAUX(lun,ipt,0,cfl,0)
       else if (bank.eq.'JETS') then
-        call PRJETS(lun,0,0,'ALL',1)
+        call PRJETS(lun,ipt,0,cfl,1)
       else if (bank.eq.'JNEP') then
-        call PRJNEP(lun,0,0,'ALL',0)
+        call PRJNEP(lun,ipt,0,cfl,0)
       else if (bank.eq.'JPTS') then
-        call PRJPTS(lun,0,0,'ALL',0)
+        call PRJPTS(lun,ipt,0,cfl,0)
       else if (bank.eq.'JTSH') then
-        call PRJTSH(lun,0,0,'ALL',0)
+        call PRJTSH(lun,ipt,0,cfl,0)
       else if (bank.eq.'L2EM') then
-        call PRL2EM(lun,0,0,'ALL',0)
+        call PRL2EM(lun,ipt,0,cfl,0)
       else if (bank.eq.'MTRH') then
-        call PRMTRH(lun,0,0,'ALL',0)
+        call PRMTRH(lun,ipt,0,cfl,0)
       else if (bank.eq.'MUD1') then
-        call PRMUD1(lun,0,0,'ALL',0)
+        call PRMUD1(lun,ipt,0,cfl,0)
       else if (bank.eq.'MUOT') then
-        call PRMUOT(lun,0,0,'ALL',0)
+        call PRMUOT(lun,ipt,0,cfl,0)
       else if (bank.eq.'MUOH') then
-        call PRMUOH(lun,0,0,'ALL',0)
+        call PRMUOH(lun,ipt,0,cfl,0)
       else if (bank.eq.'PARH') then
-        call PRPARH(lun,0,0,'ALL',0)
+        call PRPARH(lun,ipt,0,cfl,0)
       else if (bank.eq.'PELC') then
-        call PRPELC(lun,0,0,'ALL',0)
+        call PRPELC(lun,ipt,0,cfl,0)
       else if (bank.eq.'PJET') then
-        call PRPJET(lun,0,0,'ALL',0)
+        call PRPJET(lun,ipt,0,cfl,0)
       else if (bank.eq.'PJHD') then
-        call PRPJHD(lun,0,0,'ALL',0)
+        call PRPJHD(lun,ipt,0,cfl,0)
       else if (bank.eq.'PJPT') then
-CCCC        call PRPJPT(lun,0,0,'ALL',0)
+CCCC        call PRPJPT(lun,ipt,0,cfl,0)
         write(*,'('' ....PRJPT not written yet....'')')
       else if (bank.eq.'PLV0') then
         write(*,'('' ....PRLV0 not written yet....'')')
-CCCC        call PRPLV0(lun,0,0,'ALL',0)
+CCCC        call PRPLV0(lun,ipt,0,cfl,0)
       else if (bank.eq.'PMUO') then
-        call PRPMUO(lun,0,0,'ALL',0)
+        call PRPMUO(lun,ipt,0,cfl,0)
       else if (bank.eq.'PNUT') then
-        call PRPNUT(lun,0,0,'ALL',1)
+        call PRPNUT(lun,ipt,0,cfl,1)
       else if (bank.eq.'PPHO') then
-        call PRPPHO(lun,0,0,'ALL',0)
+        call PRPPHO(lun,ipt,0,cfl,0)
       else if (bank.eq.'PTAU') then
-        call PRPTAU(lun,0,0,'ALL',0)
-      else if (bank.eq.'PVES') then
-        call PRPVES(lun,0,0,'ALL',0)
+        call PRPTAU(lun,ipt,0,cfl,0)
+cccc      else if (bank.eq.'PVES') then
+cccc        call PRPVES(lun,ipt,0,cfl,0)
       else if (bank.eq.'RECO') then
-        call PRRECO(lun,0,0,'ALL',0)
+        call PRRECO(lun,ipt,0,cfl,0)
       else if (bank.eq.'TPRL') then
-        call PRTPRL(lun,0,0,'ALL',0)
+        call PRTPRL(lun,ipt,0,cfl,0)
       else if (bank.eq.'TRDT') then
-        call PRTRDT(lun,0,0,'ALL',0)
+        call PRTRDT(lun,ipt,0,cfl,0)
       else if (bank.eq.'TRGR') then
-        call PRTRGR(lun,0,0,'ALL',0)
+        call PRTRGR(lun,ipt,0,cfl,0)
       else if (bank.eq.'TSUM') then
-        call PRTSUM(lun,0,0,'ALL',0)
+        call PRTSUM(lun,ipt,0,cfl,0)
       else if (bank.eq.'TTRH') then
-        call PRTTRH(lun,0,0,'ALL',0)
+        call PRTTRH(lun,ipt,0,cfl,0)
       else if (bank.eq.'VERH') then
-        call PRVERH(lun,0,0,'ALL',0)
+        call PRVERH(lun,ipt,0,cfl,0)
       else if (bank.eq.'VERT') then
-        call PRVERT(lun,0,0,'ALL',0)
+        call PRVERT(lun,ipt,0,cfl,0)
       else if (bank.eq.'VTRH') then
-        call PRVTRH(lun,0,0,'ALL',0)
-        call PRVTRH(lun,0,0,'SUM',0)
+        call PRVTRH(lun,ipt,0,cfl,0)
+        call PRVTRH(lun,ipt,0,'SUM',0)
       else if (bank.eq.'VTXT') then
-        call PRVTXT(lun,0,0,'ALL',0)
+        call PRVTXT(lun,ipt,0,cfl,0)
       else if (bank.eq.'ZFIT') then
-        call PRZFIT(lun,0,0,'ALL',0)
+        call PRZFIT(lun,ipt,0,cfl,0)
       else if (bank.eq.'ZTRH') then
         write(*,'('' ....PRZTRH not written yet....'')')
-cccc        call PRZTRH(lun,0,0,'ALL',0)
+cccc        call PRZTRH(lun,ipt,0,cfl,0)
       else if (bank.eq.'ZTRK') then
-        call PRZTRK(lun,0,0,'ALL',0)
+        call PRZTRK(lun,ipt,0,cfl,0)
       else
         nrow = names/8
         extra = names - 8*nrow

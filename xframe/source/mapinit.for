@@ -15,6 +15,29 @@ c
 c
 c     init d0map stuff
 c
+      d0xdisk = .true.
+      nevout = 0
+      d0dadrdc = .true.
+      docahits = .false.
+      cahitsinit = .false.
+      docleanem = .false.
+      docleanmu = .false.
+      cleaneminit = .false.
+      cleanmuinit = .false.
+      docafix = .false.
+      cafixinit = .false.
+      udsttodst = .false.
+      dod0xuser = .true.
+      nd0xtrue = 0
+      nd0xfalse = 0
+      wildc = .false.
+      nreqs = 0
+      nreq2 = 0
+      nhsts = 0
+      reqstop = .true.
+      doreq = 0
+      doreqtf = .true.
+      doandor = .true.
       dropkeep = 1
       nbdrop = 0
       pnuttype = 2
@@ -33,6 +56,8 @@ c
       tstate = 0   !0=partial, 1=full
       dstate = 1   !enable data display (n/a now)
 c
+      write(*,'('' =========> D0X INIT:  ZEBRA'')')
+c
 c     initialize zebra
 c
       CALL MZEBRA(0)
@@ -45,9 +70,16 @@ c
 C
 C     now finish the initialization
 C
+      write(*,'('' =========> D0X INIT:  ZEBCOM'')')
       CALL INZCOM(0)              ! initialize ZEBCOM
+      write(*,'('' =========> D0X INIT:  ZEBSTP'')')
       CALL INZSTP                 ! initialize ZEBSTP
+      write(*,'('' =========> D0X INIT:  ZLINKA'')')
       CALL INZLNK                 ! initialize ZLINKA
+      write(*,'('' =========> D0X INIT:  HBOOK'')')
+      CALL HLIMIT(-tlimit)        ! initialize HBOOK
+      write(*,'('' =========> D0X INIT:  CALOR'')')
+      CALL CALOR_INI              ! initialize CALOR package
 c
       pstore = 0
       dbname(0) = 'ZEBCOM  '

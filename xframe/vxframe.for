@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VXFRAME()
       VXFRAME = ' XFRAME'//
-     X                   '  OFFICIAL V0.01'//
-     X                   '  3-JUN-1993 11:00:30.22'
+     X                   '  TEST V0.01_11'//
+     X                   ' 28-JUN-1996 18:19:10.36'
       Return
       End

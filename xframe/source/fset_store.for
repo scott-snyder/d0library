@@ -54,12 +54,19 @@ c
         dbname(pstore) = 'ZEBWRK  '
         dbstore(pstore) = ixwrk
         dbdiv(pstore) = idvwrk
+c
+      else if (pstore.eq.4) then
+        d0xdisk = .true.
+      else if (pstore.eq.5) then
+        d0xdisk = .false.
       endif
 c
 c     ZEBRA INTERNAL ROUTINE TO SWITCH STORES
 c
-      if (jbyt(dbstore(pstore),27,6).ne.jqstor)
+      if (pstore.lt.4) then
+        if (jbyt(dbstore(pstore),27,6).ne.jqstor)
      &  call mzsdiv (dbstore(pstore),-7)
+      endif
 c
       return
       end

@@ -4,21 +4,37 @@
 */
  
 #include <stdio.h>                   /* I/O definitions                       */
+#include "D0$XFRAME$SOURCE:D0X_C.H"
  
 /*---------------------------------------------------------------------
   sets mode (0=exchange, 1=native) - not really needed (D0OPEN)
 ----------------------------------------------------------------------*/
-csetmode(w,tag,reason)  
-int w;
+void csetmode(w,tag,reason)  
+Widget w;
 int		*tag;
 unsigned long	*reason;
 {
 	int select = *tag;
+    XmString tmp;
 	
 #ifdef D0FLAVOR
 	fmode_(&select);
 #else
 	fmode(&select);
 #endif
+	switch (select) {
+		case 0:
+			tmp = XmStringCreateSimple("Mode: EXCHANGE");
+			XtVaSetValues(fz_mode, XmNlabelString, tmp, NULL);
+			XmStringFree(tmp);
+			break;
+		case 1:
+			tmp = XmStringCreateSimple("Mode: NATIVE");
+			XtVaSetValues(fz_mode, XmNlabelString, tmp, NULL);
+			XmStringFree(tmp);
+			break;
+		default:
+			break;
+	}
   	return;
 }

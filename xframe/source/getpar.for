@@ -54,6 +54,12 @@ c
      &    %ref(length),%val(maxline))
         if (length.eq.0) return
 c
+c       now, remove the rest of the line (put blanks in)
+c
+        do i=length+1,132
+          line(i:i) = ' '
+        enddo
+c
 c       now parse the line returned by cgetpar
 c
         if (type.eq.'R') then
@@ -110,6 +116,21 @@ C&ENDIF
       enddo
 c
 c     that's all folks
+c
+      return
+      end
+ccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine getstring(prompt,retstr)
+c
+c     fortran --> X!!!
+c
+      implicit none
+c
+      character*(*) prompt,retstr
+c
+      integer status
+c
+      call fxgetchar(%ref(prompt),%ref(' '),%ref(retstr),status)
 c
       return
       end

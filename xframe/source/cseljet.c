@@ -4,9 +4,9 @@
 */
  
 #include <stdio.h>                   /* I/O definitions                       */
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
  
-cseljet(w,tag,reason)   
+void cseljet(w,tag,reason)   
 Widget		w;
 int		*tag;
 unsigned long	*reason;

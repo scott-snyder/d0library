@@ -101,7 +101,7 @@ typedef struct _TreeConstraintsRec {
 #define TREE_CONSTRAINT(w) \
                    ((TreeConstraints)((w)->core.constraints))
 
-#endif TREEP_H
+#endif /* TREEP_H */
 
 
 

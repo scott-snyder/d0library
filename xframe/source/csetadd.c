@@ -5,7 +5,7 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
 
 /*---------------------------------------------------------------------
     set the address
@@ -19,8 +19,8 @@ int *address, *chain;
 {
 	char ch[50];
 
-	sprintf(ch,"Current address: %d   Chain length: %d",*address,*chain);
-	XmTextSetString(navigate_text,ch);
-	/*	SetLabel(xdbank_text_address,ch);   */
+	sprintf(ch,"Address: %d",*address);
+	SetLabel(navaddresslab,ch);
+	sprintf(ch,"Chain Length: %d",*chain);
+	SetLabel(navchainlab,ch);
 }
-

@@ -2,7 +2,8 @@
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods :
-C-    tag = -3, NAVIGATE address AND bank name (data)
+C-    tag = -4, NAVIGATE change format 
+C-          -3, NAVIGATE address AND bank name (data)
 c           -2,    "     TREE widget
 c           -1,    "     .ZEB file
 c            0, XDBANK   bank name only (data)
@@ -13,6 +14,7 @@ c            4, DZFORM
 c            5, DBANK
 c            6, DADDR
 c            7, SET_CAPH
+c            8, PRBANK to output file
 C-
 C-   Inputs  : tag - from widget
 C-             temp - integer/char pointer
@@ -30,20 +32,26 @@ c
       character*50 algo,which_algo(3)
       character*80 msg
       integer maxzeb
-      parameter (maxzeb=80)
+      parameter (maxzeb=240)
       integer nlinezeb
       character*84 zebfile(maxzeb)
       character*4 cline4(21*maxzeb)
       character*4 cbank
+C&IF VAXVMS
+C&ELSE
+C&      character*4 cbankl
+C&ENDIF
       character*136 outchr(200)
       integer maxline
       parameter (maxline = 400)
       integer jline4(34*maxline)
       character*4 jcline4(24*maxline)
       integer iline4(21*maxzeb)
-      integer len,ibank,tlen,ier,pointer
-      integer nl,null,type,nline,vers,which,which_cone
+      integer len,ibank,tlen,ier,pointer,ierr,lun
+      integer type,vers,which,which_cone
+      logical ok
       real cone(3),template(3)
+      character*80 filen
 c
       data cone/.3,.5,.7/,which_algo/'ELECTRON','CONE_JET','NN_JET'/
 c
@@ -69,8 +77,17 @@ c
         endif
         call str$upcase(cbank,cbank)
 c
+        if (tag.eq.-4) then
 c
-        if (tag.eq.-3) then
+c         someone has requested another format for display (auto, int, ...)
+c
+          call getzebd(1,baddr,cbank,21*maxzeb,cline4,nlinezeb,ier)
+          type = 1
+          if (ier.eq.0) then
+            call cstuffzeb(iline4,type)
+ccccccc            call cstufflist(iline4)
+          endif
+        else if (tag.eq.-3) then
 c
 c         get the data and stuff it into the appropriate text widget
 c
@@ -99,12 +116,16 @@ c
 c
 c         put the .zeb file into the window
 c
+C&IF VAXVMS
+C&ELSE
+C&        cbankl = cbank
+C&        call cutol(cbankl)
+C&        cbank = cbankl
+C&ENDIF
           call getzeblst(cbank,maxzeb,zebfile,nlinezeb,ier)
           type = 0
           if (ier.eq.0) then
             call cstuffzeb(iline4,type)
-          else
-            call xerrmsg('.ZEB file not found')
           endif
 c
         else if (tag.eq.0) then
@@ -133,7 +154,7 @@ c
         write(msg,'(''Dump of bank at address '',i9)') temp
         call dzshow(msg,dbstore(pstore),temp,'BLD',0,0,0,0)
 c
-      else if (tag.eq.2) then
+      else if (tag.eq.2.or.tag.eq.8) then
 c
 c       call prbank
 c
@@ -148,7 +169,19 @@ c
           return
         endif
         call str$upcase(cbank,cbank)
-        call prbank(cbank,out_lun)
+        if (tag.eq.8) then
+c
+c         open output file
+c
+          call gtunit(d0xuserunit,lun,ierr)
+          call getstring('Filename:',filen)
+          call d0open(lun,filen,'O',ok)
+          call prbank(cbank,0,lun)
+          close(unit=lun)
+        else
+          lun = 6
+          call prbank(cbank,0,lun)
+        endif
 c
       else if (tag.eq.3) then
 c
@@ -217,6 +250,35 @@ c
         call show_caph(algo,vers,ier)
         write(*,'('' Current CAPH path is:'',/,
      &    '' Algorithm: '',a50,/,'' Version: '',i4)') algo,vers
+c
+      else if (tag.eq.10.or.tag.eq.11) then
+c
+c       call prbank, use address
+c
+        ibank = temp
+        len = tlen(cbank)
+        if (len.eq.1.and.cbank(1:1).eq.'?') then
+          len = 4
+          cbank(1:4) = 'XXXX'
+        endif
+        if (len.ne.4) then
+          call xerrmsg('4 Letters ONLY for "BANK"')
+          return
+        endif
+        call str$upcase(cbank,cbank)
+        if (tag.eq.11) then
+c
+c         open output file
+c
+          call gtunit(d0xuserunit,lun,ierr)
+          call getstring('Filename:',filen)
+          call d0open(lun,filen,'O',ok)
+          call prbank(cbank,baddr,lun)
+          close(unit=lun)
+        else
+          lun = 6
+          call prbank(cbank,baddr,lun)
+        endif
 c
       endif
 c

@@ -12,4 +12,4 @@ typedef struct _XsTreeRec      *XsTreeWidget;
 #define XtNsuperNode          "superNode"
 #define XtCSuperNode          "SuperNode"
 
-#endif TREE_H
+#endif /*TREE_H*/

@@ -5,7 +5,7 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
 
 /*---------------------------------------------------------------------
     reset the bank name (navigating)
@@ -22,7 +22,6 @@ int *off;
 
 	sprintf(ch,"%4s",bank);
 	ch[4] = '\0';
-	XmTextSetString(bank_text,ch);
 	XmTextSetString(xdbank_bank_2,ch);
 
 	sprintf(ch,"%d",*off);

@@ -21,9 +21,9 @@ c
       integer length,istr(*),dork
 c
       character*200 tlist
-      integer i,ilen,n,nl
+      integer i,n,nl
 c
-      call cfchar(0,istr,tlist,ilen)
+      call cfchar(0,istr,tlist,length)
 c
       n = 0
       i = (length+2)/5

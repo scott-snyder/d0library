@@ -1,14 +1,13 @@
 
 #include <stdio.h>                      /* For printf and so on. */
-#include <Xm/Text.h>
-#include <Mrm/MrmAppl.h>                /* Motif Toolkit and MRM */
-#include <X11/X.h>
+#include "d0$xframe$source:d0x_c.h"
+/*#include <X11/X.h>*/
 
 /* The vuit generated application include file.				    */
 /* If the user does not specify a directory for the file		    */
 /* then the vaxc$include logical needs to be defined to point to the	    */
 /* directory of the include file.					    */
-#include "D0$XFRAME$SOURCE:D0X.H"
+#include "d0$xframe$source:d0x.h"
 
 /*
  * Global data
@@ -83,10 +82,6 @@ void manphyshelp();
 void umphyshelp();
 void manfiles();
 void umfiles();
-void mancontrol();
-void manutil();
-void umutil();
-void umcontrol();
 void eselcor();
 void manout();
 void umout();
@@ -106,6 +101,46 @@ void manpmuo();
 void umpmuo();
 void mancol();
 void umcol();
+void manq();
+void umq();
+void doquery();
+void squery();
+void manzq();
+void umzq();
+void manqh();
+void umqh();
+void manhist();
+void umhist();
+void d0xhist();
+void manhform();
+void umhform();
+void chdraw();
+void mankunz();
+void umkunzb();
+void mantup();
+void umtup();
+void manpmc();
+void umpmc();
+void mandec();
+void umdec();
+void mand0x();
+void umd0x();
+void manqsub();
+void umqsub();
+void manpack();
+void umpack();
+void mand0dad();
+void umd0dad();
+void manpt();
+void umpt();
+void manen();
+void umen();
+void mantrk();
+void umtrk();
+void d0xtracks();
+void mancal();
+void umcal();
+void d0xcaeh();
 
 /*
  * Names and addresses of callback routines to register with Mrm
@@ -161,10 +196,6 @@ static MrmRegisterArg reglist [] = {
 {"umphyshelp", (caddr_t)umphyshelp},
 {"manfiles", (caddr_t)manfiles},
 {"umfiles", (caddr_t)umfiles},
-{"mancontrol", (caddr_t)mancontrol},
-{"manutil", (caddr_t)manutil},
-{"umutil", (caddr_t)umutil},
-{"umcontrol", (caddr_t)umcontrol},
 {"eselcor", (caddr_t)eselcor},
 {"manout", (caddr_t)manout},
 {"umout", (caddr_t)umout},
@@ -183,7 +214,47 @@ static MrmRegisterArg reglist [] = {
 {"manpmuo", (caddr_t)manpmuo},
 {"umpmuo", (caddr_t)umpmuo},
 {"mancol", (caddr_t)mancol},
-{"umcol", (caddr_t)umcol}};
+{"umcol", (caddr_t)umcol},
+{"manq", (caddr_t)manq},
+{"umq", (caddr_t)umq},
+{"doquery", (caddr_t)doquery},
+{"squery", (caddr_t)squery},
+{"manzq", (caddr_t)manzq},
+{"umzq", (caddr_t)umzq},
+{"manqh", (caddr_t)manqh},
+{"umqh", (caddr_t)umqh},
+{"manhist", (caddr_t)manhist},
+{"umhist", (caddr_t)umhist},
+{"d0xhist", (caddr_t)d0xhist},
+{"manhform", (caddr_t)manhform},
+{"umhform", (caddr_t)umhform},
+{"chdraw", (caddr_t)chdraw},
+{"mankunz", (caddr_t)mankunz},
+{"umkunzb", (caddr_t)umkunzb},
+{"mantup", (caddr_t)mantup},
+{"umtup", (caddr_t)umtup},
+{"manpmc", (caddr_t)manpmc},
+{"umpmc", (caddr_t)umpmc},
+{"mandec", (caddr_t)mandec},
+{"umdec", (caddr_t)umdec},
+{"mand0x", (caddr_t)mand0x},
+{"umd0x", (caddr_t)umd0x},
+{"manqsub", (caddr_t)manqsub},
+{"umqsub", (caddr_t)umqsub},
+{"manpack", (caddr_t)manpack},
+{"umpack", (caddr_t)umpack},
+{"mand0dad", (caddr_t)mand0dad},
+{"umd0dad", (caddr_t)umd0dad},
+{"manpt", (caddr_t)manpt},
+{"umpt", (caddr_t)umpt},
+{"manen", (caddr_t)manen},
+{"umen", (caddr_t)umen},
+{"mantrk", (caddr_t)mantrk},
+{"umtrk", (caddr_t)umtrk},
+{"d0xtracks", (caddr_t)d0xtracks},
+{"mancal", (caddr_t)mancal},
+{"umcal", (caddr_t)umcal},
+{"d0xcaeh", (caddr_t)d0xcaeh}};
 
 static int reglist_num = (sizeof reglist / sizeof reglist[0]);
 
@@ -204,13 +275,12 @@ static int reglist_num = (sizeof reglist / sizeof reglist[0]);
  */
 
 
-
 /*
  * OS transfer point.  The main routine does all the one-time setup and
  * then calls XtAppMainLoop.
  */
 unsigned int main(argc, argv)
-    unsigned int argc;                  /* Command line argument count. */
+    int argc;                  		    /* Command line argument count. */
     char *argv[];                       /* Pointers to command line args. */
 {
     Arg arglist[2];
@@ -230,7 +300,7 @@ unsigned int main(argc, argv)
     XtToolkitInitialize();
 
     app_context = XtCreateApplicationContext();
-    display = XtOpenDisplay(app_context, NULL, argv[0], "example",
+    display = XtOpenDisplay(app_context, NULL, "d0x", "D0X",
                             NULL, 0, &argc, argv);
     if (display == NULL) 
 	{
@@ -240,7 +310,7 @@ unsigned int main(argc, argv)
 
     n = 0;
     XtSetArg(arglist[n], XmNallowShellResize, True);  n++;
-    toplevel_widget = XtAppCreateShell(argv[0], NULL, applicationShellWidgetClass,
+    toplevel_widget = XtAppCreateShell("d0x", "D0X", applicationShellWidgetClass,
                               display, arglist, n);
 
     /* 
@@ -257,9 +327,6 @@ MrmRegisterNames (reglist, reglist_num);
 
 
 VUIT_Manage("d0x_main");
-VUIT_Manage("files_bull");
-VUIT_Manage("control_bull");
-VUIT_Manage("d0_bull");
 
     /* 
      * Realize the top level widget.  All managed children now become visible
@@ -273,7 +340,6 @@ VUIT_Manage("d0_bull");
     XtAppMainLoop(app_context);
 }
 
-
 /*
  * All errors are fatal.
  */
@@ -283,7 +349,6 @@ void s_error(problem_string)
     printf("%s\n", problem_string);
     exit(0);
 }
-
 void VUIT_Manage(widget_name)
     char	*widget_name;
 {
@@ -296,7 +361,7 @@ void VUIT_Manage(widget_name)
 	    {
 	    pop_window = XtWindow(XtParent(id));
 	    values.x = values.y = values.width = values.height =
-		values.border_width = values.sibling = NULL;
+		values.border_width = values.sibling = 0;
 	    values.stack_mode = Above;
 	    XConfigureWindow(display, pop_window, CWStackMode, &values);
 	    }
@@ -311,7 +376,6 @@ void VUIT_Manage(widget_name)
 	HashRegister(widget_name, id);
 	}
 }
-
 void VUIT_Unmanage(widget_name)
     char	*widget_name;
 {
@@ -320,7 +384,6 @@ void VUIT_Unmanage(widget_name)
     if (HashLookup(widget_name, &id))
 	XtUnmanageChild(id);
 }
-
 int HashRegister (widget_name, id)
     char		*widget_name;
     Widget		id;    
@@ -346,7 +409,6 @@ int HashRegister (widget_name, id)
 	}
 }
 
-
 int HashLookup (name, id)
     char		*name;
     Widget		*id;
@@ -378,7 +440,6 @@ int HashLookup (name, id)
 
     return (FALSE);
 }
-
 int HashFunction (name, max)
     char		*name;
     int			max;
@@ -422,7 +483,6 @@ typedef union
     return (code&0x7FFF) % max;
 }
 
-
 void quitting (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -430,7 +490,6 @@ unsigned long	*reason;
 {
 myquit(w, tag, reason);
 }
-
 void help_proc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -438,7 +497,6 @@ unsigned long	*reason;
 {
 help_d0x(w, tag, reason);
 }
-
 void main_init (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -446,7 +504,6 @@ unsigned long	*reason;
 {
 d0_init(w, tag, reason);
 }
-
 void save_text_tag (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -454,7 +511,6 @@ unsigned long	*reason;
 {
 save_text(w, tag, reason);
 }
-
 void specify_file_type (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -462,7 +518,6 @@ unsigned long	*reason;
 {
 cfiletype(w, tag, reason);
 }
-
 void file_open (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -470,7 +525,6 @@ unsigned long	*reason;
 {
 fileopen(w, tag, reason);
 }
-
 void control_proc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -478,7 +532,6 @@ unsigned long	*reason;
 {
 control(w, tag, reason);
 }
-
 void zebra_proc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -486,7 +539,6 @@ unsigned long	*reason;
 {
 czebra(w, tag, reason);
 }
-
 void d0util_proc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -494,7 +546,6 @@ unsigned long	*reason;
 {
 cd0util(w, tag, reason);
 }
-
 void mode_proc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -502,7 +553,6 @@ unsigned long	*reason;
 {
 csetmode(w, tag, reason);
 }
-
 void search_type (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -510,7 +560,6 @@ unsigned long	*reason;
 {
 csearch(w, tag, reason);
 }
-
 void interrupt (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -518,7 +567,6 @@ unsigned long	*reason;
 {
 cinterrupt(w, tag, reason);
 }
-
 void store_type (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -526,7 +574,6 @@ unsigned long	*reason;
 {
 cset_store(w, tag, reason);
 }
-
 void select_proc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -534,7 +581,6 @@ unsigned long	*reason;
 {
 cselect(w, tag, reason);
 }
-
 void format_proc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -542,7 +588,6 @@ unsigned long	*reason;
 {
 cformat(w, tag, reason);
 }
-
 void zeblst_proc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -550,7 +595,6 @@ unsigned long	*reason;
 {
 czeblst(w, tag, reason);
 }
-
 void navigate_proc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -558,7 +602,6 @@ unsigned long	*reason;
 {
 cnavigate(w, tag, reason);
 }
-
 void again_proc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -566,7 +609,6 @@ unsigned long	*reason;
 {
 cagain(w, tag, reason);
 }
-
 void set_curtop (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -574,7 +616,6 @@ unsigned long	*reason;
 {
 csetcurtop(w, tag, reason);
 }
-
 void man_raw (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -582,7 +623,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("raw_form");
 }
-
 void unman_raw (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -590,7 +630,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("raw_form");
 }
-
 void decodeit (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -598,7 +637,6 @@ unsigned long	*reason;
 {
 xdecode(w, tag, reason);
 }
-
 void rawcall (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -606,7 +644,6 @@ unsigned long	*reason;
 {
 crawdata(w, tag, reason);
 }
-
 void out_event (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -614,7 +651,6 @@ unsigned long	*reason;
 {
 evout(w, tag, reason);
 }
-
 void printit (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -622,7 +658,6 @@ unsigned long	*reason;
 {
 cprintit(w, tag, reason);
 }
-
 void man_tree (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -630,7 +665,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("tree_form");
 }
-
 void unman_tree (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -638,7 +672,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("tree_form");
 }
-
 void unman_ztree (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -646,7 +679,6 @@ unsigned long	*reason;
 {
 undotree(w, tag, reason);
 }
-
 void um_navc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -654,7 +686,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("nav_control");
 }
-
 void um_navz (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -662,7 +693,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("nav_zeb");
 }
-
 void um_navd (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -670,7 +700,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("nav_data");
 }
-
 void um_tree (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -678,7 +707,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("xdbank_shell");
 }
-
 void man_navc (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -686,7 +714,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("nav_control");
 }
-
 void man_navd (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -694,7 +721,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("nav_data");
 }
-
 void man_navz (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -702,7 +728,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("nav_zeb");
 }
-
 void man_navt (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -710,7 +735,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("xdbank_shell");
 }
-
 void allout (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -718,7 +742,6 @@ unsigned long	*reason;
 {
 csetout(w, tag, reason);
 }
-
 void manphys (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -726,7 +749,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("physics_bull");
 }
-
 void unmanphys (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -734,7 +756,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("physics_bull");
 }
-
 void cphysics (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -742,7 +763,6 @@ unsigned long	*reason;
 {
 cphys(w, tag, reason);
 }
-
 void jetsel (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -750,7 +770,6 @@ unsigned long	*reason;
 {
 cseljet(w, tag, reason);
 }
-
 void mandisp (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -758,7 +777,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("disp_bull");
 }
-
 void unmandisp (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -766,22 +784,19 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("disp_bull");
 }
-
 void selectcol (w, tag, reason)
 Widget		w;
 int		*tag;
-unsigned long	*reason;
+XmToggleButtonCallbackStruct	*reason;
 {
 selectc(w, tag, reason);
 }
-
 void phioff (w, tag, reason)
 Widget		w;
 int		*tag;
 unsigned long	*reason;
 {
 }
-
 void allinfo (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -789,7 +804,6 @@ unsigned long	*reason;
 {
 cinfo(w, tag, reason);
 }
-
 void manphyshelp (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -797,7 +811,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("physicshelp");
 }
-
 void umphyshelp (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -805,63 +818,27 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("physicshelp");
 }
-
 void manfiles (w, tag, reason)
 Widget		w;
 int		*tag;
 unsigned long	*reason;
 {
-VUIT_Manage("files_bull");
+VUIT_Manage("maincontrol");
 }
-
 void umfiles (w, tag, reason)
 Widget		w;
 int		*tag;
 unsigned long	*reason;
 {
-VUIT_Unmanage("files_bull");
+VUIT_Unmanage("maincontrol");
 }
-
-void mancontrol (w, tag, reason)
-Widget		w;
-int		*tag;
-unsigned long	*reason;
-{
-VUIT_Manage("control_bull");
-}
-
-void manutil (w, tag, reason)
-Widget		w;
-int		*tag;
-unsigned long	*reason;
-{
-VUIT_Manage("d0_bull");
-}
-
-void umutil (w, tag, reason)
-Widget		w;
-int		*tag;
-unsigned long	*reason;
-{
-VUIT_Unmanage("d0_bull");
-}
-
-void umcontrol (w, tag, reason)
-Widget		w;
-int		*tag;
-unsigned long	*reason;
-{
-VUIT_Unmanage("control_bull");
-}
-
 void eselcor (w, tag, reason)
 Widget		w;
 int		*tag;
-unsigned long	*reason;
+XmToggleButtonCallbackStruct	*reason;
 {
 selecor(w, tag, reason);
 }
-
 void manout (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -869,7 +846,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("output_bull");
 }
-
 void umout (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -877,7 +853,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("output_bull");
 }
-
 void umlist (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -885,7 +860,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("list_bull");
 }
-
 void manlist (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -893,31 +867,27 @@ unsigned long	*reason;
 {
 VUIT_Manage("list_bull");
 }
-
 void rotatephi (w, tag, reason)
 Widget		w;
 int		*tag;
-unsigned long	*reason;
+XmArrowButtonCallbackStruct	*reason;
 {
 phirot(w, tag, reason);
 }
-
 void rotatetheta (w, tag, reason)
 Widget		w;
 int		*tag;
-unsigned long	*reason;
+XmArrowButtonCallbackStruct	*reason;
 {
 thetarot(w, tag, reason);
 }
-
 void rotatepsi (w, tag, reason)
 Widget		w;
 int		*tag;
-unsigned long	*reason;
+XmArrowButtonCallbackStruct	*reason;
 {
 psirot(w, tag, reason);
 }
-
 void manjetb (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -925,7 +895,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("jet_bull");
 }
-
 void umjetb (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -933,7 +902,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("jet_bull");
 }
-
 void manpb (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -941,7 +909,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("pnut_bull");
 }
-
 void umpb (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -949,7 +916,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("pnut_bull");
 }
-
 void manem (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -957,7 +923,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("em_bull");
 }
-
 void umem (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -965,7 +930,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("em_bull");
 }
-
 void treesize (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -973,7 +937,6 @@ unsigned long	*reason;
 {
 retree(w, tag, reason);
 }
-
 void manpmuo (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -981,7 +944,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("pmuo_bull");
 }
-
 void umpmuo (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -989,7 +951,6 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("pmuo_bull");
 }
-
 void mancol (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -997,7 +958,6 @@ unsigned long	*reason;
 {
 VUIT_Manage("colbull");
 }
-
 void umcol (w, tag, reason)
 Widget		w;
 int		*tag;
@@ -1005,4 +965,289 @@ unsigned long	*reason;
 {
 VUIT_Unmanage("colbull");
 }
-
+void manq (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("querybull");
+}
+void umq (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("querybull");
+}
+void doquery (w, tag, reason)
+Widget		w;
+int		*tag;
+XmListCallbackStruct	*reason;
+{
+d0xquery(w, tag, reason);
+}
+void squery (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+setquery(w, tag, reason);
+}
+void manzq (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("reqzeb");
+}
+void umzq (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("reqzeb");
+}
+void manqh (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("qhelp");
+}
+void umqh (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("qhelp");
+}
+void manhist (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("bullhist");
+}
+void umhist (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("bullhist");
+}
+void d0xhist (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+dxhisto(w, tag, reason);
+}
+void manhform (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("histform");
+}
+void umhform (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("histform");
+}
+void chdraw (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+d0xhdraw(w, tag, reason);
+}
+void mankunz (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("kunzb");
+}
+void umkunzb (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("kunzb");
+}
+void mantup (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("tupbull");
+}
+void umtup (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("tupbull");
+}
+void manpmc (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("physmc");
+}
+void umpmc (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("physmc");
+}
+void mandec (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("decodebull");
+}
+void umdec (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("decodebull");
+}
+void mand0x (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("d0xuserbull");
+}
+void umd0x (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("d0xuserbull");
+}
+void manqsub (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("querysubbull");
+}
+void umqsub (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("querysubbull");
+}
+void manpack (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("d0packages");
+}
+void umpack (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("d0packages");
+}
+void mand0dad (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("d0dadform");
+}
+void umd0dad (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("d0dadform");
+}
+void manpt (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("ptau_bull");
+}
+void umpt (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("ptau_bull");
+}
+void manen (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("enable_bull");
+}
+void umen (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("enable_bull");
+}
+
+void mantrk (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("track_bull");
+}
+
+void umtrk (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("track_bull");
+}
+
+void d0xtracks (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+d0tracks(w, tag, reason);
+}
+
+void mancal (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Manage("cal_bull");
+}
+
+void umcal (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+VUIT_Unmanage("cal_bull");
+}
+
+void d0xcaeh (w, tag, reason)
+Widget		w;
+int		*tag;
+unsigned long	*reason;
+{
+d0caeh(w, tag, reason);
+}

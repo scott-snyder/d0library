@@ -5,7 +5,7 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
 
 #include <X11/Intrinsic.h>
 
@@ -20,7 +20,7 @@ check_asynch()
 {
 	XtAppContext context;
 
-	context = XtWidgetToApplicationContext(file_text);
+	context = XtWidgetToApplicationContext(main_text);
 	while (XtAppPending(context))
 		XtAppProcessEvent(context,XtIMAll);
 

@@ -5,9 +5,9 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
 
-csetcurtop(w,tag,reason)    /* tag=0, set to main, else to navigator */
+void csetcurtop(w,tag,reason)    /* tag=0, set to main, else to navigator */
 Widget w;
 int *tag;
 unsigned long   *reason;

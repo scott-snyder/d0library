@@ -5,12 +5,12 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
 
 /*---------------------------------------------------------------------
   causes the linear bank number in text window to be read
 ----------------------------------------------------------------------*/
-cselect(w,tag,reason)
+void cselect(w,tag,reason)
 Widget		w;
 int		*tag;
 unsigned long	*reason;
@@ -34,7 +34,7 @@ unsigned long	*reason;
 /*
     				get bank name
 */
-	bank = XmTextGetString(bank_text);
+	bank = XmTextGetString(xdbank_bank_2);
 	   	/* now, call the fd0util routine with tag=0 for xdbank */
 	dum = 0;
 #ifdef D0FLAVOR

@@ -5,49 +5,43 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
-#include "/d0lib/scratch/xframe/source/d0x_c.h"
+#include "/d0library/scratch/test/xframe/source/d0x_c.h"
 
 /*---------------------------------------------------------------------
   zebra menu - 0=dump, 1=verify, 3=path
 ----------------------------------------------------------------------*/
-czebra(w,tag,reason)
+char pathtext[100]="HEAD";
 
+void czebra(w,tag,reason)
 Widget		w;
 int		*tag;
 unsigned long	*reason;
 {
-	char *path;
-	int select = *tag, reset;
+	int select = *tag, reset, status;
+	char tstring[100];
+	XmString tmp;
 	switch (select) {
 		case 0:				/* dump */
 		  break;
   		case 1:  			/* verify */
   		  break;
   		case 3:				/* path */
- 		  path = XmTextGetString(path_text);
+  		  xgetchar("ZEBRA PATH name:",pathtext,pathtext,&status);
+  		case 2:				/* path called from cfiletype */
+  		  strcpy(tstring,"Set Path (");
+  		  strcat (tstring,pathtext);
+  		  strcat(tstring,")");
+  		  tmp = XmStringCreateSimple(tstring);
+  		  XtVaSetValues(zpath, XmNlabelString, tmp, NULL);
+  		  XmStringFree(tmp);
  		  break;
  		default:
 		  printf(" ***Illegal tag presented 'zebra util'***\n");
 		  return;
 		}
 #ifdef D0FLAVOR
-	fzebra_(&select,path);
+	fzebra_(&select,pathtext);
 #else
-	fzebra(&select,path);
+	fzebra(&select,pathtext);
 #endif
-switch (select) {
-		case 0:				/* dump */
-		  break;
-  		case 1:  			/* verify */
-  		  break;
-  		case 3:				/* path */
-	      XmTextSetString(path_text,path);
- 		  break;
- 		default:
-		  printf(" ***Illegal tag presented 'zebra util'***\n");
-		  return;
-		}
-
-	XtFree(path);
-	return;
 }

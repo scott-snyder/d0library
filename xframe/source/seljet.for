@@ -5,6 +5,10 @@ C-   Purpose and Methods : sets jet type for physics display.
 C-
 C-   Inputs  : w, reason ignore, tag=0,1,2 jet cone .3,.5,.7, 
 C-                               tag=3 nearest neighbor
+C-                               tag=4 pnut 1
+C-                               tag=5 pnut 2
+C-                               tag=6 pnut 3
+C-                               tag=7 Chip's KT algorithm
 C-   Outputs : 
 C-   Controls: 
 C-
@@ -55,6 +59,24 @@ c
 c       select pnut(3)
 c
         pnuttype = 3
+c
+      else if (tag.eq.7) then
+c
+c       select kt algo
+c
+        jcone = 5.0
+c
+      else if (tag.eq.8) then
+c
+c       select pnut(4)
+c
+        pnuttype = 4
+c
+      else if (tag.eq.9) then
+c
+c       select pnut(5)
+c
+        pnuttype = 5
 c
       endif
 c

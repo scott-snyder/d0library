@@ -12,5 +12,7 @@ cxerrmsg(text)  /* used to deal with the fortran vax/unix dreaded underscore */
 #endif
 char *text;
 {
+        void cerrmsg(char*);
+        
         cerrmsg(text);
 }

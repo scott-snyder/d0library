@@ -1,4 +1,4 @@
-      SUBROUTINE FZEBRA(tag,path)
+      subroutine FZEBRA(tag,path)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods :
@@ -57,7 +57,7 @@ c
 c
 c       obsolete
 c
-        call xerrmsg('Tag 2 OBSOLETE!!!')
+        return
       else if (tag.eq.3) then
 c
 c       set/show path
