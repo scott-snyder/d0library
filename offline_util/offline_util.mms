@@ -4,7 +4,7 @@
 !
 ! Purpose   : Update target: OFFLINE_UTIL.TSP
 !
-! Created  11-JUL-97   12:20:34  USERLIB V6.00 18-FEB-1991
+! Created  24-NOV-97   15:44:44  USERLIB V6.00 18-FEB-1991
 !------------------------------------------------------------
 !
 

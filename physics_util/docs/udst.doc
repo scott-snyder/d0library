@@ -1,0 +1,620 @@
+    Documentation for MAKE_UDST and UDST_TO_DST packages - version 4.0
+                                                        Ulrich Heintz  4/1/1995
+______________________________________________________________________________
+
+    HOW TO CONVERT DST'S TO MICRO DST'S
+
+    To make an executable that converts DST's to micro DST's, run PBD including
+    the packages CALOR,C2L2EM,MAKE_UDST. If you are using CALOR_OFF you need not
+    include CALOR explicitly. CALOR_OFF includes it automatically. 
+    For example:
+
+    $ PBD/FRAME=D0USER/NAME=MAKE_UDST/PACK=(CALOR,C2L2EM,MAKE_UDST)
+
+    Then link and run as usual. You MUST define the DST output stream. The 
+    micro DST will be written to it.
+______________________________________________________________________________
+
+    HOW TO ANALYZE MICRO DST'S
+
+    To analyze a micro DST with your DST analysis package include the
+    UDST_TO_DST package before your analysis package when running PBD.
+    For example:
+
+    $ PBD/FRAME=D0USER/NAME=your_analysis/PACK=(UDST_TO_DST,your_package)
+
+    Use the micro DST file as input. 
+______________________________________________________________________________
+
+    HOW TO ACCESS UDST DIRECTLY
+
+    To access words in UDST that are not unpacked into DST banks or 
+    to extract a word from the UDST bank without using UDST_TO_DST use
+    a call to UDST_VALUE at any point in your program:
+        VARIABLE = UDST_VALUE(<group name>,<tag>,<bank number>,IER)
+    For example TRD = UDST_VALUE('PELC','TRDEFF',IQ(LPELC-5),IER) will return
+    the value of the TRD efficiency variable for the PELC bank with pointer 
+    LPELC. The error flag IER is 0 if the call was successful. Other values
+    indicate error conditions:
+                1 if specified group name was not found
+                2 if specified tag was not found
+                3 if specified bank number was not found
+______________________________________________________________________________
+
+    A more detailed document can be found in D0 note 2327 
+    (D0$PHYSICS_UTIL$DOCS:UDST.PS).
+
+______________________________________________________________________________
+
+    LIST OF CONTENTS
+
+    The words that are listed below are filled by the UDST_TO_DST package.
+    Words marked (*) were not saved independently but recomputed from other 
+    words. Words marked (vn) are only available in UDST banks of version n or
+    higher.
+
+______________________________________________________________________________
+HEAD  (all words)  
+______________________________________________________________________________
+HSTR  (for RECO only)  
+              1  I  bank version 
+              3  I  version #
+              4  I  pass # 
+           7--16  H  production program name (=FULL_DO RECO) 
+______________________________________________________________________________
+GLOB 
+      -3            reference link to VCOR name=`MRFN' (v4) 
+      -2            reference link to VCOR name=`MRFX' 
+              1  I  version (of original bank) 
+              2  I  bit-string indicating event quality 
+              4  I  number of CC cells E>0.3 EM+FH 
+              6  F  total scalar Et in EC 
+              7  F  total scalar Et in CC 
+              8  F  total energy in calorimeter 
+              9  F  total energy in south EC 
+             10  F  total energy in upper CC 
+             11  F  total energy in lower CC 
+             12  F  total energy in north EC 
+             13  F  total energy along main ring 
+             14  F  total scalar Et along main ring 
+             15  F  total energy of hot cells 
+             16  F  vectorial sum of Et of hot cells 
+             17  F  time since event 29 (seconds) 
+             18  B  main ring bits 
+             19  I  WAMUS toroid polarity (1,-1,0=for,rev,off) 
+             20  I  SAMUS toroid polarity (1,-1,0=for,rev,off) 
+           21--28  B  packed 256 L1 AND/OR terms (v3) 
+             29  F  total negative energy (v3) 
+             30  F  magnitude of vector sum of negative Et (v3)  
+             31  F  negative Ex in CH,OH (v4) 
+             32  F  negative Ey in CH,OH (v4) 
+ ______________________________________________________________________________
+VCOR  (for main ring correction only, names=`MRFX',`MRFN') 
+              1  I  version (of original bank) 
+              3  F  delta-px 
+              4  F  delta-py 
+______________________________________________________________________________
+PLV0 
+              1  B  status word 
+              2  F  fast z vertex location (cm) 
+              3  F  slow z vertex location (cm) 
+              4  F  slow z quality factor 
+              5  F  slower z vertex location (cm) 
+              6  F  slower z quality factor 
+______________________________________________________________________________
+PARH 
+      -8            reference link to HSTR 
+              1  I  bank version 
+              2  I  number of PMUO banks 
+              3  I  number of PELC banks 
+              4  I  number of PPHO banks 
+              5  I  number of PNUT banks 
+              7  I  number of PTAU banks 
+______________________________________________________________________________
+PELC 
+      -3            reference link to associated ZTRK 
+      -2            reference link to associated CACL 
+              1  I  version (of original bank) 
+              2  I  id (=12) 
+              3  F  Ex (*) 
+              4  F  Ey (*) 
+              5  F  Ez (*) 
+              6  F  E 
+              7  F  Et 
+              8  F  theta 
+              9  F  eta 
+             10  F  phi 
+             14  F  EM energy in cluster outside central tower 
+             15  F  total energy in core cone 
+             16  F  total energy in isolation cone 
+             17  F  EM energy in core cone 
+             18  F  EM energy in isolation cone 
+             19  F  calorimeter eta index of cluster 
+             20  F  track match significance (if version>4) 
+             21  F  number of central tracks in cluster road 
+             22  F  distance of closest approach of track 
+             23  F  x of shower center 
+             24  F  y of shower center 
+             25  F  z of shower center 
+             30  I  electron quality flag word 
+             33  F  EM fraction 
+______________________________________________________________________________
+HMTE 
+              1  I  version (of original bank) 
+              7  F  chi^2 for truncated H matrix 
+              9  F  lower phi limit for road into CD 
+             10  F  upper phi limit for road into CD 
+             11  F  lower theta limit for road into CD 
+             12  F  upper theta limit for road into CD 
+             16  I  packed hits in PELC road (v2) 
+             17  I  packed hits in PELC road (v2) 
+             18  I  packed TRD hits in PELC road (v4) 
+             21  F  chi^2/dof from global fit (v4) 
+             22  F  theta from global fit (v4) 
+             23  F  phi from global fit (v4) 
+             24  F  number of degrees of freedom in global fit (v4) 
+______________________________________________________________________________
+PPHO 
+      -2            reference link to associated CACL 
+              1  I  version (of original bank) 
+              3  F  Ex (*) 
+              4  F  Ey (*) 
+              5  F  Ez (*) 
+              6  F  E 
+              7  F  Et 
+              8  F  theta 
+              9  F  eta 
+             10  F  phi 
+             14  F  EM energy in cluster outside central tower 
+             15  F  total energy in core cone 
+             16  F  total energy in isolation cone 
+             17  F  EM energy in core cone 
+             18  F  EM energy in isolation cone 
+             19  F  calorimeter eta index of cluster 
+             23  F  x of shower center 
+             24  F  y of shower center 
+             25  F  z of shower center 
+             30  I  photon quality flag word 
+             33  F  EM fraction 
+______________________________________________________________________________
+HMTP 
+              1  I  version (of original bank) 
+              7  F  chi^2 for truncated H matrix 
+             16  I  packed hits in PPHO road (v2) 
+             17  I  packed hits in PPHO road (v2) 
+             18  I  packed TRD hits in PPHO road (v4) 
+______________________________________________________________________________
+PTAU 
+      -3            reference link to ZTRK (maximum 7 links) 
+      -2            reference link to JETS (0.7 cone) 
+              1  I  version (of original bank) 
+              3  F  Ex      = Q(LJETS+2) (*) 
+              4  F  Ey      = Q(LJETS+3) (*) 
+              5  F  Ez      = Q(LJETS+4) (*) 
+              6  F  E       = Q(LJETS+5) (*) 
+              7  F  Et      = Q(LJETS+6) (*) 
+              8  F  theta   = Q(LJETS+7) (*) 
+              9  F  phi     = Q(LJETS+8) (*) 
+             10  F  eta     = Q(LJETS+9) (*) 
+             11  F  rms(R) = sqrt{rms(phi)^2+rms(eta)^2} 
+             12  F  Et of hottest tower 
+             13  F  Et of next-hottest tower 
+             16  F  energy in 1x1 CAL window 
+             17  F  energy in 3x3 CAL window 
+             18  F  energy in 5x5 CAL window 
+             19  I  # of CDC tracks in 10 degree cone (v2) 
+             20  I  # of CDC tracks in 20 degree cone (v2) 
+             21  I  # of CDC tracks in 30 degree cone (v2) 
+             22  F  Et of 3^{rd} hottest tower (v4) 
+             23  F  Et of 4^{th} hottest tower (v4) 
+             24  I  phi,eta indeces of hottest tower (v4) 
+             25  I  phi,eta indeces of 2^{nd} hottest tower (v4) 
+             26  I  phi,eta indeces of 3^{rd} hottest tower (v4) 
+             27  I  phi,eta indeces of 4^{th} hottest tower (v4) 
+             28  F  chi^2 for signal H-matrix (v4) 
+             29  F  chi^2 for background H-matrix (v4) 
+______________________________________________________________________________
+PMUO 
+      -5            reference link to best ZTRK 
+      -4            reference link to VERT 
+      -2            reference link to MUOT 
+              1  I  version (of original bank) 
+              2  I  id (14=mu^-, -14=mu^+) 
+              3  I  flag for dE/dx 
+              4  I  fit status 
+              5  I  flag indicating where track vector is defined 
+              6  I  number of CD tracks in cone 
+              7  I  quadrant 
+              8  I  method of fit 
+              9  I  quality flag 
+             10  F  px (*) 
+             11  F  py (*) 
+             12  F  pz (*) 
+             13  F  p 
+             14  F  pt 
+             15  F  theta 
+             16  F  eta 
+             17  F  phi 
+             21  F  variance of p 
+             23  F  chi^2 / degree of freedom 
+             24  F  floated t0 offset (ns) 
+             25  F  x coordinate where track vector defined 
+             26  F  y 
+             27  F  z 
+             28  F  isolation (based on cells hit only) 
+             29  F  isolation (based on cells hit+neighbors) 
+             30  F  isolation (based on cells hit+2 neighbors) 
+             31  F  isolation (based on cone size 0.4) 
+             32  F  isolation (based on cone size 0.6) 
+             33  F  E loss expected in CAL 
+             34  F  E observed in CAL (in cells hit+2 neighbors) 
+             35  F  E observed in CAL (in cone 0.4) 
+             36  F  E observed in CAL (in cone 0.6) 
+             37  F  angle between muon and nearest CD track (deg) 
+             38  F  dphi (deg) 
+             39  F  dtheta (deg) 
+             40  F  cone size considered for CD track finding 
+             41  F  impact parameter (measured from vertex) 
+             42  F  impact parameter after global fit 
+             43  F  E loss in muon system 
+             44  I  track quality flag 
+             45  I  user flag word 
+             46  I  hits on track, A,B,C 
+             47  I  hits in track fit, A,B,C 
+             48  I  trigger 1 
+             49  I  trigger 2 
+             50  I  trigger 3 
+             51  I  trigger 4 
+             52  F  scintillator time of flight (v2) 
+             53  F  expected scintillator time of flight (v2) 
+             54  I  vertex used 
+             55  I  vertex number (by calorimeter info) 
+             56  F  impact parameter, bend view, muon only 
+             57  F  impact parameter, nonbend view, muon only 
+             58  F  impact parameter, bend view, incl. CD 
+             59  F  impact parameter, nonbend view, incl. CD 
+             60  F  x at vertex 
+             61  F  y 
+             62  F  z 
+             63  F  x dir cosine at vertex 
+             64  F  y dir cosine 
+             65  F  z dir cosine 
+             66  F  x at calorimeter (backside) 
+             67  F  y 
+             68  F  z 
+             69  F  x dir cosine at calorimeter (backside) 
+             70  F  y dir cosine 
+             71  F  z dir cosine 
+             72  F  x  outside torroid 
+             73  F  y 
+             74  F  z 
+             75  F  x dir cosine outside torroid 
+             76  F  y dir cosine 
+             77  F  z dir cosine 
+             78  F  EM energy in cells hit by muon 
+             79  F  hit cells and 1 nearest neighbors 
+             80  F  hit cells and 2 nearest neighbors 
+             81  F  hit cells and 4 nearest neighbors 
+             82  F  hit cells and 6 nearest neighbors 
+             83  F  total E in CAL (in cells hit) 
+             84  F  total E in CAL (in cells hit+1 neighbor) 
+             86  F  total energy in hit cells on opposite side; 
+             87  F  hit cells and 1 nearest neighbors 
+             88  F  hit cells and 2 nearest neighbors 
+             89  F  hit cells and 3 nearest neighbors 
+             90  F  ETRACK (see DO$INC:MTC.INC) (v2) 
+             91  F  TRES (v2) 
+             92  F  TRES_V (v2) 
+             93  F  FRACT (v2) 
+             94  F  HFRACT (v2) 
+             95  F  GHFRACT (v2) 
+             96  F  ECHI (v2) 
+             97  F  EN3 (v2) 
+             98  F  EFRACT_H(1) (v2) 
+             99  F  LYRMU (v2) 
+            100  F  ECHI2 (v2) 
+______________________________________________________________________________
+PNUT 
+              1  I  version (of original bank) 
+              3  F  Ex (*) 
+              4  F  Ey (*) 
+              5  F  Ez 
+              6  F  E (*) 
+              7  F  Et 
+              8  F  theta (*) 
+              9  F  eta (*) 
+             10  F  phi 
+             11  F  variance of Ex 
+             12  F  variance of Ey 
+             14  F  Etscalar 
+             16  F  correlation <dExdEy> 
+______________________________________________________________________________
+CAPH 
+              1  I  bank version 
+              3  I  number of JETS banks 
+              4  I  algorithm 
+           6-15  F  algorithm dependent words 
+______________________________________________________________________________
+CACL  (only CACL banks for PELC or PPHO banks) 
+      -6            reference link to ZTRK bank 
+      -5            reference link to TRDT bank 
+              1  I  version (of original bank) 
+              7  F  = Q(LPELC/LPPHO+6) (*) 
+              8  F  = Q(LPELC/LPPHO+7) (*) 
+             11  F  = Q(LPELC/LPPHO+8) (*) 
+             12  F  = Q(LPELC/LPPHO+10) (*) 
+             13  F  = Q(LPELC/LPPHO+9) (*) 
+             14  F  = Q(LPELC/LPPHO+23) (*) 
+             15  F  = Q(LPELC/LPPHO+24) (*) 
+             16  F  = Q(LPELC/LPPHO+25) (*) 
+             17  F  E (EM+hadronic layers) 
+             19  F  energy in FH layer 1 
+             29  F  Et     in physics isolation cone (R=0.4) 
+             30  F  energy in physics isolation cone (R=0.7) 
+             31  F  Et     in physics isolation cone (R=0.7) 
+             32  F  energy in physics isolation cone (R=0.6) (v2) 
+             33  F  Et     in physics isolation cone (R=0.6) (v2) 
+______________________________________________________________________________
+CASH  (all words)  
+______________________________________________________________________________
+JETS  (for NN jets, 0.3, 0.5, 0.7, 1.0, 0.7-no-merge cone)
+      -4            reference link to PELC or PPHO bank 
+      -3            reference link to PELC or PPHO bank 
+              1  I  version (of original bank) 
+              2  F  px (*) 
+              3  F  py (*) 
+              4  F  pz (*) 
+              5  F  E 
+              6  F  Et 
+              7  F  theta (*) 
+              8  F  phi 
+              9  F  eta 
+             12  F  rms eta width 
+             13  F  rms phi width 
+             14  F  fraction of EM Et 
+             15  I  flag for merging/splitting 
+             16  I  number of cells above threshold 
+             17  F  fraction of ICD/MG Et 
+             18  F  fraction of CH Et 
+             19  F  ratio of hottest to next-hottest cell 
+             21  I  number of towers comprising 90% of jet Et 
+             27  I  vertex matching word 
+______________________________________________________________________________
+JNEP  (for 0.3, 0.5, 0.7 cone only)  
+              1  I  version (of original bank) 
+              2  F  px (*) 
+              3  F  py (*) 
+              4  F  pz (*) 
+              5  F  E 
+              6  F  Et 
+              7  F  theta (*) 
+              8  F  phi 
+              9  F  eta 
+             12  F  rms eta width 
+             13  F  rms phi width 
+             14  F  fraction of EM Et 
+______________________________________________________________________________
+VERH 
+              1  I  bank version 
+              2  I  number of primary vertices 
+______________________________________________________________________________
+VERT 
+              1  I  version (of original bank) 
+              2  B  status 
+              5  F  z 
+              8  F  dz 
+______________________________________________________________________________
+VFIT  (v3)  
+              1  I  version 
+              5  F  z 
+              8  F  dz 
+              9  F  global chi^2 of fit 
+______________________________________________________________________________
+MTRH 
+              2  I  STP version number for MC generation 
+              3  I  STP version number for MC generation 
+              4  I  STP version number for MURECO 
+              5  I  STP version number for MURECO 
+              8  I  L1.5 mgr states/mgr errors (v4) 
+              9  I  L1.5 high pt octants (run 1a and run 1b) (v4) 
+             10  I  L1.5 low pt octants (run 1b only) (v4) 
+             14  F  WAMUS toroid polarity =IQ(LGLOB+19) (*) 
+             15  F  SAMUS toroid polarity =IQ(LGLOB+20) (*) 
+______________________________________________________________________________
+MUOT 
+              4  I  flag word 1 
+              5  I  flag word 2 
+              6  I  flag word 3 
+             11  F  x outside magnet 
+             12  F  y outside magnet 
+             14  F  x direction cosine inside magnet 
+             15  F  y direction cosine inside magnet 
+             17  F  x direction cosine outside magnet 
+             18  F  y direction cosine outside magnet 
+             20  F  bend view quality of fit 
+             21  F  nonbend view quality of fit 
+             22  F  int{Bdl} used in MUPQCK for momentum calculation 
+             23  F  momentum (signed) 
+______________________________________________________________________________
+ZTRK 
+      -9            reference link to TRD bank (TRDT) (v2) 
+      -8            reference link to FDC track bank (FDCT) 
+      -7            reference link to CDC track bank (DTRK) 
+      -5            reference link to tau       bank (PTAU) 
+      -4            reference link to electron  bank (PELC) 
+      -3            reference link to muon      bank (PMUO) 
+      -2            reference link to vertex    bank (VERT) 
+______________________________________________________________________________
+ZFIT 
+              1  I  version (of original bank) 
+              6  I  number of x-y hits on the track 
+              7  I  number of z coordinates on the track 
+              8  F  chi^2 of x-y fit or of 3D fit if FDC-only track 
+              9  F  chi^2 of r-z fit or of 3D fit if FDC-only track 
+             10  F  phi 
+             11  F  x0 of x-y center of gravity or x0 at z0 point (FDC) 
+             12  F  y0 of x-y center of gravity or y0 at z0 point (FDC) 
+             13  F  theta 
+             15  F  z0 at r0 point or fixed z0 if FDC-only track 
+             16  F  error on phi 
+             17  F  error on x-y center of gravity or x0 error if FDC-only
+     
+             18  F  error on theta 
+             19  F  error on z0 or y0 error if FDC-only track 
+             26  F  ionisation of CDC/FDC track, in MIP 
+             32  F  impact parameter in x-y plane 
+             33  F  distance to vertex z along z axis 
+             34  F  covariance term between z0 and theta 
+______________________________________________________________________________
+DTRK 
+      -2            reference link to ZTRK 
+              6  F  phi 
+              7  F  x0   of x-y center of gravity 
+              8  F  y0   of x-y center of gravity 
+              9  F  theta 
+             11  F  z0   at r0 point 
+             12  F  chi^2 of x-y fit 
+             13  F  chi^2 of r-z fit 
+             14  I  total number of degrees of freedom 
+             15  I  VFIT with which the track is associated (v3) 
+             16  F  error on phi 
+             18  F  error on theta 
+             20  F  ionisation of the track in MIP 
+______________________________________________________________________________
+FDCT 
+      -2            reference link to ZTRK bank 
+              1  B  status (bit 0 = 1 if track in half 1, else 0) 
+              4  F  x0, x at z=z0 (cm) 
+              5  F  y0, y at z=z0 (cm) 
+              6  F  phi 
+             19  F  chi^2 
+             20  F  ionization 
+             22  F  theta 
+             23  F  error on phi 
+             24  F  error on theta 
+             25  I  number of points used in track fit 
+             31  I  VFIT with which the track is associated (v3) 
+______________________________________________________________________________
+VTXT  (v3)  
+      -2            reference link to ZTRK (for 3D match only) 
+              6  F  phi 
+              7  F  x0, x of center of gravity of x-y projection 
+              8  F  y0, y of center of gravity of x-y projection 
+              9  F  theta 
+             10  F  covariance of z0 and theta 
+             11  F  z0, z of track when r=sqrt{x0^2+y0^2} 
+             14  F  dzdr of road center 
+             16  F  error of phi 
+             17  F  error of center of gravity x-y projection 
+             18  F  error of theta 
+             19  F  error of center of gravity of r-z projection 
+             20  F  ionization 
+______________________________________________________________________________
+TTRH 
+              2  F  number of TRD hits 
+______________________________________________________________________________
+TRDT  (only for PELC banks) (v2)    
+      -5            reference link to CACL bank 
+      -4            reference link to ZTRK bank 
+             30  F  =1 if TRD_ANALYSIS has been called (=0 if not) 
+             31  F  =1 if track in TRD acceptance (=0 if not) 
+             32  F  electron efficiency (from 0 to 1) 
+______________________________________________________________________________
+CAID  (all words)  
+______________________________________________________________________________
+JUTL  (all words - only for QCD triggers as determined by QCDJETS)  
+______________________________________________________________________________
+JTCS  (all words - only for QCD triggers as determined by QCDJETS)  
+______________________________________________________________________________
+
+Following is a list of the variables that are not unpacked into DST banks by
+UDST_TO_DST, because there is no corresponding word on the original DST.
+Use UDST_VALUE to access these words.
+
+______________________________________________________________________________
+group name  tag  description 
+______________________________________________________________________________
+GLOB  L1MET  level 1 missing Et from ESUM bank 
+      L1METPHI  phi of level 1 missing Et from ESUM bank 
+      L1SUMET  level 1 scalar Et from ESUM bank 
+      L2MET  level 2 missing Et from ESUM bank 
+      L2METPHI  phi of level 2 missing Et from ESUM bank 
+      L2SUMET  level 2 scalar Et from ESUM bank 
+      MIFLAG  result of MULTIPLE_INTERACTION_TOOL 
+      SAMUSAN  hits in North SAMUS station A from SAHH bank 
+      SAMUSBN  hits in North SAMUS station B from SAHH bank 
+      SAMUSCN  hits in North SAMUS station C from SAHH bank 
+      SAMUSAS  hits in South SAMUS station A from SAHH bank 
+      SAMUSBS  hits in South SAMUS station B from SAHH bank 
+      SAMUSCS  hits in South SAMUS station C from SAHH bank 
+______________________________________________________________________________
+PELC  EMLY1E  energy in EM layer 1 from CASH bank 
+      EMLY2E  energy in EM layer 2 from CASH bank 
+      EMLY3E  energy in EM layer 3 from CASH bank 
+      EMLY4E  energy in EM layer 4 from CASH bank 
+      DISPE  eta-phi dispersion from CM3POS 
+      XDISPE  x-y dispersion from CLEANEM 
+      DCRAKE  distance from CC phi crack in radians from CLEANEM 
+      L1ETE  Et of matched level 1 ESUM bank entry 
+      L2ETE  Et of matched and passed L2EM bank = Q(LL2EM+9) 
+      L2ETCE  vertex corrected Et of L2EM bank = Q(LL2EM+35) 
+      MASKE  bit mask describing L2EM shape cuts 
+             bit 0 - ele shape cuts 
+             bit 1 - level 2 track match cut 
+             bit 2 - isolation cut in 0.4 cone 
+             bit 3 - isolation cut in 0.6 cone 
+             bit 4 - version of L2EM bank >= 3 
+      SIG53E  SIGMA5-SIGMA3 in CC / (5x5-7x7)/5x5 in EC  
+      ENVARE  variance of energy from error matrix 
+      NTKCON  number of tracks in a cone from CLEANEM 
+      RDPHI  distance track - cluster centroid in x-y from CLEANEM 
+      DZ     distance track - cluster centroid in r or z from CLEANEM 
+      TRD11E  TRD energy, min drift time --- layer 1 (v3) 
+      TRD12E  TRD local density, nb anodes, cathodes, clusters (v3) 
+      TRD21E  TRD energy, min drift time --- layer 2 (v3) 
+      TRD22E  TRD local density, nb anodes, cathodes, clusters (v3) 
+      TRD31E  TRD energy, min drift time --- layer 3 (v3) 
+      TRD32E  TRD local density, nb anodes, cathodes, clusters (v3) 
+______________________________________________________________________________
+PPHO  EMLY1P  energy in EM layer 1 from CASH bank 
+      EMLY2P  energy in EM layer 2 from CASH bank 
+      EMLY3P  energy in EM layer 3 from CASH bank 
+      EMLY4P  energy in EM layer 4 from CASH bank 
+      DISPP  eta-phi dispersion from CM3POS 
+      XDISPP  x-y dispersion from CLEANEM 
+      DCRAKP  distance from CC phi crack in radians from CLEANEM 
+      L1ETP  Et of matched level 1 ESUM bank entry 
+      L2ETP  Et of matched and passed L2EM bank = Q(LL2EM+9) 
+      L2ETCP  vertex corrected Et of L2EM bank = Q(LL2EM+35) 
+      MASKP  bit mask describing L2EM shape cuts (see PELC MASKE) 
+      SIG53P  SIGMA5-SIGMA3 in CC / (5x5-7x7)/5x5 in EC 
+      ENVARP  variance of energy from error matrix 
+      TRD11P  TRD energy, min drift time --- layer 1 (v4) 
+      TRD12P  TRD local density, nb anodes, cathodes, clusters (v4) 
+      TRD21P  TRD energy, min drift time --- layer 2 (v4) 
+      TRD22P  TRD local density, nb anodes, cathodes, clusters (v4) 
+      TRD31P  TRD energy, min drift time --- layer 3 (v4) 
+      TRD32P  TRD local density, nb anodes, cathodes, clusters (v4) 
+______________________________________________________________________________
+PMUO  E6CM  MUCA sums requested by B group 
+      E7CM  computed using MUCA_GET_ENERGY 
+      E8CM  
+      ET6CM  
+      ET7CM  
+      ET8CM  
+      EEMM  MUCA sums requested by New Phenomena group 
+      EFHM  computed using MUCA_GET_ENERGY2 
+      ECHM  
+______________________________________________________________________________
+JET7  VAREJ7  variance of energy from error matrix (cone=0.7) 
+______________________________________________________________________________
+JET5  VAREJ5  variance of energy from error matrix (cone=0.5) 
+______________________________________________________________________________
+JET3  VAREJ3  variance of energy from error matrix (cone=0.3) 
+______________________________________________________________________________
+JETN  VARENN  variance of energy from error matrix (NN algo) 
+______________________________________________________________________________
+JET1  VAREJ1  variance of energy from error matrix (cone=1.0) 
+______________________________________________________________________________
+JNM7  VAREN7  variance of energy from error matrix (nomerge,0.7) 
+______________________________________________________________________________

@@ -1,0 +1,170 @@
+.APPENDIX How SRCP works
+
+The routine EZRDF, which calls EZREAD,
+reads a text file and stores its records (identifier plus optional
+comment)
+in the common block /ZEBSTP/ in banks called SRCP. The values pertaining
+to an identifier are decoded and stored in a different section of the SRCP
+bank. An order list is created which maps the stored identifiers and values
+into an ordered list. This then allows the use of a binary search in 
+EZGET
+to locate a particular parameter. Once located the parameter can
+be retrieved or modified. 
+
+.PARAGRAPH
+
+In the simplest case one calls 
+EZRDF. This
+routine reads the file into a special SRCP bank, namely, the one which
+hangs below the STP bank SCPH. The bank SCPH, in turn, hangs from the
+STP header bank STPH.
+EZRDF creates and fills the SCPH bank if it does not yet exist and then
+creates and fills the SRCP bank.
+Figure 1 shows the top level STP structure in /ZEBSTP/.
+
+.TEST PAGE 18
+.LITERAL
+
+
+                                       +------+
+                                       | STPH |
+                                       +------+
+                                       | |  | |
+                             __________| |  | |__________
+                            |          __|  |__          |
+                            |         |        |         |
+                        +------+  +------+  +------+  +------+
+                        | STPO |  | STPC |  | STPN |  | SCPH |
+                        +------+  +------+  +------+  +------+
+                                                         |  
+                                                      +------+
+                                                      | SRCP |
+                                                      +------+ 
+.END LITERAL
+
+.NOTE Figure 1
+It is important to distinguish the two names assigned to SRCP banks:
+one is the ZEBRA bank name, which is SRCP, and the other is a name,
+which can be up to 32 characters long, which labels different
+SRCP banks in /ZEBSTP/.
+The routine EZRDF
+assigns the name `SCPH' to the SRCP bank which hangs below
+SCPH. 
+Any SRCP bank
+can be moved to another place in /ZEBSTP/ with a call to EZMOVE. 
+Therefore, one way to input different text 
+files into /ZEBSTP/ is by repeated calls to 
+EZRDF, EZRNAM and EZMOVE. (EZRNAM is called to change the name
+of the SRCP bank `SCPH' to another, unique, name chosen by the user).
+Access to a particular SRCP bank, thereafter, 
+is obtained by selecting
+it with a call to EZPICK. 
+.END NOTE
+.BLANK
+
+When EZRDF creates the SRCP bank it must pre-allocate space in the bank
+for the parameters. It assigns 20 fullwords (80 characters) to
+each record. A record is either an identifier plus comment, a comment line,
+ or a blank line. 
+The default space allocation is for a total of 200 records
+and a total of 2000 values. (Note: one value is associated with each
+comment line or blank line.) If the 
+pre-allocation is insufficient
+EZRDF will try to expand the SRCP bank, automatically, following some 
+simple algorithm.
+However, if this is done too often one can quickly run out of space and 
+trigger a ZEBRA garbage collection! It is therefore better to
+pre-allocate just enough space for the number of
+records and values expected. This is done using the _\SIZE directive
+in an RCP file.
+
+.PARAGRAPH
+The amount of space pre-allocated can be reduced further by storing just
+enough words/record to accomodate the identifier, which is a character
+string of 32 characters or fewer. You must call EZREAD to do this; 
+in fact
+EZRDF itself simply calls EZREAD with appropriate defaults.
+.BLANK
+.NOTE
+The routine EZREAD can be used to create SRCP banks either not 
+attached
+(that is, stand-alone) or attached to a link in an existing bank in /ZEBSTP/.
+Once created the SRCP banks can be moved about
+with EZMOVE. The routine INRCP provides an even simpler way to read in
+RCP files and should be used whenever possible.
+.END NOTE
+
+.PARAGRAPH
+.APPENDIX Modifying and creating SRCP banks dynamically
+Sometimes it is necessary to create and fill an SRCP bank with data 
+internal to a program. Routines are provided which allow parameters to
+be written to the currently selected SRCP bank. For example, EZRDA
+is identical in function to EZRDF with the exception that the former
+reads data from a character array rather than from an RCP file. When
+using EZRDA, however, the last element of the array ^*MUST\* contain
+the command _\STOP; this indicates to  EZRDA that the end-of-data has
+been reached. (Note: EZRDF checks for end-of-data by looking 
+for either
+an end-of-file or for the _\STOP command; end-of-data is determined by 
+whichever terminator comes first).
+.PARAGRAPH
+The routine EZFILL can be used to ADD new parameters to an existing
+SRCP bank. (See also EZADD.) 
+A bank can be created and filled from scratch by calling
+first EZBOOK to book the bank and EZFILL, one or more times, to fill it.
+IMPORTANT: after the last call to EZFILL (or EZADD) 
+it is necessary to call EZEND 
+to complete the creation
+of the SRCP bank.
+
+.PAGE
+.APPENDIX Bank structure
+
+An SRCP bank is divided into five sections:
+.BLANK
+.LIST "o"
+.LIST ELEMENT; HEADER
+.LIST ELEMENT; IDENTIFIER LIST
+.LIST ELEMENT; ORDER LIST
+.LIST ELEMENT; VALUE LIST
+.LIST ELEMENT; TYPE LIST.
+.END LIST
+.BLANK
+The HEADER contains general information as well as relative pointers
+to the remaining four sections. Identifiers are stored in the IDENTIFIER
+LIST with a pre-determined number of full-words per identifier (normally
+between 8 and 20). If complete records should be stored (that is,
+identifiers plus comments)
+use 20 words/identifier, otherwise use just enough words to accomodate
+the maximum length of an identifier (8 is a good number). 
+The pointers which map the identifiers
+into alphabetical order are stored in the ORDER list; the latter also 
+contains the pointers which link together identifiers and their associated
+values in the VALUE list. The value type (whether real, integer etc.)
+together with the number of values per identifier are stored in the
+TYPE list. Refer to document SRCP.ZEB for a detailed bank description.
+.PAGE
+.APPENDIX RCP error codes
+.LITERAL
+
+      EZS_SUCCESS            =  0
+      EZS_BANK_NOTFOUND      = -1
+      EZS_PARAM_NOTFOUND     = -2
+      EZS_LINK_NOTFREE       = -3
+      EZS_TOOMANY_BANKS      = -4
+      EZS_DUPLICATE_BANK     = -5
+      EZS_DUPLICATE_NAME     = -6
+      EZS_BAD_ARGUMENT       = -7
+      EZS_NOT_STANDALONE     = -8
+      EZS_NOT_SRCPBANK       = -9
+      EZS_MAX_DEPTH          =-10
+      EZS_BAD_VALUE          =-11
+      EZS_ARRAY_TOOLARGE     =-12
+      EZS_BANK_NOTSELECTED   =-13
+      EZS_BANK_EXTENDED      =-14
+      EZS_MAX_PARAMS         =-15
+      EZS_MAX_VALUES         =-16
+      EZS_ENDOF_FILE         =-17
+      EZS_ENDOF_DATA         =-18
+
+.END LITERAL

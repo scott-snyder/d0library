@@ -1,0 +1,165 @@
+
+                                                          D0 Note #nnnn
+                                                          Jeff Bantly
+                                                          Qizhong Li-Demarteau
+                                                          April 15, 1993
+
+
+                     MULTIPLE INTERACTION TOOL
+                  ================================
+
+
+I. Introduction
+
+    To help users distinguish  single-interaction from multiple-interaction
+  events  a  multiple   interaction tool  has  been  written that  combines
+  information   from  the  L0  detector,  the  Central   Detectors  and the
+  calorimeter. The information this  tool provides is in the same format as
+  the information returned by the LEVEL 0 tool, i.e. a probability flag. 
+
+     This tool was developed because the information from the current Level
+  0  tool is not accurate  enough due to the  limited information available
+  to LEVEL 0. In the  multiple-interaction tool described in this note, the
+  information   from the  D0RECO  VERTEX   package, which  was  designed to
+  precisely   determine  the  primary  vertex  position  and  determine the
+  position   of  other   vertices in  the  event  if  they  exist,  and the
+  information from  LEVEL 0 and  the  calorimeter are  combined to obtain a
+  more accurate   discrimination  between  single and  multiple interaction
+  events.
+
+    The multiple interaction tool is essentially one routine that returns a
+  flag value indicating whether or  not a particular reconstructed D0 event
+  is a single  or multiple  interaction. The  information  used is obtained
+  primarily from the  central tracking vertex  banks and the Level 0 banks.
+  There is also a check on the total  energy seen by the calorimeter if the
+  information is available. 
+
+    The tool is  designed to work on  DSTs or STAs. It  can also be used on
+  raw data, if the VERTEX and LEVEL0  packages have been called before this
+  tool.
+
+    Since there is  currently no simulation of the  Level 0 in D0Geant that
+  generates the  required  information for  Level 0 banks,  the tool is not
+  verified by  the Monte  Carlo data.  We will  re-tune the  tool for Monte
+  Carlo  data as soon as the Level 0 simulation in D0GEANT is available.
+
+
+II. How to use the tool:
+
+    To use the  tool, just  include  the following  lines in  your analysis
+  program:
+
+  (at the top of your routine)
+
+    INTEGER MI_TOOL, MULTIPLE_INTERACTION_TOOL
+    EXTERNAL MULTIPLE_INTERACTION_TOOL
+
+  (when you want the result)
+
+    MI_TOOL = MULTIPLE_INTERACTION_TOOL()
+
+    The tool's basic  response is a  flag value  indicating the possibility
+  for the number of interactions in this event.
+
+    The values returned from MULTIPLE_INTERACTION_TOOL() are:
+
+    0 - no vertex information or a failure
+    1 - most likely a single interaction
+    2 - likely a single interaction
+    3 - likely a multiple interaction
+    4 - most likely a multiple interaction
+
+
+III. Algorithm of the tool:
+
+    The events returning  flag=1,2,3 0r 4 are  evaluated using the  Level 0
+  multiple interaction  flag, the Level 0 Slow Z  value,  the CD Z value of
+  the primary  vertex, and the  weights,  number of tracks,  and other data
+  from all of the  stored CD primary  vertices. The  algorithm is presented
+  below and represents  the results of studies  performed on low luminosity
+  and high  luminosity global  runs at D0.  The Level 0  makes its decision
+  based on information collected at  relatively high eta (1.9 to 4.3) while
+  the  CD   information is   provided  mostly  by the  CDC  which  subtends
+  relatively  low eta  (|eta|<1.4). These  are  complimentary systems which
+  have different  advantages and  problems but can be  combined effectively
+  for this tool.
+
+    The algorithm starts out by  dividing all events based on the number of
+  vertices that the central tracking finds. A few useful abbreviations used
+  in the explanation of the algorithm are:
+
+    CD Z     - central tracking Z vertex by either CDC or FDC
+    CDC Z    - primary vertex z position if found by CDC
+    FDC Z    - primary vertex z position if found by FDC
+    CDC wgt1 - fraction of tracks used to form primary CDC vertex
+    CDC wgt2 - fraction of tracks used to form second CDC vertex
+    Slow Z   - Level 0 Slow Z vertex position
+    MI Flag  - Level 0 Multiple Interaction flag value (1-4, similar to above)
+
+    The algorithm makes use of the  various pieces of information depending
+  on the level  of agreement  between the  Level 0 and the  CD results. The
+  algorithm is shown below in tree form.
+
+  - If there are ZERO CD vertices found:
+
+    TOOL = MI Flag, if Level 0 is good else it is set to 0.
+
+  - If there is ONE CD vertex found:
+
+      If Level 0 bad then TOOL = 2
+ 
+      If Level 0 is good then
+        TOOL = MI Flag, if 1=<MI Flag=<3
+
+        For MI Flag = 4, if CDC finds vertex then TOOL=3,  
+                         if FDC then TOOL = 4
+
+      If none of these, then TOOL = 2
+
+  - If there are TWO CD vertices found:
+
+
+      If Level 0 bad then TOOL = 3
+
+      If Level 0 is good then
+
+         For MI Flag = 1, 
+             if | CDC Z - Slow Z | < 8.0 cm then TOOL = 2, else = 3
+
+         For MI Flag = 2, 
+             if | CDC Z - Slow Z | < 8.0 cm then 
+                     if CDC wgt1 >= 0.70 then TOOL = 2, else = 3
+             if | CDC Z - Slow Z | >= 8.0 cm then 
+                     if ( CDC wgt1 - CDC wgt 2 ) / CDC wgt1 < 25 
+                     then TOOL = 4, else = 3
+
+         For MI Flag = 3, TOOL = 3
+
+         For MI Flag = 4, TOOL = 4
+
+      If none of these, then TOOL = 3
+
+  - If there are THREE CD vertices found:
+
+      If Level 0 bad then TOOL = 4
+
+      If Level 0 is good then
+
+         For MI Flag = 1, 
+             if | CDC Z - Slow Z | < 8.0 cm then TOOL = 2, else = 3
+
+         For MI Flag = 2, 
+             if | CDC Z - Slow Z | < 8.0 cm and CDC wgt1 >= 0.70 
+             then TOOL = 2, else = 3
+
+         For MI Flag = 3, TOOL = 4
+
+         For MI Flag = 4, TOOL = 4
+
+      If none of these, then TOOL = 4
+
+  - If the total energy in the calorimeter is available or calculable:
+
+      If Energy > 1800.0 then TOOL = 4
+
+

@@ -1,0 +1,73 @@
+
+                                                        June 5,  1992
+                                                        Amber Boehnlein
+                                                        modified July 16,1992
+                                                        modified Dec. 11, 1992
+                                                        modified Mar. 16, 1993
+                                                        modified Dec. 21, 1993
+This document is D0$GENERAL:L1ESUMFL.DOC
+
+There are two ESUM banks which have level 1 trigger information, TRGR and
+TRG2.
+
+The routine L1ESUM_TRGR is used to create an event summary bank from an 
+existing TRGR bank (from data or L1SIM).  L1 extracting routines, found in the
+ZEBRA_UTIL library, are used to unpack the hot tower candidate list and 
+get the energy of TOTAL ET hot towers and total EM hot towers, and to convert 
+the trigger tower index to eta and phi.  Additionally, the scalar et,
+missing et and LEVEL 0 vertex are unpacked.  All objects are placed into 
+the esum bank, with EM hot towers counted as both electron and photon objects.
+The et of the trigger towers is not vertex corrected.  Since the jet and
+em objects are taken from the hot tower candidate list packed in the TRGR
+bank, the tower listed in ESUM TRGR depend strongly on the trigger set used.  
+For example, if EM trigger fired for a given event but was prescaled away,
+no electron or photon objects will be recorded, even though the event may 
+have had EM hot towers.  For jet and em towers, the value of eta and
+phi that are recorded correspond to the center of the trigger tower.  For
+run 1b, the large tile et is stored as a JET_1 object.
+
+Level 1 muon trigger information is also stored.  The muon triggers can occur
+in seven eta regions, (see D0 Note #1591), and within four (or eight for 
+central) phi seqments.  As with the trigger towers, the center of the
+triggering region is used for the nominal eta and phi position.  Use
+these values of eta and phi only to indicate what region the trigger occured
+in.  It can happen that there are more than one muon triggers in an eta region
+that went through the same phi segment.  When that occurs, a factor is
+added to the nominal center phi value so that the muon trigger information
+is added to the ESUM bank (otherwise the ESUM bank would throw away the 
+second muon as identical to the first.)  When an overlap phi occurs,
+the quality word will have lowest bit set.  It can also happen that an
+extra phi segment occurs when the multiplicity in an eta region is greater
+than three.  If this happens, the second lowest bit will be set in the
+quality word.
+
+The nominal eta for the seven regions are:
+
+  SN     ON     WN    C    WS    OS    SS
+ -2.9  -2.05  -1.35  0.0  1.35  2.05   2.9
+
+and the nominal phis are
+for central :
+  0.39  1.17  1.96  2.75  3.52   4.36  5.1  5.84
+and for the iregions with quads
+  0.78   2.34   3.92  5.5
+
+The routine for filling the ESUM TRGR bank for will be called from the 
+Level 2 framwork such that the bank will be filled automatically for the
+user either in the level 2 for data or by VMS_FILTER for Monte Carlo data.
+
+The second ESUM bank containing level 1 information is the TRG2 ESUM bank
+which contain all of the electromagnetic trigger towers that are greater
+than 2.5 GeV and all of the total et trigger towers that are greater than 
+3 GeV, regardless of the specifics of the trigger conditions.  In this
+case, the em trigger towers are only entered as ELECTRON objects.  The
+total et towers are entered as JET objects.  The routine that fills
+the ESUM TRG2 bank is L1ESUM_TRG2 and is called from RECO_HSUM_FILL,
+so that this bank is filled from the RECONSTRUCTION, not LEVEL2. 
+
+Please recall that in this case, hot trigger towers refers to towers that
+that the level1 trigger saw as having energy deposited in them.
+
+For more information about ESUM banks, see D0$GENERAL:ESUM.DOC  
+
+Please contact A. Boehnlein, (FNALD0::COPE) with any questions or problems.

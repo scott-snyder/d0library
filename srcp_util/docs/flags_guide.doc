@@ -1,0 +1,93 @@
+
+               GUIDE to FLAG FACILITY
+               =======================
+
+                                               Serban D. Protopopescu
+                                               Harrison B. Prosper
+                                               August 29,1988
+
+Introduction
+------------
+    This note describes a software tool for handling dynamically defined
+flags. Unlike the flags which can be read in from a parameter file and
+stored in the ZEBRA bank called SRCP (see GTSRCP_MANUAL.MEM) the facility
+described here handles TEMPORARY flags; the flags are temporary in the
+sense that they do not reside in a ZEBRA bank which can be written to disk.
+In fact, the flag facility does not use ZEBRA at all. If a record of the
+name and truth value of a flag is required use the GTSRCP facility.
+
+Brief write-up of routines
+--------------------------
+    All subroutine names of the flag facility start with FLG. To use
+the flag facility a programmer needs to be aware of 6 subroutines:
+
+
+o   FLGBK (NAME,NUMBER) 
+
+    Purpose:    Book one or more flags; routine can be called any number
+                of times. If a name is already booked the program will
+                send a message to the screen, generate a file FLAGS.LIST
+                with a list of flags listed so far and ABORT. Note that
+                it is more efficient to book flags by supplying an array
+                than by calling it once per flag.
+
+    Input:      NAME    Character*16 array of flag names.
+                NUMBER  Number of flags to book.
+
+o   FLGCHK(NAME)
+
+    Purpose:    Logical function, return value true if flag NAME has been
+                booked, return false if not.
+
+    Input:      NAME    name of flag
+
+
+o   FLGERR (IER) 
+
+    Purpose:    Return error code after a call to any of the flag
+                subroutines.
+
+    Output:     IER     Error code; IER = 0 if all is OK.
+
+
+o   FLGPR (LUN) 
+
+    Purpose:    Write to unit LUN the list of booked flags and their truth
+                values.
+
+    Input:      LUN     Logical Unit Number.
+
+
+o   FLGSET (NAME,TRUTH) 
+
+    Purpose:    Set the truth value of specified flag.
+                Error code is set to -3 if flag was NOT booked.
+
+    Input:      NAME    Name of flag.
+                TRUTH   Truth value (either .TRUE. or .FALSE.).
+
+
+o   FLGUBK (NAME,NUMBER)
+
+    Purpose:    Unbook flags; same arguments as FLGBK.
+
+
+o   FLGVAL (NAME)
+
+    Purpose:    Logical function which is set to the truth value of specified 
+                flag. Note: if a flag has not been booked FLGVAL will return
+                a truth value of FALSE and error code is -3.
+
+
+Notes
+-----
+
+    This facility has been designed to be fast, therefore, certain checks
+performed by GTSRCP are not done, resulting in the following restrictions:
+
+    o   The facility is CASE-SENSITIVE;
+
+    o   Flag names should NOT contain leading blanks;
+
+    o   Names must be less than or equal to 16 characters.
+

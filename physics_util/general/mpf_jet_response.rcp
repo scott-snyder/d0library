@@ -1,0 +1,220 @@
+\START    MPF_JET_RESPONSE_RCP
+\SIZE        465       163
+!----------------------------------------------------------------------
+!    Name:       MPF_JET_RESPONSE.RCP
+!    Package:    MPF_JET_RESPONSE
+!    Library:    PHYSICS_UTIL
+!    Purpose:    Calculate jet response curves for D0 jet algorithms
+!    Version:    3.00
+!    Created:    Feb-11-1994   bob kehoe
+!    Updated:    Mar-24-1994   Bob Kehoe - modify parameter list
+!    Updated:    Apr-17-1994   Bob Kehoe - add EC photons
+!    Updated:    May-29-1994   Bob Kehoe - add several photon quality words,
+!                                          consider leading em cluster
+!                                          seperately from others, Z cut, EM
+!                                          scale
+!----------------------------------------------------------------------
+!       General switches for running, missing Et corrections
+!----------------------------------------------------------------------
+dpho_mode         1         ! sets mode of operation.
+!       there are three possible modes:
+!           dpho_mode = 1 -- designates direct photon search.  Can operate
+!                              on collider data or MC files
+!           dpho_mode = 2 -- dijet mode.  can only operate on MC files
+!                              as it must scale one jet up to a parton
+!                              quantity to simulate a direct photon event
+!           dpho_mode = 3 -- Z boson mode.  can run on collider data or MC
+!           dpho_mode = 4 -- direct photon toy mc mode.  events generated
+!                              according to kinematic and quality cuts
+!                              in MPF_SIM section.
+!
+met_corr        .true.      ! .true. if want to use pnut(4), false to make mpf
+!                              measurement with pnut(2)
+mex_offset       0.00       ! mean offsets in missing Etx and Ety for
+mey_offset       0.00       !      collider runs
+!
+ \ARRAY name_of_file        ! name of MC files (keep to CHAR*9)
+    'DIRPHOTON'    'DIRPHOT6A'     'DIRPHOT7A'    'DIRPHOT10'
+    'DIRPHOT14'    'DIRPHOT30'     'DIRPHOT50'    'DIRPHO150'
+    'DIRPHO350'    'DIRPHO430'
+ \END
+ \ARRAY photon_et_thresh    ! thresholds at which events generated for mc list
+    7.25    7.5    8.5    11.0    15.0    31.0    52.0   155.0    350.0    420.0
+ \END
+!-----------------------------------------------------------------------
+!       trigger conditions
+!-----------------------------------------------------------------------
+ \ARRAY filter_names        ! triggers events may pass to be candidates
+    'GAM_LOW_ISO'       'GAM_6_ISO_GAM'     'GAM_14_ISO_GAM'
+    'GAM_MED_ISO'       'GAM_20_ISO_GAM'    'EM1_GIS'    'GAM_HIGH_ISO'
+    'EM1_GIS_HIGH'      'EM1_ESC'
+ \END
+ \ARRAY FILT_THRESH_LO      ! minimum Et of photons for filt_names triggers
+ 7.  7.  15.  15.  21.  26.  31.  41.  61.
+ \END
+ \ARRAY FILT_THRESH_HI      ! maximum Et of photons for filt_names triggers
+ 50. 15. 50.  50.  900.  41. 900. 900.  900.
+ \END
+microblank_veto   .true.    ! .true. if want to veto on microblank bit
+!-----------------------------------------------------------------------
+!       PJETS parameters
+!-----------------------------------------------------------------------
+nalgo           1           ! do one algorithm at a time
+etcut           5.0         ! standard offline Et cut for jets
+iter            5           !
+irst            0           ! 0 = include initial state radiation
+imuon           0           !
+spl_mrg         0.0         ! 0. = no splitting/merging of parton jets
+!-------------------------------------------------------------------------
+!       *** MPF_SIM inputs -- set physics parameters and mode of operation ***
+!-------------------------------------------------------------------------
+seed            -22334547     ! initial seed for event generation
+parton_et_thresh    4.0       ! min. threshold for partons
+em_et_thresh        0.0       ! min. threshold for photons after smearing
+jet_et_thresh       0.0       ! min. threshold for jets after smear and scale
+spectrum_power      -3        ! power of cross section (in terms of Et-parton)
+em_resolution       0.16      ! resol. for single em-clusters (sampling term)
+jet_resolution      1.0       ! resol. for jets (sampling term)
+jet_response_base   0.80      ! jet response offset
+jet_response_slope  0.0005    ! slope of jet response
+kt_mean             2.0       ! size of mean Pt kick to event
+soft_response       0.1       ! percent soft recoil seen in calorimeter
+under_evt           0.6       ! underlying event Et density per unit eta-phi
+noise               1.2       ! noise Et density per unit eta-phi
+noise_resol         0.60      ! smearing of noise and underlying event
+num_generate       10000      ! number of events to process
+!------------------------------------------------------------------------
+!       general photon cuts and parameters
+!-------------------------------------------------------------------------
+use_ppho         .true.     ! include use of ppho banks
+use_pelc         .true.     ! include use of pelc banks as 'photons'
+cleanem_mask    $00000088   ! cleanem mask for quality of all em clusters'
+!------------------------------------------------------------------------
+!       leading photon cuts
+!-------------------------------------------------------------------------
+use_cc            .true.    ! include photons in central calorimeter
+phot_deta_cc_low    0.0     ! minimum detector eta of leading photon in CC
+phot_det_eta        1.0     ! maximum "                                  "
+use_ec            .true.    ! include photons in endcap calorimeter
+phot_deta_ec_low    1.6     ! minimum detector eta of leading photon in EC
+phot_deta_ec_hi     2.5     ! maximum "                                  "
+!------------------------------------------------------------------------
+!       diphoton cuts
+!-------------------------------------------------------------------------
+zmass_lo           79.0     ! low bound (GeV) for Z invariant mass cut
+zmass_hi          103.0     ! high bound (GeV) for Z invariant mass cut
+z_ele_et_cut       15.0     ! Et cut on dielectrons for Z candidate events
+!-------------------------------------------------------------------------
+!       clean JETS cuts
+!-------------------------------------------------------------------------
+icd_frac            1.0     ! maximum icd fraction
+ch_frac             0.5     ! maximum coarse hadronic fraction
+maxcell_ratio      10.0     ! max. ratio of leading and second leading cell Et
+jet_emf_low         0.05    ! minimum jet em fraction
+jet_emf_hi          0.95    ! maximum jet em fraction
+jet_deta_low        0.0     ! minimum allowed abs(detector eta) of leading jet
+jet_det_eta         2.8     ! maximum allowed abs(detector eta) of leading jet
+max_lum_cc         10.0     ! luminosity cut on CC/EC jet events to removed 
+max_lum_ec          3.5     !   events with poorly measured vertices.
+!------------------------------------------------------------------------
+!       general cuts
+!------------------------------------------------------------------------
+veto_caid         .true.    ! .false. if want to veto on # of CAID cells
+par_max_delta_r     0.25    ! delta R within which parton matches reco object
+abs_zvert           70.0    ! maximum abs(z) of vertex
+match_dis           0.25    ! distance within which a jet is called a photon
+!------------------------------------------------------------------------
+!       EM-cluster-dependent quality cuts
+!
+!           Note:  To remove W background, we require events failing the
+!                  met_fract cut to pass the dE/dx, trackmatch, and trd cuts.
+!                  This removes W's without biasing the missing Et distribution.
+!                  If the event passes the met_fract cut, it need only pass an
+!                  OR of the dedx, TRD and trkmatch cuts.  This removes Z and
+!                  Drell_Yan backgrounds.  The EM-fraction and isolation cuts
+!                  are tuned to provide as much efficiency as possible while
+!                  still rejecting backrounds from pi+-/pi0 overlaps.
+!------------------------------------------------------------------------
+ \ARRAY pm_cut              ! max. photon Et which requires quality in arrays
+   15.0    30.0  100.0  180.  900.0
+ \END
+ \ARRAY met_fract           ! maximum of MEt/Et
+   2.0   1.2   0.65  0.65  0.65
+ \END
+ \ARRAY pho_dedx_lo         ! low cut on CDC/FDC dE/dx to exclude pelcs
+    0.8  0.6  0.6   0.6   0.1
+ \END
+ \ARRAY pho_dedx_hi         ! hi cut on CDC/FDC dE/dx to exclude pelcs
+    1.5  1.5  1.5   1.5   0.1
+ \END
+ \ARRAY pho_trd_eff_lo      ! low cut on TRD efficiency
+    0.25  0.1  0.1   0.1   0.25
+ \END
+ \ARRAY pho_trd_eff_hi      ! hi cut on TRD efficiency
+    0.75  0.9  0.9   0.9   0.75
+ \END
+ \ARRAY pho_trkm            ! mIN. trackmatch significance for pelcs
+    3.0  3.0  3.0  3.0  3.
+ \END
+ \ARRAY pho_emf             ! tight em fraction for leading photon
+  0.9   0.96   0.96  0.96  0.9
+ \END
+ \ARRAY fisol_tight         ! tight isolation fraction cut for leading photon
+  0.5  0.2  0.15  0.15  0.15
+ \END
+ \ARRAY iso4_tight          ! tight isolation E cut for leading photon
+  2.0  3.0  10.  900.  900.
+ \END
+ \ARRAY etph_fract          ! max. Et ratio of leading and 2nd leading photons
+  0.1  0.1   0.1   0.1   0.1
+ \END
+ \ARRAY et3_fract           ! maximum Et ratio of leading and 2nd leading jets
+  1.0   1.0  1.0  1.0  1.0
+ \END
+ \ARRAY min_delta_phi       ! min. absolute delta phi of leading jet and photon
+  2.1   2.1  2.1   2.1   2.1
+ \END
+ \ARRAY max_muon_pt         ! max. acceptable pt of muon
+  2.0   2.0  100.  100.  100.
+ \END
+!------------------------------------------------------------------------------
+!   output information and HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+ \ARRAY BIAS_CORR_BINS   ! array of bin boundaries for initial bias plots
+ 0.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 14.0 16. 18. 22. 26. 30. 50. 70. 100.
+ \END
+ \ARRAY RBINS_ET         ! array of bin boundaries for final bias plots
+ 0. 5. 6. 7. 8.0 8.5 9.0 9.5 10. 10.5 11. 11.5 12. 12.5 13. 13.5 14. 14.5 15.0
+    15.5 16.0 16.5 17.0 17.5 18.0 18.5 19.0 19.5 20.0 21.0 22.0 23.0 24.0 25.0
+    26.0 27.0 28.0 29.0 30.0 35.0 40.0 45.0 50.0 55.0 60.0 65.0 70.0 75.0 80.0
+    85.0 90.0 95.0 100.0
+ \END
+ \ARRAY EPRIME_CORR_BINS   ! array of bin boundaries for initial response plots
+ 0.0 5.0 7.0 9.0 11.0 14.0 17. 20. 23. 26. 30. 35. 40. 45. 50. 55. 60. 70. 80.
+    90. 100. 120. 140. 160. 180.  200.  230. 260. 300. 340. 400. 500. 600. 700.
+    900.
+ \END
+ \ARRAY RBINS_E         ! array of bin boundaries for final response E plots
+ 0.0 8.0 10.0 12.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0 21.0 22.0 23.0 24.0 25.0
+    26.0 27.0 28.0 29.0 30.0 31.0 32.0 33.0 34.0 35.0 36.0 37.0 38.0 39.0 40.0
+    42.0 44.0 46.0 48.0 50.0 52.0 54.0 56.0 58.0 60.0 65.0 70.0 75.0 80.0 85.0
+    90.0 95.0 100.0 110.0 120.0 130.0 150.0 175.0 200.0 250. 300. 400. 500.
+    700.  900.
+ \END
+do_fit           .false.    ! .true. = perform default fits
+write_dst        .false.    ! .true. = write out dst
+ntp_set          .true.     ! .true. = produce ntuple
+write_if_em      .false.    ! .true. = events written to ntuple or dst only
+!  need pass 'photon' and missing Et cuts.  only executed if ntp_set or
+!  write_dst is .true..
+ \ARRAY ntup_file
+      'mpf_ntp'
+ \END
+ \ARRAY HBOOK_DIRECTORY
+      'response'
+ \END
+ \ARRAY title
+      'mpf'
+ \END
+!------------------------------------------------------------------------------
+\STOP    !   MPF_JET_RESPONSE_RCP

@@ -1,0 +1,224 @@
+      LOGICAL FUNCTION LQNUE()
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : 
+C-
+C-   Returned value  : 
+C-   Inputs  : 
+C-   Outputs : 
+C-   Controls: 
+C-
+C-   Created   8-FEB-1993   DOUGLAS M. NORMAN
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$LINKS:IZPELC.LINK'
+      INCLUDE 'D0$LINKS:IZPPHO.LINK'
+      INCLUDE 'D0$LINKS:IZPNUT.LINK'
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+C
+      INTEGER LJETS,GZJETS,ILI,NCJ,IER,IVERS,IIER,ISHARE
+      INTEGER LPNUT,GZPNUT,LPARH,GZPARH,LPELC,LCACL,NELE
+      INTEGER LHMTE
+      INTEGER I
+C
+      REAL CJ_X(25),CJ_Y(25),CJ_Z(25)
+      REAL   ETMISS2,ETA_MISS2,PHI_MISS2,THETA_MISS2,EX_MISS2,EY_MISS2
+      REAL  ET_SCALAR2,CONE_E(5),ELEC_X(20),ELEC_Y(20)
+      REAL ELEC_Z(20),ELEC_ETA(20),ELEC_PHI(20),ELEC_THETA(20),
+     &  ELEC_E(20),ELEC_PT(20),EL_EMF(20),NUM_TRACKS(20)      
+      REAL DCLAPP(20),ISOLATION(20),CHISQR(20),TRNC_CHISQR(20)
+      REAL CJ_PT(25),CJ_JE(25)
+      REAL E_GRAND(7),CJ_THETA(25),CJ_PHI(25),CJ_ETA(25),PHI_JTSH
+      REAL ETA_JTSH,EMFRAC_JTSH,CJ_HOT(25),CJ_CHF(25)
+      REAL RWIDTH(25),EMF(25)
+      REAL PTCUT1,PTCUT2,PTCUT3,ISOCUT,TCHISQ_CUT,NTRK_CUT
+      REAL EMFRAC_CUT,MET_CUT
+      REAL RSUM(20),RSUMMARY(20)
+C
+      REAL TEMPLATE(20),DUM1(25),DUM2(25),DUM3(25)
+C
+      LOGICAL ELECOK,EMF1OK,EMF2OK,EMF3OK,METOK,JETOK
+      LOGICAL LQNUE_EOJ
+      LOGICAL FIRST
+C
+      DATA FIRST /.TRUE./
+C----------------------------------------------------------------------
+      IF ( FIRST ) THEN
+        FIRST = .FALSE.
+C
+        CALL INRCP ('LQNUE_RCP', IER)
+        IF (IER.EQ.0) THEN
+          CALL EZPICK ('LQNUE_RCP')
+          CALL EZGET ('PTCUT1', PTCUT1, IER)
+          CALL EZGET ('PTCUT2', PTCUT2, IER)
+          CALL EZGET ('PTCUT3', PTCUT3, IER)
+          CALL EZGET ('ISOCUT', ISOCUT, IER)
+          CALL EZGET ('TCHISQ_CUT', TCHISQ_CUT, IER)
+          CALL EZGET ('NTRK_CUT', NTRK_CUT, IER)
+          CALL EZGET ('EMFRAC_CUT', EMFRAC_CUT, IER)
+          CALL EZGET ('MET_CUT', MET_CUT, IER)
+          CALL EZRSET
+        ELSE
+          CALL ERRMSG ('No LQNUE_RCP', 'LQNUE',
+     &        'Could not find LQNUE_RCP', 'F')
+        ENDIF                           ! if ier .eq. 0
+        CALL VZERO (RSUMMARY, 20)
+      ENDIF
+      LQNUE=.FALSE.
+      ELECOK=.FALSE.
+      EMF1OK=.FALSE.
+      EMF2OK=.FALSE.
+      EMF3OK=.FALSE.
+      METOK=.FALSE.
+      JETOK=.FALSE.
+C ****  SET PATH TO THE DEFAULT JET FINDING ALGORITHM 
+C ****       ( CONE WITH R=0.7, ET=8GEV )
+C
+      TEMPLATE(1)=2.0
+      TEMPLATE(2)=6.0
+      TEMPLATE(3)=0.7
+      TEMPLATE(4)=7.0
+      TEMPLATE(5)=8.0
+      CALL SET_CAPH('CONE_JET',TEMPLATE,IER)
+      IF ( IER.NE.0 ) THEN
+        CALL RESET_CAPH
+        GOTO 999
+      ENDIF
+      LJETS = GZJETS( )
+C
+      CALL VZERO(CJ_PT,25)
+      CALL VZERO(CJ_ETA,25)
+      CALL VZERO(CJ_PHI,25)
+      CALL VZERO(EMF,25)
+      CALL VZERO(RWIDTH,25)
+      CALL VZERO(CJ_HOT,25)
+      CALL VZERO(CJ_CHF,25)
+      CALL GTJETS_TOTAL(NCJ,IER)
+      NCJ = MIN0(NCJ,25)
+      DO ILI=1,NCJ
+        IER=0
+        CALL GTJETS(ILI,IVERS,E_GRAND,CJ_THETA(ILI),CJ_PHI(ILI),
+     &    CJ_ETA(ILI),IER)
+        CALL GTJTSH(ILI,PHI_JTSH,ETA_JTSH,EMFRAC_JTSH,ISHARE,IIER)
+C
+        CJ_PT(ILI) = E_GRAND(5)
+        CJ_JE(ILI) = E_GRAND(4)
+        CJ_X(ILI) = E_GRAND(1)
+        CJ_Y(ILI) = E_GRAND(2)
+        CJ_Z(ILI) = E_GRAND(3)
+        CJ_HOT(ILI)=Q(LJETS+19)
+        CJ_CHF(ILI)=Q(LJETS+18)
+C
+        IF (IIER.EQ.-5) THEN
+          RWIDTH(ILI) = E_GRAND(6)
+          EMF(ILI)=E_GRAND(7)
+        ELSE
+          RWIDTH(ILI)=SQRT(PHI_JTSH**2+ETA_JTSH**2)
+          EMF(ILI)=EMFRAC_JTSH
+        ENDIF
+C
+        LJETS=LQ(LJETS)
+C
+      END DO   
+      CALL RESET_CAPH
+c ***   sort by descending order  ******
+      if (ncj.le.0) goto 791
+      CALL SORT_DESCEND(CJ_PT,CJ_ETA,CJ_PHI,EMF,
+     &RWIDTH,CJ_HOT,CJ_CHF,DUM1,DUM2,DUM3,NCJ)
+ 791  continue
+C ****  GET MISSING ET - no muon correction
+C
+C
+      LPNUT = GZPNUT(2)
+      IF(LPNUT.GT.0) THEN
+        ETMISS2 = Q(LPNUT+7)
+        ETA_MISS2=Q(LPNUT+9)
+        PHI_MISS2=Q(LPNUT+10)
+        THETA_MISS2=LQ(LPNUT+8)
+        EX_MISS2=Q(LPNUT+3)
+        EY_MISS2=Q(LPNUT+4)
+        ET_SCALAR2=Q(LPNUT+14)
+      END IF
+c
+      LPARH=GZPARH()          
+c
+      CALL VZERO(ELEC_PT,20)
+      CALL VZERO(ELEC_ETA,20)
+      CALL VZERO(ELEC_PHI,20)
+      CALL VZERO(EL_EMF,20)
+      CALL VZERO(ISOLATION,20)
+      CALL VZERO(TRNC_CHISQR,20)
+      CALL VZERO(DCLAPP,20)
+      CALL VZERO(NUM_TRACKS,20)
+      NELE=0
+      LPELC=LQ(LPARH-IZPELC)
+      IF(LPELC.LE.0) RETURN
+  73  CONTINUE
+      LCACL=LQ(LPELC-2)
+      NELE=NELE+1
+      ELEC_X(NELE)=Q(LPELC+3)
+      ELEC_Y(NELE)=Q(LPELC+4)
+      ELEC_Z(NELE)=Q(LPELC+5)
+      ELEC_PT(NELE)=Q(LPELC+7)
+      ELEC_E(NELE)=Q(LPELC+6)
+      ELEC_ETA(NELE)=Q(LPELC+9)
+      ELEC_PHI(NELE)=Q(LPELC+10)
+      ELEC_THETA(NELE)=Q(LPELC+8)
+c
+      EL_EMF(NELE) = (Q(LCACL+7)-Q(LCACL+19))/Q(LCACL+7)
+c
+
+      CONE_E(1)=Q(LPELC+14)
+      CONE_E(2)=Q(LPELC+15)
+      CONE_E(3)=Q(LPELC+16)
+      CONE_E(4)=Q(LPELC+17)
+      CONE_E(5)=Q(LPELC+18)
+      NUM_TRACKS(NELE)=Q(LPELC+21)
+      DCLAPP(NELE)=Q(LPELC+22)
+      IF (CONE_E(4).LE.0) THEN
+        PRINT*, ' GOLD-ELEC: CORE ENERGY .LE. 0'
+        ISOLATION(NELE)=0.0
+      ELSE
+        ISOLATION(NELE) = (CONE_E(3)-CONE_E(4))/CONE_E(4)
+      ENDIF
+      LHMTE=LQ(LPELC-1)
+      CHISQR(NELE)=Q(LHMTE+5)
+      TRNC_CHISQR(NELE)=Q(LHMTE+7)
+      IF (NELE .EQ. 20) GO TO 75
+      LPELC=LQ(LPELC)
+      IF (LPELC.GT.0) GOTO 73
+c
+c *** sort electron descending pt order
+   75 if (nele.le.0) goto 792
+      CALL SORT_DESCEND(ELEC_PT,ELEC_ETA,ELEC_PHI,EL_EMF,
+     &ISOLATION,TRNC_CHISQR,DCLAPP,NUM_TRACKS,DUM1,DUM2,NELE)
+ 792  continue
+C*****************************************
+      IF (ELEC_PT(1).GT.PTCUT1 .AND. ISOLATION(1).LT.ISOCUT
+     &  .AND. TRNC_CHISQR(1).LT.TCHISQ_CUT
+     &  .AND. NUM_TRACKS(1).LT.NTRK_CUT)      ELECOK=.TRUE.
+C
+      IF ((CJ_PT(1).GT.PTCUT1.AND.EMF(1).GT.EMFRAC_CUT).AND.
+     &(CJ_PT(2).GT.PTCUT2.AND.EMF(2).GT.EMFRAC_CUT).AND.
+     &(CJ_PT(3).GT.PTCUT3.AND.EMF(3).GT.EMFRAC_CUT)) JETOK=.TRUE.
+C
+      IF (ETMISS2.GT.MET_CUT) METOK=.TRUE.
+C
+C
+      IF (ELECOK) RSUMMARY(1) = RSUMMARY(1) + 1
+      IF (ELECOK .AND. JETOK)  RSUMMARY(2) = RSUMMARY(2) + 1
+      IF (ELECOK .AND. METOK)  RSUMMARY(3) = RSUMMARY(3) + 1
+      IF (METOK.AND.JETOK.AND.ELECOK) LQNUE=.TRUE.
+C
+C****************************************
+  999 RETURN
+C
+      ENTRY LQNUE_EOJ(RSUM)
+C
+      LQNUE_EOJ = .TRUE.
+      DO 10 I = 1 ,  20
+        RSUM(I) = RSUMMARY(I)
+   10 CONTINUE
+      END

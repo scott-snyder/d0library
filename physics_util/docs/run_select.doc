@@ -1,0 +1,165 @@
+
+
+                                                  H. Greenlee
+                                                  6-Jan-1994
+                                                  Bob Kehoe
+                                                  Apr-02-1996
+
+
+                       RUN_SELECT package
+
+    This package allows the selection of "good runs" based on the following
+criteria:
+
+1.  Minimum and maximum run numbers in up to 5 separate ranges.
+
+2.  Bad run list.
+
+This package was adapted from TOP_LEPTONS and used the TOP_LEPTONS bad run
+list as its default bad run list.  This list has been continuously updated to
+include data taken thru Run 1b and 1c.  Also, a selection mask is now
+provided for the user to more easily pick bad runs from the larger, more general
+list. The code is completely backward compatible and understands the old style
+BAD_RUN.RCP without this mask, as long as the old style RUN_SELCT.RCP is also
+used.  The files involved in the RUN_SELECT package are:
+
+D0$PHYSICS_UTIL$GENERAL:RUN_SELECT.FOR
+D0$PHYSICS_UTIL$GENERAL:RUN_SELECT.RCP
+D0$PHYSICS_UTIL$DOCS:RUN_SELECT.DOC
+
+D0$PHYSICS_UTIL$GENERAL:BAD_RUN.RCP
+D0$TOP_PHYSICS:BAD_RUN.RCP      (obsolete)
+
+D0$PBD:RUN_SELECT.PBD
+
+===========================================================================
+
+Notes about BAD_RUN.RCP:
+
+    The package RUN_SELECT requires an rcp file, called BAD_RUN.RCP, which 
+lists runs which are undesireable for analysis purposes.  This list has been 
+generated for run 1b using a variety of sources to obtain the most complete 
+description of each run's suspected or known problems.  Sometimes the 
+information is poor or unclear and so in some cases a best guess is attempted.
+    The initial source for bad run information in Run 1b is the GM shifter run 
+summary comments in the Run-Summary Database. This list is augmented by 
+a list of special runs for Run 1a and 1b, the original 1a BAD_RUN list, and
+the 1a bad run list from the QCD group which was more complete.  The 
+information from the run summary database is not always conclusive and so it 
+has been necessary to consult the DAQ shifter's logbook extensively about 
+various issues.  The main uses for the DAQ logbook are to get information about:
+
+          1)  status of online system
+                -- L0, L1, L1.5, L2 issues ...
+
+          2)  DAQ-related hardware issues
+                -- VBD's, MAC cards ...
+
+          3)  detector download and general status
+
+          4)  special runs to identify trigger list
+
+Also, some new runs were added using the DAQ logbook.
+    For some runs the status is still unclear.  In addition to the above 
+sources, a thorough search has been necessary thru the logbooks of the GM and 
+DET shifter's for further information about the status of hardware, trigger
+configuration, and other issues.  Early runs are particularly difficult to pin
+down and so a coarse DAQ judgement (good/bad/uncertain verdict) has also been 
+used before runs 75000 (c/o Sailesh Chopra).  In general the other shifter
+logbooks were used as follows:
+
+          1)  DET(ector) shifter's logbook
+                -- hardware problems
+                -- suspected CALIB runs
+                -- confirmation of DAQ or GM statements 
+                    or lack thereof
+
+          2)  GM (Global Monitor) shifter's logbook
+                -- data quality, hot cells
+                -- elaboration of Run-Summary Database
+
+    In the spirit of keeping data unless we know it is bad, there are 
+several cases in which the above list can be trimmed.  The overriding
+concerns for the bad_run list are: whether the relevant detectors were
+operating, whether the data was corrupted, and whether the luminosity 
+was screwed up.  If a run is able to be dealt with offline (eg. hot cells, 
+deadtime), then it is desireable to keep it. Thus, runs which seem fine but 
+have DAQ problems or overall high rates, etc. are kept.  Runs with hot cells are 
+kept unless a hardware problem like a BLS card is suspected and caused a large
+change in some trigger rate.  Runs with tripping chambers or calorimeter HV 
+supplies are also kept if the deadtime is believed to have been properly 
+dealt with in the luminosity.  A bad SAMUS, VTX, or TRD is also not enough to 
+reject a run -- the TRD group does this bookkeeping internal to TRD analysis
+code.
+    In order to make the choice of bad runs as user freindly as possible, a user
+mask, called clean_run_mask, is implemented in run_select.rcp.  By setting
+various bits in this mask, one can toggle the sorts of runs to add to the bad
+run list.  Currently, there are 7 bits taken with the following general meaning:
+    
+    bit 0 = Fails only on minor issues (beam halo large, SAMUS off, etc)
+            or status not clear.  obviously, this is a subjective definition of
+            minor and that is why spare bits exist.  The sort of things which 
+            could end up in this category are:
+
+                no L0 readout
+                OTC problems
+                TRD, VTX, or SAMUS bad
+                MAC card bad in muon system
+                CDC readout errors
+                1 bad muon module
+                high FEB (frount-end-busy) or L2 disable
+                hot cells (unless trigger rate screwed up)
+                high losses
+                HV trips as long as data was not taken with voltage low (run
+                    should pause)
+
+    bit 1 = Major MUON system problems.  For the most part, WAMUS not usable
+        for muon analyses (HV off, magnets off, etc).  Other examples are:
+
+                WAMUS not readout
+                mutcc improperly loaded 
+
+    bit 2 = Major CAL system problems.  Generally one or more cryostat has
+        part HV off or triggers messed up.  Other examples are:
+
+                BLS or hot cells leading to high Missing Et or Scalar Et 
+                    trigger rate
+                cal HV fuse blown
+                cal preamp supply off (if we ran like this)
+
+    bit 3 = Major CD system problems.  This involves failure of large portion
+        of CDC and/or FDC.  For example,
+ 
+                FDC high voltage off
+                CDC readout corrupted (if just readout errors -- then good run)
+                # CD tracks low -- bad if really low
+
+    bit 4 = Special runs
+    bit 5 = Major DAQ problems.  Examples are:
+
+                L2 corrupt
+                trigger framework off
+                bad trigger download
+                L2 RCP files not downloaded
+
+    bit 6 = Major accelerator problems
+    bit 7 = Active veto runs and other runs where data is usable but luminosity
+            is difficult to calculate correctly.  Often this is because the 
+            luminosity information from a run is incomplete.
+
+    bit 8 = Corrupt L1.5 EF high pt
+    bit 9 = Bad MUON_L2 L2_CONFIRM_L1.5
+    bit 10 = Corrupt L1.5 SA low pt
+    bit 11 = (Reserved-other muon trigger problems)
+
+
+    The default cuts are an OR of bits 1 thru 7 (mask = $000000FE), with those 
+satisfying bit 0 alone being passed.  Analyses unconcerned with difficulties 
+in the muon system may consider ignoring bit 1 (mask = $000000FC). 
+Bits 8 thru 11 denote sepcial problems which affect some muon analyses.  
+The muon ID group should be consulted prior to dropping these runs from 
+analysis. In time, people may devise other more 
+specific bits for this mask.  Every run stored in BAD_RUN.RCP now has
+stored with it the status word which describes what is wrong in 
+terms of the above bits.  After this is a short verbal description which 
+tries to summarize what is wrong.

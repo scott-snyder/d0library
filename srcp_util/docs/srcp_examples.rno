@@ -1,0 +1,377 @@
+.APPENDIX Program example
+Here is an example of how to use some of the EZ routines. The program
+EZEXAMPLE reads the RCP file EZEXAMPLE.RCP and creates an output file
+to illustrate some of the features of the EZ routines.
+Note the use of INRCP to read in the RCP file EZEXAMPLE.RCP. 
+.PAGE
+.CENTER; PROGRAM
+.BLANK
+.LITERAL
+
+      PROGRAM EZEXAMPLE
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Simple RCP cxample.
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  7-DEC-1989   Harrison B. Prosper
+C-   Updated  15-MAY-1990   Harrison B. Prosper  
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INTEGER LUNOUT
+      PARAMETER( LUNOUT = 20 )
+C
+      INTEGER MAXNUM
+      PARAMETER( MAXNUM = 100 )
+C
+      INTEGER IVAL(MAXNUM),TYPES(MAXNUM)
+      INTEGER IER,TOTAL,LENGTH
+      INTEGER NUMREC,NUMVAL
+C
+      LOGICAL EZERR
+C
+      CHARACTER*32 NAME
+      CHARACTER*80 STRING,STR(10)
+      INTEGER NSTR,I,J,K,L
+C----------------------------------------------------------------------
+C
+      CALL MZEBRA(0)                    ! (1)  Initialize ZEBRA
+C
+      CALL INZSTP                       ! (2)  Setup /ZEBSTP/
+C
+C ****  Read RCP file
+C
+      CALL INRCP ('EZEXAMPLE_RCP',IER)  ! (3)  Read RCP file
+      IF ( IER .NE. 0 ) GOTO 999
+C
+C ****  Open dump file
+C
+      OPEN (UNIT=LUNOUT,FILE='DUMP',STATUS='NEW',
+     &  CARRIAGECONTROL='LIST')
+C
+C ****  Pick RCP bank: EZEXAMPLE_RCP
+C
+      CALL EZPICK ('EZEXAMPLE_RCP')        ! (4) Select RCP bank
+C
+C ****  Get values and types from parameter MIXED_ARRAY
+C
+C                                          ! (5) Get both values and types
+      CALL EZGET_VALUE_TYPE ('MIXED_ARRAY',IVAL,TYPES,TOTAL,IER)
+C
+C
+      WRITE(UNIT=LUNOUT,FMT=
+     &  '('' DUMP from EZGET_VALUE_TYPE of MIXED_ARRAY'')')
+      WRITE(UNIT=LUNOUT,FMT='('' '')')
+      WRITE(UNIT=LUNOUT,FMT='('' '',6x,''IVAL'',5x,''TYPE'')')
+      WRITE(UNIT=LUNOUT,FMT='('' '',I10,5x,I4)')
+     &  (IVAL(I),TYPES(I),I=1,TOTAL)
+      WRITE(UNIT=LUNOUT,FMT='('' --------------------------'')')
+C
+C ****  Set 4th string in MIXED_ARRAY
+C
+      CALL EZSETS ('MIXED_ARRAY',4,'Chopped',10,IER)    ! (6)
+C
+C ****  Get 3rd string in MIXED_ARRAY
+C
+      CALL EZGETS ('MIXED_ARRAY',3,STRING,LENGTH,IER)   ! (7)
+C
+C
+      WRITE(UNIT=LUNOUT,FMT='('' DUMP from EZGETS:1'')')
+      WRITE(UNIT=LUNOUT,FMT='('' '')')
+      WRITE(UNIT=LUNOUT,FMT='(''  '',A)') '<'//STRING(1:LENGTH)//'>'
+      WRITE(UNIT=LUNOUT,FMT='('' '')')
+      WRITE(UNIT=LUNOUT,FMT='('' --------------------------'')')
+C
+C ****  Get parameter LONG_STRING
+C
+      CALL EZGETS ('LONG_STRING',1,STRING,LENGTH,IER)   ! (8)
+C
+C
+      WRITE(UNIT=LUNOUT,FMT='('' DUMP from EZGETS:2'')')
+      WRITE(UNIT=LUNOUT,FMT='('' '')')
+      WRITE(UNIT=LUNOUT,FMT='(''  '',A)') '<'//STRING(1:LENGTH)//'>'
+      WRITE(UNIT=LUNOUT,FMT='('' '')')
+      WRITE(UNIT=LUNOUT,FMT='('' --------------------------'')')
+C
+C ****  Get first NSTR contiguous strings from array MIXED_ARRAY
+C
+      CALL EZ_GET_CHARS ('MIXED_ARRAY',NSTR,STR,IER)    ! (9)
+C
+C
+      WRITE(UNIT=LUNOUT,FMT=
+     &  '('' DUMP from EZ_GET_CHARS: MIXED_ARRAY'')')
+      WRITE(UNIT=LUNOUT,FMT='('' '')')
+      DO I =  1,NSTR
+        CALL SWORDS (STR(I),J,L,K)
+        WRITE(UNIT=LUNOUT,FMT='('' '',A)') STR(I)(1:L)
+      ENDDO
+      WRITE(UNIT=LUNOUT,FMT='('' --------------------------'')')
+C
+C ****  Add some parameters to the existing SRCP bank
+C
+      STR(1) = 'ADDED_VAR_ONE ''Hello there'' ! Added from PROGRAM'
+      STR(2) = '\ARRAY ADDED_VAR_TWO ! Added from PROGRAM'
+      STR(3) = ' 1 2 3 4 5 ''Thou lump of foul deformity'''
+      STR(4) = '\END'
+      NSTR = 4
+      CALL EZADD (STR,NSTR,IER)         ! (10)
+      CALL EZEND                        ! (11)
+C
+C ****  Get values and types from parameter DUMP_BANKS
+C
+      CALL EZGET_VALUE_TYPE ('DUMP_BANKS',IVAL,TYPES,TOTAL,IER) ! (12)
+C
+C
+      WRITE(UNIT=LUNOUT,FMT=
+     &  '('' DUMP from EZGET_VALUE_TYPE of DUMP_BANKS'')')
+      WRITE(UNIT=LUNOUT,FMT='('' '')')
+      WRITE(UNIT=LUNOUT,FMT='('' '',6x,''IVAL'',5x,''TYPE'')')
+      WRITE(UNIT=LUNOUT,FMT='('' '',I10,5x,I4)')
+     &  (IVAL(I),TYPES(I),I=1,TOTAL)
+      WRITE(UNIT=LUNOUT,FMT='('' --------------------------'')')
+C
+C ****  Dump RCP bank
+C
+      WRITE(UNIT=LUNOUT,FMT='('' EZDUMP of EZEXAMPLE '')')
+      WRITE(UNIT=LUNOUT,FMT='('' '')')
+      CALL EZDUMP (LUNOUT,0,0)          ! (13)
+      WRITE(UNIT=LUNOUT,FMT='('' --------------------------'')')
+      CALL EZRSET                       ! (14)
+C
+C ****  Book an NEW empty SRCP bank called MY_NEW_BANK with:
+C ****  1) room for 20*4 character long records
+C ****  2) room for 30 such records and
+C ****  3) room for 40 values
+C
+      CALL EZBOOK ('MY_NEW_BANK',20,30,40)
+      IF ( EZERR(IER) ) THEN
+        WRITE(UNIT=LUNOUT,FMT='('' Problem booking SRCP bank'')')
+      ELSE
+C
+C ****  Add parameters to the new SRCP bank
+C
+        STR(1) = 'ADDED_THIS 12.345E-5  ! Added from PROGRAM'
+        STR(2) = ' '
+        STR(3) = '! Twas brillig and the slithy tothes...'
+        STR(4) = '\ARRAY AND_ADDED_THAT ! Added from program'
+        STR(5) = ' ''Let all the evil that lurks in the mud'''
+        STR(6) = ' ''hatch out..'''
+        STR(7) = '\END'
+        STR(8) = ' '
+        NSTR   = 8
+        CALL EZADD (STR,NSTR,IER)
+        CALL EZEND               ! Complete construction of bank
+C
+        WRITE(UNIT=LUNOUT,FMT='('' EZDUMP of bank MY_NEW_BANK'')')
+        WRITE(UNIT=LUNOUT,FMT='('' '')')
+        CALL EZDUMP(LUNOUT,0,0)
+        WRITE(UNIT=LUNOUT,FMT='('' --------------------------'')')
+      ENDIF
+C
+C ****  Dump names and addresses of SRCP banks in memory
+C
+      CALL EZDBUG (LUNOUT)
+C
+C ****  Close DUMP file
+C
+      CLOSE(UNIT=LUNOUT)
+
+  999 CONTINUE
+      END
+
+.END LITERAL
+
+.PAGE
+.CENTER; RCP FILE
+.BLANK
+.LITERAL
+
+\START     EZEXAMPLE_RCP        ! Name of RCP bank
+\SIZE 200 100
+!------------------------------------------------------------------------------
+!   Name:       EZEXAMPLE.RCP
+!------------------------------------------------------------------------------
+ SILLY1  TRUE
+ SILLY2  FALSE
+ HISTOGRAM_05  =        'Histogram_05'
+ HISTOGRAM_06           'Histogram_06'
+ LONG_STRING    'Richard III'
+
+ \ARRAY MIXED_ARRAY
+      'DOGG' 'DAYS' 1.1 22 3.3e3 TRUE 'YAHOO SERIOUS' 100
+      'CAT' 'CATS' 2000 'This is a long string'
+ \END
+
+ \ARRAY STRING_ARRAY
+        'You sticks you stones'
+        'You worse then senseless'
+        'Things'
+ \END
+
+ \ARRAY HISTOGRAM_04
+    'Histogram_04'
+ \END
+!------------------------------------------------------------------------------
+ HISTOGRAM_03   3
+
+ DO_CAHITS    .TRUE.        !Control flag for CAHITS package
+ NUM_EVENT_DUMPS        99  !Number of events to dump
+ HISTOGRAM_01           1
+ \ARRAY DUMP_BANKS
+  'HEAD'
+    ! Calor stuff
+  'CAEP'
+  'CAEH'
+  'CATE'
+  'CAPH'
+  'JETS'
+  'CACL'
+ \END
+\STOP
+
+.END LITERAL
+
+.PAGE
+.CENTER; OUTPUT FILE
+.BLANK
+.LITERAL
+
+ DUMP from EZGET_VALUE_TYPE of MIXED_ARRAY
+ 
+       IVAL     TYPE
+ 1195855684       14
+ 1398358340       14
+ -858963828        2
+         22        1
+ 1073759822        3
+         -1        4
+ 1330135385       23
+ 1163075663       23
+ 1431259474       23
+  538976339       23
+        100        1
+  542392643       13
+ 1398030659       14
+       2000        1
+ 1936287828       31
+  544434464       31
+ 1869357153       31
+ 1931503470       31
+ 1852404340       31
+  538976359       31
+ --------------------------
+ DUMP from EZGETS:1
+ 
+  <YAHOO SERIOUS>
+ 
+ --------------------------
+ DUMP from EZGETS:2
+ 
+  <Richard III>
+ 
+ --------------------------
+ DUMP from EZ_GET_CHARS: MIXED_ARRAY
+ 
+ DOGG
+ DAYS
+ --------------------------
+ DUMP from EZGET_VALUE_TYPE of DUMP_BANKS
+ 
+       IVAL     TYPE
+ 1145128264       14
+ 1346715971       14
+ 1212498243       14
+ 1163149635       14
+ 1213219139       14
+ 1398031690       14
+ 1279476035       14
+ --------------------------
+ EZDUMP of EZEXAMPLE 
+ 
+\START EZEXAMPLE_RCP
+\SIZE          82        23
+!------------------------------------------------------------------------------
+!   Name:       EZEXAMPLE.RCP
+!------------------------------------------------------------------------------
+SILLY1                TRUE
+SILLY2               FALSE
+HISTOGRAM_05       'Histogram_05'
+HISTOGRAM_06       'Histogram_06'
+LONG_STRING        'Richard III'
+ 
+\ARRAY MIXED_ARRAY      20
+    'DOGG'
+    'DAYS'
+          1.1000           22    3300.0000         TRUE
+    'YAHOO SERIOUS'
+             100
+    'Cho'
+    'CATS'
+            2000
+    'This is a long string'
+\END
+ 
+\ARRAY STRING_ARRAY     14
+    'You sticks you stones'
+    'You worse then senseless'
+    'Things'
+\END
+ 
+HISTOGRAM_04       'Histogram_04'
+!------------------------------------------------------------------------------
+HISTOGRAM_03                  3
+ 
+DO_CAHITS             TRUE    !Control flag for CAHITS package
+NUM_EVENT_DUMPS                   99    !Number of events to dump
+HISTOGRAM_01                  1
+\ARRAY DUMP_BANKS        7
+    'HEAD'
+    'CAEP'
+    'CAEH'
+    'CATE'
+    'CAPH'
+    'JETS'
+    'CACL'
+\END
+ADDED_VAR_ONE      'Hello there'   ! Added from PROGRAM
+\ARRAY ADDED_VAR_TWO         12    ! Added from PROGRAM
+               1            2            3            4            5
+    'Thou lump of foul deformity'
+\END
+\STOP
+ --------------------------
+ EZDUMP of bank MY_NEW_BANK
+ 
+\START MY_NEW_BANK
+\SIZE          17         5
+ADDED_THIS           1.2345E-04    ! Added from PROGRAM
+ 
+! Twas brillig and the slithy tothes...
+\ARRAY AND_ADDED_THAT        13    ! Added from program
+    'Let all the evil that lurks in the mud'
+    'hatch out..'
+\END
+ 
+\STOP
+ --------------------------
+
+
+ Directory of SRCP banks in /ZEBSTP/
+
+                  SELECTED BANK: MY_NEW_BANK                     
+
+                  NUMBER OF BANKS:          2
+
+    ID SRCP BANK NAME                      ADDRESS    SUPPORT    ADDRESS
+     1 EZEXAMPLE_RCP                        194332 Standalone          0
+     2 MY_NEW_BANK                          193581 Standalone          0
+
+
+
+
+.END LITERAL

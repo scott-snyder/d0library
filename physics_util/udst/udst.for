@@ -1,0 +1,172 @@
+      LOGICAL FUNCTION UDST()
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Main routine for MAKE_UDST package
+C-
+C-   Created  21-APR-1993   V. Balamurali
+C-   Updated  26-JAN-1994   Ulrich Heintz  add QMAKE_UDST,QREMAKE
+C-   Updated  10-JUL-1994   Ulrich Heintz  remove call to UDST_OUT, add code to
+C-                           drop all RAW banks, RECO, FILT and ESUM. 
+C-   Updated  30-MAY-1995   Ulrich Heintz  call C2L2EM directly 
+C-   Updated  22-OCT-1995   Ulrich Heintz  no longer drop existing ANLS bank 
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$LINKS:IZTRGR.LINK'
+      INCLUDE 'D0$LINKS:IZMUD1.LINK'
+      INCLUDE 'D0$LINKS:IZCDD1.LINK'
+      INCLUDE 'D0$LINKS:IZCDD2.LINK'
+      INCLUDE 'D0$LINKS:IZCDD3.LINK'
+      INCLUDE 'D0$LINKS:IZCDD4.LINK'
+      INCLUDE 'D0$LINKS:IZCAD1.LINK'
+      INCLUDE 'D0$LINKS:IZCAD2.LINK'
+      INCLUDE 'D0$LINKS:IZRECO.LINK'
+      INCLUDE 'D0$LINKS:IZFILT.LINK'
+      INCLUDE 'D0$LINKS:IZHSUM.LINK'
+      INCLUDE 'D0$LINKS:IZESUM.LINK'
+      INCLUDE 'D0$LINKS:IZTSUM.LINK'
+      INCLUDE 'D0$LINKS:IZUCSH.LINK'
+      INCLUDE 'D0$LINKS:IZUTAG.LINK'
+      INCLUDE 'D0$LINKS:IZUINT.LINK'
+      INCLUDE 'D0$LINKS:IZCDTK.LINK'
+      INCLUDE 'D0$LINKS:IZUCWX.LINK'
+      INTEGER LBANK,LHSUM,LL2EM,LC2EM,GZL2EM,GZC2EM
+      INTEGER IER,LANLS,GZANLS,LUDST,GZUDST,VRECO,PASS,IOS
+      LOGICAL FIRST,QMAKE_UDST,QREMAKE,STATUS,QADD_QCD_MDST
+      LOGICAL QCOMPRESS_ESUM,QC2L2EM,C2L2EM
+      LOGICAL SET_QCD_MAKE_DST,QCD_MAKE_DST,QDROP,QDROP_TSUM,MAKE_UINT
+      DATA FIRST/.TRUE./
+      SAVE STATUS
+C----------------------------------------------------------------------
+      UDST = .TRUE.
+      IF(FIRST)THEN
+        FIRST = .FALSE.
+        CALL EZPICK('UDST_RCP')
+        CALL EZGET('MAKE_UDST',QMAKE_UDST,IER)
+        IF(IER.EQ.0)CALL EZGET('DROP_RECO',QDROP,IER)
+        IF(IER.EQ.0)CALL EZGET('DROP_TSUM',QDROP_TSUM,IER)
+        IF(IER.EQ.0)CALL EZGET('RE_MAKE_UDST',QREMAKE,IER)
+        IF(IER.EQ.0)CALL EZGET('ADD_QCD_STUFF',QADD_QCD_MDST,IER)
+        IF(IER.EQ.0)CALL EZGET('COMPRESS_ESUM',QCOMPRESS_ESUM,IER)
+        IF(IER.NE.0)CALL ERRMSG('UDST_RCP','MAKE_UDST',
+     &    'error getting RCP parameters','F')
+        CALL EZRSET
+      ENDIF
+      IF(.NOT.QMAKE_UDST)GOTO 999
+C
+C... check that this is event record
+C
+      IOS=MOD(IQ(LHEAD+1),1000)
+      IF(IOS.NE.0.AND.IOS.LE.4)GOTO 999
+C
+C... check RECO version
+C
+      CALL RECO_VERSION(VRECO,PASS)
+      IF(VRECO.LT.11)THEN
+        CALL ERRMSG('RECO_VERSION<11','UDST',
+     &    'this code will skip events with RECO version < 11','W')
+        UDST=.FALSE.
+        GOTO 999
+      ENDIF
+C
+C... determine whether UDST bank is already present
+C
+      LUDST=GZUDST()
+      IF(LUDST .GT. 0)THEN
+        IF(QREMAKE)THEN
+          CALL ERRMSG('LUDST>0','UDST',
+     &      'existing bank dropped - will remake UDST bank','W')
+          CALL MZDROP(IXCOM,LUDST,'L')
+          LANLS=GZANLS()
+          LBANK=LQ(LHEAD-1)       ! JUTL
+          IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+          LBANK=LQ(LHEAD-IZUCSH)
+          IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+          LBANK=LQ(LHEAD-IZUTAG)
+          IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+          LBANK=LQ(LHEAD-5)       ! CAID
+          IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+          LBANK=LQ(LHEAD-IZUINT)
+          IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+          LBANK=LQ(LHEAD-IZCDTK)
+          IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+          LBANK=LQ(LHEAD-IZUCWX)
+          IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        ELSE
+          CALL ERRMSG('LUDST>0','UDST','will not remake UDST bank','W')
+          GOTO 900
+        ENDIF
+      ENDIF
+C
+C... if only C2EM banks are present call C2L2EM to recreate L2EM banks
+C
+      LL2EM = GZL2EM()
+      LC2EM = GZC2EM()
+      IF(LL2EM.LE.0.AND.LC2EM.GT.0)THEN
+        QC2L2EM = C2L2EM()
+      ELSE
+        QC2L2EM = .FALSE.
+      ENDIF
+C
+      CALL MAKE_UDST
+C
+      IF(QADD_QCD_MDST)THEN
+        IF(.NOT.STATUS)STATUS = SET_QCD_MAKE_DST( .TRUE. )  
+        STATUS = QCD_MAKE_DST() 
+      ENDIF
+      IF(QCOMPRESS_ESUM)THEN
+        STATUS = MAKE_UINT()
+      ENDIF
+      CALL UDST_WRITE_EVENT
+C
+C... if L2EM banks were created by C2L2EM drop them again
+C
+      LL2EM = GZL2EM()
+      IF(QC2L2EM.AND.LL2EM.GT.0)CALL MZDROP(IXCOM,LL2EM,'L')
+C      
+  900 IF(QDROP)THEN
+        LBANK=LQ(LHEAD-IZTRGR)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZMUD1)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZCDD1)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZCDD2)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZCDD2)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZCDD3)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZCDD4)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZCAD1)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZCAD1)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZCAD2)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZFILT)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LBANK=LQ(LHEAD-IZRECO)
+        IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        LHSUM=LQ(LHEAD-IZHSUM) 
+        IF(LHSUM.GT.0)THEN  
+          LBANK=LQ(LHSUM-IZESUM)
+          IF(LBANK.GT.0)CALL MZDROP(IXCOM,LBANK,'L')
+        ENDIF
+      ENDIF
+      IF(QDROP_TSUM)THEN
+        LHSUM=LQ(LHEAD-IZHSUM)
+        IF(LHSUM.GT.0)THEN
+          LBANK=LQ(LHSUM-IZTSUM)
+          IF(QDROP)THEN
+            CALL MZDROP(IXCOM,LHSUM,'L')
+          ELSEIF(LBANK.GT.0)THEN
+            CALL MZDROP(IXCOM,LBANK,'L')
+          ENDIF
+        ENDIF
+      ENDIF
+C
+  999 RETURN
+      END

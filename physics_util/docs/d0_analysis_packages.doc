@@ -1,0 +1,223 @@
+
+
+
+                                                   Revised 3/30/94
+
+
+                  D0 analysis and utility packages
+                  --------------------------------
+
+
+        This document describes the following packages.  It is not 
+        intended to replace individual package documentation.  Rather,
+        it is intended to provide an overview and summary.
+
+        CALOR
+        UDST_TO_DST
+        RECO_VERSION_SELECT
+        RUN_SELECT
+        STRIP_TRIG
+        DUPLICATE_EVENT_FILTER
+        VERIFY_ZEBRA
+        DROP_CAPH_ALG
+        COMPUTE_EM_QUALITY
+        COMPUTE_MU_QUALITY
+        CAFIX
+        FIX_JET_ET
+        PARTICLE_SELECT
+        MAKE_UDST
+
+        The above list reprsenents an acceptable package order.  All of 
+        the above packages are compatible with the D0USER frame.  Most, 
+        but not all, also work in CALOR_OFF.
+
+        CALOR
+        -----
+
+        Initializes calorimeter geometry.  Required by many other packages.
+        Should come first in package list.
+
+        D0$PBD:CALOR.PBD
+        D0$CALOR_OFF:CALEVT.RCP
+
+        UDST_TO_DST
+        -----------
+
+        Convert micro dst to regular dst.  Should come before any analysis
+        packages, but after CALOR and optionally C2L2EM.  See DONEWS 
+        message 2146 in generatl folder on FNALD0.
+
+        Files:
+
+        D0$PBD:UDST_TO_DST.PBD
+        D0$PHYSICS_UTIL:TAGS_MAP.RCP
+
+        RECO_VERSION_SELECT
+        -------------------
+
+        Filter on RECO version.  Default is to pass version 11 or later.
+
+        Files:
+
+        D0$PBD:RECO_VERSION_SELECT.PBD
+        D0$PHYSICS_UTIL:RECO_VERSION_SELECT.RCP
+        D0$PHYSICS_UTIL$DOCS:RECO_VERSION_SELECT.DOC
+        D0$PHYSICS_UTIL$GENERAL:RECO_VERSION_SELECT.FOR
+
+        RUN_SELECT
+        ----------
+
+        Filter on run range (RUN_SELECT.RCP) and bad run list (BAD_RUN.RCP).
+        The defult RUN_SELECT.RCP cuts on the run 1a run range.  The 
+        defult BAD_RUN.RCP uses Steve Wimpenny's bad run list from 
+        TOP_LEPTONS.
+
+        Files:
+
+        D0$PBD:RUN_SELECT.PBD
+        D0$TOP_PHYSICS:BAD_RUN.RCP
+        D0$PHYSICS_UTIL:RUN_SELECT.RCP
+        D0$PHYSICS_UTIL$DOCS:RUN_SELECT.DOC
+        D0$PHYSICS_UTIL$GENERAL:RUN_SELECT.FOR
+
+        STRIP_TRIG
+        ----------
+
+        Filter on triggers and filters by number and/or name.  Optionally 
+        filter on microblank bit.
+
+        Files:
+
+        D0$PBD:STRIP_TRIG.PBD
+        D0$GENERAL:STRIP.RCP
+        D0$EVENT_UTIL$EVENT_IO:STRIP_TRIG.FOR
+
+        DUPLICATE_EVENT_FILTER
+        ----------------------
+
+        Filter out duplicate events based on run and output event number.  
+        Default is to only work on data (not Monte Carlo).
+
+        Files:
+
+        D0$PBD:DUPLICATE_EVENT_FILTER.PBD
+        D0$PHYSICS_UTIL:DUPLICATE_EVENT_FILTER.RCP
+        D0$PHYSICS_UTIL$DOCS:DUPLICATE_EVENT_FILTER.DOC
+        D0$PHYSICS_UTIL$GENERAL:DUPLICATE_EVENT_FILTER.FOR
+
+        VERIFY_ZEBRA
+        ------------
+
+        Filter out events in which DZVERI detects a Zebra error.
+
+        Files:
+
+        D0$PBD:VERIFY_ZEBRA.PBD
+        D0$PHYSICS_UTIL:VERIFY_ZEBRA.RCP
+        D0$PHYSICS_UTIL$DOCS:VERIFY_ZEBRA.DOC
+        D0$PHYSICS_UTIL$GENERAL:VERIFY_ZEBRA.FOR
+
+
+
+        DROP_CAPH_ALG
+        -------------
+
+        Drops CAPH banks from unwanted jet algorithms (RCP selectable)
+        in order to save time (e.g. in CAFIX) and output disk space.
+
+        Files:
+
+        D0$PBD:DROP_CAPH_ALG.PBD
+        D0$PHYSICS_UTIL:DROP_CAPH_ALG.RCP
+        D0$PHYSICS_UTIL$DOCS:DROP_CAPH_ALG.DOC
+        D0$PHYSICS_UTIL$GENERAL:DROP_CAPH_ALG.FOR
+
+
+
+        COMPUTE_EM_QUALITY
+        ------------------
+
+        Runs CLEANEM on all PELC's and PPHO's and recalculates selection 
+        mask.
+
+        Files:
+
+        D0$PBD:COMPUTE_EM_QUALITY.PBD
+        D0$CALOR_UTIL:CLEANEM.RCP
+        D0$CALOR_UTIL$SOURCE:CLEANEM.FOR
+
+        COMPUTE_MU_QUALITY
+        ------------------
+
+        Runs CLEANMU, which calls MUON_SELECT for all PMUO's and 
+        recalculates selection mask.
+
+        Files:
+
+        D0$PBD:COMPUTE_MU_QUALITY.PBD
+        D0$MUON_RECO:CLEANMU.RCP
+        D0$MUON_RECO$SOURCE:CLEANMU.FOR
+        D0$MUON_RECO$SOURCE:MUON_SELECT.FOR
+
+        CAFIX
+        -----
+
+        Calculate energy corrections for electron, photons, jets and 
+        missing ET.  Should come after COMPUTE_EM_QUALITY and 
+        COMPUTE_MU_QUALITY In package list.  Calls CORRECTEM, CORRECT_MET 
+        and QCD_JET_CORRECTION.  Electron, photon and jet corrections are
+        stored in modified PELC, PPHO and JETS banks.  Missing ET corrections
+        are stored in PNUT(4) (calorimeter corrected missing ET) and 
+        PNUT(5) (cal+muon corrected missing ET).
+
+        Files:
+
+        D0$PBD:CAFIX.PBD
+        D0$CALOR_OFF$DOCS:CAFIX.DOC
+        D0$CALOR_OFF:CAFIX.RCP
+        D0$CALOR_OFF$SOURCE:CAFIX.FOR
+        D0$CALOR_OFF$SOURCE:CORRECTEM.FOR
+        D0$PHYSICS_UTIL$GENERAL:QCD_JET_CORRECTION.FOR
+        D0$PHYSICS_UTIL$GENERAL:CORRECT_MET.FOR
+
+        FIX_JET_ET
+        ----------
+
+        Recalculate ET of jets using alternate definitions of ET
+        (e.g. pt, E*sin(theta), etc.).  All algorithms are recalculated.
+
+        Files:
+
+        D0$PBD:FIX_JET_ET.PBD
+        D0$PHYSICS_UTIL:FIX_JET_ET.RCP
+        D0$PHYSICS_UTIL$DOCS:FIX_JET_ET.DOC
+        D0$PHYSICS_UTIL$GENERAL:FIX_JET_ET.FOR
+
+        PARTICLE_SELECT
+        ---------------
+
+        Standard particle selection for electrons, photons, muons and jets.  
+        Links if good objects are stored in link area.  
+
+        Files:
+
+        D0$PBD:PARTICLE_SELECT.PBD
+        D0$PHYSICS_UTIL:PARTICLE_SELECT.RCP
+        D0$PHYSICS_UTIL$DOCS:PARTICLE_SELECT.DOC
+        D0$PHYSICS_UTIL$GENERAL:PARTICLE_SELECT.FOR
+        D0$PHYSICS_UTIL$GENERAL:GOOD_PARTICLE.FOR
+
+        PARTICLE_SELECT applies kinematic cuts on ET and ETA in addition
+        to selection mask cuts.
+
+        MAKE_UDST
+        ---------
+
+        Converts dst to microdst.  This package is only invoked if a DST 
+        output stream is defined.  MAKE_UDST should come after all analysis
+        packages. 
+
+        Files:
+
+        D0$PBD:MAKE_UDST.PBD
+        D0$PHYSICS_UTIL:UDST.RCP

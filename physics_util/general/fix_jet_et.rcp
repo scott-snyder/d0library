@@ -1,0 +1,49 @@
+\START   FIX_JET_ET_RCP
+\SIZE         59        53
+!------------------------------------------------------------------------------
+!   Name:       FIX_JET_ET_RCP
+!   Purpose:    Control file for FIX_JET_ET package
+!   Created:    31-Dec-1993  H. Greenlee
+!   Updated:    Feb-12-1995  Bob Kehoe  -- allow for removal of CH/OH energy
+!                                          from jets in various mainring states
+!------------------------------------------------------------------------------
+do_fix_jet_et       .true.      ! switch whether to execute package
+!------------------------------------------------------------------------------
+!
+! JET_ET_DEFINITION parameter:
+!
+! 0 - Do not modify jet ET (default is scalar sum ET).
+! 1 - pt = sqrt(px**2 + py**2)
+! 2 - e * sin(theta) = e * pt / p
+! 3 - sqrt(e**2 - pz**2)
+!
+! Generally, methods 1-3 give increasing values of ET.
+!
+!------------------------------------------------------------------------------
+JET_ET_DEFINITION      1
+!------------------------------------------------------------------------------
+!   Main-Ring Corrections to Jets
+!------------------------------------------------------------------------------
+max_ch_fraction      0.5        ! maximum allowed CH/OH fraction for jets
+!
+\ARRAY mr_names                 ! mainring states in which to cut
+    'MICRO_BLANK'   'MRBS_LOSS'
+\END
+!   Note:   if 'GOOD_BEAM' is used in mr_names, it designates events with
+!       neither the MICRO_BLANK nor MRBS_LOSS flags set.  This allows removal of
+!       CH/OH energy from jets outside of mainring gates.
+!
+\ARRAY corr_switch              ! severity of cut for mr_names(k) mainring state
+    1       1
+\END
+!   Note:   for corr_switch, the cut severity goes as follows:
+!       0 = do not cut
+!       1 = cut CH/OH out of jet (missing et corr. if CAFIX set to remove CH)
+!       2 = delete jet entirely from event (missing et not corrected)
+!       3 = reject event
+!
+min_jet_et          5.0         ! jet Et below which Et set to zero
+jet_cut_switch        1         ! apply min_jet_et cut to 1 (CH corrected jets),
+!                                 2 (split/merge jets), 3 (both)
+!
+\STOP

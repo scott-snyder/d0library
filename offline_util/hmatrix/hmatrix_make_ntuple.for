@@ -1,0 +1,183 @@
+      SUBROUTINE HMATRIX_MAKE_NTUPLE(MORE_NAMES,MORE_QUANS,NUM_MORE)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Makes Hmatrix Quan bank +additional
+C-   quantities into  an NTUPLE whose Id is obtained from HMATRIX_RCP
+C-
+C-   Inputs  :MORE_NAMES = 8 character tags for additional quantities
+C-            MORE_QUANS = additional quantites in ntuple.
+C-            NUM_MORE = NUMBER OF additional quantites
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  18-APR-1992   Rajendran Raja
+C-   Updated  16-JUN-1992   Rajendran Raja  ADDED DIAGONIALIZED QUANTITIES
+C-   Updated   2-JUL-1994   Rajendran Raja  ADDED BEAM CROSSING EVENT NUMBER
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:HMATRIX_PARS.INC'
+      INCLUDE 'D0$INC:ZEBSTP.INC'
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$INC:ZHMATRIX.INC'
+      INCLUDE 'D0$INC:ZLINKC.INC'
+C
+      INTEGER NTUPL_PRIM,NTUPL_ID
+C
+      LOGICAL FIRST
+      SAVE FIRST
+      DATA FIRST / .TRUE. /
+C
+      INTEGER MORE_MAX
+      PARAMETER( MORE_MAX =  100)
+      CHARACTER*8 NTUPLE_QUANTITIES(3*VIS_MAX+INVIS_MAX+MORE_MAX)
+      CHARACTER*(*) MORE_NAMES(*)
+      REAL    MORE_QUANS(*)
+      INTEGER NUM_MORE
+C
+      INTEGER IER,I,NTUPLE_DIM
+      LOGICAL DO_NTUPLE
+      LOGICAL DO_CHIS_VECTOR
+      LOGICAL DIAGONALIZE
+      CHARACTER*8 DIAG
+C
+      INTEGER INEXT
+      INTEGER NUMRUN,NUMEVT
+      INTEGER STATUS
+      CHARACTER*32 NTUPLE_FILE
+C
+      INTEGER NCHR
+      SAVE NTUPLE_DIM
+C----------------------------------------------------------------------
+C
+      IF( FIRST ) THEN
+        CALL EZPICK('HMATRIX_RCP')
+C
+C ****  BOOK HISTOGRAMS HERE
+C
+        CALL EZGET('DO_NTUPLE',DO_NTUPLE,IER)
+        CALL EZGET('DO_CHIS_VECTOR',DO_CHIS_VECTOR,IER)
+        CALL EZGET('DIAGONALIZE',DIAGONALIZE,IER)
+C
+        IF(.NOT.DO_NTUPLE)RETURN
+        IF ( NTUPLE_DIM.GT.VIS_MAX+INVIS_MAX+MORE_MAX ) THEN
+          CALL ERRMSG('HMATRIX','HMATRIX_MAKE_NTUPLE',
+     &      'TOO MANY ADDITIONAL NAMES ','W')
+          RETURN
+        ENDIF
+C
+        CALL EZGET('NTUPLE_PRIMARY_ALLOCATION',NTUPL_PRIM,IER)
+        CALL EZGET('NTUPLE_ID',NTUPL_ID,IER)
+        CALL EZ_GET_CHARS('NTUPLE_FILE',NCHR,NTUPLE_FILE,IER)
+        IF ( IER.EQ.-2 ) THEN
+          NTUPLE_FILE = 'HBOOK_SAVE'
+        ENDIF
+
+C
+        INEXT = 1
+        NTUPLE_QUANTITIES(INEXT) = 'RUN'
+        NTUPLE_QUANTITIES(INEXT+1) = 'EVENT'
+        NTUPLE_QUANTITIES(INEXT+2) = 'EVENT1'
+        NTUPLE_QUANTITIES(INEXT+3) = 'EVENT2'
+        INEXT = INEXT + 4
+        DO I =  1 , VIS_DIM
+          NTUPLE_QUANTITIES(INEXT+I-1) = VISIBLE_QUANTITIES(I)
+        ENDDO
+        INEXT = INEXT + VIS_DIM
+        DO I = 1 , INVIS_DIM
+          NTUPLE_QUANTITIES(INEXT+I-1) = INVISIBLE_QUANTITIES(I)
+        ENDDO
+        INEXT = INEXT + INVIS_DIM
+C
+        IF ( DO_CHIS_VECTOR.AND.(.NOT.ACCUMULATE) ) THEN
+          DO I = 1 , VIS_DIM
+            WRITE(DIAG,2)I
+    2       FORMAT('CHIS',I4.4)
+            NTUPLE_QUANTITIES(INEXT+I-1) = DIAG
+          ENDDO
+          INEXT = INEXT + VIS_DIM
+        ENDIF
+C
+        IF ( DIAGONALIZE.AND.(.NOT.ACCUMULATE) ) THEN
+          DO I = 1 , VIS_DIM
+            WRITE(DIAG,1)I
+    1       FORMAT('DIAG',I4.4)
+            NTUPLE_QUANTITIES(INEXT+I-1) = DIAG
+          ENDDO
+          INEXT = INEXT + VIS_DIM
+        ENDIF
+C
+        DO I = 1 , NUM_MORE
+          NTUPLE_QUANTITIES(INEXT+I-1) = MORE_NAMES(I)
+        ENDDO
+        INEXT = INEXT + NUM_MORE
+C
+        NTUPLE_DIM = INEXT - 1
+C
+        IF(LTEMP.NE.0)THEN
+          CALL MZDROP(IXSTP,LTEMP,' ')  !DROP TEMP BANK
+          LTEMP = 0
+        ENDIF
+        IF(LTEMP.EQ.0)CALL BKTEMP(NTUPLE_DIM)
+C
+      ENDIF
+C
+C ****  NEED TO SET DIR EACH TIME
+C
+      CALL DHDIR_SAVE_FILE            !SAVE PREVIOUS TOPDIR
+      CALL DHDIR_DECLARE_FILE(NTUPLE_FILE)
+      CALL DHSETDIR('//PAWC',STATUS)
+      CALL DHDIR('HMATRIX_RCP','HBOOK_DIRECTORY',IER,' ')
+C         ! Create/Set HBOOK directory
+      IF ( IER.NE.0 ) THEN
+        CALL ERRMSG('HMATRIX','HMATRIX_MAKE_NTUPLE',
+     &      ' ERROR SETTING HBOOK DIRECTORY ','W')
+      ENDIF
+C
+      IF ( FIRST ) THEN
+        FIRST = .FALSE.
+        CALL NTUPLE_SET_ID(NTUPL_ID,1)
+C BOOK DISK RESIDENT NTUPLE. IF IT FAILS, BOOK MEMORY RESIDENT NTUPLE
+        CALL NTUPLE_BOOK
+     &    (NTUPLE_FILE,NTUPLE_DIM,NTUPLE_QUANTITIES,
+     &    'HMATRIX QUAN VECTOR',NTUPL_ID,STATUS)
+C
+        IF ( STATUS .NE. 0 ) THEN
+          CALL HBOOKN
+     &      (NTUPL_ID,'HMATRIX QUAN VECTOR',NTUPLE_DIM,' ',
+     &      NTUPL_PRIM,
+     &      NTUPLE_QUANTITIES)
+C
+        ENDIF
+      ENDIF
+C
+C
+      IF ( DO_NTUPLE ) THEN
+        INEXT = 1
+        CALL EVNTID(NUMRUN,NUMEVT)
+        C(LTEMP+INEXT) = NUMRUN
+        INEXT = INEXT + 1
+        C(LTEMP+INEXT) = NUMEVT
+        INEXT = INEXT + 1
+        C(LTEMP+INEXT) = IQ(LHEAD+7)
+        INEXT = INEXT + 1
+        C(LTEMP+INEXT) = IQ(LHEAD+8)
+        INEXT = INEXT + 1
+        CALL UCOPY(C(LQUAN+1),C(LTEMP+INEXT),TOT_DIM)
+        INEXT = INEXT + TOT_DIM
+        IF ( DO_CHIS_VECTOR.AND.(.NOT.ACCUMULATE) ) THEN
+          CALL UCOPY(C(LCHIS+1),C(LTEMP+INEXT),VIS_DIM)
+          INEXT = INEXT + VIS_DIM
+        ENDIF
+        IF ( DIAGONALIZE.AND.(.NOT.ACCUMULATE) ) THEN
+          CALL UCOPY(C(LDIAG+1),C(LTEMP+INEXT),VIS_DIM)
+          INEXT = INEXT + VIS_DIM
+        ENDIF
+        CALL UCOPY(MORE_QUANS,C(LTEMP+INEXT),NUM_MORE)
+        CALL DO_HFN(NTUPLE_FILE,NTUPL_ID,C(LTEMP+1))   !Fill Ntuple
+      ENDIF
+C
+      CALL DHDIR_RESTORE_FILE        !RESTORE PREVIOUS TOPDIR
+C
+  999 RETURN
+      END

@@ -1,0 +1,785 @@
+.CHAPTER Write-ups
+.TEST PAGE 20 !MODULE=EZACHV
+.HEADER LEVEL 1 EZACHV
+.LITERAL
+
+   SUBROUTINE EZACHV(CHARR,REMARK)
+
+   Author(s) : Tami Kramer
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+
+
+     Add a parameter, which has space for a 32-CHARACTER STRING,
+     to an existing SRCP bank. If many parameters are to be added
+     to an SRCP bank it is more efficient to call EZFILL once per
+     new parameter and then to call EZEND once at the end. EZACHV
+     calls EZFILL and EZEND. See also EZADD.
+
+
+.END NOTE
+.LITERAL
+   Inputs  : CHARR    [C*]    Parameter name
+             REMARK   [C*]    Short remark
+   Outputs : None
+   Controls: None
+
+   Created   5-JUN-1989
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZASIZ
+.HEADER LEVEL 1 EZASIZ
+.LITERAL
+
+   SUBROUTINE EZASIZ (LUNIN,LUNOUT,FILNAM,NVALS,NPARS)
+
+   Author(s) : Harrison B. Prosper, Chip Stewart
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Create a new RCP file with the _\SIZE parameter
+                         inserted at the start of the file. The input
+                         file should be already OPEN. The input file is
+                         first rewound and EZSIZE is called to calculate
+                         the size of the file. The file is rewound again
+                         and its records are transferred to a new file
+                         after the size parameter has been written out.
+
+                         NOTE: The sizes written are 10 greater than
+                               calculated.
+
+
+.END NOTE
+.LITERAL
+   Inputs  : LUNIN    Unit number of input file; file MUST already be OPEN.
+             LUNOUT   Unit number of output file; opened/closed internally.
+             FILNAM   Name of output file (opened with STATUS='NEW')
+
+   Outputs : NVALS    Calculated number of values in output file
+             NPARS    Calculated number of parameters (+ comments)
+                      in output file.
+
+   Controls: None
+
+   Created  19-JAN-1989
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZCDAT
+.HEADER LEVEL 1 EZCDAT
+.LITERAL
+
+   SUBROUTINE EZCDAT (LUNIN,LUNOUT)
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+    Convert DATA statements into RCP lines.
+
+.END NOTE
+.LITERAL
+   Inputs  : LUNIN       Logical unit number of input file
+             LUNOUT      Logical unit number of output file
+   Outputs : None
+   Controls: None
+
+   Created  15-SEP-1988
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZFLIS
+.HEADER LEVEL 1 EZFLIS
+.LITERAL
+
+   PROGRAM EZFLIS
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+
+   Produce a list of the parameter names in an RCP file.
+
+
+.END NOTE
+.LITERAL
+
+   Created  23-NOV-1988
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZGETC
+.HEADER LEVEL 1 EZGETC
+.LITERAL
+
+   SUBROUTINE EZGETC (PARAM,ISTART,NCHAR,STRING,ERROR)
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Get Character string from array PARAM in
+                         the currently selected RCP bank. Each
+                         string is assumed to be begin at position
+                         ISTART in the array and to be NCHAR
+                         characters long. If NCHAR is ZERO then the
+                         length of the string is assumed to be 32
+                         characters.
+
+
+.END NOTE
+.LITERAL
+   Inputs  : PARAM       Name of array parameter containing string
+             ISTART      Starting position of string in array
+             NCHAR       Number of characters to return
+
+   Outputs : STRING      Returned string (256 characters maximum)
+             ERROR       0 --- OK. See error codes for EZGET.
+
+   Controls: None
+
+   Created  11-MAR-1989
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZGETD
+.HEADER LEVEL 1 EZGETD
+.LITERAL
+
+   SUBROUTINE EZGETD (ID,NUMBER,TYPE,TOTAL,RECORD,LENREC)
+
+   Author(s) : Harrison B. prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Return all the data associated with the
+                         given parameter ID from the currently
+                         selected RCP bank. IMPORTANT: both reals and
+                         integers are returned as FLOATING point
+                         numbers; NO equivalencing is required.
+                         However, you must DHTOC (UHTOC) to convert
+                         to characters.
+
+
+.END NOTE
+.LITERAL
+   Inputs  : ID       [I]     Identifier index
+
+   Outputs : NUMBER(*)[R*]    Value(s) (Returned as REAL)
+             TYPE(*)  [I*]    Value type
+             TOTAL    [I]     Number of values (INTEGER)
+             RECORD   [C*]    Stored record (CHARACTER)
+             LENREC   [I]     Length of stored record
+
+                           Error codes. Use EZERR to check for errors.
+                           0 --> OK
+
+   Controls: None
+
+   Created  13-NOV-1988
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZGETR
+.HEADER LEVEL 1 EZGETR
+.LITERAL
+
+   SUBROUTINE EZGETR (PARAM1,IVAL,TYPE,TOTAL,REMARK,LREM)
+
+   Author(s) : Harrison B. prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Return data associated with the identifier
+                         PARAM1 from a pre-selected RCP bank. See
+                         also EZGETD.
+
+
+.END NOTE
+.LITERAL
+   Inputs  : PARAM1   [C*]    Name of parameter (CHARACTER string)
+
+   Outputs : IVAL(*)          Value(s) pertaining to PARAM1.
+             TYPE(*)  [I*]    Value type(s)
+             TOTAL    [I]     Total number of values
+             REMARK   [C*]    Remark associated with parameter
+             LREM     [I]     Length of remark
+
+                         Error code. Use EZERR to check for errors.
+
+                           0 --> OK
+
+   ENTRY EZSETR (PARAM1,IVAL,TYPE,TOTAL,REMARK,LREM)
+
+   Controls: None
+
+   Created   7-MAR-1989
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZGREM
+.HEADER LEVEL 1 EZGREM
+.LITERAL
+
+   SUBROUTINE EZGREM (PARAM1,REMARK,LREM)
+
+   Author(s) : Harrison B. prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Get REMark associated with parameter PARAM1
+                         from selected RCP bank. Use EZPICK to select
+                         an RCP bank.
+
+
+.END NOTE
+.LITERAL
+   Inputs  : PARAM1      Name of parameter (CHARACTER string)
+
+   Outputs : REMARK      String containing comment
+             LREM        Length of comment
+                         Error code. Use EZERR to check for errors.
+
+                           0 --> OK
+
+   ENTRY EZSREM (PARAM1,REMARK,LREM)
+
+   Controls: None
+
+   Created   7-MAR-1989
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZGSET
+.HEADER LEVEL 1 EZGSET
+.LITERAL
+
+   SUBROUTINE EZGSET (CHAR1,IVAL,IDX)
+
+   Author(s) : Rajendran Raja, Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Access value(s) of variable CHAR1 in given
+                         RCP bank. This calls EZGET or EZSET
+                         and "bombs" if the return code from either of
+                         these routines is non-zero.
+
+.END NOTE
+.LITERAL
+   Inputs  : CHAR1       Name of datum or data (CHARACTER string)
+
+   Outputs : IVAL(*)     Value(s) pertaining to name "CHAR1"
+
+
+   Controls: IDX         1 --> GET value(s), -1 ---> SET value
+
+
+   Created  27-NOV-1987
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZHDRC
+.HEADER LEVEL 1 EZHDRC
+.LITERAL
+
+   FUNCTION EZHDRC (BANK1,OPTION1)
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Return textual RCP header information.
+
+.END NOTE
+.LITERAL
+   Inputs  : BANK1       Name of RCP bank.
+             OPTION1     Name of datum required
+
+                         'VERSION'          Program version number
+                         'TIMESTAMP'        Creation date and time
+
+   Outputs : None
+
+                         Error code:
+                         0 --- OK
+   Controls: None
+
+   Created   9-JAN-1989
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZHDRI
+.HEADER LEVEL 1 EZHDRI
+.LITERAL
+
+   FUNCTION EZHDRI (BANK1,OPTION1)
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Return numerical RCP header information.
+
+.END NOTE
+.LITERAL
+   Inputs  : BANK1       Name of RCP bank.
+             OPTION1     Name of datum required
+
+                         'IDENTIFIERS'      Number of Identifiers
+                         'VALUES'           Number of values
+                         'MAX_IDENTIFIERS'  Maximum number of Ids
+                         'MAX_VALUES'       Maximum number of values
+                         'WORDS/RECORD'     Number of words/record
+                         'WORDS/BANK'       Total size of RCP bank
+
+   Outputs : None
+
+                         Error code:
+                         0 --- OK
+   Controls: None
+
+   Created   3-OCT-1988
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZPAR
+.HEADER LEVEL 1 EZPAR
+.LITERAL
+
+   SUBROUTINE EZPAR (IN,OPTION,PARAM,NPAR)
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Return parameter names in an RCP disk file.
+
+.END NOTE
+.LITERAL
+   Inputs  : IN          Logical Unit number of input data stream
+             OPTION      'ALL'       Return ALL parameter names
+                         'ARRAY'     Return ALL array names
+                         'anything'  Return ALL non-array names
+   Outputs : PARAM(*)    Array of names (character)
+             NPAR        Number of parameters
+
+   Created 13-OCT-1988
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZRDA
+.HEADER LEVEL 1 EZRDA
+.LITERAL
+
+   SUBROUTINE EZRDA (RECORD)
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Read a character array containing parameters
+                         and save records and decoded values in the RCP
+                         bank which hangs below STPH.  The RCP bank
+                         hanging below STPH (via SCPH) is given the name
+                         SCPH by default. It can be renamed with EZRNAM.
+                         The RCP bank will be automatically expanded to
+                         accomodate new entries. IMPORTANT: The last
+                         entry in the array MUST contain the command
+                         _\STOP to indicate end-of-data.
+
+
+.END NOTE
+.LITERAL
+   Inputs  : RECORD(*)        Character array
+   Outputs : None
+   Controls: None
+                         Error codes. Use EZERR to check for code.
+                         0 --- OK
+
+   Created  10-JAN-1989
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZRDAR
+.HEADER LEVEL 1 EZRDAR
+.LITERAL
+
+   SUBROUTINE EZRDAR (RECORD,BKNAME,WRDIDS,LSUPP,IZLINK)
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+      Read a character array containing parameters and save records and
+      decoded values in an SRCP bank. The SRCP bank
+      is assigned the name BKNAME. The name can be
+      changed with EZRNAM. This routine is functionally equivalent to
+      EZREAD.
+
+.END NOTE
+.LITERAL
+   Inputs  : RECORD(*) [C*]   Character array
+             BKNAME    [C*]   Name to give to RCP bank
+             WRDIDS    [I]    Number of words/record
+             LSUPP     [I]    Address of support bank if > 0.
+             IZLINK    [I]    Link from which to hang bank.
+
+   Outputs : None
+
+                         Error codes. Use EZERR to check for code.
+                         0 --- OK
+
+      IMPORTANT:      The last entry in the array must contain the
+                      command \STOP to indicate end-of-data.
+
+   Created  10-JAN-1989
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZSETC
+.HEADER LEVEL 1 EZSETC
+.LITERAL
+
+   SUBROUTINE EZSETC (PARAM,ISTART,NCHAR,STRING,ERROR)
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Store a character string in array PARAM in
+                         the currently selected RCP bank. The
+                         string is assumed to be begin at position
+                         ISTART in the array and to be NCHAR
+                         characters long. If NCHAR is ZERO then the
+                         length of the string is assumed to be 32
+                         characters.
+
+.END NOTE
+.LITERAL
+   Inputs  : PARAM       Name of array parameter containing string
+             ISTART      Starting position of string in array
+             NCHAR       Number of characters in string
+             STRING      String to store (256 characters maximum).
+
+   Outputs : ERROR       0 --- OK. See error codes for EZSET.
+
+
+   Controls: None
+
+   Created  11-MAR-1989
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZSIZE
+.HEADER LEVEL 1 EZSIZE
+.LITERAL
+
+   SUBROUTINE EZSIZE (LUN,NUMVAL,NUMREC)
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         Read an RCP file containing parameters and
+                         return the number of records (identifiers
+                         +comment lines+blank lines) and values
+                         within file. The file must be OPENED
+                         EXTERNALLY.
+
+
+.END NOTE
+.LITERAL
+   Inputs  : LUN         Unit number of input stream
+
+   Outputs : NUMVAL        Number of values
+             NUMREC        Number of records (identifiers + comments)
+
+   Created 16-NOV-1988
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZSTRG
+.HEADER LEVEL 1 EZSTRG
+.LITERAL
+
+   SUBROUTINE EZSTRG (NAME,II,JJ,KK,STRING,NN)
+
+   Author(s) : Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         From the string NAME and the triplet of
+                         integers (II,JJ,KK) create a string with
+                         the format:
+
+                         STRING = 'NAME(II:JJ) KK'.
+
+      If KK = 0 that argument is ignored. This routine can be used in
+conjunction with EZGET. Note, however, that access to elements within
+an array parameter is quicker with EZGETA and perhaps more convenient.
+
+.END NOTE
+.LITERAL
+   Inputs  : NAME        Name of SRCP parameter
+             II,JJ,KK    Indices
+
+   Outputs : STRING      Required string
+             NN          Length of string
+
+   Controls: None
+
+   Example :
+
+      If NAME = 'BONG', and (II,JJ,KK) = (1,4,2)
+      then
+
+      STRING = 'BONG(1:4) 2'
+
+   Created   7-MAR-1989
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZ_GET_ARRAY
+.HEADER LEVEL 1 EZ__GET__ARRAY
+.LITERAL
+   
+   SUBROUTINE EZ_GET_ARRAY (ARRAY_NAME,PARAM_NAME,NPARAM,
+   
+   Author(s) : Lupe Howell, Harrison B. Prosper
+.END LITERAL
+.LITERAL
+   
+ 
+.END LITERAL
+   
+.NOTE Purpose and Methods
+   
+                         For the given array and list of parameters within
+   the array return the VALUE, TYPE and REMARK. The array is assumed to have
+   the following structure:
+ 
+.LITERAL
+
+                        \ARRAY array-name
+                         'Param-name'    value   'Remark'
+                                   :       :       :
+                        \END
+ 
+.END LITERAL
+
+   Note: Value can be of type INTEGER, REAL, LOGICAL or CHARACTER
+   (enclosed within single quotes).
+ 
+.END NOTE
+.LITERAL
+   Inputs  : ARRAY_NAME       [C*]    Name of RCP array
+             PARAM_NAME(*)    [C*]    Parameter name or key-word
+             NPARAM           [I]     Number of parameters required
+ 
+   Outputs : PARAM_NAME(*)    [C*]    Parameter names
+             NPARAM           [I]     Number of parameters within an array
+             IVAL(*)                  REAL, INTEGER, LOGICAL values
+             CVAL(*)          [C*]    CHARACTER values
+             TYPE(*)          [I]     RCP value types
+             REMARK(*)        [C*]    Associated remarks
+             IER              [I]     Error code; 0 -- OK
+   Controls: None
+ 
+   Created  27-MAR-1990
+.END LITERAL
+   
+.TEST PAGE 20 !MODULE=EZ_GET_ELEMENT
+.HEADER LEVEL 1 EZ__GET__ELEMENT
+.LITERAL
+   
+   SUBROUTINE EZ_GET_ELEMENT(ARRAY_NAME,ARRAY_ELEMENT,IDX,OCURRENCE,
+   
+   Author(s) : Lupe Howell
+.END LITERAL
+.LITERAL
+   
+ 
+.END LITERAL
+   
+.NOTE Purpose and Methods
+   
+                         Get the value of an element,
+   defined by the triplet
+   (param-name,value,remark) from an array of the following
+   structure:
+
+.LITERAL
+ 
+                \ARRAY array-name
+                  'Param-name'    value   'Remark'
+                           :       :       :
+                \END
+ 
+.END LITERAL
+
+   The search for the requested element will begin at the IDX word
+   of the array ARRAY_NAME and will return the value of the NTH OCCURRENCE
+   of that element.
+ 
+   
+.END NOTE
+.LITERAL
+   Inputs  : ARRAY_NAME    [C*] - Name of the array
+             ARRAY_ELEMENT [C*] - Name of the element in the array to find
+             IDX           [I ] - Index in the array where to start the
+                                  search
+             OCURRENCE     [I ] - The number of nth occurrence of the element
+                                  that will be return
+ 
+   Outputs : VALUE         [I ] - Value of the element requested
+             IER           [I ] - If it does not equal to 0 the element was
+                                  not found
+ 
+   Created   8-MAY-1990
+.END LITERAL
+   
+.TEST PAGE 20 !MODULE=EZ_SET_ARRAY
+.HEADER LEVEL 1 EZ__SET__ARRAY
+.LITERAL
+
+   SUBROUTINE EZ_SET_ARRAY(ARRAY_NAME,PARAM_NAME,NWIVAL,IER)
+
+   Author(s) : Lupe Howell, Harrison B. Prosper
+.END LITERAL
+.LITERAL
+
+
+.END LITERAL
+
+.NOTE Purpose and Methods
+
+                         For given array and named parameter within the
+   array set its value to NWIVAL. See EZ__GET__ARRAY.
+
+.END NOTE
+.LITERAL
+   Inputs  : ARRAY_NAME       [C*]    Name of RCP array
+             PARAM_NAME       [C*]    Parameter name
+             NWIVAL                   REAL, INTEGER, LOGICAL values
+                                      or HOLLERITH. Use DCTOH to convert
+                                      from CHARACTER to HOLLERITH.
+             IER              [I]     Error code; 0 -- OK
+
+   Outputs : None
+   Controls: None
+
+   Created  27-MAR-1990
+
+.END LITERAL
+
+.TEST PAGE 20 !MODULE=EZ_SKIP_ELEMENT
+.HEADER LEVEL 1 EZ__SKIP__ELEMENT
+.LITERAL
+   
+   SUBROUTINE EZ_SKIP_ELEMENT(POINTER,LOCAL,ITYPE)
+   
+   Author(s) : Lupe Howell
+.END LITERAL
+.LITERAL
+   
+ 
+.END LITERAL
+   
+.NOTE Purpose and Methods
+   
+                         Given that the POINTER is pointing to the start
+   of an element in an array of the form:
+.LITERAL
+
+                'Name'  value   'Remark'
+
+.END LITERAL
+   this routine will skip that element leaving the POINTER
+   pointing to the name of the next element in the array.
+ 
+   
+.END NOTE
+.LITERAL
+   Inputs  : POINTER [I ]: Position of the element that is going to be
+                           skipped in the array.
+             LOCAL   [I*]: Array containing the values in the RCP array
+             ITYPE   [I*]: Array containing the types in the RCP array
+ 
+   Outputs : POINTER [I ]: Position in the array of the next element
+                           after the one that has been skipped.
+ 
+   Created  16-MAY-1990
+.END LITERAL
+   

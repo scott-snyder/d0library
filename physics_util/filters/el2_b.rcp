@@ -1,0 +1,87 @@
+\START    EL2_B_RCP
+\SIZE        189        80
+!----------------------------------------------------------------------
+!    Name:       EL2_B.RCP
+!    Package:    STRIP_TRIG
+!    Library:    UTIL
+!    Purpose:    To select on trigger bits for processing
+!    Version     1.0
+!    Created:    21-DEC-1992   A. Zieminski
+!    Last changes:    12-FEB-1993
+!    Updated     7-JUL-1993  James T. McKinley - add max Pt cut and EM
+!                            status word bit mask for CLEANEM cuts
+!                            turn off mass cut (set to 1000000.)
+!                            Change trigger/filter selection to names
+!----------------------------------------------------------------------
+USE_HEADER      .FALSE. !If true, does stripping when the event header is
+                        !read in, and skips reading the rest of the event
+                        !if the strip decision rejects it.  Currently (5/29/92),
+                        !setting it true only works for processed, not raw, data
+!
+STRIP_ON_L1     .FALSE. !If true, requires at least one of the L1 bits in
+                        !TRIG_BIT_NAMES to be set in order for the event to pass
+!
+STRIP_ON_L2     .FALSE. !If true, requires at least one of the L2 bits in
+                        !FILT_BIT_NAMES to be set in order for the event to pass
+!
+STRIP_ON_BOTH   .FALSE.
+!
+! Logic: STRIP_ON_L1   T\
+!        STRIP_ON_L2   T \ Any TRIGGER bit OR
+!        STRIP_ON_BOTH F/  any bit FILTER bit will
+!                          cause event to pass
+!        STRIP_ON_L1   T\
+!        STRIP_ON_L2   T \ Requires at least one
+!        STRIP_ON_BOTH T/  TRIGGER bit AND one
+!                          FILTER bit to pass event
+! If either STRIP_ON_L1 or ON_L2 is false, those
+! bits are not checked regardless of the value of
+! STRIP_ON_BOTH.
+!
+NTRIG               12   ! Number of trigger bits to check = number of names
+!                         in TRIG_BIT_NAMES
+!
+NFILT               33  ! Number of filter bits to check = number of names
+!                         in FILT_BIT_NAMES
+!
+! trigger bit names to use as stripping criteria
+!
+\ARRAY TRIG_BIT_NAMES
+'MU_1_HIGH' 'MU_1_MAX' 'MU_1_JET' 'MU_EM_1' 'MU_EM_2' 'MU_JET_HIGH'
+'MU_JET_LOW'
+'EM_1_MAX' 'EM_1_MED' 'EM_1_LOW' 'EM_2_MED' 'EM_2_LOW'
+\END
+!
+! filter bit names to use as stripping criteria
+!
+\ARRAY FILT_BIT_NAMES
+'MU_ELE' 'MU_ELE_2'
+'MU_HIGH' 'MU_MAX' 'MU_1_JET' 'MU_JET_HIGH' 'MU_JET_MAX'
+'MU_JET_MED' 'MU_JET_LOW'
+'ESC_HIGH' 'ESC_MEDIUM' 'ESC_LOW' 'ESC_2_MED' 'ESC_2_LOW'
+'ELE_MAX' 'ELE_HIGH' 'ELE_HIGH2' 'ELE_MEDIUM' 'ELE_LOW'
+'ELE_HIGH_TRK' 'ELE_HIGH2_TR'
+'ELE_2_MAX' 'ELE_2_HIGH' 'ELE_2_LOW'
+'GAM_HIGH_ISO' 'GAM_HIGH' 'GAM_MED_ISO' 'GAM_MEDIUM' 'GAM_LOW' 'GAM_LOW_ISO'
+'GAM_2_MED' 'GAM_2_LOW' 'EM_1_END'
+\END
+!
+! kinematic and quality cut parameters
+!
+CUTRHD         .TRUE.     ! cut on reconstruction header
+CUTPTM         .TRUE.     ! select if also muon with pt> PTMCUT
+CUTOEE         .TRUE.     ! select at least TWO electrons
+CUTOEG         .FALSE.    ! select at least ONE electron
+CUTPTE         .TRUE.     ! only pairs with both Ets>PTECUT
+CUTMSS         .FALSE.     ! accept pairs with mass < MSSCUT
+PTMCUT           4.       ! accept only muons with pt> PTMCUT
+IFWCUT           1        ! accept only muons with IFW4.le.IFWCUT
+PTLOSE           1.5      ! loose cut el/pho Et>PTcut (mu)
+PTTIGT           2.3      ! tight cut el/pho Et>PTcut (no mu)
+MSSCUT          1000000.  ! accept only pairs with mass< MSSCUT
+PTHICT          10.       ! both e's must be below PTHICT GeV to avoid
+!                           unprescaled triggers
+EMMASK          262144    ! CLEANEM status bit mask,
+!                           mask = 2**18 = track match significance cut
+\END
+\STOP

@@ -1,0 +1,115 @@
+
+
+                                                Meenakshi Narain
+                                                  16-Jan-1994
+
+
+                      PARTICLE_SELECT package
+
+
+This package makes a list of the reference links to GOOD OBJECTS 
+(ELECTRONS, PHOTONS, JETS AND MUONS) in an event.
+
+These links are then stored in the ZLINKA area which are accessible 
+to any subsequest user analyses packages.
+                        
+The selection of GOOD objects are based on the kinematic quantities 
+and  GOOD object MASKs obtained from PARTICLE_SELECT.RCP. 
+
+For electron and photons the routine CHECK_EM_QUALITY is used to test the MASK
+and therefore it is upto the user ensure that the status word in PELC and PPHO
+have been correctly written. To recompute the PELC and PPHO status word, link in
+the package COMPUTE_EM_QUALITY before this package.
+
+For muons, the routine CHECK_MU_QUALITY is used and therefore the package
+COMPUTE_MU_QUALITY should be linked in before this package.
+
+Limitations:
+------------
+
+    The maximum number of different ELECTRON types is 5
+    The maximum number of different PHOTON types is 5
+    The maximum number of different MUON types is 5
+
+    The maximum number of LINKS stored for each object type is 20.
+
+How to get the OBJECT links stored by this package:
+--------------------------------------------------
+
+To obtain the list of links to GOOD objects from the user analysis 
+package one can use the routine GTSLINK. 
+     
+For example:
+
+ to get the links of GOOD MUONS
+--------------------------------     
+         
+         CALL GTSLINK(object_name,nwant,nmuon,muon_links)
+          
+          input     object_name CHAR*8 : name of object link defined by the
+                            parameters MUON_NAMES in PARTICLE_SELECT.RCP
+                    nwant    : maximum number of links wanted
+
+          returns   nmuon    : number of selected muons
+                    muon_links[1:nwant] : is the array of links to the 
+                                          selected muons
+
+ to get the links of GOOD JETS
+--------------------------------     
+         CALL GTSLINK('TOP_JETS',nwant,njets,jet_links)
+         
+
+         input : Object : 'TOP_JETS'
+
+                nwant   : maximum number of links reurned in jet_links
+
+          returns   njets    : number of selected jets
+                    jet_links[1:nwant] : is the array of links to the 
+                                          selected jets
+
+  **Note**  the cone size of the jets is selected using the 
+            JET_ALGORITHM RCP parameter in PARTICLE_SELECT.RCP
+
+ to get the links of GOOD ELECTRONS
+--------------------------------     
+         CALL GTSLINK(ELE_TYPE,nwant,nele,ele_links)
+         
+         input : ELE_TYPE = e.g.
+                            'ELE_TGHT'  for tight electron CLEANEM elemask as 
+                             stored in PARTICLE_SELECT.RCP
+                            'ELE_LSE'  for loose electron CLEANEM elemask as 
+                             stored in PARTICLE_SELECT.RCP
+                *Note*:  The names of these object type is RCP driven so
+                        it is user dependent
+                
+                nwant   : maximum number of links reurned in ele_links
+
+         output:    nele    : number of selected electrons 
+                    ele_links[1:nwant] : is the array of links to the 
+                                          selected electrons
+
+ to get the links of GOOD PHOTONS
+--------------------------------     
+         CALL GTSLINK(PHOT_TYPE,nwant,nphot,phot_links)
+         
+         input : PHOT_TYPE =e.g.
+                            'GAM_TGHT'  for tight photon CLEANEM phot-mask as 
+                             stored in PARTICLE_SELECT.RCP
+                            'GAM_LSE'  for loose photon CLEANEM phot-mask as 
+                             stored in PARTICLE_SELECT.RCP
+
+                *Note*:  The names of these object type is RCP driven so
+                        it is user dependent
+                
+                nwant   : maximum number of links reurned in phot_links
+
+         output:    nphot    : number of selected photons 
+                    phot_links[1:nwant] : is the array of links to the 
+                                          selected photons
+
+
+Files:
+
+D0$TOP_PHYSICS:PARTICLE_SELECT.RCP
+D0$TOP_PHYSICS:PARTICLE_SELECT.FOR
+D0$PBD:PARTICLE_SELECT.PBD

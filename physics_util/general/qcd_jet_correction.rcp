@@ -1,0 +1,227 @@
+\START    QCD_JET_CORRECTION_RCP
+\SIZE        363       169
+!----------------------------------------------------------------------
+!    Name:       QCD_JET_CORRECTION.RCP
+!    Package:
+!    Library:
+!    Purpose:
+!    Version
+!    Created:     5-JUL-1993   Richard V. Astur
+!    Updated:     8-JUL-1993   Meenakshi Narain  add HVSCALE parameter
+!    Updated:    Aug-15-1995   Bob Kehoe, Rich Astur -- updated for version 5.0
+!----------------------------------------------------------------------
+!
+!       General switches and settings for jet corrections
+!
+!       Note:  RECO_DEFAULT is intended to be used when zebra information is
+!           unavailable, otherwise it will be ignored.  DO_DET_SCALE_CORRECTION
+!           turns on the corrections for changes in sampling weights and HV
+!           corrections with reco version.  MIN_JET_ET indicates the minimum
+!           Et that a jet can have to have any corrections applied in
+!           qcd_jet_correction.  Normally such low Et jets are from
+!           EM-removal but sometimes they are from splitting.  The Et threshold
+!           is obtained from the Et density in the central region in MIN_BIAS
+!           events taken at a luminosity of 10E30.
+!
+!----------------------------------------------------------------------
+MC_RCP                        0 ! 0/1 = This RCP file is for DATA/MC
+RECO_DEFAULT                 10 ! default reconstruction (eg. use if ntuple)
+DO_BIAS_CORRECTION            F ! switch for low Et bias correction
+DO_DET_SCALE_CORRECTION       T ! switch for ICD/cryostat/HV corrections
+DO_WIDTH_CORRECTION           T ! switch for RMS-dependence of response
+DO_RESPONSE_CORRECTION        T ! switch for energy dependence of response
+!
+\ARRAY MIN_JET_ET               ! order is 0.3, 0.5, 0.7, NN, 1.0
+    4.0     5.0     7.0     4.0     8.0
+\END
+!--------------------------------------------------------------------------
+!
+!   MPF low Et correction for RECO Et cut bias
+!
+!--------------------------------------------------------------------------
+max_bias        1.30            ! maximum allowed correction, 1.3 recommended
+!
+\ARRAY LOW_ET_SYS               ! systematic error in Et bins
+    0.0539   0.0119
+\END
+\ARRAY LOW_ET_BIN
+    10.0     15.0
+\END
+!
+\ARRAY MPF_RLOW5
+     2.324337       -0.3897161
+\END
+\ARRAY MPF_RLOWNN
+    -0.9387968      -0.1989768
+\END
+\ARRAY MPF_ERRLOW5
+     0.3618967       0.02957254
+\END
+\ARRAY MPF_ERRLOWNN
+     0.9266858       0.08468062
+\END
+!----------------------------------------------------------------------
+!
+! Underlying Event and Zero suppression
+! Underlying Event from Min Bias events (difference between MI=1,2 and 3,4)
+! Noise is assumed to be the rest.
+!
+!-----------------------------------------------------------------------
+UNDER_A0_DENSITY         .310                 ! Gev/radian/unit eta
+UNDER_A1_DENSITY         .034                 ! UEV = A0 + A1*ABS(ETA)
+UNDER_ICD_DENSITY        .200                 ! extra in ICR
+UNDER_ERROR              .100                 ! error
+!
+ZEROZSP_A0_DENSITY       .196                 ! GeV/radian/unit eta
+ZEROZSP_A1_DENSITY       1.44                 ! N = A0 + A1*sin(theta)
+ZEROZSP_ICD_DENSITY      .000                 ! extra in ICR
+ZEROZSP_ERROR            .200                 ! error
+!---------------------------------------------------------------------
+! Number of interactions is taken from the luminosity as determined by
+! GETLUM when (USE_LUM = .TRUE. ). Use luminosity to determine the number
+! of extra interactions.
+!       #   = 1 + sigma*tcross*lum
+!                   sigma = 49 mbarns
+!                   tcross= 3.5 usec
+!       NUM_PER_LUM = .1715 (# interactions per 1E30 luminosity)
+! If ( USE_LUM = .FALSE. ), #=1 (MITOOL=1,2), #=2 (MITOOL=3,4)
+!--------------------------------------------------------------------------
+USE_LUM             TRUE            ! Use luminosity dependence. Else MITOOL
+NUM_PER_LUM         .1715           ! =1.715 interactions at 10E30
+!-------------------------------------------------------------------
+!
+! HV SCALE:
+!   will not be done for RECO 11 and beyond (HVSCALE=1.0), for
+! earlier RECO versions the correction used will be HVSCALE_x where x denoted
+! cryostat and EM vs. HADronic layer energy. If the RECO
+! version cannot be determined (QCD MDST), RECO_DEFAULT is used.
+!
+!-----------------------------------------------------------------
+HVSCALE_CCEM        1.015      ! from csf_hv.rcp
+HVSCALE_ECEM        1.016
+HVSCALE_CCHAD       1.023
+HVSCALE_ECHAD       1.019
+!-----------------------------------------------------------------
+!
+! Sampling fraction changes for reco v11 to v12
+!
+!-----------------------------------------------------------------
+CCEM_SAMPLE         0.995
+ECEM_SAMPLE         0.990
+CCFH_SAMPLE         1.051
+ECFH_SAMPLE         0.980
+CCCH_SAMPLE         1.051
+ECCH_SAMPLE         0.987
+CCEM_SAMPLE_ERR     0.005
+ECEM_SAMPLE_ERR     0.002
+CCFH_SAMPLE_ERR     0.001
+ECFH_SAMPLE_ERR     0.005
+CCCH_SAMPLE_ERR     0.001
+ECCH_SAMPLE_ERR     0.001
+!--------------------------------------------------------------------
+!
+! ICD SCALE
+!
+!----------------------------------------------------------------------
+\ARRAY E_CORR_ICD               ! From K De's D0NEWS GENERAL 1277
+    28*.29  .29 .194 .127 .025  .022  .023   17*.023  .023   .022
+        .025   .127   .194   .29    28*.29
+\END
+\ARRAY E_CORR_ICD_OFF
+     -.05   .0   .0   .05
+     0.     .10  .10  .15
+     0.     .10  .20  .15
+     0.05   .10  .20  .15
+     0.05   .10  .30  .15
+\END
+\ARRAY ETPARA
+    17.6    31.7    55.24   90.6    125.3
+    15.5    28.5    52.0    88.6    122.6
+    13.6    23.4    46.1    81.4    115.8
+\END
+icd_sys           0.02          ! sys. error on ICD corr. in region 1.0<eta<1.5
+!--------------------------------------------------------------------------
+!
+!   cryostat scale corrections
+!
+!--------------------------------------------------------------------------
+cc_boost          1.00          ! raw CC scale for D0 data
+!
+cryo_sys          0.02236       ! systematic error in EC
+ecn_factor        1.03361       ! ECN scale relative to CC
+ecn_error         0.00477
+ecs_factor        1.02439       ! ECS scale relative to CC
+ecs_error         0.00468
+!--------------------------------------------------------------------------
+!
+!   Jet Width Correction
+!   Response = (A0+A1*width+A2*width**2)/width_aver
+!
+!--------------------------------------------------------------------------
+ETA_SEC1    0.7                             ! End of central bin
+ETA_SEC2    1.6                             ! Start of forward bin
+\ARRAY WIDTH_AVER                           ! normalization to response
+      .94    .96    .974  .978  .992        ! CC
+     1.015  1.03   1.04  1.01  1.01         ! EC
+\END
+\ARRAY WIDTH_CUTOFF                         ! maximum width to use
+     .45   .40   .35   .25   .20
+     .50   .50   .40   .40   .30
+\END
+\ARRAY WIDTH_A0
+    1.31    1.33   1.23   1.18   1.15       ! CC
+    1.39    1.33   1.26   1.09   1.09       ! EC
+\END
+\ARRAY WIDTH_A1
+   -1.52   -2.03  -1.56  -1.53  -1.34
+   -1.55   -1.53  -1.37  -0.31  -0.31
+\END
+\ARRAY WIDTH_A2
+    1.07   2.34   1.94   2.35   2.31
+    1.05   1.61   1.77  -.025  -.025
+\END
+!--------------------------------------------------------------------------
+!
+!   MPF absolute hadronic scale corrections
+!
+!--------------------------------------------------------------------------
+min_jet_energy      5.0        ! jet energy at which correction flattens
+!
+\ARRAY MPF_E_SYS               ! systematic error in jet energy bins
+    0.0395    0.0355    0.0407    0.0277    0.0200    0.0182    0.0423
+\END
+\ARRAY MPF_E_BIN
+    10.0       15.0      20.0      30.0      80.0      150.0     400.0
+\END
+!
+\ARRAY MPF_RHI7
+    0.7122      0.02460
+\END
+\ARRAY MPF_RHI5
+    0.7170      0.02384
+\END
+\ARRAY MPF_RHI3
+    0.7191      0.02402
+\END
+\ARRAY MPF_RHINN
+    0.7110      0.02544
+\END
+\ARRAY MPF_RHI10
+    0.7080      0.02496
+\END
+\ARRAY MPF_ERRHI7
+    0.003731    0.0009988
+\END
+\ARRAY MPF_ERRHI5
+    0.003782    0.001040
+\END
+\ARRAY MPF_ERRHI3
+    0.003717    0.001053
+\END
+\ARRAY MPF_ERRHINN
+    0.005173    0.001450
+\END
+\ARRAY MPF_ERRHI10
+    0.004314    0.001127
+\END
+\STOP    !   QCD_JET_CORRECTION_RCP

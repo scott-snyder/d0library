@@ -1,0 +1,1200 @@
+
+
+
+                                ___ ___ _______                                The LSQ package
+                       _ ___ __ _____ _______ ___________                       A set of zebra related subroutines
+                             __ __________ ________                             to manipulate matrices
+
+
+                                 Rajendran Raja
+                                  26-Feb-1992
+                                   CONTENTS
+
+        1       PURPOSE OF THE PROGRAM . . . . . . . . . . . . . . . 1
+        2       CONCEPTS . . . . . . . . . . . . . . . . . . . . . . 1
+        3       SUBROUTINES  . . . . . . . . . . . . . . . . . . . . 2
+        3.1       LSQ_BKMATRIX . . . . . . . . . . . . . . . . . . . 2
+        3.2       LSQ_COLLECT_GARBAGE  . . . . . . . . . . . . . . . 2
+        3.3       LSQ_DIAG_TRAN  . . . . . . . . . . . . . . . . . . 3
+        3.4       LSQ_EVENT  . . . . . . . . . . . . . . . . . . . . 4
+        3.5       LSQ_FIN  . . . . . . . . . . . . . . . . . . . . . 4
+        3.6       LSQ_GET_VAL  . . . . . . . . . . . . . . . . . . . 5
+        3.7       LSQ_INI  . . . . . . . . . . . . . . . . . . . . . 5
+        3.8       LSQ_MAKE_LINK_AREA . . . . . . . . . . . . . . . . 6
+        3.9       LSQ_MATRIX_ADD . . . . . . . . . . . . . . . . . . 6
+        3.10      LSQ_MATRIX_ADD_ELEMENT . . . . . . . . . . . . . . 7
+        3.11      LSQ_MATRIX_COPY  . . . . . . . . . . . . . . . . . 7
+        3.12      LSQ_MATRIX_DELETE  . . . . . . . . . . . . . . . . 8
+        3.13      LSQ_MATRIX_DIAG  . . . . . . . . . . . . . . . . . 8
+        3.14      LSQ_MATRIX_EXIST . . . . . . . . . . . . . . . . . 9
+        3.15      LSQ_MATRIX_FILL  . . . . . . . . . . . . . . . . . 9
+        3.16      LSQ_MATRIX_GET . . . . . . . . . . . . . . . . .  10
+        3.17      LSQ_MATRIX_INVERT  . . . . . . . . . . . . . . .  10
+        3.18      LSQ_MATRIX_INVERT_TEST . . . . . . . . . . . . .  11
+        3.19      LSQ_MATRIX_MULTIPLY  . . . . . . . . . . . . . .  11
+        3.20      LSQ_MATRIX_PRINT . . . . . . . . . . . . . . . .  12
+        3.21      LSQ_MATRIX_TRANSPOSE . . . . . . . . . . . . . .  12
+        3.22      LSQ_RZ_GET . . . . . . . . . . . . . . . . . . .  13
+        3.23      LSQ_RZ_MAKE  . . . . . . . . . . . . . . . . . .  14
+        3.24      LSQ_RZ_SAVE  . . . . . . . . . . . . . . . . . .  14
+        3.25      LSQ_SCALAR_MULTIPLY  . . . . . . . . . . . . . .  15
+        3.26      LSQ_SET_VAL  . . . . . . . . . . . . . . . . . .  15
+        3.27      LSQ_TEST . . . . . . . . . . . . . . . . . . . .  16
+        4       AN EXAMPLE . . . . . . . . . . . . . . . . . . . .  16
+
+
+
+        _______ __ ___ _______     1  PURPOSE OF THE PROGRAM
+
+          The  purpose  of  the  LSQ  package  is  to   facilitate   matrix
+     manipulation  in  a  transparent  way.  The user refers to matrices by
+     long character names.  He does not have to  worry  about  dimensioning
+     them  in common blocks.  The package allows the user to Add, Subtract,
+     Multiply, Invert and diagonalize matrices.  The  user  can  store  the
+     matrices in an RZ database and fetch them for later use.
+
+
+
+
+
+                                     - 1 -
+                                                                          Page 2
+
+
+        ________     2  CONCEPTS
+
+          A matrix in the LSQ  package  is  a  Zebra  bank  with  rows  and
+     columns.
+
+          A vector has 1 column.  Greater than two dimensional matrices are
+     not handled.
+
+          The package is program builder  compatible.   LSQ.PBD  calls  the
+     subroutine  LSQ_INI  during  initialization  and  LSQ_FIN  during  the
+     finishing stages of the frame work.  LSQ_INI  reads  in  an  RCP  file
+     LSQ.RCP which is initializes the RZ file.  If the switch NEW_RZ is set
+     to TRUE, a new RZ file is opened.  If it set to FALSE, an existing  RZ
+     file  is opened and all matrices present in the directory specified by
+     //TOP_DIRECTORY/SUB_DIRECTORY (both these settable from RCP), are read
+     in by the program.
+
+          LSQ_FIN  conversely  saves  the   matrices   to   the   specified
+     sub_directory at the end of processing.
+
+          Matrices are stored in Zebra in double precision.  You  can  book
+     matrices with LSQ_BKMATRIX.  If a routine is called to output a matrix
+     that does not exist, the package will book and fill it for you.  If an
+     input  matrix  is  specified  that does not exist, an error message is
+     issued using ERRMSG aAND an error flag is returned.
+
+          The user can delete matrices.  The deleted matrix is  dropped  by
+     zebra.   The deleted matrix is marked for deletion in the LSQ internal
+     bookkeeping.  At present  ,  the  package  allows  a  maximum  of  200
+     matrices  to  be  handled.  If room needs to be made, deleted matrices
+     can be completely purged by a call LSQ_COLLECT_GARBAGE.  The power  of
+     the  package  is  in the ease of use.  The user can fill matrices from
+     fortran arrays.  He can manipulate  individual  elements  as  well  as
+     whole arrays.
+
+
+
+        ___________     3  SUBROUTINES
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 2 -
+                                                                          Page 3
+
+
+          3.1  LSQ_BKMATRIX
+
+        
+        SUBROUTINE LSQ__BKMATRIX(MATRIX__NAME,NROWS,NCOLS,IER)
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  BOOK a matrix with matrix name
+
+        Inputs  : MATRIX__NAME = name of matrix
+                  NROWS = Number of rows
+                  NCOLS = Number of columns
+                  A(I,j) is a matrix element. I is row, J is column.
+        Outputs : IER = 1 Matrix already exists
+                  IER = 2 Number of matrices exceeded
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.2  LSQ_COLLECT_GARBAGE
+
+        
+        SUBROUTINE LSQ__COLLECT__GARBAGE(IER)
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  CLEANS UP THE AREA /LSQ_MATRIX/
+
+                  ALLOWS MORE MATRICES TO  BE  BOOKED.   CALL  THIS
+             AFTER A NUMBER OF
+
+                  MANIPULATIONS WHERE MATRICES HAVE  BEEN  CREATED,
+             INVERTED AND DELETED.
+
+        Inputs  :
+        Outputs : IER = NON ZERO . ERROR DURING GARBAGE COLLECTION.
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+
+
+                                     - 3 -
+                                                                          Page 4
+
+
+     3.3  LSQ_DIAG_TRAN
+
+        
+        SUBROUTINE LSQ__DIAG__TRAN(UNITARY__MATRIX,EIGEN__VALUES,
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  GIVEN A UNITARY MATRIX THAT IS OBTAINED FROM
+
+                  DIAGONALIZING AN ERROR MATRIX  (LSQ_MATRIX_DIAG),
+             This routine
+
+                  transforms  the  vector  QUAN   to   the   Vector
+             DIAG_QUAN which are
+
+                  un-correlated provided the error  matrix  is  the
+             error matrix of the QUAN
+
+                  vector.  A set of unit gaussian quantities  (mean
+             = zero, std devn = 1)
+
+                  derived from QUAN are also put out.
+
+        Inputs  : UNITARY__MATRIX matrix used to diagonalize the error matrix
+                  in LSQ__MATRIX__DIAG.
+                  EIGEN__VALUES . Vector of eigen values from the same
+                  diagonalization.
+                  QUAN = Vector of quantities to diagonalize.
+        Outputs : DIAG__QUAN = Vector of diagonalized quantities
+                  UNIT__GAUSS = vector of Unit Gaussian quantities.
+                  IER = 1 UNITARY__MATRIX does not exist
+                  IER = 2 EIGEN__VALUES vector does not exist
+                  IER = 3 QUAN vector does not exist
+      
+      
+        Controls:
+      
+        Created  25-FEB-1992
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 4 -
+                                                                          Page 5
+
+
+     3.4  LSQ_EVENT
+
+        
+        FUNCTION LSQ__EVENT()
+        
+        Author(s) : D0
+        
+      
+
+                              Purpose and Methods
+
+
+                  Main routine for LSQ accumulation
+
+        Returned value  : True if OK
+        Inputs  :
+        Outputs :
+        Controls:
+      
+        Updated  21-FEB-1992   Rajendran Raja
+      
+
+
+
+     3.5  LSQ_FIN
+
+        
+        FUNCTION LSQ__FIN()
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  Finish up LSQ
+
+        Returned value  : True if OK
+        Inputs  :
+        Outputs :
+        Controls:
+      
+        Created  20-DEC-1990
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 5 -
+                                                                          Page 6
+
+
+     3.6  LSQ_GET_VAL
+
+        
+        SUBROUTINE LSQ__GET__VAL(MATRIX__NAME,IROW,ICOL,INDEX,VAL,IER)
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  GET VALUE OF A MATRIX ELEMENT
+
+        Inputs  : MATRIX__NAME = Name of matrix
+                  IROW = Row of matrix
+                  ICOL = column of matrix
+                  INDEX = INDEX OF MATRIX. IF ZERO, WILL
+                  DETERMINE INDEX
+      
+        Outputs : VAL = value of matrix element in Double precision
+                  IER = 1 Matrix does not exist
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.7  LSQ_INI
+
+        
+        FUNCTION LSQ__INI()
+        
+        Author(s) : D0
+        
+      
+
+                              Purpose and Methods
+
+
+                  Initialize LSQ package
+
+        Inputs  :
+        Outputs :
+        Controls:
+      
+        Updated  21-FEB-1992   Rajendran Raja
+
+
+
+
+
+
+
+
+
+                                     - 6 -
+                                                                          Page 7
+
+
+     3.8  LSQ_MAKE_LINK_AREA
+
+        
+        SUBROUTINE LSQ__MAKE__LINK__AREA
+        
+        Author(s) : D0
+        
+      
+
+                              Purpose and Methods
+
+
+                  Make ZLSQ into a link area.
+
+        Inputs  : None
+        Outputs : None
+        Controls: None
+      
+        Updated  21-FEB-1992   Rajendran Raja
+      
+
+
+
+     3.9  LSQ_MATRIX_ADD
+
+        
+        SUBROUTINE LSQ__MATRIX__ADD(FIRST__MATRIX,SECOND__MATRIX,
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  ADDS or subtracts MATRICES
+
+                  RESULT_MATRIX                                   =
+             FACT1*FIRST_MATRIX+FACT2*SECOND_MATRIX
+
+                  I.E USING FACT1 AND FACT2, ONE CAN
+
+                  ADD OR SUBTRACT MATRICES AT WILL
+
+        Inputs  : FIRST__MATRIX,SECOND__MATRIX
+        FACT1, FACT2 = SCALE FACTORS FOR FIRST AND SECOND MATRIX.
+      
+        Outputs : RESULT__MATRIX
+                  IER = 1 FIRST__MATRIX DOES NOT EXIST
+                  IER = 2 SECOND__MATRIX DOES NOT EXIST
+                  IER = 3 MATRICES CANNOT BE ADDED
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+                                     - 7 -
+                                                                          Page 8
+
+
+     3.10  LSQ_MATRIX_ADD_ELEMENT
+
+        
+        SUBROUTINE LSQ__MATRIX__ADD__ELEMENT(MATRIX__NAME,INDEX,
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  does the following computation
+
+                  MATRIX_NAME(IROW,ICOL)                          =
+             FACT1*MATRIX_NAME(IROW,ICOL)+FACT2*VALUE
+
+        Inputs  : MATRIX__NAME = Name of matrix
+                  INDEX = INDEX of matrix. If zero, will work it out.
+                  If repeated elements are to be added, call first time
+                  with index  zero and re-call routine with given index.
+      
+                  FACT1, FACT2 = SCALE FACTORS FOR addition
+                  VALUE = VALUE TO BE ADDED TO ELEMENT.
+                  USING FACT1 AND FACT2, ONE CAN add or subtract as needed
+      
+        Outputs : RESULT__MATRIX
+                  IER = 1 MATRIX__NAME DOES NOT EXIST
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.11  LSQ_MATRIX_COPY
+
+        
+        SUBROUTINE LSQ__MATRIX__COPY(MATRIX__NAME,MATRIX__COPY,IER)
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  COPY ONE MATRIX TO OTHER
+
+                  will create copy matrix if it does not exist
+
+        Inputs  : MATRIX__NAME
+        Outputs : MATRIX__COPY
+                  IER = 1 MATRIX__NAME DOES NOT EXIST
+        Controls:
+      
+
+                                     - 8 -
+                                                                          Page 9
+
+
+        Created  21-FEB-1992
+
+
+
+     3.12  LSQ_MATRIX_DELETE
+
+        
+        SUBROUTINE LSQ__MATRIX__DELETE(MATRIX__NAME,IER)
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  MARKS THE MATRIX AS BEING DELETED
+
+                  DROPS BANK
+
+        Inputs  : MATRIX__NAME
+        Outputs : IER = 1 . MATRIX DOES NOT EXIST
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.13  LSQ_MATRIX_DIAG
+
+        
+        SUBROUTINE LSQ__MATRIX__DIAG(MATRIX__NAME,UNITARY__MATRIX,
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  GIVEN A MATRIX, WORKS OUT THE unitary matrix
+
+                  necessary to diagionalize the matrix and computes
+             the eigen values
+
+                  of the matrix.
+
+        Inputs  : MATRIX__NAME
+        Outputs : UNITARY__MATRIX (U). SUCH THAT U(TRANSPOSED)*M*U IS DIAGONAL
+                  = MATRIX EIGEN__VALUES
+                  The columns of U are the components of the Eigen vectors.
+                  In order to get uncorrelated quantities from vectors Q
+                  whose error matrix is in Matrix__name, do x = U(Transposed)Q
+                  . The components of X are then uncorrelated.
+                  IER = 1 MATRIX__NAME DOES NOT EXIST.
+
+                                     - 9 -
+                                                                         Page 10
+
+
+                  IER = 2 matrix not square
+                  IER = 3 ERROR diagonalizing matrix
+      
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.14  LSQ_MATRIX_EXIST
+
+        
+        FUNCTION LSQ__MATRIX__EXIST(MATRIX__NAME,INDEX,IER)
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  CHECK IF MATRIX EXISTS
+
+        Inputs  : MATRIX__NAME
+        Outputs : LSQ__MATRIX__EXIST = .TRUE. IF IT EXISTS
+                  INDEX = INDEX INTO COMMON BLOCKS ZLSQ,LSQ__MATRIX
+                  IER = 0 IF AOK
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.15  LSQ_MATRIX_FILL
+
+        
+        SUBROUTINE LSQ__MATRIX__FILL(MATRIX__NAME,ARRAY,NROWS,NCOLS,
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  LOAD A MATRIX WITH THE CONTENTS OF ARRAY
+
+        Inputs  : MATRIX__NAME = Name of matrix. If it does not exist,
+                                it is created
+                  ARRAY       = Single or double precision array
+                                of rows NROWS and NCOLS.
+                  PRECESION   = 1. Array is single precision
+                              = 2. Array is double precision
+        Outputs : IER = 1 Illegal value of precision
+                  IER = 2 Rows and cols of matrix specified does not match
+
+                                     - 10 -
+                                                                         Page 11
+
+
+                          existing matrix.
+        Controls:
+      
+        Created  24-FEB-1992
+
+
+
+     3.16  LSQ_MATRIX_GET
+
+        
+        SUBROUTINE LSQ__MATRIX__GET(MATRIX__NAME,ARRAY,NROWS,NCOLS,
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  GET THE CONTENTS OF AN ARRAY FROM THE MATRIX
+
+        Inputs  : MATRIX__NAME = Name of matrix. If it does not exist,
+                                it is created
+                  PRECESION   = 1. Array is single precision
+                              = 2. Array is double precision
+        Outputs : ARRAY       = Single or double precision array
+                                of rows NROWS and NCOLS.
+                                IER = 1 Illegal value of precision
+                                IER = 2 Rows and cols of matrix specified
+                                does not match existing matrix.
+                                IER =3 Specified matrix does not exist
+        Controls:
+      
+        Created  24-FEB-1992
+
+
+
+     3.17  LSQ_MATRIX_INVERT
+
+        
+        SUBROUTINE LSQ__MATRIX__INVERT(MATRIX__NAME,MATRIX__INVERSE,IER)
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  Inverts a matrix
+
+        Inputs  : MATRIX__NAME
+        Outputs : MATRIX__INVERSE
+                  IER = 1 MATRIX__NAME DOES NOT EXIST
+                  IER = 2 Matrix not square . cannot be inverted
+
+                                     - 11 -
+                                                                         Page 12
+
+
+                  IER = 3 Error inverting matrix
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.18  LSQ_MATRIX_INVERT_TEST
+
+        
+        SUBROUTINE LSQ__MATRIX__INVERT__TEST(MATRIX__NAME,MATRIX__INVERSE,
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  TESTS whether matrix_name and inverse
+
+                  are inverses of each other within tolerence
+
+        Inputs  : MATRIX__NAME,MATRIX__INVERSE
+                  TOL = Tolerance outside which error will be generated
+        Outputs : MATRIX__INVERSE
+                  IER = 1 MATRIX__NAME DOES NOT EXIST
+                  IER = 2 MATRIX__NAME not square . does not have inverse
+                  IER = 3 MATRIX__INVERSE DOES NOT EXIST
+                  IER = 4 MATRIX__INVERSE not square . does not have inverse
+                  IER = 5 Matrix and matrix__inverse have different dimensions
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.19  LSQ_MATRIX_MULTIPLY
+
+        
+        SUBROUTINE LSQ__MATRIX__MULTIPLY(FIRST__MATRIX,SECOND__MATRIX,
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  MULTIPLIES MATRICES
+
+                  PRODUCT_MATRIX = FIRST_MATRIX*SECOND_MATRIX
+
+        Inputs  : FIRST__MATRIX,SECOND__MATRIX
+        Outputs : PRODUCT__MATRIX
+
+                                     - 12 -
+                                                                         Page 13
+
+
+                  IER = 1 FIRST__MATRIX DOES NOT EXIST
+                  IER = 2 SECOND__MATRIX DOES NOT EXIST
+                  IER =3 MATRICES CANNOT BE MULTIPLIED.
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.20  LSQ_MATRIX_PRINT
+
+        
+        SUBROUTINE LSQ__MATRIX__PRINT(PRUNIT,MATRIX__NAME,NCOLS,FRMT,IER)
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  PRINT MATRIX_NAME
+
+        Inputs  : PRUNIT = FORTRAN UNIT NUMBER TO PRINT ON
+                           MATRIX__NAME = NAME OF MATRIX TO BE PRINTED
+                           NCOLS = NUMBER OF COLUMNS ACROSS PAGE TO BE PRINTED
+                           FRMT = FORMAT FOR A SINGLE ELEMENT (DEFAULT = 'D10.3')
+        Outputs : IER = 1 MATRIX DOES NOT EXIST
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.21  LSQ_MATRIX_TRANSPOSE
+
+        
+        SUBROUTINE LSQ__MATRIX__TRANSPOSE(MATRIX__NAME,
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  TRANSPOSE THE MATRIX MATRIX_NAME
+
+                  THIS   ROUTINE   ALLOWS   YOU   TO    HAVE    THE
+             TRANSPOSED_MATRIX NAME BE THE
+
+                  SAME AS THE INPUT  MATRIX_NAME.   i.e.   you  can
+             transpose
+
+
+
+                                     - 13 -
+                                                                         Page 14
+
+
+                  in situ if needed.
+
+        Inputs  : MATRIX__NAME = NAME OF MATRIX TO BE TRANSPOSED
+        Outputs : TRANSPOSED__MATRIX = NAME OF TRANSPOSED MATRIX
+      
+                  IER = 1 INPUT MATRIX DOES NOT EXIST
+        Controls:
+      
+        Created  21-FEB-1992
+
+
+
+     3.22  LSQ_RZ_GET
+
+        
+        SUBROUTINE LSQ__RZ__GET(MATRIX__NAME,SUBD,ACTION,IER)
+        
+        Author(s) : D0
+        
+      
+
+                              Purpose and Methods
+
+
+                  GET MATRICES FROM RZ
+
+        Inputs  :MATRIX__NAME MATRIX TO BE FETCHED
+                 SUBD = SUBDIRECTORY TO FETCH FROM
+                 ACTION = ' ' ONLY FETCH MATRIX__NAME
+                        = 'ALL' FETCH ALL MATRICES FROM RZ. IN THIS CASE
+                        THE EXISTING MARICES IN MEMORY WILL BE
+                        OVERWRITTEN. SO DO THIS BEFORE BOOKING ANY
+                        MATRICES.
+        Outputs :IER = 1, MATRIX__NAME DOES NOT EXIST
+                 IER =2 ERROR READING FROM RZ
+                 IER =3 Non EXISTANT SUB-DIRECTORY
+        Controls:
+      
+        Updated  21-FEB-1992   Rajendran Raja
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 14 -
+                                                                         Page 15
+
+
+     3.23  LSQ_RZ_MAKE
+
+        
+        SUBROUTINE LSQ__RZ__MAKE(NEW,READONLY,UNIT,OK)
+        
+        Author(s) : D0
+        
+      
+
+                              Purpose and Methods
+
+
+                  Make RZ file for holding LSQ_MATRICES
+
+        Inputs  :NEW = TRUE, WILL OPEN NEW FILE, ELSE OPEN RZ FILE
+        Outputs :UNIT = UNIT NUMBER OF OPENED FILE
+                 OK = TRUE IF AOK
+        Controls:
+      
+        Updated  21-FEB-1992   Rajendran Raja
+      
+
+
+
+     3.24  LSQ_RZ_SAVE
+
+        
+        SUBROUTINE LSQ__RZ__SAVE(MATRIX__NAME,SUBD,ACTION,IER)
+        
+        Author(s) : D0
+        
+      
+
+                              Purpose and Methods
+
+
+                  Save LSQ TO RZ
+
+        Inputs  :MATRIX__NAME MATRIX TO BE SAVED
+                 SUBD = SUBDIRECTORY TO SAVE TO
+                 ACTION = ' ' ONLY SAVE MATRIX__NAME
+                        = 'ALL' SAVE ALL MATRICES
+        Outputs :IER = 1, MATRIX__NAME DOES NOT EXIST
+        IER =2 ERROR WRITING TO RZ
+        Controls:
+      
+        Updated  21-FEB-1992   Rajendran Raja
+      
+
+
+
+
+
+
+
+
+                                     - 15 -
+                                                                         Page 16
+
+
+     3.25  LSQ_SCALAR_MULTIPLY
+
+        
+        SUBROUTINE LSQ__SCALAR__MULTIPLY(MATRIX__NAME,SCALAR,
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  MULTIPLY first matrix by a scalar
+
+                  put the  result  in  result  matrix.   If  result
+             matrix does not exist
+
+                  it is created.  Result matrix may be the same  as
+             the first matrix.
+
+        Inputs  : MATRIX__NAME = Name of matrix to be multiplied by scalar
+                  SCALAR      = Scalar to multiply
+                  RESULT__MATRIX = Name of output matrix
+        Outputs : IER = 1 MaTRIX__NAME does not exist
+      
+        Controls:
+      
+        Created  26-FEB-1992
+
+
+
+     3.26  LSQ_SET_VAL
+
+        
+        SUBROUTINE LSQ__SET__VAL(MATRIX__NAME,IROW,ICOL,INDEX,VAL,IER)
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  SET VALUE OF A MATRIX ELEMENT
+
+        Inputs  : MATRIX__NAME = Name of matrix
+                  IROW = Row of matrix
+                  ICOL = column of matrix
+                  INDEX = INDEX OF MATRIX. IF ZERO, WILL
+                  DETERMINE INDEX
+      
+        Outputs : VAL = value of matrix element in Double precision
+                  IER = 1 Matrix does not exist
+        Controls:
+      
+
+                                     - 16 -
+                                                                         Page 17
+
+
+        Created  21-FEB-1992
+
+
+
+     3.27  LSQ_TEST
+
+        
+        PROGRAM LSQ__TEST
+        
+        Author(s) : Rajendran Raja
+        
+      
+
+                              Purpose and Methods
+
+
+                  TEST THE LEAST SQUARES PACKAGE
+
+        Inputs  :
+        Outputs :
+        Controls:
+      
+        Created  22-FEB-1992
+
+
+
+        __ _______     4  AN EXAMPLE
+
+          Supposing the user wishes to solve the  following  least  squares
+     problem.   He has taken a test beam run with 50 GeV electrons.  He has
+     the EM towers hit and the beam momentum for every electron.  He  wants
+     to determine the weights layer by layer that minimizes the resolution.
+     As input he has for each event  the  live  energy  vector  LIVE  which
+     contains  the  live  energies in all the EM layers .  Let NLIVE be its
+     dimension.  He also has the beam momentum BEAM every event.  He  needs
+     to  find  the vector WEIGHT also of dimension NLIVE that minimizes the
+     energy  resolution.   As  is  readily  shown  by   a   least   squares
+     minimization, he has to solve the matrix equation
+
+          <LIVE*LIVET>*WEIGHT = <BEAM*LIVE>
+
+     where <> denotes average over events and  LIVET  is  the  vector  LIVE
+     transposed.
+
+          The vector WEIGHT is found by inverting the  matrix  <LIVE*LIVET>
+     and  multiplying  both sides of the above equation by the inverse.  In
+     order to do this using the LSQ package, one accumulates  the  matrices
+     <LIVE*LIVET> and <BEAM*LIVE>during the event loop.
+
+     We first book two matrices for accumulating quantities.
+
+      IF(FIRST)THEN
+
+         FIRST = .FALSE.
+         CALL LSQ_BKMATRIX('LIVE_LIVET',NLIVE,NLIVE,IER) !MATRIX TO BE INVERTED
+
+                                     - 17 -
+                                                                         Page 18
+
+
+         CALL LSQ_BKMATRIX('BEAM_LIVE',NLIVE,1,IER)   !BEAM_LIVE VECTOR
+
+      ENDIF
+
+
+      CALL LSQ_MATRIX_FILL('LIVE',LIVE,NLIVE,1,1,IER)  !Fill the LSQ matrix LIVE
+                                                             !by the contents of the array
+                                                             !LIVE
+
+      CALL LSQ_MATRIX_TRANSPOSE('LIVE','LIVET',IER)
+
+      CALL LSQ_MATRIX_MULTIPLY('LIVE','LIVET','LIVE2T',IER)
+
+      CALL LSQ_MATRIX_ADD('LIVE2T','LIVE_LIVET','LIVE_LIVET',1.,1.,IER)    !ACCUMULATE
+
+      CALL LSQ_SCALAR_MULTIPLY('LIVE',BEAM,'LIVEB',IER) !Multiply live vector by BEAM
+
+      CALL LSQ_MATRIX_ADD('LIVEB','BEAM_LIVE','BEAM_LIVE',1.,1.,IER)  !ACCUMULATE
+
+
+          When all events are processed, the user does the following.
+
+      Call LSQ_SCALAR_MULTIPLY('LIVE_LIVET',(1./NEVENT),'LIVE_LIVET',IER)  
+
+      Call LSQ_SCALAR_MULTIPLY('BEAM_LIVE',(1./NEVENT),'BEAM_LIVE',IER)  
+
+     This averages over the NEVENT events
+
+      CALL LSQ_MATRIX_INVERT('LIVE_LIVET','LIVE_INVERSE',IER)
+
+      CALL LSQ_MATRIX_MULTIPLY('LIVE_INVERSE','BEAM_LIVE','WEIGHT',IER)
+
+
+          The vector weight now contains  the  weights  that  minimize  the
+     resolution.
+
+          One can print the matrices for inspection to unit DUNIT.
+
+         CALL LSQ_MATRIX_PRINT(DUNIT,'LIVE_LIVET', NCOL ,'(D10.3)',IER)
+
+
+          The above will print the matrix with NCOL columns printed in  the
+     first  row  the  next  NCOL  columns  in the next row and so on.  Each
+     element will have the format D10.3.  NCOL and the element format  have
+     to be chosen to fit NCOL elements per printer line.
+
+          The contents of the vector may be unpacked into an  array  WEIGHT
+     by the following call.
+
+     CALL LSQ_MATRIX_GET('WEIGHT',WEIGHT,1,NLIVE,1,IER)
+
+
+          will unpack into the single precision array WEIGHT  the  contents
+     of the matrix WEIGHT.
+
+
+                                     - 18 -
+                                                                         Page 19
+
+
+
+     \START          LSQ_RCP  ! control file for LSQ package                                                                             
+     \SIZE         65        53
+     !------------------------------------------------------------------------------
+     !   Name:       LSQ.RCP
+     !   Purpose:    Control file for LSQ package
+     !   Created:    02-OCT-1990     Rajendran Raja
+     !   Version:    V1.0
+     !------------------------------------------------------------------------------
+     !   LSQ definition quantities
+     !------------------------------------------------------------------------------
+     !
+      LSQ_USER 327       !User number for GTUNIT
+     !
+     !------------------------------------------------------------------------------
+     !   RZ FILE SETUP
+     !------------------------------------------------------------------------------
+     NEW_RZ TRUE     !will open new RZ file
+     RZ_LOG_LEVEL 1     !LOG LEVEL OF RZ
+     \ARRAY RZ_FILE_NAME
+         'LSQ_SAVE'
+     \END
+     \ARRAY RZ_FILE_MODE
+      'U'   !Mode for opening old data base
+     \END
+     \ARRAY TOP_DIRECTORY
+      'LSQ'
+     \END
+     \ARRAY SUB_DIRECTORY
+      'MATRICES'
+     \END
+     \ARRAY KEY_DESCR
+     'I'
+     \END
+     \ARRAY CHTAG
+       'LSQ'
+     \END
+     !
+     PRIMARY_ALLOCATION 100000
+     RECORD_LENGTH     1024
+     NUMBER_OF_WARNINGS      99999   !Error messages
+     !
+     !------------------------------------------------------------------------------
+     !   HBOOK DIRECTORY structure
+     !------------------------------------------------------------------------------
+      \ARRAY HBOOK_DIRECTORY
+           'LSQ'
+      \END
+     !------------------------------------------------------------------------------
+     !   Analysis Cuts
+     !------------------------------------------------------------------------------
+      LSQ_DUMP_EVENTS 2  !DUMP 1ST N EVENTS
+      DO_LSQ_ANAL TRUE    !IF TRUE DO ANALYSIS
+     !
+     !------------------------------------------------------------------------------
+
+                                     - 19 -
+                                                                         Page 20
+
+
+     !   Histogram definitions
+     !------------------------------------------------------------------------------
+     \ARRAY LSQ_HISTOGRAMS      !Sample histogram definition file
+      'DO'
+      '1DIM'  101
+      'Sample histogram'
+      50 0.0  2.0   0.
+     !
+     \END
+     !
+     \STOP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 20 -

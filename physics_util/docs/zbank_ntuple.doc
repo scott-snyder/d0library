@@ -1,0 +1,103 @@
+                                                    Chip Stewart   15-AUG-1994
+            ZBANK_NTUPLE PACKAGE         
+            --------------------
+    
+    ZBANK_NTUPLE is a program builder package that can be used within 
+ any D0 frame (CALOR_OFF,D0USER, or D0RECO...) to create ntuples from
+ specified words within a zebra file. The choice of banks is RCP driven
+ and no user-specific code should be needed.  The ntuples are of the 
+ column-wise variable length type. All that is needed is to build the 
+ EXE in the usual D0 way with ZBANK_NTUPLE.PBD in the package list,
+ a command file which defines NTUPLE_RCP, and an input zebra file.
+  
+ The RCP file lists the name of the output ntuple and the commands
+ to tell ZBANK_NTUPLE what to put into the NTUPLE. This package 
+ should be enable someone to make quick checks of zebra files without
+ having to write special code for the task. 
+
+ For example, this RCP file makes ntuples of the ET's of PJET banks in 
+ a linear chain of up to 20 and ID,PX,and PY for  linear chains of up 
+ to 10 ISAJ banks, the event weight in ISAE (not chained). 
+
+\START    NTUPLE_RCP
+\SIZE         66        27
+!----------------------------------------------------------------------
+!    Name:       NTUPLE.RCP
+!    Created:     3-Aug-1994   Chip Stewart
+!----------------------------------------------------------------------
+! HBOOK
+!----------------------------------------------------------------------
+  HBOOK_FILE          'ntuple_save'  ! logical or filename for output ntuple 
+  HBOOK_DIRECTORY     'NTXYZ'        ! could be anything 
+  \ARRAY NTUPLE_LIST
+    1               ! NTUPLE ID 
+    'NTX'           ! NTUPLE NAME
+    'NTXYZ'         ! NTUPLE DIRECTORY 
+    1024            ! RECORD SIZE
+    'PJET_BLOCK'    ! REFERS TO PJET_BLOCK ARRAY BELOW
+    'ISAJ_BLOCK'    !           ISAJ_BLOCK ARRAY
+    'W'             !           W ARRAY
+  \END
+  \ARRAY ISAJ_BLOCK
+    'NJ[0,10],ID(NJ),PX(NJ),PY(NJ)'    ! CHFORM OF VARIABLES FEEDING HBNAME
+    'ISAJ'                             ! BANK NAME
+     1                                 ! WORD NUMBER OF STARTING LOCATION
+  \END
+  \ARRAY W
+    'W' 'ISAE' 12
+  \END
+  \ARRAY PJET_BLOCK
+     'NPJ[0,20],ET(NPJ)' 'PJET' 2
+  \END
+!----------------------------------------------------------------------
+\STOP    !   ALL_RCP
+
+ Notes:
+  1. HBOOK_DIRECTORY is fairly useless and might disapear someday.
+  2. NTUPLE DIRECTORY (slot 3 of NTUPLE_LIST) is equally useless but unless
+     it is identical to HBOOK_DIRECTORY odd things may happen. 
+  3. RECORD SIZE other than 1024 is not guaranteed. 
+  4. Anything after RECORD SIZE (slot 5 and beyond) must be a 
+     character string that matches some array name in the RCP file. 
+     Mispelling an array will result in ZBANK_NTUPLE confusion. 
+  5. The arrays specified in slots 5-end of NTUPLE_LIST have a format
+     order that goes (CHFORM,BANK,WORD) 
+  6. CHFORM is the string fed into HBNAME and is described in the 
+     HBOOK manual pages 18-21. Tags names obey standard real/integer
+     type convention (can be overidden by MASS-> MASS:R, HBOOK pg. 19)
+ 6.5 For linear chained banks, the maximum number of links is put into 
+     [] brakets just after the chain counter variable (integer type). 
+     The range begins with 0 and ends with the maximum number- [0,MAX].
+     If this part of the CHFORM is not quite right there will be 
+     warnings from ZBANK_NTUPLE about 'LINK COUNT BAD' or
+     'ZBANK_VAL BAD'.
+  7. BANK name is a 4 character zebra bank that should exist on the 
+     file (or memory if a previous package adds banks to the tree).
+  8. WORD points to where the block of data begins. The number of words 
+     is derived from CHFORM (counting commas between tags). 
+
+
+ The output ntuple can then be printed (from PAW) and looks 
+ something like:
+
+******************************************************************
+* Ntuple ID = 1      Entries = 999       NTX
+******************************************************************
+* Var numb * Type * Packing *    Range     *  Block   *  Name    *
+******************************************************************
+*      1   * I*4  *         * [0,20]       * NTX      * NPJ
+*      2   * R*4  *         *              * NTX      * ET(NPJ)
+*      3   * I*4  *         * [0,10]       * NTX      * NJ
+*      4   * I*4  *         *              * NTX      * ID(NJ)
+*      5   * R*4  *         *              * NTX      * PX(NJ)
+*      6   * R*4  *         *              * NTX      * PY(NJ)
+*      7   * R*4  *         *              * NTX      * W
+******************************************************************
+*  Block   *  Entries  * Unpacked * Packed *   Packing Factor    *
+******************************************************************
+* NTX      *  999      * 228      * Var.   *    Variable         *
+* Total    *    ---    * 228      * Var.   *    Variable         *
+******************************************************************
+* Blocks = 1            Variables = 8       Max. Columns = 57    *
+******************************************************************
+

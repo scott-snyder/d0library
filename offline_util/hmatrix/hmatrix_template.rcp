@@ -1,0 +1,494 @@
+\START          HMATRIX_RCP  ! control file for HMATRIX package                 
+\SIZE       1289       110
+!------------------------------------------------------------------------------
+!   Name:       HMATRIX.RCP
+!   Purpose:    Control file for HMATRIX package
+!   Created:    02-OCT-1990     Rajendran Raja
+!   Version:    V1.0
+!------------------------------------------------------------------------------
+!   HMATRIX definition quantities
+!------------------------------------------------------------------------------
+\ARRAY VISIBLE_QUANTITIES
+ 'Reduced PT of W'
+ 'Reduced Pl of W'
+ 'Number of jets along W (Wjets+)'
+ 'Reduced RSS Beam component Wjets+'
+ 'Reduced RSS W component Wjets+'
+ 'Reduced RSS normal component Wjets+'
+ 'Reduced Effective mass W + Wjets+'
+ 'Number of jets against W (Wjets-)'
+ 'Reduced RSS Beam component Wjets-'
+ 'Reduced RSS W component Wjets-'
+ 'Reduced RSS normal component Wjets-'
+ 'Reduced Effective mass  Wjets- '
+\END
+\ARRAY INVISIBLE_QUANTITIES     !These will be predicted.
+\END
+!
+!
+ HMATRIX_USER 327       !User number for GTUNIT
+!
+!                                                            !ERROR: USE RCPTEST
+!                                                            !ERROR: USE RCPTEST
+ ACCUMULATE_HMATRIX XACCUM        !IF FALSE, WILL USE H MATRIX ALREADY STORED.
+!------------------------------------------------------------------------------
+!   RZ FILE SETUP
+!------------------------------------------------------------------------------
+!                                                            !ERROR: USE RCPTEST
+!                                                            !ERROR: USE RCPTEST
+NEW_RZ XNEW_RZ     !will open new RZ file                    !ERROR: USE RCPTEST
+RZ_LOG_LEVEL 1     !LOG LEVEL OF RZ
+\ARRAY RZ_FILE_NAME
+    'HMATRIX_SAVE'
+\END
+\ARRAY RZ_FILE_MODE
+ 'U'   !Mode for opening old data base
+\END
+\ARRAY TOP_DIRECTORY
+ 'HMATRIX'
+\END
+\ARRAY SUB_DIRECTORY
+ 'XSUB_DIR'
+\END
+\ARRAY USE_HMATRIX      !THE FOLLOWING H MATRICES WILL BE USED
+ 'XUSE_DIR'
+ 'WJETS'
+\END
+\ARRAY KEY_DESCR
+'I'
+\END
+\ARRAY CHTAG
+  'HMATRIX'
+\END
+!
+PRIMARY_ALLOCATION 100000
+RECORD_LENGTH     1024
+NUMBER_OF_WARNINGS      99999   !Error messages
+!
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+ \ARRAY HBOOK_DIRECTORY
+      'HMATRIX'
+ \END
+!------------------------------------------------------------------------------
+!   Analysis Cuts
+!------------------------------------------------------------------------------
+ HMATRIX_DUMP_EVENTS 2  !DUMP 1ST N EVENTS
+ DO_HMATRIX_ANAL TRUE    !IF TRUE DO ANALYSIS
+!
+\ARRAY BACKGROUND_SUB_DIRECTORY
+  'WJETS'       !THIS DIRECTORY WILL BE USED FOR CALCULATING BACKGROUND PROB
+\END
+!
+ CHISQUARED_MAXIMUM    50.0  !MAXIMUM CHISQUARED FOR ACCEPTANCE AS SIGNAL/BCKGD
+ TOP_LIKELIHOOD_CUT    0.8   !TOPS BELOW THIS WILL BE REJECTED
+ WRITE_OUT_TOPS       TRUE   !IF TRUE, WILL WRITE OUT TOP EVENTS
+ DUMP_TOP_EVENT .TRUE.    !IF TRUE TOP EVENT WILL BE DUMPED
+!
+\ARRAY TOP_DUMP_FILE
+ 'FOUND_TOPS.DAT'
+\END
+!
+ DUMP_W_EVENT .TRUE.    !IF TRUE W EVENT WILL BE DUMPED
+!
+\ARRAY W_DUMP_FILE
+ 'FOUND_WS.DAT'
+\END
+!
+ W_MASS      80.0        !Mass of W
+ W_TRANSVERSE_MASS_CUT  30.0  !W'S WILL BE ACCEPTED IF TRMASS ABOVE THIS
+!
+ TEST_UMAT  TRUE         !IF TRUE, UMAT AND HVIS WILL BE MULTIPLIED AND DUMPED.
+ PT_MAX_OTHER_NEUTRINO 8.0      !IF OTHER NEUTRINO WITH GREATER PT, VETO
+ PNUT_NUMBER     1      !USE THIS PNUT. 0 WILL GET LATEST
+ USE_ISAJET_INFO FALSE   !If true, ISajet info will be used to find electron
+                        !from CACL banks
+ MAXIMUM_CLUSTER_DIFF  20.0     !Do not pass clusters if diff.gt.this
+                                 !Used in FIND_CLOSE_CLUSTER
+ NUMBER_OF_QUANTITIES_PER_JET 4 !NUMBER STORED IN HMATRIX
+ NUMBER_JETS_IN_HMATRIX 8    ! SO MANY HIGHEST ET JETS USED
+ TOP_PROB_CUT     0.75  !IF GREATER THAN THIS CONSIDER FOR TOP
+ EXOTIC_ET_CUT 30.0     !ONLY PRINT EXOTIC IF GREATER THAN THIS CUT
+!
+\ARRAY USE_EIGEN_VECTORS
+  2 3 5 7 9 10 11 13 14 15 16 19 21 22
+\END
+                        !IF ZERO ALL WILL BE USED. Otherwise
+                        !The eigen vectors specified will be used to calculate
+                        !Truncated chisquared
+ ET_CUT_W_ELECTRON    15.0      !DO NOT USE ELECTRON IF BELOW THIS
+ DO_ELECTRON_ONLY     .FALSE.    !IF TRUE ONLY ELECTRONS IN W
+ DO_PHOTON_ONLY       .FALSE.   !IF TRUE ONLY PHOTONS
+ DO_BOTH              .TRUE.   !IF TRUE BOTH ELECTRONS AND PHOTONS
+!
+ DIST_CLOSE_CUT    4.0  !IF GREATER, ELECTRON DECALRED PHOTON
+!
+\ARRAY PROHIBITED_PARTICLE_NAMES
+!The following particles are examined. If their ET exceeds
+!PT_MAX_OTHER_NEUTRINO and their count exceeds Prohibited_particle_count,
+!Event is not used
+      'ELECTRON NEUTRINO'
+      'ELECTRON'
+      'MUON NEUTRINO'
+      'MUON'
+      'TAU NEUTRINO'
+\END
+\ARRAY PROHIBITED_PARTICLE_COUNT
+  1 1 0 0 0           ! MAXIMUM NUMBER PERMITTED IN ISAL . USED IN
+                      ! SEE_IF_OTHER_NEUTRINO
+\END
+\ARRAY ELECTRON_ALGORITHM_NAME
+ 'ELECTRON'              !For use in SET_CAPH
+\END
+\ARRAY JET_ALGORITHM_NAME
+ 'NEIGHBOR'              !For use in SET_CAPH
+\END
+!------------------------------------------------------------------------------
+!   Histogram definitions
+!------------------------------------------------------------------------------
+\ARRAY VISIBLE_HISTOGRAMS       !These are filled during usage and accumulation
+ 'DO'
+ '1DIM'  101
+ 'Reduced PT of W'
+ 50 0.0  2.0   0.
+!
+ 'DO'
+ '1DIM'  102
+ 'Reduced PL of W'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  103
+ 'Number of jets along W (Wjets)'
+ 50 0.0  10.0   0.
+!
+ 'DO'
+ '1DIM'  104
+ 'Reduced RSS Beam component Wjets'
+ 50 0.0  3.0   0.
+!
+ 'DO'
+ '1DIM'  105
+ 'Reduced RSS W component Wjets'
+ 50 0.0  3.0   0.
+!
+ 'DO'
+ '1DIM'  106
+ 'Reduced RSS normal component Wjets'
+ 50 0.0  2.0   0.
+!
+ 'DO'
+ '1DIM'  107
+ 'Reduced Effective mass W + Wjets'
+ 50 0.5  3.0   0.
+!
+ 'DO'
+ '1DIM'  108
+ 'Number of jets against W (-Wjets)'
+ 50 0.0  10.0   0.
+!
+ 'DO'
+ '1DIM'  109
+ 'Reduced RSS Beam component -Wjets'
+ 50 0.0  3.0   0.
+!
+ 'DO'
+ '1DIM'  110
+ 'Reduced RSS W component -Wjets'
+ 50 0.0  3.0   0.
+!
+ 'DO'
+ '1DIM'  111
+ 'Reduced RSS normal component -Wjets'
+ 50 0.0  2.0   0.
+!
+ 'DO'
+ '1DIM'  112
+ 'Reduced Effective mass  -Wjets'
+ 50 0.5  3.0   0.
+!
+\END
+!
+\ARRAY INVISIBLE_HISTOGRAMS     !These will be predicted during usage phase
+ 'DO'
+ '1DIM'  201
+ 'Reduced TOP mass'
+ 100 1.0  2.0   0.
+\END
+\ARRAY USAGE_PHASE_HISTOGRAMS       !These are filled only during usage phase
+ 'DO'
+ '1DIM'  301
+ 'Chisquared per event'
+ 50 0.0  25.0   0.
+ 'DO'
+ '1DIM'  302
+ 'Probability that chisquared is exceeded'
+ 50 0.0  1.0   0.
+!
+ 'DO'
+ '1DIM'  303
+ 'TRUNCATED Chisquared per event'
+ 50 0.0  25.0   0.
+!
+ 'DO'
+ '1DIM'  304
+ 'Probability that TRUNCATED chisquared is exceeded'
+ 50 0.0  1.0   0.
+!
+ 'DO'
+ '1DIM'  351
+ 'Histogram of normalized DIAG 1'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  352
+ 'Histogram of normalized DIAG 2'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  353
+ 'Histogram of normalized DIAG 3'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  354
+ 'Histogram of normalized DIAG 4'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  355
+ 'Histogram of normalized DIAG 5'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  356
+ 'Histogram of normalized DIAG 6'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  357
+ 'Histogram of normalized DIAG 7'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  358
+ 'Histogram of normalized DIAG 8'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  359
+ 'Histogram of normalized DIAG 9'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  360
+ 'Histogram of normalized DIAG 10'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  361
+ 'Histogram of normalized DIAG 11'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  362
+ 'Histogram of normalized DIAG 12'
+ 50 -5.0  5.0   0.
+!
+ 'DO'
+ '2DIM'  401
+ 'Scatter of normalised DIAG 1 vs DIAG 2'
+ 50 -5.0  5.0 50 -5.0 5.0  0.
+!
+ 'DO'
+ '2DIM'  402
+ 'Scatter of normalised DIAG 1 vs DIAG 3'
+ 50 -5.0  5.0 50 -5.0 5.0  0.
+!
+ 'DO'
+ '2DIM'  403
+ 'Scatter of normalised DIAG 1 vs DIAG 4'
+ 50 -5.0  5.0 50 -5.0 5.0  0.
+!
+ 'DO'
+ '2DIM'  404
+ 'Scatter of normalised DIAG 1 vs DIAG 5'
+ 50 -5.0  5.0 50 -5.0 5.0  0.
+!
+ 'DO'
+ '2DIM'  405
+ 'Scatter of normalised DIAG 2 vs DIAG 3'
+ 50 -5.0  5.0 50 -5.0 5.0  0.
+!
+ 'DO'
+ '2DIM'  406
+ 'Scatter of normalised DIAG 2 vs DIAG 4'
+ 50 -5.0  5.0 50 -5.0 5.0  0.
+!
+ 'DO'
+ '2DIM'  407
+ 'Scatter of normalised DIAG 2 vs DIAG 5'
+ 50 -5.0  5.0 50 -5.0 5.0  0.
+!
+ 'DO'
+ '2DIM'  408
+ 'Scatter of normalised DIAG 3 vs DIAG 4'
+ 50 -5.0  5.0 50 -5.0 5.0  0.
+!
+ 'DO'
+ '2DIM'  409
+ 'Scatter of normalised DIAG 3 vs DIAG 5'
+ 50 -5.0  5.0 50 -5.0 5.0  0.
+!
+ 'DO'
+ '2DIM'  410
+ 'Scatter of normalised DIAG 4 vs DIAG 5'
+ 50 -5.0  5.0 50 -5.0 5.0  0.
+!
+\END
+!
+MAX_SCATTER_DIAG  10    !MAXIMUM NUMBER OF SCATTERGRAMS IN DIAG
+!
+\ARRAY TOP_QUAN_HISTOGRAMS      !HISTOGRAMS FROM HMATRIX_TOP_QUAN
+ 'DO'
+ '1DIM'  501
+ 'Histogram DIFF between W_ISA and D0 W'
+ 50 0.0  50.0   0.
+!
+ 'DO'
+ '1DIM'  502
+ 'Top mass generated  by ISAJET'
+ 50 90.  140.0   0.
+!
+ 'DO'
+ '1DIM'  503
+ 'MISSING_ET Isajet - D0 accepted events'
+ 50 -50.0  50.0   0.
+!
+ 'DO'
+ '1DIM'  504
+ 'SCALAR ET FOR EVENT'
+ 50 0.0  1000.0   0.
+!
+ 'DO'
+ '1DIM'  505
+ 'PT OF W FROM TOP DECAY'
+ 50 0.0 100.0   0.
+!
+ 'DO'
+ '1DIM'  506
+ 'Top mass generated of accepted events'
+ 50 90.  140.0   0.
+!
+ 'DO'
+ '1DIM'  507
+ 'MISSING_ET Isajet - D0 rejected events'
+ 50 -50.0  50.0   0.
+!
+ 'DO'
+ '1DIM'  508
+ 'TRANSVERSE MASS OF W FROM TOP DECAY'
+ 50 0.0 100.0   0.
+!
+!
+ 'DO'
+ '1DIM'  509
+ 'DISTANCE OF CLOSEST APPROACH OF ELECTRONS'
+ 50 0.0 20.0   0.
+!
+ 'DO'
+ '2DIM'  510
+ 'Et electron vs Missing Et'
+ 50 0.0 100.0  50 0.0 100.0  0.
+!
+ 'DO'
+ '2DIM'  511
+ 'Et photon vs Missing Et'
+ 50 0.0 100.0  50 0.0 100.0  0.
+!
+ 'DO'
+ '2DIM'  551
+ 'MISSING ET ISAJET VS MISSING ET D0'
+ 50 0.0  100.  50  0. 100.   0.
+!
+ 'DO'
+ '1DIM'  601
+ 'Number of Jets'
+ 50 0.0  10.0   0.
+!
+ 'DO'
+ '1DIM'  602
+ 'ET of all Jets'
+ 50 0.0  100.0   0.
+!
+ 'DO'
+ '1DIM'  603
+ 'ET of 1st highest ET Jet'
+ 50 0.0  100.0   0.
+!
+ 'DO'
+ '1DIM'  604
+ 'ET of 2nd highest ET Jet'
+ 50 0.0  100.0   0.
+!
+ 'DO'
+ '1DIM'  605
+ 'ET of 3rd highest ET Jet'
+ 50 0.0  100.0   0.
+!
+ 'DO'
+ '1DIM'  606
+ 'ET of 4th highest ET Jet'
+ 50 0.0  100.0   0.
+!
+ 'DO'
+ '1DIM'  607
+ 'ET of 5th highest ET Jet'
+ 50 0.0  100.0   0.
+!
+ 'DO'
+ '1DIM'  701
+ 'TOP MASS predicted - generated'
+ 50 -25.  25.0   0.
+!
+ 'DO'
+ '2DIM'  702
+ 'TOP MASS Predicted vs Top Mass generated'
+ 50 100.0  120.0 50  100.0  120.0   0.
+!
+!
+ 'DO'
+ '1DIM'  703
+ 'W TRANSVERSE MASS FOR TOP PROB GT CUT'
+ 50 0.0  100.0   0.
+!
+\END
+\ARRAY USAGE_PHASE_HISTOGRAMS1  !HISTOGRAMS FROM HMATRIX_ANAL1
+ 'DO'
+ '1DIM'  1001
+ 'TOP LIKELIHOOD '
+ 50 0.0  1.0   0.
+!
+ 'DO'
+ '1DIM'  1002
+ 'NUMBER OF JETS IN SIGNAL/BKCGD'
+ 50 0.0  10.0   0.
+!
+ 'DO'
+ '1DIM'  1003
+ 'MAXIMUM REDUCED ET OF JETS IN SIGNAL/BCKGD'
+ 50 0.0  5.0   0.
+!
+ 'DO'
+ '1DIM'  1012
+ 'NUMBER OF JETS IN NON SIGNAL/BKCGD'
+ 50 0.0  10.0   0.
+!
+ 'DO'
+ '1DIM'  1013
+ 'MAXIMUM REDUCED ET OF JETS IN NON SIGNAL/BCKGD'
+ 50 0.0  5.0   0.
+\END
+!
+\STOP

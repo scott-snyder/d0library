@@ -1,0 +1,48 @@
+      SUBROUTINE EZCRCP_TO_SRCP (BKNAME,LSUPP,IZLINK)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : CONVERT A CRCP (ASCII) INTO SRCP (BINARY)
+C-                         AND LEAVE IT HANGING IN THE SAME ZEBRA SLOT AS
+C-                         CRCP OCCUPIED. IF INPUT BANK IS ALREADY SRCP
+C-                         THIS ROUTINE SHOULD DO ANYTHING.
+C-
+C-   Inputs  : BKNAME [C]  SRCP NAME TO GIVE THIS BANK. MUST BE UNIQUE
+C-             LSUPP  [I]  ADDRESS OF BANK FROM WHICH CRCP IS HANGING
+C-             IZLINK [I]  LINK (+) FROM WHICH CRCP HANGS
+C-   Outputs :  NONE
+C-   Controls:  NONE
+C-
+C-   Created   9-SEP-1992   Chip Stewart
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      CHARACTER BKNAME*(*)
+      INTEGER LSUPP,IZLINK
+      INCLUDE 'D0$INC:STP_ZLINKA.INC'
+      INCLUDE 'D0$INC:ZEBSTP.INC'
+      LOGICAL FIRST
+      INTEGER NLINK,LSRCP,LCRCP 
+      CHARACTER BANK*4
+      DATA FIRST/.TRUE./
+C----------------------------------------------------------------------
+      IF(FIRST) THEN
+        CALL STP_INZLNK                 ! INTIALIZE STP LINK AREA
+        CALL STP_GSLINK ('REPLACE',NLINK)
+        FIRST = .FALSE.
+      END IF
+      LCRCP = LC(LSUPP-IZLINK)          ! CRCP ADDRESS
+      CALL UHTOC (IC(LCRCP-4),4,BANK,4) ! BANK NAME (SHOULD BE CRCP)
+      IF ( BANK .NE.'CRCP' ) GOTO 999   ! NOT CRCP (EXIT)
+      STP_LSLINK(NLINK) = LSUPP         ! STORE ADDRESS IN LINK AREA
+      CALL EZNAME (BKNAME,LSUPP,IZLINK) ! CREATE SRCP BANK (STAND ALONE)
+      LSUPP = STP_LSLINK(NLINK)         ! FETCH ADDRESS FROM LINK AREA
+      CALL EZMOVE_OVERWRITE             ! SWITCH ON OVERWRITE
+      CALL EZMOVE_NOCRCP                ! TURN OFF CRCP CONVERSION IN EZMOVE
+      CALL EZMOVE (BKNAME,LSUPP,IZLINK) ! MOVE SRCP TO HANG WHERE CRCP WAS
+      LSUPP = STP_LSLINK(NLINK)         ! FETCH ADDRESS FROM LINK AREA
+      LSRCP = LC(LSUPP-IZLINK)          ! SRCP ADDRESS
+      LCRCP = LC(LSRCP)                 ! CRCP NEXT IN LINEAR CHAIN AFTER SRCP
+      CALL MZDROP (IXSTP,LCRCP,' ')     ! DROP CRCP BANK
+      STP_LSLINK(NLINK) = 0             ! LINK AREA NOT UPDATED UNTIL NEXT USE 
+  999 RETURN
+      END

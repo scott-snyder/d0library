@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VOFFLINE_UTIL()
       VOFFLINE_UTIL = ' OFFLINE_UTIL'//
-     X                   '  OFFICIAL V4.28'//
-     X                   ' 11-JUL-1997 12:19:20.48'
+     X                   '  TEST V4.28_02'//
+     X                   ' 24-NOV-1997 15:43:54.08'
       Return
       End

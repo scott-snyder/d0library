@@ -1,0 +1,197 @@
+
+                COMPACK setup via an RCP file
+                -----------------------------
+                        Harrison B. Prosper
+                        Created 27-Jun-1991     V1.00
+
+
+
+    1.          INTRODUCTION
+
+    COMPACK is the standard user interface package for D-zero applications.
+The package contains routines to define the interface and to handle 
+selections from menus. The routine EZ_SETUP_COMPACK is an RCP-driven
+routine which can be used to establish a complete COMPACK menu interface.
+The commands in the RCP-file are an extremely simple example of a User 
+Interface Language (UIL).
+
+    The interface initialization is defined in an RCP-file by giving the
+name of the COMPACK setup routine together with a value which is either the 
+actual argument of the routine or a boolean indicating whether or not that
+routine is to be called.
+
+    An array called COMPACK_MENUS specifies the list of menus which
+define the user interface. Each menu name listed is itself an array
+specifying the items which belong to that menu. For each item one gives
+a boolean indicating whether or not the item is to be added to the menu
+followed by the values to be passed to the arguments of the COMPACK routine
+MENADD (see D0$COMPACK:COMPACK_MANUAL.MEM).
+
+
+    2.          COMPACK Interface Language (CIL)
+
+    Conventions:
+
+    In the following vertical lines delimit alternatives while anything 
+within [...] is optional.
+
+        (A)     SETUP commands
+
+    The format for the setup commands is
+
+        COMPACK-Setup-Routine   argument | TRUE | FALSE [! Remark ]
+
+    The available commands are
+
+        WELCOME         'Introductory title'
+        SPLSTA          T | F           Create a STATUS window
+        SETSTA          n               Number of lines in status window
+        SPLTIT          T | F           Create a SPLIT screen
+        SETLIN          n               Number of lines in Upper window
+        DEFSPA          n               Default spacing between menu items
+        DEFCOL          n               Default number of columns
+        MENDEF          T | F           Create COMPACK system menu
+
+    Example
+
+        SPLSTA  TRUE    ! Create a STATUS window
+        SETSTA  4       ! Number of lines in the STATUS window
+
+        (B)     COMPACK_MENUS array
+    
+    The format for the menu list is
+
+        \ARRAY COMPACK_MENUS
+           'Menu-1'     ['%title-1']    [! Remark]
+                :           :
+           'Menu-n'     ['%title-n']
+        \END
+
+Note that a title, if specified, must be prefixed with the % sign
+to distinguish it from a menu name. The title field is used by the
+dispatch builder program (see below).
+
+        (C)     Menu array
+
+    The format of a menu array is
+
+        \ARRAY Menu-name
+                TRUE | FALSE            ! Menu Item ON/OFF switch
+                TRUE | FALSE            ! Arg1 of MENADD
+                'Item-name-1'           ! Arg2 of MENADD
+                'Command-name-1'        ! Arg3 of MENADD
+                'Help-line 1'           ! Arg4 of MENADD
+                     :                  !      ::
+                'Help-line 2'           !      ::
+
+                     :
+
+                TRUE | FALSE
+                TRUE | FALSE
+                'Item-name-n'
+                'Command-name-n'
+                'Help-line 1'
+                     :
+                'Help-line 2'
+        \END
+
+
+    3.          DISPATCH BUILDER
+
+The dispatch routines for the menus listed in the array COMPACK_MENUS
+can be be created by running the program EZ_DISPATCH_BUILDER. To create 
+the routines you must first execute
+
+    $ @D0$SRCP_UTIL:SETUP
+
+then enter the command
+
+    $ DBD rcp-file-name
+
+If you do not specify the RCP-file-name the dispatch builder will
+assume that the rcp-file has been defined by the logical name
+RCP$INPUT. A prefix to the action routines can be added by specifying
+the prefix with the ACTION_PREFIX command:
+
+    ACTION_PREFIX       'Prefix'
+
+
+    4.          CALLING SEQUENCE
+
+The following code fragment shows how to call EZ_SETUP_COMPACK
+
+        CALL INRCP(rcp-file-name, status)
+                :       :
+        CALL EZ_SETUP_COMPACK(rcp-bank-name, status)
+                :       :
+
+The first routine reads in the RCP-file and creates the corresponding
+RCP-bank. EZ_SETUP_COMPACK picks the specified RCP-bank and builds
+the interface.
+    
+    Example
+
+        CALL INRCP('COMPACK_RCP',STATUS)
+                :       :
+        CALL EZ_SETUP_COMPACK('COMPACK_RCP',STATUS)
+
+    NOTE: In the above example the logical name of the RCP-file is
+          COMPACK_RCP which, by convention, is the same as the name 
+          of the RCP-bank.
+
+
+    5.          EXAMPLE SETUP
+
+Here is a complete example of the use of the COMPACK Interface Language.
+
+!----------------------------------------------------------------------
+! COMPACK setup
+!----------------------------------------------------------------------
+WELCOME         'Low Voltage Supply Page Version 1.00'
+SPLSTA          TRUE    ! Create a STATUS window
+SETSTA          4       ! Number of lines in status window
+SPLTIT          TRUE    ! Create a SPLIT screen
+SETLIN          16      ! Number of lines in Upper window
+DEFSPA          1       ! Default spacing between menu items
+DEFCOL          3       ! Default number of columns
+MENDEF          TRUE    ! Create COMPACK system menu
+ACTION_PREFIX   'LVS_'  ! Prefix for action routines (used by Dispatch builder)
+!----------------------------------------------------------------------
+\ARRAY COMPACK_MENUS
+    'ACTIONS'           '%Low Voltage Supply Page'
+    'DEFINE-PAGE'       '%Low Voltage Supply Page Definition'
+\END
+!----------------------------------------------------------------------
+\ARRAY ACTIONS
+    TRUE
+    FALSE
+    'Define Page'
+    'DEFINE PAGE'
+    ' Define one or more low voltage supply pages.'
+
+    TRUE
+    FALSE
+    'Control Panel'
+    'CONTROL PANEL'
+    ' Display a menu of control buttons.'
+
+    TRUE
+    FALSE
+    'COMPACK System Menu'
+    'MENCTR'
+    ' Display the COMPACK system menu.'
+\END
+!----------------------------------------------------------------------
+\ARRAY DEFINE-PAGE
+    TRUE
+    FALSE
+    'Show Page'
+    'SHOW PAGE'
+    ' List available pages and for a specified page list its contents.'
+
+    TRUE
+    FALSE
+    'Create Page'
+    'CREATE PAGE'
+    ' Create a new low voltage supply page.'
+\END

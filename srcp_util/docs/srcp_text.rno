@@ -1,0 +1,239 @@
+.CHAPTER General Description
+.HEADER LEVEL 1 Introduction
+
+Many programs in D0 are data driven; that is, their operation is determined 
+in part by the input and manipulation of parameters. By a parameter we
+mean simply an identifier (a name) associated with
+one or more values which can be of type INTEGER, REAL, REAL in E-format, 
+BOOLEAN, LOGICAL
+or CHARACTER, or a mixture thereof. 
+The standard ways of injecting parameters into a program
+are to use
+
+.BLANK
+.LIST "o"
+.LIST ELEMENT; DATA statements (perhaps as BLOCK data programs)
+.LIST ELEMENT; PARAMETER statements
+.LIST ELEMENT; or input from a TEXT file.
+.END LIST 
+.BLANK
+
+We shall not dwell on the obvious advantages of using TEXT files and simply
+say that the Run Control Parameters (RCP) package makes use of that method. 
+
+.PARAGRAPH
+The RCP mechanism was developed originally for use in the CALIB program. Since
+then the package has undergone considerable improvement and is now
+properly regarded as a general utility for parameter handling. The
+handling of geometrical parameters for D0GEANT provides a
+splendid example of its use, as is the handling of parameters in the
+offline software via RCP files. For a tutorial guide to RCP see
+RCP__GUIDE.MEM in D0$SRCP__UTIL$DOCS (To be WRITTEN).
+
+.PARAGRAPH
+With one call to the
+routine EZREAD (see also EZRDF and INRCP) 
+a TEXT file containing parameters, an RCP file, 
+can be read into a ZEBRA bank, with the generic name of SRCP;
+thereafter, parameters can be retrieved and modified
+with calls to EZGET. One can use EZREAD to create many
+RCP banks in memory. ZEBRA distinguishes each bank by a bank number,
+however, the user distinguishes each RCP bank by its UNIQUE alias, 
+that is, the name specified in the call to EZREAD. 
+
+.HEADER LEVEL 1 Format of an RCP input file
+.PARAGRAPH
+An RCP file may contain one or more of the following commands or constructs.
+.LITERAL
+
+    o   \START bank-name [! comment]
+                :       :
+        \STOP
+
+    o   ! [comment]
+
+    o   \SIZE number-of-values [number-of-records] [! comment]
+
+    o   identifier      value   [! comment]
+
+    o   \ARRAY array-name       [! comment]
+                :       :            :
+                :       :       [! comment]
+                :       :            :
+        \END                    [! comment]
+
+.END LITERAL
+
+All text after an ! mark is ignored.
+The
+_\SIZE command, if used, must be in the first line of the file. This
+command is used to pre-allocate space in an RCP bank (See Appendix A);
+if it is not used then the RCP bank will be created with the defaults:
+number-of-values = 2000 and number-of-records = 200. A RECORD in this
+context is an IDENTIFIER plus an optional COMMENT, a COMMENT line, or a
+BLANK line. The program EZFSIZ can be used to scan an RCP input file,
+compute the precise values of these quantities and add the _\SIZE
+parameter at the start of the file. It is a 
+good idea to add 20, say, to the values given by EZFSIZ in case
+a few extra comment lines are added later. (Note: EZFSIZ already adds 10 to
+each parameter.)
+.Para
+The only exception to the above rule is if the _\START command is used, in which
+case the _\START command MUST come
+FIRST followed on the SECOND line by _\SIZE (if used). 
+The _\START command is used by EZMAKE (see also INRCP)
+which calls EZREAD with the name
+given in that command. The _\START ... _\STOP block defines the contents
+of one RCP bank; several of these blocks can be concatenated into a single
+file if needed. EZMAKE can read the file and direct each block 
+to the named RCP bank. (Note: It is simpler to use INRCP to read in RCP
+files rather than EZMAKE directly. See the example program EZEXAMPLE.)
+.para
+The syntax for a simple parameter is:
+.LITERAL
+
+    identifier     value       [! comment]
+
+    Example 1
+
+        Number_of_channels  768     ! This is a silly comment
+
+    Example 2
+
+        On_off_switch       FALSE   
+
+    Example 3
+
+        Richard_III         'Thou lump of foul deformity'
+
+.END LITERAL
+
+A file could consist of nothing more than a list of simple parameters.
+It may, however, be more convenient to group some values into arrays.
+
+.BLANK
+The syntax for an array parameter is:
+
+.LITERAL
+
+    \ARRAY array-name   [! comment]
+
+        :       :       [! comment]
+
+    \END                [! comment]
+
+    Example 1
+
+    \ARRAY apple_pie    ! and Motherhood
+        'YUM' .FALSE.  -3.30E-4        ! Note random mix of value types
+    ! The line below contains 6 values
+     1 2 3 4 9000 12.4566       
+                'Wino'          
+        'The time has come the walrus said'
+    \END
+
+    Example 2
+
+    \ARRAY RANDOM_STUFF
+        'Susan'
+        'Fred Bloggs the 3rd'
+        'Ronald Reagan'         
+        'Jane'               
+    \END
+
+.END LITERAL
+
+.NOTE
+Note that a string of length n characters is packed into m = INT((n+3)/4) 32-bit
+words.
+.END NOTE
+.blank
+It is not necessary to count the number of entries in an array block. The
+_\END command specifies the end-of-array. It is only necessary to ensure that
+the buffer which will receive the array elements, when these data are retrieved
+with EZGET, is big enough to hold all the elements. The number of elements
+in an array can be returned using 
+.LITERAL
+
+        CALL EZGETA (parameter-name,0,0,0,number-elements,ier)
+
+    Example
+
+        CALL EZGETA ('RANDOM_STUFF',0,0,0,NUMBER,IER)
+
+.END literal
+
+Each data type recognized by the RCP package is assigned a TYPE code.
+The values are given in Table 1 below.
+.blank
+.TEST PAGE 16
+.NOTE Table 1
+
+.LITERAL
+
+    Type                Type code       Symbol          Comment
+
+    INTEGER             1               VTINT
+    REAL                2               VTREAL
+    REAL (E-format)     3               VTREFM
+    LOGICAL             4               VTLOG
+    CHARACTER string    10 + n          VTCHR           n = string length 
+
+.END LITERAL
+.END NOTE
+.BLANK
+
+The value types are defined in the file D0$OFFLINE__UTIL$GENERAL:VALUE.DEF.
+It is better to use the symbolic constants rather than the constants
+themselves so that your program will be insensitive to possible changes 
+in the value of these constants.
+.blank
+Below is an example of a simple input file.
+.blank
+
+.center; ooooooo
+.LITERAL
+
+    ! Simple parameter file
+    !
+     Number_of_channels   768     ! This is a silly comment
+     On_off_switch        FALSE   ! Flag
+    !
+    ! Example of mixed array
+    !
+    \ARRAY apple_pie    ! and Motherhood
+        'YUM ' .FALSE.  -3.30E-4        ! Note random mix of value types
+     1 2 3 4 9000 12.4566       ! This line contains 6 values
+                'Wino'          
+     \END
+    !
+    ! Example of how to input an array of strings
+    !
+     \ARRAY RANDOM_STUFF
+        'Susan'
+        'Fred Bloggs the 3rd'
+        'Jane'                  
+     \END
+
+.END LITERAL
+.center; ooooooo
+.blank
+
+Once this file has been read in by EZRDF or EZREAD the parameters
+can be accessed with EZGET.
+For example, suppose one wants to access the second name in
+array RANDOM__STUFF. 
+This would be done as indicated below.
+
+.LITERAL
+
+        CALL EZGETS ('RANDOM_STUFF',2,STRING,LENGTH,IER)
+
+.END LITERAL
+If you want to return an array of strings then use
+.LITERAL
+
+        CALL EZ_GET_CHARS ('RANDOM_STUFF',NSTRINGS,STRINGS,IER).
+
+.END LITERAL
+
