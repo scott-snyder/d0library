@@ -1,0 +1,1790 @@
+******************************************************************************
+*                                                                            *
+*   File  G_DSP_B2.A40                                  Rev.    5-MAY-1994   *
+*                                                                            *
+*  "Meaningful" Register Usage                                               *
+*  ---------------------------                                               *
+*  AR4: Base of Peripheral Bus                              Input            *
+*  DP:  Base of Global SRAM                                 Input            *
+*                                                                            *
+*  "Destroyable" Register Usage                                              *
+*  ----------------------------                                              *
+*  R11                                                                       *
+*                                                                            *
+*  Module Description                                                        *
+*  ==================                                                        *
+*                                                                            *
+*  This module performs the Node Initialization for Global DSP Node B2       *
+*                                                                            *
+*  Recall the assignment of the Comm Ports for the Global DSP                *
+*                                                                            *
+*                                                                            *
+*   Comm Port       Function                                                 *
+*   ---------       ---------                                                *
+*           0       Local-to-Global Transfer:  from DSP #B3 Comm Port #4     *
+*           1       NOT USED, connected to front-panel connector             *
+*           2       NOT USED, connected to front-panel connector             *
+*           3       Local-to-Global Transfer:  from DSP #B1 Comm Port #0     *
+*           4       Local-to-Global Transfer:  from DSP #A2 Comm Port #1     *
+*           5       Local-to-Global Transfer:  from DSP #C2 Comm Port #1     *
+*                                                                            *
+*                                                                            *
+*  Then control is returned to the calling module                            *
+*                                                                            *
+*  This module also contains a subroutine to setup the Mark and Force Pass   *
+*  Data Readout.  This subroutine is called from the G_Scan module whenever  *
+*  a Mark-and-Force-Pass event occurs                                        *
+******************************************************************************
+
+******************************************************************************
+*         Include the Hydra and C40 Specific Constant Definitions            *
+******************************************************************************
+
+         .include   "hydra.inc"
+
+******************************************************************************
+*         Include the       DSP Program-Specific Constant Definitions        *
+******************************************************************************
+
+         .include   "constant.inc"
+                                                                           
+******************************************************************************
+*         Include the MACRO Definitions                                      *
+******************************************************************************
+
+         .include   "macros.inc"
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text
+
+Initialize_Node:
+
+******************************************************************************
+*   This code is specific to Global DSP Node B2.  All "Node-Specific"        *
+*   definitions are handled here.  No other code module is allowed to        *
+*   reference node-specific labels.  This is handled by using this module    *
+*   to copy all node-specific values and pointers into "generic" memory      *
+*   locations                                                                *
+*                                                                            *
+*   Recall the information for the Global DSP:                               *
+*                                                                            *
+*       (1) The base of the each of the LDSP Lists of Identified Objects     *
+*       (2) The base of the GDSP List of Identified Objects                  *
+*       (3) The location of the Mark and Force Pass data                     *
+*       (4) The constant part of the Global DSP Header Word                  *
+*       (5) The Header for the Type 4 Entry in the DeBug Section             *
+*       (6) The Comm Ports corresponding to the Local-to-Global Data         *
+*           Transfer                                                         *
+*       (7) The value programmed into the Local Memory Interface Control     *
+*           Register                                                         *
+*       (8) The VSB TCR and the MVSB2400 chip must be initialized to allow   *
+*           VSB access of the MVME214 memory card                            *
+*                                                                            *
+*   Note that (1)-(3) are defined simply using assembler .word directives    *
+*   while (4)-(8) require code to execute on the C40                         *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*      Program the VSBTCR and the MVSB2400 chip to allow VSB Master (but     *
+*      not CONTROLLER) access                                                *
+*                                                                            *
+*       This is a multi-step process                                         *
+*                                                                            *
+*           (1) Modify the Local MICR to compensate for the fact that        *
+*               the VSBTCR does not generate an acknowledge signal           *
+*                                                                            *
+*           (2) Set IIOF0 to be a LOW output.  This results in any           *
+*               memory access by DSP #2 (this DSP) which activates           *
+*               *LSTRB0 being directed to the VSBTCR                         *
+*                                                                            *
+*           (3) Program the VSBTCR to enable the VSB interface               *
+*                                                                            *
+*           (4) Set IIOF0 to be a HIGH output.  This disables access         *
+*               to the VSBTCR                                                *
+*                                                                            *
+*           (5) Program the Local MICR with the "normal" value               *
+*                                                                            *
+*           (6) Program the MVSB2400 CSR with the following parameters       *
+*                                                                            *
+*                            Value                                           *
+* Bit    Name    R or RW    Loaded              Function                     *
+* ---   ------   -------   --------  -------------------------------------   *
+*                                                                            *
+*  D0   SCON*       RW        1      Clearing to 0 enables operation as      *
+*                                    the VSB bus Controller.                 *
+*                                                                            *
+*  D1    N.C.        -        0      No Connection,  bit is not defined.     *
+*                                                                            *
+*  D2   BLOCKEN*    RW        1      Clearing to 0 enables block transfers.  *
+*                                                                            *
+*  D3    TEN*       RW        1      Clearing to 0 enables 68010 mode.       *
+*                                                                            *
+*  D4   BOUNCE      RW        0      Clearing to 0 disables address bounce   *
+*                                    mode.                                   *
+*                                                                            *
+*  D5   READONLY*   RW        1      Clearing to 0 enables readonly mode.    *
+*                                                                            *
+*  D6   MASTEREN*   RW        0      Clearing to 0 enables enables the       *
+*                                    MVSB2400 to request to become VSB       *
+*                                    Master when it needs to.                *
+*                                                                            *
+*  D7    N.C.        -        0      No Connection,  bit is not defined.     *
+*                                                                            *
+*  D8    ENTO0*     RW        1      These two bits disable the VSB Bus      *
+*  D9    ENTO1*     RW        1      Master timeout (this function is        *
+*                                    handled by the VSB Controller)          *
+*                                                                            *
+* D10    FAIR*      RW        0      Clearing to 0 enables the "Fair mode"   *
+*                                    of requesting the VSB bus.              *
+*                                                                            *
+* D11    WRERR*      R        1      If this bit is a 0 then the most recent *
+*                                    error was an attempt to write when in   *
+*                                    readonly mode.                          *
+*                                                                            *
+* D12   TIMEOUT*     R        1      If this bit is a 0 then the most recent *
+*                                    error was a bus timeout.                *
+*                                                                            *
+* D13    ASACK0*     R        1      These bit reflect the state of the VSB  *
+* D14    ASACK1*     R        1      ASACK0* and ASACK1* at the time of the  *
+*                                    last bus error.                         *
+*                                                                            *
+* D15     ERR*       R        1      If this bit is a 0 then the VSB ERR*    *
+*                                    signal has been asserted during the     *
+*                                    course of a VSB cycle.                  *
+*                                                                            *
+* D16-D31   are not used                                                     *
+*                                                                            *
+*       Therefore the VSB2400 Chip should be programmed with FB2D (hex)      *
+******************************************************************************
+
+         LDI   @Local_MICR_for_VSBTCR_Value_Loc,R11    ; Load the Local Memory
+         STI   R11,*+AR4(Disp_to_Local_MICR)           ; Control Register with
+                                                       ; a value allowing 
+                                                       ; access to the VSBTCR
+                                                       ; (recall that the
+                                                       ; VSBTCR does not 
+                                                       ; generate an
+                                                       ; acknowledge signal)
+
+        MB0    @Set_IIOF0_Output_Low_Loc,IIF           ; Set the IIOF0 pin
+                                                       ; as an output and
+                                                       ; force it low.  NOTE
+                                                       ; THAT THIS FORCES
+                                                       ; IIOF1 TO BE A 
+                                                       ; GENERAL PURPOSE
+                                                       ; INPUT because we
+                                                       ; are also writing
+                                                       ; to the IIOF1 control
+                                                       ; bits in the IIF.
+
+        LDA     @VSBTCR_and_VSBCSR_Handle,AR7          ; Store the address of
+                                                       ; both the VSBTCR and
+                                                       ; the MVME2400 CSR 
+                                                       ; (recall that the CSR
+                                                       ; is at a fixed address
+                                                       ; but the VSBTCR appears
+                                                       ; sprayed all through
+                                                       ; the "lower" part of
+                                                       ; the Local Bus [when
+                                                       ; IIOF0 is LOW], and
+                                                       ; by convention we only
+                                                       ; access the VSBTCR at
+                                                       ; this one address)
+
+        LDI     @VSBTCR_Value_Loc,R11                  ; Use R11 and AR7 to
+                                                       ; program the VSBTCR
+        STI     R11,*AR7                               ; (enable the VSB
+                                                       ; interface)
+
+        MB0    @Set_IIOF0_Output_High_Loc,IIF          ; Set the IIOF0 pin
+                                                       ; as an output and
+                                                       ; force it high.  NOTE
+                                                       ; THAT THIS FORCES
+                                                       ; IIOF1 TO BE A 
+                                                       ; GENERAL PURPOSE
+                                                       ; INPUT because we
+                                                       ; are also writing
+                                                       ; to the IIOF1 control
+                                                       ; bits in the IIF.
+
+         LDI   @Local_Mem_Ctrl_Reg_Value_Loc,R11       ; Load the Local Memory
+         STI   R11,*+AR4(Disp_to_Local_MICR)           ; Control Register with
+                                                       ; the "normal" value for
+                                                       ; this DSP
+
+         LDI   @MVSB2400_CSR_Value_Loc,R11             ; Use R11 and AR7 to
+                                                       ; program the CSR in
+         STI   R11,*AR7                                ; the MVSB2400 Chip
+
+******************************************************************************
+*   Now the VSB Interface is enabled and working                             *
+******************************************************************************
+
+******************************************************************************
+*      Define the constant part of the Global DSP Header Word for this       *
+*      Local DSP Node                                                        *
+*                                                                            *
+*  Recall the format of the Global DSP Header Word:                          *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*                   |------------|------------|--------------|----------|    *
+*   1st Longword:   | Length of  | Number of  | Number of    | DSP Node |    *
+*                   | each entry | entries in | VALID Entries| ID in    |    *
+*                   | in Long-   | this List  | in this list | hex      |    *
+*                   | words (4)  |   (16)     | (0..16 or    | (always  |    *
+*                   |            |            |  FF = ovrflw)|  B2)     |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+* Note that the MSByte, next-to MSByte, and LSByte of this Header Word are   *
+* all constant from event to event.  These are the Bytes that are defined    *
+* as the constant part of the Glob  DSP Header Word and are evaluated here   *
+******************************************************************************
+
+        LDI    @GDSP_Node_ID_Loc,R11                    ; Use R11 to load
+        MB2    @GDSP_Entries_per_List_Loc,R11           ; the constant part
+        MB3    @GDSP_Longwords_per_Entry_Loc,R11        ; of the Global DSP
+        STI    R11,@GDSP_Header_Constant_Loc            ; Header Word 
+
+
+******************************************************************************
+*   Generate Header for the Synchronization   subsection of the Mark and     *
+*   Force Pass section of the Data Block                                     *
+*                                                                            *
+*   Recall the format of this header                                         *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*                   |------------|------------|--------------|----------|    *
+*   1st Longword:   | Number of elements      | Entry Type   | DSP Node |    *
+*                   | (i.e. longwords to      | of this Entry| ID in    |    *
+*                   |  follow) in this        | in the MFP   | hex      |    *
+*                   | Entry in the MFP        | section      |          |    *
+*                   | section of the Data     |  (4 = Synch  |          |    *
+*                   | Block                   |  Data)       |          |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+******************************************************************************
+                                                  
+        LDHI    Synch_Data_Length, R11          ; Load the number of elements
+                                                ; in this Synch Data       
+                                                ; Entry into the two MSBytes
+                                                ; of R11
+
+        LDI     Synchronization_Entry_Type, R10     ; Load the Entry Type of
+                                                    ; this list into R10
+
+        MB1     R10, R11                            ; And merge this Entry
+                                                    ; Type into the next to
+                                                    ; LSByte of R11
+
+        MB0     @GDSP_Node_ID_Loc, R11              ; Merge the ID of the
+                                                    ; GDSP Node into
+                                                    ; the LSByte of R11
+
+        STI     R11, @DeBug_Synch_Header_Loc        ; And store this header
+                                                    ; in the appropriate
+                                                    ; memory location
+
+******************************************************************************
+*   Program the Comm Ports and DMA Channels which correspond to              *
+*                                                                            *
+*           >>>>>  Local-Global xfr from LDSP A1, A2, A3, A4  <<<<<          *
+*           >>>>>  Local-Global xfr from LDSP B1              <<<<<          *
+*           >>>>>  Local-Global xfr from LDSP B3, B4          <<<<<          *
+*           >>>>>  Local-Global xfr from LDSP C1, C2, C3, C4  <<<<<          *
+*                                                                            *
+*   Programming each DMA Channel is done with the SETUP_DMA macro            *
+*   Programming each Local-to-Global-from-Previous Comm Port is done with    *
+*       the SETUP_LG_PREV_PORT macro                                         *
+******************************************************************************
+                                                                              
+******************************************************************************
+*   Program the Comm Port and DMA Channel corresponding to                   *
+*                                                                            *
+*           >>>>>  Local-Global xfr from LDSP A1, A2, A3, and A4  <<<<<      *
+*                                                                            *
+*   The Local-to-Global Data for Hydra A arrives on       Comm Port 4        *
+*                                                                            *
+*   The transfer should be Read Synchronized with ICRDY4                     *
+*                                                                            *
+*   The LG_A1234_DMA_Finished_ISR should be called by DMAINT4                *
+*                                                                            *
+******************************************************************************
+
+        SETUP_DMA   4, @LDSP_A1234_DMA_List_Handle, @ICRDY4_Read_Synch_Loc, @LG_A1234_DMA_Finished_ISR_Loc
+
+        SETUP_LG_PREV_PORT  4
+
+******************************************************************************
+*   Program the Comm Port and DMA Channel corresponding to                   *
+*                                                                            *
+*           >>>>>  Local-Global xfr from LDSP B1                  <<<<<      *
+*                                                                            *
+*   The Local-to-Global Data for DSP B1 arrives on        Comm Port 3        *
+*                                                                            *
+*   The transfer should be Read Synchronized with ICRDY3                     *
+*                                                                            *
+*   The LG_B1_DMA_Finished_ISR should be called by DMAINT3                   *
+*                                                                            *
+******************************************************************************
+
+        SETUP_DMA   3, @LDSP_B1_DMA_List_Handle, @ICRDY3_Read_Synch_Loc, @LG_B1_DMA_Finished_ISR_Loc 
+                           
+        SETUP_LG_PREV_PORT  3
+
+******************************************************************************
+*   Program the Comm Port and DMA Channel corresponding to                   *
+*                                                                            *
+*           >>>>>  Local-Global xfr from LDSP B3, B4              <<<<<      *
+*                                                                            *
+*   The Local-to-Global Data for DSPs B3 and B4 arrives on   Comm Port 0     *
+*                                                                            *
+*   The transfer should be Read Synchronized with ICRDY0                     *
+*                                                                            *
+*   The LG_B34_DMA_Finished_ISR should be called by DMAINT0                  *
+*                                                                            *
+******************************************************************************
+
+        SETUP_DMA   0, @LDSP_B34_DMA_List_Handle, @ICRDY0_Read_Synch_Loc, @LG_B34_DMA_Finished_ISR_Loc 
+
+        SETUP_LG_PREV_PORT  0
+
+******************************************************************************
+*   Program the Comm Port and DMA Channel corresponding to                   *
+*                                                                            *
+*           >>>>>  Local-Global xfr from LDSP C1, C2, C3, C4      <<<<<      *
+*                                                                            *
+*   The Local-to-Global Data for Hydra C arrives on       Comm Port 5        *
+*                                                                            *
+*   The transfer should be Read Synchronized with ICRDY5                     *
+*                                                                            *
+*   The LG_C1234_DMA_Finished_ISR should be called by DMAINT5                *
+*                                                                            *
+******************************************************************************
+
+        SETUP_DMA   5, @LDSP_C1234_DMA_List_Handle, @ICRDY5_Read_Synch_Loc, @LG_C1234_DMA_Finished_ISR_Loc
+
+        SETUP_LG_PREV_PORT  5
+
+******************************************************************************
+*   Program the DMA Channel corresponding to                                 *
+*                                                                            *
+*           >>>>>  Data Block to MVME214 Memory Transfer         <<<<<       *
+*                                                                            *
+*   The transfer of the Data Block to the MVME214 occurs via VSB and         *
+*   does not use a Comm Port                                                 *
+*                                                                            *
+*   The DMA Channel used for this transfer is DMA Channel #1                 *
+*                                                                            *
+*   The transfer should have no Synchronization                              *
+*                                                                            *
+*   The Xfr_to_214_Complete_ISR     should be called by DMAINT1              *
+*                                                                            * 
+*   The SETUP_DMA macro is used to program this transfer                     *
+******************************************************************************
+
+        SETUP_DMA   1, @OLs_to_214_DMA_List_Handle, @No_Synch_Loc, @Xfr_to_214_Complete_ISR_Loc      
+
+******************************************************************************
+*   Now insert a lot of NOPs to allow the last DMA Dummy List to transfer    *
+*   and allow the DMA Channel to autoinitialize with the Real List           *
+******************************************************************************
+
+        NOP                                         ; These are not
+        NOP                                         ; absolutely necessary
+        NOP                                         ; but I want the DMA
+        NOP                                         ; Channels to be
+        NOP                                         ; fully initialized
+        NOP                                         ; BEFORE control is 
+        NOP                                         ; transferred to the
+        NOP                                         ; next module. 
+        NOP                                       
+        NOP                                       
+        NOP                                       
+        NOP                                       
+
+        LDI     @Zero_Loc, R6                           ; Zero the Count of
+                                                        ; Local-Global
+                                                        ; transfers finished
+                                                        ; via Comm Ports.
+
+        RETS                                            ; Return to the 
+                                                        ; calling module
+
+******************************************************************************
+*   This section of code is used to set up the Mark and Force Pass Data      *
+*   Readout.  It is called by the G_Scan module whenever a Mark and Force    *
+*   Pass event flows through the Cal Trig (recall that this information is   *
+*   derived from the "DSP Wakeup Word" which comes from the 68K).            *
+*                                                                            *
+*   Recall that this is the GDSP (B2)                                        *
+*                                                                            *
+*   The connections to the Local DSP are on         Comm Port 0              *
+*                                                   Comm Port 3              *
+*                                                   Comm Port 4              *
+*                                                   Comm Port 5              *
+*                                                                            *
+*                                                                            *
+*   The connection to the MVME214 is via VSB (not through a Comm Port)       *
+*   and DMA Channel #1 is used for this transfer                             *
+*                                                                            *
+*   >>>>    How the modify the Local-to-Global Transfer for MFP   <<<<       *
+*                                                                            *
+*   Recall that the DMA Channels #0, #3, #4, and #5 are "running" (i.e.      *
+*   not HALTED) and have re-initialized themselves for the Local-to-Global   *
+*   DMA Transfer.  All we have to do is change the values stored in the      *
+*   following registers:                                                     *
+*                                                                            *
+*       DMA Channel #x Control Register (to shut off the end-of-transfer     *
+*           interrupt after the ObjectList transfer...recall that the        *
+*           end-of-transfer will now be after the Mark and Force Pass        *
+*           Data transfer, and that is when the interrupt will be            *
+*           generated)                                                       *
+*                                                                            *
+*       DMA Channel #x Link Pointer Register (to point to the Mark and       *
+*           Force Pass DMA List, rather than back to the ObjectList DMA      *
+*           List)                                                            *
+*                                                                            *
+*   When the Mark and Force Pass List is finished, the DMA Channel auto-     *
+*   initializes itself to point to the "normal" ObjectList (i.e. we don't    *
+*   call another "re-setup the DMA Channel for normal operation" routine)    *
+*                                                                            *
+*   I don't use the SETUP_DMA macro here because I am not using a "dummy"    *
+*   list to "bootstrap" the DMA Controller                                   *
+*                                                                            *
+*   Also note that this "Setup Mark and Force Pass" routine is very          *
+*   different from the equivalent routine in the Local DSP Code.  This is    *
+*   because the DMA Channels have auto-initialized themselves (because they  *
+*   are not HALTED) in the Global code, but they have NOT auto-initialized   *
+*   themselves (because they are HALTED) in the Local Code.  This is because *
+*   the Comm Ports are output-mode (and need to be told when to start        *
+*   so that a valid list is transferred) in the Local Code but are input-    *
+*   mode (and thus just sitting and waiting for lists to arrive) in the      *
+*   Global Code                                                              *
+*                                                                            *
+*   >>>>    How the modify the Transfer to the MVME214 for MFP    <<<<       *
+*                                                                            *
+*   Recall that the DMA Channel #1 is HALTED when this routine is called,    *
+*   and has not re-initialized itself for the Local to Global DMA Transfer.  *
+*   Therefore we must first RESET the channel, then load all of the          *
+*   DMA Channel #1 Registers just as if the DMA Channel was re-initializing. *
+*                                                                            *
+*   We store values DIFFERENT from the normal auto-initialize values in the  *
+*   following registers:                                                     *
+*                                                                            *
+*       DMA Channel #1 Control Register                                      *
+*       DMA Channel #1 Link Pointer Register                                 *
+*                                                                            *
+*   When the Mark and Force Pass List is finished, the DMA Channel auto-     *
+*   initializes itself to point to the "normal" ObjectList Data (we don't    *
+*   call another "re-setup the DMA Channel for normal operation" routine)    *
+*                                                                            *
+*   I don't use the SETUP_DMA macro here because I am not using a "dummy"    *
+*   list to "bootstrap" the DMA Controller                                   *
+*                                                                            *
+*   This part of the module works exactly like the corresponding routine     *
+*   in the Local DSP code (since the Channel is halted)                      *
+*                                                                            *
+******************************************************************************
+
+Setup_Mark_and_Force_Pass_DMA:                              
+
+LDSP_A1234_Mark_Force_Pass_Setup:
+
+        LDI     @LDSP_A1234_MFP_List_Handle,R11         ; Use R11 to set up the
+        STI     R11, *+AR4(Disp_to_DMA_4_Link_Pointer)  ; Link Pointer   
+                                                        ; Register for the
+                                                        ; Local to Global DMA
+                                                        ; Transfer on Channel
+                                                        ; #4.  When the normal
+                                                        ; Identified Object
+                                                        ; List is transferred,
+                                                        ; the DMA Channel will
+                                                        ; auto-initialize 
+                                                        ; pointing to the Mark
+                                                        ; and Force Pass Data
+                           
+        LDI     @DMA_Start_LG_with_MFP_Loc,R11          ; Use R11 to 
+        STI     R11, *+AR4(Disp_to_DMA_4_Control)       ; program the Control
+                                                        ; Register for the
+                                                        ; Local to Global
+                                                        ; Transfer
+
+                 
+LDSP_B1_Mark_Force_Pass_Setup:
+
+        LDI     @LDSP_B1_MFP_List_Handle,R11            ; Use R11 to set up the
+        STI     R11, *+AR4(Disp_to_DMA_3_Link_Pointer)  ; Link Pointer   
+                                                        ; Register for the
+                                                        ; Local to Global DMA
+                                                        ; Transfer on Channel
+                                                        ; #3.  When the normal
+                                                        ; Identified Object
+                                                        ; List is transferred,
+                                                        ; the DMA Channel will
+                                                        ; auto-initialize 
+                                                        ; pointing to the Mark
+                                                        ; and Force Pass Data
+                           
+        LDI     @DMA_Start_LG_with_MFP_Loc,R11          ; Use R11 to 
+        STI     R11, *+AR4(Disp_to_DMA_3_Control)       ; program the Control
+                                                        ; Register for the
+                                                        ; Local to Global
+                                                        ; Transfer
+                                                            
+
+LDSP_B34_Mark_Force_Pass_Setup:
+
+        LDI     @LDSP_B34_MFP_List_Handle,R11           ; Use R11 to set up the
+        STI     R11, *+AR4(Disp_to_DMA_0_Link_Pointer)  ; Link Pointer   
+                                                        ; Register for the
+                                                        ; Local to Global DMA
+                                                        ; Transfer on Channel
+                                                        ; #0.  When the normal
+                                                        ; Identified Object
+                                                        ; List is transferred,
+                                                        ; the DMA Channel will
+                                                        ; auto-initialize 
+                                                        ; pointing to the Mark
+                                                        ; and Force Pass Data
+                           
+        LDI     @DMA_Start_LG_with_MFP_Loc,R11          ; Use R11 to 
+        STI     R11, *+AR4(Disp_to_DMA_0_Control)       ; program the Control
+                                                        ; Register for the
+                                                        ; Local to Global
+                                                        ; Transfer
+                                                            
+
+LDSP_C1234_Mark_Force_Pass_Setup:
+
+        LDI     @LDSP_C1234_MFP_List_Handle,R11         ; Use R11 to set up the
+        STI     R11, *+AR4(Disp_to_DMA_5_Link_Pointer)  ; Link Pointer   
+                                                        ; Register for the
+                                                        ; Local to Global DMA
+                                                        ; Transfer on Channel
+                                                        ; #5.  When the normal
+                                                        ; Identified Object
+                                                        ; List is transferred,
+                                                        ; the DMA Channel will
+                                                        ; auto-initialize 
+                                                        ; pointing to the Mark
+                                                        ; and Force Pass Data
+                           
+        LDI     @DMA_Start_LG_with_MFP_Loc,R11          ; Use R11 to 
+        STI     R11, *+AR4(Disp_to_DMA_5_Control)       ; program the Control
+                                                        ; Register for the
+                                                        ; Local to Global
+                                                        ; Transfer
+
+Xfr_to_214_Mark_Force_Pass_Setup:
+
+        LDI     @DMA_Halt_Word_Loc, R11                 ; Use R11 to halt DMA
+        STI     R11, *+AR4(Disp_to_DMA_1_Control)       ; Channel #1
+
+        LDI     @OLs_to_214_DMA_Source_Loc,R11          ; Use R11 to set up the
+        STI     R11, *+AR4(Disp_to_DMA_1_Source)        ; Source Address 
+                                                        ; Register for the
+                                                        ; Data Block to 214 
+                                                        ; DMA Transfer (i.e
+                                                        ; the beginning of the 
+                                                        ; ObjectList space  
+                                                        ; for all DSPs)
+                                                        ; over Channel #1
+
+        LDI     @OLs_to_214_DMA_Source_Index_Loc,R11    ; Use R11 to set up the
+        STI     R11, *+AR4(Disp_to_DMA_1_Source_Index)  ; Source Address Index
+                                                        ; Register for the
+                                                        ; Data Block to 214   
+                                                        ; DMA Transfer over
+                                                        ; Channel #1
+
+        LDI     @OLs_to_214_DMA_Counter_Loc,R11         ; Use R11 to set up the
+        STI     R11, *+AR4(Disp_to_DMA_1_Counter)       ; Transfer Counter
+                                                        ; Register for the
+                                                        ; Data Block to 214  
+                                                        ; DMA Transfer over
+                                                        ; Channel #1
+                                                                        
+        LDI     @OLs_to_214_DMA_Destination_Loc,R11     ; Use R11 to set up the
+        STI     R11, *+AR4(Disp_to_DMA_1_Destination)   ; Destination Address
+                                                        ; Register for the
+                                                        ; Data Block to 214   
+                                                        ; DMA Transfer  
+                                                        ; Channel #1
+                                                                             
+        LDI     @OLs_to_214_DMA_Dest_Index_Loc,R11      ; Use R11 to set up the
+        STI     R11, *+AR4(Disp_to_DMA_1_Dest_Index)    ; Destination Address
+                                                        ; Index Register for 
+                                                        ; the Data Block to
+                                                        ; 214 DMA Transfer
+                                                        ; Channel #1
+
+        LDI     @MFP_Data_to_214_DMA_List_Handle,R11    ; Use R11 to set up the
+        STI     R11, *+AR4(Disp_to_DMA_1_Link_Pointer)  ; Link Pointer   
+                                                        ; Register for the
+                                                        ; Data Block to 214  
+                                                        ; Transfer on Channel
+                                                        ; #1.  When the normal
+                                                        ; Identified Object
+                                                        ; List is transferred,
+                                                        ; the DMA Channel will
+                                                        ; auto-initialize 
+                                                        ; pointing to the Mark
+                                                        ; and Force Pass Data
+                           
+        LDI     @DMA_Start_OL_with_MFP_Loc,R11          ; Use R11 to 
+        STI     R11, *+AR4(Disp_to_DMA_1_Control)       ; program the Control
+                                                        ; Register for the
+                                                        ; Local to Global
+                                                        ; Transfer
+
+
+        RETS                                            ; return to the
+                                                        ; calling module
+                                        
+******************************************************************************
+*  This is the Bulkhead.  This code should never be executed                 *
+******************************************************************************
+
+End_Of_G_DSP_B2:                        ; These instructions should never be
+                                        ; executed in the "normal" operation
+         BR     End_Of_G_DSP_B2         ; of the program.  If the program
+                                        ; counter becomes corrupted or
+         BR     End_Of_G_DSP_B2         ; if we have a bug in the program
+                                        ; we MAY try to execute these
+         BR     End_Of_G_DSP_B2         ; instructions.  If we get to these
+                                        ; instructions the program will appear
+         BR     End_Of_G_DSP_B2         ; to halt.  We could also use a
+                                        ; TRAP instruction here, and jump to
+                                        ; a service routine.
+
+*****************************************************************************
+*       Constants defined using the assembler .set directive                *
+*       These constants are the same for all Node Initialization Modules    *
+*****************************************************************************
+
+DMA_Halt_Word                   .set    00000007h       ; Control word used
+                                                        ; to HALT a DMA
+                                                        ; Channel
+                             
+DMA_Start_Word_for_Initialize   .set    00c0000bh       ; Control word used
+                                                        ; to Initialize a
+                                                        ; DMA Channel.  
+                                                        ; Specifies no synch,
+                                                        ; auto-init w/o CPU,
+                                                        ; DMA priority higher
+                                                        ; than CPU priority,
+                                                        ; and starts the DMA
+                                                        ; Channel
+
+DMA_Start_Word_for_LG_Input     .set    00c4004bh       ; Control word used     
+                                                        ; for DMA "Input from   
+                                                        ; Local" transfer.      
+                                                        ; Specifies READ synch, 
+                                                        ; auto-initialize w/o   
+                                                        ; CPU intervention,     
+                                                        ; DMA priority higher   
+                                                        ; than CPU priority,    
+                                                        ; DMA Controller will   
+                                                        ; generate an interrupt 
+                                                        ; when Transfer Counter 
+                                                        ; goes to 0, and starts 
+                                                        ; the DMA Channel       
+
+DMA_Start_Word_for_LG_with_MFP  .set    00c0004bh       ; Control word used     
+                                                        ; for DMA "Input from   
+                                                        ; Local" transfer.      
+                                                        ; Specifies READ synch, 
+                                                        ; auto-initialize w/o   
+                                                        ; CPU intervention,     
+                                                        ; DMA priority higher   
+                                                        ; than CPU priority,    
+                                                        ; DMA Controller will   
+                                                        ; NOT generate an
+                                                        ; interrupt
+                                                        ; when Transfer Counter 
+                                                        ; goes to 0, and starts 
+                                                        ; the DMA Channel       
+                                              
+DMA_Start_Word_for_OLs_to_214   .set    0080000bh       ; Control Word used 
+                                                        ; for DMA "Output
+                                                        ; Object Lists   
+                                                        ; MVME214 for inclusion
+                                                        ; in the Data Block"
+                                                        ; Transfer.
+                                                        ; Specifies NO synch,
+                                                        ; auto-initialize w/o
+                                                        ; CPU intervention, 
+                                                        ; DMA priority higher
+                                                        ; than CPU priority,
+                                                        ; DMA Controller will
+                                                        ; NOT make an interrupt
+                                                        ; when Transfer Counter
+                                                        ; goes to 0, and halts
+                                                        ; the DMA Channel
+                                                        ; at a transfer 
+                                                        ; boundary
+
+DMA_Start_Word_for_NDB_to_214   .set    00c4000bh       ; Control Word used
+                                                        ; for DMA "Output
+                                                        ; Normal DeBug data to
+                                                        ; MVME214 for inclusion
+                                                        ; in the Data Block"
+                                                        ; Transfer.
+                                                        ; Specifies NO synch,
+                                                        ; auto-initialize w/o
+                                                        ; CPU intervention, 
+                                                        ; DMA priority higher
+                                                        ; than CPU priority,
+                                                        ; DMA Controller will
+                                                        ; generate an interrupt
+                                                        ; when Transfer Counter
+                                                        ; goes to 0, and starts
+                                                        ; the DMA Channel
+
+DMA_Start_Word_for_OLs_214_MFP  .set    0080000bh       ; Control Word used 
+                                                        ; for DMA "Output
+                                                        ; Object Lists to
+                                                        ; MVME214 for inclusion
+                                                        ; in the Data Block"
+                                                        ; Transfer
+                                                        ; for Mark and Force
+                                                        ; Pass Events.
+                                                        ; Specifies NO synch,
+                                                        ; auto-initialize w/o
+                                                        ; CPU intervention, 
+                                                        ; DMA priority higher
+                                                        ; than CPU priority,
+                                                        ; DMA Controller will
+                                                        ; NOT generate          
+                                                        ; an interrupt
+                                                        ; when Transfer Counter
+                                                        ; goes to 0, and halts
+                                                        ; the DMA Channel
+                                                        ; at a transfer 
+                                                        ; boundary
+
+DMA_Start_Word_for_MFP_to_214   .set    00c4000bh       ; Control Word used 
+                                                        ; for DMA "Output
+                                                        ; Object Lists   
+                                                        ; MVME214 for inclusion
+                                                        ; in the Data Block"
+                                                        ; Transfer.
+                                                        ; Specifies NO synch,
+                                                        ; auto-initialize w/o
+                                                        ; CPU intervention, 
+                                                        ; DMA priority higher
+                                                        ; than CPU priority,
+                                                        ; DMA Controller will
+                                                        ; generate an interrupt
+                                                        ; when Transfer Counter
+                                                        ; goes to 0, and starts
+                                                        ; the DMA Channel
+
+Dummy_DMA_Source                .set    002ffbffh       ; Dummy DMA Source
+                                                        ; Address
+
+Dummy_DMA_Source_Index          .set           0h       ; Dummy DMA Source 
+                                                        ; Address Index
+
+Dummy_DMA_Transfer_Counter      .set           1h       ; Dummy DMA Transfer
+                                                        ; Counter              
+
+Dummy_DMA_Destination           .set    002ffbffh       ; Dummy DMA Destination
+                                                        ; Address
+
+Dummy_DMA_Dest_Index            .set           0h       ; Dummy DMA Destination
+                                                        ; Address Index      
+
+Local_Mem_Ctrl_Reg_Value        .set    1DCC4000h       ; Value to use for
+                                                        ; Local Memory
+                                                        ; Interface Control
+                                                        ; Register
+
+Local_MICR_for_VSBTCR_Value     .set    1DCC4010h       ; Value to use for
+                                                        ; Local Memory
+                                                        ; Interface Control
+                                                        ; Register when access
+                                                        ; to the VSBTCR is 
+                                                        ; required
+
+LDSP_B34_ComPort_Input .set Base_of_Peripheral_Bus + Disp_to_ComPort_0_Input
+                                                        ; Port Input Register
+                                                        ; for Local to Global
+                                                        ; Transfer from LDSP
+                                                        ; B3 and B4
+
+LDSP_B1_ComPort_Input   .set Base_of_Peripheral_Bus + Disp_to_ComPort_3_Input
+                                                        ; Comm Port Input
+                                                        ; Register for Local 
+                                                        ; to Global Transfer    
+                                                        ; from LDSP B1
+
+LDSP_A1234_ComPort_Input .set Base_of_Peripheral_Bus + Disp_to_ComPort_4_Input
+                                                        ; Port Input Register
+                                                        ; for Local to Global
+                                                        ; Transfer from LDSP
+                                                        ; A1, A2, A3, and A4
+
+LDSP_C1234_ComPort_Input .set Base_of_Peripheral_Bus + Disp_to_ComPort_5_Input
+                                                        ; Comm Port Input
+                                                        ; Register Local to   
+                                                        ; Global Transfer from  
+                                                        ; LDSP C1, C2, C3, C4
+
+Xfr_to_214_DMA_Control   .set Base_of_Peripheral_Bus + Disp_to_DMA_1_Control
+                                                        ; DMA Control 
+                                                        ; Register for Data
+                                                        ; Block to 214
+                                                        ; DMA Transfer
+
+*****************************************************************************
+*       Define constants and working variables in the Data Section          *
+*****************************************************************************
+
+            .data
+
+Local_Mem_Ctrl_Reg_Value_Loc:                           ; Memory location
+                                                        ; to store the
+            .word        Local_Mem_Ctrl_Reg_Value       ; value of the Local
+                                                        ; MICR         
+
+Local_MICR_for_VSBTCR_Value_Loc:                        ; Memory location
+                                                        ; to store the value
+            .word        Local_MICR_for_VSBTCR_Value    ; of the Local MICR
+                                                        ; which allows access
+                                                        ; to the VSBTCR      
+
+VSBTCR_Value_Loc:                                       ; Memory location to
+                                                        ; store the value of
+            .word        00000010h                      ; the VSBTCR which
+                                                        ; enables the VSB
+                                                        ; interface
+
+MVSB2400_CSR_Value_Loc:                                 ; Memory location to
+                                                        ; store the value of
+            .word        0000fb2dh                      ; the MVME2400 CSR
+                                                        ; which configures 
+                                                        ; the VSB Interface
+                                                        ; as described earlier
+
+Set_IIOF0_Output_Low_Loc:                               ; Memory location to
+                                                        ; store the value of
+            .word        00000002h                      ; LSByte of the IIF
+                                                        ; which sets IIOF0
+                                                        ; as a low ouput
+                                                        ; AND HAS THE SIDE 
+                                                        ; EFFECT OF PROGRAMMING
+                                                        ; IIOF1 AS AN INPUT
+                                                        ; when merged into the
+                                                        ; IIF with an MB0
+                                                        ; instruction
+
+Set_IIOF0_Output_High_Loc:                              ; Memory location to
+                                                        ; store the value of
+            .word        00000006h                      ; LSByte of the IIF
+                                                        ; which sets IIOF0
+                                                        ; as a high output
+                                                        ; AND HAS THE SIDE 
+                                                        ; EFFECT OF PROGRAMMING
+                                                        ; IIOF1 AS AN INPUT
+                                                        ; when merged into the
+                                                        ; IIF with an MB0
+                                                        ; instruction
+
+
+
+Mask_of_LG_Data_Blocks_Loc:                             ; Memory location
+                                                        ; to store the mask of
+            .word        All_LDSP_LG_Data               ; of Local-to-Global
+                                                        ; Data Transfers
+
+    ;  !!!! Note that if only LDSP B is being used then
+    ;  !!!! the mask above should be LDSP_B134_LG_Data
+
+DMA_Halt_Word_Loc:      .word     DMA_Halt_Word         ; Memory location
+                                                        ; to store the
+                                                        ; DMA Halt Word
+
+DMA_Start_Initialize_Loc:                               ; Memory location     
+                                                        ; to store the DMA    
+            .word       DMA_Start_Word_for_Initialize   ; Start (Initialize)  
+                                                        ; Word                
+
+DMA_Start_LG_with_MFP_Loc:                              ; Memory location to
+                                                        ; store the DMA Start
+            .word       DMA_Start_Word_for_LG_with_MFP  ; (Local to Global
+                                                        ; with MFP) Word
+
+DMA_Start_OL_with_MFP_Loc                               ; Memory location to
+                                                        ; store the DMA Start
+            .word       DMA_Start_Word_for_OLs_214_MFP  ; (Object Lists to
+                                                        ; Data Block) Word
+
+Xfr_to_214_DMA_Ctrl_Reg_Handle:                         ; Memory location to
+                                                        ; store the address
+                                                        ; of the DMA Control
+            .word       Xfr_to_214_DMA_Control          ; Register for the
+                                                        ; Channel which 
+                                                        ; performs to Data
+                                                        ; Block to 214 
+                                                        ; Transfer
+
+No_Synch_Loc:           .word     00000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; when NO Synch is
+                                                        ; desired on a DMA  
+                                                        ; Channel           
+
+Enable_DMAINT0_Loc:     .word     02000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT0
+                                                        ; in the IIE
+
+ICRDY0_Read_Synch_Loc:  .word     00000001h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY0 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #0 in DIE    
+
+OCRDY0_Write_Synch_Loc: .word     00000004h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY0 
+                                                        ; Write Synch for DMA
+                                                        ; Channel #0 in DIE
+
+Enable_DMAINT1_Loc:     .word     04000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT1
+                                                        ; in the IIE
+
+ICRDY1_Read_Synch_Loc:  .word     00000010h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY1 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #1 in DIE    
+
+OCRDY1_Write_Synch_Loc: .word     00000040h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY1 
+                                                        ; Write Synch for DMA
+                                                        ; Channel #1 in DIE
+
+Enable_DMAINT2_Loc:     .word     08000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT2
+                                                        ; in the IIE
+
+ICRDY2_Read_Synch_Loc:  .word     00000100h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY2 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #2 in DIE    
+
+OCRDY2_Write_Synch_Loc: .word     00000800h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY2
+                                                        ; Write Synch for DMA
+                                                        ; Channel #2 in DIE
+
+Enable_DMAINT3_Loc:     .word     10000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT3
+                                                        ; in the IIE
+
+ICRDY3_Read_Synch_Loc:  .word     00004000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY3 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #3 in DIE    
+
+OCRDY3_Write_Synch_Loc: .word     00020000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY3 
+                                                        ; Write Synch for DMA
+                                                        ; Channel #3 in DIE
+                                     
+Enable_DMAINT4_Loc:     .word     20000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT4
+                                                        ; in the IIE
+
+ICRDY4_Read_Synch_Loc:  .word     00100000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY4 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #4 in DIE    
+                                      
+OCRDY4_Write_Synch_Loc: .word     00800000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY4 
+                                                        ; Write Synch for DMA
+                                                        ; Channel #4 in DIE
+    
+Enable_DMAINT5_Loc:     .word     40000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT5
+                                                        ; in the IIE
+
+ICRDY5_Read_Synch_Loc:  .word     04000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY5 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #5 in DIE    
+
+OCRDY5_Write_Synch_Loc: .word     20000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY5 
+                                                        ; Write Synch for DMA
+                                                        ; Channel #5 in DIE
+                                                                    
+GDSP_Header_Constant_Loc:                               ; Memory location to
+                                                        ; store the "constant
+         .space  1                                      ; part" of the GDSP
+                                                        ; Header Word 
+
+
+******************************************************************************
+Dummy_DMA_List_Loc:                                     ; The following 6
+                                                        ; memory locations
+                                                        ; define the Dummy   
+                                                        ; DMA List
+******************************************************************************
+
+Dummy_DMA_Control_Loc:                                  ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_Initialize         ; Control Register
+
+Dummy_DMA_Source_Loc:                                   ; Memory location
+                                                        ; which holds the
+        .word     Dummy_DMA_Source                      ; Source Address
+                                                        ; Register
+
+Dummy_DMA_Source_Index_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     Dummy_DMA_Source_Index                ; Source Address Index
+                                                        ; Register
+
+Dummy_DMA_Counter_Loc:                                  ; Memory location
+                                                        ; which holds the
+        .word     Dummy_DMA_Transfer_Counter            ; Transfer Counter
+                                                        ; Register
+
+Dummy_DMA_Destination_Loc:                              ; Memory location
+                                                        ; which holds the
+        .word     Dummy_DMA_Destination                 ; Destination Address
+                                                        ; Register
+
+Dummy_DMA_Dest_Index_Loc:                               ; Memory location
+                                                        ; which holds the
+        .word     Dummy_DMA_Dest_Index                  ; Destination Address
+                                                        ; Index Register
+
+
+******************************************************************************
+LDSP_A1234_DMA_List_Handle                              ; Memory location which
+                                                        ; contains the base
+        .word   LDSP_A1234_DMA_List_Loc                 ; address of the DMA
+                                                        ; List for the Transfer
+                                                        ; of the Local to
+                                                        ; Global Transfer for 
+                                                        ; LDSP A1, A2, A3, A4
+******************************************************************************
+LDSP_A1234_DMA_List_Loc:                                ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Local to 
+                                                        ; Global Transfer 
+                                                        ; for LDSP A1, A2
+                                                        ; A3, and A4
+******************************************************************************
+
+LDSP_A1234_DMA_Control_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_LG_Input           ; Control Register
+
+LDSP_A1234_DMA_Source_Loc:                              ; Memory location
+                                                        ; which holds the
+        .word     LDSP_A1234_ComPort_Input              ; Source Address
+                                                        ; Register
+
+LDSP_A1234_DMA_Source_Index_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word     0                                     ; Source Address Index
+                                                        ; Register
+
+LDSP_A1234_DMA_Counter_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     4 * LDSP_ObjectList_Length            ; Transfer Counter
+                                                        ; Register
+
+LDSP_A1234_DMA_Destination_Loc:                         ; Memory location
+                                                        ; which holds the
+        .word    LDSP_A2_ObjectList_Loc                 ; Destination Address
+                                                        ; Register
+
+LDSP_A1234_DMA_Dest_Index_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Destination Address
+                                                        ; Index Register
+
+LDSP_A1234_DMA_Link_Pointer_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word    LDSP_A1234_DMA_List_Loc                ; Link Pointer
+                                                        ; Register
+
+
+******************************************************************************
+LDSP_B1_DMA_List_Handle                                 ; Memory location which
+                                                        ; contains the base
+        .word   LDSP_B1_DMA_List_Loc                    ; address of the DMA
+                                                        ; List for the Transfer
+                                                        ; of the Local to
+                                                        ; Global Transfer for 
+                                                        ; LDSP B1
+******************************************************************************
+LDSP_B1_DMA_List_Loc:                                   ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Local to 
+                                                        ; Global Transfer 
+                                                        ; for LDSP B1
+******************************************************************************
+
+LDSP_B1_DMA_Control_Loc:                                ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_LG_Input           ; Control Register
+
+LDSP_B1_DMA_Source_Loc:                                 ; Memory location
+                                                        ; which holds the
+        .word     LDSP_B1_ComPort_Input                 ; Source Address
+                                                        ; Register
+
+LDSP_B1_DMA_Source_Index_Loc:                           ; Memory location
+                                                        ; which holds the
+        .word     0                                     ; Source Address Index
+                                                        ; Register
+
+LDSP_B1_DMA_Counter_Loc:                                ; Memory location
+                                                        ; which holds the
+        .word     LDSP_ObjectList_Length                ; Transfer Counter
+                                                        ; Register
+
+LDSP_B1_DMA_Destination_Loc:                            ; Memory location
+                                                        ; which holds the
+        .word    LDSP_B1_ObjectList_Loc                 ; Destination Address
+                                                        ; Register
+
+LDSP_B1_DMA_Dest_Index_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Destination Address
+                                                        ; Index Register
+
+LDSP_B1_DMA_Link_Pointer_Loc:                           ; Memory location
+                                                        ; which holds the
+        .word    LDSP_B1_DMA_List_Loc                   ; Link Pointer
+                                                        ; Register
+
+
+******************************************************************************
+LDSP_B34_DMA_List_Handle                                ; Memory location which
+                                                        ; contains the base
+        .word   LDSP_B34_DMA_List_Loc                   ; address of the DMA
+                                                        ; List for the Transfer
+                                                        ; of the Local to
+                                                        ; Global Transfer for 
+                                                        ; LDSP B3, B4
+******************************************************************************
+LDSP_B34_DMA_List_Loc:                                  ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Local to 
+                                                        ; Global Transfer 
+                                                        ; for LDSP B3 and B4
+******************************************************************************
+
+LDSP_B34_DMA_Control_Loc:                               ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_LG_Input           ; Control Register
+
+LDSP_B34_DMA_Source_Loc:                                ; Memory location
+                                                        ; which holds the
+        .word     LDSP_B34_ComPort_Input                ; Source Address
+                                                        ; Register
+
+LDSP_B34_DMA_Source_Index_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word     0                                     ; Source Address Index
+                                                        ; Register
+
+LDSP_B34_DMA_Counter_Loc:                               ; Memory location
+                                                        ; which holds the
+        .word     2 * LDSP_ObjectList_Length            ; Transfer Counter
+                                                        ; Register
+
+LDSP_B34_DMA_Destination_Loc:                           ; Memory location
+                                                        ; which holds the
+        .word    LDSP_B3_ObjectList_Loc                 ; Destination Address
+                                                        ; Register
+
+LDSP_B34_DMA_Dest_Index_Loc:                            ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Destination Address
+                                                        ; Index Register
+
+LDSP_B34_DMA_Link_Pointer_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word    LDSP_B34_DMA_List_Loc                  ; Link Pointer
+                                                        ; Register
+
+******************************************************************************
+LDSP_C1234_DMA_List_Handle                              ; Memory location which
+                                                        ; contains the base
+        .word   LDSP_C1234_DMA_List_Loc                 ; address of the DMA
+                                                        ; List for the Transfer
+                                                        ; of the Local to
+                                                        ; Global Transfer for 
+                                                        ; LDSP C1, C2, C3, C4
+******************************************************************************
+LDSP_C1234_DMA_List_Loc:                                ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Local to 
+                                                        ; Global Transfer 
+                                                        ; for LDSP C1, C2
+                                                        ; C3, and C4
+******************************************************************************
+
+LDSP_C1234_DMA_Control_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_LG_Input           ; Control Register
+
+LDSP_C1234_DMA_Source_Loc:                              ; Memory location
+                                                        ; which holds the
+        .word     LDSP_C1234_ComPort_Input              ; Source Address
+                                                        ; Register
+
+LDSP_C1234_DMA_Source_Index_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word     0                                     ; Source Address Index
+                                                        ; Register
+
+LDSP_C1234_DMA_Counter_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     4 * LDSP_ObjectList_Length            ; Transfer Counter
+                                                        ; Register
+
+LDSP_C1234_DMA_Destination_Loc:                         ; Memory location
+                                                        ; which holds the
+        .word    LDSP_C3_ObjectList_Loc                 ; Destination Address
+                                                        ; Register
+
+LDSP_C1234_DMA_Dest_Index_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Destination Address
+                                                        ; Index Register
+
+LDSP_C1234_DMA_Link_Pointer_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word    LDSP_C1234_DMA_List_Loc                ; Link Pointer
+                                                        ; Register
+
+
+******************************************************************************
+LDSP_A1234_MFP_List_Handle:                             ; Memory location
+                                                        ; which holds the
+        .word    LDSP_A1234_MFP_List_Loc                ; address of the
+                                                        ; first entry of the
+                                                        ; Mark and Force Pass
+                                                        ; DMA List defnition
+                                                        ; for LDSP
+                                                        ; A1, A2, A3, and A4
+******************************************************************************
+
+LDSP_A1234_MFP_List_Loc:                                ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Local to 
+                                                        ; Global Transfer 
+                                                        ; for the MARK AND
+                                                        ; FORCE PASS data
+                                                        ; for LDSP A1, A2
+                                                        ; A3, and A4
+
+LDSP_A1234_MFP_Control_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_LG_Input           ; Control Register
+
+LDSP_A1234_MFP_Source_Loc:                              ; Memory location
+                                                        ; which holds the
+        .word     LDSP_A1234_ComPort_Input              ; Source Address
+                                                        ; Register
+
+LDSP_A1234_MFP_Source_Index_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word     0                                     ; Source Address Index
+                                                        ; Register
+
+LDSP_A1234_MFP_Counter_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     4 * LDSP_MFP_Section_Length           ; Transfer Counter
+                                                        ; Register
+
+LDSP_A1234_MFP_Destination_Loc:                         ; Memory location
+                                                        ; which holds the
+        .word    LDSP_A2_Mark_Pass_Data_Loc             ; Destination Address
+                                                        ; Register
+
+LDSP_A1234_MFP_Dest_Index_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Destination Address
+                                                        ; Index Register
+
+LDSP_A1234_MFP_Link_Pointer_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word    LDSP_A1234_DMA_List_Loc                ; Link Pointer
+                                                        ; Register
+
+
+******************************************************************************
+LDSP_B1_MFP_List_Handle:                                ; Memory location
+                                                        ; which holds the
+        .word    LDSP_B1_MFP_List_Loc                   ; address of the
+                                                        ; first entry of the
+                                                        ; Mark and Force Pass
+                                                        ; DMA List definition
+                                                        ; for LDSP
+                                                        ; B1
+******************************************************************************
+
+LDSP_B1_MFP_List_Loc:                                   ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Local to 
+                                                        ; Global Transfer 
+                                                        ; for the MARK AND
+                                                        ; FORCE PASS data
+                                                        ; for LDSP B1
+
+LDSP_B1_MFP_Control_Loc:                                ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_LG_Input           ; Control Register
+
+LDSP_B1_MFP_Source_Loc:                                 ; Memory location
+                                                        ; which holds the
+        .word     LDSP_B1_ComPort_Input                 ; Source Address
+                                                        ; Register
+
+LDSP_B1_MFP_Source_Index_Loc:                           ; Memory location
+                                                        ; which holds the
+        .word     0                                     ; Source Address Index
+                                                        ; Register
+
+LDSP_B1_MFP_Counter_Loc:                                ; Memory location
+                                                        ; which holds the
+        .word     LDSP_MFP_Section_Length               ; Transfer Counter
+                                                        ; Register
+
+LDSP_B1_MFP_Destination_Loc:                            ; Memory location
+                                                        ; which holds the
+        .word    LDSP_B1_Mark_Pass_Data_Loc             ; Destination Address
+                                                        ; Register
+
+LDSP_B1_MFP_Dest_Index_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Destination Address
+                                                        ; Index Register
+
+LDSP_B1_MFP_Link_Pointer_Loc:                           ; Memory location
+                                                        ; which holds the
+        .word    LDSP_B1_DMA_List_Loc                   ; Link Pointer
+                                                        ; Register
+
+
+******************************************************************************
+LDSP_B34_MFP_List_Handle:                               ; Memory location
+                                                        ; which holds the
+        .word    LDSP_B34_MFP_List_Loc                  ; address of the
+                                                        ; first entry of the
+                                                        ; Mark and Force Pass
+                                                        ; DMA List definition
+                                                        ; for LDSP
+                                                        ; B3 and B4
+******************************************************************************
+
+LDSP_B34_MFP_List_Loc:                                  ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Local to 
+                                                        ; Global Transfer 
+                                                        ; for the MARK AND
+                                                        ; FORCE PASS data
+                                                        ; for LDSP B3 and B4
+
+LDSP_B34_MFP_Control_Loc:                               ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_LG_Input           ; Control Register
+
+LDSP_B34_MFP_Source_Loc:                                ; Memory location
+                                                        ; which holds the
+        .word     LDSP_B34_ComPort_Input                ; Source Address
+                                                        ; Register
+
+LDSP_B34_MFP_Source_Index_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word     0                                     ; Source Address Index
+                                                        ; Register
+
+LDSP_B34_MFP_Counter_Loc:                               ; Memory location
+                                                        ; which holds the
+        .word     2 * LDSP_MFP_Section_Length           ; Transfer Counter
+                                                        ; Register
+
+LDSP_B34_MFP_Destination_Loc:                           ; Memory location
+                                                        ; which holds the
+        .word    LDSP_B3_Mark_Pass_Data_Loc             ; Destination Address
+                                                        ; Register
+
+LDSP_B34_MFP_Dest_Index_Loc:                            ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Destination Address
+                                                        ; Index Register
+
+LDSP_B34_MFP_Link_Pointer_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word    LDSP_B34_DMA_List_Loc                  ; Link Pointer
+                                                        ; Register
+
+
+******************************************************************************
+LDSP_C1234_MFP_List_Handle:                             ; Memory location
+                                                        ; which holds the
+        .word    LDSP_C1234_MFP_List_Loc                ; address of the
+                                                        ; first entry of the
+                                                        ; Mark and Force Pass
+                                                        ; DMA List definition
+                                                        ; for LDSP
+                                                        ; C1, C2, C3, and C4
+******************************************************************************
+
+LDSP_C1234_MFP_List_Loc:                                ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Local to 
+                                                        ; Global Transfer
+                                                        ; for the MARK AND
+                                                        ; FORCE PASS data
+                                                        ; for LDSP C1, C2
+                                                        ; C3, and C4
+
+LDSP_C1234_MFP_Control_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_LG_Input           ; Control Register
+
+LDSP_C1234_MFP_Source_Loc:                              ; Memory location
+                                                        ; which holds the
+        .word     LDSP_C1234_ComPort_Input              ; Source Address
+                                                        ; Register
+
+LDSP_C1234_MFP_Source_Index_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word     0                                     ; Source Address Index
+                                                        ; Register
+
+LDSP_C1234_MFP_Counter_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     4 * LDSP_MFP_Section_Length           ; Transfer Counter
+                                                        ; Register
+
+LDSP_C1234_MFP_Destination_Loc:                         ; Memory location
+                                                        ; which holds the
+        .word    LDSP_C3_Mark_Pass_Data_Loc             ; Destination Address
+                                                        ; Register
+
+LDSP_C1234_MFP_Dest_Index_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Destination Address
+                                                        ; Index Register
+
+LDSP_C1234_MFP_Link_Pointer_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word    LDSP_C1234_DMA_List_Loc                ; Link Pointer
+                                                        ; Register
+
+******************************************************************************
+OLs_to_214_DMA_List_Handle:                             ; Memory location which
+                                                        ; contains the base
+        .word    OLs_to_214_DMA_List_Loc                ; address of the DMA
+                                                        ; List for the Transfer
+                                                        ; of the Local and
+                                                        ; Global Object Lists
+                                                        ; to the MVME214
+
+******************************************************************************
+OLs_to_214_DMA_List_Loc:                                ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Transfer 
+                                                        ; of the Local and
+                                                        ; Global Object 
+                                                        ; Lists to the
+                                                        ; MVME214
+******************************************************************************
+
+OLs_to_214_DMA_Control_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_OLs_to_214         ; Control Register
+
+OLs_to_214_DMA_Source_Loc:                              ; Memory location
+                                                        ; which holds the
+        .word     LDSP_Sect_Longword_Count_Loc          ; Source Address
+                                                        ; Register
+
+OLs_to_214_DMA_Source_Index_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Source Address Index
+                                                        ; Register
+
+OLs_to_214_DMA_Counter_Loc:                             ; Memory location
+                                                        ; which holds the  
+                                                        ; Transfer Counter
+                                                        ; Register
+
+        .word     LDSP_Section_Length + GDSP_Section_Length + 2            
+
+OLs_to_214_DMA_Destination_Loc:                         ; Memory location
+                                                        ; which holds the
+        .word     Local_Sect_Longword_Count_Loc         ; Destination Address
+                                                        ; Register
+
+OLs_to_214_DMA_Dest_Index_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Destination Address
+                                                        ; Index Register
+
+OLs_to_214_DMA_Link_Pointer_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word    Normal_DeBug_Sect_DMA_List_Loc         ; Link Pointer
+                                                        ; Register
+
+******************************************************************************
+Normal_DeBug_Sect_DMA_List_Loc:                         ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Transfer 
+                                                        ; of the DeBug section
+                                                        ; for Normal events
+                                                        ; to the MVME214
+******************************************************************************
+
+Normal_DeBug_DMA_Control_Loc:                           ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_NDB_to_214         ; Control Register
+
+Normal_DeBug_DMA_Source_Loc:                            ; Memory location
+                                                        ; which holds the
+        .word     DeBug_Synch_Header_Loc                ; Source Address
+                                                        ; Register
+
+Normal_DeBug_DMA_Src_Index_Loc:                         ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Source Address Index
+                                                        ; Register
+
+Normal_DeBug_DMA_Counter_Loc:                           ; Memory location
+                                                        ; which holds the  
+        .word     All_DSP_Normal_DeBug_Sect_Length      ; Transfer Counter
+                                                        ; Register
+
+Normal_DeBug_DMA_Dest_Loc:                              ; Memory location
+                                                        ; which holds the
+        .word     DSP_DeBug_Data_Block_Loc              ; Destination Address
+                                                        ; Register
+
+Normal_DeBug_DMA_Dest_Index_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word     1                                     ; Destination Address
+                                                        ; Index Register
+
+Normal_DeBug_DMA_Link_Ptr_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word    OLs_to_214_DMA_List_Loc                ; Link Pointer
+                                                        ; Register
+
+
+******************************************************************************
+MFP_Data_to_214_DMA_List_Handle:                        ; Memory location
+                                                        ; to store the
+        .word   MFP_Data_to_214_DMA_List_Loc            ; base address of
+                                                        ; the DMA List for
+                                                        ; for the Mark and 
+                                                        ; Force Pass section
+                                                        ; of the Data Block
+******************************************************************************
+
+MFP_Data_to_214_DMA_List_Loc:                           ; The following 
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; Mark and Force Pass 
+                                                        ; section of the Data
+                                                        ; Block.
+                                                        
+
+MFP_to_214_DMA_List_Loc:                                ; The following 7
+                                                        ; memory locations
+                                                        ; define the Header   
+                                                        ; for the TT data      
+                                                        ; subsection
+                                                        ; of the DMA List for
+                                                        ; the Mark and Force
+                                                        ; Pass section of
+                                                        ; the Data Block
+
+MFP_to_214_DMA_Control_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word    DMA_Start_Word_for_MFP_to_214          ; Control Register
+
+MFP_to_214_DMA_Source_Loc:                              ; Memory location
+                                                        ; which holds the
+        .word    LDSP_A2_Mark_Pass_Data_Loc             ; Source Address
+                                                        ; Register
+                                                  
+MFP_to_214_DMA_Source_Index_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word    1                                      ; Source Address Index
+                                                        ; Register
+
+MFP_to_214_DMA_Counter_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word    All_DSP_MFP_DeBug_Sect_Length          ; Transfer Counter
+                                                        ; Register
+
+MFP_to_214_DMA_Destination_Loc:                         ; Memory location
+                                                        ; which holds the
+        .word    DSP_DeBug_Data_Block_Loc               ; Destination Address
+                                                        ; Register
+
+MFP_to_214_DMA_Dest_Index_Loc:                          ; Memory location
+                                                        ; which holds the
+        .word    1                                      ; Destination Address
+                                                        ; Index Register
+
+MFP_to_214_DMA_Link_Pointer_Loc:                        ; Memory location
+                                                        ; which holds the
+        .word    OLs_to_214_DMA_List_Loc                ; Link Pointer
+                                                        ; Register
+                                         
+
+GDSP_Node_ID_Loc:       .word     Global_DSP_B2         ; Memory location
+                                                        ; to store the Node
+                                                        ; ID of the Global
+                                                        ; DSP
+
+VSBTCR_and_VSBCSR_Handle:                               ; Memory location
+                                                        ; to store the 
+            .word   VSBTCR_and_VSBCSR_Address           ; address of the
+                                                        ; VSBTCR and VSBCSR
+
+GDSP_to_TCC_Status_Handle:                              ; Memory location
+                                                        ; to store the
+             .word  GDSP_B2_to_TCC_Stat_Base_Address    ; Base Address of
+                                                        ; the "GDSP-to-TCC"
+                                                        ; Status Block in
+                                                        ; Dual Port Memory
+                                                        ; for the GDSP  
+
+GDSP_to_68K_Status_Handle:                              ; Memory location
+                                                        ; to store the
+             .word  GDSP_B2_to_68K_Stat_Base_Address    ; Base Address of
+                                                        ; the "GDSP-to-68K"  
+                                                        ; Status Block in
+                                                        ; Dual Port Memory
+                                                        ; for the GDSP  
+
+SEK_to_all_DSP_Status_Handle:                           ; Memory location to
+                                                        ; store the base 
+            .word    SEK_to_all_DSP_Stat_Base_Address   ; address of the 68K
+                                                        ; to all DSP's 
+                                                        ; communication block
+                                                        ; in Dual Port Memory
+
+First_LDSP_ObjectList_Handle:                           ; Memory location
+                                                        ; to store the
+            .word   LDSP_A2_ObjectList_Loc              ; Base Address
+                                                        ; of the first
+                                                        ; LDSP ObjectList
+                                                        ; in local memory
+
+GDSP_ObjectList_Handle:                                 ; Memory location
+                                                        ; to store the
+            .word   GDSP_B2_ObjectList_Loc              ; Base Address of 
+                                                        ; the GDSP ObjectList
+                                                        ; in local memory
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+
+         .def    GDSP_Header_Constant_Loc               ; Define these
+         .def    GDSP_Node_ID_Loc                       ; Symbols as external
+         .def    GDSP_ObjectList_Handle                 ; for use in other
+         .def    Initialize_Node                        ; modules.
+         .def    GDSP_to_TCC_Status_Handle               
+         .def    GDSP_to_68K_Status_Handle
+         .def    SEK_to_all_DSP_Status_Handle
+         .def    Mask_of_LG_Data_Blocks_Loc 
+         .def    First_LDSP_ObjectList_Handle
+         .def    Setup_Mark_and_Force_Pass_DMA
+         .def    Xfr_to_214_DMA_Ctrl_Reg_Handle
+    
+         .ref    GDSP_Entries_per_List_Loc              ; Reference these
+         .ref    GDSP_Longwords_per_Entry_Loc           ; symbols which were
+         .ref    Zero_Loc                               ; defined in external
+                                                        ; modules
+         .ref    LDSP_A2_ObjectList_Loc
+         .ref    LDSP_A3_ObjectList_Loc
+         .ref    LDSP_A4_ObjectList_Loc
+         .ref    LDSP_A1_ObjectList_Loc 
+         .ref    LDSP_B3_ObjectList_Loc 
+         .ref    LDSP_B4_ObjectList_Loc 
+         .ref    LDSP_B1_ObjectList_Loc 
+         .ref    LDSP_C3_ObjectList_Loc 
+         .ref    LDSP_C4_ObjectList_Loc 
+         .ref    LDSP_C1_ObjectList_Loc 
+         .ref    LDSP_C2_ObjectList_Loc                       
+         .ref    GDSP_B2_ObjectList_Loc
+
+         .ref    LDSP_A2_Mark_Pass_Data_Loc  
+         .ref    LDSP_A3_Mark_Pass_Data_Loc  
+         .ref    LDSP_A4_Mark_Pass_Data_Loc  
+         .ref    LDSP_A1_Mark_Pass_Data_Loc  
+         .ref    LDSP_B3_Mark_Pass_Data_Loc  
+         .ref    LDSP_B4_Mark_Pass_Data_Loc  
+         .ref    LDSP_B1_Mark_Pass_Data_Loc  
+         .ref    LDSP_C3_Mark_Pass_Data_Loc  
+         .ref    LDSP_C4_Mark_Pass_Data_Loc  
+         .ref    LDSP_C1_Mark_Pass_Data_Loc  
+         .ref    LDSP_C2_Mark_Pass_Data_Loc             
+         .ref    DeBug_Synch_Header_Loc 
+
+         .ref    DSP_DeBug_Data_Block_Loc   
+         .ref    Local_Sect_Longword_Count_Loc
+         .ref    LDSP_Sect_Longword_Count_Loc
+         .ref    Com_Port_Status_Loc
+
+         .ref    LG_A1234_DMA_Finished_ISR_Loc
+         .ref    LG_B1_DMA_Finished_ISR_Loc
+         .ref    LG_B34_DMA_Finished_ISR_Loc
+         .ref    LG_C1234_DMA_Finished_ISR_Loc
+         .ref    Xfr_to_214_Complete_ISR_Loc
+
+******************************************************************************
+*       End of this module                                                   *
+******************************************************************************
+
+         .end

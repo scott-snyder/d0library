@@ -1,0 +1,217 @@
+ 24-DEC-1991 : Modifications released by Philippe LAURENS, MICHIGAN STATE UNIVERSITY
+ 
+CTTR
+----
+    None of the code in LEVEL1 that is related to the TTOWER_DISP has
+been modified except for replacing the routine NORMAL_VARIABLE 
+with a call to KERNLIB. 
+
+
+SIMUL1
+------
+    The standalone version of the Calorimeter Trigger simulator
+has been dropped. All related files have been removed.
+
+L1C/L1SIM
+---------
+
+    This release of LEVEL1 is a major update to the PBD package formerly
+called L1C, now renamed L1SIM:"
+
+    The internal computations made in the simulation have not been changed. We
+have made a few corrections. Most interfaces have been replaced or reworked. 
+
+o   Exactly simulate the Calorimeter Trigger hardware as built.
+
+       Attach the Lookup System Manager (LSM) system in order to EXACTLY
+        simulate the energy lookup PROMs.  (LOOKUP_TABLE_0000.DAT now obsolete)
+
+       This makes the simulator
+           Use the double-sided low energy cut as implemented in the PROMs
+           Use a true phi-dependent noise pattern 
+           Produce the actual ADC and lookup offsets
+
+o   Replace the PROGRAMMING INTERFACE
+
+       Use the messages that COOR would send to TCC as input to the
+   simulator. (LEVEL1_CONFIG_0000.DAT now obsolete) 
+    
+       The user provides a standard COOR Trigger Definition File, and uses
+       COOR_sim (distributed with the LEVEL2 library) to generate a file with
+       the appropriate messages 
+
+
+o   Evolution from a CALORIMETER TRIGGER SIMULATOR to a full LEVEL 1 SYSTEM
+    SIMULATOR.
+
+        Change name from L1C to L1SIM
+
+        Simulate the Andor Network
+
+        Accept Level 1 Trigger subsystems (see L1SIM_SUBSYSTEM.DOC)
+
+        Accept Level 1.5 Trigger subsystems (e.g. Muon) 
+
+        Add user hoooks for L1 studies. (see L1SIM_SUBSYSTEM.DOC)
+
+o   The file names and code structure were unsatisfactory and have been
+    reorganized. As a result, 99 % of the files in LEVEL1 have either
+    disappeared, been updated, split, merged, or simply renamed. If you
+    cannot find a particular file please contact MSUHEP::LAURENS.
+
+o   A uniform Zero Energy response of 8 is now present at the output of all
+    ADCs in the front-end cards. The output of the ADC is a measurement of
+    the transverse EM or HD energy in units of 1/4 GeV, with no vertex
+    information, that is assuming the vertex at Z=0. The output of the ADCs
+    is recorded in the TRGR bank (cf. D0 note 967). An ADC count of 8
+    corresponds to 0.0 GeV, 9 to 0.25 GeV,...
+
+o   Several bugs have been corrected that became apparent only with 
+    the introduction of non-zero ADC zero energy response.
+
+o   L1C calculated the Trigger Tower TOT Et by simply adding EM Et and HD
+    Et. L1C was keeping an energy scale of 0.25 GeV per count. L1SIM now
+    uses a scale of 0.5 GeV per count. This is the resolution available for
+    Jet Trigger Thresholds.
+
+o   Added a call to CHTINI at initialization time. CHTINI initializes the
+    RCP bank CAHITS used by the routine CAD_GAINS.
+
+o   The original version of L1C only provided for 4 Hot Tower Count
+    comparisons on each reference set, and this restriction was 
+    hard-coded. L1SIM now provides for up to 16 comparisons on each
+    reference set, and this number can be changed by changing a parameter.
+
+o   The routine which generates the histograms for the standard summary,
+    L1C_ANAL, did not correct for the ADC Zero Energy Response. The
+    histograms about TOT towers only took the HD part of each trigger tower
+    instead of TOT = EM+HD. Also the energy results generated were based on
+    ADC counts (1/4 GeV per count) even though their titles mentioned
+    transverse energy (Et), the titles and the quantities have been updated
+    to GeV.  
+
+o   miscelaneous fix to the histograms in the programming summary:
+        Rename hbook sub-directory from L1C to L1SIM
+        The trigger efficiency histogram has been renamed "trigger hits"
+        Reorder to display trigger hit histogram first.
+        Fix numbering of sptrg. 0..31 and book only 32 channels.
+        "TOT" histograms were using only HD, now use EM+HD 
+        Energy histogram were in units of ADC counts, now GeV
+        Add HD tower count and HD energy histograms.
+
+o   Change TRGR bank booking to a linear chain if one is found in the input
+    event. 
+
+o   Add Prescaling Feature. Prescale Ratios are set in the trigger
+    definition files used as input to COOR_sim. Additionally, a global
+    switch must be enabled in L1SIM.RCP or at run time. cf L1SIM.DOC
+
+o   Add BLS Correction Feature. see L1SIM.DOC
+
+o   Major change and upgrade of the Programming Summary.
+
+o   Add new RCP input file for allocation of andor term names to physical
+    term number. This RCP file will become a standard output of COOR_sim.
+
+o   Add a common block (see L1C_Z_CORRECTED_ET.INC) to make the ouput of the
+    lookup PROMs available to the user for special private analysis. The
+    numbers are integers in the units of ADC counts (1/4 GeV), with offsets
+    removed. Please note that these numbers can be negative. These numbers
+    correspond to vertex-corrected EM and HD Et according to the Level 0
+    fast vertex information. 
+
+o   Create L1UTIL_TRANSLATE_RS_LINE.FOR for COOR to use. This routine translates
+    a line in a trigger definition .RS file and certify its proper syntax.
+
+o   Level 1.5 Framework is in place, no Level 1.5 subsystem available yet (user
+    can provide L15_USER_TERMS_SIM, contact MSUHEP::LAURENS for details)
+
+o   Add Specific Trigger pass/fail statistics in programming summary
+
+o   Add review of L1SIM.RCP Run Control Parameters to programming summary
+
+o   Add first implementation of Level 1 and 1.5 Muon Simulator. At this time,
+    only 2 Level 1 Muon terms are implemented and are hardcoded.
+
+
+==============================================================================
+
+ 11-MAR-1992 : Modifications released by Philippe LAURENS, MICHIGAN STATE UNIVERSITY
+ 
+o   Please also check INC, PARAMS and ZEBRA_UTIL release notes.
+
+o   Update L1SIM.DOC 
+        minimum-bias triggers 
+        FORCE_VERTEX_CENTER in L1SIM.RCP (cf. below)
+        L1SIM_INPUT_SOURCE in L1SIM.RCP (cf. below)
+        the dump file (cf. below)
+
+o   New file L1SIM_TECH_REF.DOC, supersedes L1SIM_SUBSYSTEM.DOC.
+
+o   Level 1 crate ID updated from "1" to "11" in TRGR bank
+
+o   Fix Trigger Mask in crate header to correctly reflect final decision
+    after eventual Level 1.5
+
+o   Modified L1SIM_EVENT.FOR so that an empty Data Cable Trailer is added to
+        the end of the TRGR bank after all *_FILL routines have been called.
+
+o   Properly update the "previous" part of the L1 data block even when no
+    Specific Trigger fired.  That is what the hardware does.
+
+o   Review all use of GZTRGR, and update to GZFIND_CRATE whenever appropriate.
+    (see ZEBRA_UTIL release notes about GZFIND_CRATE)
+    This is to prepare for the future sharing of the TRGR bank with Level 0,
+    Muon Trigger,....
+
+o   Add run-time screen message about available banks in first event.
+
+o   Split Framework and Cal Trig initialization routine into several pieces
+    (LSM, Resource file, Programming file)
+
+o   Changed all specific trigger variables to use [0,31] as indices. 
+
+o   Added ability to force the Energy lookup to use of the center lookup page. 
+    That is to ignore the Level 0 Vertex Information.
+    The flag to toggle this feature is named FORCE_VERTEX_CENTER in L1SIM.RCP. 
+
+o   Added L1SIM.RCP parameter L1SIM_INPUT_SOURCE for explicit selection of input
+    ZEBRA bank used for Calorimeter Trigger Tower Energies.
+    Options: 'ANY', 'TRGR', 'CAD', 'CAEP', or 'NONE'
+             'ANY' implies a search order of TRGR, CAD, CAEP.
+            'TRGR' uses an existing TRGR bank. Noise may not be added,
+                   Level 0 Vertex is extracted from TRGR bank (i.e. not ISAJET)
+                   or Level 0 Vertex may also be ignored (see L1SIM.RCP)
+            'NONE' implies the Cal Trigger Tower Energies are not simulated
+                   No specific trigger requiring calorimeter energy can fire.
+
+o   Total replacement/upgrade of the Level 1 data block dump. With toggle
+    on/off tailoring of sections to be sent to dump files. 
+    Uses the new PRTRGR routine of ZEBRA_UTIL (cf. ZEBRA_UTIL release notes)
+    May also be used standalone (without L1SIM) on MC or real data.
+
+o   Replace single variable FIRED_NUMBER with several variables counting
+      number of specific triggers firing at different stages. These variables
+      are available for user histograms. (cf. L1SIM_TECH_REF.DOC)
+        NUM_SPTRG_PASS_L1SIM
+        NUM_SPTRG_PASS_L1
+        NUM_PURE_L1_SPTRG_PASS_L1
+        NUM_L15_SPTRG_PASS_L1
+        NUM_L15_SPTRG_SENT_L15
+        NUM_L15_SPTRG_PASS_L15
+
+o   Add a weighted HBOOK histogram of trigger hits.
+
+o   Added to the programming summary:
+        Level 1.5 Terms assigned to each Specific Trigger
+        List of all defined Level 1.5 Terms
+
+o   Add utility file L1UTIL_TRGR_ADC_UNPACK.FOR to return EM and HD energy
+    deposits in GeV as read from TRGR bank.
+    This will be used in the Global Event Display (FNAL::NOBU, Nobuaki OSHIMA)
+        *** NOTE ***
+        For simplicity, the offset (08) and scale (0.25 GeV per count)
+        are hardcoded at the moment, so that no initialization and no LSM file
+        is necessary.
+
+

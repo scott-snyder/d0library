@@ -1,0 +1,728 @@
+******************************************************************************
+*                                                                            *
+*  File:  G_Data.A40                                   Rev.   16-MAY-1994    *
+*                                                                            *
+*  This is a File which holds much of the data required for the Global       *
+*  DSP program.  It contains the following sections:                         *
+*                                                                            *
+*   (1) The Parameter Passing Memory Map of the Dual Port Memory.  This      *
+*       space is filled in with Parameter Data by the TCC.  Here we are      *
+*       just reserving space.  This space is reserved as an UNINITIALIZED    *
+*       section.                                                             *
+*                                                                            *
+*   (2) The Local DSP Lists of Identified Objects as received from the       *
+*       Local DSPs via Comm Ports.  This is stored in the on-chip RAM.       *
+*                                                                            *
+*   (3) The Local DSP Mark and Force Pass information as received from       *
+*       the Local DSPs via Comm Ports.  This is stored in the Global SRAM    *
+*                                                                            *
+*   (4) The L1.5 Cal Trig Data Block as stored in MVME214 memory.            *
+*       Note that the Data Block as stored in MVME214 memory is mapped       *
+*       one-to-one with the L1.5 Cal Trig "note 967" i.e. the Data Block     *
+*       as transferred to Level 2 and stored in the Zebra bank.              *
+*       Specifically the "reserved for word counts" locations are defined    *
+*       in the MVME214 memory although they are not strictly necessary.      *
+*                                                                            *
+*       Note that both the Local DSP Mark and Force Pass information and     *
+*       the Local DSP Lists of Identified Objects are deposited into SRAM    *
+*       (on-card and on-chip respectively) as they are DMA-ed in from the    *
+*       Local DSPs via Comm Ports.  The Global DSP will execute its          *
+*       Global algorithm before beginning the DMA Transfer which stores      *
+*       this data in the MVME214 memory card.  This two-step process is      *
+*       necessary to allow the Global DSP to have fast access to the         *
+*       Local Lists of Identified Objects                                    *
+*                                                                            *
+*       The Data Block is filled by the Global DSP, here we are simply       *
+*       reserving (UNINITIALIZED) memory space for the Data Block            *
+*                                                                            *
+*   (5) General-Purpose Working Variables and Constants.  These are defined  *
+*       in this module and NOT overwritten by other means (i.e. via          *
+*       parameter passing or Comm Port inputs).                              *
+******************************************************************************
+
+******************************************************************************
+*       Include the DSP Program-Specific Constants                           *
+******************************************************************************
+
+        .include    "constant.inc"
+      
+
+******************************************************************************
+*   This is the map of the Dual Port Memory as used for Parameter Passing    *
+*                                                                            *
+*   This space is defined as an uninitialized section                        *
+******************************************************************************
+
+Univ_Param_Block_Loc            .usect "Parm_Blk", Univ_Param_Block_Size
+                            
+Frame_Param_Block_Loc           .usect "Parm_Blk", Maximum_Number_of_Terms * One_Term_Frame_Param_Block_Size
+                            
+Local_Param_Block_Loc           .usect "Parm_Blk", Maximum_Number_of_Terms * One_Term_Local_Param_Block_Size
+                            
+Global_Param_Block_Loc          .usect "Parm_Blk", Maximum_Number_of_Terms * One_Term_Global_Param_Block_Size
+                                                                                       
+LDSP_A2_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_A3_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                     
+                            
+LDSP_A4_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_A1_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_B3_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_B4_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_B1_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_C3_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_C4_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_C1_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_C2_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+
+******************************************************************************
+*   Cross-References                                                         *
+******************************************************************************
+
+        .def    Univ_Param_Block_Loc                ; Define these symbols
+        .def    Frame_Param_Block_Loc               ; in this module for
+        .def    Local_Param_Block_Loc               ; use in other modules
+        .def    Global_Param_Block_Loc      
+        .def    LDSP_A2_Ref_Set_Block_Loc   
+        .def    LDSP_A3_Ref_Set_Block_Loc   
+        .def    LDSP_A4_Ref_Set_Block_Loc   
+        .def    LDSP_A1_Ref_Set_Block_Loc   
+        .def    LDSP_B3_Ref_Set_Block_Loc   
+        .def    LDSP_B4_Ref_Set_Block_Loc   
+        .def    LDSP_B1_Ref_Set_Block_Loc   
+        .def    LDSP_C3_Ref_Set_Block_Loc
+        .def    LDSP_C4_Ref_Set_Block_Loc
+        .def    LDSP_C1_Ref_Set_Block_Loc
+        .def    LDSP_C2_Ref_Set_Block_Loc   
+
+
+******************************************************************************
+*         Reserve space for the Lists of Identified Objects                  *
+*                                                                            *
+*  Here we reserve 11, 25-longword long spaces for the Lists of Identified   *
+*  Objects from each of the 11 Local DSPs.  This is "temporary storage"      *
+*  space for these Object Lists.  The Object Lists are DMA-ed into these     *
+*  locations from the Comm Ports (which are connected to the Local DSPs).    *
+*                                                                            *
+*  After the Global DSP has finished its Algorithm (note that the Global     *
+*  DSP looks here for the Objects from the Local DSPs), it checks with the   *
+*  68K to see if this data should be transferred to the MVME214 memory       *
+*  (which is defined elsewhere in this module).                              *
+*                                                                            *
+*  Note that we also define space for the "longwords to follow" count in     *
+*  this memory map.  This count is completely unused in this section of      *
+*  memory, but is defined so that this section of memory looks as much like  *
+*  the MVME214 memory module as possible.                                    *
+*                                                                            *
+*  The space is allocated in the same order that the 11 Local Lists of       *
+*  Identified Objects are found in the L1.5 Cal Trig Data Block.  This order *
+*  also is convenient for the "leap-frog" transfer of the Local lists to the *
+*  Global DSP (i.e. only transfers of contiguous blocks are necessary,       *
+*  thus linked DMA Lists are not required).                                  *
+******************************************************************************
+
+    .sect  "ObjLists"
+
+LDSP_Sect_Longword_Count_Loc:  
+                                        ; This is the Local DSP Section
+    .word   LDSP_Section_Length         ; Longwords to Follow Count.  The
+                                        ; Global DSP places the value stored
+                                        ; in this location in the L1.5 Cal
+                                        ; Trig Data Block (as the first long
+                                        ; word of the Local DSP Section
+                                        ; This should be at the base of 
+                                        ; Block #1 of the On-Chip RAM, i.e.
+                                        ; at 002F FC00h.  Note that this
+                                        ; is not used at all in the Local
+                                        ; DSP code but is included here 
+                                        ; to make the structure identical   
+                                        ; to the Global DSP structure.
+
+LDSP_A2_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #A2, i.e. for eta
+                                        ;    -20 : -19
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC01 - 002F FC19 
+                         
+LDSP_A3_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #A3, i.e. for eta
+                                        ;    -18 : -15
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC1A - 002F FC32 
+                         
+LDSP_A4_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #A4, i.e. for eta
+                                        ;    -14 : -11
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC33 - 002F FC4B 
+                         
+LDSP_A1_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #A1, i.e. for eta
+                                        ;    -10 : -7  
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC4C - 002F FC64 
+                         
+LDSP_B3_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #B3, i.e. for eta
+                                        ;     -6 : -3  
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC65 - 002F FC7D 
+                         
+LDSP_B4_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #B4, i.e. for eta
+                                        ;     -2 : +2  
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC7E - 002F FC96
+                         
+LDSP_B1_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #B1, i.e. for eta
+                                        ;     +3 : +6 
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC97 - 002F FCA9 
+                         
+LDSP_C3_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #C3, i.e. for eta
+                                        ;     +7 : +10
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FCB0 - 002F FCC8 
+                         
+LDSP_C4_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #C4, i.e. for eta
+                                        ;    +11 : +14
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FCC9 - 002F FCE1 
+                         
+LDSP_C1_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #C1, i.e. for eta
+                                        ;    +15 : +18
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FCE2 - 002F FCFA 
+                         
+LDSP_C2_ObjectList_Loc:                                        
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #C2, i.e. for eta
+                                        ;    +19 : +20
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FCFB - 002F FD13 
+
+GDSP_Sect_Longword_Count_Loc:    
+                                        ; This is the storage space for
+        .word  GDSP_ObjectList_Length   ; the Global DSP Section Longwords
+                                        ; to Follow Count.  The Global DSP
+                                        ; stores the appropriate value
+                                        ; (65) in this location.  
+                                        ; Note that the value in this
+                                        ; location IS NOT actually part
+                                        ; of the Data Block (recall that
+                                        ; the Word Count is merged into the
+                                        ; Data Block by the VBD) but is 
+                                        ; stored here to make the Data Block
+                                        ; in MVME214 space EXACTLY the same
+                                        ; as the Data Block in Zebra space.
+
+GDSP_B2_ObjectList_Loc:             
+
+        .space GDSP_ObjectList_Length   ; This is the storage space for the
+                                        ; 65 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Global DSP
+
+
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+                          
+         .def      LDSP_Sect_Longword_Count_Loc
+         .def      LDSP_A2_ObjectList_Loc     ; Define these symbols in this
+         .def      LDSP_A3_ObjectList_Loc     ; module and make them global to
+         .def      LDSP_A4_ObjectList_Loc     ; reference from other modules.
+         .def      LDSP_A1_ObjectList_Loc 
+         .def      LDSP_B3_ObjectList_Loc 
+         .def      LDSP_B4_ObjectList_Loc 
+         .def      LDSP_B1_ObjectList_Loc 
+         .def      LDSP_C3_ObjectList_Loc 
+         .def      LDSP_C4_ObjectList_Loc 
+         .def      LDSP_C1_ObjectList_Loc 
+         .def      LDSP_C2_ObjectList_Loc                       
+         .def      GDSP_Sect_Longword_Count_Loc
+         .def      GDSP_B2_ObjectList_Loc
+
+                                                                              
+******************************************************************************
+*           This is the Mark and Force Pass Data Section                     *
+*                                                                            *
+*  Here we reserve 11, 270-longword long spaces for the Mark and Force Pass  *
+*  Data from each of the 11 Local DSPs.  This is "temporary storage"         *
+*  space for these Object Lists.  The Object Lists are DMA-ed into these     *
+*  locations from the Comm Ports (which are connected to the Local DSPs).    *
+*                                                                            *
+*  After the Global DSP has finished its Algorithm, it checks with the       *
+*  68K to see if this data should be transferred to the MVME214 memory       *
+*  (which is defined elsewhere in this module).                              *
+*                                                                            *
+*  Note that there is NO SPACE for any "longwords to follow" counts in this  *
+*  memory map.                                                               *
+*                                                                            * 
+*  The space is allocated in the same order that the 11 Local Lists of       *
+*  Identified Objects are found in the L1.5 Cal Trig Data Block.  This order *
+*  also is convenient for the "leap-frog" transfer of the Local lists to the *
+*  Global DSP (i.e. only transfers of contiguous blocks are necessary,       *
+*  thus linked DMA Lists are not required).                                  *
+*                                                                            *
+*  This data is stored in the Global SRAM.                                   *
+*                                                                            *
+*  These symbols are exported for use in other modules.                      *
+******************************************************************************
+    
+    .data
+
+LDSP_A2_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length     
+
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #A2, i.e. for eta
+                                        ;    -20 : -19
+                                        ; This should be in the Global SRAM
+                                        
+                                        
+LDSP_A3_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length     
+
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #A3, i.e. for eta
+                                        ;    -18 : -15
+                                        ; This should be in the Global SRAM    
+                                      
+
+LDSP_A4_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length     
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #A4, i.e. for eta
+                                        ;    -14 : -11
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_A1_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #A1, i.e. for eta
+                                        ;    -10 : -7  
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_B3_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #B3, i.e. for eta
+                                        ;     -6 : -3  
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_B4_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #B4, i.e. for eta
+                                        ;     -2 : +2  
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_B1_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #B1, i.e. for eta
+                                        ;     +3 : +6 
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_C3_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #C3, i.e. for eta
+                                        ;     +7 : +10
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_C4_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #C4, i.e. for eta
+                                        ;    +11 : +14
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_C1_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #C1, i.e. for eta
+                                        ;    +15 : +18
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_C2_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #C2, i.e. for eta
+                                        ;    +19 : +20
+                                        ; This should be in the Global SRAM   
+
+DeBug_Synch_Header_Loc          .space  1
+                                        ; This is the storage space for the
+                                        ; DeBug Section Synch  Header. 
+                                        ; This should be in the Global SRAM.
+
+DeBug_Synch_Data_Loc            .space  Synch_Data_Length
+                                        ; This is the storage space for the
+                                        ; DeBug Section Synch  Data.
+                                        ; This should be in the Global SRAM.
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+         .def      LDSP_A2_Mark_Pass_Data_Loc           ; Define symbols in
+         .def      LDSP_A3_Mark_Pass_Data_Loc           ; this module and make 
+         .def      LDSP_A4_Mark_Pass_Data_Loc           ; global to reference  
+         .def      LDSP_A1_Mark_Pass_Data_Loc           ; from other modules.  
+         .def      LDSP_B3_Mark_Pass_Data_Loc 
+         .def      LDSP_B4_Mark_Pass_Data_Loc 
+         .def      LDSP_B1_Mark_Pass_Data_Loc 
+         .def      LDSP_C3_Mark_Pass_Data_Loc 
+         .def      LDSP_C4_Mark_Pass_Data_Loc 
+         .def      LDSP_C1_Mark_Pass_Data_Loc 
+         .def      LDSP_C2_Mark_Pass_Data_Loc             
+         .def      DeBug_Synch_Header_Loc
+         .def      DeBug_Synch_Data_Loc
+
+******************************************************************************
+*****       This is the Data Block Section                               *****
+*                                                                            *
+*   Recall that the Data Block as stored in the MVME214 card is mapped       *
+*   one-to-one with the Data Block as passed to the Level 2 and stored       *
+*   in the Zebra bank                                                        *
+*                                                                            *
+*       The structure of the Data Block is:                                  *
+*                                                                            *
+*       Longword                                                             *
+*       Offset                                                               *
+*       from                                                                 *
+*       Data Block                                                           *
+*       Base                Contents                                         *
+*       ----------          ---------                                        *
+*        0000               Crate Header Section Longwords to Follow Count   *
+*        0001 - 0006        Crate Header Section                             *
+*                                                                            *
+*        0007               Frame Section Longwords to Follow Count          *
+*        0008 - 000c        Frame Section                                    *
+*                                                                            *
+*        000d               Frame Param Data Section LW to Follow Count      *
+*        000e - 009e        Frame Param Data Section (space for everything   *
+*                           reserved, but won't fill it all)                 *
+*                                                                            *
+*        009f               Tool Param Data Section LW to Follow Count       *
+*        00a0 - 01a0        Tool Param Data Section (space for everything    *
+*                           reserved, but won't fill it all)                 *
+*                                                                            *
+*        01a1               Local DSP Section Longwords to Follow Count      *
+*        01a2 - 01ba        List of Identified Objects for LDSP #A2          *
+*        01bb - 01d3        List of Identified Objects for LDSP #A3          *
+*        01d4 - 01ec        List of Identified Objects for LDSP #A4          *
+*        01ed - 0205        List of Identified Objects for LDSP #A1          *
+*        0206 - 021e        List of Identified Objects for LDSP #B3          *
+*        021f - 0237        List of Identified Objects for LDSP #B4          *
+*        0238 - 0250        List of Identified Objects for LDSP #B1          *
+*        0251 - 0269        List of Identified Objects for LDSP #C3          *
+*        026a - 0282        List of Identified Objects for LDSP #C4          *
+*        0283 - 029b        List of Identified Objects for LDSP #C1          *
+*        029c - 02b4        List of Identified Objects for LDSP #C2          *
+*                                                                            * 
+*        02b5               Global DSP Section Longwords to Follow Count     * 
+*        02b6 - 02f6        List of Identified Objects for Global DSP        * 
+*                                                                            *
+*        02f7               Mark and Pass Section Longwords to Follow Count  *
+*                                                                            *
+*        02f8 - 02f9        Mark and Force Pass Data for 68K                 *
+*                                                                            *
+*        02fa - 0403        Mark and Force Pass Data for LDSP #A2 \          *
+*        0404 - 050d        Mark and Force Pass Data for LDSP #A3 | for      *
+*        050e - 0617        Mark and Force Pass Data for LDSP #A4 | Mark     *
+*        0618 - 0721        Mark and Force Pass Data for LDSP #A1 | and      *
+*        0722 - 082b        Mark and Force Pass Data for LDSP #B3 | Force    *
+*        082c - 0935        Mark and Force Pass Data for LDSP #B4 | Pass     *
+*        0936 - 0a3f        Mark and Force Pass Data for LDSP #B1 | Events   *
+*        0a40 - 0b49        Mark and Force Pass Data for LDSP #C3 |          *
+*        0b4a - 0c53        Mark and Force Pass Data for LDSP #C4 |          *
+*        0c54 - 0d5d        Mark and Force Pass Data for LDSP #C1 |          *
+*        0d5e - 0e67        Mark and Force Pass Data for LDSP #C2 |          *
+*                                                                 |          *
+*        0e68 - 0e69        MFP Entry Type #4                     /          *
+*                                                                            *
+*        02fa - 02fb        MFP Entry Type #4 for NON Mark-Pass Events       *
+*                                                                            *
+*   The Data Block Section is UNINITIALIZED.  No actual values may be        *
+*   specified in this section.  This is absolutely necessary because         *
+*   the MVME214 Memory Module cannot be accessed via the VSB until the       *
+*   VSB Interface has been enabled and correctly programmed.  This cannot    *
+*   be done by the Boot Loader therefore the Boot Loader cannot              *
+*   store any values in the MVME214 Memory Module via the VSB Interface.     *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*       Reserve space for the Crate Header Section,                          *
+*                             Frame Section                                  *
+*                             Parameter Section                              *
+*                                                                            *
+*   This space in the MVME-214 Memory Module is never accessed by the        *
+*   Global DSP.  This space is merely defined to reserve this space in       *
+*   the MVME214 for this information, which is stored by the EC (68K).       *
+*                                                                            *
+*                                                                            *
+*   These symbols are not exported to other modules because no modules in    *
+*   the Global DSP should have access to this area of the MVME214            *
+******************************************************************************
+
+                                
+Crate_Header_Longword_Count_Loc   .usect  "Data_Blk", 1
+
+Crate_Header_Section_Loc          .usect  "Data_Blk", Crate_Header_Length
+
+
+Frame_Section_Longword_Count_Loc  .usect  "Data_Blk", 1
+
+Frame_Section_Loc                 .usect  "Data_Blk", Frame_Section_Length
+
+
+Frame_Param_Section_LW_Count_Loc  .usect  "Data_Blk", 1
+
+Frame_Param_Section_Loc           .usect  "Data_Blk", Frame_Param_Section_Length
+
+
+Term_Param_Section_LW_Count_Loc   .usect  "Data_Blk", 1
+
+Term_Param_Section_Loc            .usect  "Data_Blk", Term_Param_Section_Length
+
+
+******************************************************************************
+*         Reserve space for the Lists of Identified Objects                  *
+*                                                                            *
+*  Here we one, 11*25-longword long space for the Lists of Identified        *
+*  Objects from each of the 11 Local DSPs, and one, 65-longword long space   *
+*  for the List of Identified Objects from the Global DSP.                   *
+*                                                                            *
+*  We also reserve space for the Local and Global DSP Sections Longwords     *
+*  to Follow Counts.                                                         *
+*                                                                            *
+*  This space should be available to other modules in the Global DSP code,   *
+*  so the appropriate symbols are exported                                   *
+******************************************************************************
+
+Local_Sect_Longword_Count_Loc       .usect "Data_Blk", 1
+
+                                        ; This space is allocated for the
+                                        ; Local DSP Section Longwords to
+                                        ; Follow Count.  The Global DSP
+                                        ; stores the appropriate value
+                                        ; (275) in this location.  
+                                        ; Note that the value in this
+                                        ; location IS NOT actually part
+                                        ; of the Data Block (recall that
+                                        ; the Word Count is merged into the
+                                        ; Data Block by the VBD) but is 
+                                        ; stored here to make the Data Block
+                                        ; in MVME214 space EXACTLY the same
+                                        ; as the Data Block in Zebra space.
+
+Local_DSP_Data_Section_Loc          .usect  "Data_Blk", LDSP_Section_Length
+
+                                        ; This is the storage space for the
+                                        ; Local DSP Data Section for all
+                                        ; 11 Local DSPs
+
+Global_Sect_Longword_Count_Loc      .usect  "Data_Blk", 1                      
+                                        ; This is the storage space for
+                                        ; the Global DSP Section Longwords
+                                        ; to Follow Count.  The Global DSP
+                                        ; stores the appropriate value
+                                        ; (65) in this location.  
+                                        ; Note that the value in this
+                                        ; location IS NOT actually part
+                                        ; of the Data Block (recall that
+                                        ; the Word Count is merged into the
+                                        ; Data Block by the VBD) but is 
+                                        ; stored here to make the Data Block
+                                        ; in MVME214 space EXACTLY the same
+                                        ; as the Data Block in Zebra space.
+
+Global_DSP_Data_Section_Loc         .usect  "Data_Blk", GDSP_Section_Length    
+
+                                        ; This is the storage space for the
+                                        ; 65 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Global DSP in the Data Block.
+
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+                          
+         .def      Local_Sect_Longword_Count_Loc    ; Define these symbols in
+         .def      Local_DSP_Data_Section_Loc       ; this module and make them
+         .def      Global_Sect_Longword_Count_Loc   ; global to reference from
+         .def      Global_DSP_Data_Section_Loc      ; other modules          
+
+******************************************************************************
+*       Reserve space for the DeBug Data Section.                            *
+*                                                                            *
+*  Here we reserve space for the subsections of the DeBug Data               *
+*  Section of the Data Block corresponding to the 11 Local DSPs              *
+*                                                                            *
+*  We also reserve space for the DeBug Section Longwords to                  *
+*  Follow Count.                                                             *
+*                                                                            *
+*  This space should be available to other modules in the Global DSP code,   *
+*  so the appropriate symbols are exported                                   *
+*                                                                            *
+*  We also reserve, as a place-holder, space for the 68K Services subsection *
+*  of the DeBug Section of the data Block.                                   *
+*                                                                            *
+*  This space is not available to other modules in the Global DSP code, so   *
+*  its symbol is not exported                                                *
+******************************************************************************
+                
+DeBug_Sect_Longword_Count_Loc     .usect  "Data_Blk", 1
+
+                                        ; Memory location which stores the
+                                        ; Longwords to Follow Count for the
+                                        ; Mark and Force Pass Data section of
+                                        ; the Data Block
+
+SEK_DeBug_Data_Block_Loc        .usect "Data_Blk", DeBug_Type_0_Entry_Length
+
+DSP_DeBug_Data_Block_Loc        .usect "Data_Blk", All_DSP_MFP_DeBug_Sect_Length
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+         .def      DeBug_Sect_Longword_Count_Loc        ; Define these symbols
+         .def      DSP_DeBug_Data_Block_Loc             ; in this module for
+                                                        ; reference in other
+                                                        ; modules
+                                                        
+                                
+******************************************************************************
+*****   General-purpose Working Variables and Constants                  *****
+******************************************************************************
+
+        .data
+
+GDSP_Longwords_per_Entry_Loc:                           ; Memory location to
+                                                        ; store the number of
+         .word  GDSP_Longwords_per_Entry                ; Longwords per
+                                                        ; Entry in Global
+                                                        ; DSP List of 
+                                                        ; Identified Objects
+
+GDSP_Entries_per_List_Loc:                              ; Memory location to
+                                                        ; store the number of
+        .word   GDSP_Entries_per_List                   ; Entries in the 
+                                                        ; Global DSP List of
+                                                        ; Identified Objects  
+
+Zero_Loc:                                               ; Memory location to
+                                                        ; store the value 0
+        .word   0                       
+
+All_FF_Loc:                                             ; Memory location to
+                                                        ; store the value
+        .word   0ffffffffh                              ; ffffffff (hex)
+
+One_LG_DMA_Finished_Loc:                                ; Memory location to
+                                                        ; store the flag 
+        .word   One_LG_DMA_Finished                     ; indicating one
+                                                        ; Local-to-Global
+                                                        ; DMA Finished
+
+Com_Port_Status_Loc:                                    ; Memory location to
+                                                        ; store the Com Port
+        .word   0                                       ; Status longword
+
+******************************************************************************
+*   Cross-References                                                         *
+******************************************************************************
+
+        .def    GDSP_Longwords_per_Entry_Loc            ; Symbols defined in
+        .def    GDSP_Entries_per_List_Loc               ; this module but used
+        .def    Zero_Loc, All_FF_Loc                    ; in other modules
+        .def    Com_Port_Status_Loc                 
+        .def    One_LG_DMA_Finished_Loc
+
+******************************************************************************
+*       End of this module                                                   *
+******************************************************************************
+
+        .end
+
+

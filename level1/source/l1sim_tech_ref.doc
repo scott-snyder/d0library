@@ -1,0 +1,836 @@
+L1SIM TECHNICAL REFERENCE                                        2-JAN-1992 
+=========================
+
+
+I. INTERFACING OTHER LEVEL 1 TRIGGER SUBSYSTEMS WITH L1SIM 
+    I.1. INTRODUCTION
+        I.1.1 D0USER hooks
+        I.1.2 Adding a Subsystem
+    I.2. INITIALIZATION ROUTINE (L1_myname_INIT)
+    I.3. LEVEL 1 SIMULATION ROUTINE
+        I.3.1 L1_myname_SIM
+        I.3.2 Example of Level 1 Event Processing Routine
+    I.4. LEVEL 1.5 SIMULATION ROUTINE
+        I.4.1 L15_myname_SIM
+        I.4.2 Example of Level 1.5 Event Processing Routine
+    I.5. BANK FILLING ROUTINE 
+        I.5.1 L1_myname_FILL
+        I.5.2 Extending the TRGR Bank
+
+II. AVAILABLE SIMULATION RESULTS 
+    II.1 TRGR Bank
+    II.2 Vertex Corrected Trigger Tower Transverse Energy
+    II.3 Trigger Tower ADC Bytes
+    II.4 Calorimeter Trigger Global Results
+    II.5 Trigger Framework Results
+
+III. BLS Gain Correction File
+    III.1 BLS Gain Correction Array 
+    III.2 Writing the BLS Gain Correction File
+    III.3 Example of Creating a BLS Correction File
+
+IV. Logical structure
+    IV.1 Initialization
+    IV.2 User Dialog
+    IV.3 Define Event Dumps
+    IV.4 Process Event
+    IV.5 Perform Event Dump
+    IV.6 Write Summary File
+
+--------------------------------------------------------------------------------
+I. INTERFACING OTHER LEVEL 1 TRIGGER SUBSYSTEMS WITH L1SIM 
+==========================================================
+
+    I.1. INTRODUCTION
+    -----------------
+
+    L1SIM is the name of the new version of the Level 1 Simulator, formerly
+called L1C. The change of name corresponds to the evolution from a pure
+Calorimeter Trigger Simulator to a complete Level 1 and Level 1.5 Trigger 
+Simulator. This means that simulation software for other Level 1
+sub-systems can be interfaced to the L1SIM framework.
+
+    L1SIM is meant to be used with the D0USER Framework of the Program
+Builder Package. L1SIM attaches to several of the hooks available in the
+D0USER frame. D0$LEVEL1:L1SIM.DOC explains how to build and run the program.
+
+    I.1.1 D0USER hooks
+    ------------------
+
+    The routine L1SIM_EVENT is provided for the hook USREVT, and performs 
+processing on each event, and also fills the TRGR bank.  It consists of a 
+series of calls to routines which each corresponds to a trigger subsystem. 
+Three of these (L1_USER_TERMS_SIM, L15_USER_TERMS_SIM, and
+L1_USER_TERMS_FILL) are dummy routines which can be replaced by the user.
+
+    The routine L1SIM_INI is provided for the USRINI hook, which performs
+initialization before any events are processed. It consists of a series of
+calls to routines which each corresponds to a trigger subsystem. One of
+these (L1_USER_TERMS_INIT) is a dummy routine which can be replaced by the
+user.
+
+    The routine L1SIM_DIALOG is provided for the USDIAL hook, which allows 
+interactive dialog for setting options. It consists of a series of calls to
+routines which each corresponds to a trigger subsystem. One of these
+(L1_USER_TERMS_DIALOG) is a dummy routine which can be replaced by the
+user.
+
+    The routine L1SIM_SSUM is provided for the USRSSM hook, which writes a
+summary of all the events analyzed. It consists of a series of calls to
+routines which each corresponds to a trigger subsystem. One of these
+(L1_USER_TERMS_SSUM) is a dummy routine which can be replaced by the user.
+
+    The routine L1SIM_DEFDUMP is provided for the DMPUDF hook, which allows 
+interactive dialog for defining dump options. It consists of a series of
+calls to routines which each corresponds to a trigger subsystem. One of
+these (L1_USER_TERMS_DEFDUMP) is a dummy routine which can be replaced by
+the user.
+
+    The routine L1SIM_DUMP is provided for the DMPUSR hook, which performs
+a dump of the event. It consists of a series of calls to routines which
+each corresponds to a trigger subsystem. One of these (L1_USER_TERMS_DUMP)
+is a dummy routine which can be replaced by the user.
+
+    I.1.2 Adding a Subsystem
+    ------------------------
+
+    Adding a new subsystem to L1SIM can be done one of two ways. 
+
+    One way is to use the standard distributed LEVEL 1 library.  The
+minimal requirement is to provide a replacement for the dummy routine
+L1_USER_TERMS_SIM (replacement for other L1_USER_TERMS_* dummy routines is
+optional).   
+
+    The second way is to modify the distributed LEVEL 1 library.  Explicit
+calls to the subsystem can be inserted into the routines L1SIM code. 
+Contact MSUHEP::LAURENS for changes to the LEVEL 1 library.
+    
+    The only difference between these two methods is that the second method
+will provide distribution of the additional code as part of the LEVEL 1
+Library.  The L1_USER_TERMS_* hooks are provided for pre-release work on a
+new subsystem simulator, and for private studies. 
+
+    Following is a guide on writing the initialization and event
+processing routines for a trigger subsystem.
+
+
+    I.2. INITIALIZATION ROUTINE (L1_myname_INIT)
+    --------------------------------------------
+
+    The author of the simulator for a trigger subsystem provides an
+initialization subroutine named L1_myname_INIT, which should perform all of
+the initialization that the trigger subsystem requires. This routine takes
+no arguments. However, any run-time parameters may be retrieved from the
+RCP file L1SIM.RCP. This file has been read in by L1SIM before any
+subsystem initialization routine is called. The parameters can then be
+retrieved from the RCP bank L1SIM_RCP. 
+
+
+    I.3. LEVEL 1 SIMULATION ROUTINE
+    ------------------------------
+
+    I.3.1 Level 1 Processing (L1_myname_SIM)
+    ----------------------------------------
+
+    The author of the simulator for a trigger subsystem also provides a
+routine named L1_myname_SIM which performs processing on each event. This
+routine has 3 arguments (all outputs):
+
+L1_myname_SIM(NUM_ANDOR_USED, ANDOR_STATES, ANDOR_INDICES)
+
+NUM_ANDOR_USED
+    An INTEGER, indicating how many Andor Terms states the subsystem has
+    calculated.
+
+ANDOR_STATES
+    An array of up to 256 LOGICALs representing the Andor states. The first
+    NUM_ANDOR_USED elements will contain the states.
+
+ANDOR_INDICES
+    An array of up to 256 corresponding INTEGERs returning the Andor Term
+    number for each state. Each Andor Term number is retrieved from the RCP
+    bank L1_ANDOR_RESOURCE using its logical name.
+
+    A subsystem will of course not use all 256 Andor Terms, and the terms
+need not be in any particular order.
+
+    The Andor Term numbers are defined in an RCP file which L1SIM reads in
+at initialization time. Typically, Andor Terms are specified in this RCP
+file using a standard name used by the COOR resource files as the term's
+logical name. This same name should be used to retrieve the Andor Term
+number from the RCP bank.
+
+    I.3.2 Example of Level 1 Event Processing Routine
+    -------------------------------------------------
+
+    The following code is a template for a Level 1 trigger subsystem event
+processing routine. It illustrates how to retrieve Andor Term numbers from
+the RCP bank, and how to return the states of the Andor Terms. A slightly
+more complex example can be found in the L1_MUON_SIM.FOR routine.
+
+-----------------------------------------------------------------------
+
+
+      SUBROUTINE L1_EXAMPLE_SIM(NUM_ANDOR_USED, ANDOR_STATES,
+     &  ANDOR_INDICES)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Give an example of how to retrieve an Andor Term
+C-      number from the RCP bank L1_ANDOR_RESOURCE.
+C-      The logical name of the Andor Term this routine retrieves is
+C-      'L1_EXAMPLE_ANDOR'.
+C-
+C-   Inputs  : none
+C-   Outputs : NUM_ANDOR_USED   The number of Andor Terms this routine is
+C-                              returning. This number may be 0.
+C-             ANDOR_STATES     The state of each returned Andor Term.
+C-             ANDOR_INDICES    The corresponding Andor Term number for 
+C-                              each returned Andor Term.
+C-   Controls: none
+C-
+C-   Created   3-SEP-1991 Philippe Laurens, Steven Klocek 
+C-                           (Michigan State University)
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INTEGER NUM_ANDOR_USED
+      LOGICAL ANDOR_STATES(256)
+      INTEGER ANDOR_INDICES(256)
+C
+C       This is a LOGICAL function provided by L1SIM which selects the correct
+C       RCP bank to retrieve Andor Term numbers.
+C
+      LOGICAL L1UTIL_PICK_RESOURCE_RCP
+      EXTERNAL L1UTIL_PICK_RESOURCE_RCP 
+C
+      INTEGER IER
+C
+      INTEGER L1_EXAMPLE_ANDOR_NUM
+      LOGICAL FIRST
+      DATA FIRST / .TRUE. /
+      SAVE FIRST, L1_EXAMPLE_ANDOR_NUM, IER
+C
+C       Find the Andor Term number for the example on the first
+C       call only.
+C
+      IF (FIRST .EQV. .TRUE.) THEN
+        FIRST = .FALSE.
+C
+C       The function L1UTIL_PICK_RESOURCE_RCP calls EZPICK with the correct 
+C         bank name
+C
+        IF (L1UTIL_PICK_RESOURCE_RCP() .EQV. .FALSE.) THEN 
+C
+C       Handle the error case where the RCP bank does not exist
+C
+          IER = 1   ! Indicate that the Andor Term was not defined
+          GOTO 1000 ! Continue processing
+        ELSE
+C
+C       Get the correct term number
+C
+          CALL EZGET('L1_EXAMPLE_ANDOR', L1_EXAMPLE_ANDOR_NUM, IER)
+C       
+C       De-select the current RCP bank.
+C
+          CALL EZRSET()
+        ENDIF
+      ENDIF
+ 1000 CONTINUE
+C
+C       At this point, calculate the Andor Term states and assign the return
+C       values.
+C
+      ANDOR_STATES(1) = .TRUE.
+      ANDOR_INDICES(1) = L1_EXAMPLE_ANDOR_NUM
+C
+C       Handle the case where the term number was not specified in the 
+C         RCP file
+C
+      IF (IER .EQ. 0) THEN 
+        NUM_ANDOR_USED = 1  ! The Andor Term exists
+      ELSE
+        NUM_ANDOR_USED = 0  ! The Andor Term was not specified in the RCP file
+      ENDIF
+C----------------------------------------------------------------------
+  999 RETURN
+      END
+
+
+    I.4. LEVEL 1.5 SIMULATION ROUTINE
+    ---------------------------------
+
+    I.4.1 Level 1.5 Processing (L15_myname_SIM)
+    -------------------------------------------
+
+    If the trigger subsystem performs Level 1.5 processing then the author
+also provides a routine named L15_myname_SIM which performs this additional
+processing. Note that this routine is called only when Level 1.5
+confirmation is required for the current event. The interface to this
+routine is much like the interface to a Level 1 subsystem simulator. The
+routine has 3 arguments (all outputs):
+
+L1_myname_SIM(NUM_L15_TERMS_USED, L15_TERM_STATES, L15_TERM_INDICES)
+
+NUM_L15_TERMS_USED
+    An INTEGER, indicating how many Level 1.5 Term states the subsystem has
+    calculated.
+
+L15_TERM_STATES
+    An array of up to 32 LOGICALs representing the Level 1.5 Term states.
+    The first NUM_L15_TERMS_USED elements will contain the states.
+
+L15_TERM_INDICES
+    An array of up to 32 INTEGERs returning the Level 1.5 Term number for
+    each state. Each Level 1.5 Term number is retrieved from the RCP bank
+    L15_TERM_RESOURCE using its logical name.
+
+    A subsystem will of course not use all 32 Level 1.5 Terms, and the
+terms may be returned in any particular order.
+
+    The Level 1.5 Term numbers are defined in an RCP file which L1SIM
+reads in at initialization time. Typically, Level 1.5 Terms are specified
+in this RCP file using a standard name used by the COOR resource files as
+the term's logical name. This same name should be used to retrieve the
+Level 1.5 Term number from the RCP bank.
+
+    I.4.2 Example of Level 1.5 Event Processing Routine
+    ---------------------------------------------------
+
+    The following code is a template for a Level 1.5 trigger subsystem
+event processing routine.  It illustrates how to retrieve Level 1.5 Term
+numbers from the RCP bank, and how to return the states of the Level 1.5
+Terms. A slightly more complex example can be found in the L15_MUON_SIM.FOR
+routine. 
+
+-----------------------------------------------------------------------
+
+
+      SUBROUTINE L15_EXAMPLE_SIM(NUM_L15_TERM_USED, L15_TERM_STATES,
+     &  L15_TERM_INDICES)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Give an example of how to retrieve a Level 1.5 Term
+C-      number from the RCP bank L15_TERM_RESOURCE.
+C-      The logical name of the Level 1.5 Term this routine retrieves is
+C-      'L15_EXAMPLE_TERM'.
+C-
+C-   Inputs  : none
+C-   Outputs : NUM_L15_TERM_USED The number of Level 1.5 Terms this routine is
+C-                               returning. This number may be 0.
+C-             L15_TERM_STATES   The state of each returned Level 1.5 Term.
+C-             L15_TERM_INDICES  The corresponding Level 1.5 Term number for 
+C-                               each returned Level 1.5 Term.
+C-   Controls: none
+C-
+C-   Created   19-DEC-1991 Philippe Laurens, Steven Klocek 
+C-                           (Michigan State University)
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INTEGER NUM_L15_TERM_USED
+      LOGICAL L15_TERM_STATES(32)
+      INTEGER L15_TERM_INDICES(32)
+C
+C       This is a LOGICAL function provided by L1SIM which selects the correct
+C       RCP bank to retrieve Level 1.5 Term numbers.
+C
+      LOGICAL L15UTIL_PICK_L15RESOURCE_RCP 
+      EXTERNAL L15UTIL_PICK_L15RESOURCE_RCP
+C
+      INTEGER IER
+C
+      INTEGER L15_EXAMPLE_TERM_NUM
+      LOGICAL FIRST
+      DATA FIRST / .TRUE. /
+      SAVE FIRST, L15_EXAMPLE_TERM_NUM, IER
+C
+C       Find the Andor Term number for the example on the first
+C       call only.
+C
+      IF (FIRST .EQV. .TRUE.) THEN
+        FIRST = .FALSE.
+C
+C       The function PICK_L1SIM_ANDOR_RCP calls EZPICK with the correct 
+C         bank name
+C
+        IF (L15UTIL_PICK_L15RESOURCE_RCP() .EQV. .FALSE.) THEN 
+C
+C       Handle the error case where the RCP bank does not exist
+C
+          IER = 1   ! Indicate that the Andor Term was not defined
+          GOTO 1000 ! Continue processing
+        ELSE
+C
+C       Get the correct term number
+C
+          CALL EZGET('L15_EXAMPLE_TERM', L15_EXAMPLE_TERM_NUM, IER)
+C       
+C       De-select the current RCP bank.
+C
+          CALL EZRSET()
+        ENDIF
+      ENDIF
+ 1000 CONTINUE
+C
+C       At this point, calculate the Term states and assign the return
+C       values.
+C
+      L15_TERM_STATES(1) = .TRUE.
+      L15_TERM_INDICES(1) = L15_EXAMPLE_TERM_NUM
+C
+C       Handle the case where the term number was not specified in the 
+C         RCP file
+C
+      IF (IER .EQ. 0) THEN 
+        NUM_L15_TERM_USED = 1  ! The Term exists
+      ELSE
+        NUM_L15_TERM_USED = 0  ! The Term was not specified in the RCP file
+      ENDIF
+C----------------------------------------------------------------------
+  999 RETURN
+      END
+
+
+    I.5. BANK FILLING ROUTINE 
+    -------------------------
+
+    I.5.1 L1_myname_FILL
+    --------------------
+
+    Finally, the author of the simulator for a trigger subsystem provides a
+routine named L1_myname_FILL, which puts information in the TRGR bank (or
+any appropriate bank). This subroutine takes no arguments.  No
+modifications to the TRGR bank should be made outside this routine. The
+address of the TRGR bank may be obtained by a call to GZTRGR, and the size
+of the TRGR bank may be increased if necessary by a call to the ZEBRA
+routine MZPUSH. A routine to perform this operation is described below.
+
+
+    I.5.2 Extending the TRGR Bank
+    -----------------------------
+
+    When L1SIM first creates a TRGR bank, it only allocates space needed by
+the Level 1 Calorimeter Trigger and the Level 1 Framework. Other subsystems
+might need additional storage in the TRGR bank. To do this, the subsystem
+may either call the ZEBRA routine MZPUSH to extend the bank, or it may
+simply call the utility routine L1_TRGR_EXTENSION provided as part of the
+LEVEL1 library. The routine may be called as follows:
+
+L1_TRGR_EXTENSION(LTRGR, DELTA_WORDS, SUBSYSTEM_OFFSET)
+
+LTRGR
+    An input integer giving the address of the TRGR bank. NOTE: This
+    argument may be modified if the TRGR bank is relocated when it is
+    extended. On return, this argument contains the address of the
+    (possibly relocated) TRGR bank.
+
+DELTA_WORDS
+    An input integer giving the number of words to add to the TRGR bank
+
+SUBSYSTEM_OFFSET
+    An output integer giving the offset into the TRGR bank of the first
+    newly allocated word.
+
+    Note that on return from L1_TRGR_EXTENSION the first word of the newly
+allocated space may be accessed by IQ(LTRGR + SUBSYSTEM_OFFSET + 1).
+
+    The code for L1_TRGR_EXTENSION follows:
+
+--------------------------------------------------------------------------
+
+      SUBROUTINE L1_TRGR_EXTENSION(LTRGR, DELTA_WORDS, SUBSYSTEM_OFFSET)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Increase the size of the TRGR bank, and give the
+C-    offset for the first word in the newly allocated section.
+C-
+C-   Inputs  : LTRGR  The address of the TRGR bank. NOTE: This may be modified
+C-                    if the TRGR bank is relocated. On return, this argument
+C-                    contains the address of the (possibly relocated) TRGR
+C-                    bank.
+C-
+C-             DELTA_WORDS  The number of words to add to the TRGR bank.
+C-
+C-   Outputs : SUBSYSTEM_OFFSET The offset into the TRGR bank of the first
+C-                              newly allocated word. 
+C-
+C-   Controls: none
+C-
+C-  NOTE: On return, the first newly allocated word may be accessed by:
+C-        IQ(LTRGR + SUBSYSTEM_OFFSET + 1)
+C-
+C-  NOTE: The TRGR bank must have already been booked.
+C-
+C-   Created  14-OCT-1991   MICHIGAN STATE UNIVERSITY, TRIGGER CONTROL SOFTWARE
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+C
+      INTEGER LTRGR, DELTA_WORDS, SUBSYSTEM_OFFSET
+C
+C       Save the original length of the TRGR bank
+      SUBSYSTEM_OFFSET = IQ(LTRGR-1)
+C
+C       Extend the bank
+      CALL MZPUSH(IXMAIN, LTRGR, 0, DELTA_WORDS, ' ')
+C----------------------------------------------------------------------
+  999 RETURN
+      END
+
+
+II. AVAILABLE SIMULATION RESULTS 
+================================
+
+    The results of Level 1 and Level 1.5 simulation are available for use
+by additional trigger subsystems or by routines which provide additional 
+analysis.  These results include:
+
+    II.1 TRGR Bank
+    --------------
+
+    The ZEBRA event itself is available for additional analysis. L1SIM 
+modifies the event only by adding a new TRGR bank. If the event already
+contains a TRGR bank(s) (either from hardware generation or a previous
+simulation) the new TRGR bank is added to the head of a linear chain of
+TRGR banks. The newest TRGR bank can be obtained by using the function
+GZTRGR, and other TRGR banks can be obtained by following the linear chain
+from the newest TRGR bank. The contents of the TRGR bank are defined in 
+D0 Note 967.
+
+    II.2 Vertex Corrected Trigger Tower Transverse Energy
+    -----------------------------------------------------
+
+    The output of the energy lookup PROMs corrected for the PROMs' zero
+energy response. This can be obtained by including the files 
+
+    'D0$PARAMS:LEVEL1_LOOKUP.PARAMS' 
+and 'D0$INC:L1C_Z_CORRECTED_ET.INC' 
+
+to declare a common block containing the following variable:
+
+    INTEGER Z_CORRECTED_ET(SIGN_ETA, MAGN_ETA, PHI, TOWER)
+
+    where
+
+    SIGN_ETA specifies the sign of the ETA index of the trigger tower, and 
+should be one of the following two parameters: POS_ETA, NEG_ETA.
+
+    MAGN_ETA specifies the magnitude of the ETA index of the trigger tower, 
+and should be in the range [1, 20].
+
+    PHI specifies the PHI index of the trigger tower, and should be in the
+range [1, 32].
+
+    TOWER specifies either the EM trigger tower or the HD trigger tower.
+The value should be one of the following parameters: EM_TOWER, HD_TOWER.
+    
+    The value stored in the variable is the transverse energy detected by
+that tower for the current event, and is given in units of least counts
+(.25 GeV/ least count). A zero here corresponds to a reading of zero
+energy. The value may be negative.
+
+
+    II.3 Trigger Tower ADC Bytes
+    ----------------------------
+
+    The results of the Trigger Tower ADC simulation. This can be obtained by
+including the files
+
+    'D0$PARAMS:LEVEL1_LOOKUP.PARAMS'
+and 'D0$INC:L1C_EVENT.INC'
+
+to declare a common block containing the following variable array:
+
+      INTEGER FADC_BYTE( SIGN_ETA, MAGN_ETA, PHI, TOWER )
+
+    where
+
+    SIGN_ETA specifies the sign of the ETA index of the trigger tower, and 
+should be one of the following two parameters: POS_ETA, NEG_ETA.
+
+    MAGN_ETA specifies the magnitude of the ETA index of the trigger tower, 
+and should be in the range [1, 20].
+
+    PHI specifies the PHI index of the trigger tower, and should be in the
+range [1, 32].
+
+    TOWER specifies either the EM trigger tower or the HD trigger tower.
+The value should be one of the following parameters: EM_TOWER, HD_TOWER.
+
+    The value stored in the variable represents the value of the ADC byte
+at the given tower. Note that the values are given in units of least counts
+(typically .25 GeV per least count), and that an offset is added to each
+byte (typically 8 counts).
+
+    II.4 Calorimeter Trigger Global Results
+    ---------------------------------------
+
+    The results of the Calorimeter Trigger simulator. These results include
+Global Energy sums, Tower Counts, and Missing Pt.
+    
+    These results can be obtained by including the files 
+
+    'D0$PARAMS:LEVEL1_LOOKUP.PARAMS', 
+    'D0$PARAMS:L1_CALTRIG.PARAMS', 
+    'D0$PARAMS:L1_FRAMEWORK.PARAMS', 
+and 'D0$INC:L1C_GLOBAL_RESULTS.INC'. 
+
+    Of particular interest are the variables 
+
+    HOT_TOWER_COUNT, 
+    GLOBAL_ENERGY,
+and TOTAL_MPT. 
+
+    HOT_TOWER_COUNT(REFERENCE_SET) is the number of towers which clear the
+given Reference Set. REFERENCE_SET is the hardware Reference Set number (in
+the range [0,3]) added to one of the following parameters: EM_ET_REF_MIN
+for EM Et Reference Sets or TOT_ET_REF_MIN for Total Et Reference Sets.
+e.g. HOT_TOWER_COUNT(TOT_ET_REF_MIN + 1) is the count for
+Tot Et Ref Set # 1. 
+
+    GLOBAL_ENERGY(THRESHOLD_TYPE) is the amount of energy of the given
+type, in units of least counts (.25 GeV / least count). THRESHOLD_TYPE is
+one of the following parameters: GL_EMET_THRTYP, GL_EML2_THRTYP,
+GL_HDET_THRTYP, GL_HDL2_THRTYP, GL_TOTET_THRTYP, or GL_TOTL2_THRTYP. 
+    
+    TOTAL_MPT is the amount of Missing Pt, in units of .50 GeV.
+
+
+    II.5 Trigger Framework Results
+    ------------------------------
+
+    The results of the Level 1 Framework and the Level 1.5 Framework are
+available. These results include the states of the Specific Triggers,
+statistics on the Specific Triggers that fired for the current event, Andor
+Term states, and Level 1.5 Term states.
+
+    These results can be obtained by including the files 
+
+    'D0$PARAMS:LEVEL1_LOOKUP.PARAMS', 
+    'D0$PARAMS:L1_CALTRIG.PARAMS',
+    'D0$PARAMS:L1_FRAMEWORK.PARAMS', 
+    'D0$INC:L1FW_ANDOR_AND_MISC.PARAMS',
+and 'D0$INC:L1_SPECIFIC_TRIGGER.INC' 
+
+    for the Level 1 Framework, and additionally 
+
+    'D0$PARAMS:L15_FRAMEWORK.PARAMS' 
+and 'D0$INC:L15_FRAMEWORK.INC' 
+
+    for the Level 1.5 Framework.
+
+    The states of the Specific Triggers are stored in the variable
+FIRED_TRIGGER(TRIGGER_NUMBER), where TRIGGER_NUMBER is the hardware
+Specific Trigger number (in the range [0,31]).  The variable has value
+.TRUE. if the particular Specific Trigger fired. 
+
+    The following variables give statistics on the Specific Triggers for
+the current event:
+
+    NUM_SPTRG_PASS_L1SIM
+        The number of Specific Triggers which passed both the Level 1 and 
+        Level 1.5 Frameworks.
+
+    NUM_SPTRG_PASS_L1
+        The number of Specific Triggers which passed the Level 1 Framework.
+
+    NUM_PURE_L1_SPTRG_PASS_L1
+        The number of pure Level 1 Specific Triggers (Specific Triggers
+        with no Level 1.5 requirement) which passed the Level 1 Framework.
+
+    NUM_L15_SPTRG_PASS_L1
+        The number of Specific Triggers with Level 1.5 requirements which
+        passed the Level 1 Framework.
+
+    NUM_L15_SPTRG_SENT_L15
+        The number of Specific Triggers with Level 1.5 requirements which
+        passed the Level 1 Framework and were submitted to Level 1.5 for
+        confirmation.
+
+    NUM_L15_SPTRG_PASS_L15
+        The number of Specific Triggers submitted to Level 1.5 which
+        recieved confirmation.
+
+    For more information on the Level 1.5 Framework, see
+D0$LEVEL1:L1SIM.DOC.
+
+    The states of the Andor Terms are stored in the variable
+ANDOR_TERM(ANDOR_NUMBER), where ANDOR_NUMBER is the hardware Andor Term
+index (in the range [0,255]). If the variable's value is .TRUE., then that
+Andor Term is ASSERTED, otherwise that Andor Term is NEGATED.
+
+    The states of the Level 1.5 Terms are stored in the variable
+L15_TERM_STATE(TERM_NUM), where TERM_NUM is the hardware Level 1.5 Term
+index (in the range [0,31]).  The value .TRUE. represents a positive
+confirmation, otherwise the term has been given a negative confirmation.
+
+
+
+III. BLS Gain Correction File
+=============================
+
+    The file D0$LEVEL1:L1SIM.DOC describes the purpose of the BLS Gain
+Correction Coefficients. 
+
+    III.1 BLS Gain Correction Array 
+    -------------------------------
+
+    To create a file containing a set of these  coefficients the routine
+L1UTIL_EXAMPLE_BLS_FILE should be used as a model. First, the files
+
+    'D0$PARAMS:CAL_OFFLINE.PARAMS' 
+and 'D0$INC:L1C_BLS_GAIN_CORRECTION.INC' 
+
+    must be included to declare the array which will hold the
+coeffiecients. The BLS array is the following:
+
+    REAL BLS_GAIN_CORRECTION(IETAC, IPHIC, LAYERC)
+
+    The coordinate variables IETAC, IPHIC, and LAYERC specify a Calorimeter
+cell, and are described in the document D0$DOCS:CALORIMETER_ADDRESSING.MEM.  
+
+    The user provided routine fills the array with the desired values for
+the coefficients. This coefficient will be multiplied by the actual energy
+deposited in the specified cell to find the value read out by the BLS
+cards.
+                                     
+    III.2 Writing the BLS Gain Correction File
+    ------------------------------------------
+
+    To actually write out the file, the routine L1UTIL_WRITE_BLS_FILE is
+called. This routine takes one argument: a character string containing the
+name of the file to create. Note that L1SIM must be told to use this new
+file, either by setting the parameter BLS_GAIN_CORRECTION_FILE in L1SIM.RCP
+or by giving the file name in the USER DIALOG menu option.
+
+    L1UTIL_WRITE_BLS_FILE uses the ZEBRA package,  so a call to MZEBRA must
+occur at some time before calling  L1UTIL_WRITE_BLS_FILE.  
+
+    III.3 Example of Creating a BLS Correction File
+    -----------------------------------------------
+
+    The following is the source to L1UTIL_EXAMPLE_BLS_FILE.
+------------------------------------------------------------------------
+      PROGRAM L1UTIL_EXAMPLE_BLS_FILE
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Create a BLS Gain Correction file with the
+C-   coefficients set to 1.
+C-
+C-   Inputs  : none
+C-   Outputs : file output
+C-   Controls: none
+C-
+C-   Created  24-SEP-1991   Level 1 Simulator, Michigan State University,
+C-                      Philippe Laurens, Steven Klocek,
+C-                      L1C -> L1SIM, and major upgrade to use LSM, COOR_sim
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$PARAMS:CAL_OFFLINE.PARAMS'
+      INCLUDE 'D0$INC:L1C_BLS_GAIN_CORRECTION.INC'
+C
+      INTEGER IETAC, IPHIC, ILYRC
+C
+      DO ILYRC = 1, NLYRL
+        DO IPHIC = 1, NPHIL
+          DO IETAC = 1, NETAL
+            BLS_GAIN_CORRECTION( IETAC, IPHIC, ILYRC) = 1.
+            BLS_GAIN_CORRECTION(-IETAC, IPHIC, ILYRC) = 1.
+          END DO
+        END DO
+      END DO
+C
+C A call to MZEBRA must occur some time before L1UTIL_WRITE_BLS_FILE is called.
+C 
+      CALL MZEBRA(0)
+      CALL L1UTIL_WRITE_BLS_FILE('BLS.DAT')
+C----------------------------------------------------------------------
+      END
+
+
+
+IV. Logical structure
+=====================
+
+    The structure of L1SIM has been chosen to be able to easily add
+addtional subsystems to the simulation. Each operation of L1SIM contains
+a series of calls to subsystem routines, each routine performing the 
+actions of that subsystem for the operation.
+
+    The following operations are performed by L1SIM. Each operation
+corresponds to a routine hook in the D0USER package:
+
+    IV.1 Initialization
+    -------------------
+
+    The initialization routine first performs initialization global to all
+subsystems (for example, it reads the RCP file L1SIM.RCP). Then it calls an
+initialization routine for each subsystem which requires it. For example,
+the Level 1 Calorimeter Trigger and Framework initialization routine reads
+in the Programming File and Resource File produced by COOR_sim. 
+
+    IV.2 User Dialog
+    ----------------
+
+    The user dialog routine consists of a series of calls to each
+subsystem's dialog routine. These routines typically allow the user to
+interactively change run parameters specific to each subsystem.
+
+    IV.3 Define Event Dumps
+    -----------------------
+
+    This routine consists of a series of calls to each subsystem's event
+dump definition routine. These routines typically allow the user to
+interactively select the types of information to include in the event dump
+file.
+
+    IV.4 Process Event
+    ------------------
+
+    In this routine L1SIM:
+
+o   Calls each Level 1 subsystem simulator, which returns a list of Andor 
+    Terms it simulated and their states.
+
+o   Checks each list of terms to verify that no two subsystems try to
+    simulate the same Andor Term.
+
+o   Calls the Level 1 Framework simulator, which calculates Specific
+    Trigger states for Level 1 from the Andor Term states.
+
+o   Checks to see if the event requires processing by Level 1.5. If
+    so L1SIM:
+    o   Calls each Level 1.5 subsystem simulator, which returns a list of
+        Level 1.5 terms it simulated and their states.
+    o   Checks each list of terms to verify that no two subsystems try to 
+        simulate the same Level 1.5 Term.
+    o   Calls the Level 1.5 Framework simulator, which finds the Level 1.5 
+        Specific Trigger states from the Level 1 Specific Trigger states
+        and the Level 1.5 Term states.
+
+o   If any Specific Trigger has fired, L1SIM calls subsystem routines which
+    create and fill a TRGR bank.
+
+o   Calls routines which perform additional analysis on the event and
+    record run statistics.
+
+
+    IV.5 Perform Event Dump
+    -----------------------
+
+    This routine consists of a series of calls to each subsystem's event
+dump routine. These routines typically write event information specific to
+each subsystem.
+
+
+    IV.6 Write Summary File
+    -----------------------
+
+    This routine consists of a series of calls to each subsystem's standard
+summary routine. These routines typically write information about the run
+which is specific to each subsystem.
+

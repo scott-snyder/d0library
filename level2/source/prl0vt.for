@@ -1,0 +1,91 @@
+      SUBROUTINE PRL0VT ( PRUNIT, LL0VT, NL0VT, CFL )
+C----------------------------------------------------------------------
+C-
+C-   PURPOSE AND METHODS : PRINT ON UNIT PRUNIT THE CONTENT OF ONE OR MORE
+C-              BANKS 'L0VT'. 
+C-
+C-   INPUTS  : PRUNIT [I] : UNIT NUMBER FOR PRINTOUT
+C-             LL0VT  [I] : POINTER TO THE ONE BANK ( CFL = 'ONE' ) OR TO THE
+C-                          FIRST OF A LINEAR STRUCTURE ( CFL = 'LINEAR' ).
+C-                          UNUSED IF CFL = 'ALL'.
+C-             NL0VT  [I] : BANK NUMBER, USED ONLY IF CFL='ONE' AND LL0VT = 0
+C-             CFL    [C*]: CHARACTER FLAG, OTHER INPUT DEPENDS ON IT'S VALUE:
+C-                          'ONE' : LL0VT POINT TO A BANK, OR IF <0, NL0VT IS
+C-                                  THE BANK NUMBER.
+C-                          'LINEAR' : LL0VT POINTS TO THE FIRST BANK OF THE
+C-                                  LINEAR STRUCTURE
+C-                          'ALL' : PRINTS ALL BANKS
+C-   OUTPUTS : ON UNIT PRUNIT
+C-   CONTROLS: NONE
+C-
+C-   CREATED  7/13/92  TOM FAHLAND
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+C
+      INTEGER PRUNIT, LL0VT, NL0VT
+      CHARACTER*(*) CFL
+      INTEGER LL0VT1, GZL0VT, LZLOC, J
+C----------------------------------------------------------------------
+      LL0VT1 = LL0VT
+      IF( CFL .EQ. 'LINEAR' ) THEN
+        IF( LL0VT .LE. 0 ) GOTO 990
+      ELSEIF( CFL .EQ. 'ONE' ) THEN
+        IF( LL0VT .LE. 0 ) THEN
+          IF( NL0VT .EQ. 0 ) GOTO 980          ! ERROR EXIT
+          LL0VT1 = LZLOC( IXMAIN, 'L0VT', NL0VT )
+        ENDIF
+      ELSEIF( CFL .EQ. 'ALL' ) THEN
+C
+C ****  HERE, YOU HAVE TO FIND THE FIRST BANK TO BE PRINTED
+C
+        LL0VT1 = GZL0VT( )
+      ELSE
+        WRITE( PRUNIT, 1000 ) CFL
+1000    FORMAT(/' ** PRL0VT ** ILLEGAL VALUE OF CFL = ',A/)
+        GOTO 999
+      ENDIF
+    1 CONTINUE
+
+      WRITE(PRUNIT,*)'********** DUMPING L0VT BANK ****************'
+
+      WRITE(PRUNIT,202)Q(LL0VT1+2)
+ 202  FORMAT(2X,'FAST Z POSITION=',F7.2)
+      WRITE(PRUNIT,203)Q(LL0VT1+3)
+ 203  FORMAT(2X,'TYPE OF INTERACTION FROM FAST Z',I3)
+      WRITE(PRUNIT,204)Q(LL0VT1+4)
+ 204  FORMAT(2X,'SLOW Z POSITION=',F7.2)
+      WRITE(PRUNIT,205)Q(LL0VT1+5)
+ 205  FORMAT(2X,'TYPE OF INTERACTION FROM SLOW Z',I3)
+    
+C
+C  ***  LOOK IF ANOTHER BANK IS NEEDED
+C
+      IF( CFL .EQ. 'ONE' ) GOTO 999
+      IF( CFL .EQ. 'LINEAR' ) THEN
+        LL0VT1 = LQ( LL0VT1 )
+        IF( LL0VT1 .NE. 0 ) GOTO 1
+      ELSE
+C
+C ****  FIND THE NEXT BANK FOR THE ALL COMMAND. 
+C
+        LL0VT1 = GZL0VT()
+      ENDIF
+  999 RETURN
+C
+C  *** ERROR : LINEAR WITHOUT BANK POINTER
+C
+  990 WRITE( PRUNIT, 2000 ) LL0VT
+ 2000 FORMAT(/' ** PRL0VT ** CALLED FOR LINEAR WITHOUT VALID BANK ',
+     &        'POINTER, LL0VT =',I10/)
+      GOTO 999
+C
+C  *** ERROR : ONE BANK, BUT NEITHER POINTER NOR NUMBER
+C
+  980 WRITE( PRUNIT, 2100 ) LL0VT, NL0VT
+ 2100 FORMAT(/'  ** PRL0VT ** CALLED FOR ONE WITHOUT BANK POINTER AND',
+     &        ' BANK NUMBER, LL0VT =',I10,' NL0VT =', I10/)
+      GOTO 999
+      END

@@ -1,0 +1,43 @@
+	SUBROUTINE MU_OTC_SLOT(JOTC,SLOT)
+c
+c	input		Jotc = REAL OTC NUMBER (600-799)
+c	output		SLOT = SLOT # IN CRATE OF OTC (STARTS W/ 0)
+c
+C      D. FEIN  4/07/92
+C -- Rename from OTC_SLOT to MU_OTC_SLOT  10-18-92 K. Bazizi
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+	IMPLICIT NONE
+C
+	INTEGER JOTC,SLOT,SLOT_LOG(200)
+c
+C SLOT_LOG(1) = OTC 600
+C
+	DATA SLOT_LOG/  0,0,1,0,2,0,3,0,0,0,   		!600-609
+     1			8,0,9,0,10,0,11,0,0,0,		!610-619
+     2			10*0,				!620-629
+     3			0,0,1,0,2,0,3,0,0,0,		!630-639
+     4			8,0,9,0,10,0,11,0,0,0,		!640-649
+     5			10*0,				!650-659
+     6			4,0,6,0,5,0,7,0,0,0,		!660-669
+     7			4,0,6,0,5,0,7,0,0,0,		!670-679
+     8			20*0,				!680-699
+     &			1,2,3,4,5,6,7,0,0,0,		!700-709
+!     1                  0,0,1,0,2,0,3,0,0,0,		! OLD 710-719
+     1			2,0,8,0,9,0,3,0,0,0,		!710-719
+     2			1,0,7,0,10,0,4,0,0,0,		!720-729
+     3			0,0,6,0,11,0,5,0,0,0,		!730-739
+!     4                  0,0,1,0,2,0,3,0,0,0,		! OLD 740-749
+     4			2,0,8,0,9,0,3,0,0,0,		!740-749
+     5			1,0,7,0,10,0,4,0,0,0,		!750-759
+     6			0,0,6,0,11,0,5,0,0,0,		!760-769
+     7			12,0,13,0,14,0,15,0,0,0,	!770-779
+     8			12,0,13,0,14,0,15,0,0,0,	!780-789
+     9			10*0/
+C
+C
+	SLOT = SLOT_LOG((JOTC-599))
+c
+c
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+	RETURN
+	END

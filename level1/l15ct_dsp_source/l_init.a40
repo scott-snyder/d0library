@@ -1,0 +1,466 @@
+******************************************************************************
+*                                                                            *
+*   File  L_Init.A40                                    Rev.    1-APR-1994   *
+*                                                                            *
+*  "Meaningful" Register Usage                                               *
+*  ---------------------------                                               *
+*  AR4: Base Address of Peripheral Bus                      Output           *
+*  DP:  Base Address of Global SRAM                         Output           *
+*                                                                            *
+*  "Destroyable" Register Usage                                              *
+*  ----------------------------                                              *
+*  R11, AR7                                                                  *
+*                                                                            *
+*  Description of Module                                                     *
+*  =====================                                                     *
+*                                                                            *
+*  This is the first code to execute in the Local DSP Program. This          *
+*  routine is loaded at the bottom of the Local SRAM on the Hydra-II card    *
+*  i.e.  4000 0000h.  This routine performs general purpose initialization.  *
+*                                                                            *
+*  Note that these initialization tasks are not speed-critical.  Hence the   *
+*  initialization code is not written "tightly" to be optimized for          *
+*  execution speed, but instead is written to be clearly understandable.     *
+*                                                                            *
+*  For example, the initialization routines do not use delayed branches,     *
+*  and make use of the CALL construct to allow the routines to be            *
+*  easily modular.                                                           *
+*                                                                            *
+*  When the initialization is finished, this module makes a BRANCH to        *
+*  the "cyclic" portion of the Local DSP Program (which begins at the        *
+*  Scan Routine Initialization entry point).  That point marks the           *
+*  transition from non-speed-critical to speed-critical code.                *
+*                                                                            *
+*  This routine has the following steps:                                     *
+*                                                                            *
+*  1.  Initialize the C40 Status Register.                                   *
+*  2.  Initialize the C40 Data Page Pointer Register.                        *
+*  3.  Initialize a pointer to the On-Chip Peripherals                       *
+*  4.  Initialize a pointer to the Dual Port Memory                          *
+*  5.  Initialize the C40 Stack Pointer Register.                            *
+*  6.  Initialize the C40 Trap Vector Table Pointer                          *
+*  7.  Initialize the C40 Interrupt Vector Table Pointer                     *
+*  8.  Initialize the C40 Global Memory Interface Control Register           *
+*      and Local Memory Interface Control Register (note that the value      *
+*      for the LMICR is found in the Node-Specific Initialization Module)    *
+*  9.  Initialize the IIOF2 Interrupt Service Routine                        *
+* 10.  Initialize the NMI Interrupt Service Routine                          *
+* 11.  Define some constant headers
+* 12.  Send a "DSP Code Loaded and Started, Waiting for Parameters" status   *
+*      code to the TCC                                                       *
+* 13.  Wait in a "dead loop" for the TCC to issue an NMI.  When the TCC      *
+*      issues the NMI, the C40 will execute the NMI ISR, which will          *
+*      perform the Node-Specific Initialization, receive and check the       *
+*      Parameters, perform Tool Initialization, and branch to the            *
+*      beginning of the Scan Routine                                         *
+*                                                                            *
+******************************************************************************
+                                                                              
+******************************************************************************
+*         Include the Hydra and C40 Related Constant Definitions             *
+******************************************************************************
+
+         .include   "hydra.inc"
+
+******************************************************************************
+*         Include the       DSP Program-Specific Constant Definitions        *
+******************************************************************************
+
+         .include   "constant.inc"
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text
+
+Local_Start:                                        ; First setup the Data
+                                                    ; Page Pointer to point
+         LDP   Base_of_Glb_SRAM,DP                  ; to the 64k block where
+                                                    ; the  .data  sections
+                                                    ; will be stored at
+                                                    ; the base of Global SRAM
+                                                    ; i.e.  0C000 0000h.
+
+                                           ; Now load the Interrupt Vector
+                                           ; Table Pointer and the Trap Vector
+                                           ; Table Pointer C40 Expansion
+                                           ; Registers.
+
+         LDI   @C40_IV_Table_Handle,R11    ; Use register R11 to Load the IVTP.
+         LDPE  R11,IVTP
+
+         LDI   @C40_TV_Table_Handle,R11    ; Use register R11 to Load the TVTP.
+         LDPE  R11,TVTP
+
+
+
+         LDI   @C40_Stack_Handle,SP        ; Load the Stack Pointer Register
+                                           ; with the initial Base Address
+                                           ; of the Stack space.      
+
+
+******************************************************************************
+*                                                                            *
+*    The C40 Status Register has the following arrangement:                  *
+*                                                                            *
+*                                                                            *
+*    Bits:             31:17        16                                       *
+*    Function:      Reservered   Analysis                                    *
+*                                  Idle                                      *
+*                                                                            *
+*                                                                            *
+*    Bits:         15     14     13    12       11    10     9     8         *
+*                 ------------------------     ----------------------        *
+*    Function:     Set   PGIE   GIE    CC       CE    CF    PCF   RM         *
+*                 Cond                                                       *
+*                                                                            *
+*                                                                            *
+*                                                                            *
+*    Bits:          7      6      5     4        3    2    1    0            *
+*                 ------------------------      ------------------           *
+*    Function:     OVM    LUF    LV    UF        N    Z    V    C            *
+*                                                                            *
+******************************************************************************
+
+        LDI   @Zero_Loc,IIF                 ; Define all IIOF pins as
+                                            ; inputs, clear all internal
+                                            ; interrupts
+
+        LDI   3800h,ST                     ; Clear and Enable the Instruction
+                                           ; Cache,  disable the OVM, enable
+                                           ; interrupts
+
+
+        LDI   @Internal_Peripheral_Handle,AR4        ; Load the Auxiliary Reg 4
+                                                     ; with the base address of
+                                                     ; the on-chip peripherals
+
+        LDI   @Global_Mem_Ctrl_Reg_Value_Loc,R11     ; Load the Global Memory
+        STI   R11,*+AR4(Disp_to_Global_MICR)         ; Control Register.
+
+        LDI   @Local_Mem_Ctrl_Reg_Value_Loc,R11      ; Load the Local Memory
+        STI   R11,*+AR4(Disp_to_Local_MICR)          ; Control Register.
+    
+
+        LDI     @Error_Handler_ISR_Loc, R11             ; Use AR7 and R11 to
+        LDEP    IVTP, AR7                               ; map the Interrupt
+        STI     R11, *+AR7(Disp_to_IIOF2_Vector)        ; Service Routine for
+                                                        ; the Error Handler to 
+                                                        ; the ISR for IIOF2    
+        
+        MB1     @Enable_IIOF2_Edge_Loc, IIF             ; Enable IIOF2 as an
+                                                        ; edge-triggered      
+                                                        ; external interrupt
+                                                        ; NOTE THAT THIS
+                                                        ; FORCES IIOF3 TO BE A
+                                                        ; GENERAL-PURPOSE INPUT
+                                                        ; because we are
+                                                        ; writing to the IIOF3
+                                                        ; control bits of the
+                                                        ; IIF also.
+
+        LDI     @Initialize_ISR_Loc, R11                ; Use AR7 and R11 to
+        LDEP    IVTP, AR7                               ; map the Interrupt
+        STI     R11, *+AR7(Disp_to_NMI_Vector)          ; Service Routine for
+                                                        ; Initialization to    
+                                                        ; the ISR for NMI      
+                                                 
+******************************************************************************
+*      Define the constant part of the Local DSP Header Word for this        *
+*      Local DSP Node                                                        *
+*                                                                            *
+*  Recall the format of the Local DSP Header Word:                           *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*                   |------------|------------|--------------|----------|    *
+*   1st Longword:   | Length of  | Number of  | Number of    | DSP Node |    *
+*                   | each entry | entries in | VALID Entries| ID in    |    *
+*                   | in Long-   | this List  | in this list | hex      |    *
+*                   | words (3)  |   (8)      | (0..8 or     |          |    *
+*                   |            |            |  FF = ovrflw)|          |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+* Note that the MSByte, next-to MSByte, and LSByte of this Header Word are   *
+* all constant from event to event.  These are the Bytes that are defined    *
+* as the constant part of the Local DSP Header Word and are evaluated here   *
+******************************************************************************
+
+        LDI    @This_LDSP_Node_ID_Loc,R11               ; Use R11 to load
+        MB2    @LDSP_Entries_per_List_Loc,R11           ; the constant part
+        MB3    @LDSP_Longwords_per_Entry_Loc,R11        ; of the Local DSP
+        STI    R11,@This_LDSP_Header_Constant_Loc       ; Header Word for this
+                                                        ; LDSP Node
+                
+
+******************************************************************************
+*   Generate Header for the Trigger Tower Et  subsection of the Mark and     *
+*   Force Pass section of the Data Block                                     *
+*                                                                            *
+*   Recall the format of this header                                         *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*                   |------------|------------|--------------|----------|    *
+*   1st Longword:   | Number of elements      | Entry Type   | DSP Node |    *
+*                   | (i.e. longwords to      | of this Entry| ID in    |    *
+*                   |  follow) in this        | in the MFP   | hex      |    *
+*                   | Entry in the MFP        | section      |          |    *
+*                   | section of the Data     |  (1 = TT Et  |          |    *
+*                   | Block                   |  Data)       |          |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+******************************************************************************
+                                                  
+        LDHI    4*One_TT_Data_Block_Size, R11   ; Load the number of elements
+                                                ; in this Trigger Tower Et 
+                                                ; Entry into the two MSBytes
+                                                ; of R11
+
+        LDI     MFP_Trig_Tower_Et_Entry_Type,R10    ; Load the Entry Type of
+                                                    ; this list into R10
+
+        MB1     R10, R11                            ; And merge this Entry
+                                                    ; Type into the next to
+                                                    ; LSByte of R11
+
+        MB0     @This_LDSP_Node_ID_Loc, R11         ; Merge the ID of this
+                                                    ; LDSP Node into
+                                                    ; the LSByte of R11
+
+        STI     R11, @MFP_TT_Et_Header_Loc          ; And store this header
+                                                    ; in the appropriate
+                                                    ; memory location
+
+
+******************************************************************************
+*   Generate Header for the Ref Set Data      subsection of the Mark and     *
+*   Force Pass section of the Data Block                                     *
+*                                                                            *
+*   Recall the format of this header                                         *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*                   |------------|------------|--------------|----------|    *
+*   1st Longword:   | Number of elements      | Entry Type   | DSP Node |    *
+*                   | (i.e. longwords to      | of this Entry| ID in    |    *
+*                   |  follow) in this        | in the MFP   | hex      |    *
+*                   | Entry in the MFP        | section      |          |    *
+*                   | section of the Data     |  (2 = Ref    |          |    *
+*                   | Block                   |  Set Data)   |          |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+******************************************************************************
+                                                  
+        LDHI    4*One_Ref_Set_Block_Size + 1, R11   ; Load the number of 
+                                                    ; elements in this Ref Set
+                                                    ; Data Entry into the two 
+                                                    ; MSBytes of R11
+
+        LDI     MFP_Ref_Set_Entry_Type, R10         ; Load the Entry Type of
+                                                    ; this list into R10
+
+        MB1     R10, R11                            ; And merge this Entry
+                                                    ; Type into the next to
+                                                    ; LSByte of R11
+
+        MB0     @This_LDSP_Node_ID_Loc, R11         ; Merge the ID of this
+                                                    ; LDSP Node into
+                                                    ; the LSByte of R11
+
+        STI     R11, @MFP_Ref_Set_Header_Loc        ; And store this header
+                                                    ; in the appropriate
+                                                    ; memory location
+
+******************************************************************************
+*   Here we set a flag to the TCC indicating that the code has been          *
+*   loaded and execution has begun                                           *
+*                                                                            *
+*   One longword is returned to the TCC:                                     *
+*                                                                            *
+*      Bits     Description                                                  *
+*      -----    -----------                                                  *
+*       7:0     Return Code:  0 indicates code loaded and started            *
+*      23:8     Reserved                                                     *
+*      31:24    Local DSP ID                                                 *
+******************************************************************************
+
+        LDA     @This_LDSP_to_TCC_Status_Handle,AR7     ; Store the address
+                                                        ; of the "status to
+                                                        ; TCC" (in DP Memory)
+                                                        ; in AR7
+
+        LDI     Status_OK, R11                          ; Put the "Status OK"
+                                                        ; return code into the
+                                                        ; LSByte of R11
+
+        MB3     @This_LDSP_Node_ID_Loc, R11             ; Merge the Node ID
+                                                        ; of this LDSP into
+                                                        ; the MSByte of R11
+
+        STI     R11,*AR7                                ; Put the Return
+                                                        ; Status into the
+                                                        ; Dual Port Memory
+
+******************************************************************************
+*  Now we should just wait in a "dead loop."  The Local DSP must wait for    *
+*  the TCC to assert NMI before it can begin initializing and receiving      *
+*  parameters (the NMI ISR calls the initialization and parameter checking   *
+*  routines)                                                                 *
+******************************************************************************
+             
+Wait_for_Interrupt:
+
+         BR     Wait_for_Interrupt          ; Wait in a "dead loop" for an  
+                                            ; interrupt                
+
+
+******************************************************************************
+*  This is the Bulkhead.  This code should never be executed                 *
+******************************************************************************
+
+End_Of_L_Init:                          ; These instructions should never be 
+                                        ; executed in the "normal" operation
+         BR     End_Of_L_Init           ; of the program.  If the program
+                                        ; counter becomes corrupted or
+         BR     End_Of_L_Init           ; if we have a bug in the program
+                                        ; we MAY try to execute these
+         BR     End_Of_L_Init           ; instructions.  If we get to these
+                                        ; instructions the program will appear
+         BR     End_Of_L_Init           ; to halt.  We could also use a
+                                        ; TRAP instruction here, and jump to
+                                        ; a service routine.
+
+******************************************************************************
+*         Load Constants and Working Variables into the  .data.  Section.    *
+******************************************************************************
+
+         .data
+
+Base_of_Glb_SRAM:
+
+C40_TV_Table_Loc:                               ; Define the Trap Vector     
+                                                ; Table.  All entries        
+        .eval   0, x                            ; currently point to         
+        .loop                                   ; A default Interrupt        
+        .word   Default_ISR                     ; Service Routine (which is  
+        .eval   x+1, x                          ; just a RETI)               
+        .break  x = 200h                        ; This Table will load at    
+        .endloop                                ; 0C00000000h.               
+
+C40_IV_Table_Loc:                               ; Define the Trap Vector     
+                                                ; Table.  All entries        
+        .eval   0, x                            ; currently point to         
+        .loop                                   ; A default Interrupt        
+        .word   Default_ISR                     ; Service Routine (which is  
+        .eval   x+1, x                          ; just a RETI)               
+        .break  x = 40h                         ; This Table will load at    
+        .endloop                                ; 0C00000200h.               
+
+C40_Stack_Loc:            .space   200h        ; Save 512 Words for the Stack.
+                                               ; This will load at 0C0000240h.
+
+
+C40_TV_Table_Handle:      .word   C40_TV_Table_Loc      ; Memory location to
+                                                        ; store the address
+                                                        ; of the TVTP table.
+
+C40_IV_Table_Handle:      .word   C40_IV_Table_Loc      ; Memory location to
+                                                        ; store the address
+                                                        ; of the IVTP table.
+
+C40_Stack_Handle:         .word   C40_Stack_Loc         ; Memory location to
+                                                        ; store the base adrs
+                                                        ; of the C40 stack.
+
+Global_Mem_Ctrl_Reg_Value_Loc:   .word   1DEA4000h      ; Memory location to
+                                                        ; store the value that
+                                                        ; is loaded into the
+                                                        ; Global Memory
+                                                        ; Control Register.
+                              
+Internal_Peripheral_Handle:                             ; Memory Location to
+                                                        ; store the Base
+        .word       Base_of_Peripheral_Bus              ; Address of the
+                                                        ; Peripheral Bus 
+
+Dual_Port_Memory_Handle:
+
+        .word       Base_of_Dual_Port_Memory
+
+Enable_IIOF2_Edge_Loc:          .word   00000009h       ; Memory Location to
+                                                        ; store the value 
+                                                        ; that is loaded into
+                                                        ; the IIOF2 bits in the
+                                                        ; IIF.  This enables
+                                                        ; IIOF2 as an edge-    
+                                                        ; triggered interrupt
+                                                        ; AND HAS THE SIDE 
+                                                        ; EFFECT OF PROGRAMMING
+                                                        ; IIOF3 AS AN INPUT
+                                                        ; when merged into the
+                                                        ; IIF with an MB1
+                                                        ; instruction
+
+This_LDSP_Header_Constant_Loc:                          ; Memory location to
+                                                        ; store the "constant
+         .space  1                                      ; part" of the LDSP
+                                                        ; Header Word for
+                                                        ; this DSP Node
+
+MFP_TT_Et_Header_Loc:                                   ; Memory location to
+                                                        ; store the header
+        .space 1                                        ; for the Et Data
+                                                        ; subsection of the
+                                                        ; MFP Section of
+                                                        ; the Data Block
+
+MFP_Ref_Set_Header_Loc:                                 ; Memory location to
+                                                        ; store the header
+        .space 1                                        ; for the Ref Set
+                                                        ; subsection of the
+                                                        ; MFP Section of
+                                                        ; the Data Block 
+
+MFP_Ref_Set_0_Flag_Loc:                                 ; Memory location
+                                                        ; to store the
+        .word   0                                       ; ID of the reference
+                                                        ; set which is included
+                                                        ; in the MFP data.
+                                                        ; This location must
+                                                        ; immediately follow
+                                                        ; the Ref Set Header
+                                                        ; for the DMA List
+                                                        ; to work correctly.
+                                                   
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+
+                                                        ; Define these        
+         .def    Local_Start                            ; Symbols as external 
+         .def    Dual_Port_Memory_Handle                ; for use in other    
+         .def    C40_Stack_Handle                       ; modules.            
+         .def    This_LDSP_Header_Constant_Loc
+         .def    MFP_TT_Et_Header_Loc
+         .def    MFP_Ref_Set_Header_Loc
+
+         .ref    Init_for_Loop                          ; These symbols are
+         .ref    Default_ISR                            ; defined in   
+         .ref    Error_Handler_ISR_Loc                  ; external modules
+         .ref    Initialize_ISR_Loc
+         .ref    This_LDSP_Node_ID_Loc
+         .ref    This_LDSP_to_TCC_Status_Handle
+         .ref    Local_Mem_Ctrl_Reg_Value_Loc
+         .ref    LDSP_Entries_per_List_Loc           
+         .ref    LDSP_Longwords_per_Entry_Loc        
+         .ref    Zero_Loc
+
+******************************************************************************
+*   End of this module                                                       *
+******************************************************************************
+
+         .end
+
+

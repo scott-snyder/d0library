@@ -1,0 +1,138 @@
+            
+                                                                J. Linnemann
+                                                                7 Dec 1992
+
+                            SETUP_L2SIM and Production Passes 
+
+0. The logical FILTER_DEFAULT is used when search lists between user's and
+   official locations are desired.  Presently the search list is user's area,
+   followed by d0$level2$l2sim.  For production releases, the logical
+   d0$level2$l2sim is also implicitly a search list from the production "common"
+   directories BEFORE the actual low-level d0$level2$root:[l2sim].
+            [.l2prod]       version release common area 
+            [.l2prod.new]   pass release common area
+    We might choose to start using d0$l2beta:[000000] liKe the top [.l2prod]
+    area.  But if we don't anything which needs to go into a common area should
+    go into [level2.l2sim]
+
+1. Setup_L2sim no longer copies any part of the default trigger setup
+
+2. The release procedures make a vms_filter_hstrfl.FOR and 
+   put it into the L2PROD local cms for the release pass.  (Instead of doing it
+   in setup_l2sim and l2_link)
+
+3. The release procedures compile *.for in the NEW area (fetched from the L2PROD
+   local cms) and put it into PASS_RELEASE.OBJ  (and DEB_).  This contains all
+   patches to the base release.   Code which belongs to filters have the
+   extension .FOR_NODE and make a PASS_RELEASE_NODE.OBJ which is a subset of the
+   full PASS_RELEASE.OBJ. 
+
+4. If the user requests the standard .exe, or "quit", NOTHING is copied to his
+   area except L2LIB_SETUP.COM.   L2LIB_SETUP.COM now runs
+   @FILTER_DEFAULT:VMS_FILTER_D0USER.COM This command file is left in .l2sim 
+   by the release procedures.   This .COM is made from the standard one by 
+    SWAP VMS_FILTER_D0USER.COM directory$made_in FILTER_DEFAULT
+
+5.  If the user chooses to build a new .EXE, after the PBD step, SETUP_L2SIM
+    copy/concat PASS_RELEASE.OBJ's into the VMS_FILTER_D0USER.OBJ's in the 
+    user's area.
+
+6. SETUP_L2SIM has a new parameter, the version number of OBJ to choose if you
+   don't want the latest pass release.  (The version number of the OBJ is the
+   pass release).
+
+7. Only relinking of VMS_FILTER_D0USER, and the ELN .EXE's are supported.  Need
+   to rebuild another .EXE is grounds for a new full release.  (do we need to
+   bend on this for the STP building .EXE?)
+
+
+    The production version of l2lib_setup.com (what directory?  Does l2lib_setup
+have to do a search list of d0$level2,d0$level2$command_proc to find it)
+contains only d0prod l2prod as the library setup and libt util, beta_util
+  
+===============================================================================
+steps in a pass release
+    (assumes that this has been completely done on previous pass)
+states
+
+a   have code for a working release in main dir, .new is empty
+b   have code in both, .new is under development
+c   .new is working; make it public
+d   new full version release
+
+procedures:
+
+a -> a  (new version release)
+------
+        copy main into old
+            (next steps are close to a->b, except new GROUP defined, and action
+            takes place in TOP, not NEW ?)
+                    !shows what was in prev
+        cms sho class V_oldxx.yy/cont/out=V_oldxx.oldyy-list
+        cms sho elem/memb ALL/out=ALL_oldxx.oldyy-list
+        cms sho elem/memb for each LIB group /out=LIB_oldxx.oldyy-list
+        cmsmove *.* ALL ARCHIVE                         !clear out for new vers
+        cmsmove *.* libx ARCHIVE
+        set def l2$top
+        define new version xx ( and pass = 0)   
+                zero-padded version/pass numbers: 
+                    either make _str global symbols, or rebuild from _num as in 
+                    l2$mgr:update_l2_pass.com (l2_version_str,l2_pass_str )
+        define new class V_xx.00
+        open up new release notes 
+        if you can figure out how, put the version number into release notes as
+           first entry
+
+a -> b  (start new pass)
+------
+        set def l2$new
+        give a new pass number yy
+        define new class V_xx.yy
+        open up new release notes
+
+b -> b  (remake pass)
+------
+            set def l2$new
+            modify release notes
+            make .obj, .exe, perhaps .stp and .info
+                rebuild obj's in l2$new
+                rebuild exe's in l2$new
+                    vms, deb vms, l2 eln
+                    possibly rebuild trigger setup
+                    possibly vms, l2 stp makers
+                    rebuild stp's if required
+            version numbers of above: obj's match pass #, should .exe, .stp too?
+            put new source code into library group (eg UTIL)
+                        (choice is by hand) (each library group is in RELEASE)
+            delete .bnl files from l2$new
+            put everything into ALL:
+                CMSUPDATE *.* L2PROD ALL    (NOTE!!!! don't allow .DIR's)
+                    (can't do /exclude)
+            CMS insert generation ALL V_xx.yy  (be sure to 0-fill xx,yy)
+                    (this is faster than CMSCLASS/@CLASS.COM)
+
+b -> c  (make pass public)
+------
+
+        set def l2$new
+            version numbers of above: obj's match pass #, should .exe, .stp too?
+        purge l2$new:*.*
+        force insert everything into ALL 
+        insert ALL group into pass class (use l2_version_str,l2_pass_str)
+                        (V03.02)
+                either make _str global symbols, or rebuild from _num as in 
+                l2$mgr:update_l2_pass.com
+
+c -> a  (supercede old pass)
+        stuff .NEW into main directory and clear out .NEW :
+-------    
+0. (not normally; really only for version release?)
+    copy everything in top directory to .old
+    sd l2$old
+    D0MSU1:L2$OLD>copy l2$top:*.*/exclude=(*.dir) *     ! top copy only
+
+1. copy everything from l2$new to l2$top
+    sd l2$top
+    D0MSU1:L2$OLD>copy l2$new:*.*/exclude=*.dir *
+    
+2. delete l2$new:*.*;*

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VLEVEL0()
+      VLEVEL0 = ' LEVEL0'//
+     X                   '  OFFICIAL V0.04'//
+     X                   ' 27-JUL-1995 16:26:59.03'
+      Return
+      End

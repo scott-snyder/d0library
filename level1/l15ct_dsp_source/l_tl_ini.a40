@@ -1,0 +1,858 @@
+******************************************************************************
+*                                                                            *
+*   File  L_TL_Ini.A40                                  Rev.   14-JUN-1994   *
+*                                                                            *
+*  "Meaningful" Register Usage                                               *
+*  ---------------------------                                               *
+*                                                                            *
+*  "Destroyable" Register Usage                                              *
+*  ----------------------------                                              *
+*   R8, R9*, R10*, R11*, AR7                                                 *
+*                                                                            *
+*       * Note that R9, R10, and R11 are used for communication with the     *
+*         Parameter Checking module                                          *
+*                                                                            *
+*  Description of Module                                                     *
+*  =====================                                                     *
+*                                                                            *
+*   This is the module that Initializes the Local Tool Code.  Note that      *
+*   there must be one of these modules for each Local Tool.  In this first   *
+*   version of the code there is only one Local Tool and hence only one      *
+*   Local Tool Initialization module.                                        *
+*                                                                            *
+*   This module is called only when new Parameters are loaded (i.e.          *
+*   in response to a START message from COOR).                               *
+*                                                                            *
+*   It performs the following functions:                                     *
+*                                                                            *
+*       (1)     Receive and store the Term Number to which this Tool         *
+*               has been mapped                                              *
+*       (2)     Receive and check the Reference Set Type used by             *
+*               this Tool                                                    *
+*       (3)     Receive, check, and store the Local Tool Parameters          *
+*       (4)     Generate any "derived constants" (i.e. Offsets) that         *
+*               will be used by the Local Tool and store them in             *
+*               known locations                                              *
+*       (5)     Build the Header for the Derived Constants subsection        *
+*               of the Mark and Force Pass Section of the Data Block         *
+*       (6)     Return a status code to the Parameter Checking module        *
+*       (7)     Return to the calling module                                 *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*         Include the       DSP Program-Specific Constant Definitions        *
+******************************************************************************
+
+         .include   "constant.inc"
+                               
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text
+
+Initialize_Tool:                                                              
+
+******************************************************************************
+*           Check Tool Number of the Parameter Block passed to this Tool     *
+*                                                                            *
+*   The calling module passes a pointer to the Local Tool Parameter Block    *
+*   for this Tool.  Here we check the Tool Number of that Parameter Block.   *
+*                                                                            *
+******************************************************************************
+
+Check_Tool_Number:
+
+        LDI     @Local_Tool_Parameter_Handle,AR7        ; Load the pointer
+                                                        ; to this Tool's
+                                                        ; Local Parameters
+                                                        ; into AR7            
+
+        LDI     @Zero_Loc,R8                            ; Zero the "Current
+                                                        ; Parameter Number"
+                                                        ; (which is stored
+                                                        ; in R8)
+
+        LDI     *AR7++(1),R11                           ; Get the Tool Number
+                                                        ; of the Parameter
+                                                        ; Block passed to 
+                                                        ; this Tool
+                                                        ;   Set AR7 for the
+                                                        ;   next longword in
+                                                        ;   the Parameter
+                                                        ;   Block (Number of
+                                                        ;   Parameters)
+        
+        CMPI    @Tool_Number_Loc,R11                    ; Compare the Tool
+                                                        ; Number found to
+                                                        ; this Tool's Tool
+                                                        ; Number    
+
+        Bne     Parameter_Range_Failure                 ; If the Tool ID of
+                                                        ; the Parameter Block
+                                                        ; does not match the
+                                                        ; Tool ID of this Tool
+                                                        ; then branch to a 
+                                                        ; failure routine
+
+******************************************************************************
+*           Receive and Store Term Number for this Tool                      *
+*                                                                            *
+*   The calling module passes the Term Number for this Tool in a memory      *
+*   location.  We will copy the Term Number into a Tool-specific memory      *
+*   location.                                                                *
+******************************************************************************
+                                        
+Get_Term_Number:
+
+        LDI     @Term_Number_Loc,R11                    ; Put the Term Number
+                                                        ; to which this Tool
+        STI     R11,@Term_Number_for_This_Tool_Loc      ; has been mapped into
+                                                        ; a Tool-specific 
+                                                        ; memory location
+                                                                              
+
+******************************************************************************
+*           Receive and Check Reference Set Type                             *
+*                                                                            *
+*   The calling module passes the Reference Set Type for this Tool in a      *
+*   memory location.  This Tool checks to verify that the correct Reference  *
+*   Set Type (in this case EM) is specified.  If there is a problem, this    *
+*   Tool exits this routine via a failure exit point                         *
+******************************************************************************
+
+Check_Ref_Set_Type:
+
+        LDI     @Reference_Set_Type_Loc,R11             ; Get the Reference
+                                                        ; Set Type
+
+        CMPI    EM_Reference_Set_Type,R11               ; Check to see whether
+                                                        ; the EM Et Ref Set
+                                                        ; has been specified
+
+        Bne     Reference_Set_Type_Failure              ; If an incorrect 
+                                                        ; Ref Set type has
+                                                        ; been specified then
+                                                        ; branch to a failure
+                                                        ; routine 
+
+                                                        ; if we have gotten to
+                                                        ; this point then
+                                                        ; we can begin
+                                                        ; extracting and
+                                                        ; checking the Tool
+                                                        ; Dependent Local
+                                                        ; Parameters.
+                                                                     
+
+******************************************************************************
+*           Extract, Check, and Store Tool Parameters                        *
+*                                                                            *
+*   This section of the code extracts and checks the Tool Parameters from    *
+*   the Dual Port Memory.                                                    *
+*                                                                            *
+*   The calling module passes a pointer to the Local Tool Parameters for     *
+*   this Tool in a memory location.  The Tool must read that memory location *
+*   to discover where its Local Parameters are in Dual Port Memory.          *
+*                                                                            *
+*   It checks the Tool Parameters for the following things:                  *
+*                                                                            *
+*   - This Term Entry in the parameter block belongs to this Tool Number,    *
+*   - that the proper number of parameters appear in the term entry          *
+*   - and that all data contained in this entry is within range and          *
+*     consistency checks that are built into this part of the Tool code.     *
+*                                                                            *
+*   As it checks the Tool Parameters it stores them in known locations in    *
+*   the Global SRAM (i.e. the region of memory starting at $C000 0000)       *
+*                                                                            *
+*   It generates a return code for the Parameter Checker also.               *
+*                                                                            *
+******************************************************************************
+
+Get_This_Tools_Parameters:
+
+        LDI     *AR7++(1),R11                           ; Get the number
+                                                        ; of Parameters
+                                                        ; for this Tool
+                                                        ; from the Dual Port
+                                                        ; Memory
+                                                        ;   Set AR7 for the
+                                                        ;   next longword 
+                                                        ;   (1st Tool 
+                                                        ;    Dependent 
+                                                        ;    Parameter)
+
+        CMPI    Number_of_Parameters_Expected,R11       ; Compare the number
+                                                        ; of Parameters for
+                                                        ; this Tool to the
+                                                        ; number of Parameters
+                                                        ; required.
+
+        Bne     Number_of_Parameters_Failure            ; If the wrong number
+                                                        ; of Parameters are
+                                                        ; specified then
+                                                        ; branch to a failure
+                                                        ; exit point
+        
+        ADDI    1,R8                                    ; Increment the       
+                                                        ; "Current Parameter  
+                                                        ; Number" counter  
+
+        LDF     *AR7++(1), R11                          ; Get this Tool's 
+                                                        ; First Tool-Dependent
+                                                        ; Parameter (1x2 EM Et
+                                                        ; Threshold, it is 
+                                                        ; a FLOAT, the units  
+                                                        ; are GeV) from
+                                                        ; Dual Port Memory.
+                                                        ;   Set AR7 for the
+                                                        ;   next longword
+                                                        ;   (2nd Tool
+                                                        ;   Dependent
+                                                        ;   Parameter      
+        
+        CMPF    0.25, R11                               ; Check the 1x2 EM
+                                                        ; Et Threshold against
+                                                        ; the LOWER limit
+
+        BltAF   Parameter_Range_Failure                 ; Branch to the Param.
+                                                        ; Range Failure routine
+                                                        ; if the Et Threshold
+                                                        ; is BELOW the LOWER
+                                                        ; limit.
+                                                        ;   The next 3 
+                                                        ;   instructions are
+                                                        ;   also executed but
+                                                        ;   ANNULLED if the
+                                                        ;   branch is not 
+                                                        ;   taken
+
+
+        LDI     *-AR7(1), R11                           ; Re-load R11 with
+                                                        ; the Parameter from
+                                                        ; the Dual Port
+                                                        ; Memory, but load
+                                                        ; it as an INTEGER
+                                                        ; to be compatible
+                                                        ; with the reporting
+                                                        ; to TCC.
+
+        NOP
+
+        NOP
+
+        CMPF    128.0, R11                              ; Check the 1x2 EM 
+                                                        ; Et Threshold against
+                                                        ; the UPPER limit
+
+        BgtAF   Parameter_Range_Failure                 ; Branch to the Param.
+                                                        ; Range Failure routine
+                                                        ; if the Et Threshold
+                                                        ; is ABOVE the UPPER
+                                                        ; limit
+                                                        ;   The next 3 
+                                                        ;   instructions are
+                                                        ;   also executed but
+                                                        ;   ANNULLED if the
+                                                        ;   branch is not 
+                                                        ;   taken
+
+        LDI     *-AR7(1), R11                           ; Re-load R11 with
+                                                        ; the Parameter from
+                                                        ; the Dual Port
+                                                        ; Memory, but load
+                                                        ; it as an INTEGER
+                                                        ; to be compatible
+                                                        ; with the reporting
+                                                        ; to TCC.
+
+        NOP
+
+        NOP
+                                                                      
+        MPYF    4.0, R11                                ; Convert GeV to 
+                                                        ; counts
+
+        FIX     R11, R10                                ; Convert the floating-
+                                                        ; point counts into
+                                                        ; fixed-point counts.
+
+        STI     R10, @EM_Et_1x2_Threshold_Loc           ; Store the EM Et
+                                                        ; 1x2 Threshold.
+
+        ADDI    1,R8                                    ; Increment the       
+                                                        ; "Current Parameter  
+                                                        ; Number" counter  
+
+        LDF     *AR7++(1), R11                          ; Get this Tool's 
+                                                        ; 2nd   Tool-Dependent
+                                                        ; Parameter (EM Et vs 
+                                                        ; Tot Et Ratio
+                                                        ; Threshold, it is
+                                                        ; a FLOATING POINT)   
+                                                        ; from the
+                                                        ; Dual Port Memory.
+                                                        ;   Set AR7 for the
+                                                        ;   next longword
+                                                        ;   (3nd Tool
+                                                        ;   Dependent
+                                                        ;   Parameter
+
+        CMPF    0.01, R11                               ; Check the Ratio
+                                                        ; Threshold against
+                                                        ; the LOWER limit
+
+        BltAF   Parameter_Range_Failure                 ; Branch to the Param.
+                                                        ; Range Failure routine
+                                                        ; if the Ratio Thresh
+                                                        ; is BELOW the LOWER
+                                                        ; limit             
+                                                        ;   The next 3 
+                                                        ;   instructions are
+                                                        ;   also executed but
+                                                        ;   ANNULLED if the
+                                                        ;   branch is not 
+                                                        ;   taken
+
+        LDI     *-AR7(1), R11                           ; Re-load R11 with
+                                                        ; the Parameter from
+                                                        ; the Dual Port
+                                                        ; Memory, but load
+                                                        ; it as an INTEGER
+                                                        ; to be compatible
+                                                        ; with the reporting
+                                                        ; to TCC.
+
+        NOP
+
+        NOP
+
+        CMPF    100.0, R11                              ; Check the Ratio  
+                                                        ; Threshold against
+                                                        ; the UPPER limit
+
+        BgtAF   Parameter_Range_Failure                 ; Branch to the Param.
+                                                        ; Range Failure routine
+                                                        ; if the Ratio Thresh
+                                                        ; is ABOVE the UPPER
+                                                        ; limit             
+                                                        ;   The next 3 
+                                                        ;   instructions are
+                                                        ;   also executed but
+                                                        ;   ANNULLED if the
+                                                        ;   branch is not 
+                                                        ;   taken
+
+        LDI     *-AR7(1), R11                           ; Re-load R11 with
+                                                        ; the Parameter from
+                                                        ; the Dual Port
+                                                        ; Memory, but load
+                                                        ; it as an INTEGER
+                                                        ; to be compatible
+                                                        ; with the reporting
+                                                        ; to TCC.
+
+        NOP
+
+        NOP
+
+        STF     R11, @EM_vs_Tot_Ratio_Threshold_Loc     ; Store the EM vs. Tot
+                                                        ; Ratio Threshold
+
+        ADDI    1,R8                                    ; Increment the       
+                                                        ; "Current Parameter  
+                                                        ; Number" counter  
+
+                                                        ; if we get to 
+                                                        ; this point then
+                                                        ; all Parameters were
+                                                        ; OK and the correct
+                                                        ; Reference Set Type
+                                                        ; was specified.    
+                                                        ; We can continue 
+                                                        ; processing,
+                                                        ; generating the 
+                                                        ; derived constants
+
+******************************************************************************
+*           Generate and Store Derived Constants                             *
+*                                                                            *
+*   Next we need to generate and store the Derived Constants for this Local  *
+*   Tool.                                                                    *
+*                                                                            *
+*   The only derived constants are the 3x3 Total Et Sum Offsets.             *
+*   Offsets.  These are formed by adding up the Zero Responses for the 9     *
+*   Total Et's which make up the 3x3 Total Et Sum at each of the 4 etas      *
+*   serviced by this Local DSP Node.                                         *
+*                                                                            *
+*   The eta-dependent Zero Responses for individual Trigger Towers are       *
+*   already stored in a "relative eta" configuration so we simply have       *
+*   to add them up and generate the four 3x3 Total Et Sum Offsets.           *
+*                                                                            *
+******************************************************************************
+
+Generate_Derived_Constants:
+                
+
+                                                        ; First build the 3x3  
+                                                        ; Tot Et Sum Offset for
+                                                        ; eta    "n + 2"
+
+ 
+        LDI     @Eta_Nplus1_Tot_Et_Zeresp_Loc, R11      ; LOAD the Zero        
+                                                        ; ^^^^ Response for
+                                                        ;   eta   "n + 1"
+                                                        ; into R11
+
+        ADDI    @Eta_Nplus2_Tot_Et_Zeresp_Loc, R11      ; Add the Zero
+                                                        ; Response for
+                                                        ;   eta   "n + 2" 
+                                                        ; to the sum in R11
+
+        ADDI    @Eta_Nplus3_Tot_Et_Zeresp_Loc, R11      ; Add the Zero
+                                                        ; Response for
+                                                        ;   eta   "n + 3" 
+                                                        ; to the sum in R11
+
+        MPYI    3, R11                                  ; Multiply the sum 
+                                                        ; in R11 by 3 (to 
+                                                        ; account for the
+                                                        ; fact that 3 TT's
+                                                        ; at each eta
+                                                        ; contribute to the
+                                                        ; 3x3 Tot Et Sum Offset
+
+        STI     R11, @Eta_Nplus2_3x3_Tot_Offset_Loc     ; Store the 3x3 
+                                                        ; Tot Sum Offset for
+                                                        ;   eta   "n + 2"
+
+                
+                                                        ; Then build the 3x3   
+                                                        ; Tot Et Sum Offset for
+                                                        ; eta    "n + 3"
+
+ 
+        LDI     @Eta_Nplus2_Tot_Et_Zeresp_Loc, R11      ; LOAD the Zero        
+                                                        ; ^^^^ Response for
+                                                        ;   eta   "n + 2"
+                                                        ; into R11
+
+        ADDI    @Eta_Nplus3_Tot_Et_Zeresp_Loc, R11      ; Add the Zero
+                                                        ; Response for
+                                                        ;   eta   "n + 3" 
+                                                        ; to the sum in R11
+
+        ADDI    @Eta_Nplus4_Tot_Et_Zeresp_Loc, R11      ; Add the Zero
+                                                        ; Response for
+                                                        ;   eta   "n + 4" 
+                                                        ; to the sum in R11
+
+        MPYI    3, R11                                  ; Multiply the sum 
+                                                        ; in R11 by 3 (to 
+                                                        ; account for the
+                                                        ; fact that 3 TT's
+                                                        ; at each eta
+                                                        ; contribute to the
+                                                        ; 3x3 Tot Et Sum Offset
+
+        STI     R11, @Eta_Nplus3_3x3_Tot_Offset_Loc     ; Store the 3x3 Tot
+                                                        ; Et Sum Offset for
+                                                        ;   eta   "n + 3"
+
+                
+                                                        ; Then build the 3x3   
+                                                        ; Tot Et Sum Offset for
+                                                        ; eta    "n + 4"
+
+ 
+        LDI     @Eta_Nplus3_Tot_Et_Zeresp_Loc, R11      ; LOAD the Zero        
+                                                        ; ^^^^ Response for
+                                                        ;   eta   "n + 3"
+                                                        ; into R11
+
+        ADDI    @Eta_Nplus4_Tot_Et_Zeresp_Loc, R11      ; Add the Zero
+                                                        ; Response for
+                                                        ;   eta   "n + 4" 
+                                                        ; to the sum in R11
+
+        ADDI    @Eta_Nplus5_Tot_Et_Zeresp_Loc, R11      ; Add the Zero
+                                                        ; Response for
+                                                        ;   eta   "n + 5" 
+                                                        ; to the sum in R11
+
+        MPYI    3, R11                                  ; Multiply the sum 
+                                                        ; in R11 by 3 (to 
+                                                        ; account for the
+                                                        ; fact that 3 TT's
+                                                        ; at each eta
+                                                        ; contribute to the
+                                                        ; 3x3 Tot Et Sum Offset
+
+        STI     R11, @Eta_Nplus4_3x3_Tot_Offset_Loc     ; Store the 3x3 Tot
+                                                        ; Et Sum Offset for
+                                                        ;   eta   "n + 4"
+
+                
+                                                        ; Then build the 3x3   
+                                                        ; Tot Et Sum Offset for
+                                                        ; eta    "n + 5"
+
+ 
+        LDI     @Eta_Nplus4_Tot_Et_Zeresp_Loc, R11      ; LOAD the Zero        
+                                                        ; ^^^^ Response for
+                                                        ;   eta   "n + 4"
+                                                        ; into R11
+
+        ADDI    @Eta_Nplus5_Tot_Et_Zeresp_Loc, R11      ; Add the Zero
+                                                        ; Response for
+                                                        ;   eta   "n + 5" 
+                                                        ; to the sum in R11
+
+        ADDI    @Eta_Nplus6_Tot_Et_Zeresp_Loc, R11      ; Add the Zero
+                                                        ; Response for
+                                                        ;   eta   "n + 6" 
+                                                        ; to the sum in R11
+
+        MPYI    3, R11                                  ; Multiply the sum 
+                                                        ; in R11 by 3 (to 
+                                                        ; account for the
+                                                        ; fact that 3 TT's
+                                                        ; at each eta
+                                                        ; contribute to the
+                                                        ; 3x3 Tot Et Sum Offset
+
+        STI     R11, @Eta_Nplus5_3x3_Tot_Offset_Loc     ; Store the 3x3 Tot
+                                                        ; Et Sum Offset for
+                                                        ;   eta   "n + 5"
+
+          
+******************************************************************************
+*   Generate Header for the Derived Constants subsection of the Mark and     *
+*   Force Pass section of the Data Block                                     *
+*                                                                            *
+*   Recall the format of this header                                         *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*                   |------------|------------|--------------|----------|    *
+*   1st Longword:   | Number of elements      | Entry Type   | DSP Node |    *
+*                   | (i.e. longwords to      | of this Entry| ID in    |    *
+*                   |  follow) in this        | in the MFP   | hex      |    *
+*                   | Entry in the MFP        | section      |          |    *
+*                   | section of the Data     |  (3 = Derived|          |    *
+*                   | Block                   |  Constants)  |          |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+******************************************************************************
+                                                  
+        LDHI    MFP_Derived_Const_Length, R11   ; Load the number of elements
+                                                ; in this Derived Constant
+                                                ; Entry into the two MSBytes
+                                                ; of R11
+
+
+        LDI     MFP_Derived_Const_Entry_Type,R10    ; Load the Entry Type of
+                                                    ; this list into R10
+
+        MB1     R10, R11                            ; And merge this Entry
+                                                    ; Type into the next to
+                                                    ; LSByte of R11
+
+        MB0     @This_LDSP_Node_ID_Loc, R11         ; Merge the ID of this
+                                                    ; LDSP Node into
+                                                    ; the LSByte of R11
+
+        STI     R11, @MFP_Derived_Const_Header_Loc  ; And store this header
+                                                    ; in the appropriate
+                                                    ; memory location
+                            
+******************************************************************************
+*   Success Exit Point                                                       *
+*                                                                            *
+*           Now return to the calling module                                 *
+******************************************************************************
+        LDI     Status_OK,R11                   ; Store the Status OK
+                                                ; message in R11 for returning
+                                                ; to the calling module
+
+        LDI     @Zero_Loc,R10                   ; Clear R10
+
+        RETS                                    ; Return to the calling module
+                                                                              
+
+******************************************************************************
+*           Failure Processing                                               *
+*                                                                            *
+*   We have found an error with one of the Parameters or the Reference       *
+*   Set Type.  We need to set a return code to the calling module (the       *
+*   Parameter Checking module) and then return to the calling module.        *
+*                                                                            *
+******************************************************************************
+            
+******************************************************************************
+*           Local Tool-Dependent Term Parameter Failure Processing           *
+*                                                                            *
+*   This is the processing    corresponding to failures in Frame Parameter   *
+*   extraction and checking.  The possible Local Parameter Failures are:     *
+*                                                                            *
+*       Failure Description                             Error Code           *
+*       -------------------                             ----------           *
+*       Incorrect Local Tool Number (Tool ID)             1                  *
+*       Incorrect Number of Local Tool Parameters         2                  *
+*       Local Tool Parameter out of Range                 3                  *
+*       Parameter Block Type Flag Mismatch in Header      4                  *
+*       Term Number Mismatch in Header                    5                  *
+*       Reference Set Type Mismatch in Header             6                  *
+*                                                                            *
+*   The Error Codes reserved for Local     Parameter Failures are in the     *
+*   range       1 -  20                                                      *
+*                                                                            *
+*   The Status response to the TCC is composed of 2 longwords:               *
+*                                                                            *
+*   The first longword looks like:                                           *
+*                                                                            *
+*      Bits     Description                                                  *
+*      -----    -----------                                                  *
+*       7:0     Error Code (in the range 1-20, as described above)           *
+*      15:8     Tool Number (found)                                          *
+*      23:16    Term Number (expected)                                       *
+*      31:24    Number of Parameters expected  (if error code = 2)           *
+*               Which Parameter is bad         (if error code = 3)           *
+*               Parameter Type Flag expected   (if error code = 4)           *
+*               Reference Set Type expected    (if error code = 6)           *
+*                                                                            *
+*   The second longword looks like:                                          *
+*                                                                            *
+*      Bits     Description                                                  *
+*      -----    -----------                                                  *
+*      31:0     Tool Number (same as above)    (if error code = 1)           *
+*               Number of Parameters found     (if error code = 2)           *
+*               Value of bad Parameter         (if error code = 3)           *
+*               Parameter Type Flag found      (if error code = 4)           *
+*               Term Number found              (if error code = 5)           *
+*               Reference Set Type found       (if error code = 6)           *
+*                                                                            *
+******************************************************************************
+
+Reference_Set_Type_Failure:     ; The Reference Set specified in the 
+                                ; Local Parameter Block Header does not
+                                ; match the Reference Set Type used by
+                                ; this Tool.
+                                ; R11 contains the Reference Set Type
+                                ; found in the header
+
+        LDI     Reference_Set_Type_Error,R10        ; Load the error code
+                                                    ; for incorrect Ref
+                                                    ; Set Type into R10
+
+        LDI     EM_Reference_Set_Type,R9            ; Load the Reference
+                                                    ; Set Type expected
+                                                    ; into R9
+
+        RETS                                        ; Return to the
+                                                    ; calling module
+
+Number_of_Parameters_Failure:   ; The Number of Parameters specified in
+                                ; the Local Parameter Block Header does not
+                                ; match the number of Parameters expected
+                                ; by this Tool
+                                ; R11 contains the number of Parameters
+                                ; specified in the header
+
+        LDI     Number_of_Local_Params_Error,R10    ; Load the error code
+                                                    ; for incorrect Number
+                                                    ; of Local Parameters
+                                                    ; into R10
+
+        LDI     Number_of_Parameters_Expected,R9    ; Load the number of
+                                                    ; Parameters expected
+                                                    ; into R9
+
+        RETS                                        ; Return to the
+                                                    ; calling module
+
+Parameter_Range_Failure:        ; One of the Parameters specified in the
+                                ; Local Parameter Block is out of range.
+                                ; R11 contains the value of the bad Parameter,
+                                ; and R8 contains the Parameter Number
+                                ; of the bad Parameter.
+
+        LDI     Local_Param_Range_Error,R10         ; Load the error code
+                                                    ; for Local Parameter
+                                                    ; Range Checking error
+                                                    ; into R10
+
+        LDI     R8,R9                               ; Load the Parameter 
+                                                    ; Number of the Bad
+                                                    ; Parameter into R9
+        
+        RETS                                        ; Return to the calling
+                                                    ; module
+******************************************************************************
+*  This is the Bulkhead.  This code should never be executed                 *
+******************************************************************************
+
+End_Of_L_Tl_Ini:                        ; These instructions should never be 
+                                        ; executed in the "normal" operation
+         BR     End_Of_L_Tl_Ini         ; of the program.  If the program
+                                        ; counter becomes corrupted or
+         BR     End_Of_L_Tl_Ini         ; if we have a bug in the program
+                                        ; we MAY try to execute these
+         BR     End_Of_L_Tl_Ini         ; instructions.  If we get to these
+                                        ; instructions the program will appear
+         BR     End_Of_L_Tl_Ini         ; to halt.  We could also use a
+                                        ; TRAP instruction here, and jump to
+                                        ; a service routine.
+         
+******************************************************************************
+*   Constants defined using assembler .set directives                        *
+******************************************************************************
+
+Number_of_Parameters_Expected       .set    2       ; Specifies that this
+                                                    ; Tool Code requires
+                                                    ; 2
+                                                    ; Local Parameters
+
+MFP_Derived_Const_Length  .set Tool_2_Derived_Const_Length
+                                                    ; Number of Tool Specific
+                                                    ; "Derived Constant"
+                                                    ; Entries in the MFP
+                          
+******************************************************************************
+*   Define constants and working variables in the Data Section               *
+******************************************************************************
+
+        .data
+
+MFP_Derived_Const_Data_Loc:                         ; The next 11 memory
+                                                    ; locations contain
+                                                    ; the "Derived Constant"
+                                                    ; part of the Mark 
+                                                    ; and Force Pass data
+                                                    ; block.  They are read
+                                                    ; out during Mark and
+                                                    ; Force Pass events
+                                                                            
+MFP_Derived_Const_Header_Loc:       .space 1        ; Memory location to
+                                                    ; store the Header
+                                                    ; for the Derived
+                                                    ; Constant subsection
+                                                    ; of the MFP section of
+                                                    ; the Data Block
+                                                    
+Term_Number_for_This_Tool_Loc:      .space  1       ; Memory location to
+                                                    ; store the Term 
+                                                    ; Number to which this
+                                                    ; Tool is mapped
+
+Tool_Number_Loc:    .word   EM_1x2_Tot_3x3_Tool     ; Memory location to
+                                                    ; store the Tool Number
+                                                    ; of t\his Local Tool
+                
+Eta_Nplus2_3x3_Tot_Offset_Loc        .space  1      ; Memory location to
+                                                    ; store the 3x3 Tot Et
+                                                    ; Sum Offset for 
+                                                    ;   eta   "n + 2"
+
+Eta_Nplus3_3x3_Tot_Offset_Loc        .space  1      ; Memory location to
+                                                    ; store the 3x3 Tot Et
+                                                    ; Sum Offset for 
+                                                    ;   eta   "n + 3"
+
+Eta_Nplus4_3x3_Tot_Offset_Loc        .space  1      ; Memory location to
+                                                    ; store the 3x3 Tot Et
+                                                    ; Sum Offset for 
+                                                    ;   eta   "n + 4"
+
+Eta_Nplus5_3x3_Tot_Offset_Loc        .space  1      ; Memory location to
+                                                    ; store the 3x3 Tot Et
+                                                    ; Sum Offset for 
+                                                    ;   eta   "n + 5"
+
+Object_Type_Loc:    .word   Electron_Object_Type    ; Memory location to 
+                                                    ; store the Object Type
+                                                    ; of Objects found by this
+                                                    ; Tool
+
+EM_Et_1x2_Threshold_Loc:    .word   38              ; Memory location to
+                                                    ; store the EM Et 1x2
+                                                    ; Threshold.  The value
+                                                    ; stored here is a dummy
+                                                    ; value, the actual
+                                                    ; value is loaded from
+                                                    ; the Parameter Block.
+
+EM_vs_Tot_Ratio_Threshold_Loc:  .float  2.0         ; Memory location to 
+                                                    ; store the EM vs. Tot
+                                                    ; Ratio Threshold.  The
+                                                    ; value stored here is a
+                                                    ; dummy value, the actual
+                                                    ; value is loaded from 
+                                                    ; the Parameter Block.  
+
+Real_Data_Flag_Loc: .word   Real_ObjectList_Entry_Type  ; Memory location to
+                                                        ; store the "Real Data"
+                                                        ; flag                 
+
+List_Overrun_Flag_Loc   .word   ObjectList_Overrun_Flag ; Memory location to
+                                                        ; store the "Local 
+                                                        ; List Overrun" flag
+
+Mark_Force_Pass_Data_Flag_Loc:                          ; Memory location to
+                                                        ; store the "Mark and
+                    .word   MFP_ObjectList_Entry_Type   ; Force Pass Data" flag
+
+
+Largest_Neighbor_ID_Loc:    .word   0                   ; Memory location to
+                                                        ; store the key to the
+                                                        ; ID of the "largest"
+                                                        ; EM Et neighbor
+        
+Temporary_Storage_Loc:      .space 1                    ; Temporary storage
+                                                        ; Location
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+
+         .def    Initialize_Tool                     ; Symbols defined in this
+         .def    Eta_Nplus2_3x3_Tot_Offset_Loc       ; module for use in other
+         .def    Eta_Nplus3_3x3_Tot_Offset_Loc       ; modules
+         .def    Eta_Nplus4_3x3_Tot_Offset_Loc  
+         .def    Eta_Nplus5_3x3_Tot_Offset_Loc  
+         .def    Object_Type_Loc
+         .def    Real_Data_Flag_Loc
+         .def    Mark_Force_Pass_Data_Flag_Loc
+         .def    Term_Number_for_This_Tool_Loc
+         .def    Tool_Number_Loc
+         .def    MFP_Derived_Const_Length    
+         .def    MFP_Derived_Const_Data_Loc     
+         .def    List_Overrun_Flag_Loc
+         .def    EM_Et_1x2_Threshold_Loc
+         .def    EM_vs_Tot_Ratio_Threshold_Loc
+         .def    Largest_Neighbor_ID_Loc
+
+         .ref    Eta_Nplus0_EM_Et_Zeresp_Loc        ; Symbols referenced in
+         .ref    Eta_Nplus1_EM_Et_Zeresp_Loc        ; this module but
+         .ref    Eta_Nplus2_EM_Et_Zeresp_Loc        ; defined in other 
+         .ref    Eta_Nplus3_EM_Et_Zeresp_Loc        ; modules
+         .ref    Eta_Nplus4_EM_Et_Zeresp_Loc
+         .ref    Eta_Nplus5_EM_Et_Zeresp_Loc
+         .ref    Eta_Nplus6_EM_Et_Zeresp_Loc
+         .ref    Eta_Nplus7_EM_Et_Zeresp_Loc
+         .ref    Eta_Nplus0_Tot_Et_Zeresp_Loc
+         .ref    Eta_Nplus1_Tot_Et_Zeresp_Loc
+         .ref    Eta_Nplus2_Tot_Et_Zeresp_Loc
+         .ref    Eta_Nplus3_Tot_Et_Zeresp_Loc
+         .ref    Eta_Nplus4_Tot_Et_Zeresp_Loc
+         .ref    Eta_Nplus5_Tot_Et_Zeresp_Loc
+         .ref    Eta_Nplus6_Tot_Et_Zeresp_Loc
+         .ref    Eta_Nplus7_Tot_Et_Zeresp_Loc
+         .ref    Term_Number_Loc
+         .ref    Reference_Set_Type_Loc
+         .ref    Local_Tool_Parameter_Handle
+         .ref    Zero_Loc
+         .ref    This_LDSP_Node_ID_Loc
+
+         .end

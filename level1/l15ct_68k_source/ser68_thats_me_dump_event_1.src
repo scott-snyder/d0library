@@ -1,0 +1,161 @@
+
+Thats_Me_Dump_Event   IDNT                     ; Title of  Thats_Me Dump Event
+                                               ;   program section.
+
+      SECTION   Sect_Thats_Me_Dump_Event,4,C   ; Declare a noncommon code
+                                               ; section.  Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Thats_Me Dump Event                                Rev.  10-MAY-1994  *
+*                                                                         *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D3, D4 and A3.     *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            WrIO:  Write bit(s) to the IRONICS I/O card                  *
+*                                                                         *
+***************************************************************************
+
+WrIO    MACRO                         ; Write byte to Ironics I/O Port.
+        Not.B   \1                    ; Complement data byte \1.
+        Move.B  \1,\2                 ; Move to Ironics port at adrs \2.
+        Not.B   \1                    ; Complement data byte \1 to restore it.
+        ENDM
+
+
+*************************************************************************
+*                                                                       *
+*  OK, we are  NOT  going to readout this event.  So:                   *
+*             ----                                                      *
+*                                                                       *
+*  First clear the  Readout Control  paddle card and then clear the     *
+*  Path Select  paddle card.                                            *
+*                                                                       *
+**************************************************************************
+
+Begin_Thats_Me_Dump_Event:
+
+      INCLUDE   Ser68_Clear_RC_and_PS_1.Include    ; Get the include file that
+                                                   ; clears the RC and PS P2's.
+
+*************************************************************************
+*                                                                       *
+*  OK, Tell the Global DSP that we are  NOT  going to transfer any      *
+*  data into the 214 Load Buffer.      -----                            *
+*                                                                       *
+*  The Global DSP has been waiting at Step D3 until it hears from us    *
+*  whether or not it needs to transfer data into the 214 Load Buffer.   *
+*                                                                       *
+*  The Global DSP knows to wait because, until we set it a NEW VALID    *
+*  "Transfer to 214 Required Word" it is only reading an old cleared    *
+*  previously valid "Transfer to 214 Required Word" which tells it      *
+*  to keep on waiting.                                                  *
+*                                                                       *
+*                                                                       *
+*  Recall the Format of the  "Transfer to 214 Required  Word"           *
+*                                                                       *
+*  D31        D24    D23        D16    D15         D8    D7          D0 *
+*  --------------    --------------    --------------    -------------- *
+*  |  Reserved  |    |  Reserved  |    |  Reserved  |    |214Trans Req| *
+*  --------------    --------------    --------------    -------------- *
+*                                                                       *
+*                                                                       *
+*   The  Transfer to 214 Required  word is the third longword in the    *
+*   "68k_Services to all DSPs information block" on Hydra-II card "B".  *
+*                                                                       *
+*   The 214 Transfer Required  byte has the following format:           *
+*                                                                       *
+*     $FF --> The previous valid 214 Transfer Flag has been cleared.    *
+*     $00 --> Tells the Global DSP not to Transfer to the 214 Load Buf. *
+*     $01 --> Tells the Global DSP to begin a Transfer to the Load Buf. *
+*************************************************************************
+
+       Clr.L   Ser68_to_Hydra_B_Adrs+8     ; Clear all bits in the "Transfer to
+                                           ; 214 Required Word" on Global DSP
+                                           ; card "B"  i.e. Do NOT transfer.
+
+       Clr.B   Told_GDSP_to_Transfer       ; CLEAR the software flag so that
+                                           ; it indicates that we told the GDSP
+                                           ; NOT to transfer to the 214 memory.
+
+*************************************************************************
+*                                                                       *
+*   Test the  If_Transfer_Want_MFP_Transfer  software flag.  If it      *
+*   is set then,  send an  "f"  character to the MVME135 console to     *
+*   indicate the conclusion of processing for a  That's_Me MFP Dump     *
+*   event.  If the  If_Transfer_Want_MFP_Transfer  software flag is     *
+*   cleared then,  send an  "n"  character to the MVME135 console to    *
+*   indicate the conclusion of processing for a   That's_Me  Normal     *
+*   Dump  event.                                                        *
+*************************************************************************
+
+
+        IF.B   If_Transfer_Want_MFP_Transfer <EQ> #Flag_SET   THEN.S
+
+            Move.L   #$00000066,-(A7)       ; Push the character "f" to the
+                                            ; LSByte of a longword on the stack.
+        ELSE.S
+
+            Move.L   #$0000006E,-(A7)       ; Push the character "n" to the
+                                            ; LSByte of a longword on the stack.
+        ENDI
+
+
+        JSR      SendCharP1                ; Call the routine to send it out
+                                           ; to the 68k_Services console.
+
+*************************************************************************
+*                                                                       *
+*  The only thing left to do is to clear the  If_Transfer_Want_MFP_     *
+*  _Transfer  software flag and then return to the top of the Orbit     *
+*  Master.                                                              *
+*                                                                       *
+*  The  If_Transfer_Want_MFP_Transfer  flag may or may not be set but   *
+*  it is faster to just always clear it than it is to test and clear    *
+*  only when necessary.                                                 *
+*************************************************************************
+
+        Clr.B    If_Transfer_Want_MFP_Transfer   ; Always  CLEAR  this flag.
+
+        JMP      Begin_Orbit_Master         ; Jump to the start of Orbit Master
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section                                                    *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Thats_Me_Dump_Event               ; Symbol exported to
+                                                     ; other modules.
+
+      XREF   Readout_Ctrl_Port_4                     ; Symbols used in this
+      XREF   Path_Select_Port_3                      ; module but defined in
+      XREF   Begin_Orbit_Master                      ; another program module.
+      XREF   Which_214_Is_Load_Buf
+      XREF   State_of_RC_FE_Busy
+      XREF   Flag_CLR
+      XREF   Flag_SET
+      XREF   If_Transfer_Want_MFP_Transfer
+      XREF   Ser68_to_Hydra_B_Adrs
+      XREF   Told_GDSP_to_Transfer
+      XREF   SendCharP1
+
+      END
+

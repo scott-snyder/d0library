@@ -1,0 +1,576 @@
+
+Init_Data_Strct   IDNT                   ; Title of Initialize Data Structures
+                                         ;   Program Section.
+
+   SECTION   Sect_Init_Data_Strct,4,C    ; Declare a noncommon code
+                                         ; section. Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Initialize all of the 68k_Services Data Structures.  Rev. 29-ARP-1994 *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*   The following data structures are setup and initialized in this       *
+*   routine:                                                              *
+*                                                                         *
+*    1. The Word Counts are loaded into short I/O memory where the        *
+*       VBD will read them as it sends out events.                        *
+*    2. The Crate ID is loaded into a short I/O memory location where     *
+*       the VBD will read it as it sends out events.                      *
+*    3. Build the event to event static parts of the Crate Header and     *
+*       load them into both of the 214 memory modules, i.e. build and     *
+*       load: the Controller Word, the Version Number and the Revision    *
+*       number.                                                           *
+*    4. Build the event to event static parts of the Frame Code section   *
+*       of the L15CT Data Block and load these into both of the 214       *
+*       memory modules.                                                   *
+*    5. Load the Mark and Force Pass Counters.                            *
+*    6. Initialize all Software Flags.                                    *
+*    7. Initialize the Local DSP and Global DSP Wake_Up_Words.            *
+*    8. Initialize the 214 Transfer Required word.                        *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers: D1,D2,D3,D4 and A3. *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            RdIO:  Read bit(s) from the IRONICS I/O card.                *
+*            WrIO:  Write bit(s) to the IRONICS I/O card.                 *
+*                                                                         *
+***************************************************************************
+
+RdIO    MACRO                        ; Read the byte from the Ironics I/O Port.
+        Move.B  \1,\2                ; Move to the byte from the Ironics port
+        ENDM                         ; at address  \1  to the location
+                                     ; specified by  \2.
+
+WrIO    MACRO                        ; Write the byte to the Ironics I/O Port.
+        Not.B   \1                   ; Complement data byte \1.
+        Move.B  \1,\2                ; Move it to the Ironics port at adrs \2.
+        Not.B   \1                   ; Complement data byte \1 to restore it.
+        ENDM
+
+
+*************************************************************************
+*                                                                       *
+*  Initialize the Word Counts in the Short I/O memory.  There is a      *
+*  Word Count for each section in the L15CT Date Block.  These Word     *
+*  Counts are read from their Short I/O locations by the VBD.  They     *
+*  are loaded by 68k_Services over the Vertical Interconnect to VME     *
+*  bus #2.   The Word Count for the "short" version of the DeBug        *
+*  section is loaded (i.e. the "no valid debug information" version).   *
+*                                                                       *
+*************************************************************************
+
+Begin_Init_DataStrct:
+
+        Move.W        #WCHeader,WCStore1_135    ; Load the Header Word Cnt.
+        Move.W     #WCFrameCode,WCStore2_135    ; Load the Frame Code Word Cnt.
+        Move.W    #WCFrameParam,WCStore3_135    ; Load the Frame Param Word Cnt.
+        Move.W     #WCToolParam,WCStore4_135    ; Load the Tool Params Word Cnt.
+        Move.W     #WCLocalDSPs,WCStore5_135    ; Load the Local DSP Word Cnt.
+        Move.W     #WCGlobalDSP,WCStore6_135    ; Load the Global DSP Word Cnt.
+        Move.W    #WCDeBugShort,WCStore7_135    ; Load the DeBug Word Count.
+
+
+*************************************************************************
+*                                                                       *
+*   Initialize the Crate ID.  This is stored in Short I/O memory for    *
+*   the VBD to read as it sends out events.  Note that the Crate ID     *
+*   is also built into the Controller Word of the Crate Header in the   *
+*   next step of this routine.                                          *
+*************************************************************************
+
+      Move.W    #CrateIDNumber,CrateIDAdrs135     ; Load the Crate ID Number
+                                                  ; into the short I/o location
+                                                  ; where the VBD will read it.
+
+
+*************************************************************************
+*                                                                       *
+*   This section builds the event to event static parts of the Crate    *
+*   Header and loads them into both of the MVME214 memory modules.      *
+*   These static parts of the Crate Header are displayed on the         *
+*   console terminal.                                                   *
+*                                                                       *
+*   Review the layout of the Crate Header:                              *
+*                                                                       *
+*    *  SYNC Word               <-- Crate Header Base Adrs points here. *
+*       Controller Word                                                 *
+*       Version Number                                                  *
+*       Revision Number                                                 *
+*    *  Data Validity Word                                              *
+*    *  Mark and Force Pass Mask                                        *
+*                                                                       *
+*    * --> Event to event dynamic.                                      *
+*                                                                       *
+*   Thus, it is the Controller Word, the Version Number, and the        *
+*   Revision Number that are built into the crate header at this time.  *
+*                                                                       *
+*************************************************************************
+
+**********  First build the Controller Word in Register D4.  **********
+
+        Move.L   #CrateIDNumber,D4        ; Get the Crate ID Number. Mask off
+        AndI.L   #$000000FF,D4            ; all but its lowest byte. Move the
+        Swap     D4                       ; Crate ID Number to the MSByte.
+        LSL.L    #8,D4                    ; D4 now holds the Controller Word.
+
+
+**********  Now build the Version Number Word in Register D3.  **********
+
+        Move.L   #L15CTVersNum,D3         ; Reg D3 now holds the Version Numb.
+
+
+**********  Now build the Revision Number Word in Register D2.  **********
+
+        Clr.L    D2                       ; Revision Numb will be built in D2.
+        Move.B   #HardWrRevNum,D2         ; Get the Hardware Rev -> bits 31:24
+        LSL.L    #8,D2                    ; Shift it up
+        Move.B   #GlbDSPRevNum,D2         ; Get the Global DSP Rev ->bits 23:16
+        LSL.L    #8,D2                    ; Shift it up
+        Move.B   #LocDSPRevNum,D2         ; Get the Local DSP Rev -> bits 15:8
+        LSL.L    #8,D2                    ; Shift it up
+        Move.B   #Ser68kRevNum,D2         ; Get 68k_Services Rev -> bits 7:0
+                                          ; Reg D2 now holds the Revision Numb.
+
+
+**********  Load Controller Word, Version Number and  **********
+**********  Revision Number into MVME214 module #1.   **********
+
+                                             ; Make MVME214 #1 the Load Buffer.
+        Move.B   #%11101100,D1               ; R.C. Front-End is not set Busy.
+        WrIO     D1,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+        Move.L   D4,BAHeaderVSB+4            ; Load the Controller Word.
+        Move.L   D3,BAHeaderVSB+8            ; Load the Version Number Word.
+        Move.L   D2,BAHeaderVSB+12           ; Load the Revision Number Word.
+
+
+**********  Load Controller Word, Version Number and  **********
+**********  Revision Number into MVME214 module #2.   **********
+
+                                             ; Make MVME214 #2 the Load Buffer.
+        Move.B   #%11011100,D1               ; R.C. Front-End is not set Busy.
+        WrIO     D1,Readout_Ctrl_Port_4      ; #1 214 is set to VME i.e. Read.
+                                             ; #2 214 is set to VSB i.e. Load.
+
+        Move.L   D4,BAHeaderVSB+4            ; Load the Controller Word.
+        Move.L   D3,BAHeaderVSB+8            ; Load the Version Number Word.
+        Move.L   D2,BAHeaderVSB+12           ; Load the Revision Number Word.
+
+
+**********  Return MVME214 module #1 to being the Load Buffer.  **********
+
+                                             ; Make MVME214 #1 the Load Buffer.
+        Move.B   #%11101100,D1               ; R.C. Front-End is not set Busy.
+        WrIO     D1,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+
+**********  Now display the Controller Word, the Version Number,  **********
+**********  and the Revision Number on the 68k console terminal.  **********
+
+
+        PEA.L    ContrlWordIntro           ; Send out Controller Word message.
+        JSR      ChrWrtOut                 ; Push Controller Word message adrs
+                                           ; on the stack and send message out.
+        FOR.L  D1 = #1 TO #8  DO.S         ; Now send out the Controller Word.
+           ROL.L   #4,D4                   ; Loop through all 8 characters of
+           Move.L  D4,-(A7)                ; the Controller Word.  Rotate left
+           JSR     BinASCII                ; into position and push onto stack.
+        ENDF                               ; Convert to ASCII and send it out.
+
+        PEA.L    MsgEndLine                ; End the Controller Word
+        JSR      ChrStrgOut                ; message line.
+
+
+
+        PEA.L    VersionNumIntro           ; Send out Version Number message.
+        JSR      ChrWrtOut                 ; Push Version Number message adrs
+                                           ; on the stack and send message out.
+        FOR.L  D1 = #1 TO #8  DO.S         ; Now send out the Version Number.
+           ROL.L   #4,D3                   ; Loop through all 8 characters of
+           Move.L  D3,-(A7)                ; the Version Number.  Rotate left
+           JSR     BinASCII                ; into position and push onto stack.
+        ENDF                               ; Convert to ASCII and send it out.
+
+        PEA.L    MsgEndLine                ; End the Version Number
+        JSR      ChrStrgOut                ; message line.
+
+
+
+        PEA.L    RevisionNumIntr           ; Send out Revision Number message.
+        JSR      ChrWrtOut                 ; Push Revision Number message adrs
+                                           ; on the stack and send message out.
+        FOR.L  D1 = #1 TO #8  DO.S         ; Now send out the Revision Number.
+           ROL.L   #4,D2                   ; Loop through all 8 characters of
+           Move.L  D2,-(A7)                ; the Revision Number.  Rotate left
+           JSR     BinASCII                ; into position and push onto stack.
+        ENDF                               ; Convert to ASCII and send it out.
+
+        PEA.L    MsgEndLine                ; End the Revision Number
+        JSR      ChrStrgOut                ; message line.
+
+
+*************************************************************************
+*                                                                       *
+*   This section builds the event to event static parts of the Frame    *
+*   Code section of the L15CT Data Block and loads them into both of    *
+*   the MVME214 memory modules.                                         *
+*   These static parts of the Frame Code section are displayed on the   *
+*   console terminal.                                                   *
+*                                                                       *
+*   Review the layout of the Frame Code section of                      *
+*   the L15CT Data Block:                                               *
+*                                                                       *
+*    * L15CT EC Starting Status     <- Frame Code Base Adrs points here.*
+*    * L15CT EC Finishing Status                                        *
+*    * L15CT RC Finishing Status                                        *
+*    * List of L1 Spec Trig's Fired for this event (0:15, upper 16 zero)*
+*    * Mask of Terms ( 0:8 that were evaluated in this L15CT cycle.)    *
+*                    ( 9:15 that passed.)                               *
+*                    (16:23 for which their evaluation is Incomplete.)  *
+*                    (24:31 as returned to the M103 L15 FW.)            *
+*                                                                       *
+*    * --> Event to event dynamic.                                      *
+*                                                                       *
+*   Thus, it is the     ???                                             *
+*                   that are built into the Frame Code section of the   *
+*   L15CT Data Block at this time.                                      *
+*                                                                       *
+*************************************************************************
+
+
+
+
+
+*************************************************************************
+*                                                                       *
+*   This section builds the event to event static parts of the  DeBug   *
+*   section Type 0 Entry.  The single Type 0 Entry in the DeBug         *
+*   section of the Data Block is always written by  68k_Services.       *
+*   The first longword of the Type 0 Entry is event to event static     *
+*   and it will be written at this time.   The second (and last)        *
+*   longword in the Type 0 Entry is event to event dynamic and is       *
+*   written by the  Thats_Me_Readout_Req  routine.                      *
+*                                                                       *
+*   Recall the format of the first longword of the Type 0 Entry.        *
+*      bits  7:0  identify the generator of this entry ($68 for us).    *
+*      bits 15:8  identify the Entry Type  (Type 0 Entry this is $00).  *
+*      bits 31:16 indicate how many additional longwords are in this    *
+*                 entry (for Type 0 Entry this is $0001).               *
+*                                                                       *
+*************************************************************************
+
+                                               ; Put the event to event static
+                                               ; first longword of the Type 0
+        Move.L   #$00010068,D4                 ; Entry into register D4.
+
+
+
+**********  Load the Data Block DeBug section  Type 0 Entry  **********
+**********  first Longword into MVME214 module #1.           **********
+
+                                             ; Make MVME214 #1 the Load Buffer.
+        Move.B   #%11101100,D1               ; R.C. Front-End is not set Busy.
+        WrIO     D1,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+        Move.L   D4,BADeBugSectVSB           ; Load DeBug Type 0 Entry 1st LW.
+
+
+**********  Load the Data Block DeBug section  Type 0 Entry  **********
+**********  first Longword into MVME214 module #2.           **********
+
+                                             ; Make MVME214 #2 the Load Buffer.
+        Move.B   #%11011100,D1               ; R.C. Front-End is not set Busy.
+        WrIO     D1,Readout_Ctrl_Port_4      ; #1 214 is set to VME i.e. Read.
+                                             ; #2 214 is set to VSB i.e. Load.
+
+        Move.L   D4,BADeBugSectVSB           ; Load DeBug Type 0 Entry 1st LW.
+
+
+**********  Return MVME214 module #1 to being the Load Buffer.  **********
+
+                                             ; Make MVME214 #1 the Load Buffer.
+        Move.B   #%11101100,D1               ; R.C. Front-End is not set Busy.
+        WrIO     D1,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+
+
+*************************************************************************
+*                                                                       *
+*  Initialize the Mark and Force Pass Counters from the Mark and Force  *
+*  Pass Ratios that are given to us by TCC.                             *
+*                                                                       *
+*  MFP Ratio value of 1 --> every event is MFP                          *
+*  MFP Ratio value of 2 --> every other event is MFP  ....              *
+*************************************************************************
+
+        Move.L   MFP_Ratio_Term_0,MFP_Counter_Term_0   ; Load MFP Counter Term 0
+        Move.L   MFP_Ratio_Term_1,MFP_Counter_Term_1   ; Load MFP Counter Term 1
+        Move.L   MFP_Ratio_Term_2,MFP_Counter_Term_2   ; Load MFP Counter Term 2
+        Move.L   MFP_Ratio_Term_3,MFP_Counter_Term_3   ; Load MFP Counter Term 3
+        Move.L   MFP_Ratio_Term_4,MFP_Counter_Term_4   ; Load MFP Counter Term 4
+        Move.L   MFP_Ratio_Term_5,MFP_Counter_Term_5   ; Load MFP Counter Term 5
+        Move.L   MFP_Ratio_Term_6,MFP_Counter_Term_6   ; Load MFP Counter Term 6
+        Move.L   MFP_Ratio_Term_7,MFP_Counter_Term_7   ; Load MFP Counter Term 7
+
+
+*************************************************************************
+*                                                                       *
+*  Initialize all software flags.  All software flags are addresses     *
+*  as bytes.  If the value of a flag is $00 then the flag is cleared    *
+*  or not active.  If the vlaue of a flag is $F% then it is set or the  *
+*  specified condition exists.                                          *
+*                                                                       *
+*  Initialize most flags to their inactive state.  The two exceptions   *
+*  are:                                                                 *
+*        Fresh_Load_Buf_Availb   ; We are setting the Load and Read     *
+*                                ; 214 Buffers by hand so we know       *
+*                                ; that a fresh Load Buf is available.  *
+*        VBD_Is_Ready            ; check that VBD has dropped its Done  *
+*                                ; signal and set the VBD_Is_Ready flag.*
+*                                                                       *
+*************************************************************************
+
+******  Initialize the Software Flags that are used in DSP Control.  ******
+
+        Move.B   #Flag_SET,All_DSPs_at_Step_D0    ;  SET  All_DSPs_at_Step_D0.
+        Move.B   #Flag_CLR,DSP_A1_at_Step_D15     ; Clear  DSP_A1_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_A2_at_Step_D15     ; Clear  DSP_A2_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_A3_at_Step_D15     ; Clear  DSP_A3_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_A4_at_Step_D15     ; Clear  DSP_A4_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_B1_at_Step_D15     ; Clear  DSP_B1_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_B2_at_Step_D15     ; Clear  DSP_B2_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_B3_at_Step_D15     ; Clear  DSP_B3_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_B4_at_Step_D15     ; Clear  DSP_B4_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_C1_at_Step_D15     ; Clear  DSP_C1_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_C2_at_Step_D15     ; Clear  DSP_C2_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_C3_at_Step_D15     ; Clear  DSP_C3_at_Step_D15.
+        Move.B   #Flag_CLR,DSP_C4_at_Step_D15     ; Clear  DSP_C4_at_Step_D15.
+
+******  Initialize the Software Flags for Mark and Force Pass control.  ******
+
+        Move.B   #Flag_CLR,MFP_Event                  ; Clear MFP_Event flag.
+
+        Move.B   #Flag_CLR,If_Transfer_Want_MFP_Transfer   ; Clear the flag.
+
+        Move.B   #Flag_CLR,This_Transfer_is_MFP       ; Clear This_Transfer_MFP.
+        Move.B   #Flag_CLR,Previous_Transfer_Was_MFP  ; Clear Prevs_Trnsfr_MFP.
+
+******  Initialize the Software Flags for the 214 Buffer control.  ******
+
+        Move.B   #Flag_SET,Fresh_Load_Buf_Availb  ; SET  Fresh_Load_Buf_Availb.
+        Move.B   #Flag_CLR,All_Data_In_Load_Buf   ; Clear  All_Data_in_Load_Buf.
+        Move.B   #Flag_CLR,Told_GDSP_to_Transfer  ; Clear  Told_GDSP_to_Transfer
+        Move.B   #Flag_CLR,Which_214_Is_Load_Buf  ; Clear  Which_214_Is_Load_Buf
+        Move.B   #Flag_CLR,State_of_RC_FE_Busy    ; Clear  State_of_RC_FE_Busy
+
+******  Initialize the Software Flags for the VBD control.  ******
+
+        Move.B   #Flag_CLR,SRDY_Has_Been_Sent      ; Clear  SRDY_Has_Been_Sent.
+
+ChkDONEAgn  RdIO  Readout_Ctrl_Port_3,D1   ; Verify that the VBD's DONE signal
+                                           ; is not set.  Recall that it is low
+                                           ; active.  Read this hardware signal
+                                           ; on the Readout Control P2 Ironics
+                                           ; Port #3  bit 4.  Select only bit
+        AndI.B   #$10,D1                   ; number 4 the VBD DONE signal.
+
+        IF.B   D1 <EQ> #$10  THEN.S         ; If the VBD DONE signal is inactive
+           Move.B   #Flag_SET,VBD_Is_Ready  ; i.e. voltage high, then SET the
+           JMP      EndIf_1                 ; VBD_Is_Ready software flag, else
+        ELSE.S                              ; if the VBD DONE signal is still
+           PEA.L    MsgWaitingDONE          ; active then push a message address
+           JSR      ChrStrgOut              ; on the stack, send the message out
+           JMP      ChkDONEAgn              ; and read and test VBD DONE again.
+        ENDI
+
+EndIf_1   Nop
+
+
+*************************************************************************
+*                                                                       *
+*   Initialize the  Local DSP  and the  Global DSP  Wake_Up_Words  to   *
+*   indicate a "Cleared previously valid Wake_Up_Word".                 *
+*                                                                       *
+*                                                                       *
+*   Format of the  DSP Wake_Up_Word                                     *
+*   -------------------------------                                     *
+*                                                                       *
+*  D31        D24    D23        D16    D15         D8    D7          D0 *
+*  --------------    --------------    --------------    -------------- *
+*  |  Reserved  |    |  Reserved  |    | Flags Byte |    |Trms to Eval| *
+*  --------------    --------------    --------------    -------------- *
+*                                                                       *
+*                                                                       *
+*   The Local DSP Wake_Up_Word is the first longwork in the             *
+*   "68k_Services to all DSPs information block" on each of the three   *
+*   Hydra-II cards.                                                     *
+*                                                                       *
+*   The Global DSP Wake_Up_Word is the second longword in the           *
+*   "68k_Services to all DSPs information block" on Hydra-II card "B".  *
+*                                                                       *
+*   The Flags Byte of the Wake_Up_Word will always have one of the      *
+*   following three different values:                                   *
+*                                                                       *
+*     $FF --> The previous valid Wake_Up_Word has been cleared.         *
+*     $00 --> This is a "normal" L15CT Cycle Wake_Up_Word.              *
+*     $01 --> This is a Mark and Force Pass L15CT Cycle Wake_Up_Word.   *
+*                                                                       *
+*                                                                       *
+*************************************************************************
+
+       Move.L   #$0000FF00,Ser68_to_Hydra_A_Adrs       ; Local DSPs card "A".
+       Move.L   #$0000FF00,Ser68_to_Hydra_B_Adrs       ; Local DSPs card "B".
+       Move.L   #$0000FF00,Ser68_to_Hydra_C_Adrs       ; Local DSPs card "C".
+
+       Move.L   #$0000FF00,Ser68_to_Hydra_B_Adrs+4     ; Global DSPs card "B".
+
+
+*************************************************************************
+*                                                                       *
+*   Initialize the  Transfer to 214 Required  word to indicate that a   *
+*   previously valid  214 Transfer Required  flag has been cleared.     *
+*                                                                       *
+*                                                                       *
+*   Format of the  Transfer to 214 Required  Word                       *
+*   ---------------------------------------------                       *
+*                                                                       *
+*  D31        D24    D23        D16    D15         D8    D7          D0 *
+*  --------------    --------------    --------------    -------------- *
+*  |  Reserved  |    |  Reserved  |    |  Reserved  |    |214Trans Req| *
+*  --------------    --------------    --------------    -------------- *
+*                                                                       *
+*                                                                       *
+*   The  Transfer to 214 Required  word is the third longword in the    *
+*   "68k_Services to all DSPs information block" on Hydra-II card "B".  *
+*                                                                       *
+*   The 214 Transfer Required  byte has the following format:           *
+*                                                                       *
+*     $FF --> The previous valid 214 Transfer Flag has been cleared.    *
+*     $00 --> Tells the Global DSP not to Transfer to the 214 Load Buf. *
+*     $01 --> Tells the Global DSP to begin a Transfer to the Load Buf. *
+*                                                                       *
+*                                                                       *
+*************************************************************************
+
+       Move.L   #$000000FF,Ser68_to_Hydra_B_Adrs+8     ; Global DSPs card "B".
+
+
+*************************************************************************
+*                                                                       *
+*  Send the Data Structure Initialization Complete Message.             *
+*                                                                       *
+*************************************************************************
+
+        PEA.L    DataStrInitCmpt1          ; Push message address on stack.
+        JSR      ChrStrgOut                ; and send it out.
+
+        RTS                                ; Return to the calling routine.
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*  Data used to send messages to the L15CT console screen.              *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+ContrlWordIntro    DC.B    42,'     Crate Header  Conttroler Word  is:  $'
+VersionNumIntro    DC.B    42,'     Crate Header  Version Number   is:  $'
+RevisionNumIntr    DC.B    42,'     Crate Header  Revision Number  is:  $'
+MsgEndLine         DC.B     1,' '
+MsgWaitingDONE     DC.B    45,'     Waiting for an inactive VBD DONE signal.'
+DataStrInitCmpt1   DC.B    45,'  Finished Data Structure initialization.    '
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section by the Initialize Data Structures program section. *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Init_DataStrct                    ; Symbol exported to
+                                                     ; other modules.
+
+      ; Symbols used in this module but defined in another program module.
+
+      XREF    Readout_Ctrl_Port_3,Readout_Ctrl_Port_4
+      XREF    ChrStrgOut,ChrWrtOut,BinASCII
+
+      XREF    All_DSPs_at_Step_D0
+
+      XREF    DSP_A1_at_Step_D15,DSP_A2_at_Step_D15
+      XREF    DSP_A3_at_Step_D15,DSP_A4_at_Step_D15
+      XREF    DSP_B1_at_Step_D15,DSP_B2_at_Step_D15
+      XREF    DSP_B3_at_Step_D15,DSP_B4_at_Step_D15
+      XREF    DSP_C1_at_Step_D15,DSP_C2_at_Step_D15
+      XREF    DSP_C3_at_Step_D15,DSP_C4_at_Step_D15
+
+      XREF    MFP_Event,This_Transfer_is_MFP
+      XREF    If_Transfer_Want_MFP_Transfer
+      XREF    Previous_Transfer_Was_MFP
+
+      XREF    Fresh_Load_Buf_Availb,All_Data_In_Load_Buf
+      XREF    Which_214_Is_Load_Buf,State_of_RC_FE_Busy
+      XREF    Told_GDSP_to_Transfer
+
+      XREF    SRDY_Has_Been_Sent,VBD_Is_Ready
+
+      XREF    BAHeaderVSB,BAFrameCodeVSB
+      XREF    BAFrameParamVSB,BAToolParamVSB
+      XREF    BALocalDSPsVSB,BAGlobalDSPVSB
+      XREF    BADeBugSectVSB
+
+      XREF    WCHeader,WCFrameCode,WCFrameParam
+      XREF    WCToolParam,WCLocalDSPs,WCGlobalDSP
+      XREF    WCDeBugShort,WCDeBugLong
+
+      XREF    EvtNmbAdr135,CrateIDAdrs135
+      XREF    CrateIDNumber
+
+      XREF    WCStore1_135,WCStore2_135
+      XREF    WCStore3_135,WCStore4_135
+      XREF    WCStore5_135,WCStore6_135
+      XREF    WCStore7_135
+
+      XREF    L15CTVersNum
+
+      XREF    HardWrRevNum,GlbDSPRevNum
+      XREF    LocDSPRevNum,Ser68kRevNum
+
+      XREF    Ser68_to_Hydra_A_Adrs,Ser68_to_Hydra_B_Adrs
+      XREF    Ser68_to_Hydra_C_Adrs
+
+      XREF    MFP_Ratio_Term_0,MFP_Ratio_Term_1
+      XREF    MFP_Ratio_Term_2,MFP_Ratio_Term_3
+      XREF    MFP_Ratio_Term_4,MFP_Ratio_Term_5
+      XREF    MFP_Ratio_Term_6,MFP_Ratio_Term_7
+
+      XREF    MFP_Counter_Term_0,MFP_Counter_Term_1
+      XREF    MFP_Counter_Term_2,MFP_Counter_Term_3
+      XREF    MFP_Counter_Term_4,MFP_Counter_Term_5
+      XREF    MFP_Counter_Term_6,MFP_Counter_Term_7
+
+      XREF    Flag_CLR
+      XREF    Flag_SET
+
+
+      END
+

@@ -1,0 +1,653 @@
+******************************************************************************
+*                                                                            *
+*  File:  L_Tl_Np5.A40                                 Rev.   16-MAY-1994    *
+*                                                                            *
+*                                                                            *
+*  "Meaningful" Register Usage                                               *
+*  ---------------------------                                               *
+*  R0  : TT EM Et Data for n+2                                               *
+*        phi center + 1                      Global                 Input    *
+*  R1  : TT EM Et Data for n+5, phi center   Global                 Input    *
+*  R2  : Valid Object Counter                Global                 I/O      *
+*  AR0 : Pointer to Rack #1 EM Et TT Data                                    *
+*        at phi = center + 1                 Global                 Input    *
+*  AR1 : Pointer for Rack #2 EM Et TT Data                                   *
+*        at phi = center + 1                 Global                 Input    *
+*  AR3 : Pointer for Object List             Global                 Output   *
+*  BK  : Length of a TT Data Block           Global                 Input    *
+*  R3  : 1x2 EM Et Sum                       Global                 Output   *
+*  R5  : 3x3 Total Et Sum                    Global                 Output   *
+*                                                                            *
+*  "Destroyable" Register Usage                                              *
+*  ----------------------------                                              *
+*  R9, R10, R11, AR6, AR7                                                    *
+*                                                                            *
+*  Description of Module                                                     *
+*  =====================                                                     *
+*                                                                            *
+*                                                                            *
+*  This is the program section for the Tool Code for processing an event     *
+*  with an  eta n+5  Trigger Tower over its Ref Set threshold.               *
+*              -----                                                         *
+*                                                                            *
+*  This module builds both the 1x2 EM Et Sum and the 3x3 Total Et Sum        *
+*  centered on the eta n+5, "phi center" Trigger Tower that was above its    *
+*  Reference Set energy.  The 1x2 EM Et Sum will be build in R3, and the     *
+*  3x3 Total Et Sum will be built in R5.  The Circular Addressing mode       *
+*  will be used to solve the "phi wrap" problem.                             *
+*                                                                            *
+*   Recall that the 1x2 EM Et Sum is the sum of the EM Et at the eta n+5,    *
+*   "phi center" Trigger Tower and the largest of the 4 adjacent neighbor    *
+*   towers.  The "largest" tower is defined as the tower with the largest    *
+*   actual EM Et.                                                            *
+*                                                                            *
+*  Philosophical Layout of the Trigger Tower Summing  Routine                *
+*  ----------------------------------------------------------                *
+*  This routine is written so that it neither has nor needs any knowledge    *
+*  of the phi address of the Trigger Tower that is being processed.          *
+*                                                                            *
+*                                                                            *
+*                                                                            *
+*  Recall the arrangement of eta's in the racks:                             *
+*                                                                            *
+*    Rack                   Rack #1                   Rack #2                *
+*    Signal           --------------------      ---------------------        *
+*    Names            n    n+1   n+2   n+3      n+4   n+5   n+6   n+7        *
+*                                                                            *
+*    This DSP Node              --------------------------                   *
+*    is Responsible              n+2   n+3      n+4   n+5                    *
+*    for these eta's                                                         *
+*                                                      ^                     *
+*                                                      |                     *
+*                 We are processing this Trig Tower ---+                     *
+*                                                                            *
+*                                                                            *
+*  NOTE that the "Eta Rings" are numbered in the same way,  i.e.  n : n+7    *
+*                                                                            *
+*                                                                            *
+*  First lets understand the exact details about what things look like       *
+*  at the time we enter this routine.                                        *
+*                                                                            *
+*  The data from the two racks looks like the following diagram.  Rack #1    *
+*  EM Et data is pointed to by AR0  and Rack #2 EM Et data is pointed to     *
+*  by AR1.                                                                   *
+*                                                                            *
+*                                                                            *
+*                          Rack #2                      Rack #1              *
+*                --------------------------    -------------------------     *
+*                 n+7    n+6    n+5    n+4      n+3    n+2    n+1    n+0     *
+*                -----  -----  -----  -----    -----  -----  -----  -----    *
+*                D   D  D   D  D   D  D   D    D   D  D   D  D   D  D   D    *
+*                3   2  2   1  1   8  7   0    3   2  2   1  1   8  7   0    *
+*                1   4  3   6  5               1   4  3   6  5               *
+*                                                                            *
+*                                                                            *
+*                                                                            *
+*                -----  -----  -----  -----    -----  -----  -----  -----    *
+* phi center-2    n+7    n+6    n+5    n+4      n+3    n+2    n+1    n+0     *
+*                -----  -----  -----  -----    -----  -----  -----  -----    *
+* phi center-1    n+7    n+6    n+5    n+4      n+3    n+2    n+1    n+0     *
+*                -----  ----- +-----+ -----    -----  -----  -----  -----    *
+* phi center      n+7    n+6  | n+5 |  n+4      n+3    n+2    n+1    n+0     *
+*                -----  ----- +-----+ -----    -----  -----  -----  -----    *
+* phi center+1    n+7    n+6    n+5    n+4      n+3    n+2    n+1    n+0     *
+*                -----  -----  -----  -----    -----  -----  -----  -----    *
+* phi center+2    n+7    n+6    n+5    n+4      n+3    n+2    n+1    n+0     *
+*                -----  -----  -----  -----    -----  -----  -----  -----    *
+*                                                                            *
+*                                                                            *
+*  As we enter this routine:                                                 *
+*                                                                            *
+*     AR0 points to Rack #1 EM Et data at "phi center + 1"   i.e. a phi      *
+*     that is one greater than the phi address of the Trigger Tower that     *
+*     we are processing.  This is true because it was incremented before     *
+*     the delayed conditional branch was FETCHED (i.e. not due to the        *
+*     delayed execution of the branch)                                       *
+*                                                                            *
+*     AR1 points to Rack #2 EM Et data at "phi center + 1"   i.e. a phi      *
+*     that is one greater than the phi address of the Trigger Tower that     *
+*     we are processing.  This is true because it was incremented before     *
+*     the delayed conditional branch was FETCHED (i.e. not due to the        *
+*     delayed execution of the branch)                                       *
+*                                                                            *
+*     Register R1 is holding the EM Et TT                                    *
+*     data for:                               eta n+5  at "phi center"       *
+*                                                                            *
+*     Register R0 is holding the EM Et TT                                    *
+*     data for:                               eta n+2  at "phi center + 1"   *
+*                                                                            *
+*                                                                            *
+*                                                                            *
+*         Note if   "phi center" = 31   then   "phi center + 2" =  1.        *
+*         Note if   "phi center" = 32   then   "phi center + 1" =  1.        *
+*         Note if   "phi center" = 32   then   "phi center + 2" =  2.        *
+*         Note if   "phi center" =  1   then   "phi center - 2" = 31.        *
+*         Note if   "phi center" =  1   then   "phi center - 1" = 32.        *
+*         Note if   "phi center" =  2   then   "phi center - 2" = 32.        *
+*                                                                            *
+*         i.e.  Circular Addressing                                          *
+*                                                                            *
+*                                                                            *
+*  To build the EM Et 1x2 Sum centered around eta n+5 "phi center"           *
+*  we need to know the following:                                            *
+*                                                                            *
+*     EM Et TT data for:                      eta n+6  at "phi center"       *
+*                                             eta n+5  at "phi center"       *
+*                                             eta n+4  at "phi center"       *
+*                                                                            *
+*                                             eta n+5  at "phi center - 1"   *
+*                                                                            *
+*                                             eta n+5  at "phi center + 1"   *
+*                                                                            *
+*                                                                            *
+*  To build the Total Et 3x3 Sum centered around eta n+5 "phi center" we     *
+*  need to add up the following Total Et Trigger Towers together:            *
+*                                                                            *
+*          eta n+4 "phi center - 1"                                          *
+*          eta n+5 "phi center - 1"                                          *
+*          eta n+6 "phi center - 1"                                          *
+*                                                                            *
+*          eta n+4 "phi center"                                              *
+*          eta n+5 "phi center"                                              *
+*          eta n+6 "phi center"                                              *
+*                                                                            *
+*          eta n+4 "phi center + 1"                                          *
+*          eta n+5 "phi center + 1"                                          *
+*          eta n+6 "phi center + 1"                                          *
+*                                                                            *
+*                                                                            *
+*  What Information is Passed to the Tool Code .                             *
+*  What Data must the Tool Code Save and Restore.                            *
+*  ----------------------------------------------                            *
+*                                                                            *
+*  This Tool code will be loaded into the same 64k block in Local SRAM as    *
+*  the routine that called it.                                               *
+*                                                                            *
+*  There is no need to pass the eta ring value to the Tool Code.  This is    *
+*  because there is a separate instance of the Tool Code for each eta ring.  *
+*  Each instance of the Tool Code must know its  Eta.                        *
+*                                                                            *
+*  The scan loop is written so that when Tool Code starts executing, the     *
+*  appropriate  Aux Reg (AR0 or AR1 depending upon eta ring)  holds a        *
+*  value from which phi can be determined if it is necessary.                *
+*                                                                            *
+*  A block repeat structure is used to scan the Trig Towers.  If the Tool    *
+*  code uses internally a block repeat structure then it must save and       *
+*  restore the structure for scanning the Trig Towers before it "exits".     *
+*                                                                            *
+*  The Tool Code must save and restore the conditional codes from the        *
+*  status register.  This is because immediately upon returning to the       *
+*  scanning routine a conditional branch will be made based upon condition   *
+*  codes that were calculated during the "delay" part of the conditional     *
+*  branch that called the Tool Code in this first place.                     *
+*                                                                            *
+*  When Tool Codes exits the same values must still be in AR0, AR1, and AR2. *
+*                                                                            *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*         Include the       DSP Program-Specific Constant Definitions        *
+******************************************************************************
+
+         .include   "constant.inc"
+
+******************************************************************************
+*         Include the file that defines the symbols which show the           *
+*         relative arrangement in C40 memory of the 4 blocks of TT data.     *
+******************************************************************************
+
+         .include     L_Tool.Inc   
+
+******************************************************************************
+*         Include the file that defines the Macros                           *
+******************************************************************************
+
+         .include     Macros.Inc   
+
+******************************************************************************
+*         Load Code into the  .text  Section.                                *
+******************************************************************************
+
+         .text
+
+Start_Tool_Ring_Nplus5:                                                   
+
+         START_TOOL                        ; Insert the Start of Tool Macro
+                                           ; with no parameters         
+                                          
+******************************************************************************
+*  This section of code forms the 1x2 EM Et Sum.                             *
+*                                                                            *
+*   It first finds the "largest" of the 4 adjacent EM Et's (taking the eta-  *
+*   specific Zero Offset into account).  It produces both the pedestal-free  *
+*   EM Et and the eta/phi coordinates for this Tower.                        *
+*                                                                            *
+*   It then adds this "largest" neighboring EM Et to the central Tower's     *
+*   EM Et (note that the Zero Offset for the central Tower must be removed)  *
+*   to produce the pedestal-free 1x2 EM Et Sum.  This sum is built in R3.    *
+*                                                                            *
+*  Control then flows to the next section of code.                           *
+*                                                                            *
+*  Some notes on the scanning operation:                                     *
+*                                                                            *
+*  We will use Circular Modify indirect addressing so that we do not fall    *
+*  off the "end" of the TT data.  The order of scanning the 4 adjacent       *
+*  Trigger Towers is picked to leave AR1 at the same value that it           *
+*  had when we entered this Tool Code routine.  Note that AR0 is not used    *
+*  in this Tool Code routine.                                                *
+*                                                                            *
+*  The order in which the 4 adjacent Towers are scanned is:                  *
+*                                                                            *
+*                          |eta|  |eta|  |eta|                               *
+*                           n+6    n+5    n+4                                *
+*                                (center)                                    *
+*                                 -----                                      *
+*         phi   center-1           3rd                                       *
+*                          ----- +-----+ -----                               *
+*         phi   center      2nd  |     |  4th                                *
+*                          ----- +-----+ -----                               *
+*         phi   center+1           1st                                       *
+*                                 -----                                      *
+*                                                                            *
+*  As the scan begins, the 1st TT scanned is assumed to be the "largest"     *
+*  (i.e. the one with maximum EM Et after its Zero Offset is removed).  The  *
+*  2nd TT's EM Et (with Zero Offset removed) is compared to the "largest"    *
+*  EM Et (using a SIGNED compare because once the Zero Offset is removed,    *
+*  the EM Et may be NEGATIVE), and if it is larger, then it becomes the new  *
+*  largest.  This processing is then repeated for the 3rd and 4th Trigger    *
+*  Towers.                                                                   *
+*                                                                            *
+******************************************************************************
+
+Find_Nplus5_Largest_EM_Neighbor:
+                                                    ; First assume eta n+5,
+                                                    ; phi center+1 is "largest"
+                                                    ; EM Et.
+
+         LBU1   *AR1--(1)%, R9                      ; Assume eta n+5, 
+                                                    ; phi   center+1 is 
+                                                    ; "largest" EM Et.
+                                                    ; Store this in R9.
+                                                    ;   Set AR1 for phi center
+
+         SUBI   @Eta_Nplus5_EM_Et_Zeresp_Loc, R9    ; Remove pedestal from
+                                                    ; the "largest" EM Et
+                                                    ; (to get true EM Et).
+
+
+         LDI    Neighbor_1, R11                     ; Store a "key" to the
+                                                    ; ID of the "largest"
+                                                    ; neighbor (which we
+                                                    ; have assumed to be
+                                                    ; the 1st neighbor)
+                                                    ; in R11
+
+
+                                                    ; Now see if eta n+6
+                                                    ; phi center is new
+                                                    ; "largest" EM Et
+
+
+         LBU2   *AR1--(1)%, R10                     ; Load EM Et for eta n+6
+                                                    ; phi center into a
+                                                    ; temporary register (R10)
+                                                    ;   Set AR1 for phi
+                                                    ;   center-1
+
+         SUBI   @Eta_Nplus6_EM_Et_Zeresp_Loc, R10   ; Remove pedestal to get
+                                                    ; true EM Et
+
+         CMPI   R9, R10                             ; Compare the "current"
+                                                    ; EM Et to the "largest"
+                                                    ; EM Et
+
+         LDIgt  R10, R9                             ; If the "current" EM Et
+                                                    ; is strictly greater than
+                                                    ; the "largest" EM Et
+                                                    ; then load the "current"
+                                                    ; EM Et into the "largest"
+                                                    ; EM Et register (R10).  
+                                                    ; NOTE that the condition
+                                                    ; flags are unaffected.
+
+         LDIgt  Neighbor_2, R11                     ; If the "current" EM Et
+                                                    ; is strictly greater than
+                                                    ; the "largest" EM Et
+                                                    ; then load the key to
+                                                    ; the ID of the "current"
+                                                    ; neighbor into R11
+
+
+                                                    ; Now see if eta n+5
+                                                    ; phi center-1 is new
+                                                    ; "largest" EM Et
+
+
+         LBU1   *AR1++(1)%, R10                     ; Load EM Et for eta n+5
+                                                    ; phi center - 1 into a
+                                                    ; temporary register (R10)
+                                                    ;   Set AR1 for phi
+                                                    ;   center
+
+         SUBI   @Eta_Nplus5_EM_Et_Zeresp_Loc, R10   ; Remove pedestal to get
+                                                    ; true EM Et
+
+         CMPI   R9, R10                             ; Compare the "current"
+                                                    ; EM Et to the "largest" 
+                                                    ; EM Et.
+
+         LDIgt  R10, R9                             ; If the "current" EM Et
+                                                    ; is strictly greater than
+                                                    ; the "largest" EM Et
+                                                    ; then load the "current"
+                                                    ; EM Et into the "largest"
+                                                    ; EM Et register (R10).  
+                                                    ; NOTE that the condition
+                                                    ; flags are unaffected.
+
+         LDIgt  Neighbor_3, R11                     ; If the "current" EM Et
+                                                    ; is strictly greater than
+                                                    ; the "largest" EM Et
+                                                    ; then load the key to
+                                                    ; the ID of the "current"
+                                                    ; neighbor into R11
+
+
+                                                    ; Now see if eta n+4
+                                                    ; phi center   is new
+                                                    ; "largest" EM Et
+
+
+         LBU0   *AR1++(1)%, R10                     ; Load EM Et for eta n+4
+                                                    ; phi center into a
+                                                    ; temporary register (R10)
+                                                    ;   Set AR1 for phi
+                                                    ;   center+1
+
+         SUBI   @Eta_Nplus4_EM_Et_Zeresp_Loc, R10   ; Remove pedestal to get
+                                                    ; true EM Et
+
+         CMPI   R9, R10                             ; Compare the "current"
+                                                    ; EM Et to the "largest" 
+                                                    ; EM Et.
+
+         LDIgt  R10, R9                             ; If the "current" EM Et
+                                                    ; is strictly greater than
+                                                    ; the "largest" EM Et
+                                                    ; then load the "current"
+                                                    ; EM Et into the "largest"
+                                                    ; EM Et register (R10).  
+                                                    ; NOTE that the condition
+                                                    ; flags are unaffected.
+
+         LDIgt  Neighbor_4, R11                     ; If the "current" EM Et
+                                                    ; is strictly greater than
+                                                    ; the "largest" EM Et
+                                                    ; then load the key to
+                                                    ; the ID of the "current"
+                                                    ; neighbor into R11
+                                                      
+         STI    R11, @Largest_Neighbor_ID_Loc       ; Put the key to the ID
+                                                    ; of the "largest" 
+                                                    ; neighbor in memory.
+
+                                                    ; Now we have the
+                                                    ; (pedestal-free, signed)
+                                                    ; "largest" EM Et in R9, 
+                                                    ; and a "key" of the ID
+                                                    ; of the corresponding
+                                                    ; Tower in memory
+
+Calculate_Nplus5_EM_Et_Sum:               
+
+        SUBI    @Eta_Nplus5_EM_Et_Zeresp_Loc, R1    ; Remove the pedestal
+                                                    ; from the "central"
+                                                    ; EM Et (stored in R1)
+
+        ADDI3   R1, R9, R3                          ; Form the 1x2 EM Et
+                                                    ; Sum by adding the
+                                                    ; "central" (R1) and
+                                                    ; "largest" (R9) EM Et.
+                                                    ; Store in R3.
+
+******************************************************************************
+*  Register R3 now holds the (pedestal-free, signed) 1x2 EM Et Sum for this  *
+*  seed.  Register AR1 has been returned to the value that it held when we   *
+*  entered this routine.  Register AR0 has not been used or modified.        *
+******************************************************************************
+
+******************************************************************************
+*  This section of code builds the 3x3 Total Et Sum.                         *
+*                                                                            *
+*  It adds the EM Et from each of the 9 Total Et Trigger Towers that are     *
+*  centered around eta n+5, phi center.  This sum is built in R5.            *
+*                                                                            *
+*  We will only require Total Et data from Rack #2 to perform this sum.  We  *
+*  will use register AR7 to point to the total Et data from Rack #2.         *
+*                                                                            *
+*  The order in which the towers are added is:                               *
+*                                                                            *
+*                                        eta    eta    eta                   *
+*                                        n+6    n+5    n+4                   *
+*                                             (center)                       *
+*                                                                            *
+*                                       -----  -----  -----                  *
+*         phi   center-1                 9th    8th    7th                   *
+*                                       ----- +-----+ -----                  *
+*         phi   center                   6th  | 5th |  4th                   *
+*                                       ----- +-----+ -----                  *
+*         phi   center+1                 3rd    2nd    1st                   *
+*                                       -----  -----  -----                  *
+*                                                                            *
+*  After the  9 Total TT Et's are summed the Total Zero Response of the  9   *
+*  TT's is removed to generate the actual 3x3 Total Et Sum                   *
+******************************************************************************
+                           
+Calculate_Nplus5_Total_Et_Sum:
+
+         ADDI3  Rack_1_Tot_Minus_EM_Value, AR0, AR6
+                                           ; AR6 now points to Total Et data
+                                           ; for TT's   eta n:n+3
+                                           ;           "phi center + 1"
+                                                          
+         LDI    AR6, AR7                   ; AR7 now points to the Total  
+                                           ; Et data for TT's eta n:n+3   
+                                           ;        "phi center + 1"
+
+         ADDI   Rack_2_Minus_Rack_1_Value,AR7
+                                           ; AR7 now points to the Total  
+                                           ; Et data for TT's eta n+4:n+7 
+                                           ;        "phi center + 1"
+
+
+                                           ; Now Add Total Et's from the 3
+                                           ; Towers at  "phi center + 1".
+
+
+         LBU0   *AR7, R10                  ; Get Tot eta n+4  "phi center + 1" 
+                                           ;   AR7 stays at   "phi center + 1" 
+         LDI    R10, R5                    ; Load this Tot TT into R5         
+                                           ; ----
+
+         LBU1   *AR7, R10                  ; Get Tot eta n+5  "phi center + 1" 
+                                           ;   AR7 stays at   "phi center + 1" 
+         ADDI   R10, R5                    ; Add this Tot TT to the sum in R5 
+                                           ; ---
+
+         LBU2   *AR7--(1)%, R10            ; Get Tot eta n+6  "phi center + 1" 
+                                           ;   Set AR7 for    "phi center"     
+         ADDI   R10, R5                    ; Add this Tot TT to the sum in R5 
+                                           ; ---
+
+    
+                                           ; Now Add Total Et's from the 3
+                                           ; Towers at  "phi center".
+
+
+         LBU0   *AR7, R10                  ; Get Tot eta n+4  "phi center"
+                                           ;   AR7 stays at   "phi center"     
+         ADDI   R10, R5                    ; Add this Tot TT into R5         
+                                           ; ---
+
+         LBU1   *AR7, R10                  ; Get Tot eta n+5  "phi center"
+                                           ;   AR7 stays at   "phi center"
+         ADDI   R10, R5                    ; Add this Tot TT to the sum in R5 
+                                           ; ---
+
+         LBU2   *AR7--(1)%, R10            ; Get Tot eta n+6  "phi center"
+                                           ;   Set AR7 for    "phi center - 1" 
+         ADDI   R10, R5                    ; Add this Tot TT to the sum in R5 
+                                           ; ---                              
+
+
+                                           ; Now Add Total Et's from the 3
+                                           ; Towers at  "phi center - 1"
+
+
+         LBU0   *AR7, R10                  ; Get Tot eta n+4  "phi center - 1"
+                                           ;   AR7 stays at   "phi center - 1" 
+         ADDI   R10, R5                    ; Add this Tot TT into R5         
+                                           ; ---
+
+         LBU1   *AR7, R10                  ; Get Tot eta n+5  "phi center - 1"
+                                           ;   AR7 stays at   "phi center - 1"
+         ADDI   R10, R5                    ; Add this Tot TT to the sum in R5 
+                                           ; ---
+
+         LBU2   *AR7, R10                  ; Get Tot eta n+6  "phi center - 1"
+                                           ;   AR7 stays at   "phi center - 1" 
+         ADDI   R10, R5                    ; Add this Tot TT to the sum in R5 
+                                           ; ---                              
+
+         SUBI   @Eta_Nplus5_3x3_Tot_Offset_Loc, R5      ; Remove the Zero
+                                                        ; Response of the 9
+                                                        ; Trigger Towers from
+                                                        ; the 3x3 Total Et Sum
+
+******************************************************************************
+*  Register R5 now holds the (pedestal-free, signed) 3x3 Total Et Sum for    *
+*  this seed.                                                                *
+******************************************************************************
+                   
+******************************************************************************
+*  We have all of the "raw" information we need to perform rejection.        *
+******************************************************************************
+
+******************************************************************************
+*  We now need to first compare the 1x2 EM Et Sum to the 1x2 EM Et Threshold *
+*  and set a flag to indicate whether the Sum was >= Threshold or < Thresh.  *
+*  We will use the COMPARE_1X2 macro to perform this function.               *
+******************************************************************************
+
+Compare_1x2_EM_Threshold_Nplus5:
+
+        COMPARE_1X2                             ; Call the COMPARE_1X2 macro
+                                                ; with no parameters
+
+******************************************************************************
+*  We now need to compare the isolation to the EM vs. Tot Ratio Threshold,   *
+*  and set a flag to indicate whether the ratio was >= Threshold or          *
+*  < Threshold.  We will use the COMPARE_RATIO macro to perform this task.   *
+******************************************************************************
+
+Compare_Ratio_Threshold_Nplus5:
+
+        COMPARE_RATIO                           ; Call the COMPARE_RATIO macro
+                                                ; with no parameters
+
+******************************************************************************
+*  Now we should determine whether the object centered at eta n+5,           *
+*  "phi center" passes this L1.5 Cal Trig Tool.  If it does then we should   *
+*  exit the Tool code via the "Success" exit point.  The object will be kept *
+*  (and passed to the Global DSP).  If it does not                           *
+*  then the macro exits directly to the Scan Loop.                           *
+*                                                                            *
+*  The decision is made by examining the flags set by the 1x2 Threshold      *
+*  and Ratio Threshold comparisons performed above                           *
+*                                                                            *
+*  We will use the TOOL_ACCEPT_REJECT macro to perform this function         *
+******************************************************************************
+
+Accept_or_Reject_This_Tool_Ring                                               
+
+        TOOL_ACCEPT_REJECT  Nplus5              ; Call the TOOL_ACCEPT_REJECT
+                                                ; macro with a parameter which
+                                                ; indicates eta ring.  
+
+******************************************************************************
+*   This is the Tool Success Exit Point.  Here we call the TOOL_SUCCESS      *
+*   Macro (in the Macros.Inc file in the Common subdirectory).  See that     *
+*   Macro for a full description of the action at the Tool Success Exit      *
+*   Point                                                                    *
+*                                                                            *
+*   This Macro is only called if the TOOL_ACCEPT_REJECT macro chooses to     *
+*   make an entry in the Object List.                                        *
+******************************************************************************
+
+Write_Object_Entry:   
+
+        TOOL_SUCCESS    Nplus5                      ; Execute the Tool 
+                                                    ; Success Macro with
+                                                    ; a parameter which
+                                                    ; indicates the Tool
+                                                    ; Ring within which the
+                                                    ; macro is expanded
+
+******************************************************************************
+*  This is the Bulkhead.  This code should never be executed                 *
+******************************************************************************
+
+End_Of_L_Tl_Np5:                        ; These instructions should never be 
+                                        ; executed in the "normal" operation
+         BR     End_Of_L_Tl_Np5         ; of the program.  If the program 
+                                        ; counter becomes corrupted or
+         BR     End_Of_L_Tl_Np5         ; if we have a bug in the program
+                                        ; we MAY try to execute these 
+         BR     End_Of_L_Tl_Np5         ; instructions.  If we get to these
+                                        ; instructions the program will appear
+         BR     End_Of_L_Tl_Np5         ; to halt.  We could also use a 
+                                        ; TRAP instruction here, and jump to
+                                        ; a service routine.
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+
+         .def    Start_Tool_Ring_Nplus5                 ; Symbols defined
+                                                        ; in this module for
+                                                        ; use in external
+                                                        ; modules
+                                               
+         .ref    Tool_Number_Loc                        ; Symbols defined  
+         .ref    Object_Type_Loc                        ; in external      
+         .ref    Real_Data_Flag_Loc                     ; modules          
+         .ref    Mark_Force_Pass_Data_Flag_Loc 
+         .ref    List_Overrun_Flag_Loc
+
+
+         .ref    Zero_Loc                                                   
+         .ref    This_LDSP_ObjectList_Handle                                
+         .ref    LDSP_Entries_per_List_Loc                                  
+                           
+         .ref    Term_Number_for_This_Tool_Loc                 
+
+         .ref    Largest_Neighbor_ID_Loc
+
+         .ref    EM_Et_1x2_Threshold_Loc
+         .ref    EM_vs_Tot_Ratio_Threshold_Loc
+
+         .ref    Return_from_Tool_Ring_Nplus5                               
+
+         .ref    Eta_Nplus4_EM_Et_Zeresp_Loc
+         .ref    Eta_Nplus5_EM_Et_Zeresp_Loc
+         .ref    Eta_Nplus6_EM_Et_Zeresp_Loc
+
+         .ref    Eta_Nplus5_3x3_Tot_Offset_Loc                                
+         .ref    Eta_Nplus5_Coord_Loc                
+                           
+******************************************************************************
+*   End of this module                                                       *
+******************************************************************************
+
+         .end                                    

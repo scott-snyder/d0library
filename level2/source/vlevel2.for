@@ -1,0 +1,13 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VLEVEL2()
+      VLEVEL2 = ' LEVEL2'//
+     X  ' FAKE 25-JUN-1992 14:49:00'//
+     X                   '  OFFICIAL V1.01'//
+     X                   ' 24-MAR-1992 16:34:33.68'
+      Return
+      End

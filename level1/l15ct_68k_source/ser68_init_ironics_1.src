@@ -1,0 +1,242 @@
+
+Init_Ironics    IDNT                     ; Title of Initialize Ironics Section.
+
+   SECTION   Sect_Init_Ironics,4,C       ; Declare a noncommon code
+                                         ; section. Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Initialize all of the Ironics Registers.           Rev.  22-ARP-1994  *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*   First initialize all bits in all registers on all of the Ironics      *
+*   cards to HIGH  (i.e. so that they can be input and are safe is the    *
+*   attached P2 card is driving an input high).                           *
+*                                                                         *
+*   Initialize the Terms returned to M103 Ironics.                        *
+*                                                                         *
+*   Initialize the Term Select Ironics.                                   *
+*                                                                         *
+*   Initialize the Readout Control Ironics.                               *
+*                                                                         *
+*   Initialize the Path Select Ironics.                                   *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D4.                *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            WrIO:  Write bit(s) to the IRONICS I/O card                  *
+*                                                                         *
+***************************************************************************
+
+WrIO    MACRO                         ; Write byte to Ironics I/O Port.
+        Not.B   \1                    ; Complement data byte \1.
+        Move.B  \1,\2                 ; Move to Ironics port at adrs \2.
+        Not.B   \1                    ; Complement data byte \1 to restore it.
+        ENDM
+
+
+*************************************************************************
+*                                                                       *
+*  Initialize all Ironics Registers to all bits HIGH (safe as inputs).  *
+*                                                                       *
+*************************************************************************
+
+Begin_Init_Ironics:
+
+        Move.B   #$FF,D4
+
+        WrIO     D4,Terms_to_M103_Port_1
+        WrIO     D4,Terms_to_M103_Port_2
+        WrIO     D4,Terms_to_M103_Port_3
+        WrIO     D4,Terms_to_M103_Port_4
+        WrIO     D4,Terms_to_M103_Port_5
+        WrIO     D4,Terms_to_M103_Port_6
+
+        WrIO     D4,Term_Select_Port_1
+        WrIO     D4,Term_Select_Port_2
+        WrIO     D4,Term_Select_Port_3
+        WrIO     D4,Term_Select_Port_4
+        WrIO     D4,Term_Select_Port_5
+        WrIO     D4,Term_Select_Port_6
+
+        WrIO     D4,Readout_Ctrl_Port_1
+        WrIO     D4,Readout_Ctrl_Port_2
+        WrIO     D4,Readout_Ctrl_Port_3
+        WrIO     D4,Readout_Ctrl_Port_4
+        WrIO     D4,Readout_Ctrl_Port_5
+        WrIO     D4,Readout_Ctrl_Port_6
+
+        WrIO     D4,Path_Select_Port_1
+        WrIO     D4,Path_Select_Port_2
+        WrIO     D4,Path_Select_Port_3
+        WrIO     D4,Path_Select_Port_4
+        WrIO     D4,Path_Select_Port_5
+        WrIO     D4,Path_Select_Port_6
+
+
+***************************************************************************
+*                                                                         *
+*   Initialize the Terms returned to M103 Ironics.                        *
+*                                                                         *
+*     Port #1                                                             *
+*     Port #2                                                             *
+*     Port #3                                                             *
+*     Port #4                                                             *
+*     Port #5                                                             *
+*     Port #6                                                             *
+*                                                                         *
+***************************************************************************
+
+***************************************************************************
+*                                                                         *
+*   Initialize the Term Select Ironics.                                   *
+*                                                                         *
+*     Port #1  Not Used                                                   *
+*     Port #2  All Bits are Output.  Ironics 0:7 go to Mem Adrs 0:7.      *
+*     Port #3  All Bits are Output.  Ironics 0:7 go to Mem Adrs 8:15.     *
+*     Port #4  All Bits are I/O.     Ironics 0:7 go to Mem Data 0:7.      *
+*     Port #5  All bits are Output.                                       *
+*                Ironics bit 0 controls the Mux_Sel. Setting this bit     *
+*                  High selects Ironics Programming.  Set Low for normal  *
+*                  operation.                                             *
+*                Ironics bit 1 controls the /WE signal to the SRAM's.     *
+*                  Normal operation is High.  Pulse Low to write          *
+*                Ironics bit 2 controls the /OE signal to the SRAM's.     *
+*                  Normally Low i.e. reading the SRAM's set High when     *
+*                  writing.                                               *
+*                Ironics bit 3 is used to generate a clock to the '399    *
+*                  latch during Ironics Programming.  Normally Low,       *
+*                  pulse High to clock the latch.                         *
+*                Ironics bits 4:7 are not used.                           *
+*     Port #6  Not used.                                                  *
+*                                                                         *
+***************************************************************************
+
+***************************************************************************
+*                                                                         *
+*   Initialize the Readout Control Ironics.                               *
+*                                                                         *
+*     Port #1  Not Used                                                   *
+*     Port #2  All bits are Outputs.                                      *
+*                Bit 0 is the Slave Ready Signal to the VBD.  Recall      *
+*                that the VBD SRDY hardware signal is LOW active.         *
+*                Bits 1:7 are not used.                                   *
+*     Port #3  All Bits are Inputs.                                       *
+*     Port #4  All Bits are Outputs.                                      *
+*                Pulsing Ironics bit 0 high clears the Readout Control    *
+*                  paddle board.                                          *
+*                Setting Ironics bit 1 high or low sets the R.C.          *
+*                  Front-End Busy high or low.                            *
+*                Ironics bit 4 controls the #1 MVME214                    *
+*                  high-->enables VME  low-->enables VSB                  *
+*                Ironics bit 5 controls the #2 MVME214                    *
+*                  high-->enables VME  low-->enables VSB                  *
+*                Bits 2,3 and 6,7 are not used.                           *
+*     Port #5  All Bits are Inputs.                                       *
+*     Port #6  All Bits are Inputs.                                       *
+*                                                                         *
+***************************************************************************
+
+        Move.B   #$FF,D4                     ; Continue sending SRDY voltage
+        WrIO     D4,Readout_Ctrl_Port_2      ; high,  i.e. SRDY  NOT active.
+
+        Move.B   #%11101100,D4               ; R.C. Front-End is not set Busy.
+        WrIO     D4,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+        Move.B   #%11101101,D4               ; Pulse bit 0 High to clear the
+        WrIO     D4,Readout_Ctrl_Port_4      ; Readout Control P2.
+
+        Move.B   #%11101100,D4               ; R.C. Front-End is not set Busy.
+        WrIO     D4,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+
+***************************************************************************
+*                                                                         *
+*   Initialize the Path Select Ironics.                                   *
+*                                                                         *
+*     Port #1  Not Used                                                   *
+*     Port #2  Not Used                                                   *
+*     Port #3  All bits are Outputs.                                      *
+*                Bits 0:6 are not used.                                   *
+*                Bit 7 when pulsed high clears the 16RA8 Path Select      *
+*                PAL.  During the time that Bit 7 is pulsed high the      *
+*                L15 Cal Trig is forced Front-End_Busy.                   *
+*     Port #4  All bits are Inputs.                                       *
+*     Port #5  All bits are Inputs.                                       *
+*     Port #6  All bits are Inputs.                                       *
+*                                                                         *
+***************************************************************************
+
+        Move.B   #$7F,D4                    ; Bit #7 Port 3 set low.
+        WrIO     D4,Path_Select_Port_3
+
+        Move.B   #$FF,D4                    ; Bit #7 Port 3 pulsed high.
+        WrIO     D4,Path_Select_Port_3
+
+        Move.B   #$7F,D4                    ; Bit #7 Port 3 set low for
+        WrIO     D4,Path_Select_Port_3      ; normal operation.
+
+
+*************************************************************************
+*                                                                       *
+*  Send the Ironics Initialization Complete Message to the console.     *
+*                                                                       *
+*************************************************************************
+
+        PEA.L    IronicsInitCmpt1          ; Push message address on stack.
+        JSR      ChrStrgOut                ; and send it out.
+
+        RTS                                ; Return to the calling routine.
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*  Data used to send messages to the L15CT console screen.              *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+IronicsInitCmpt1   DC.B    35,'  Finished Ironics initialization. '
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section for Initialize Ironics                             *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Init_Ironics                      ; Symbol exported to
+                                                     ; other modules.
+
+      ; Symbols used in this module but defined in another program module.
+
+      XREF    Terms_to_M103_Port_1,Terms_to_M103_Port_2,Terms_to_M103_Port_3
+      XREF    Terms_to_M103_Port_4,Terms_to_M103_Port_5,Terms_to_M103_Port_6
+
+      XREF    Term_Select_Port_1,Term_Select_Port_2,Term_Select_Port_3
+      XREF    Term_Select_Port_4,Term_Select_Port_5,Term_Select_Port_6
+
+      XREF    Readout_Ctrl_Port_1,Readout_Ctrl_Port_2,Readout_Ctrl_Port_3
+      XREF    Readout_Ctrl_Port_4,Readout_Ctrl_Port_5,Readout_Ctrl_Port_6
+
+      XREF    Path_Select_Port_1,Path_Select_Port_2,Path_Select_Port_3
+      XREF    Path_Select_Port_4,Path_Select_Port_5,Path_Select_Port_6
+
+      XREF    ChrStrgOut
+
+      END
+

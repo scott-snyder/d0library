@@ -1,0 +1,292 @@
+INTERFACING OTHER LEVEL 1 TRIGGER SUBSYSTEMS WITH L1SIM            31-OCT-1991 
+--------------------------------------------------------
+
+
+1. INTRODUCTION
+
+    L1SIM is the name of the new version of the Level 1 Simulator, formerly
+called L1C. The change of name corresponds to the evolution from a pure
+Calorimeter Trigger Simulator to a complete Level 1 Trigger Simulator. This
+means that simulation software for other Level 1 sub-systems can be
+interfaced to the L1SIM framework.
+
+    L1SIM is meant to be used with the D0USER Framework of the Program
+Builder Package. L1SIM attaches to several of the hooks available in the
+D0USER frame.
+
+1.1 DOUSER hooks
+
+    The routine L1SIM_EVENT is provided for the hook USREVT, and performs 
+processing on each event, and also fills the TRGR bank.  It consists of a 
+series of calls to routines which each corresponds to a trigger subsystem. 
+Two of these (L1_USER_TERMS_SIM and L1_USER_TERMS_FILL) are dummy routines
+which can be replaced by the user.
+
+    The routine L1SIM_INIT is provided for the USRINI hook, which performs
+initialization before any events are processed. It consists of a series of
+calls to routines which each corresponds to a trigger subsystem. One of
+these (L1_USER_TERMS_INIT) is a dummy routine which can be replaced by the
+user.
+
+    The routine L1SIM_DIALOG is provided for the USDIAL hook, which allows 
+interactive dialog for setting options. It consists of a series of calls to
+routines which each corresponds to a trigger subsystem. One of these
+(L1_USER_TERMS_DIALOG) is a dummy routine which can be replaced by the
+user.
+
+    The routine L1SIM_SSUM is provided for the USRSSM hook, which writes a
+summary of all the events analyzed. It consists of a series of calls to
+routines which each corresponds to a trigger subsystem. One of these
+(L1_USER_TERMS_SSUM) is a dummy routine which can be replaced by the user.
+
+    The routine L1SIM_DEFDUMP is provided for the DMPUDF hook, which allows 
+interactive dialog for defining dump options. It consists of a series of
+calls to routines which each corresponds to a trigger subsystem. One of
+these (L1_USER_TERMS_DEFDUMP) is a dummy routine which can be replaced by
+the user.
+
+    The routine L1SIM_DUMP is provided for the DMPUSR hook, which performs
+a dump of the event. It consists of a series of calls to routines which
+each corresponds to a trigger subsystem. One of these (L1_USER_TERMS_DUMP)
+is a dummy routine which can be replaced by the user.
+
+1.2 Adding a Subsystem
+
+    Adding a new subsystem to L1SIM can be done one of two ways. 
+
+    One way is to use the standard distributed LEVEL 1 library.  The
+minimal requirement is to provide a replacement for the dummy routine
+L1_USER_TERMS_SIM (replacement for other L1_USER_TERMS_* dummy routines is
+optional).   
+
+    The second way is to modify the distributed LEVEL 1 library.  Explicit
+calls to the subsystem can be inserted into the routines L1SIM code. 
+Contact MSUHEP::LAURENS for changes to the LEVEL 1 library.
+    
+    The only difference between these two methods is that the second method
+will provide distribution of the additional code as part of the LEVEL 1
+Library.  The L1_USER_TERMS_* hooks are provided for pre-release work on a
+new subsystem simulator, and for private studies. 
+
+    The following is a guide on writing the initialization and event
+processing routines for a trigger subsystem.
+
+
+2. INITIALIZATION ROUTINE (L1_myname_INIT)
+
+    The author of the simulator for a trigger subsystem provides an
+initialization subroutine named L1_myname_INIT, which should perform all of
+the initialization that the trigger subsystem requires. This routine takes
+no arguments. However, any run-time parameters may be retrieved from the
+RCP file L1SIM.RCP. This file has been read in by L1SIM before any
+subsystem initialization routine is called. The parameters can then be
+retrieved from the RCP bank L1SIM_RCP. 
+
+
+3. EVENT PROCESSING ROUTINE (L1_myname_SIM)
+
+    The author of the simulator for a trigger subsystem also provides a
+routine named L1_myname_SIM which performs processing on each event. This
+routine has 3 arguments (all outputs):
+
+L1_myname_SIM(NUM_ANDOR_USED, ANDOR_STATES, ANDOR_INDICES)
+
+NUM_ANDOR_USED
+    An INTEGER, indicating how many Andor Terms states the subsystem has
+    calculated.
+
+ANDOR_STATES
+    An array of up to 256 LOGICALs representing the Andor states. The first
+    NUM_ANDOR_USED elements will contain the states.
+
+ANDOR_INDICES
+    An array of up to 256 corresponding INTEGERs returning the Andor Term
+    number for each state. Each Andor Term number is retrieved from the RCP
+    bank L1_ANDOR_RESOURCE using its logical name.
+
+    A subsystem will of course not use all 256 Andor Terms, and the terms
+need not be in any particular order.
+
+    The Andor Term numbers are defined in an RCP file which L1SIM reads in
+at initialization time. Typically, Andor Terms are specified in this RCP
+file using a standard name used by the COOR resource files as the term's
+logical name. This same name should be used to retrieve the Andor Term
+number from the RCP bank.
+
+
+4. TRGR BANK FILLING ROUTINE (L1_myname_FILL)
+
+    Finally, the author of the simulator for a trigger subsystem provides a
+routine named L1_myname_FILL, which puts information in the TRGR bank (or
+any appropriate bank). This subroutine takes no arguments.  No
+modifications to the TRGR bank should be made outside this routine. The
+address of the TRGR bank may be obtained by a call to GZTRGR, and the size
+of the TRGR bank may be increased if necessary by a call to the ZEBRA
+routine MZPUSH. A routine to perform this operation is described below.
+
+
+5. EXAMPLE OF EVENT PROCESSING ROUTINE
+
+    The following code is a template for a trigger subsystem event
+processing routine. It illustrates how to retrieve Andor Term numbers from
+the RCP bank, and how to return the states of the Andor Terms. 
+
+-----------------------------------------------------------------------
+
+
+      SUBROUTINE L1_EXAMPLE_SIM(NUM_ANDOR_USED, ANDOR_STATES,
+     &  ANDOR_INDICES)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Give an example of how to retrieve an Andor Term
+C-      number from the RCP bank L1_ANDOR_RESOURCE.
+C-      The logical name of the Andor Term this routine retrieves is
+C-      'L1_EXAMPLE_ANDOR'.
+C-
+C-   Inputs  : none
+C-   Outputs : NUM_ANDOR_USED   The number of Andor Terms this routine is
+C-                              returning. This number may be 0.
+C-             ANDOR_STATES     The state of each returned Andor Term.
+C-             ANDOR_INDICES    The corresponding Andor Term number for 
+C-                              each returned Andor Term.
+C-   Controls: none
+C-
+C-   Created   3-SEP-1991 MICHIGAN STATE UNIVERSITY, TRIGGER CONTROL SOFTWARE
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INTEGER NUM_ANDOR_USED
+      LOGICAL ANDOR_STATES(256)
+      INTEGER ANDOR_INDICES(256)
+C
+C       This is a LOGICAL function provided by L1SIM which selects the correct
+C       RCP bank to retrieve Andor Term numbers.
+C
+      LOGICAL PICK_L1SIM_ANDOR_RCP
+      EXTERNAL PICK_L1SIM_ANDOR_RCP
+C
+      INTEGER IER
+C
+      INTEGER L1_EXAMPLE_ANDOR_NUM
+      LOGICAL FIRST
+      DATA FIRST / .TRUE. /
+      SAVE FIRST, L1_EXAMPLE_ANDOR_NUM, IER
+C
+C       Find the Andor Term number for the example on the first
+C       call only.
+C
+      IF (FIRST .EQV. .TRUE.) THEN
+        FIRST = .FALSE.
+C
+C       The function PICK_L1SIM_ANDOR_RCP calls EZPICK with the correct 
+C         bank name
+C
+        IF (PICK_L1SIM_ANDOR_RCP() .EQV. .FALSE.) THEN 
+C
+C       Handle the error case where the RCP bank does not exist
+C
+          IER = 1   ! Indicate that the Andor Term was not defined
+          GOTO 1000 ! Continue processing
+        ELSE
+C
+C       Get the correct term number
+C
+          CALL EZGET('L1_EXAMPLE_ANDOR', L1_EXAMPLE_ANDOR_NUM, IER)
+C       
+C       De-select the current RCP bank.
+C
+          CALL EZRSET()
+        ENDIF
+      ENDIF
+ 1000 CONTINUE
+C
+C       At this point, calculate the Andor Term states and assign the return
+C       values.
+C
+      ANDOR_STATES(1) = .TRUE.
+      ANDOR_INDICES(1) = L1_EXAMPLE_ANDOR_NUM
+C
+C       Handle the case where the term number was not specified in the 
+C         RCP file
+C
+      IF (IER .EQ. 0) THEN 
+        NUM_ANDOR_USED = 1  ! The Andor Term exists
+      ELSE
+        NUM_ANDOR_USED = 0  ! The Andor Term was not specified in the RCP file
+      ENDIF
+C----------------------------------------------------------------------
+  999 RETURN
+      END
+
+
+6.  ROUTINE TO EXTEND THE TRGR BANK
+
+    When L1SIM first creates a TRGR bank, it only allocates space needed by
+the Level 1 Calorimeter Trigger and the Level 1 Framework. Other subsystems
+might need additional storage in the TRGR bank. To do this, the subsystem
+may either call the ZEBRA routine MZPUSH to extend the bank, or it may
+simply call the utility routine L1_TRGR_EXTENSION provided as part of the
+LEVEL1 library. The routine may be called as follows:
+
+L1_TRGR_EXTENSION(LTRGR, DELTA_WORDS, SUBSYSTEM_OFFSET)
+
+LTRGR
+    An input integer giving the address of the TRGR bank. NOTE: This
+    argument may be modified if the TRGR bank is relocated when it is
+    extended. On return, this argument contains the address of the
+    (possibly relocated) TRGR bank.
+
+DELTA_WORDS
+    An input integer giving the number of words to add to the TRGR bank
+
+SUBSYSTEM_OFFSET
+    An output integer giving the offset into the TRGR bank of the first
+    newly allocated word.
+
+    Note that on return from L1_TRGR_EXTENSION the first word of the newly
+allocated space may be accessed by IQ(LTRGR + SUBSYSTEM_OFFSET + 1).
+
+    The code for L1_TRGR_EXTENSION follows:
+
+--------------------------------------------------------------------------
+
+      SUBROUTINE L1_TRGR_EXTENSION(LTRGR, DELTA_WORDS, SUBSYSTEM_OFFSET)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Increase the size of the TRGR bank, and give the
+C-    offset for the first word in the newly allocated section.
+C-
+C-   Inputs  : LTRGR  The address of the TRGR bank. NOTE: This may be modified
+C-                    if the TRGR bank is relocated. On return, this argument
+C-                    contains the address of the (possibly relocated) TRGR
+C-                    bank.
+C-
+C-             DELTA_WORDS  The number of words to add to the TRGR bank.
+C-
+C-   Outputs : SUBSYSTEM_OFFSET The offset into the TRGR bank of the first
+C-                              newly allocated word. 
+C-
+C-   Controls: none
+C-
+C-  NOTE: On return, the first newly allocated word may be accessed by:
+C-        IQ(LTRGR + SUBSYSTEM_OFFSET + 1)
+C-
+C-  NOTE: The TRGR bank must have already been booked.
+C-
+C-   Created  14-OCT-1991   MICHIGAN STATE UNIVERSITY, TRIGGER CONTROL SOFTWARE
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+C
+      INTEGER LTRGR, DELTA_WORDS, SUBSYSTEM_OFFSET
+C
+C       Save the original length of the TRGR bank
+      SUBSYSTEM_OFFSET = IQ(LTRGR-1)
+C
+C       Extend the bank
+      CALL MZPUSH(IXMAIN, LTRGR, 0, DELTA_WORDS, ' ')
+C----------------------------------------------------------------------
+  999 RETURN
+      END

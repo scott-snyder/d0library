@@ -1,0 +1,221 @@
+
+Init_VBD    IDNT                         ; Title of  Initialize VBD Section.
+
+   SECTION   Sect_Init_VBD,4,C           ; Declare a noncommon code
+                                         ; section. Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Initialize the VBD Registers                       Rev.  23-ARP-1994  *
+***************************************************************************
+
+***************************************************************************
+*                                                                         *
+*   Initialize the VBD.                                                   *
+*      Un-Lock the CSR block load DMA time-out.                           *
+*      Load the Crate Type.                                               *
+*      Load the Event Number Address.                                     *
+*      Load the Crate ID Address.                                         *
+*      Load the D Control Register, the format for data reads.            *
+*      Load the P Control Reg., the format for parameter reads.           *
+*      Load the I/O Address high order bits.                              *
+*   Load the VBD with the list of pointers to the Word Counts.            *
+*   Load the VBD with the list of data block Base Addresses.              *
+*   Initialize the VBD (continued).                                       *
+*      Reset the VBD (make these parameters active).                      *
+*      Lock the VBD parameters and load DMA time-out.                     *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D4 and A3.         *
+*                                                                         *
+***************************************************************************
+
+
+*************************************************************************
+*       This section defines program-specific macros:                   *
+*                                                                       *
+*            SoftWait:  Software delay timer for short waits            *
+*                                                                       *
+*************************************************************************
+
+SoftWait   MACRO                      ; Software timer loop.
+           LOCAL    WaitMore          ; Define a local symbol.
+           MOVE.L   \1,D4             ; Load delay time  \1  into D4.
+WaitMore   SUBI.L   #1,D4             ; Decrement loop counter.
+           BNE      WaitMore          ; Test for end of delay.
+           ENDM                       ; Called with an argument
+                  ; of $1000 and with cashe off causes a delay of about 4
+                  ; mill seconds, with cashe on the delay is 2.4 mill sec.
+
+
+*************************************************************************
+*                                                                       *
+*  Initialize the VBD Control Registers.                                *
+*                                                                       *
+*************************************************************************
+
+Begin_Init_VBD:
+
+     Move.W      #VBDDMATO,VBDCSR0         ; Load the VBD DMA time-out value.
+     Move.W     #CrateType,CrateTypeReg    ; Load the VBD Crate Type Register.
+     Move.W     #EvtNmbAdr,EvtNmbAdrReg    ; Load pointer to the Event Number.
+     Move.W   #CrateIDAdrs,CrtIDAdrReg     ; Load the pointer to the Crate ID.
+     Move.W     #DCtrlData,DControlReg     ; Load data read format ctrl reg.
+     Move.W     #PCtrlData,PControlReg     ; Load param read format ctrl reg.
+     Move.W      #IOUPAdrs,IOUPAdrsReg     ; Load upper adrs bits for IO reads.
+
+*************************************************************************
+*                                                                       *
+*  Load the VBD with the list of the addresses in Short I/O space       *
+*  where the Word Counts of the various sections in the L15CT Data      *
+*  Block are storaged.   Recall, a null terminates the list.            *
+*                                                                       *
+*************************************************************************
+
+        MoveA.L  #WCPntList,A3        ; Load address of the start of the.
+                                      ; VBD Word CNT Pointer list into A3.
+
+        Move.W  #WCStore1,(A3)+     ; Load pointer to the Header Word Count.
+        Move.W  #WCStore2,(A3)+     ; Load pointer to Frame Code Section WC.
+        Move.W  #WCStore3,(A3)+     ; Load pointer to Frame Param Section WC.
+        Move.W  #WCStore4,(A3)+     ; Load pointer to Tool Parameter Sect WC.
+        Move.W  #WCStore5,(A3)+     ; Load pointer to Local DSP Section WC.
+        Move.W  #WCStore6,(A3)+     ; Load pointer to Global DSP Section WC.
+        Move.W  #WCStore7,(A3)+     ; Load pointer to DeBug Section Word Count.
+
+        Move.W  #0000,(A3)+           ; Load a null to terminate
+                                      ;     the WC list.
+        Move.W  #0000,(A3)+           ; Load a null to terminate
+                                      ;     the WC list.
+
+
+*************************************************************************
+*                                                                       *
+*  Load the VBD with the list of the data block Base Addresses.         *
+*  These are the Base Addresses where the VBD will start to read        *
+*  during the DMA cycles.                                               *
+*                                                                       *
+*  Load the Base Addresses as two Words (i.e. not as LongWords).  Be    *
+*  careful about the word order.  Loading these Base Addresses as       *
+*  LongWords did not work; although it is done that way in the VTC !    *
+*  Is the apparent requirement of Word loads a feature of this VBD      *
+*  or a feature of talking to the VBD via the Vertical Interconnect ?   *
+*                                                                       *
+*************************************************************************
+
+        MoveA.L  #DataPntList,A3        ; Load address of the start of the
+                                        ;    VBD Data Pointer list into A3.
+
+        Move.L  #BAHeader,D4            ; Load Base Adrs of CRATE HEADER.
+          Swap    D4                    ;   Get High Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load High Order Word of the Adrs.
+          Swap    D4                    ;   Get Low Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load Low Order Word of the Adrs.
+
+        Move.L  #BAFrameCode,D4         ; Load Base Adrs of FRAME CODE Section.
+          Swap    D4                    ;   Get High Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load High Order Word of the Adrs.
+          Swap    D4                    ;   Get Low Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load Low Order Word of the Adrs.
+
+        Move.L  #BAFrameParam,D4        ; Load Base Adrs of FRAME PARAM Sect.
+          Swap    D4                    ;   Get High Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load High Order Word of the Adrs.
+          Swap    D4                    ;   Get Low Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load Low Order Word of the Adrs.
+
+        Move.L  #BAToolParam,D4         ; Load Base Adrs of TOOL PARAMETRS Sect.
+          Swap    D4                    ;   Get High Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load High Order Word of the Adrs.
+          Swap    D4                    ;   Get Low Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load Low Order Word of the Adrs.
+
+        Move.L  #BALocalDSPs,D4         ; Load Base Adrs of LOCAL DSP Section.
+          Swap    D4                    ;   Get High Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load High Order Word of the Adrs.
+          Swap    D4                    ;   Get Low Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load Low Order Word of the Adrs.
+
+        Move.L  #BAGlobalDSP,D4         ; Load Base Adrs of GLOBAL DSP Section.
+          Swap    D4                    ;   Get High Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load High Order Word of the Adrs.
+          Swap    D4                    ;   Get Low Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load Low Order Word of the Adrs.
+
+        Move.L  #BADeBugSect,D4         ; Load Base Adrs of DEBUG Section.
+          Swap    D4                    ;   Get High Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load High Order Word of the Adrs.
+          Swap    D4                    ;   Get Low Order Word of the Adrs.
+          Move.W  D4,(A3)+              ;  Load Low Order Word of the Adrs.
+
+
+*************************************************************************
+*                                                                       *
+*  Lock the VBD Control Memory.                                         *
+*                                                                       *
+*************************************************************************
+
+        Move.W   #VBDReset,VBDCSR0        ; Reset the VBD and its err FIFO.
+
+        SoftWait  #$1000                  ; Wait a few mill seconds.
+
+        Move.W   #VBDToLock,VBDCSR0       ; Load the VBD DMA time-out value
+                                          ; and lock the VBD Control Memory.
+
+
+*************************************************************************
+*                                                                       *
+*  Send the VBD Initialization Complete Message to the console.         *
+*                                                                       *
+*************************************************************************
+
+        PEA.L    VBDInitCmpt1              ; push message address on stack.
+        JSR      ChrStrgOut                ; and send it out.
+
+        RTS                                ; Return to the calling routine.
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*  Data used to send messages to the L15CT console screen.              *
+*                                                                       *
+*************************************************************************
+
+               ALIGN   4                ; Align to longword address.
+
+VBDInitCmpt1   DC.B    30,'  Finished VBD initialization.'
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section for Initialize VBD                                 *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Init_VBD                          ; Symbol exported to
+                                                     ; other modules.
+
+      XREF   VBDDMATO,VBDToLock                      ; Symbols used in this
+      XREF   VBDReset,CrateType                      ; module but defined in
+      XREF   DCtrlData,PCtrlData                     ; another program module
+      XREF   IOUPAdrs                                ; Main_Symbols.Include
+
+      XREF   EvtNmbAdr,CrateIDAdrs
+
+      XREF   CrateTypeReg,VBDCSR0
+      XREF   CrtIDAdrReg,DControlReg
+      XREF   PControlReg,IOUPAdrsReg
+      XREF   EvtNmbAdrReg
+
+      XREF   WCPntList,WCStore1,WCStore2,WCStore3
+      XREF   WCStore4,WCStore5,WCStore6,WCStore7
+
+      XREF   DataPntList
+      XREF   BAHeader,BAFrameCode,BAFrameParam
+      XREF   BAToolParam,BALocalDSPs,BAGlobalDSP
+      XREF   BADeBugSect
+
+      XREF   ChrStrgOut
+
+      END
+

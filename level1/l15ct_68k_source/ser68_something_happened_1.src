@@ -1,0 +1,107 @@
+
+Something_Happened   IDNT                     ; Title of Something Happened
+                                              ;   program section.
+
+   SECTION   Sect_Something_Happened,4,C      ; Declare a noncommon code
+                                              ; section.  Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Something Happened Routine                         Rev.  28-ARP-1994  *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D4.                *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            RdIO:  Read bit(s) from the IRONICS I/O card.                *
+*                                                                         *
+***************************************************************************
+
+RdIO    MACRO                        ; Read the byte from the Ironics I/O Port.
+        Move.B  \1,\2                ; Move to the byte from the Ironics port
+        ENDM                         ; at address  \1  to the location
+                                     ; specified by  \2.
+
+*************************************************************************
+*                                                                       *
+*  When a Level 1 Trigger Fires the P2 Paddle Card hardware             *
+*  automatically does the following steps:                              *
+*                                                                       *
+*  1. L15CT Hardware sets the Front-End Busy.                           *
+*  2. L15CT Hardware latches the TAS Number.                            *
+*  3. L15CT Hardware maps the Spec Trig's Fired into L15CT Terms        *
+*                                           that need to be Evaluated.  *
+*  4. L15CT Hardware indicates if >= 1 L15CT Term needs to be evaluated.*
+*  5. L15CT Hardware clears all L15CT DONE lines that go back to M103.  *
+*                                                                       *
+*  This routine then looks to see if  >= 1 L15CT Term need to be        *
+*  evaluated.  If zero L15CT Terms need to be evaluated then this       *
+*  routine jumps to the  IBS_Processing  routine.  If >= 1 L15CT        *
+*  Terms need to be evaluated then this routine jumps to That's Me      *
+*  Processing.                                                          *
+*                                                                       *
+*  We can learn if any L15CT Terms need to be evaluated by reading      *
+*  a port on the Path Select P2 Paddle Card Ironics.  Recall the        *
+*  layout of Port #4 on the Path Select Ironics:                        *
+*                                                                       *
+*   Port #4  All bits are Inputs.                                       *
+*   They read the "Path" output signals from the 16RA8 Path Select PAL. *
+*                                                                       *
+*        Bit 0 when set means "L15 FW cycle is running and this crate   *
+*           is required to calculate at least one Term".                *
+*                                                                       *
+*        Bit 1 when set means "L15 cycle is running".                   *
+*                                                                       *
+*        Bit 2 when set means "Level 1 trigger fired and this crate     *
+*           is required to calculate at least one Term".                *
+*                                                                       *
+*        Bit 3 when set means "Level 1 trigger fired".                  *
+*                                                                       *
+*        Bits 4:7 are not used.                                         *
+*                                                                       *
+*   Thus let's look at Bit 2 of Port #4 of the Path Select Ironics.     *
+*                                                                       *
+*************************************************************************
+
+Begin_Something_Happened:
+
+
+        RdIO     Path_Select_Port_4,D4         ; Read Port #4 of the Path
+        AndI.B   #$04,D4                       ; Select Ironics. Select bit 2.
+
+        IF.B     D4 <EQ> #0   THEN.S           ; Test if bit 2 is set.  If NOT
+           JMP   Begin_IBS_Processing          ; set then jmp to IBS_Processing
+        ELSE.S                                 ; If it is SET then jump to
+           JMP   Begin_Thats_Me_Processing     ; That's Me Processing.
+        ENDI
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section                                                    *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Something_Happened                ; Symbol exported to
+                                                     ; other modules.
+
+      XREF   Path_Select_Port_4                      ; Symbols used in this
+      XREF   Begin_IBS_Processing                    ; module but defined in
+      XREF   Begin_Thats_Me_Processing               ; another program module.
+
+      END
+

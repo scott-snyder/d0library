@@ -1,0 +1,205 @@
+                                                                    J. Linnemann
+                                                                    10 Jan 1991
+
+                        L2_GENERIC
+    
+    L2_GENERIC is a generic level 2 tool.  It is already known to L2SIM.
+The standard version is a dubious version of a 2-electron mass filter, using
+the ESUM banks produced by the filter scripts which run before it to look at
+what objects have been found and perform topology cuts on them.
+
+    If you are considering a similar application, you will need to be sure that
+the relevant filters are requested in your filter script.  There are some subtle
+points in doing this in the level 2 environment, as all level 2 tools do not at
+present claim to do complete processing, only enough to guarantee that they pass
+the cuts they have been given.  For example if there are two electron candidates
+in the event and the l2_em candidate is only asked for one, the second candidate
+may not be analyzed if the first one passes all the cuts.  This may frustrate
+you if the second one would have passed your topology criteria while the first
+one fails.  If this becomes an important issue, we can reconsider the present
+mode of operation.
+
+1. Feeding L2_GENERIC some cuts
+L2_GENERIC has pre-defined several parameters, which you can use :
+    NUM_FOUND   [I]     an integer; the minimum count of the objects sought
+    ET_MIN      [F]     threshold in GeV for the objects sought 
+    ICUT1       [I]     whatever you want, an integer cut
+    ICUT2       [I]     whatever you want, an integer cut
+    CUT1        [F]     whatever you want, an floating-point cut
+    CUT2        [F]     whatever you want, an floating-point cut
+    LOG1        [L]     whatever you want, a logical variable
+                                input as TRUE or FALSE in the .FILT file
+    LOG2        [L]     whatever you want, a logical variable
+    CHAR1       [C]     whatever you want, a character variable
+                                input as a 'quoted string' in the .FILT file
+    CHAR2       [C]     whatever you want, a character variable
+
+    You can play with the standard version by running coor_sim with a script
+which requests l2_generic.  For example, place the following files in your
+directory, then
+$COOR_SIM
+    RES:COOR_SIM.CTL
+    MY.CFG
+
+and after an appropriate wait, run the standard .EXE
+
+My.CFG:   contents
+------------------
+
+Master Configuration File
+This file incorporates the level 1 triggers for the "Fortner List v3.1"
+
+!
+! B to mu and psi ee trigger            (bit 16)
+@reqs:psi.trig
+END_OF_CONFIG
+
+PSI.TRIG: Contents
+------------------
+
+Level 1 configuration file
+Trigger on one or more muons in any region and
+two or more EM towers with transverse energy over 2 GeV
+!
+SPEC_TRIG_16					PSI
+@reqs:psi.lev1
+@reqs:all_crates.req
+L2_TYPE  VMS_FILTER  $ALL
+@reqs:psi.filt
+    STREAM all
+
+PSI.LEV1: Contents
+-----------------
+
+Level 1 configuration file
+Trigger on one or more muons in any region and
+two or more EM towers with transverse energy over 2 GeV
+!
+     Readout_msec		30
+     Prescale_cntrl		on
+     Prescale_ratio		1
+!
+NUM_EM_TOWERS	2	reqs:EM_Low.RS  reqs:No_HAD_Veto.RS	REQUIRE
+
+PSI.FILT: Contents
+------------------
+
+b -> mu psi Trigger
+Filter Script for Fortner's Trigger #16
+
+FILTER_BIT PSI pass_1_of 0     speed 1.0       Must_try
+    L2_EM
+        NUM_EM              2
+        ETMIN_CC            10.
+        ETMIN_EC            10.
+        TRACK_MATCH         'IGNORE'
+        DEL_ETA_TRACK       0.2
+        DEL_PHI_TRACK       0.2
+        SHAPE_CUTS          'IGNORE'
+    L2_GENERIC
+        NUM_FOUND           1
+        ET_MIN              20.0
+        ICUT1               0
+        ICUT2               0
+        CUT1                0.
+        CUT2                0.
+        CHAR1               'NONE'
+        CHAR2               'NONE'
+        LOG1                TRUE
+        LOG2                FALSE
+    MUON_L2
+        NUM_MUONS       1
+        PTMIN           0.
+        ABS_ETA_MAX     2.
+SCRIPT_END
+
+
+2. modifying L2_GENERIC
+
+    COPY D0$LEVEL2$SOURCE:L2_GENERIC.FOR *
+        and edit it as you wish
+    Then compile it (preferably /NOOPT/DEBUG) and insert it in your
+    VMS_FILTER_D0USER.OPT file (if you used PBD to build a D0USER package)
+    Then simply relinking will include your very own version in the .EXE file.
+
+    Naturally, you can change the cut file and perhaps start using some of the
+other parameters.
+
+3. renaming L2_GENERIC parameters
+    
+    If you really become enamored of you private version of l2_generic, you may
+wish to rename the parameters to something more meaningful.  This means
+modification in the code at the time you ezget the parameters, and renaming the
+parameters in L2TOOL.DAT (your private copy) and in your .FILT files.  To modify
+your version of L2TOOL.DAT, you do something like the following session.
+
+$TOOL_MAKER
+Menu: TOOL_MAKER Facility
+Select: {command, #, HELP (#), MENU, EXIT} > HELP
+
+   1: Display TOOL Definitions            2: Define New TOOL
+   3: Remove Level-2 TOOL                 4: Copy a TOOL Definition
+   5: Modify TOOL Information             6: Run Command File
+   7: Set up Command File                 8: Menu Control
+
+Menu: TOOL_MAKER Facility
+Select: {command, #, HELP (#), MENU, EXIT} > 5
+
+     Select TOOL to be modified >      1: TOOL1          2: L2JETS
+                                       3: L2ETMISS       4: MUON_L2
+                                       5: L2ETSUM        6: L2SETUP
+                                       7: L2_EM          8: L2_GENERIC
+
+
+Select: {#, LIST, ABORT} > 8
+
+  1->  Number of parameters to use [0<=>40]      10
+
+Select: {#+val, LIST, BACK, ABORT} >  BACK              !no change in # params
+  1-> Name of parameter # 1 >                    NUM_FOUND
+  2-> Type of parameter # 1 >                    I
+
+Select: {#+val, LIST, BACK, ABORT} > BACK               ! no change
+    .
+    .
+    .
+    .
+
+  1-> Name of parameter # 7 >                    CHAR1
+  2-> Type of parameter # 7 >                    C
+
+Select: {#+val, LIST, BACK, ABORT} > 1 cut_anew         ! change name
+Select: {#+val, LIST, BACK, ABORT} > 2 R                ! change type
+Select: {#+val, LIST, BACK, ABORT} > list               ! check
+  1-> Name of parameter # 7 >                    CUT_ANEW
+  2-> Type of parameter # 7 >                    R
+
+Select: {#+val, LIST, BACK, ABORT} >BACK                ! on to next parameter
+
+  1->  Number of RCP files to use > [0<=>4]      1
+
+Select: {#+val, LIST, BACK, ABORT} > back               ! do NOT change to 0 !!
+
+  1-> NAME of RCP file # 1 >                     L2_GENERIC_RCP.RCP
+
+Select: {#+val, LIST, BACK, ABORT} > 1 l2_generic.rcp   ! ugh. better name now
+Select: {#+val, LIST, BACK, ABORT} > back
+
+Do you want to make a first pass at TOOL routines? [N] > n      !already have
+
+Menu: TOOL_MAKER Facility
+Select: {command, #, HELP (#), MENU, EXIT} > exit
+
+Do you want to write to a LOCAL file? [Y] > Y           ! save results
+
+Exit from---> TOOL_MAKER Facility
+$
+
+4. Installation in level 2 
+
+    If you decide that this tool has become so useful to you that it needs to be
+part of the real level 2 system, you need professional help.  See Dr. Linnemann
+immediately.  He will probably tell you to have a look at d0$l2control$source:
+level2_manual.mem to be sure that your tool meets level 2 standards, and you
+will certainly have to convince your physics group it's a great idea...
+    You will need to take this step to correctly download STP parameters.

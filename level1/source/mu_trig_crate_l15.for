@@ -1,0 +1,1418 @@
+C===============================================================================
+	SUBROUTINE MU_TRIG_CRATE_L15(IREG,CCT_LATCH,MGRDATA,NMGRDAT)
+C===============================================================================
+C  Fill muon trigger information for one region
+C
+C  INPUT:  IREG   - Region number 1-7
+C          CCT_LATCH - CCT latch bits for region IREG.
+C  OUTPUT: 
+C          MGRDATA - array of OTC Ktable information for each OTC trigger.
+C          NMGRDAT(1:7) - number of OTC triggers per region (1-7)
+C
+C-------------------------------------------------------------------------------
+        IMPLICIT NONE
+
+C  MU_TRIG_CRATE I/O Parameters.
+
+        INTEGER IREG, MGRDATA(7,130,4,2), NMGRDAT(7), CCT_LATCH
+
+C Local Declarations.
+
+        INTEGER NCCT(7), MCCT(18), MDIR(18), ICCT, IERR
+        INTEGER I, II, III, IND, J1, NTRIG, N_TRIG
+        INTEGER MODNO, MODID, MACHIT(26,4), L1_OCT(8)
+        INTEGER IFINE(32), JFINE, MFINE(32), CCTLATCH
+	INTEGER INFINE1(32), JFINE1
+        INTEGER QUAD(4), CARD(3), LAYER(3), PORT(3)
+	INTEGER N_TRIP, NKIN_TRIP, NQUAD
+        INTEGER IOCT, DELTA, ICSAM(0:15), ICRS(16)
+	INTEGER X, Y, Z, R_TRIG, R_TRIG1, K1, K2, I1, I2, N
+	INTEGER CCT_ADDRS, CCTDATA, P1, J, K, L, NDX
+	INTEGER OOTC(4), WOTC(2), SOTC(2), ROTC(4), KNOTC(4)
+	INTEGER ODX, ODXB, OTRIG(12), OCENT(12,130), ODAT(12,2,3,130)
+	INTEGER WAM_CENT_CUT,SAM_CENT_CUT,MAC_TRUNC_FLAG,ICENFLAG
+	INTEGER OTRIG1(12), OCENT1(12,130), ODAT1(12,2,3,130)
+	INTEGER OTRIG2(12), OCENT2(12,130), ODAT2(12,2,3,130)
+	INTEGER WDX, WTRIG0(12), WCENT(12,32), WDAT(12,2,3,130)
+	INTEGER WTRIG(12), WCENT1(12,32), WDAT1(12,2,3,130)
+	INTEGER SDX, STRIG(12), SCENT(12,130), SDAT(12,2,3,130)
+	INTEGER RDX, RTRIG(12), RCENT(12,32), RDAT(12,2,3,130)
+	INTEGER SRDX, SRTRIG(12), SRCENT(12,32), SRDAT(12,2,3,130)
+	INTEGER RCENT1(12,32), RDAT1(12,2,3,130)
+	INTEGER KNDX, KNTRIG(12), KNCENT(12,32), KNDAT(12,2,3,130)
+
+	INTEGER WTRIG1(12), DUMM(12), KNTRIG1(12), RTRIG1(12)
+	INTEGER CCTMAT, KOTC_DIP, WOTC_DIP, ROTC_DIP, SOTC_DIP
+	INTEGER SRTRIG1(12)
+	INTEGER CMUNIT(5), CCTMAT_UNIT(5)
+
+C  Fine Centroid arrays.
+
+	INTEGER BSTORE(32), NBSTORE
+	INTEGER AFINE(32), BFINE(32), CFINE(32)
+	INTEGER NAFINE, NBFINE, NCFINE
+	INTEGER U_FINE(32), Y_FINE(32), X_FINE(32)
+	INTEGER N_UFINE, N_YFINE, N_XFINE
+	INTEGER UFINE(32), YFINE(32), XFINE(32)
+	INTEGER NUFINE, NYFINE, NXFINE 
+	INTEGER UFINE1(32), YFINE1(32), XFINE1(32)
+	INTEGER NUFINE1, NYFINE1, NXFINE1 
+	INTEGER AXFINE(32), BXFINE(32), CXFINE(32)
+	INTEGER NAXFINE, NBXFINE, NCXFINE
+	INTEGER AX_FINE(32), BX_FINE(32), CX_FINE(32)
+	INTEGER N_AXFINE, N_BXFINE, N_CXFINE
+	INTEGER AXFINE1(32), BXFINE1(32), CXFINE1(32)
+	INTEGER NAXFINE1, NBXFINE1, NCXFINE1
+	INTEGER AYFINE(32), BYFINE(32), CYFINE(32)
+	INTEGER NAYFINE, NBYFINE, NCYFINE
+ 	INTEGER AY_FINE(32), BY_FINE(32), CY_FINE(32)
+	INTEGER N_AYFINE, N_BYFINE, N_CYFINE
+	INTEGER AYFINE1(32), BYFINE1(32), CYFINE1(32)
+	INTEGER NAYFINE1, NBYFINE1, NCYFINE1
+
+	INTEGER IER
+	CHARACTER*72 STRING
+	INTEGER OTC_TO_ODX(12)
+	DATA OTC_TO_ODX/600,602,604,606,610,612,630,632,634,636,640,
+     &				642/
+	INTEGER ICCT_TO_WDX(30)
+	DATA ICCT_TO_WDX/1,2,3,4,5,6,7,8,0,0,
+     &   	 	 1,2,3,4,5,6,7,8,0,0,
+     &  		 1,2,3,4,5,6,7,8,0,0/
+	INTEGER ICCT_TO_OTC(30)
+	DATA ICCT_TO_OTC/700,701,702,703,704,705,706,707,0,0,
+     &  		710,740,712,742,714,744,716,746,0,0,
+     &  		10*0/
+	INTEGER ICCT_TO_DIP(28), ICCT_TO_DIP2(8)
+	DATA ICCT_TO_DIP/1,2,3,4,5,6,7,0,0,0,
+     & 			  2,2,8,8,9,9,3,3,0,0,
+     &			  1,1,7,7,10,10,4,4/
+	DATA ICCT_TO_DIP2/0,0,6,6,11,11,5,5/
+
+	INTEGER ICCT_TO_ODX(30)
+	INTEGER ICCT_TO_ODXB(30)
+	DATA ICCT_TO_ODX/20*0,1,8,2,7,3,10,4,9,0,0/
+	DATA ICCT_TO_ODXB/20*0,6,11,5,12,5,12,6,11,0,0/
+	
+	LOGICAL FIRST, FOUND
+        DATA FIRST/.TRUE./
+        DATA NCCT/8,4,4,4,4,4,4/
+
+        INTEGER KCCT, OTC_LIST1(8), OTC_LIST2(8)
+        DATA OTC_LIST1/720,750,722,752,724,754,726,756/
+        DATA OTC_LIST2/730,760,732,762,734,764,736,766/
+	
+        LOGICAL L15_OCT(40),OTC_OCT(40)
+        LOGICAL JBOTC(2)
+C-----------------------------------------------------------------------------
+
+	IF(FIRST)THEN
+	   FIRST = .FALSE.
+ 	   CALL EZPICK('MUSIM_RCP')
+           CALL EZERR(IER)     ! Check if error
+
+           IF(IER.NE.0) THEN
+             CALL EZGET_ERROR_TEXT(IER,STRING)
+             CALL ERRMSG(' EZPICK ERR','MU_TRIG_CRATE_L15',
+     &			STRING,'F')
+             GOTO 999
+           ENDIF
+C
+           CALL EZGET('WAM_MAC_CENT_CUT',WAM_CENT_CUT,IER)
+           IF(IER.NE.0) THEN
+             CALL EZGET_ERROR_TEXT(IER,STRING)
+             CALL ERRMSG(' WAM_MAC_CENT_CUT',
+     &		'MU_TRIG_CRATE_L15',STRING,'F')
+             GOTO 999
+           ENDIF
+
+           CALL EZGET('SAM_MAC_CENT_CUT',SAM_CENT_CUT,IER)
+           IF(IER.NE.0) THEN
+             CALL EZGET_ERROR_TEXT(IER,STRING)
+             CALL ERRMSG(' SAM_MAC_CENT_CUT',
+     &		'MU_TRIG_CRATE_L15',STRING,'F')
+             GOTO 999
+           ENDIF
+	   CALL EZRSET()
+	ENDIF
+
+C.. Initialization
+		
+	DO I = 1, 8
+	   L1_OCT(I) = 0
+	ENDDO
+	
+C  Initialize OTC MGR data array.
+
+        DO III = 1, 7
+          DO X = 1, 130
+            DO Y = 1, 4
+              DO Z = 1, 2
+                 MGRDATA(III,X,Y,Z) = 0
+              ENDDO
+            ENDDO
+          ENDDO
+        ENDDO
+
+C-------------------------------------------------------------------------------
+C-- ******** PROCESS PURE WAMUS REGIONS CF+WN+WS *********
+    
+        IF (IREG.LE.3) THEN               ! start pure WAMUS processing
+	
+	  N_TRIG=0
+	  DO J = 1,12
+	     WTRIG0(J) = 0
+	     WTRIG1(J) = 0
+	  ENDDO
+
+          DO 1000 III = 1, NCCT(IREG)	  ! ireg can be 1,2,3 so ncct = 8,4,4
+            ICCT = III
+
+C  Zero number of triggers.
+
+            IF(IREG.EQ.2.OR.IREG.EQ.3)ICCT = 7 + III*2 + IREG
+
+C  Get muon module numbers for this trigger card.
+
+            CALL MU_MOD_NUM(ICCT,MCCT,MDIR)
+
+C  Zero fine centroid arrays.
+
+	    CALL MU_FINE(IFINE,-1,AFINE,NAFINE)
+	    CALL MU_FINE(IFINE,-1,BFINE,NBFINE)
+ 	    CALL MU_FINE(IFINE,-1,CFINE,NCFINE)
+
+C  Fill MAC array and find centroids.
+
+            DO I = 1, 18
+              MODNO = MCCT(I)
+              MODID = MDIR(I)
+              IF(MODNO.NE.0.AND.MODNO.LT.461) THEN
+		 CALL MUMFIN(MODNO,WAM_CENT_CUT,MAC_TRUNC_FLAG,
+     &				ICENFLAG,JFINE,IFINE)		 
+
+	         IF(I.LE.6)CALL MU_FINE(IFINE,JFINE,AFINE,NAFINE)
+     	         IF(I.GT.6.AND.I.LE.12)CALL MU_FINE(IFINE,JFINE,
+     &					BFINE,NBFINE)
+	         IF(I.GT.12)CALL MU_FINE(IFINE,JFINE,CFINE,NCFINE)
+              ENDIF
+            ENDDO
+	    
+C  OTC lookup for pure wamus
+	                         
+  	    NDX = 1
+	    WDX = ICCT_TO_WDX(ICCT)                   
+	    IF(NAFINE.GT.0.AND.NBFINE.GT.0.AND.NCFINE.GT.0)THEN
+	       WOTC(1) = ICCT_TO_OTC(ICCT)
+	       WOTC_DIP = ICCT_TO_DIP(ICCT)
+	       CALL MU_OTC_LOOKUP(NDX,WOTC(1),AFINE,NAFINE,BFINE,
+     &		  NBFINE,CFINE,NCFINE,WDX,WTRIG0,WTRIG1,WCENT,WDAT)
+	    ENDIF
+
+C  Fill l1.5 octant fired information
+
+            OTC_OCT(ICCT)=.FALSE.
+            IF(WTRIG0(WDX).NE.0) OTC_OCT(ICCT)=.TRUE.
+
+C Look for CCT trigger.
+
+	    CALL MVBITS(CCT_LATCH,III+11,1,L1_OCT(III),0)
+
+C  Check for CCT latch match.
+
+	    CCT_ADDRS = 0
+ 	    CCTMAT = 0
+	    IF(WTRIG0(WDX).GT.0.AND.L1_OCT(III).GT.0)THEN
+	      IF(IREG.EQ.1)THEN
+	         CCT_ADDRS = IBSET(CCT_ADDRS,ICCT-1)
+	      ELSE
+		 CCT_ADDRS = IBSET(CCT_ADDRS,III-1)
+	      ENDIF
+	      CALL MVBITS(WOTC_DIP,0,4,CCT_ADDRS,8)
+	      READ (CMUNIT(IREG)'CCT_ADDRS) CCTMAT
+	    ENDIF
+
+C  Fill manager data array.
+
+	    DO I = 1, WTRIG0(WDX)
+	       I1 = N_TRIG + I
+	       DO J = 1, 3
+	          DO K = 1, 2
+	             MGRDATA(IREG,I1,J,K) = WDAT(WDX,K,J,I)
+	          ENDDO
+	       ENDDO
+
+C Pack DIP number, P1 trigger flag, and CCT match flag into ktable word 4.
+
+	       CALL MVBITS(WDAT(WDX,1,3,I),24,1,MGRDATA(IREG,I1,4,1),4)
+	       CALL MVBITS(WOTC_DIP,0,4,MGRDATA(IREG,I1,4,1),0)
+	       CALL MVBITS(CCTMAT,0,1,MGRDATA(IREG,I1,4,1),5)
+	     
+C Pack quadrant number in for convenience.
+
+               MGRDATA(IREG,I1,4,2) = ICCT-1
+
+C  Check how many triggers you have packed.  If 130, stop looking. 
+
+               IF(I1.GE.130)THEN
+                  NMGRDAT(IREG) = 130
+                  GOTO 999
+               ENDIF
+   	    ENDDO
+
+	    N_TRIG = N_TRIG + WTRIG0(WDX)
+
+1000      CONTINUE 			! End loop over pure WAMUS octants.
+
+	  NMGRDAT(IREG) = N_TRIG
+
+999 	CONTINUE
+
+        ENDIF         ! ENDIF for pure WAMUS processing
+
+C-------------------------------------------------------------------------------
+C  ************* PROCESS SAMUS-WAMUS OVERLAP REGION ON+OS *********
+
+C Kinematic Triggers are: SAMUS A + WAMUS B + WAMUS C
+C	        	  SAMUS A + SAMUS B + WAMUS C
+C
+C  North SAMUS OTC's are 600,602,604,606 (A station), and 610,612 (B station).
+C  South SAMUS OTC's are 630,632,634,636 (A station), and 640,642 (B station).
+
+      IF(IREG.EQ.4.OR.IREG.EQ.5)THEN    ! Overlap north (4) or south (5).
+     	
+C  Initialize.
+
+	DO I = 1, 12
+	   OTRIG(I) = 0
+	   WTRIG(I) = 0
+	   RTRIG(I) = 0
+	ENDDO
+
+C  Get the module numbers corresponding to the SAMUS A and B stations.
+
+        CALL MU_MOD_NUM(15+IREG,MCCT,MDIR)
+                                                              
+        DO 2000 I = 1, 2		!Begin loop over SAMUS A, B stations.
+
+C  Zero fine centroid arrays
+
+	  CALL MU_FINE(IFINE,-1,UFINE,NUFINE)    
+	  CALL MU_FINE(IFINE,-1,YFINE,NYFINE)
+	  CALL MU_FINE(IFINE,-1,XFINE,NXFINE)
+
+          DO 1999 II = 1, 6		! Loop over 6 SAMUS Mac's in station.
+             IND   = 6*(I-1)+II		! = 1-6 for A station, =7-12 for B.
+             MODNO = MCCT(IND)		! Get the module #
+             MODID = MDIR(IND)		
+
+C  Get SAMUS fine centroids in each station.
+
+	     CALL MUMFIN(MODNO,SAM_CENT_CUT,MAC_TRUNC_FLAG,
+     &			ICENFLAG,JFINE,IFINE)		 
+C  Separate the centroids into x,y,u, starting with SAMUS north.
+
+	     IF(MODNO .EQ. 401 .or. MODNO .EQ. 405) THEN    !A station U1,U2
+	        OOTC(1) = 600			!OTC #'s. 
+		OOTC(2) = 602			
+	        OOTC(3) = 604			
+		OOTC(4) = 606			
+		NDX = 4
+	  	CALL MU_FINE(IFINE,JFINE,UFINE,NUFINE)
+	     ENDIF
+
+	     IF(MODNO .EQ. 402 .or. MODNO .EQ. 406)THEN 
+     	  	CALL MU_FINE(IFINE,JFINE,YFINE,NYFINE)	      !A station Y1,Y2
+	     ENDIF
+	     IF(MODNO .EQ. 400 .or. MODNO .EQ. 404)THEN	      !A station X1,X2
+     	 	CALL MU_FINE(IFINE,JFINE,XFINE,NXFINE)
+	     ENDIF
+	     IF(MODNO .EQ. 413 .or. MODNO .EQ. 417) THEN    !B station U1,U2
+   	        OOTC(1) = 610		
+	        OOTC(2) = 612		
+		NDX = 5
+	  	CALL MU_FINE (IFINE,JFINE,UFINE,NUFINE)
+	     ENDIF
+
+	     IF(MODNO .EQ. 412 .or. MODNO .EQ. 416)THEN	
+     	  	CALL MU_FINE(IFINE,JFINE,YFINE,NYFINE)	!B station Y1,Y2
+	     ENDIF
+
+	     IF(MODNO .EQ. 414 .or. MODNO .EQ. 410)THEN	    
+     	  	CALL MU_FINE(IFINE,JFINE,XFINE,NXFINE)      !B station X1,X2
+	     ENDIF
+
+C Go to South end.
+
+   	     IF(MODNO .EQ. 433 .or. MODNO .EQ. 437) THEN 	
+		OOTC(1) = 630				 !A station U1,U2
+		OOTC(2) = 632				 
+		OOTC(3) = 634
+		OOTC(4) = 636				 
+		NDX = 4
+	  	CALL MU_FINE(IFINE,JFINE,UFINE,NUFINE)
+	     ENDIF
+	     IF (MODNO .EQ. 432 .or. MODNO .EQ. 436)THEN
+	         CALL MU_FINE(IFINE,JFINE,YFINE,NYFINE)	      !A station Y1,Y2
+	     ENDIF
+	     IF (MODNO .EQ. 434 .or. MODNO .EQ. 430)THEN	
+     	  	CALL MU_FINE(IFINE,JFINE,XFINE,NXFINE)         !A station X1,X2
+	     ENDIF
+
+  	     IF (MODNO .EQ. 441 .or. MODNO .EQ. 445)THEN  !B station U1,U2 
+		OOTC(1) = 640				
+		OOTC(2) = 642
+		NDX = 5                            
+	  	CALL MU_FINE(IFINE,JFINE,UFINE,NUFINE)
+	     ENDIF
+	     IF (MODNO .EQ. 442 .or. MODNO .EQ. 446)THEN
+     	  	CALL MU_FINE(IFINE,JFINE,YFINE,NYFINE)        !B station Y1,Y2 
+	     ENDIF
+	     IF (MODNO .EQ. 440 .or. MODNO .EQ. 444)THEN
+     	  	CALL MU_FINE(IFINE,JFINE,XFINE,NXFINE)      !B station X1,X2
+	     ENDIF
+
+1999      CONTINUE			! End of loop over SAMUS modules.
+
+C  Find samus triplets in this station.  NDX indicates which lookup to
+C  do (4 = SAMUS A triplet, 5 = SAMUS B triplet). ODX tells you which SAMUS OTC
+C  you are looking for triplets in.
+
+C   ODX =1 => North A station quad 1  (OTC# 600)   
+C	 2 => North A station QUAD 2  (OTC# 602)
+C	 3 => North A station quad 3  (OTC# 604)
+C	 4 => North A station quad 4  (OTC# 606)
+C	 5 => north B station side 1  (OTC# 610)
+C	 6 => north B station side 2  (OTC# 612)
+C	 7 => South A station quad 1  (OTC# 630)
+C	 8 => South A station quad 2  (OTC# 632)
+C	 9 => south A Station quad 3  (OTC# 634)
+C	10 => south A Station quad 4  (OTC# 636)
+C	11 => South B Station side 1  (OTC# 640)
+C	12 => South B Station side 2  (OTC# 642)
+
+C
+C   Returned are: OTRIG(ODX)        - the number of triplets found in OTC.
+C		  OCENT(ODX,32)     - centroids sent to the kinetmatic OTC's
+C		  ODAT(ODX,2,3,130) - the k table data for the good triplets.
+
+	    DO K = 1, 12			
+	       IF(OTC_TO_ODX(K).EQ.OOTC(1)) ODX = K
+	    ENDDO    
+
+C  Do triplet lookup for OTC #1.
+
+	    OTRIG(ODX) = 0
+	    CALL FIND_SAMCEN_IND(OOTC(1),LAYER,CARD,PORT)
+
+C Zero the grouped and clustered fine centroid arrays.
+
+	    CALL MU_FINE(IFINE,-1,U_FINE,N_UFINE)    
+	    CALL MU_FINE(IFINE,-1,Y_FINE,N_YFINE)
+	    CALL MU_FINE(IFINE,-1,X_FINE,N_XFINE)
+	    CALL MU_FINE(IFINE,-1,UFINE1,NUFINE1)    
+	    CALL MU_FINE(IFINE,-1,YFINE1,NYFINE1)
+	    CALL MU_FINE(IFINE,-1,XFINE1,NXFINE1)
+
+C Group the samus fine centroids according to OTC #.
+
+	    CALL SAMCEN_CHSEL(NXFINE,XFINE,LAYER(3),CARD(3),PORT(3),
+     &			N_XFINE,X_FINE)
+	    CALL SAMCEN_CHSEL(NYFINE,YFINE,LAYER(2),CARD(2),PORT(2),
+     &			N_YFINE,Y_FINE)
+	    CALL SAMCEN_CHSEL(NUFINE,UFINE,LAYER(1),CARD(1),PORT(1),
+     &			N_UFINE,U_FINE)
+
+C Cluster samus fine centroids.
+
+	    CALL SAMCEN_CONSEC(N_XFINE,X_FINE,LAYER(3),CARD(3),PORT(3),
+     &			NXFINE1,XFINE1)
+	    CALL SAMCEN_CONSEC(N_YFINE,Y_FINE,LAYER(2),CARD(2),PORT(2),
+     &			NYFINE1,YFINE1)
+	    CALL SAMCEN_CONSEC(N_UFINE,U_FINE,LAYER(1),CARD(1),PORT(1),
+     &			NUFINE1,UFINE1)
+
+C Do triplet lookup with clustered centroids.
+
+	    IF(NUFINE1.GT.0.AND.NYFINE1.GT.0.AND.NXFINE1.GT.0)
+     &	         CALL MU_OTC_LOOKUP(NDX,OOTC(1),UFINE1,NUFINE1,YFINE1,
+     &		   NYFINE1,XFINE1,NXFINE1,ODX,OTRIG,DUMM,OCENT,ODAT)    
+
+C  Do lookup for OTC #2.
+
+	    DO K = 1, 12
+	      IF(OTC_TO_ODX(K) .EQ. OOTC(2)) ODX = K
+	    ENDDO    
+	    OTRIG(ODX) = 0
+
+C  Do triplet lookup for OTC #2.
+
+	    CALL FIND_SAMCEN_IND(OOTC(2),LAYER,CARD,PORT)
+	    CALL MU_FINE(IFINE,-1,U_FINE,N_UFINE)    
+	    CALL MU_FINE(IFINE,-1,Y_FINE,N_YFINE)
+	    CALL MU_FINE(IFINE,-1,X_FINE,N_XFINE)
+	    CALL MU_FINE(IFINE,-1,UFINE1,NUFINE1)    
+	    CALL MU_FINE(IFINE,-1,YFINE1,NYFINE1)
+	    CALL MU_FINE(IFINE,-1,XFINE1,NXFINE1)
+	    CALL SAMCEN_CHSEL(NXFINE,XFINE,LAYER(3),CARD(3),PORT(3),
+     &			N_XFINE,X_FINE)
+	    CALL SAMCEN_CHSEL(NYFINE,YFINE,LAYER(2),CARD(2),PORT(2),
+     &			N_YFINE,Y_FINE)
+	    CALL SAMCEN_CHSEL(NUFINE,UFINE,LAYER(1),CARD(1),PORT(1),
+     &			N_UFINE,U_FINE)
+
+	    CALL SAMCEN_CONSEC(N_XFINE,X_FINE,LAYER(3),CARD(3),
+     &			PORT(3),NXFINE1,XFINE1)
+	    CALL SAMCEN_CONSEC(N_YFINE,Y_FINE,LAYER(2),CARD(2),
+     &			PORT(2),NYFINE1,YFINE1)
+	    CALL SAMCEN_CONSEC(N_UFINE,U_FINE,LAYER(1),CARD(1),
+     &			PORT(1),NUFINE1,UFINE1)
+	    IF(NUFINE1.GT.0.AND.NYFINE1.GT.0.AND.NXFINE1.GT.0)
+     &	         CALL MU_OTC_LOOKUP(NDX,OOTC(2),UFINE1,NUFINE1,YFINE1,
+     &			NYFINE1,XFINE1,NXFINE1,ODX,OTRIG,DUMM,OCENT,ODAT)  
+
+C  If you are on the A station (i.e. I=1), lookup for 2 more OTC's.
+
+	    IF(I.EQ.1)THEN
+
+C  Do triplet lookup for SAMUS A Station OTC #3.
+
+	       DO K = 1, 12
+	         IF(OTC_TO_ODX(K).EQ.OOTC(3)) ODX = K
+	       ENDDO    
+ 	       OTRIG(ODX) = 0
+
+	       CALL FIND_SAMCEN_IND(OOTC(3),LAYER,CARD,PORT)
+  	       CALL MU_FINE(IFINE,-1,U_FINE,N_UFINE)    
+	       CALL MU_FINE(IFINE,-1,Y_FINE,N_YFINE)
+	       CALL MU_FINE(IFINE,-1,X_FINE,N_XFINE)
+	       CALL MU_FINE(IFINE,-1,UFINE1,NUFINE1)    
+	       CALL MU_FINE(IFINE,-1,YFINE1,NYFINE1)
+	       CALL MU_FINE(IFINE,-1,XFINE1,NXFINE1)
+	       CALL SAMCEN_CHSEL(NXFINE,XFINE,LAYER(3),CARD(3),PORT(3),
+     &			N_XFINE,X_FINE)
+	       CALL SAMCEN_CHSEL(NYFINE,YFINE,LAYER(2),CARD(2),PORT(2),
+     &			N_YFINE,Y_FINE)
+	       CALL SAMCEN_CHSEL(NUFINE,UFINE,LAYER(1),CARD(1),PORT(1),
+     &			N_UFINE,U_FINE)
+
+	       CALL SAMCEN_CONSEC(N_XFINE,X_FINE,LAYER(3),CARD(3),
+     &			PORT(3),NXFINE1,XFINE1)
+	       CALL SAMCEN_CONSEC(N_YFINE,Y_FINE,LAYER(2),CARD(2),
+     &			PORT(2),NYFINE1,YFINE1)
+	       CALL SAMCEN_CONSEC(N_UFINE,U_FINE,LAYER(1),CARD(1),
+     &			PORT(1),NUFINE1,UFINE1)
+
+	       IF(NUFINE1.GT.0.AND.NYFINE1.GT.0.AND.NXFINE1.GT.0)
+     &	          CALL MU_OTC_LOOKUP(NDX,OOTC(3),UFINE1,NUFINE1,YFINE1,
+     &		     NYFINE1,XFINE1,NXFINE1,ODX,OTRIG,DUMM,OCENT,ODAT)  
+
+C  Do triplet lookup for SAMUS A STATION OTC #4.
+
+	       DO K = 1, 12
+	         IF(OTC_TO_ODX(K).EQ.OOTC(4)) ODX = K
+	       ENDDO    
+	       OTRIG(ODX) = 0
+
+	       CALL FIND_SAMCEN_IND(OOTC(4),LAYER,CARD,PORT)
+  	       CALL MU_FINE(IFINE,-1,U_FINE,N_UFINE)    
+	       CALL MU_FINE(IFINE,-1,Y_FINE,N_YFINE)
+	       CALL MU_FINE(IFINE,-1,X_FINE,N_XFINE)
+	       CALL MU_FINE(IFINE,-1,UFINE1,NUFINE1)    
+	       CALL MU_FINE(IFINE,-1,YFINE1,NYFINE1)
+	       CALL MU_FINE(IFINE,-1,XFINE1,NXFINE1)
+	       CALL SAMCEN_CHSEL(NXFINE,XFINE,LAYER(3),CARD(3),PORT(3),
+     &			N_XFINE,X_FINE)
+	       CALL SAMCEN_CHSEL(NYFINE,YFINE,LAYER(2),CARD(2),PORT(2),
+     &			N_YFINE,Y_FINE)
+	       CALL SAMCEN_CHSEL(NUFINE,UFINE,LAYER(1),CARD(1),PORT(1),
+     &			N_UFINE,U_FINE)
+
+	       CALL SAMCEN_CONSEC(N_XFINE,X_FINE,LAYER(3),CARD(3),
+     &			PORT(3),NXFINE1,XFINE1)
+	       CALL SAMCEN_CONSEC(N_YFINE,Y_FINE,LAYER(2),CARD(2),
+     &			PORT(2),NYFINE1,YFINE1)
+	       CALL SAMCEN_CONSEC(N_UFINE,U_FINE,LAYER(1),CARD(1),
+     &			PORT(1),NUFINE1,UFINE1)
+	       IF(NUFINE1.GT.0.AND.NYFINE1.GT.0.AND.NXFINE1.GT.0)
+     &	          CALL MU_OTC_LOOKUP(NDX,OOTC(4),UFINE1,NUFINE1,YFINE1,
+     &		      NYFINE1,XFINE1,NXFINE1,ODX,OTRIG,DUMM,OCENT,ODAT)  
+
+	    ENDIF			  !Endif A station.
+2000    CONTINUE 			! End of loop over SAMUS A, B
+	
+C-- Start looping over overlap quadrants.
+
+	N_TRIG = 0
+        DO 2100 III = 1, NCCT(IREG)
+           ICCT = 15 + III*2 + IREG	!icct=21,23,25,27 (N); 22,24,26,28 (S)
+
+C-- Calculate WAMUS Centroids for B and C layers.
+
+           CALL MU_MOD_NUM(ICCT,MCCT,MDIR)
+
+	   CALL MU_FINE(IFINE,-1,AFINE,NAFINE)
+	   CALL MU_FINE(IFINE,-1,BFINE,NBFINE)
+	   CALL MU_FINE(IFINE,-1,CFINE,NCFINE)
+
+           DO I = 1, 18
+             MODNO = MCCT(I)
+             MODID = MDIR(I)
+             IF(MODNO.NE.0.AND.MODNO.LT.461)THEN
+
+	       CALL MUMFIN(MODNO,WAM_CENT_CUT,MAC_TRUNC_FLAG,
+     &			ICENFLAG,JFINE,IFINE)		 
+	       IF(I.GT.6.AND.I.LE.12)CALL MU_FINE(IFINE,JFINE,BFINE,
+     &						NBFINE)
+	       IF(I.GT.12)CALL MU_FINE(IFINE,JFINE,CFINE,NCFINE)
+             ENDIF
+           ENDDO			
+
+C  Assign WAMUS OTC's according to the octant you are in.
+
+           KCCT = ICCT - 20              		! KCCT = 1, 8
+           WOTC(1) = OTC_LIST1(KCCT)
+           WOTC(2) = OTC_LIST2(KCCT)
+
+C  Convert ICCT index to WDX, ODX.
+c	  ICCT  WDX  ODX OTC ODXB OTC
+C       N  21    1    1  600  6   612  
+C          23    3    2  602  5   610
+C          25    5    3  604  5   610
+C          27    7    4  606  6   612
+C          22    2    8  632  11  640
+C          24    4    7  630  12  642
+C          26    6    10 636  12  642
+C          28    8    9  634  11  640  
+
+	   WDX = ICCT_TO_WDX(ICCT)
+	   ODX = ICCT_TO_ODX(ICCT)
+	   ODXB = ICCT_TO_ODXB(ICCT)
+
+C  Pass the array of SAMUS A station triplets into AFINE.
+
+	   NAFINE = OTRIG(ODX)
+	   DO J = 1, NAFINE
+	     AFINE(J) = OCENT(ODX,J)	
+	   ENDDO         
+
+	   NDX = 2		!indicates SAMUS A + WAMUS B + WAMUS C
+	   WTRIG(WDX) = 0
+
+C If a 3 layer track, do the SAMUS A + WAMUS B + WAMUS C trigger look-up.
+
+	   IF(NAFINE.GT.0.AND.NBFINE.GT.0.AND.NCFINE.GT.0)THEN
+	     WOTC_DIP = ICCT_TO_DIP(ICCT)
+ 	     CALL MU_OTC_LOOKUP(NDX,WOTC(1),AFINE,NAFINE,BFINE,NBFINE,
+     &		    CFINE,NCFINE,WDX,WTRIG,WTRIG1,WCENT,WDAT)
+	   ENDIF
+
+C-- fill l1.5 octant fired information
+
+           OTC_OCT(ICCT)=.FALSE.
+           IF(WTRIG(WDX).NE.0) OTC_OCT(ICCT)=.TRUE.
+
+C  Check for CCT latch match.
+
+	   CALL MVBITS(CCT_LATCH,III+11,1,L1_OCT(III),0)
+
+ 	   CCTMAT = 0
+	   IF(WTRIG(WDX).GT.0.AND.L1_OCT(III).GT.0)THEN
+	      CCT_ADDRS = IBSET(CCT_ADDRS,III+3)
+	      CALL MVBITS(WOTC_DIP,0,4,CCT_ADDRS,8)
+	      READ (CMUNIT(IREG-2)'CCT_ADDRS) CCTMAT
+	   ENDIF
+
+	   DO I = 1, WTRIG(WDX)
+	      I1 = I + N_TRIG
+	      DO J = 1, 3
+	        DO K = 1, 2
+	           MGRDATA(IREG,I1,J,K) = WDAT(WDX,K,J,I)
+	        ENDDO
+	      ENDDO
+
+C Pack DIP number, P1 trigger flag, and CCT match flag into ktable word 4.
+
+	      CALL MVBITS(WOTC_DIP,0,4,MGRDATA(IREG,I1,4,1),0)
+C	      CALL MVBITS(WDAT(WDX,1,3,I),24,1,MGRDATA(IREG,I1,4,1),4)
+	      CALL MVBITS(CCTMAT,0,1,MGRDATA(IREG,I1,4,1),5)
+
+C  Pack in quadrant number, for convenience.
+
+              MGRDATA(IREG,I1,4,2) = ICCT-1
+
+C  Check how many triggers you have packed.  If 130, stop looking. 
+
+	      IF(I1.GE.130)THEN
+		 NMGRDAT(I1)=130
+		 GOTO 991
+	      ENDIF
+	   ENDDO
+
+  	   N_TRIG = N_TRIG + WTRIG(WDX) 
+
+C  Pass the array of SAMUS B station triplets into BFINE. Do the 
+C    SAMUS A + SAMUS B + WAMUS C trigger look-up.
+
+	   NBFINE = OTRIG(ODXB)
+	   DO J = 1, NBFINE
+	     BFINE(J)  = OCENT(ODXB,J)
+	   ENDDO                   
+
+	   NDX = 3		!Do SAMUS A + SAMUS B + WAMUS C
+	   RDX = WDX
+	   RTRIG(RDX) = 0
+	   IF(NAFINE.GT.0.AND.NBFINE.GT.0.AND.NCFINE.GT.0)THEN
+	     ROTC_DIP = ICCT_TO_DIP2(ICCT-20)
+	     CALL MU_OTC_LOOKUP(NDX,WOTC(2),AFINE,NAFINE,BFINE,NBFINE,
+     &		      CFINE,NCFINE,RDX,RTRIG,RTRIG1,RCENT,RDAT)
+	   ENDIF
+
+C-- fill l1.5 octant fired information
+
+           IF(RTRIG(RDX).NE.0) OTC_OCT(ICCT)=.TRUE.
+
+	   DO I = 1, RTRIG(RDX)
+	     I1 = I + N_TRIG
+	     DO J = 1, 3
+	        DO K = 1, 2
+	           MGRDATA(IREG,I1,J,K) = RDAT(RDX,K,J,I)
+	        ENDDO
+	     ENDDO
+
+C  Check for CCT latch match.
+
+ 	     CCTMAT = 0
+	     IF(RTRIG(RDX).GT.0.AND.L1_OCT(III).GT.0)THEN
+	        CCT_ADDRS = IBSET(CCT_ADDRS,III+3)
+	        CALL MVBITS(ROTC_DIP,0,4,CCT_ADDRS,8)
+	        READ (CMUNIT(IREG-2)'CCT_ADDRS) CCTMAT
+	     ENDIF
+
+C Pack dip number, P1 trigger flag, and CCT match flag into ktable word 4.
+
+	     CALL MVBITS(ROTC_DIP,0,4,MGRDATA(IREG,I1,4,1),0)
+C	     CALL MVBITS(RDAT(RDX,1,3,I),24,1,MGRDATA(IREG,I1,4,1),4)
+	     CALL MVBITS(CCTMAT,0,1,MGRDATA(IREG,I1,4,1),5)
+
+C  Pack in quadrant number, for convenience.
+
+              MGRDATA(IREG,I1,4,2) = ICCT-1
+
+C  Check how many triggers you have packed.  If 130, stop looking. 
+
+	     IF(I1.GE.130)THEN
+		NMGRDAT(I1)=130
+		GOTO 991
+	     ENDIF
+	   ENDDO
+
+	  N_TRIG = N_TRIG + RTRIG(RDX) 
+
+2100    CONTINUE	
+
+	NMGRDAT(IREG) = N_TRIG
+
+991     CONTINUE
+
+      ENDIF       ! end overlap processing
+C-------------------------------------------------------------------------------
+C-- ******** PROCESS SAMUS REGION SN+SS *********
+
+      IF( IREG.EQ.6 .OR. IREG.EQ.7 ) THEN ! start pure SAMUS processing
+
+        CALL MU_MOD_NUM(13+IREG,MCCT,MDIR)
+
+C Zero arrays used for triplet B, X road, and Y road finding.
+ 
+ 	CALL MU_FINE(IFINE,-1,UFINE,NUFINE)     !Triplet B
+ 	CALL MU_FINE(IFINE,-1,YFINE,NYFINE) 	
+	CALL MU_FINE(IFINE,-1,XFINE,NXFINE)	
+
+	CALL MU_FINE(IFINE,-1,AXFINE,NAXFINE)   !X Road 
+	CALL MU_FINE(IFINE,-1,BXFINE,NBXFINE)
+	CALL MU_FINE(IFINE,-1,CXFINE,NCXFINE)
+
+	CALL MU_FINE(IFINE,-1,AYFINE,NAYFINE)    !Y Road
+	CALL MU_FINE(IFINE,-1,BYFINE,NBYFINE)
+	CALL MU_FINE(IFINE,-1,CYFINE,NCYFINE)
+	ROTC_DIP = 0
+	SOTC_DIP = 0
+
+        DO 3000 I = 1, 3
+          DO 2999 II = 1, 6
+             IND = 6*(I-1)+II
+             MODNO = MCCT(IND)
+             MODID = MDIR(IND)
+
+	     CALL MUMFIN(MODNO,SAM_CENT_CUT,MAC_TRUNC_FLAG,
+     &			ICENFLAG,JFINE,IFINE)		 
+
+C  Find x,y,u centroids for B layer Triplets.
+
+	     IF(MODNO .EQ. 413 .or. MODNO .EQ. 417) THEN
+	   	SOTC(1) = 614
+	  	SOTC(2) = 616
+	  	SDX = 1
+	  	KNOTC(1) = 770
+	  	KNOTC(2) = 772
+                KNOTC(3) = 774
+                KNOTC(4) = 776
+		QUAD(1)  = 30
+		QUAD(2)  = 32
+		QUAD(3)  = 34
+		QUAD(4)  = 36
+	  	KNDX = 1
+	  	CALL MU_FINE(IFINE,JFINE,UFINE,NUFINE)
+	     ENDIF
+	     IF(MODNO .EQ. 412 .or. MODNO .EQ. 416)
+     &	     	CALL MU_FINE (IFINE,JFINE,YFINE,NYFINE)
+	     IF (MODNO .EQ. 414 .or. MODNO .EQ. 410)
+     &	     	CALL MU_FINE (IFINE,JFINE,XFINE,NXFINE)
+
+	     IF(MODNO .EQ. 441 .or. MODNO .EQ. 445) THEN
+	  	SOTC(1) = 644
+	        SOTC(2) = 646
+	  	SDX = 5
+	  	KNOTC(1) = 780
+	  	KNOTC(2) = 782
+                KNOTC(3) = 784
+                KNOTC(4) = 786
+		QUAD(1)  = 31
+		QUAD(2)  = 33
+		QUAD(3)  = 35
+		QUAD(4)  = 37
+	  	KNDX = 5                         
+	  	CALL MU_FINE (IFINE,JFINE,UFINE,NUFINE)
+	     ENDIF
+	     IF (MODNO .EQ. 442 .or. MODNO .EQ. 446)
+     &	  	CALL MU_FINE (IFINE,JFINE,YFINE,NYFINE)
+	     IF (MODNO .EQ. 440 .or. MODNO.EQ. 444)
+     &	  	CALL MU_FINE (IFINE,JFINE,XFINE,NXFINE)
+
+C  Find X centroids in A,B,C layers
+
+	     IF (MODNO .EQ. 400 .or. MODNO .EQ. 404) THEN
+	  	ROTC(1) = 660
+	  	ROTC(2) = 662
+	  	SRDX = 1
+	  	CALL MU_FINE (IFINE,JFINE,AXFINE,NAXFINE)
+	     ENDIF
+
+	     IF (MODNO .EQ. 410 .or. MODNO .EQ. 414)
+     &	  	CALL MU_FINE (IFINE,JFINE,BXFINE,NBXFINE)
+	     IF (MODNO .EQ. 420 .or. MODNO .EQ. 424)
+     &	  	CALL MU_FINE (IFINE,JFINE,CXFINE,NCXFINE)
+                                                      
+	     IF(MODNO .EQ. 430 .or. MODNO .EQ. 434) THEN
+	  	ROTC(1) = 670
+	  	ROTC(2) = 672
+	  	SRDX = 5
+	  	CALL MU_FINE (IFINE,JFINE,AXFINE,NAXFINE)
+	     ENDIF
+	     IF(MODNO .EQ. 440 .or. MODNO .EQ. 444)          
+     &	  	CALL MU_FINE (IFINE,JFINE,BXFINE,NBXFINE)
+	     IF(MODNO .EQ. 450 .or. MODNO .EQ. 454)
+     &	  	CALL MU_FINE (IFINE,JFINE,CXFINE,NCXFINE)
+
+C  Find Y roads.
+
+	     IF(MODNO .EQ. 402 .or. MODNO .EQ. 406) THEN
+	  	ROTC(3) = 664
+	  	ROTC(4) = 666
+	  	CALL MU_FINE (IFINE,JFINE,AYFINE,NAYFINE)
+	     ENDIF	
+	     IF (MODNO .EQ. 412 .or. MODNO .EQ. 416)
+     &	  	CALL MU_FINE (IFINE,JFINE,BYFINE,NBYFINE)
+	     IF (MODNO .EQ. 422 .or. MODNO .EQ. 426)
+     &	  	CALL MU_FINE (IFINE,JFINE,CYFINE,NCYFINE)
+                                                    
+	     IF (MODNO .EQ. 432 .or. MODNO .EQ. 436) THEN
+	  	ROTC(3) = 674
+	  	ROTC(4) = 676
+	 	CALL MU_FINE (IFINE,JFINE,AYFINE,NAYFINE)
+	    ENDIF	
+
+	    IF(MODNO .EQ. 442 .or. MODNO .EQ. 446)
+     &	  	CALL MU_FINE (IFINE,JFINE,BYFINE,NBYFINE)
+	    IF(MODNO .EQ. 452 .or. MODNO .EQ. 456)
+     &	  	CALL MU_FINE (IFINE,JFINE,CYFINE,NCYFINE)
+
+2999      CONTINUE			! ii = 1,6 ENDDO
+
+3000	CONTINUE				! i = 1,3 ENDDO
+
+C  Find pure samus B triplets.
+	
+ 	NDX = 6
+        STRIG(SDX) = 0
+        STRIG(SDX+1) = 0
+
+	CALL FIND_SAMCEN_IND(SOTC(1),LAYER,CARD,PORT)
+  	CALL MU_FINE(IFINE,-1,U_FINE,N_UFINE)    
+	CALL MU_FINE(IFINE,-1,Y_FINE,N_YFINE)
+	CALL MU_FINE(IFINE,-1,X_FINE,N_XFINE)
+	CALL MU_FINE(IFINE,-1,UFINE1,NUFINE1)    
+	CALL MU_FINE(IFINE,-1,YFINE1,NYFINE1)
+	CALL MU_FINE(IFINE,-1,XFINE1,NXFINE1)
+	CALL SAMCEN_CHSEL(NXFINE,XFINE,LAYER(3),CARD(3),PORT(3),
+     &			N_XFINE,X_FINE)
+	CALL SAMCEN_CHSEL(NYFINE,YFINE,LAYER(2),CARD(2),PORT(2),
+     &			N_YFINE,Y_FINE)
+	CALL SAMCEN_CHSEL(NUFINE,UFINE,LAYER(1),CARD(1),PORT(1),
+     &			N_UFINE,U_FINE)
+   	CALL SAMCEN_CONSEC(N_XFINE,X_FINE,LAYER(3),CARD(3),
+     &			PORT(3),NXFINE1,XFINE1)
+	CALL SAMCEN_CONSEC(N_YFINE,Y_FINE,LAYER(2),CARD(2),
+     &			PORT(2),NYFINE1,YFINE1)
+	CALL SAMCEN_CONSEC(N_UFINE,U_FINE,LAYER(1),CARD(1),
+     &			PORT(1),NUFINE1,UFINE1)
+
+	IF(NUFINE1.GT.0.AND.NYFINE1.GT.0.AND.NXFINE1.GT.0)
+     &	      CALL MU_OTC_LOOKUP(NDX,SOTC(1),UFINE1,NUFINE1,YFINE1,
+     &		NYFINE1,XFINE1,NXFINE1,SDX,STRIG,DUMM,SCENT,SDAT)
+
+	CALL FIND_SAMCEN_IND(SOTC(2),LAYER,CARD,PORT)
+  	CALL MU_FINE(IFINE,-1,U_FINE,N_UFINE)    
+	CALL MU_FINE(IFINE,-1,Y_FINE,N_YFINE)
+	CALL MU_FINE(IFINE,-1,X_FINE,N_XFINE)
+	CALL MU_FINE(IFINE,-1,UFINE1,NUFINE1)    
+	CALL MU_FINE(IFINE,-1,YFINE1,NYFINE1)
+	CALL MU_FINE(IFINE,-1,XFINE1,NXFINE1)
+	CALL SAMCEN_CHSEL(NXFINE,XFINE,LAYER(3),CARD(3),PORT(3),
+     &			N_XFINE,X_FINE)
+	CALL SAMCEN_CHSEL(NYFINE,YFINE,LAYER(2),CARD(2),PORT(2),
+     &			N_YFINE,Y_FINE)
+	CALL SAMCEN_CHSEL(NUFINE,UFINE,LAYER(1),CARD(1),PORT(1),
+     &			N_UFINE,U_FINE)
+
+	CALL SAMCEN_CONSEC(N_XFINE,X_FINE,LAYER(3),CARD(3),
+     &			PORT(3),NXFINE1,XFINE1)
+	CALL SAMCEN_CONSEC(N_YFINE,Y_FINE,LAYER(2),CARD(2),
+     &			PORT(2),NYFINE1,YFINE1)
+	CALL SAMCEN_CONSEC(N_UFINE,U_FINE,LAYER(1),CARD(1),
+     &			PORT(1),NUFINE1,UFINE1)
+
+	IF(NUFINE1.GT.0.AND.NYFINE1.GT.0.AND.NXFINE1.GT.0)
+     &	    CALL MU_OTC_LOOKUP(NDX,SOTC(2),UFINE1,NUFINE1,YFINE1,
+     &		NYFINE1,XFINE1,NXFINE1,SDX+1,STRIG,DUMM,SCENT,SDAT)
+
+C	N_TRIP = 0
+C	DO I = 1, STRIG(SDX)
+C	   DO J = 1, 3
+C	      DO K = 1, 2
+C	         MGRDATA(IREG,I,J,K) = SDAT(SDX,K,J,I)
+C	      ENDDO
+C	   ENDDO
+C  Pack dip number into word 4 of mask 0, let word 2 = 0 
+C	   MGRDATA(IREG,I1,1,4) = SOTC(1)
+C	   MGRDATA(IREG,I1,2,4) = 0
+C	ENDDO
+C	DO I = 1, STRIG(SDX+1)
+C	   I1 = STRIG(SDX) + I
+C	   DO J = 1, 3
+C	      DO K = 1, 2
+C	         MGRDATA(IREG,I1,J,K) = SDAT(SDX+1,K,J,I)
+C	      ENDDO
+C	   ENDDO
+C	   MGRDATA(IREG,I1,4,1) = SOTC(2)
+C	   MGRDATA(IREG,I1,4,2) = 0
+C	ENDDO
+C	N_TRIP = STRIG(SDX) + STRIG(SDX+1)
+
+C  Zero number of x and y road triggers.
+
+  	DO J = 1, 12
+ 	  SRTRIG(J) = 0
+	ENDDO
+
+C  Do samus X road lookup. OTC #1.
+
+  	NDX = 7                    
+	CALL FIND_SAMCEN_IND(ROTC(1),LAYER,CARD,PORT)
+  	CALL MU_FINE(IFINE,-1,AX_FINE,N_AXFINE)    
+	CALL MU_FINE(IFINE,-1,BX_FINE,N_BXFINE)
+	CALL MU_FINE(IFINE,-1,CX_FINE,N_CXFINE)
+	CALL MU_FINE(IFINE,-1,AXFINE1,NAXFINE1)    
+	CALL MU_FINE(IFINE,-1,BXFINE1,NBXFINE1)
+	CALL MU_FINE(IFINE,-1,CXFINE1,NCXFINE1)
+	CALL SAMCEN_CHSEL(NAXFINE,AXFINE,LAYER(3),CARD(3),PORT(3),
+     &			N_AXFINE,AX_FINE)
+	CALL SAMCEN_CHSEL(NBXFINE,BXFINE,LAYER(2),CARD(2),PORT(2),
+     &			N_BXFINE,BX_FINE)
+	CALL SAMCEN_CHSEL(NCXFINE,CXFINE,LAYER(1),CARD(1),PORT(1),
+     &			N_CXFINE,CX_FINE)
+
+	CALL SAMCEN_CONSEC(N_AXFINE,AX_FINE,LAYER(3),CARD(3),
+     &			PORT(3),NAXFINE1,AXFINE1)
+	CALL SAMCEN_CONSEC(N_BXFINE,BX_FINE,LAYER(2),CARD(2),
+     &			PORT(2),NBXFINE1,BXFINE1)
+	CALL SAMCEN_CONSEC(N_CXFINE,CX_FINE,LAYER(1),CARD(1),
+     &			PORT(1),NCXFINE1,CXFINE1)
+
+	IF(NAXFINE1.GT.0.AND.NBXFINE1.GT.0.AND.NCXFINE1.GT.0)
+     &	     CALL MU_OTC_LOOKUP(NDX,ROTC(1),AXFINE1,NAXFINE1,BXFINE1,
+     &		NBXFINE1,CXFINE1,NCXFINE1,SRDX,SRTRIG,DUMM,SRCENT,SRDAT)
+
+C X Road OTC # 2.
+
+	CALL FIND_SAMCEN_IND(ROTC(2),LAYER,CARD,PORT)
+  	CALL MU_FINE(IFINE,-1,AX_FINE,N_AXFINE)    
+	CALL MU_FINE(IFINE,-1,BX_FINE,N_BXFINE)
+	CALL MU_FINE(IFINE,-1,CX_FINE,N_CXFINE)
+	CALL MU_FINE(IFINE,-1,AXFINE1,NAXFINE1)    
+	CALL MU_FINE(IFINE,-1,BXFINE1,NBXFINE1)
+	CALL MU_FINE(IFINE,-1,CXFINE1,NCXFINE1)
+	CALL SAMCEN_CHSEL(NAXFINE,AXFINE,LAYER(3),CARD(3),PORT(3),
+     &			N_AXFINE,AX_FINE)
+	CALL SAMCEN_CHSEL(NBXFINE,BXFINE,LAYER(2),CARD(2),PORT(2),
+     &			N_BXFINE,BX_FINE)
+	CALL SAMCEN_CHSEL(NCXFINE,CXFINE,LAYER(1),CARD(1),PORT(1),
+     &			N_CXFINE,CX_FINE)
+	CALL SAMCEN_CONSEC(N_AXFINE,AX_FINE,LAYER(3),CARD(3),
+     &			PORT(3),NAXFINE1,AXFINE1)
+	CALL SAMCEN_CONSEC(N_BXFINE,BX_FINE,LAYER(2),CARD(2),
+     &			PORT(2),NBXFINE1,BXFINE1)
+	CALL SAMCEN_CONSEC(N_CXFINE,CX_FINE,LAYER(1),CARD(1),
+     &			PORT(1),NCXFINE1,CXFINE1)
+	IF(NAXFINE1.GT.0.AND.NBXFINE1.GT.0.AND.NCXFINE1.GT.0)
+     &	     CALL MU_OTC_LOOKUP(NDX,ROTC(2),AXFINE1,NAXFINE1,BXFINE1,
+     &	     NBXFINE1,CXFINE1,NCXFINE1,SRDX+1,SRTRIG,DUMM,SRCENT,SRDAT)
+
+C	DO I = 1, SRTRIG(SRDX)
+C	   I1 = I + N_TRIP
+C	   DO J = 1, 2
+C	      DO K = 1, 3
+C	         MGRDATA(IREG,I1,J,K) = RDAT(SRDX,J,K,I)
+C	      ENDDO
+C	   ENDDO
+C Pack dip number into word 4 of mask 0, let word 2 = 0 
+C	   MGRDATA(IREG,I1,1,4) = rotc(1)
+C	   MGRDATA(IREG,I1,2,4) = 0
+C	ENDDO
+C	N_TRIP = N_TRIP + SRTRIG(SRDX)
+C 	DO I = 1, SRTRIG(SRDX+1)
+C	   I1 = I + N_TRIP
+C	   DO J = 1, 3
+C	       DO K = 1, 2
+C	         MGRDATA(IREG,I1,J,K) = SRDAT(SRDX+1,K,J,I)
+C	       ENDDO
+C	   ENDDO
+C	   MGRDATA(IREG,I1,4,1) = ROTC(2)
+C	   MGRDATA(IREG,I1,4,2) = 0
+C	ENDDO
+C	N_TRIP = N_TRIP + SRTRIG(SRDX+1)
+        
+C  Do samus y road lookup.
+     
+	NDX = 8        
+	CALL FIND_SAMCEN_IND(ROTC(3),LAYER,CARD,PORT)
+  	CALL MU_FINE(IFINE,-1,AY_FINE,N_AYFINE)    
+	CALL MU_FINE(IFINE,-1,BY_FINE,N_BYFINE)
+	CALL MU_FINE(IFINE,-1,CY_FINE,N_CYFINE)
+	CALL MU_FINE(IFINE,-1,AYFINE1,NAYFINE1)    
+	CALL MU_FINE(IFINE,-1,BYFINE1,NBYFINE1)
+	CALL MU_FINE(IFINE,-1,CYFINE1,NCYFINE1)
+	CALL SAMCEN_CHSEL(NAYFINE,AYFINE,LAYER(3),CARD(3),PORT(3),
+     &			N_AYFINE,AY_FINE)
+	CALL SAMCEN_CHSEL(NBYFINE,BYFINE,LAYER(2),CARD(2),PORT(2),
+     &			N_BYFINE,BY_FINE)
+	CALL SAMCEN_CHSEL(NCYFINE,CYFINE,LAYER(1),CARD(1),PORT(1),
+     &			N_CYFINE,CY_FINE)
+
+	CALL SAMCEN_CONSEC(N_AYFINE,AY_FINE,LAYER(3),CARD(3),
+     &			PORT(3),NAYFINE1,AYFINE1)
+	CALL SAMCEN_CONSEC(N_BYFINE,BY_FINE,LAYER(2),CARD(2),
+     &			PORT(2),NBYFINE1,BYFINE1)
+	CALL SAMCEN_CONSEC(N_CYFINE,CY_FINE,LAYER(1),CARD(1),
+     &			PORT(1),NCYFINE1,CYFINE1)
+
+	IF(NAYFINE1.GT.0.AND.NBYFINE1.GT.0.AND.NCYFINE1.GT.0)
+     &        CALL MU_OTC_LOOKUP(NDX,ROTC(3),AYFINE1,NAYFINE1,BYFINE1,
+     &		              NBYFINE1,CYFINE1,NCYFINE1,SRDX+2,SRTRIG,
+     &			      SRTRIG1,SRCENT,SRDAT)
+
+C  Y road OTC #2.
+
+	CALL FIND_SAMCEN_IND(ROTC(4),LAYER,CARD,PORT)
+  	CALL MU_FINE(IFINE,-1,AY_FINE,N_AYFINE)    
+	CALL MU_FINE(IFINE,-1,BY_FINE,N_BYFINE)
+	CALL MU_FINE(IFINE,-1,CY_FINE,N_CYFINE)
+	CALL MU_FINE(IFINE,-1,AYFINE1,NAYFINE1)    
+	CALL MU_FINE(IFINE,-1,BYFINE1,NBYFINE1)
+	CALL MU_FINE(IFINE,-1,CYFINE1,NCYFINE1)
+	CALL SAMCEN_CHSEL(NAYFINE,AYFINE,LAYER(3),CARD(3),PORT(3),
+     &			N_AYFINE,AY_FINE)
+	CALL SAMCEN_CHSEL(NBYFINE,BYFINE,LAYER(2),CARD(2),PORT(2),
+     &			N_BYFINE,BY_FINE)
+	CALL SAMCEN_CHSEL(NCYFINE,CYFINE,LAYER(1),CARD(1),PORT(1),
+     &			N_CYFINE,CY_FINE)
+  	CALL SAMCEN_CONSEC(N_AYFINE,AY_FINE,LAYER(3),CARD(3),
+     &			PORT(3),NAYFINE1,AYFINE1)
+	CALL SAMCEN_CONSEC(N_BYFINE,BY_FINE,LAYER(2),CARD(2),
+     &			PORT(2),NBYFINE1,BYFINE1)
+	CALL SAMCEN_CONSEC(N_CYFINE,CY_FINE,LAYER(1),CARD(1),
+     &			PORT(1),NCYFINE1,CYFINE1)
+
+	IF(NAYFINE1.GT.0.AND.NBYFINE1.GT.0.AND.NCYFINE1.GT.0)
+     &       CALL MU_OTC_LOOKUP(NDX,ROTC(4),AYFINE1,NAYFINE1,BYFINE1,
+     &			      NBYFINE1,CYFINE1,NCYFINE1,SRDX+3,SRTRIG,
+     &			      SRTRIG1,SRCENT,SRDAT)     
+
+C	DO I = 1, SRTRIG(SRDX+2)
+C	   I1  = I + N_TRIP
+C	   DO J = 1, 3
+C	      DO K = 1, 2
+C	         MGRDATA(IREG,I1,J,K) = SRDAT(SRDX+2,K,J,I)
+C	      ENDDO
+C	   ENDDO
+C Pack dip number into word 4 of mask 0, let word 2 = 0 
+C	     MGRDATA(IREG,I1,4,1) = ROTC(3)
+C	     MGRDATA(IREG,I1,4,2) = 0
+C	ENDDO
+C
+C	N_TRIP = N_TRIP + SRTRIG(SRDX+2)
+C 	DO I = 1, SRTRIG(SRDX+3)
+C	   I1 = I + N_TRIP
+C	   DO J = 1, 3
+C	      DO K = 1, 2
+C	         MGRDATA(IREG,I1,J,K) = SRDAT(SRDX+3,K,J,I)
+C	      ENDDO
+C	   ENDDO
+C	   MGRDATA(IREG,I1,4,1) = ROTC(4)
+C	   MGRDATA(IREG,I1,4,2) = 0
+C	ENDDO
+C	N_TRIP = N_TRIP + SRTRIG(SRDX+3)
+
+C  Look for CCT triggers.
+
+	IF(IREG.EQ.6)THEN
+	  DO I = 1, 4
+	    CALL MVBITS(CCT_LATCH,I+1,1,L1_OCT(I),0)
+	  ENDDO
+	ELSE
+	   CALL MVBITS(CCT_LATCH,2,1,L1_OCT(2),0)
+	   CALL MVBITS(CCT_LATCH,3,1,L1_OCT(1),0)
+	   CALL MVBITS(CCT_LATCH,4,1,L1_OCT(4),0)
+	   CALL MVBITS(CCT_LATCH,5,1,L1_OCT(3),0)
+	ENDIF
+
+C  Zero number samus kinematic otc triggers
+
+        DO J = 1, 12
+          KNTRIG(J) = 0
+        ENDDO
+
+C  ****AFINE = TRIPLET B, BFINE = X ROAD, CFINE = Y ROAD****
+
+	IF(SDX.EQ.1)THEN
+          NAFINE = STRIG(SDX+1)
+          NBFINE = SRTRIG(SRDX)
+          NCFINE = SRTRIG(SRDX+2)
+ 	  DO J = 1, NAFINE
+	   AFINE(J) = SCENT(SDX+1,J)
+	  ENDDO
+	  DO J = 1, NBFINE
+	   BFINE(J) = SRCENT(SRDX,J)
+	  ENDDO 
+	  DO J = 1, NCFINE
+	   CFINE(J) = SRCENT(SRDX+2,J)
+	  ENDDO          
+	ELSE
+          NAFINE = STRIG(SDX)
+          NBFINE = SRTRIG(SRDX+1)
+          NCFINE = SRTRIG(SRDX+2)
+ 	  DO J = 1, NAFINE
+	   AFINE(J) = SCENT(SDX,J)
+	  ENDDO
+	  DO J = 1, NBFINE
+	   BFINE(J) = SRCENT(SRDX+1,J)
+	  ENDDO 
+	  DO J = 1, NCFINE
+	   CFINE(J) = SRCENT(SRDX+2,J)
+	  ENDDO          
+	ENDIF
+
+C  Do pure SAMUS kinematic trigger lookup for OTC's 770 & 780.
+ 
+	NDX = 9
+	NKIN_TRIP = 0
+	KOTC_DIP  = 0
+	IF(NAFINE.GT.0.AND.NBFINE.GT.0.AND.NCFINE.GT.0)THEN
+           CALL MU_OTC_LOOKUP(NDX,KNOTC(1),AFINE,NAFINE,BFINE,NBFINE,
+     & 	        CFINE,NCFINE,KNDX,KNTRIG,KNTRIG1,KNCENT,KNDAT)
+	ENDIF
+
+C-- fill l1.5 octant fired information
+
+        OTC_OCT(QUAD(1))=.FALSE.
+        IF(KNTRIG(KNDX).NE.0) OTC_OCT(QUAD(1))=.TRUE.
+
+C Check for CCT latch match with OTC quadrant. 
+
+        CCTMAT = 0
+        IF(KNTRIG(KNDX).GT.0.AND.L1_OCT(1).GT.0)THEN
+          CCT_ADDRS = IBSET(CCT_ADDRS,0)
+          CALL MVBITS(KOTC_DIP,0,4,CCT_ADDRS,8)
+          READ (CMUNIT(IREG-2)'CCT_ADDRS) CCTMAT
+        ENDIF
+
+	DO I = 1, KNTRIG(KNDX)
+	   I1  = I + NKIN_TRIP
+	   DO J = 1, 3
+	      DO K = 1, 2
+	         MGRDATA(IREG,I1,J,K) = KNDAT(KNDX,K,J,I)
+	      ENDDO
+	   ENDDO
+
+C Pack dip number, P1 trigger flag, and CCT match flag into ktable word 4.
+
+	   CALL MVBITS(KOTC_DIP,0,4,MGRDATA(IREG,I1,4,1),0)
+C	   CALL MVBITS(KNDAT(KNDX,J,K,I),24,1,MGRDATA(IREG,I1,4,1),4)
+	   CALL MVBITS(CCTMAT,0,1,MGRDATA(IREG,I1,4,1),5)
+
+C  Pack in quadrant number, for convenience.
+
+              MGRDATA(IREG,I1,4,2) = QUAD(1)
+
+C  Check how many triggers you have packed.  If 130, stop looking. 
+
+	   IF(I1.GE.130)THEN
+	      NMGRDAT(I1)=130
+	      GOTO 992
+	   ENDIF
+ 	ENDDO
+
+	NKIN_TRIP = KNTRIG(KNDX)
+ 
+C  Find samus kin (otc# = 772/782).
+
+	IF(SDX.EQ.1)THEN
+          NAFINE = STRIG(SDX)
+          NBFINE = SRTRIG(SRDX+1)
+ 	  DO J = 1, NAFINE
+	   AFINE(J) = SCENT(SDX,J)
+	  ENDDO
+	  DO J = 1, NBFINE
+	   BFINE(J) = SRCENT(SRDX+1,J)
+	  ENDDO 
+	ELSE
+          NAFINE = STRIG(SDX+1)
+          NBFINE = SRTRIG(SRDX)
+ 	  DO J = 1, NAFINE
+	   AFINE(J) = SCENT(SDX+1,J)
+	  ENDDO
+	  DO J = 1, NBFINE
+	   BFINE(J) = SRCENT(SRDX,J)
+	  ENDDO 
+	ENDIF
+
+	KOTC_DIP  =  2
+        NDX = 9
+	IF(NAFINE.GT.0.AND.NBFINE.GT.0.AND.NCFINE.GT.0)THEN
+           CALL MU_OTC_LOOKUP(NDX,KNOTC(2),AFINE,NAFINE,BFINE,
+     &      NBFINE,CFINE,NCFINE,KNDX+1,KNTRIG,KNTRIG1,KNCENT,KNDAT)
+	ENDIF
+
+C-- fill l1.5 octant fired information
+
+        OTC_OCT(QUAD(2))=.FALSE.
+        IF(KNTRIG(KNDX+1).NE.0) OTC_OCT(QUAD(2))=.TRUE.
+
+C  Check for CCT latch match.
+
+        CCTMAT = 0
+        IF(KNTRIG(KNDX+1).GT.0.AND.L1_OCT(2).GT.0)THEN
+          CCT_ADDRS = IBSET(CCT_ADDRS,1)
+          CALL MVBITS(KOTC_DIP,0,4,CCT_ADDRS,8)
+          READ (CMUNIT(IREG-2)'CCT_ADDRS) CCTMAT
+        ENDIF
+
+ 	DO I = 1, KNTRIG(KNDX+1)
+	   I1 = I + NKIN_TRIP
+	   DO J = 1, 3
+	      DO K = 1, 2
+	         MGRDATA(IREG,I1,J,K) = KNDAT(KNDX+1,K,J,I)
+	      ENDDO
+	   ENDDO
+
+C Pack dip number, P1 trigger flag, and CCT match flag into ktable word 4.
+
+	   CALL MVBITS(KOTC_DIP,0,4,MGRDATA(IREG,I1,4,1),0)
+C	   CALL MVBITS(KNDAT(KNDX+1,J,K,I),24,1,MGRDATA(IREG,I1,4,1),4)
+	   CALL MVBITS(CCTMAT,0,1,MGRDATA(IREG,I1,4,1),5)
+
+C  Pack in quadrant number, for convenience.
+
+              MGRDATA(IREG,I1,4,2) = QUAD(2)
+
+C  Check how many triggers you have packed.  If 130, stop looking. 
+
+	   IF(I1.GE.130)THEN
+	      NMGRDAT(I1)=130
+	      GOTO 992
+	   ENDIF
+	ENDDO
+
+	NKIN_TRIP = NKIN_TRIP + KNTRIG(KNDX+1)
+
+C Find samus kin (otc# = 774/784)
+
+	IF(SDX.EQ.1)THEN
+          NCFINE = SRTRIG(SRDX+3)
+	  DO J = 1, NCFINE
+	   CFINE(J) = SRCENT(SRDX+3,J)
+	  ENDDO          
+	ELSE
+          NCFINE = SRTRIG(SRDX+3)
+	  DO J = 1, NCFINE
+	   CFINE(J) = SRCENT(SRDX+3,J)
+	  ENDDO          
+	ENDIF
+
+        NDX = 9
+	KOTC_DIP  =  3
+	IF(NAFINE.GT.0.AND.NBFINE.GT.0.AND.NCFINE.GT.0)THEN
+           CALL MU_OTC_LOOKUP(NDX,KNOTC(3),AFINE,NAFINE,BFINE,
+     &       NBFINE,CFINE,NCFINE,KNDX+2,KNTRIG,KNTRIG1,KNCENT,KNDAT)
+	ENDIF
+
+C-- fill l1.5 octant fired information
+
+        OTC_OCT(QUAD(3))=.FALSE.
+        IF(KNTRIG(KNDX+2).NE.0) OTC_OCT(QUAD(3))=.TRUE.
+
+C  Check for CCT latch match.
+
+        CCTMAT = 0
+        IF(KNTRIG(KNDX+2).GT.0.AND.L1_OCT(3).GT.0)THEN
+           CCT_ADDRS = IBSET(CCT_ADDRS,2)
+           CALL MVBITS(KOTC_DIP,0,4,CCT_ADDRS,8)
+           READ (CMUNIT(IREG-2)'CCT_ADDRS) CCTMAT
+        ENDIF
+
+ 	DO I = 1, KNTRIG(KNDX+2)
+	   I1 = I + NKIN_TRIP
+	   DO J = 1, 3
+	      DO K = 1, 2
+	         MGRDATA(IREG,I1,J,K) = KNDAT(KNDX+2,K,J,I)
+	      ENDDO
+	   ENDDO
+
+C Pack dip  number, P1 trigger flag, and CCT match flag into ktable word 4.
+
+	   CALL MVBITS(KOTC_DIP,0,4,MGRDATA(IREG,I1,4,1),0)
+C	   CALL MVBITS(KNDAT(KNDX+2,J,K,I),24,1,MGRDATA(IREG,I1,4,1),4)
+	   CALL MVBITS(CCTMAT,0,1,MGRDATA(IREG,I1,4,1),5)
+
+C  Pack in quadrant number, for convenience.
+
+              MGRDATA(IREG,I1,4,2) = QUAD(3)
+
+C  Check how many triggers you have packed.  If 130, stop looking. 
+
+	   IF(I1.GE.130)THEN
+	      NMGRDAT(I1)=130
+	      GOTO 992
+	   ENDIF
+	ENDDO
+
+	NKIN_TRIP = NKIN_TRIP + KNTRIG(KNDX+2)
+
+C Do SAMUS kin lookup for OTC's 776 and 786.
+
+	IF(SDX.EQ.1)THEN
+          NAFINE = STRIG(SDX+1)
+          NBFINE = SRTRIG(SRDX)
+ 	  DO J = 1, NAFINE
+	   AFINE(J) = SCENT(SDX+1,J)
+	  ENDDO
+	  DO J = 1, NBFINE
+	   BFINE(J) = SRCENT(SRDX,J)
+	  ENDDO 
+	ELSE
+          NAFINE = STRIG(SDX)
+          NBFINE = SRTRIG(SRDX+1)
+ 	  DO J = 1, NAFINE
+	   AFINE(J) = SCENT(SDX,J)
+	  ENDDO
+	  DO J = 1, NBFINE
+	   BFINE(J) = SRCENT(SRDX+1,J)
+	  ENDDO 
+	ENDIF
+
+        NDX = 9
+	KOTC_DIP  = 1
+	IF(NAFINE.GT.0.AND.NBFINE.GT.0.AND.NCFINE.GT.0)THEN
+           CALL MU_OTC_LOOKUP(NDX,KNOTC(4),AFINE,NAFINE,BFINE, 
+     &       NBFINE,CFINE,NCFINE,KNDX+3,KNTRIG,KNTRIG1,KNCENT,KNDAT)
+	ENDIF
+
+C-- fill l1.5 octant fired information
+
+        OTC_OCT(QUAD(3))=.FALSE.
+        IF(KNTRIG(KNDX+3).NE.0)OTC_OCT(QUAD(4))=.TRUE.
+
+C  Check for CCT latch match.
+
+        CCTMAT = 0
+        IF(KNTRIG(KNDX+3).GT.0.AND.L1_OCT(4).GT.0)THEN
+           CCT_ADDRS = IBSET(CCT_ADDRS,3)
+           CALL MVBITS(KOTC_DIP,0,4,CCT_ADDRS,8)
+           READ (CMUNIT(IREG-2)'CCT_ADDRS) CCTMAT
+        ENDIF
+
+ 	DO I = 1, KNTRIG(KNDX+3)
+	   I1 = I + NKIN_TRIP
+	   DO J = 1, 3
+	      DO K = 1, 2
+	         MGRDATA(IREG,I1,J,K) = KNDAT(KNDX+3,K,J,I)
+	      ENDDO
+	   ENDDO
+
+C Pack DIP number, P1 trigger flag, and CCT match flag into ktable word 4.
+
+	   CALL MVBITS(KOTC_DIP,0,4,MGRDATA(IREG,I1,4,1),0)
+C	   CALL MVBITS(KNDAT(KNDX+3,J,K,I),24,1,MGRDATA(IREG,I1,4,1),4)
+	   CALL MVBITS(CCTMAT,0,1,MGRDATA(IREG,I1,4,1),5)
+
+C  Pack in quadrant number, for convenience.
+
+              MGRDATA(IREG,I1,4,2) = QUAD(4)
+
+C  Check how many triggers you have packed.  If 130, stop looking. 
+
+	   IF(I1.GE.130)THEN
+	      NMGRDAT(I1)=130
+	      GOTO 992
+	   ENDIF
+	ENDDO
+
+	NMGRDAT(IREG) = NKIN_TRIP + KNTRIG(KNDX+3)
+
+      ENDIF     ! end pure SAMUS processing
+
+992	CONTINUE
+
+C*******************************************************************************
+9999	CONTINUE
+        RETURN
+C----------------------------------------------------------------------
+C-- entry point to extract the level 1.5 trigger OCTANT fired
+C-- for all the 7 trigger regions
+C
+      ENTRY MU_L15_TRIG_OCT(L15_OCT)
+        DO IOCT=1,40
+          L15_OCT(IOCT)=.FALSE.
+           L15_OCT(IOCT)=OTC_OCT(IOCT)
+        ENDDO
+      RETURN
+C----------------------------------------------------------------------
+        ENTRY MU_OTC_CCTMAT_SET(CCTMAT_UNIT)
+        DO I = 1, 5
+           CMUNIT(I) = CCTMAT_UNIT(I)
+        ENDDO
+        RETURN
+C-----------------------------------------------------------------------------
+
+        END

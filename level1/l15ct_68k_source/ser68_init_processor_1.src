@@ -1,0 +1,200 @@
+
+Init_Processor   IDNT                         ; Title of  Initialize Processor
+                                              ;   program section.
+
+       SECTION   Sect_Init_Processor,4,C      ; Declare a noncommon code
+                                              ; section.  Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Initialize Processor                              Rev.  22-JUNE-1994  *
+*                                                                         *
+*                                                                         *
+*   This routine Initializes the processor via the following steps:       *
+*                                                                         *
+*     1. Turn on the 68020 Instruction Cashe.                             *
+*     2. Enable the MVSB2400 to be the VSB Bus Controller.                *
+*     3. Enable the 68020 to receive SIGLP and SIGHP interrupts           *
+*          from the MPCSR register.                                       *
+*     4. Store the initial value of the Stack Pointer.                    *
+*                                                                         *
+*   This routine uses but does not restore registers:  D4, A0.            *
+*                                                                         *
+***************************************************************************
+
+
+*************************************************************************
+*                                                                       *
+*   Get the MVME135-1 instruction cashe memory running.                 *
+*************************************************************************
+
+Begin_Init_Processor:
+
+        Move.L   #1,D4                ; Turn on the 68020 instruction cashe.
+        MoveC    D4,CaCR
+
+
+*************************************************************************
+*                                                                       *
+*   Enable the MVME135's  MVSB2400 to be the VSB Bus Controller.        *
+*                                                                       *
+*   The 68020 on the  MVME135  sees the  MVSB2400's  Control and Status *
+*   Register as a word location at address $FFFA0000.  The value loaded *
+*   into this control status reg is $F92C.   See the file  TrgL15CT:    *
+*   [Hardware_Software_Text] VSB_Setup_Hydra_II_AND_MVME135.txt  for    *
+*   a complete explaination of how this value sets up the MVSB2400.     *
+*                                                                       *
+*************************************************************************
+
+        Move.W  #$F92C,$FFFA0000      ; This puts the value  $F92C  in the
+                                      ; MVSB2400's  Control Status Register.
+                                      ; The 68020 sees the MVSB2400's Control
+                                      ; Status Register as a word at location
+                                      ; $FFFA0000.
+
+*************************************************************************
+*                                                                       *
+*   Enable the 68020 to receive SIGLP and SIGHP                         *
+*   Interrupts from the MPCSR Register.                                 *
+*                                                                       *
+*   This is done in the following steps:                                *
+*                                                                       *
+*      Setup the Vectors for the  SIGLP and SIGHP  interrupts from      *
+*      the MPCSR register.                                              *
+*                                                                       *
+*      Force the SIGLP and SIGHP bits in the MPCSR to the state         *
+*      that does not cause an interrupt.                                *
+*                                                                       *
+*      Set the CNT3 register to allow SIGLP and SIGHP interrupts        *
+*      from the MPCSR register.                                         *
+*                                                                       *
+*      Set the Interrupt Priority Mask in the 68020.                    *
+*                                                                       *
+*      Globally Enable interrupts from the MVME135 card to the 68020.   *
+*                                                                       *
+*************************************************************************
+
+*****   Setup the Vectors for the  SIGLP and SIGHP  interrupts from the   *****
+*****   MPCSR register.  SIGLP uses Vector Number $4B and SIGHP uses      *****
+*****   Vector Number $45.  Get the Vector Table Base Address by reading  *****
+*****   the VBR register.  For a given vector add 4 times the Vector      *****
+*****   Number to the Vector Table Base Address to get the storage        *****
+*****   location of this vector.   The SIGHP is used for the Load_Code    *****
+*****   interrupt and the SIGLP is used for the Load_Parameters           *****
+*****   interrupt.                                                        *****
+
+
+        MoveC   VBR,A0                   ; Get the Vector Table Base Address
+                                         ; into register A0.
+        AddA.L  #4*$45,A0                ; Add 4 times $45 to A0. A0 now points
+                                         ; to the storage location for the
+        Move.L  #Begin_Load_Code,(A0)    ; SIGHP vector. Store the SIGHP
+                                         ; vector  i.e. the beginning address
+                                         ; of the Load_Code routine.
+
+                                         ; And now SIGLP.
+        MoveC   VBR,A0                   ; Get the Vector Table Base Address
+                                         ; into register A0.
+        AddA.L  #4*$4B,A0                ; Add 4 times $4B to A0. A0 now points
+                                         ; to the storage location for the
+        Move.L  #Begin_Load_Param,(A0)   ; SIGLP vector. Store the SIGLP
+                                         ; vector  i.e. the beginning address
+                                         ; of the Load_Parameters routine.
+
+
+                                         ; Set the SIGLP and SIGHP bits in the
+                                         ; MPCSR register LOW to make certain
+                                         ; that these bits are not currently
+                                         ; trying to generate an interrupt.
+                                         ; The MPCSR registers are accessed
+                                         ; as bytes.  SIGLP is seen by the
+                                         ; 68020 as bit D07 in the byte at
+                                         ; location  $FFFB006B.  SIGHP is seen
+                                         ; by this 68020 as bit D07 in the byte
+                                         ; at location  $FFFB006D.
+        Clr.B    MPCSR_SIGLP_Loc         ;   Clear SIGLP.
+        Clr.B    MPCSR_SIGHP_Loc         ;   Clear SIGHP.
+
+
+                                         ; Set the CNT3 Register on the MVME135
+                                         ; to allow interrupts from SIGLP and
+                                         ; SIGHP.  68k sees CNT3 via BYTE
+                                         ; access to address $FFFB0039.
+        Move.B   $FFFB0039,D4            ; Get the CNT3 register.
+        AndI.L   #$000000E7,D4           ; Force the SHPIEN and SLPIEN bits LOW
+        Move.B   D4,$FFFB0039            ; in the CNT3 register.  Copy it back.
+
+
+                                         ; Allow Interrupts at
+                                         ; Priority 2 and above.
+        Move     SR,D4                   ; Get the status register.
+        AndI.L   #$0000F0FF,D4           ;   set the interrupt
+        ORI.L    #$00000100,D4           ;   priority mask to 1.
+        Move     D4,SR                   ; Copy back to the status register.
+
+
+                                         ; Set the CNT3 Register on the MVME135
+                                         ; to globally enable interrupts to the
+                                         ; interrupt handler  i.e. allow
+                                         ; interrupts from the MVME135 board to
+                                         ; reach the 68020.  The 68k sees CNT3
+                                         ; via BYTE access to address $FFFB0039.
+        Move.B   $FFFB0039,D0            ; Get the CNT3 register.
+        AndI.L   #$000000BF,D0           ; Force the  ALLIEN  bit LOW in the
+        Move.B   D0,$FFFB0039            ; CNT3 register.  Copy it back.
+
+
+*************************************************************************
+*                                                                       *
+*  Save the initial value of the stack pointer.  This is used in the    *
+*  interrupt routines to Load_Code and Load_Parameters.                 *
+*                                                                       *
+*************************************************************************
+
+        Move.L  A7,Save_SP_Loc           ; Save the initial value of
+                                         ; the Stack Pointer.
+
+
+*************************************************************************
+*                                                                       *
+*  Now send a message to the console and return to the calling routine. *
+*                                                                       *
+*************************************************************************
+
+        PEA.L   Hello_IP_1               ; Push message address on stack.
+        JSR     ChrStrgOut               ; Send the message to the console.
+
+
+
+        RTS                              ; Return to the calling routine.
+
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*************************************************************************
+
+              ALIGN   4                   ; Align to longword address.
+
+Hello_IP_1    DC.B    50,'  Finished the Initialize Processor Routine.      '
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section                                                    *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Init_Processor                    ; Symbol exported to
+                                                     ; other modules.
+
+      XREF   Begin_Load_Code                         ; Symbols defined in
+      XREF   Begin_Load_Param                        ; other modules.
+      XREF   MPCSR_SIGLP_Loc
+      XREF   MPCSR_SIGHP_Loc
+      XREF   ChrStrgOut
+      XREF   Save_SP_Loc
+
+      END
+

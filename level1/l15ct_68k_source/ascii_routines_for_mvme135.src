@@ -1,0 +1,304 @@
+
+RASCII   IDNT                            ; Title of ASCII Routine Section
+
+         SECTION   Routine_ASCII,4,C     ; Declare a noncommon code section.
+                                         ; Align to Longwords.
+
+******************************************************************************
+*                                                                            *
+*   ASCII Character Routines for MVME135              Rev. 26-OCT-1993       *
+*                               -------=-                                    *
+*                                                                            *
+*   The following routines are very similar to the  135BUG  routines         *
+*   except that they do not look for keyboard input and do not interrupt     *
+*   on keyboard input buffer overflow.                                       *
+*                                                                            *
+*                                                                            *
+*   ChrStrgOut   Output a character string with carriage return line feed.   *
+*                                                                            *
+*   ChrWrtOut    Output a character string without carriage return line feed.*
+*                                                                            *
+*   BinASCII     Convert a 4 bit hex digit to ASCII and send it out.         *
+*                                                                            *
+*   SendCharP1   Output a character through front panel P1.                  *
+*                                                                            *
+******************************************************************************
+
+
+***************************************************************************
+*   This routine is used to output a character string WITH carriage       *
+*   return line feed through the  MVME135-1  front panel serial port #1.  *
+*                                                                         *
+*                                                          17-SEPT-1991   *
+*                                                                         *
+*   This routine sends an ASCII character string out through the          *
+*   MVME135-1  RS-232 front panel serial port #1.  A carriage return and  *
+*   line feed is inserted at the end of the string.   This routine is     *
+*   the same as the 135Bug Monitor  WRITELN routine.                      *
+*                                                                         *
+*   The begining address of the character string is passed to this        *
+*   routine on the stack.  The first byte is this string shows the        *
+*   the number of caracters to be printed as a binary number 0...255.     *
+*   This first byte is not sent out the debug port. To call this routine  *
+*   first push the character string's starting address onto the stack as  *
+*   a long word.  All working registers used by this routine are saved    *
+*   and restored before the routine exits.  The parameter that is passed  *
+*   to this routine on the stack is pulled off of the stack before this   *
+*   routine exits.                                                        *
+***************************************************************************
+
+            Align 4
+
+ChrStrgOut  Move.L  A5,-(A7)             ; Store the contents of register A5.
+            Move.L  A6,-(A7)             ; Store the contents of register A6.
+            Move.L  D0,-(A7)             ; Store the contents of register D0.
+
+            MoveA.L  16(A7),A5           ; Load the starting address into A5.
+            MoveA.L  A5,A6               ; Copy the starting address into A6.
+            CLR.L    D0                  ; Clear Data Register D0.
+            Move.B   (A5)+,D0            ; Get the Number of Characters in D0.
+            AddA.L   D0,A6               ; Add the string length to reg A6.
+                                         ; A6 now points to the last character.
+            CLR.L    D0                  ; Clear Data Register D0.
+
+ChkLstChar   IF.L  A5 <LE> A6  THEN.S         ; If past last character,.. quit
+               Move.B  (A5)+,D0               ; Get the character into reg D0.
+               Move.L  D0,-(A7)               ; Push contents on D0 onto stack.
+               JSR     SendCharP1             ; Call routine to send character.
+               JMP     ChkLstChar             ; Check for the last character.
+             ENDI
+
+            Move.B  #$0D,D0              ; Load the carriage return character
+            Move.L  D0,-(A7)             ; into D0 and push D0 onto the stack.
+            JSR     SendCharP1           ; Call routine to send character.
+
+            Move.B  #$0A,D0              ; Load the line feed character
+            Move.L  D0,-(A7)             ; into D0 and push D0 onto the stack.
+            JSR     SendCharP1           ; Call routine to send character.
+
+            Move.L  (A7)+,D0            ; Restore the contents of register D0.
+            Move.L  (A7)+,A6            ; Restore the contents of register A6.
+            Move.L  (A7)+,A5            ; Restore the contents of register A5.
+
+            Move.L  (A7),4(A7)          ; Move the RTS return pointer.
+            AddQ.L  #4,A7               ; Adjust the stack position.
+            RTS                         ; Return to the calling routine.
+
+
+***************************************************************************
+*   This routine is used to output a character string withOUT carriage    *
+*   return line feed through the  MVME135-1  front panel serial port #1.  *
+*                                                                         *
+*                                                           23-OCT-1991   *
+*                                                                         *
+*   This routine sends an ASCII character string out through the          *
+*   MVME135-1  RS-232 front panel serial port #1.  This routine is the    *
+*   same as the 135Bug Monitor  WRITE routine.                            *
+*                                                                         *
+*   The begining address of the character string is passed to this        *
+*   routine on the stack.  The first byte is this string shows the        *
+*   the number of caracters to be printed as a binary number 0...255.     *
+*   This first byte is not sent out the debug port. To call this routine  *
+*   first push the character string's starting address onto the stack as  *
+*   a long word.  All working registers used by this routine are saved    *
+*   and restored before the routine exits.  The parameter that is passed  *
+*   to this routine on the stack is pulled off of the stack before this   *
+*   routine exits.                                                        *
+***************************************************************************
+
+            Align 4
+
+ChrWrtOut   Move.L  A5,-(A7)             ; Store the contents of register A5.
+            Move.L  A6,-(A7)             ; Store the contents of register A6.
+            Move.L  D0,-(A7)             ; Store the contents of register D0.
+
+            MoveA.L  16(A7),A5           ; Load the starting address into A5.
+            MoveA.L  A5,A6               ; Copy the starting address into A6.
+            CLR.L    D0                  ; Clear Data Register D0.
+            Move.B   (A5)+,D0            ; Get the Number of Characters in D0.
+            AddA.L   D0,A6               ; Add the string length to reg A6.
+                                         ; A6 now points to the last character.
+            CLR.L    D0                  ; Clear Data Register D0.
+
+ChkLstWrt    IF.L  A5 <LE> A6  THEN.S         ; If past last character,.. quit
+               Move.B  (A5)+,D0               ; Get the character into reg D0.
+               Move.L  D0,-(A7)               ; Push contents on D0 onto stack.
+               JSR     SendCharP1             ; Call routine to send character.
+               JMP     ChkLstWrt              ; Check for the last character.
+             ENDI
+
+            Move.L  (A7)+,D0            ; Restore the contents of register D0.
+            Move.L  (A7)+,A6            ; Restore the contents of register A6.
+            Move.L  (A7)+,A5            ; Restore the contents of register A5.
+
+            Move.L  (A7),4(A7)          ; Move the RTS return pointer.
+            AddQ.L  #4,A7               ; Adjust the stack position.
+            RTS                         ; Return to the calling routine.
+
+
+
+***************************************************************************
+*    This routine outputs a character through the front debug port.       *
+*                                                             5-NOV-1993  *
+*                                                                         *
+*    This routine sends an ASCII character out through the  MVME135-1     *
+*    RS-232 front panel serial port #1.  The ASCII character is to be in  *
+*    the LSByte of a long word on the stack just above the return address.*
+*    This routine assumes that the MVME135-1  MC68681  DUART has already  *
+*    been setup as required.  This routine is similar to the 135Bug       *
+*    Monitor OUTCHR routine.                                              *
+*                                                                         *
+*    All working registers are saved and have been restored before this   *
+*    routine exits.  The long word passed to this routine is pulled from  *
+*    the stack before this routine exits.                                 *
+***************************************************************************
+
+            Align 4
+
+SendCharP1  Move.L   D1,-(A7)           ! Store the contents of register D1.
+
+ChkTxRDY    Move.B   AdrTxStat,D1       ! Read the MC68681 Status Register A.
+            ANDI.L   #$00000004,D1      ! Mask all but the Transmttr Ready Bit.
+
+            IF.B  D1 <NE> #$04  THEN.S   ! Test if the Transmttr Ready bit set,
+              JMP  ChkTxRDY              ! i.e.  is it ready to send the next
+            ENDI                         ! character.  Keep testing as needed.
+
+            Move.L   8(A7),D1           ! Get the character from the stack.
+            Move.B   D1,AdrTxBufr       ! Load the character into Tx Buffer.
+
+            Move.L   (A7)+,D1           ! Restore the contents of register D1.
+            Move.L   (A7),4(A7)         ! Move the RTS return pointer.
+            AddQ.L   #4,A7              ! Adjust the stack position.
+            RTS                         ! Return to the calling routine.
+
+            Align 4
+
+AdrTxStat   EQU  $FFFB0041       ! Address of the Status Register A on the
+                                 !   on the MC68681 dual UART.   MC68681
+                                 !   channel A is the MVME135-1 port #1.
+AdrTxBufr   EQU  $FFFB0043       ! Address of the Transmitter Buffer Reg A.
+
+
+***************************************************************************
+*   This routine is used to convert a 4 bit hex digit into ASCII and to   *
+*   send it out through the   MVME135-1  front panel serial port #1.      *
+*                                                                         *
+*                                                           23-OCT-1991   *
+*                                                                         *
+*   This routine receives a longword on the stack.  It converts the least *
+*   significant 4 bits into an ASCII character and sends this out through *
+*   the front panel RS232 port #1  withOUT a carriage return line feed.   *
+*   All registers used are saved and restored before exit.  The longword  *
+*   that this routine receives is pulled from the stack before exiting.   *
+***************************************************************************
+
+            Align 4
+
+BinASCII    Move.L   D1,-(A7)           ! Store the contents of register D1.
+
+            Move.L   8(A7),D1           ! Get the longword from the stack.
+            AND.L    #$0000000F,D1      ! Mask off all but the lowest 4 bits.
+
+            IF.L  D1 <EQ> #$00000000  Then.S   ; Test for "zero".
+                 Move.L   #$00000030,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$00000001  Then.S   ; Test for "one".
+                 Move.L   #$00000031,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$00000002  Then.S   ; Test for "two".
+                 Move.L   #$00000032,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$00000003  Then.S   ; Test for "three".
+                 Move.L   #$00000033,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$00000004  Then.S   ; Test for "four".
+                 Move.L   #$00000034,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$00000005  Then.S   ; Test for "five".
+                 Move.L   #$00000035,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$00000006  Then.S   ; Test for "six".
+                 Move.L   #$00000036,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$00000007  Then.S   ; Test for "seven".
+                 Move.L   #$00000037,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$00000008  Then.S   ; Test for "eight".
+                 Move.L   #$00000038,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$00000009  Then.S   ; Test for "nine".
+                 Move.L   #$00000039,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$0000000A  Then.S   ; Test for "A".
+                 Move.L   #$00000041,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$0000000B  Then.S   ; Test for "B".
+                 Move.L   #$00000042,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$0000000C  Then.S   ; Test for "C".
+                 Move.L   #$00000043,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$0000000D  Then.S   ; Test for "D".
+                 Move.L   #$00000044,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$0000000E  Then.S   ; Test for "E".
+                 Move.L   #$00000045,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            IF.L  D1 <EQ> #$0000000F  Then.S   ; Test for "F".
+                 Move.L   #$00000046,D1        ; Convert to ASCII.
+                 JMP      ItHBCnvr             ; Send it out.
+            ENDI                               ; Ready for next test.
+
+            JMP   VSNAN                        ; Very Strange Not a Number.
+
+ItHBCnvr    Move.L  D1,-(A7)             ; Push contents on D1 onto stack.
+            JSR     SendCharP1           ; Call routine to send character.
+
+VSNAN       Move.L   (A7)+,D1           ! Restore the contents of register D1.
+            Move.L   (A7),4(A7)         ! Move the RTS return pointer.
+            AddQ.L   #4,A7              ! Adjust the stack position.
+            RTS                         ! Return to the calling routine.
+                                        ! END of the BinASCII routine.
+
+
+*************************************************************************
+*  Define Constants:                 External References                *
+*                                                                       *
+*************************************************************************
+
+       XDEF  ChrStrgOut,ChrWrtOut                   ; Export these symbols
+       XDEF  BinASCII,SendCharP1                    ; to other modules.
+
+       END
+

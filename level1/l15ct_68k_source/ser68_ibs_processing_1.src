@@ -1,0 +1,126 @@
+
+IBS_Processing       IDNT                     ; Title of IBS Processing
+                                              ;   program section.
+
+      SECTION   Sect_IBS_Processing,4,C       ; Declare a noncommon code
+                                              ; section.  Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   IBS Processing                                     Rev.  22-ARP-1994  *
+*                                                                         *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D4, and D7.        *
+*                                                                         *
+*                                                                         *
+*   This routine sends out the following information in the following     *
+*   registers:                                                            *
+*                                                                         *
+*    D7  Holds the TAS Number for the Crate Header in the L15CT Data Blk. *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            RdIO:  Read bit(s) from the IRONICS I/O card.                *
+*                                                                         *
+***************************************************************************
+
+
+RdIO    MACRO                        ; Read the byte from the Ironics I/O Port.
+        Move.B  \1,\2                ; Move to the byte from the Ironics port
+        ENDM                         ; at address  \1  to the location
+                                     ; specified by  \2.
+
+
+*************************************************************************
+*                                                                       *
+*  We arrive here if there has been a new L1 Trigger but  ZERO  L15CT   *
+*  Terms need to be evaluated.                           ------         *
+*                                                                       *
+*  Read the TAS Number.  We might just as well read the TAS Number in   *
+*  a way that puts it into Crate Header Sync Word format (in case we    *
+*  transfer this event).  Build this in register D7 and keep it for     *
+*  later use.                                                           *
+*                                                                       *
+*************************************************************************
+
+Begin_IBS_Processing:
+
+        Move.L    #$FFFFFFFF,D7                ; Read the TAS Number
+                                               ; Get the MSByte of TAS Number.
+        Move.B    Readout_Ctrl_Port_5,D7       ; Shift it up.
+        LSL.L     #8,D7                        ; Get the LSByte of TAS Number.
+                                               ; Swap 0:15 with 16:31.  D7 now
+        Move.B    Readout_Ctrl_Port_6,D7       ; holds the TAS Number in the
+        Swap      D7                           ; Crate Header Sync Word format.
+                                               ; Retain TAS Number in reg D7.
+
+
+*************************************************************************
+*                                                                       *
+*  Now wait to to find out from the Readout Control paddle card if      *
+*  this event is going to be "dumped"  i.e. L15 FW Rejected or if       *
+*  this event is going to be readout to L2.                             *
+*                                                                       *
+*  Review the layout of the Readout Control P2 Ironics Port #3.         *
+*                                                                       *
+*    Readout Control Ironics Port #3 all Input bits.                    *
+*                                                                       *
+*      Bit 0   Flag indicating that Readout is Required for this event. *
+*                                                                       *
+*      Bit 1   Flag indicating that this event is to be Dumped.         *
+*                                                                       *
+*      Bits 2,3   Not used.                                             *
+*                                                                       *
+*      Bit 4      VBD DONE hardware signal.                             *
+*                                                                       *
+*      Bits 5:7   Not used.                                             *
+*************************************************************************
+
+
+RdAgn   RdIO    Readout_Ctrl_Port_3,D4         ; Get the contents of RC Port 3.
+        AndI.B  #$03,D4                        ; Select only bits 0 and 1.
+
+        IF.B    #$01 <EQ> D4   THEN.S          ; Test if Readout Required flag
+            JMP   Begin_IBS_Readout_Req        ; is set.  If so jump.
+        ENDI
+
+        IF.B    #$02 <EQ> D4   THEN.S          ; Test if the Dump Event flag
+            JMP   Begin_IBS_Dump_Event         ; is set.  If so jump.
+        ENDI
+
+        JMP     RdAgn                          ; Neither bit was set so read
+                                               ; it again and test again.
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section                                                    *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_IBS_Processing                    ; Symbol exported to
+                                                     ; other modules.
+
+      XREF   Readout_Ctrl_Port_3                     ; Symbols used in this
+      XREF   Readout_Ctrl_Port_5                     ; module but defined in
+      XREF   Readout_Ctrl_Port_6                     ; another program module.
+      XREF   Begin_IBS_Readout_Req
+      XREF   Begin_IBS_Dump_Event
+
+
+      END
+

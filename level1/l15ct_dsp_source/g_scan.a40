@@ -1,0 +1,908 @@
+******************************************************************************
+*                                                                            *
+*  File:  G_Scan.A40                                   Rev.     4-MAY-1994   *
+*                                                                            *
+*  "Meaningful" Register Usage                                               *
+*  ---------------------------                                               *
+*  R2  : Valid Object Counter                Variable, Local                 *
+*  R6  : Mask  of Completed Loc-Glob Xfrs    Variable, Global       I/O      *
+*  R7  : DSP Wakeup Word                     Variable, Local                 *
+*  R8  : EC Status Word to 68K               Variable, Local                 *
+*  AR0 : Pointer for (Local) Object List     Variable, Local                 *
+*  AR3 : Pointer for (Global) Object List    Variable, Local                 *
+*  AR5 : Pointer to This LDSP-to-68K Status  Constant, Local                 *
+*                                                                            *
+*  "Destroyable" Register Usage                                              *
+*  ----------------------------                                              *
+*  AR6, AR7, R11                                                             * 
+*                                                                            *
+*  Description of Module                                                     *
+*  =====================                                                     *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*         Include the       DSP Program-Specific Constant Definitions        *
+******************************************************************************
+
+         .include   "constant.inc"
+
+******************************************************************************
+*        Load Code into the  .text  Section.                                 *
+******************************************************************************
+
+         .text
+
+
+Init_for_Loop:                                      ; Initialize to get ready
+                                                    ; for the scan loop.
+                                                            
+         LDA    @First_LDSP_ObjectList_Handle,AR0   ; AR0 points to the 
+                                                    ; first Local Object
+                                                    ; List in local memory
+
+         LDA    @GDSP_ObjectList_Handle,AR3         ; AR3 points to the
+                                                    ; Object List for this 
+                                                    ; Local DSP Node
+          
+         LDA    @GDSP_to_68K_Status_Handle,AR5      ; AR5 points to the 
+                                                    ; "DSP-to-68K" 
+                                                    ; communication block in
+                                                    ; Dual Port Memory
+
+         LDA    @SEK_to_all_DSP_Status_Handle,AR7   ; AR7 points to the
+                                                    ; "68K to DSP" 
+                                                    ; communication
+                                                    ; block in Dual Port
+                                                    ; Memory
+                             
+         LDI    @Zero_Loc, R6                       ; Zero the Mask of  
+                                                    ; Local-to-Global Comm
+                                                    ; Ports reported
+
+         LDI    Two14_Xfr_Incomplete_Flag, R11      ; Use R11 to set the
+                                                    ; Transfer-to-214 Status
+         STI    R11, @Xfr_to_214_Status_Loc         ; to "Incomplete"
+
+;        LDA    @Zero_Loc,IR0                       ; Zero the Index Reg 0.
+;                                                   ; This is not used right
+;                                                   ; Now but it could be
+;                                                   ; used to select different
+;                                                   ; Reference Sets.
+;
+;        LDI    @Zero_Loc,R0                        ; Zero the register  R0.
+;        LDI    @Zero_Loc,R1                        ; Zero the register  R1.
+
+         LDI    @Zero_Loc,R2                        ; Zero the register  R2.
+                                                    ; (i.e. the Object
+                                                    ; Counter)
+
+******************************************************************************
+*   Now we have cleaned up from the last time through this loop (or if this  *
+*   is the first time through the loop we have initialized all pointers, etc *
+*   for the first time).                                                     *
+*                                                                            *
+*   We need to set status to the 68K (EC) to indicate that we have cleaned   *
+*   up and are waiting for all DSPs to get "in synch."                       *
+*                                                                            *
+*   We need to wait for the 68K (EC) to indicate that all DSPs are "in       *
+*   synch."  The 68K will do this by making the Wakeup Word invalid.  We     *
+*   need to watch the Wakeup Word until we see it become invalid.            *
+*                                                                            *
+*   Once we see the Wakeup Word become invalid, we can progress to           *
+*   the next step.                                                           *
+*                                                                            *
+*   Recall the format of the This-DSP-to-68K Status Block                    *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*   1st Longword:   |------------|------------|--------------|----------|    *
+*   (Status Word)   | TAS Byte   | Trm Answs. | Global DSP Status       |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+*       The "Status" Bits are allocated as follows:                          *
+*       When a Status Bit is set to a 1 it means:                            *
+*                                                                            *
+*       D0    The Global DSP is ready for the next (or the first) L15CT      *
+*             Cycle, and it is looking for a new valid Wake_Up_Word.         *
+*                                                                            *
+*       D1    The Global DSP has read a new valid Wake_Up_Word.              *
+*                                                                            *
+*       D2    The Global DSP has received all of the data from the Local     *
+*             DSPs (including Mark and Force Pass data if appropriate).      *
+*                                                                            *
+*       D3    The Global DSP has finished running the Tool Codes(s) to       *
+*             evaluate all of the Term(s) that were requested in this L15CT  *
+*             Cycle and it has set the Answers in the Term_Answer_Word that  *
+*             is read by the EC.  The Global DSP is waiting for RC to say    *
+*             whether the Global DSP should transfer its data to the MVME214 *
+*             memory. The Term Answers Byte contains the results of this     *
+*             L1.5 Cal Trig Cycle.  If a Term "passes" then the              *
+*             corresponding bit in this byte is set to a 1.  If a Term       *
+*             "fails" then the corresponding bit in this byte is set to a 0. *
+*             If the DSPs were not required to evaluate a given Term during  *
+*             this L1.5 CT Cycle then the corresponding bit in this byte is  *
+*             set to a 0.                                                    *
+*                                                                            *
+*       D4    The Global DSP has finished its part in transferring L15CT Data*
+*             Block Data to the MVME214 memory module.  If this is a Mark and*
+*             Force Pass cycle then this means that both the normal data and *
+*             the Mark Data have been transferred to the MVME214 memory      *
+*             module.  This bit will only be set if transfer to the 214 was  *
+*             both required and performed.                                   *
+*                                                                            *
+*       D5    The Global DSP has acknowledged that transfer to the MVME214   *
+*             memory module was not required and hence no transfer was       *
+*             performed.  This bit will only be set if transfer to the       *
+*             MVME214 was NOT required.                                      *
+*                                                                            *
+*    D6:D14   Not used.  Always set to zero.                                 *
+*                                                                            *
+*       D15   The Global DSP has cleaned up from processing the current      *
+*             L15CT Cycle.  It is waiting for all 12 DSP's to reach this     *
+*             point.  The EC will announce when all 12 DSP's have reached    *
+*             this point by clearing the previous valid Wake_Up_Word.        * 
+*                                                                            * 
+*       Notes:                                                               *
+*                                                                            *
+*       The reserved byte is set to all zeros.                               *
+*                                                                            *
+*       When bit D0 is set then all bits D1:D15 are cleared.                 *
+*                                                                            *
+*       When bit D0 is set then the Term Answers Mask is cleared to all zeros*
+*                                                                            *
+*       When bit D3 is set then the Term Answers Mask is set to the          *
+*       appropriate Mask (as defined above) for this L1.5 Cal Trig Cycle.    *
+*                                                                            *
+*       Status bits D1:D14 are "ORed" into the Global DSP Status Word.       *
+*                                                                            *
+*       EC should look for status bit D0 set and D1:D15 cleared to indicate  *
+*       that a Local DSP is ready for the next (or first) L1.5 CT Cycle (i.e.*
+*       it must look at all 16 status bits, not just bit D0).                *
+*                                                                            *
+*                                                                            *
+*   Also recall the format of the 68K-to-all-DSP Status Block                *
+*                                                                            *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*   1st Longword:   |------------|------------|--------------|----------|    *
+*   (Local DSP      | TAS        | Reserved   | Flags byte   | Terms Req|    *
+*    Wake Up Word)  | Byte       |            |(FF: Wakeup   |          |    *
+*                   |            |            |     Word     |          |    *
+*                   |            |            |     Invalid  |          |    *
+*                   |            |            | 00: "normal" |          |    *
+*                   |            |            |     Cycle    |          |    *
+*                   |            |            | 01: MFP      |          |    *
+*                   |            |            |     Cycle)   |          |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+*                                                                            *
+*   2nd Longword:   |------------|------------|--------------|----------|    *
+*   (Global DSP     | TAS        | Reserved   | Flags byte   | Terms Req|    *
+*    Wake Up Word)  | Byte       |            |(FF: Wakeup   |          |    *
+*                   |            |            |     Word     |          |    *
+*                   |            |            |     Invalid  |          |    *
+*                   |            |            | 00: "normal" |          |    *
+*                   |            |            |     Cycle    |          |    *
+*                   |            |            | 01: MFP      |          |    *
+*                   |            |            |     Cycle)   |          |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+*                                                                            *
+*   3rd Longword:   |------------|------------|--------------|----------|    *
+*   (Transfer Word) | Reserved   | Reserved   | Reserved     | Transfer |    *
+*                   |            |            |              | Required |    *
+*                   |            |            |              |(FF: Trns |    *
+*                   |            |            |              |     Word |    *
+*                   |            |            |              |     Invld|    *
+*                   |            |            |              | 00: Don't|    *
+*                   |            |            |              |     Trns |    *
+*                   |            |            |              |     to   |    *
+*                   |            |            |              |     214  |    *
+*                   |            |            |              | 01: Trns |    *
+*                   |            |            |              |     to   |    * 
+*                   |            |            |              |     214) |    * 
+*                   |---------------------------------------------------|    *
+*                                                                            *
+******************************************************************************
+                                                                             
+Set_Cleanup_Status_to_68K:
+
+        LDI     *+AR5(Disp_to_EC_Stat), R8              ; Get the EC Stat
+                                                        ; longword from the
+                                                        ; Shared Dual Port
+                                                        ; Memory
+
+        OR      Global_Cleaned_Up_Wait_for_Synch, R8    ; OR the flag for the  
+                                                        ; current state into 
+                                                        ; the Status Word in
+                                                        ; R8  
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+Wait_for_Synch:
+
+        LDI     *+AR7(Disp_to_Global_WUW), R7           ; Get the Global DSP
+                                                        ; Wakeup Word    
+    
+        LBU1    R7, R11                                 ; Extract the Flags
+                                                        ; byte
+
+        CMPI    Invalid_Wakeup_Word_Flag, R11           ; See if the Wakeup
+                                                        ; Word is invalid
+
+        BneAT   Wait_for_Synch                          ; If the Wakeup word
+                                                        ; is not invalid,
+                                                        ; then continue
+                                                        ; waiting for
+                                                        ; synchronization.
+                                                        ; The next 3
+                                                        ; instructions will
+                                                        ; be executed BUT 
+                                                        ; annulled in the 
+                                                        ; branch is taken 
+                                                        ; (i.e. if the WUW
+                                                        ; is not yet invalid)
+
+                                                        ; if we reach this
+                                                        ; point, the 68K (EC)
+                                                        ; has seen all DSPs
+                                                        ; synchronized.  We
+                                                        ; can now advertise
+                                                        ; that we are ready
+                                                        ; for the next event
+
+Set_Ready_Status_to_68K:
+
+        LDI     Global_Looking_for_Valid_W_U_W, R11     ; Load the flag for
+                                                        ; the current 
+                                                        ; state in the 2
+                                                        ; LSBytes of R11.
+                                                        ; Don't care what
+                                                        ; happens to 2 MSBytes.
+
+        MH0     R11, R8                                 ; Merge the flag for
+                                                        ; the current state
+                                                        ; (Ready for Next   
+                                                        ; Cycle and Looking
+                                                        ; for Valid Wake
+                                                        ; Up Word)
+                                                        ; into the 2 LSBytes
+                                                        ; of R10.  The 2 MSBytes
+                                                        ; will be not be
+                                                        ; changed.
+                                                        ; The previous 2
+                                                        ; LSBytes are lost.
+
+        MB2     @Zero_Loc,R8                            ; Clear the Term   
+                                                        ; Answer byte in R8
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+******************************************************************************
+*  Now the Scan Routine is Ready for the Next (or First) Cycle.              *
+*                                                                            *
+*   We must wait for a valid Wakeup Word                                     *
+*                                                                            *
+*   Once we have seen a valid Wakeup Word then we set status to the 68K      *
+*   (EC) indicating that we have a valid Wakeup Word                         *
+*                                                                            *
+*   If the Wakeup Word indicates that this is a Mark and Force Pass Cycle    *
+*   then CALL the Setup Mark and Force Pass DMA routine                      *
+******************************************************************************
+                                                                           
+Look_for_Valid_Wakeup_Word:
+
+        LDI     *+AR7(Disp_to_Global_WUW), R7           ; Get the Global DSP
+                                                        ; Wakeup Word
+
+        LBU1    R7, R11                                 ; Extract the Flags
+                                                        ; byte
+
+        CMPI    Largest_Valid_Wakeup_Word_Flag, R11     ; See if the Wakeup
+                                                        ; Word Flag Byte    
+                                                        ; is one of the    
+                                                        ; Valid Flag Bytes
+
+        BhiAT   Look_for_Valid_Wakeup_Word              ; If the Wakeup Word
+                                                        ; Flag Byte is larger
+                                                        ; than any Valid Flag
+                                                        ; byte then 
+                                                        ; continue waiting 
+                                                        ; for a valid wakeup
+                                                        ; word.     
+                                                        ; The next 3
+                                                        ; instructions will
+                                                        ; be executed BUT 
+                                                        ; annulled in the 
+                                                        ; branch is taken 
+                                                        ; (i.e. if the WUW
+                                                        ; is not yet VALID)  
+                                                      
+                                                    ; if we get to this point
+                                                    ; we have a valid Wakeup
+                                                    ; word and should signal
+                                                    ; the 68K
+
+Set_Valid_W_U_W_Status_to_68K:
+
+        LBU3    R7, R10                                 ; Get the new TAS#
+                                                        ; from the Wake Up
+                                                        ; Word and store it
+                                                        ; in the LSByte of R10
+
+        MB3     R10, R8                                 ; Merge the new TAS#
+                                                        ; into the MSByte of
+                                                        ; R8                  
+
+        OR      Global_Received_Valid_W_U_W, R8         ; OR the status flag
+                                                        ; (Valid Wake Up
+                                                        ; Word Received)
+                                                        ; into R8 
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+Build_Synch_DeBug_Data:                                 ; Put the Wake Up
+                                                        ; Word into the
+        STI     R7, @DeBug_Synch_Data_Loc               ; DeBug Synch Data
+                                                        ; Entry.  
+        
+Check_for_MFP_Cycle:
+
+        LBU1    R7, R11                                 ; Get the Flags byte
+                                                        ; from the WUW
+           
+        CMPI    MFP_Wakeup_Word_Flag, R11               ; See if the Wakeup
+                                                        ; Word says that
+                                                        ; this is a Mark
+                                                        ; and Force Pass 
+                                                        ; Cycle
+
+        CALLeq  Setup_Mark_and_Force_Pass_DMA           ; If this is a Mark
+                                                        ; and Force Pass
+                                                        ; Cycle then set up
+                                                        ; the Local to Global
+                                                        ; DMA accordingly
+
+******************************************************************************
+*   Now we have a Valid Wakeup Word and have set up the Mark and Force Pass  *
+*   DMA (if required).                                                       *
+*                                                                            *
+*   We need to wait for valid Local DSP Data.      Recall that an Interrupt  *
+*   Service Routine is being used to count the number of Comm Ports which    *
+*   have reported with Local DSP Data.  Here we simply monitor that count    *
+*   and do not begin to run the Scan Routine until all Local DSP Data has    *
+*   arrived                                                                  *
+*                                                                            *
+*   When all Local DSP Data     has arrived, we set a status to the 68K      *
+*   indicating that all Trigger Tower Data has arrived                       *
+******************************************************************************
+
+Check_Reported_Comm_Ports:
+
+    CMPI    @Mask_of_LG_Data_Blocks_Loc, R6         ; Compare the Mask  of
+                                                    ; Local DSP Data Blocks
+                                                    ; Blocks which have been
+                                                    ; filled (via Com Ports)
+                                                    ; to the Expected Mask     
+                                                    ; of LDSP Data Blocks
+
+    Bne     Check_Reported_Comm_Ports               ; If not all LG Data Comm
+                                                    ; Ports have responded,
+                                                    ; continue waiting.
+
+Set_Loc_Data_Rcvd_Status_to_68K:  
+
+        OR      Global_Received_all_Local_Data,R8       ; OR the status flag
+                                                        ; (All Local DSP
+                                                        ; Data Received)
+                                                        ; into R8 
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+******************************************************************************
+*  Now we are actually ready to run the Scan Routine.  All Local DSP         *
+*  Data has arrived (and additionally the "Local DSP Wakeup Word" has        *
+*  been seen                                                                 *
+*                                                                            *
+*   Recall that AR0 points to the Local DSP Identified Object List Header    *
+*   Word for the first Local DSP Identified Object List (i.e. the Object     *
+*   List for LDSP A2)                                                        *
+*                                                                            *
+*   We will simply look at the header words from each of the 11 LDSP Lists   *
+*   and add up the number of Valid Entries (i.e. the value found in bits     *
+*   D15-D8) from each of the Lists.  This will produce the Number of         *
+*   Objects found.                                                           *
+******************************************************************************
+                   
+        LBU1    *AR0++(LDSP_ObjectList_Length),R11  ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP A2 
+        ADDI    R11,R2                              ; into R2 
+                                                    ;   Set AR0 to point 
+                                                    ;   at the Header Word
+                                                    ;   for LDSP A3
+
+        LBU1    *AR0++(LDSP_ObjectList_Length),R11  ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP A3 
+        ADDI    R11,R2                              ; into R2 
+                                                    ;   Set AR0 to point 
+                                                    ;   at the Header Word
+                                                    ;   for LDSP A4          
+
+        LBU1    *AR0++(LDSP_ObjectList_Length),R11  ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP A4 
+        ADDI    R11,R2                              ; into R2 
+                                                    ;   Set AR0 to point 
+                                                    ;   at the Header Word
+                                                    ;   for LDSP A1
+
+        LBU1    *AR0++(LDSP_ObjectList_Length),R11  ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP A1 
+        ADDI    R11,R2                              ; into R2 
+                                                    ;   Set AR0 to point 
+                                                    ;   at the Header Word
+                                                    ;   for LDSP B3
+
+        LBU1    *AR0++(LDSP_ObjectList_Length),R11  ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP B3 
+        ADDI    R11,R2                              ; into R2 
+                                                    ;   Set AR0 to point 
+                                                    ;   at the Header Word
+                                                    ;   for LDSP B4
+
+        LBU1    *AR0++(LDSP_ObjectList_Length),R11  ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP B4 
+        ADDI    R11,R2                              ; into R2 
+                                                    ;   Set AR0 to point 
+                                                    ;   at the Header Word
+                                                    ;   for LDSP B1
+
+        LBU1    *AR0++(LDSP_ObjectList_Length),R11  ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP B1 
+        ADDI    R11,R2                              ; into R2 
+                                                    ;   Set AR0 to point 
+                                                    ;   at the Header Word
+                                                    ;   for LDSP C3
+
+        LBU1    *AR0++(LDSP_ObjectList_Length),R11  ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP C3 
+        ADDI    R11,R2                              ; into R2 
+                                                    ;   Set AR0 to point 
+                                                    ;   at the Header Word
+                                                    ;   for LDSP C4
+
+        LBU1    *AR0++(LDSP_ObjectList_Length),R11  ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP C4 
+        ADDI    R11,R2                              ; into R2 
+                                                    ;   Set AR0 to point 
+                                                    ;   at the Header Word
+                                                    ;   for LDSP C1
+
+        LBU1    *AR0++(LDSP_ObjectList_Length),R11  ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP C1 
+        ADDI    R11,R2                              ; into R2 
+                                                    ;   Set AR0 to point 
+                                                    ;   at the Header Word
+                                                    ;   for LDSP C2
+
+        LBU1    *AR0,R11                            ; Use R11 to add the  
+                                                    ; Valid Entry count 
+                                                    ; for LDSP C2 
+        ADDI    R11,R2                              ; into R2   
+
+******************************************************************************
+*   Now R2 contains the Global Object Count.  We now need to compare to      *
+*   the three values                                                         *
+*                                                                            *
+*       1, 2, and 3                                                          *
+*                                                                            *
+*   and set the Term Answers to the EC indicating which Terms have been      *
+*   satisfied by this event.                                                 *
+*                                                                            *
+*   After the Term Answers have been set to the EC, we need to set status    *
+*   to the 68K which says that the Term Answers are available                *
+*                                                                            *
+*   Recall the mapping of count thresholds to Terms:                         *
+*                                                                            *
+*       Term #          Count Threshold                                      *
+*       ------          ---------------                                      *
+*           0           >=1                                                  *
+*           1           >=2                                                  *
+*           2           >=3                                                  *
+*                                                                            *
+*   Also recall the format of the return block to the 68K (which is          *
+*   described earlier in this section)                                       *
+******************************************************************************
+
+Generate_Term_Answers:
+
+        LDI     Fail_All_Term_Mask, R11                 ; Set R11 to a value
+                                                        ; indicating all
+                                                        ; Terms have failed
+
+                                                        ; Check if the
+                                                        ; HIGHEST threshold
+                                                        ; has been MET
+                                                        ; (or exceeded).
+                                                        ; If so then we
+                                                        ; declare Terms 0,1,
+                                                        ; and 2 to be 
+                                                        ; satisfied.
+
+
+        CMPI    3,R2                                    ; Compare the Object
+                                                        ; Count to 3  
+
+        LDIhs   Pass_Term_012_Mask, R11                 ; If the Object
+                                                        ; Count is >= 3 then
+                                                        ; store a value in R11
+                                                        ; indicating that 
+                                                        ; Terms 0, 1, and 2
+                                                        ; have passed
+
+                                                        ; Check if the 
+                                                        ; NEXT TO HIGHEST
+                                                        ; threshold has been
+                                                        ; met.  If so then
+                                                        ; we declare Terms
+                                                        ; 0 and 1 (only)
+                                                        ; to be satisfied.
+
+        CMPI    2,R2                                    ; Compare the Object
+                                                        ; Count to 2
+
+        LDIeq   Pass_Term_01_Mask, R11                  ; If the Object 
+                                                        ; Count is = 2 
+                                                        ; then store a value
+                                                        ; in R11 indicating 
+                                                        ; that Terms 0 and 1
+                                                        ; have passed
+                                                          
+
+                                                        ; Now we determine
+                                                        ; whether the LOWEST
+                                                        ; threshold
+                                                        ; has been met.  If
+                                                        ; so then we declare
+                                                        ; Term 0 satisfied
+
+
+        CMPI    1,R2                                    ; Compare the Object
+                                                        ; Count to 1
+
+        LDIeq   Pass_Term_0_Mask, R11                   ; If the Object 
+                                                        ; Count is >= 1
+                                                        ; then store a value
+                                                        ; in R11 indicating
+                                                        ; that Term 0 has
+                                                        ; Passed
+
+                                                        ; if none of the
+                                                        ; above comparisons
+                                                        ; were satisfied
+                                                        ; then the "All
+                                                        ; Failed" Mask
+                                                        ; is still in R11
+Set_Answers_Ready_Status_to_68K:         
+
+        OR      Global_Evaluated_all_Terms, R8          ; OR the status flag
+                                                        ; (All Terms Evaluated
+                                                        ; and Answers 
+                                                        ; available) into R8
+                      
+        MB2     R11, R8                                 ; Put the Term Answer
+                                                        ; Byte into the      
+                                                        ; Status Longword
+                                                        ; in R8 
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+******************************************************************************
+*  Now that we've completely executed the Scan Loop we need to write the     *
+*  Global DSP Header Word for this DSP into the appropriate location in      *
+*  memory.                                                                   *
+*                                                                            *
+*  Recall the format of the Global DSP Header Word:                          *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*                   |------------|------------|--------------|----------|    *
+*   1st Longword:   | Length of  | Number of  | Number of    | DSP Node |    *
+*                   | each entry | entries in | VALID Entries| ID in    |    *
+*                   | in Long-   | this List  | in this list | hex      |    *
+*                   | words (4)  |   (16)     | (0..16 or    | (always  |    *
+*                   |            |            |  FF = ovrflw)|  B2)     |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+*   Note that there are NO entries in the Global List, but the
+*   Header word will indicate how many entries were found.  
+******************************************************************************
+
+         CMPI   @GDSP_Entries_per_List_Loc,R2           ; Compare the
+                                                        ; Object Count
+                                                        ; with the
+                                                        ; maximum allowed
+                                                        ; Object Count
+
+         LDIhi  ObjectList_Overrun_Flag,R2              ; If so, then
+                                                        ; set the Object
+                                                        ; Count to a value
+                                                        ; indicating Global
+                                                        ; List Overrun
+
+         LDI    @GDSP_ObjectList_Handle,AR3             ; Re-load AR3 with
+                                                        ; the Object List
+                                                        ; handle for the 
+                                                        ; GDSP        
+                                                                            
+         LDI    @GDSP_Header_Constant_Loc,R11           ; Load the "constant
+                                                        ; part" of the Header
+                                                        ; Word for the GDSP 
+
+         MB1    R2,R11                                  ; Merge the Valid 
+                                                        ; Object Counter into
+                                                        ; the next to LSB of
+                                                        ; R11      
+
+         STI    R11,*AR3                                ; Store the Global
+                                                        ; DSP Node Header
+                                                        ; for the Global DSP
+                                                        ; in the Object List
+                                                          
+******************************************************************************
+*                                                                            *
+*   Now the Global DSP has all of the Local DSP ObjectLists, and the         *
+*   Global DSP ObjectList, and the Mark and Force Pass Data (if appropriate) *
+*   stored in its memory.  It has also returned status to the EC, allowing   *
+*   the EC to know that it has finished its Global processing (but not       *
+*   finished the transfer to the 214 memory module).                         *
+*                                                                            *
+*   Here we need to wait for the 68K (Readout Control) to give a "go/no go"  *
+*   signal for the transfer to the 214.                                      *
+*                                                                            *
+*   If the 68K says go then we should initiate the transfer to 214.          *
+*   Otherwise we don't bother because nothing will be read out anyway.       *
+*                                                                            *
+*   When the transfer is finished (assuming it ever started), we set status  *
+*   to the 68K which says that the transfer is done (or that it was          *
+*   skipped)                                                                 *
+******************************************************************************
+    
+
+         LDA    @SEK_to_all_DSP_Status_Handle,AR7   ; AR7 points to the
+                                                    ; "68K to DSP" 
+                                                    ; communication
+                                                    ; block in Dual Port
+                                                    ; Memory
+
+Check_for_Valid_Transfer_Word:
+
+        LBU0    *+AR7(Disp_to_Transfer_Word), R11       ; Get the Transfer  
+                                                        ; Required Byte from 
+                                                        ; the Transfer Word
+
+        CMPI    Largest_Valid_Transfer_Word, R11        ; See if the Transfer
+                                                        ; Flag Byte is      
+                                                        ; is one of the    
+                                                        ; Valid Transfer  
+                                                        ; Flags
+
+        Bhi     Check_for_Valid_Transfer_Word           ; If the Transfer    
+                                                        ; Flag Byte is larger
+                                                        ; than any Valid Flag
+                                                        ; byte then 
+                                                        ; continue waiting 
+                                                        ; for a valid transfer
+                                                        ; word.           
+
+                                                        ; if we get to this
+                                                        ; point then we have
+                                                        ; a valid Transfer 
+                                                        ; Byte.  We need to
+                                                        ; check to see if
+                                                        ; transfer is required
+                                                          
+Check_if_Transfer_Required:
+
+        CMPI    Transfer_is_Required_Flag, R11          ; Compare the Transfer
+                                                        ; Flag Byte to the
+                                                        ; "Transfer is
+                                                        ; Required" Flag
+
+        BneAT   Set_No_214_Xfr_Status_to_68K            ; if transfer is not
+                                                        ; required then jump
+                                                        ; over the next few
+                                                        ; instructions
+                                                        ; The next 3 
+                                                        ; instructions are
+                                                        ; executed BUT are
+                                                        ; annulled if the
+                                                        ; branch is taken
+                                                        ; (i.e. if the
+                                                        ; transfer to 214
+                                                        ; is NOT required)
+
+                                                ; if we get to this point
+                                                ; then transfer is required
+                                                                           
+Initiate_Transfer_to_214:
+
+         LDI    @Xfr_to_214_DMA_Ctrl_Reg_Handle, AR7    ; Use R11, AR7 to load
+                                                        ; "Force Start" DMA
+         LDI    @DMA_Force_Start_Loc,R11                ; Channel Control Word
+                                                        ; into the DMA Control
+         OR     *AR7,R11                                ; Register for the
+                                                        ; DMA Channel running
+         STI    R11,*AR7                                ; the Data Block to 214
+                                                        ; Transfer.  This
+                                                        ; starts the Data Block
+                                                        ; to 214 Transfer   
+                                                        ; for the GDSP.  
+         
+Wait_for_Xfr_to_214:                                    ; note that the ISR
+                                                        ; which sets this flag
+                                                        ; will be called during
+                                                        ; this loop.  This will
+                                                        ; not cause an error
+                                                        ; no matter which 
+                                                        ; instruction is 
+                                                        ; interrupted.
+        
+        LDI     @Xfr_to_214_Status_Loc, R11             ; Get the flag which 
+                                                        ; indicates whether the
+                                                        ; Transfer to the 214
+                                                        ; is complete (this
+                                                        ; flag is set in 
+                                                        ; an ISR)
+
+        CMPI    Two14_Xfr_Complete_Flag, R11            ; See if the transfer
+                                                        ; is complete
+
+        Bne     Wait_for_Xfr_to_214                     ; If the transfer   
+                                                        ; is not complete,
+                                                        ; then continue
+                                                        ; waiting for
+                                                        ; the transfer to 
+                                                        ; finish.         
+                                       
+                                                    ; the next instruction
+                                                    ; does not execute 
+                                                    ; until the transfer
+                                                    ; to the 214
+                                                    ; is complete
+
+Set_214_Xfr_Done_Status_to_68K:
+
+        BRD     Init_for_Loop                           ; Unconditionally
+                                                        ; branch to the init-
+                                                        ; ialize code for the
+                                                        ; Scan Loop.  The next
+                                                        ; 3 instructions will
+                                                        ; be executed.
+                                         
+        OR      Global_Finished_Xfr_to_214, R8          ; OR the status flag
+                                                        ; (Global Transfer
+                                                        ; to 214 Finished)
+                                                        ; into R8 
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+        NOP                                             ; also execute this
+                                                        ; instruction.
+
+
+Set_No_214_Xfr_Status_to_68K:      
+
+        BRD     Init_for_Loop                           ; Unconditionally
+                                                        ; branch to the init-
+                                                        ; ialize code for the
+                                                        ; Scan Loop.  The next
+                                                        ; 3 instructions will
+                                                        ; be executed.
+
+        OR      Global_Skipped_Xfr_to_214, R8           ; OR the status flag
+                                                        ; (Global Transfer
+                                                        ; to 214 Skipped)  
+                                                        ; into R8 
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+           
+        NOP                                             ; also execute this
+                                                        ; instruction
+
+******************************************************************************
+*  This is the Bulkhead.  This code should never be executed                 *
+******************************************************************************
+
+End_Of_G_Scan:                          ; These instructions should never be 
+                                        ; executed in the "normal" operation
+         BR     End_Of_G_Scan           ; of the program.  If the program 
+                                        ; counter becomes corrupted or
+         BR     End_Of_G_Scan           ; if we have a bug in the program
+                                        ; we MAY try to execute these 
+         BR     End_Of_G_Scan           ; instructions.  If we get to these
+                                        ; instructions the program will appear
+         BR     End_Of_G_Scan           ; to halt.  We could also use a 
+                                        ; TRAP instruction here, and jump to
+                                        ; a service routine.
+
+
+******************************************************************************
+*        Load Constants and Working Variables into the  .data  Section.      *
+******************************************************************************
+
+        .data
+
+Init_for_Loop_Loc:	.word	Init_for_Loop		   ; Memory location
+        						   ; holding the 
+        						   ; address of the 
+        						   ; entry point to
+        						   ; this module
+
+DMA_Force_Start_Loc:    .word     00c00000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to force a DMA  
+                                                        ; Channel into "Start"
+                                                        ; (i.e. Transfer Data)
+                                                        ; Mode
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+
+         .def    Init_for_Loop                  ; Symbols DEFINED in this
+         .def	 Init_for_Loop_Loc              ; module for use in other
+                                                ; modules
+
+         .ref    Zero_Loc                       ; Symbols REFERENCED in this
+                                                ; module but defined in other
+                                                ; modules
+         .ref    GDSP_ObjectList_Handle
+         .ref    GDSP_Header_Constant_Loc
+         .ref    Mask_of_LG_Data_Blocks_Loc 
+         .ref    SEK_to_all_DSP_Status_Handle
+         .ref    GDSP_to_68K_Status_Handle
+         .ref    First_LDSP_ObjectList_Handle
+         .ref    Setup_Mark_and_Force_Pass_DMA
+         .ref    GDSP_Entries_per_List_Loc  
+         .ref    Xfr_to_214_DMA_Ctrl_Reg_Handle
+         .ref    Xfr_to_214_Status_Loc
+         .ref    DeBug_Synch_Data_Loc
+
+******************************************************************************
+*       End of this module                                                   *
+******************************************************************************
+
+         .end

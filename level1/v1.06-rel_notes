@@ -1,0 +1,207 @@
+ 14-JUL-1993 : Modifications released by Philippe LAURENS, MICHIGAN STATE UNIVERSITY
+ 
+    This release of LEVEL1 includes the following changes and new features
+
+    I) Large Tiles
+    II) Large Tile Jet List
+    III) Trigger Tower Jet Lists
+    IV) Copy Level 0 Crate
+    V) Copied Andor Terms
+    VI) Trigger Tower Energy Saturation
+    VII) Level 0 Andor Terms
+    VIII) Bug Fixes
+
+    I) Large Tiles
+       -----------
+
+    cf. D0 Note 1680 
+    "Triggering on Large Tiles with the Level 1 Calorimeter Trigger"
+
+    The Large Tile extension of the Calorimeter Trigger is now implemented
+in L1SIM. Until the high level programming from COOR_SIM becomes 
+available, a temporary patch has been added to L1SIM to read Large Tile
+Reference Set Definition Files. Until COOR_SIM is upgraded, and to program
+Specific Triggers to use Large Tile requirements one needs to do the following:
+
+    1) Create one (or more) Large Tile  Reference Sets Files, the syntax is
+       the same as for  Trigger Tower Reference  Sets. There is however one
+       additional syntax constraint for the Large Tile Reference Sets which
+       do not apply to the Trigger Tower  Reference Sets. The constraint is
+       that any  boundary used to define  a range of  Trigger Tower Indices
+       cannot cut accross  the coverage of a Large  Tile, that is the range
+       specified must  cover an integral  number of Large  Tiles. The Large
+       Tile  segmentation in eta  magnitude is  1..4, 5..8,  9..12, 13..16,
+       17..20, and 1..8, 9..16, 17..24, 25..32 in phi. 
+
+        e.g. LRG_TILE_LOW.LTRS
+THRESH_ET #  (5.5) GeV
+
+        and LRG_TILE_HIGH.LTRS
+TT_ETA(-20:-9) THRESH_ET #  (10.5) GeV
+TT_ETA(-8:8)   THRESH_ET #  (8.0) GeV
+TT_ETA(9:20)   THRESH_ET #  (10.5) GeV
+
+    2) Add the names of these files (up to 8) to L1SIM.RCP 
+
+\ARRAY LARGE_TILE_REFSET_0
+   'LRG_TILE_LOW.LTRS'
+\END
+\ARRAY LARGE_TILE_REFSET_1
+   'LRG_TILE_HIGH.LTRS'
+\END
+
+    3) Add the Large tile count Andor  Terms to the TRIG_RESOURCES.CTL that
+       COOR_SIM will use. COOR_SIM will then generate a TRIGGER.RES file that
+       your L1SIM.RCP will need to point to. 
+
+ And_term          212     L1C_LT_CNT_0_GE1  FREE      U
+ And_term          213     L1C_LT_CNT_0_GE2  FREE      U
+ And_term          214     L1C_LT_CNT_0_GE3  FREE      U
+ And_term          215     L1C_LT_CNT_1_GE1  FREE      U
+ And_term          216     L1C_LT_CNT_1_GE2  FREE      U
+ And_term          217     L1C_LT_CNT_1_GE3  FREE      U
+ And_term          218     L1C_LT_CNT_2_GE1  FREE      U
+ And_term          219     L1C_LT_CNT_2_GE2  FREE      U
+ And_term          220     L1C_LT_CNT_2_GE3  FREE      U
+ And_term          221     L1C_LT_CNT_3_GE1  FREE      U
+ And_term          222     L1C_LT_CNT_3_GE2  FREE      U
+ And_term          223     L1C_LT_CNT_3_GE3  FREE      U
+ And_term          224     L1C_LT_CNT_4_GE1  FREE      U
+ And_term          225     L1C_LT_CNT_4_GE2  FREE      U
+ And_term          226     L1C_LT_CNT_4_GE3  FREE      U
+ And_term          227     L1C_LT_CNT_5_GE1  FREE      U
+ And_term          228     L1C_LT_CNT_5_GE2  FREE      U
+ And_term          229     L1C_LT_CNT_5_GE3  FREE      U
+ And_term          230     L1C_LT_CNT_6_GE1  FREE      U
+ And_term          231     L1C_LT_CNT_6_GE2  FREE      U
+ And_term          232     L1C_LT_CNT_6_GE3  FREE      U
+ And_term          233     L1C_LT_CNT_7_GE1  FREE      U
+ And_term          234     L1C_LT_CNT_7_GE2  FREE      U
+ And_term          235     L1C_LT_CNT_7_GE3  FREE      U
+
+Remark: "CNT_#"   specifies  which Large  Tile  Reference  is used  to count
+       towers. GE# shows the Large Tile Count Threshold. Note that the only
+       thresholds allowed are 1, 2 and 3.
+
+    The method described above is the preferred method. The file
+D0$LEVEL1$DATA:TRIGGER_RESOURCES.RCP already contains these Andor Terms, and
+could be used, providing it matches the TRIG_RESOURCES.CTL that COOR_SIM will
+use. 
+
+    4) Add  The   appropriate  Andor  Term   requirements in  your  trigger
+       definition  files. Lets pretend  we would like ONE  large tile above
+       the high threshold (that we  defined in steps 1 and 2 above) and TWO
+       above the low threshold.
+
+l1c_lt_cnt_0_ge1  require
+l1c_lt_cnt_1_ge2  require
+
+    5) run COOR_SIM on your Trigger  Definitions Files, making sure to pick
+       up the extended TRIG_RESOURCES.CTL from step 3.
+
+    II) Large Tile Jet List
+        -------------------
+
+    A new service is implemented to create a Large Tile Jet List. A new value
+is now allowed for the input parameter LIST_TYPE of L1UTIL_JET_LIST_BUILDER. 
+Or the user can directly call L1UTIL_LT_JET_LIST_BUILDER (in ZEBRA_UTIL).
+
+
+    III) Trigger Tower Jet Lists
+         -----------------------
+    
+    The EM Et and Tot Et Jet Lists are no longer written in the raw data
+(starting with run Ib).
+
+    Instead, one should use L1UTIL_JET_LIST_BUILDER (in LEVEL1 at the moment,
+but will be moved to ZEBRA_UTIL) to recreate the list at any time. Note that
+the raw data has all the information needed, so that no further context or
+parameters are required. 
+
+    Note that the flag that was at the beginning of the Jet List and showing if
+it was incomplete will not be set either. It will be the responsibility of the
+Level 2 and Offline code to always (re-) create the Jet Lists, without depending
+on this completion flag that will not be set anyway.
+
+    A switch is available in L1SIM.RCP to create the Jet Lists, the default is 
+ CREATE_JET_LISTS               .FALSE. !If TRUE, generate and write the EM Et
+                                        ! and Tot Et Jet Lists in the Level 1
+                                        ! Data Block inthe TRGR bank.
+                                        ! The default for run Ib and beyond is
+                                        ! to NOT write the Jet Lists in the raw
+                                        ! data but use L1UTIL_JET_LIST_BUILDER
+                                        ! to recreate them as needed. The raw
+                                        ! data has all the information needed,
+                                        ! no further context is required.
+
+    IV) Copy Level 0 Crate
+        ------------------
+
+    This new feature copies the Level 0 crate from the input event to the output
+event. The default switch setting in L1SIM.RCP is
+ COPY_L0_CRATE                  .FALSE. !If TRUE, copy the Level 0 crate found
+                                        ! in the input event to the output event
+
+    This feature requires that the input event includes a TRGR bank with a Level
+0 Crate, either raw data or the output of a previous run of L1SIM that also
+propagated this crate or a simulated Level 0 Crate.
+
+    V) Copied Andor Terms
+       ------------------
+    
+    This new feature allows L1SIM to read and copy the specified Andor Term
+States from the input event TRGR bank. These Andor Terms are then available for 
+Specific Trigger Programming. 
+
+    The default is to copy the following terms
+ \ARRAY COPIED_ANDOR_TERMS
+    'CALNE_PLS       '          ! andor term 28
+    'SCINT_COSMIC    '          ! andor term 94
+    'MRBS_LOSS       '          ! andor term 121
+    'MICRO_BLANK     '          ! andor term 125
+    'MIN_BIAS        '          ! andor term 126
+ \END
+
+    This feature requires that the input event includes a TRGR bank with a Level
+1 Crate, either raw data or the output of a previous run of L1SIM.
+
+    This is a complement to the existing feature that allows forcing Andor Terms
+to a constant state.
+ \ARRAY FORCED_ANDOR_TERMS
+    'LV1_DBL_BUFFERED'  FALSE   ! andor term 104
+    'SKIP_ONE_BEAMX  '  TRUE    ! andor term 107
+  \END
+
+    VI) Trigger Tower Energy Saturation
+        -------------------------------
+
+    New values are listed in L1SIM.RCP that correspond to the expected
+saturation energies for run Ib. cf. D0 Note 1707.
+
+    VII) Level 0 Andor Terms
+         -------------------
+
+    The switch FORCE_VERTEX_CENTER in L1SIM.RCP allows the Calorimeter Trigger
+Energy Lookup to ignore the Level 0 Fast Vertex information.
+
+    Previous releases of L1SIM would also force the state of the Level 0 Andor
+Terms to show a centered vertex. This is no longer the case, the Andor Terms are
+free to follow the Isajet Vertex information for MC events, or follow the Vertex
+read from an existing TRGR bank.
+
+    VIII) Bug Fixes
+          ---------
+
+    - Fix output data format: trailer synch word position, and crate length.
+This problem could have caused difficulty locating the L1 Crate with
+GZFIND_CRATE. 
+
+    - Fix some of the Level 0 Andor Terms:
+            Fix bug in L1C_LKP_NEG_Z (was wrong for bin -1)
+                   and L0_FAST_Z_CENTER ( was always set TRUE)
+
+    - MUSIM.RCP had a file reference pointing to a disk on FNALD0 instead of
+D0$LEVEL1$DATA 
+
+    - Fix miscellaneous details identified by the Alpha FORTRAN compiler
+

@@ -1,0 +1,904 @@
+******************************************************************************
+*                                                                            *
+*  File:  L_Data.A40                                   Rev.   1-APR-1994     *
+*                                                                            *
+*  This is a File which holds much of the data required for the Local        *
+*  DSP program.  It contains the following sections:                         *
+*                                                                            *
+*   (1) The Parameter Passing Memory Map of the Dual Port Memory.  This      *
+*       space is filled in with Parameter Data by the TCC.  Here we are      *
+*       just reserving space.  This space is reserved as an UNINITIALIZED    *
+*       section.                                                             *
+*                                                                            *
+*   (2) Trigger Tower Data from Racks #1 and #2.  This is both EM Et and     *
+*       Total Et.  There is one byte of data per Trigger Tower.              *
+*       This data really comes via the Comm Ports so here we only use        *
+*       "default" data ($08) to set up the space for the TT Data.            *
+*                                                                            *
+*   (3) Reference Set Data.  For now all of the Reference Set data is set    *
+*       to $30, i.e. 48 counts.  This Reference Set data is stored as        *
+*       one C40 word per Ref Set per Trigger Tower.  This data really        *
+*       is provided as parameters to the program so here we are actually     *
+*       just setting up the space for this Ref Set Data.  Recall that        *
+*       the Ref Set Data is only used for EM Trigger Towers.  Recall also    *
+*       that the Ref Set Data is stored with pedestals included (added).     *
+*                                                                            *
+*   (4) Local DSP Lists of Identified Objects.  Again this data is           *
+*       filled in by the Level 1.5 Cal Trig Frame and Tools.  Here we        *
+*       are setting up the space for this List of Identified Object data     *
+*                                                                            *
+*   (5) Local DSP Mark and Force Pass Data.  Again this data is filled in by *
+*       the L1.5 Cal Trig Frame and Tools.  Here we are just setting up the  *
+*       space for this Mark and Force Pass Data                              *
+*                                                                            *
+*   (5) General-Purpose Working Variables and Constants.  These are defined  *
+*       in this module and NOT overwritten by other means (i.e. via          *
+*       parameter passing or Comm Port inputs).                              *
+*                                                                            *
+******************************************************************************
+*                                                                            *
+*  Recall that this DSP Node would be responsible for L15 Cal Trigger        *
+*  processing for  eta's  n+2, n+3, n+4, n+5  and that in addition this      *
+*  node has the L1 rack data eta's  n, n+1, n+6, and n+7.                    *
+*                                                                            *
+*  Recall the arrangement of eta's in the racks:                             *
+*                                                                            *
+*    Rack                   Rack #1                   Rack #2                *
+*    Signal           --------------------      ---------------------        *
+*    Names            n    n+1   n+2   n+3      n+4   n+5   n+6   n+7        *
+*                                                                            *
+*    This DSP Node              --------------------------                   *
+*    is Responsible              n+2   n+3      n+4   n+5                    *
+*    for these eta's                                                         *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*       Include the DSP Program-Specific Constants                           *
+******************************************************************************
+
+        .include    "constant.inc"
+      
+******************************************************************************
+*   This is the map of the Dual Port Memory as used for Parameter Passing    *
+*                                                                            *
+*   This space is defined as an uninitialized section                        *
+******************************************************************************
+
+Univ_Param_Block_Loc            .usect "Parm_Blk", Univ_Param_Block_Size
+                            
+Frame_Param_Block_Loc           .usect "Parm_Blk", Maximum_Number_of_Terms * One_Term_Frame_Param_Block_Size
+                            
+Local_Param_Block_Loc           .usect "Parm_Blk", Maximum_Number_of_Terms * One_Term_Local_Param_Block_Size
+                            
+Global_Param_Block_Loc          .usect "Parm_Blk", Maximum_Number_of_Terms * One_Term_Global_Param_Block_Size
+                                                                                       
+LDSP_A2_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_A3_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                     
+                            
+LDSP_A4_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_A1_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_B3_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_B4_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_B1_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_C3_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_C4_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_C1_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+LDSP_C2_Ref_Set_Block_Loc       .usect "Parm_Blk", Maximum_Number_of_Ref_Sets * One_Ref_Set_Block_Size                       
+                            
+******************************************************************************
+*   Cross-References                                                         *
+******************************************************************************
+
+        .def    Univ_Param_Block_Loc                ; Define these symbols
+        .def    Frame_Param_Block_Loc               ; in this module for
+        .def    Local_Param_Block_Loc               ; use in other modules
+        .def    Global_Param_Block_Loc      
+        .def    LDSP_A2_Ref_Set_Block_Loc   
+        .def    LDSP_A3_Ref_Set_Block_Loc   
+        .def    LDSP_A4_Ref_Set_Block_Loc   
+        .def    LDSP_A1_Ref_Set_Block_Loc   
+        .def    LDSP_B3_Ref_Set_Block_Loc   
+        .def    LDSP_B4_Ref_Set_Block_Loc   
+        .def    LDSP_B1_Ref_Set_Block_Loc   
+        .def    LDSP_C3_Ref_Set_Block_Loc
+        .def    LDSP_C4_Ref_Set_Block_Loc
+        .def    LDSP_C1_Ref_Set_Block_Loc
+        .def    LDSP_C2_Ref_Set_Block_Loc   
+
+
+******************************************************************************
+*****  This is the Trigger Tower Data Section for Rack #1 and Rack #2    *****
+*                                                                            *
+*  The Trigger Tower data is stored in the on-chip C40 RAM.  There is one    *
+*  block of data for the EM Et's from the rack that covers eta's = n:n+3,    *
+*  a second block of data for the Tot Et's from this rack,  a third          *
+*  block of data for the EM Et's from the rack that covers eta's = n+4:n+7   *
+*  and finally a fourth block of data for the Tot Et's from this rack.       *
+*                                                                            *
+*  A block of Trigger Tower data is organized as follows:                    *
+*                                                                            *
+*                                                                            *
+*                                                                            *
+*    D31     D24   D23     D16   D15      D8   D7       D0      Lower C40    *
+*  .             .             .             .             .    Address      *
+*  +-------------+-------------+-------------+-------------+                 *
+*  |  |eta| + 3  |  |eta| + 2  |  |eta| + 1  |    |eta|    |    phi = 1      *
+*  +-------------+-------------+-------------+-------------+                 *
+*  |  |eta| + 3  |  |eta| + 2  |  |eta| + 1  |    |eta|    |    phi = 2      *
+*  +-------------+-------------+-------------+-------------+                 *
+*  |  |eta| + 3  |  |eta| + 2  |  |eta| + 1  |    |eta|    |    phi = 3      *
+*          .             .             .            .              .         *
+*          .             .             .            .              .         *
+*          .             .             .            .              .         *
+*  |  |eta| + 3  |  |eta| + 2  |  |eta| + 1  |    |eta|    |    phi = 30     *
+*  +-------------+-------------+-------------+-------------+                 *
+*  |  |eta| + 3  |  |eta| + 2  |  |eta| + 1  |    |eta|    |    phi = 31     *
+*  +-------------+-------------+-------------+-------------+                 *
+*  |  |eta| + 3  |  |eta| + 2  |  |eta| + 1  |    |eta|    |    phi = 32     *
+*  +-------------+-------------+-------------+-------------+                 *
+*                                                               Higher C40   *
+*                                                               Address      *
+*                                                                            *
+*                                                                            *
+*  NOTES: While scanning for Trig Towers over the Ref Set Threshold we       *
+*         will scan from phi 1 through phi 32.                               *
+*                                                                            *
+*         The pointer symbol to Trig Tower data from a rack points to the    *
+*         phi 1 data.                                                        *
+*                                                                            *
+*         The bytes of a C40 word are numbered in two different ways in      *
+*         the Texas Instruments documentation:                               *
+*                                                                            *
+*               Data Bits    "Comm Port Byte"    LBUb C40 Instruction        *
+*              -----------   ----------------   ----------------------       *
+*                 D0:D7             1                     0                  *
+*                 D8:D15            2                     1                  *
+*                D16:D23            3                     2                  *
+*                D24:D31            4                     3                  *
+*                                                                            *
+*    002F F800h : 002F F81Fh  this is the EM Et Trigger Tower data from      *
+*                             the first rack i.e. eta's = n:n+3              *
+*                                                                            *
+*    002F F820h : 002F F83Fh  this is empty space.  This space is needed     *
+*                             to allow the circular addressing to work       *
+*                             correctly.                                     *
+*                                                                            *
+*    002F F840h : 002F F85Fh  this is the Tot Et Trigger Tower data from     *
+*                             the first rack i.e. eta's = n:n+3              *
+*                                                                            *
+*    002F F860h : 002F F87Fh  this is empty space.  This space is needed     *
+*                             to allow the circular addressing to work       *
+*                             correctly.                                     *
+*                                                                            *
+*    002F F880h : 002F F89Fh  this is the EM Et Trigger Tower data from      *
+*                             the second rack i.e. eta's = n+4:n+7           *
+*                                                                            *
+*    002F F8A0h : 002F F8BFh  this is empty space.  This space is needed     *
+*                             to allow the circular addressing to work       *
+*                             correctly.                                     *
+*                                                                            *
+*    002F F8C0h : 002F F8DFh  this is the EM Et Trigger Tower data from      *
+*                             the second rack i.e. eta's = n+4:n+7           *
+*                                                                            *
+*                                                                            *
+*                                                                            *
+*  The Trigger Tower data is not stored in the C40 with "repeated phi's",    *
+*  i.e. phi 1 and phi 2 are  NOT  repeated after phi 32; and phi 31 and      *
+*  phi 32 are NOT repeated in front of phi 1.  These 4 repeated phi's might  *
+*  have been used for Tool Code but the C40 circular addressing mode is      *
+*  used in the Tool Code instead.                                            *
+*                                                                            *
+******************************************************************************
+
+         .sect     "TT_Data"
+
+
+Rack_1_EM_Et_TT_Data_Loc:                          ; Storage location for the
+                                                   ; EM Et Trigger Tower data
+         .eval     0,x                             ; from rack #1  i.e. eta's
+         .loop                                     ; n, n+1, n+2, and n+3.
+         .word     Zero_Energy_Default             ; Stored at the base of
+         .eval     x+1,x                           ; on-chip RAM   i.e.
+         .break    x=One_TT_Data_Block_Size        ; starting at  002F F800h
+         .endloop         
+
+First_Empty_Block_Loc:                             ; This empty space between
+                                                   ; the Rack 1 EM Data and
+        .space    One_TT_Data_Block_Size           ; the Rack 1 Total Data is
+                                                   ; necessary to allow the
+                                                   ; C40 circular addressing
+                                                   ; mode to operate.
+
+Rack_1_Tot_Et_TT_Data_Loc:                         ; Storage location for the 
+                                                   ; Tot Et Trigger Tower data
+         .eval     0,x                             ; from rack #1  i.e. eta's
+         .loop                                     ; n, n+1, n+2, and n+3.
+         .word     Zero_Energy_Default             ; Stored near the base of
+         .eval     x+1,x                           ; on-chip RAM   i.e.
+         .break    x=One_TT_Data_Block_Size        ; starting at  002F F840h
+         .endloop
+
+
+Second_Empty_Block_Loc:                            ; This empty space between
+                                                   ; the Rack 1 Total Data  
+        .space    One_TT_Data_Block_Size           ; the Rack 1 EM Data is    
+                                                   ; necessary to allow the
+                                                   ; C40 circular addressing
+                                                   ; mode to operate.
+
+Rack_2_EM_Et_TT_Data_Loc:                          ; Storage location for the
+                                                   ; EM Et Trigger Tower data
+         .eval     0,x                             ; from rack #2  i.e. eta's
+         .loop                                     ; n+4, n+5, n+6, and n+7.
+         .word     Zero_Energy_Default             ; Stored near the base of
+         .eval     x+1,x                           ; on-chip RAM   i.e.
+         .break    x=One_TT_Data_Block_Size        ; starting at  002F F880h
+         .endloop
+
+
+Third_Empty_Block_Loc:                             ; This empty space between
+                                                   ; the Rack 2 EM Data and
+        .space    One_TT_Data_Block_Size           ; the Rack 2 Total Data is
+                                                   ; necessary to allow the
+                                                   ; C40 circular addressing
+                                                   ; mode to operate.
+
+Rack_2_Tot_Et_TT_Data_Loc:                         ; Storage location for the
+                                                   ; Tot Et Trigger Tower data
+         .eval     0,x                             ; from rack #2  i.e. eta's
+         .loop                                     ; n+4, n+5, n+6, and n+7.
+         .word     Zero_Energy_Default             ; Stored near the base of
+         .eval     x+1,x                           ; on-chip RAM   i.e.
+         .break    x=One_TT_Data_Block_Size        ; starting at  002F F8C0h
+         .endloop
+
+Fourth_Empty_Block_Loc:                            ; This empty space after  
+                                                   ; the Rack 2 Total Data is  
+        .space    One_TT_Data_Block_Size           ; necessary to allow the    
+                                                   ; C40 circular addressing   
+                                                   ; mode to operate.          
+                                                                               
+
+Zero_Energy_Default     .set    10101010h          ; For this test, the zero
+                                                   ; energy response is 16 ADC
+                                                   ; counts for all Trigger
+                                                   ; Towers,  i.e. there is
+                                                   ; no eta,phi dependents.
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+
+         .def      Rack_1_EM_Et_TT_Data_Loc     ; Define these symbols in this
+         .def      Rack_1_Tot_Et_TT_Data_Loc    ; module and make them global to
+         .def      Rack_2_EM_Et_TT_Data_Loc     ; reference from other modules.
+         .def      Rack_2_Tot_Et_TT_Data_Loc     
+
+
+******************************************************************************
+*****   This is the Reference Set Data Section                         *******
+*                                                                            *
+*  Ref Set data is stored in bits D0 through D7 of a C40 word with bits      *
+*  D8 through D31 all set to zero. The word order in which the Ref Set data  *
+*  stored matches the order in which Trig Towers are scanned to see if they  *
+*  are over the Ref Set Threshold.  This is:  at a given phi,  eta's  n+2,   *
+*  n+3, n+4, and n+5  then the next higher phi and  the eta's repeat.  Thus, *
+*  it requires 128 C40 words to hold one Ref Set for a Local DSP.            *
+*                                                                            *
+*  The Reference Set data is stored starting near the bottom of Global       *
+*  SRAM  i.e.  0C000 0000h.   This DSP only stores the Reference Set         *
+*  values for the Trigger Towers that it is responsibile for.  These         *
+*  Ref Set values are arranged in memory in the following order:             *
+*  At a given phi,  eta's  n+2, n+3, n+4, and n+5  then the next higher      *
+*  phi and  the eta's repeat.                                                *
+*                                                                            *
+*  Recall that the Reference Set data specified here really is just "place-  *
+*  holder" data.  The actual Reference Set Data is downloaded from the TCC.  *
+*                                                                            *
+******************************************************************************
+
+         .sect     "Ref_Data"
+
+Ref_Set_Data_Loc:                                ; Storage location of the
+                                                 ; Reference Set data.
+         .eval     0,x                           ; This is located at the
+         .loop                                   ; base of Hydra-II Global
+         .word     Ref_Set_Value_Default         ; memory  i.e. near (but not
+         .eval     x+1,x                         ; starting at) 0C0000000h.
+         .break    x=4*One_Ref_Set_Block_Size
+         .endloop
+
+
+Ref_Set_Value_Default   .set    00000038h     ; 40 decimal counts above the
+                                              ; Default Zero Energy Response 
+                                              ; i.e. 10 GeV.
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+
+         .def      Ref_Set_Data_Loc           ; Define these symbols in this
+                                              ; module and make them global to
+                                              ; reference from other modules.
+
+
+******************************************************************************
+*****       This is the List of Identified Objects Section               *****
+******************************************************************************
+
+******************************************************************************
+*         Reserve space for the Lists of Identified Objects                  *
+*                                                                            *
+*  Here we reserve 11, 25-longword long spaces for the Lists of Identified   *
+*  Objects from each of the 11 Local DSPs.  It is not strictly necessary     *
+*  to have 11 separate spaces (4 would suffice because that is the most data *
+*  that any single Local DSP would contain [recall that DSP #A2 and #C2      *
+*  at one point hold all of the Local Lists of Identified Objects for the    *
+*  "A" and "C" cards respectively]) but in this way we can use the same      *
+*  structure in the Local DSPs and in the Global DSP (which does have to     *
+*  hold all 11 Local Lists of Identified Objects).                           *
+*                                                                            *
+*  We also reserve space for the Local DSP Section Longwords to Follow Count *
+*  which is completely unused in the Local DSPs.  Again this is done to      *
+*  allow use of the same structure as the Global DSPs.                       *
+*                                                                            *
+*  The space is allocated in the same order that the 11 Local Lists of       *
+*  Identified Objects are found in the L1.5 Cal Trig Data Block.  This order *
+*  also is convenient for the "leap-frog" transfer of the Local lists to the *
+*  Global DSP (i.e. only transfers of contiguous blocks are necessary,       *
+*  thus linked DMA Lists are not required).                                  *
+******************************************************************************
+
+    .sect  "ObjLists"
+
+LDSP_Sect_Longword_Count_Loc:  
+                                        ; This is the Local DSP Section
+    .word   LDSP_Section_Length         ; Longwords to Follow Count.  The
+                                        ; Global DSP places the value stored
+                                        ; in this location in the L1.5 Cal
+                                        ; Trig Data Block (as the first long
+                                        ; word of the Local DSP Section
+                                        ; This should be at the base of 
+                                        ; Block #1 of the On-Chip RAM, i.e.
+                                        ; at 002F FC00h.  Note that this
+                                        ; is not used at all in the Local
+                                        ; DSP code but is included here 
+                                        ; to make the structure identical   
+                                        ; to the Global DSP structure.
+
+LDSP_A2_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #A2, i.e. for eta
+                                        ;    -20 : -19
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC01 - 002F FC19 
+                         
+LDSP_A3_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #A3, i.e. for eta
+                                        ;    -18 : -15
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC1A - 002F FC32 
+                         
+LDSP_A4_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #A4, i.e. for eta
+                                        ;    -14 : -11
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC33 - 002F FC4B 
+                         
+LDSP_A1_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #A1, i.e. for eta
+                                        ;    -10 : -7  
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC4C - 002F FC64 
+                         
+LDSP_B3_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #B3, i.e. for eta
+                                        ;     -6 : -3  
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC65 - 002F FC7D 
+                         
+LDSP_B4_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #B4, i.e. for eta
+                                        ;     -2 : +2  
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC7E - 002F FC96
+                         
+LDSP_B1_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #B1, i.e. for eta
+                                        ;     +3 : +6 
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FC97 - 002F FCA9 
+                         
+LDSP_C3_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #C3, i.e. for eta
+                                        ;     +7 : +10
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FCB0 - 002F FCC8 
+                         
+LDSP_C4_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #C4, i.e. for eta
+                                        ;    +11 : +14
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FCC9 - 002F FCE1 
+                         
+LDSP_C1_ObjectList_Loc:   
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #C1, i.e. for eta
+                                        ;    +15 : +18
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FCE2 - 002F FCFA 
+                         
+LDSP_C2_ObjectList_Loc:                                        
+                                        ; This is the storage space for the
+        .space LDSP_ObjectList_Length   ; 25 Longwords which make up the
+                                        ; List of Identified Objects for
+                                        ; Local DSP #C2, i.e. for eta
+                                        ;    +19 : +20
+                                        ; This should be in the On-Chip RAM
+                                        ; at locations
+                                        ;    002F FCFB - 002F FD13 
+
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+                          
+         .def      LDSP_Sect_Longword_Count_Loc
+         .def      LDSP_A2_ObjectList_Loc     ; Define these symbols in this
+         .def      LDSP_A3_ObjectList_Loc     ; module and make them global to
+         .def      LDSP_A4_ObjectList_Loc     ; reference from other modules.
+         .def      LDSP_A1_ObjectList_Loc 
+         .def      LDSP_B3_ObjectList_Loc 
+         .def      LDSP_B4_ObjectList_Loc 
+         .def      LDSP_B1_ObjectList_Loc 
+         .def      LDSP_C3_ObjectList_Loc 
+         .def      LDSP_C4_ObjectList_Loc 
+         .def      LDSP_C1_ObjectList_Loc 
+         .def      LDSP_C2_ObjectList_Loc 
+
+******************************************************************************
+*           This is the Mark and Force Pass Data Section                     *
+*                                                                            *
+*  Here we reserve 11, 270-longword long spaces for the Mark and Force Pass  *
+*  Data from each of the 11 Local DSPs.  This is "temporary storage"         *
+*  space for these Object Lists.  The Object Lists are DMA-ed into these     *
+*  locations from the Comm Ports (which are connected to the Local DSPs).    *
+*                                                                            *
+*  Again, all of this space is not necessary in a single Local DSP but it    *
+*  is all reserved to keep memory map compatibility with the Global DSP      *
+*                                                                            *
+*  Note that there is NO SPACE for any "longwords to follow" counts in this  *
+*  memory map.                                                               *
+*                                                                            * 
+*  The space is allocated in the same order that the 11 Local Lists of       *
+*  Identified Objects are found in the L1.5 Cal Trig Data Block.  This order *
+*  also is convenient for the "leap-frog" transfer of the Local lists to the *
+*  Global DSP (i.e. only transfers of contiguous blocks are necessary,       *
+*  thus linked DMA Lists are not required).                                  *
+*                                                                            *
+*  This data is stored in the Global SRAM.                                   *
+*                                                                            *
+*  These symbols are exported for use in other modules.                      *
+******************************************************************************
+    
+    .data
+
+LDSP_A2_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length     
+
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #A2, i.e. for eta
+                                        ;    -20 : -19
+                                        ; This should be in the Global SRAM
+                                        
+                                        
+LDSP_A3_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length     
+
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #A3, i.e. for eta
+                                        ;    -18 : -15
+                                        ; This should be in the Global SRAM    
+                                      
+
+LDSP_A4_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length     
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #A4, i.e. for eta
+                                        ;    -14 : -11
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_A1_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #A1, i.e. for eta
+                                        ;    -10 : -7  
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_B3_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #B3, i.e. for eta
+                                        ;     -6 : -3  
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_B4_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #B4, i.e. for eta
+                                        ;     -2 : +2  
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_B1_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #B1, i.e. for eta
+                                        ;     +3 : +6 
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_C3_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #C3, i.e. for eta
+                                        ;     +7 : +10
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_C4_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #C4, i.e. for eta
+                                        ;    +11 : +14
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_C1_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #C1, i.e. for eta
+                                        ;    +15 : +18
+                                        ; This should be in the Global SRAM    
+                                        
+                                        
+LDSP_C2_Mark_Pass_Data_Loc      .space  LDSP_MFP_Section_Length  
+                                        ; This is the storage space for the     
+                                        ; Longwords which make up the       
+                                        ; Mark and Force Pass Data section for  
+                                        ; Local DSP #C2, i.e. for eta
+                                        ;    +19 : +20
+                                        ; This should be in the Global SRAM    
+                                        
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+         .def      LDSP_A2_Mark_Pass_Data_Loc           ; Define symbols in
+         .def      LDSP_A3_Mark_Pass_Data_Loc           ; this module and make 
+         .def      LDSP_A4_Mark_Pass_Data_Loc           ; global to reference  
+         .def      LDSP_A1_Mark_Pass_Data_Loc           ; from other modules.  
+         .def      LDSP_B3_Mark_Pass_Data_Loc 
+         .def      LDSP_B4_Mark_Pass_Data_Loc 
+         .def      LDSP_B1_Mark_Pass_Data_Loc 
+         .def      LDSP_C3_Mark_Pass_Data_Loc 
+         .def      LDSP_C4_Mark_Pass_Data_Loc 
+         .def      LDSP_C1_Mark_Pass_Data_Loc 
+         .def      LDSP_C2_Mark_Pass_Data_Loc             
+
+                                
+******************************************************************************
+*****   General-purpose Working Variables and Constants                  *****
+******************************************************************************
+
+        .data
+
+LDSP_Longwords_per_Entry_Loc:                           ; Memory location to
+                                                        ; store the number of
+         .word  LDSP_Longwords_per_Entry                ; Longwords per
+                                                        ; Entry in Local
+                                                        ; DSP List of 
+                                                        ; Identified Objects
+
+LDSP_Entries_per_List_Loc:                              ; Memory location to
+                                                        ; store the number of
+        .word   LDSP_Entries_per_List                   ; Entries per
+                                                        ; Local DSP List of
+                                                        ; Identified Objects  
+        
+Zero_Loc:                                               ; Memory location to
+                                                        ; store the value 0
+        .word   0                       
+
+All_FF_Loc:                                             ; Memory location to
+                                                        ; store the value
+        .word   0ffffffffh                              ; ffffffff (hex)
+
+One_TT_DMA_Finished_Loc:                                ; Memory location to
+                                                        ; store the flag for
+        .word   One_TT_DMA_Finished                     ; 1 Trigger Tower
+                                                        ; Data (CRC Input)
+                                                        ; DMA Finished
+
+;   ***********************************************************************
+;   * The "constant across nodes" Initialization data is stored here      *
+;   ***********************************************************************
+
+Com_Port_Status_Loc:                                    ; Memory location to
+                                                        ; store the Comm Port
+            .word   0                                   ; Status Longword
+
+SEK_to_all_DSP_Status_Handle:                           ; Memory location to
+                                                        ; store the base 
+            .word    SEK_to_all_DSP_Stat_Base_Address   ; address of the 68K
+                                                        ; to all DSP's 
+                                                        ; communication block
+                                                        ; in Dual Port Memory
+
+DMA_Halt_Word_Loc:      .word     DMA_Halt_Word         ; Memory location
+                                                        ; to store the
+                                                        ; DMA Halt Word
+
+DMA_Start_Initialize_Loc:                               ; Memory location     
+                                                        ; to store the DMA    
+            .word       DMA_Start_Word_for_Initialize   ; Start (Initialize)  
+                                                        ; Word                
+
+DMA_Start_LG_to_Next_w_MFP_Loc:                         ; Memory location to
+                                                        ; store the DMA Start
+            .word       DMA_Start_Word_for_LG_MFP_Next  ; (Local to Global 
+                                                        ; to Next DSP
+                                                        ; with Mark and Force
+                                                        ; Pass Data) Word
+            
+DMA_Start_LG_fr_Prev_w_MFP_Loc:                         ; Memory location to
+                                                        ; store the DMA Start
+            .word       DMA_Start_Word_for_LG_MFP_Prev  ; (Local to Global
+                                                        ; from Previous with
+                                                        ; Mark and Force 
+                                                        ; Pass Data) Word
+
+Enable_DMAINT0_Loc:     .word     02000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT0
+                                                        ; in the IIE
+
+ICRDY0_Read_Synch_Loc:  .word     00000001h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY0 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #0 in DIE    
+
+OCRDY0_Write_Synch_Loc: .word     00000004h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY0 
+                                                        ; Write Synch for DMA
+                                                        ; Channel #0 in DIE
+
+Enable_DMAINT1_Loc:     .word     04000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT1
+                                                        ; in the IIE
+
+ICRDY1_Read_Synch_Loc:  .word     00000010h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY1 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #1 in DIE    
+
+OCRDY1_Write_Synch_Loc: .word     00000040h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY1 
+                                                        ; Write Synch for DMA
+                                                        ; Channel #1 in DIE
+
+Enable_DMAINT2_Loc:     .word     08000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT2
+                                                        ; in the IIE
+
+ICRDY2_Read_Synch_Loc:  .word     00000100h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY2 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #2 in DIE    
+
+OCRDY2_Write_Synch_Loc: .word     00000800h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY2
+                                                        ; Write Synch for DMA
+                                                        ; Channel #2 in DIE
+
+Enable_DMAINT3_Loc:     .word     10000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT3
+                                                        ; in the IIE
+
+ICRDY3_Read_Synch_Loc:  .word     00004000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY3 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #3 in DIE    
+
+OCRDY3_Write_Synch_Loc: .word     00020000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY3 
+                                                        ; Write Synch for DMA
+                                                        ; Channel #3 in DIE
+                                     
+Enable_DMAINT4_Loc:     .word     20000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT4
+                                                        ; in the IIE
+
+ICRDY4_Read_Synch_Loc:  .word     00100000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY4 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #4 in DIE    
+                                      
+OCRDY4_Write_Synch_Loc: .word     00800000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY4 
+                                                        ; Write Synch for DMA
+                                                        ; Channel #4 in DIE
+    
+Enable_DMAINT5_Loc:     .word     40000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable DMAINT5
+                                                        ; in the IIE
+
+ICRDY5_Read_Synch_Loc:  .word     04000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable ICRDY5 Read
+                                                        ; Synch for DMA Channel
+                                                        ; #5 in DIE    
+
+OCRDY5_Write_Synch_Loc: .word     20000000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to enable OCRDY5 
+                                                        ; Write Synch for DMA
+                                                        ; Channel #5 in DIE
+                                                                    
+
+Dummy_DMA_List_Loc:                                     ; The following 6
+                                                        ; memory locations
+                                                        ; define the Dummy   
+                                                        ; DMA List
+
+Dummy_DMA_Control_Loc:                                  ; Memory location
+                                                        ; which holds the
+        .word     DMA_Start_Word_for_Initialize         ; Control Register
+
+Dummy_DMA_Source_Loc:                                   ; Memory location
+                                                        ; which holds the
+        .word     Dummy_DMA_Source                      ; Source Address
+                                                        ; Register
+
+Dummy_DMA_Source_Index_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word     Dummy_DMA_Source_Index                ; Source Address Index
+                                                        ; Register
+
+Dummy_DMA_Counter_Loc:                                  ; Memory location
+                                                        ; which holds the
+        .word     Dummy_DMA_Transfer_Counter            ; Transfer Counter
+                                                        ; Register
+
+Dummy_DMA_Destination_Loc:                              ; Memory location
+                                                        ; which holds the
+        .word     Dummy_DMA_Destination                 ; Destination Address
+                                                        ; Register
+
+Dummy_DMA_Dest_Index_Loc:                               ; Memory location
+                                                        ; which holds the
+        .word     Dummy_DMA_Dest_Index                  ; Destination Address
+                                                        ; Index Register
+
+
+******************************************************************************
+*   Cross-References                                                         *
+******************************************************************************
+
+        .def    LDSP_Longwords_per_Entry_Loc            ; Symbols defined in
+        .def    LDSP_Entries_per_List_Loc               ; this module but used
+        .def    Zero_Loc, All_FF_Loc                    ; in other modules
+        .def    One_TT_DMA_Finished_Loc
+        .def    Com_Port_Status_Loc
+        .def    SEK_to_all_DSP_Status_Handle              
+        .def    DMA_Halt_Word_Loc                         
+        .def    DMA_Start_Initialize_Loc                  
+        .def    DMA_Start_LG_to_Next_w_MFP_Loc            
+        .def    DMA_Start_LG_fr_Prev_w_MFP_Loc            
+        .def    Enable_DMAINT0_Loc                        
+        .def    ICRDY0_Read_Synch_Loc                     
+        .def    OCRDY0_Write_Synch_Loc                    
+        .def    Enable_DMAINT1_Loc                        
+        .def    ICRDY1_Read_Synch_Loc                     
+        .def    OCRDY1_Write_Synch_Loc                    
+        .def    Enable_DMAINT2_Loc                        
+        .def    ICRDY2_Read_Synch_Loc                     
+        .def    OCRDY2_Write_Synch_Loc                    
+        .def    Enable_DMAINT3_Loc                        
+        .def    ICRDY3_Read_Synch_Loc                     
+        .def    OCRDY3_Write_Synch_Loc                    
+        .def    Enable_DMAINT4_Loc                        
+        .def    ICRDY4_Read_Synch_Loc                     
+        .def    OCRDY4_Write_Synch_Loc                    
+        .def    Enable_DMAINT5_Loc                        
+        .def    ICRDY5_Read_Synch_Loc                     
+        .def    OCRDY5_Write_Synch_Loc                    
+        .def    Dummy_DMA_List_Loc                        
+        .def    Dummy_DMA_Control_Loc                     
+        .def    Dummy_DMA_Source_Loc                      
+        .def    Dummy_DMA_Source_Index_Loc                
+        .def    Dummy_DMA_Counter_Loc                     
+        .def    Dummy_DMA_Destination_Loc                 
+        .def    Dummy_DMA_Dest_Index_Loc                  
+                                                          
+******************************************************************************
+*   End of this module                                                       *
+******************************************************************************
+
+        .end
+

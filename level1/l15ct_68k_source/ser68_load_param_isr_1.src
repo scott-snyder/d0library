@@ -1,0 +1,749 @@
+
+Load_Param_ISR   IDNT                    ; Title of the "Load Parameters"
+                                         ; interrupt service routine.
+
+    SECTION   Sect_Load_Param_ISR,4,C    ; Declare a noncommon code section.
+                                         ; Align to Longwords.
+
+****************************************************************************
+*                                                                          *
+*  Load Param ISR                                       Rev. 22-JUNE-1994  *
+*                                                                          *
+*  This is the interrupt service routine that runs in response to the      *
+*  "Load Parameters" interrupt from TCC.  This interrupt comes in on the   *
+*  SIGLP bit in the MVME-135's MPCSR.                                      *
+*                                                                          *
+*  When called  Ser68_Load_Param_Interrupt  routine performs the           *
+*  following steps:                                                        *
+*                                                                          *
+*  1. Stop doing what ever 68k_Services was doing.                         *
+*  2. Clear the  SIGLP  interrupt bit from the  MPCSR register.            *
+*  3. Unwind the interrupt by forcing the Stack Pointer to its             *
+*       initial value.                                                     *
+*  4. Set the Interrupt Priority Mask to allow priority 2 and              *
+*       above interrupts.                                                  *
+*  5. Check value of the following items in the Parameter Block:           *
+*       Parameter Block Memory Map Version and Revision Numbers            *
+*       The Crate ID, and the MFP Ratios.                                  *
+*  6. From the Parameter Block, copy the appropriate information into      *
+*       the Frame Parameter Section and the Term Parameter Section of      *
+*       the L15CT Data Block in both MVME214 Buffer Memories.              *
+*  7. Load the MFP Ratios into the 68k_Service execution section.          *
+*  8. Verify that all 12 DSPs are at Step D0.  Note that the Error         *
+*       Recovery "un-stick DSP's" should NOT be attempted if all           *
+*       DSPs are not found at Step D0.  If all 12 DSP's are NOT            *
+*       at Step D0 then 68K_Services will provide an error code back       *
+*       to the TCC (in the 68K-to-TCC Status Block) and will hold in       *
+*       a wait forever loop.  If all 12 DSP's ARE at Step D0 then set      *
+*       the All_DSPs_at_Step_D0 software flag and continue.                *
+*  9. Clear the counters in the 68k_Services_to_TCC Status Block that      *
+*       indicate how may times 68k_Services has attempted Error Recovery   *
+*       from the various situations that it watches for (e.g. Global       *
+*       DSP not reaching Step D3).                                         *
+* 10. Put a message on the 68k_Services MVME135 console.                   *
+* 11. Set the 68k_Services to TCC Status Block to the appropriate          *
+*       value(s) indicating either success or failure.                     *
+* 12. Jump to the Orbit Master routine if there are were no Parameter      *
+*       or DSP errors, otherwise go into a dead forever loop.              *
+*                                                                          *
+*                                                                          *
+*  This routine uses and does not restore registers:  D4, A0, A1           *
+*                                                                          *
+****************************************************************************
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            WrIO:  Write bit(s) to the IRONICS I/O card                  *
+*                                                                         *
+***************************************************************************
+
+WrIO    MACRO                         ; Write byte to Ironics I/O Port.
+        Not.B   \1                    ; Complement data byte \1.
+        Move.B  \1,\2                 ; Move to Ironics port at adrs \2.
+        Not.B   \1                    ; Complement data byte \1 to restore it.
+        ENDM
+
+
+****************************************************************************
+*                                                                          *
+*  Start this routine by cleaning up from the SIGLP interrupt:             *
+*                                                                          *
+*     Clear the  SIGLP  interrupt bit from the  MPCSR register.            *
+*     Unwind the interrupt by forcing the Stack Pointer to its             *
+*       initial value.                                                     *
+*     Set the Interrupt Priority Mask to allow priority 2 and              *
+*       above interrupts.                                                  *
+*                                                                          *
+****************************************************************************
+
+Begin_Load_Param:
+                                         ; Set the  SIGLP  bit in the
+                                         ; MPCSR register LOW to stop it from
+                                         ; generating more interrupts.
+                                         ; This MPCSR register is accessed
+                                         ; by the 68020 as a byte at address
+                                         ; MPCSR_SIGLP_Loc.  SIGLP is bit D07.
+        Clr.B    MPCSR_SIGLP_Loc         ;   Clear SIGLP.
+
+                                         ; The following is the "RTE".
+        MoveA.L  Save_SP_Loc,A7          ; Restore the initial value of
+                                         ; the Stack Pointer.
+
+                                         ; Allow Interrupts at
+                                         ; Priority 2 and above.
+        Move     SR,D4                   ; Get the status register.
+        AndI.L   #$0000F0FF,D4           ;   set the interrupt
+        ORI.L    #$00000100,D4           ;   priority mask to 1.
+        Move     D4,SR                   ; Copy back to the status register.
+
+
+****************************************************************************
+*                                                                          *
+*   Now do the actual work of the  Load_Code  interrupt routine.           *
+*   This is steps  5:8  as listed above.                                   *
+*                                                                          *
+****************************************************************************
+
+****************************************************************************
+*                                                                          *
+*   Copy the data for the  Frame Parameter Section  of the  L15CT Data     *
+*   Block from the Parameter Block (which is given to us by TCC), into     *
+*   both MVME214 memory modules.                                           *
+*                                                                          *
+*   First we will copy this data into MVME214 memory module #1 and then    *
+*   into memory module #2.  We will copy data into these memory modules    *
+*   via their VSB bus connection.                                          *
+*                                                                          *
+****************************************************************************
+
+**********                                                          **********
+**********  Load Frame Parameter Section into MVME214 module #1.    **********
+**********                                                   ---    **********
+**********                                                          **********
+
+                                             ; Make MVME214 #1 the Load Buffer.
+        Move.B   #%11101100,D4               ; R.C. Front-End is not set Busy.
+        WrIO     D4,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+        MoveA.L  #BAFrameParamVSB,A0         ; Load address register A0 with
+                                             ;   the L15CT Data Block
+                                             ;   Frame Parameters section
+                                             ;   VSB Base Address.
+
+        JSR      Load_Frame_Param            ; Execute the routine that loads
+                                             ;   the L15CT Data Block Frame
+                                             ;   Parameters into one MVME214.
+
+**********                                                          **********
+**********  Load Frame Parameter Section into MVME214 module #2.    **********
+**********                                                   ---    **********
+
+                                             ; Make MVME214 #2 the Load Buffer.
+        Move.B   #%11011100,D4               ; R.C. Front-End is not set Busy.
+        WrIO     D4,Readout_Ctrl_Port_4      ; #1 214 is set to VME i.e. Read.
+                                             ; #2 214 is set to VSB i.e. Load.
+
+        MoveA.L  #BAFrameParamVSB,A0         ; Load address register A0 with
+                                             ;   the L15CT Data Block
+                                             ;   Frame Parameters section
+                                             ;   VSB Base Address.
+
+        JSR      Load_Frame_Param            ; Execute the routine that loads
+                                             ;   the L15CT Data Block Frame
+                                             ;   Parameters into one MVME214.
+
+**********                                                          **********
+**********  Return MVME214 module #1 to being the Load Buffer.      **********
+**********                        ---                               **********
+
+                                             ; Make MVME214 #1 the Load Buffer.
+        Move.B   #%11101100,D4               ; R.C. Front-End is not set Busy.
+        WrIO     D4,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+
+****************************************************************************
+*                                                                          *
+*   Copy the data for the  Tool Parameter Section  of the  L15CT Data      *
+*   Block from the Parameter Block (which is given to us by TCC), into     *
+*   both MVME214 memory modules.                                           *
+*                                                                          *
+*   First we will copy this data into MVME214 memory module #1 and then    *
+*   into memory module #2.  We will copy data into these memory modules    *
+*   via their VSB bus connection.                                          *
+*                                                                          *
+****************************************************************************
+
+**********                                                          **********
+**********  Load Tool Parameter Section into MVME214 module #1.     **********
+**********                                                  ---     **********
+
+                                             ; Make MVME214 #1 the Load Buffer.
+        Move.B   #%11101100,D4               ; R.C. Front-End is not set Busy.
+        WrIO     D4,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+        MoveA.L  #BAToolParamVSB,A0          ; Load address register A0 with
+                                             ;   the L15CT Data Block
+                                             ;   Tool Parameters section
+                                             ;   VSB Base Address.
+
+        JSR      Load_Tool_Param             ; Execute the routine that loads
+                                             ;   the L15CT Data Block Tool
+                                             ;   Parameters into one MVME214.
+
+**********                                                          **********
+**********  Load Tool Parameter Section into MVME214 module #2.     **********
+**********                                                  ---     **********
+
+                                             ; Make MVME214 #2 the Load Buffer.
+        Move.B   #%11011100,D4               ; R.C. Front-End is not set Busy.
+        WrIO     D4,Readout_Ctrl_Port_4      ; #1 214 is set to VME i.e. Read.
+                                             ; #2 214 is set to VSB i.e. Load.
+
+        MoveA.L  #BAToolParamVSB,A0          ; Load address register A0 with
+                                             ;   the L15CT Data Block
+                                             ;   Tool Parameters section
+                                             ;   VSB Base Address.
+
+        JSR      Load_Tool_Param             ; Execute the routine that loads
+                                             ;   the L15CT Data Block Tool
+                                             ;   Parameters into one MVME214.
+
+**********                                                          **********
+**********  Return MVME214 module #1 to being the Load Buffer.      **********
+**********                        ---                               **********
+
+                                             ; Make MVME214 #1 the Load Buffer.
+        Move.B   #%11101100,D4               ; R.C. Front-End is not set Busy.
+        WrIO     D4,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+
+****************************************************************************
+*                                                                          *
+*  Load the MFP Ratio for Term #0 into the running 68k_Services.           *
+*                                                                          *
+*  As used by COOR and sent to us by TCC the "Pass_1_of_N" value has       *
+*  the following meaning:                                                  *
+*                                                                          *
+*                                                                          *
+*                                                                          *
+*  As used in the executing 68k_Services the MFP Ratio has the following   *
+*  meaning:                                                                *
+*     MFP Ratio value of 1 --> every event is MFP                          *
+*     MFP Ratio value of 2 --> every other event is MFP  ....              *
+*                                                                          *
+****************************************************************************
+
+        MoveA.L  #BA_Parameter_Block+128,A1  ; Load address register A1 with
+                                             ; the Parameter Block Base Adrs
+                                             ; plus the offset to the
+                                             ; beginning of the Frame-Local-
+                                             ; Global Parameter Data.
+
+        Move.L   (A1)+,D4                    ; Make a throwaway read of the
+                                             ; Frame Parameter Data Header
+                                             ; longword.
+
+                                             ; Adrs Reg A1 now points to the
+                                             ; "Pass_1_of_N" value for Term #0.
+
+        Move.L   (A1),MFP_Ratio_Term_0       ; Load the Term #0 MFP Ratio into
+                                             ; 68k_Services.
+
+        Move.L   MFP_Ratio_Term_0,MFP_Counter_Term_0   ; Load MFP Counter for
+                                                       ; Term #0.
+
+
+
+
+****************************************************************************
+*                                                                          *
+*  Verify that all 12 DSP's are at Step D0.  Do NOT attempt any error      *
+*  recovery if they are not all at Step D0.  If all 12 DSP's are not       *
+*  at Step D0 then go into a wait forever dead loop.                       *
+*                                                                          *
+*  Verify that all 12 DSP's are at Step D0 using the following sequence    *
+*  of steps:                                                               *
+*                                                                          *
+*   1. Read the current status of each of the DSP's and store these long   *
+*      words in their proper locations in the  68k_Services_to_TCC         *
+*      Status Block.                                                       *
+*                                                                          *
+*   2. Now that we have that status longword from each DSP go back and     *
+*      look at them to verify that all 12 indicate that their DSP is       *
+*      at step D0.                                                         *
+*                                                                          *
+*   3. If all DSP's are at Step D0 then continue on with this routine.     *
+*      If any DSP is not at Step D0 then 68k_Services send  $00000003      *
+*      back to TCC in the first longword of the 68k_Services_to_TCC        *
+*      Status Block.                                                       *
+*                                                                          *
+*  Note that the reason for the funny order in the sequence of steps       *
+*  is that we want to make sure that we use one and only one read of       *
+*  status from each DSP to both vaerify that the DSP is at Step D0 and     *
+*  to report its status (as seen by 68k_Services) back to TCC.             *
+*                                                                          *
+*  Note that we do NOT wait here for any DSP's to reach Step D0.           *
+*                                                                          *
+*  Note the layout of the DSP status longwords as read by 68k_Services     *
+*  in the 68k_Services_to_TCC Status Block is the following:               *
+*                                                                          *
+*                                                                          *
+*  Longword in                                                             *
+*  68k_Services                                                            *
+*  to TCC                                                                  *
+*  Status Block                          Contents                          *
+*  ------------    ---------------------------------------------------     *
+*                                                                          *
+*     9th           Status DSP A2 reported to 68k_Services      ! DSP's    *
+*    10th           Status DSP A3 reported to 68k_Services      ! appear   *
+*    11th           Status DSP A4 reported to 68k_Services      ! in their *
+*    12th           Status DSP A1 reported to 68k_Services      ! normal   *
+*                                                               ! ETA      *
+*    13th           Status DSP B3 reported to 68k_Services      ! order.   *
+*    14th           Status DSP B4 reported to 68k_Services                 *
+*    15th           Status DSP B1 reported to 68k_Services                 *
+*                                                                          *
+*    16th           Status DSP C3 reported to 68k_Services                 *
+*    17th           Status DSP C4 reported to 68k_Services                 *
+*    18th           Status DSP C1 reported to 68k_Services                 *
+*    19th           Status DSP C2 reported to 68k_Services                 *
+*                                                                          *
+*    20th           Status DSP B2 reported to 68k_Services                 *
+*                                                                          *
+****************************************************************************
+
+*******  First read the Status from each of the 12 DSP's and store     *******
+*******  it in the proper locations in the 68k_Services_to_TCC         *******
+*******  Status Block.                                                 *******
+
+        Move.L  LDSP_A2_Status_Adrs,Stat_Blk_to_TCC_A2s_Status ; Read DSP A2's
+                                                               ;   status and
+                                                               ;   store it.
+        Move.L  LDSP_A3_Status_Adrs,Stat_Blk_to_TCC_A3s_Status ; Read DSP A3's
+        Move.L  LDSP_A4_Status_Adrs,Stat_Blk_to_TCC_A4s_Status ; Read DSP A4's
+        Move.L  LDSP_A1_Status_Adrs,Stat_Blk_to_TCC_A1s_Status ; Read DSP A1's
+
+        Move.L  LDSP_B3_Status_Adrs,Stat_Blk_to_TCC_B3s_Status ; Read DSP B3's
+                                                               ;   status and
+                                                               ;   store it.
+        Move.L  LDSP_B4_Status_Adrs,Stat_Blk_to_TCC_B4s_Status ; Read DSP B4's
+        Move.L  LDSP_B1_Status_Adrs,Stat_Blk_to_TCC_B1s_Status ; Read DSP B1's
+
+        Move.L  LDSP_C3_Status_Adrs,Stat_Blk_to_TCC_C3s_Status ; Read DSP C3's
+                                                               ;   status and
+                                                               ;   store it.
+        Move.L  LDSP_C4_Status_Adrs,Stat_Blk_to_TCC_C4s_Status ; Read DSP C4's
+        Move.L  LDSP_C1_Status_Adrs,Stat_Blk_to_TCC_C1s_Status ; Read DSP C1's
+        Move.L  LDSP_C2_Status_Adrs,Stat_Blk_to_TCC_C2s_Status ; Read DSP C2's
+
+        Move.L  GDSP_B2_Status_Adrs,Stat_Blk_to_TCC_B2s_Status ; Read DSP B2's
+                                                               ;   status and
+                                                               ;   store it.
+
+*******  Now check the status read above to verify that all 12 DSP's   *******
+*******  are at Step D0.  If any of the DSP's are not at Step D0       *******
+*******  then begin the routine called   DSP_NOT_at_Step_D0.           *******
+
+        Move.L  Stat_Blk_to_TCC_A2s_Status,D4   ; Check the Status of DSP A2
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+        Move.L  Stat_Blk_to_TCC_A3s_Status,D4   ; Check the Status of DSP A3
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+        Move.L  Stat_Blk_to_TCC_A4s_Status,D4   ; Check the Status of DSP A4
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+        Move.L  Stat_Blk_to_TCC_A1s_Status,D4   ; Check the Status of DSP A1
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+
+        Move.L  Stat_Blk_to_TCC_B3s_Status,D4   ; Check the Status of DSP B3
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+        Move.L  Stat_Blk_to_TCC_B4s_Status,D4   ; Check the Status of DSP B4
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+        Move.L  Stat_Blk_to_TCC_B1s_Status,D4   ; Check the Status of DSP B1
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+
+        Move.L  Stat_Blk_to_TCC_C3s_Status,D4   ; Check the Status of DSP C3
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+        Move.L  Stat_Blk_to_TCC_C4s_Status,D4   ; Check the Status of DSP C4
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+        Move.L  Stat_Blk_to_TCC_C1s_Status,D4   ; Check the Status of DSP C1
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+        Move.L  Stat_Blk_to_TCC_C2s_Status,D4   ; Check the Status of DSP C2
+        IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+
+        Move.L  Stat_Blk_to_TCC_B2s_Status,D4   ; Check the Status of DSP B2
+        IF.W    D4 <NE> #GDSP_at_D0  THEN.S     ; as read above to verify that
+           JMP  DSP_NOT_at_Step_D0              ; it is at step D0.  If not at
+        ENDI                                    ; D0; then use special routine.
+
+**********  OK, we have verified that all 12 DSP's are at Step D0,  **********
+**********  so SET the  All_DSPs_at_Step_D0  software flag.         **********
+
+        Move.B  #Flag_SET,All_DSPs_at_Step_D0   ; SET the  All_DSPs_at_Step_D0
+                                                ; software flag.
+
+
+
+
+****************************************************************************
+*                                                                          *
+*  Now clear the Error Recovery Count Counters.                            *
+*                                                                          *
+*  Everything looks good so far, so clear the counters that 68k_Services   *
+*  maintains which indicate how many times 68k_Services has had to do      *
+*  some type of Error Recovery.                                            *
+*                                                                          *
+*  Recall where these counters are located in the 68k_Services_to_TCC      *
+*  Status Block.                                                           *
+*                                                                          *
+*  Longword in                                                             *
+*  68k_Services                                                            *
+*  to TCC                                                                  *
+*  Status Block                          Contents                          *
+*  ------------    ---------------------------------------------------     *
+*                                                                          *
+*    22st           Count of the number of times that 68k_Services has     *
+*                   "un-stuck" the DSP's from a condition where one of     *
+*                   the DSP's never reported that it reached Step D0       *
+*                   after 68k_Services had invalidated the previously      *
+*                   valid Wakeup Word at the conclusion of processing      *
+*                   an event.  This counter is set to zero by a            *
+*                   Load_Parameters interrupt.                             *
+*                                                                          *
+*    23nd           Count of the number of times that 68k_Services has     *
+*                   "un-stuck" the DSP's from a condition where the        *
+*                   Global DSP never reported that it reached Step D3      *
+*                   during the processing of an event.  This counter       *
+*                   is set to zero by a Load_Parameters interrupt.         *
+*                                                                          *
+*    24rd           Count of the number of times that 68k_Services has     *
+*                   "un-stuck" the DSP's from a condition where one of     *
+*                   the DSP's never reported that it reached Step D15      *
+*                   at the conclusion of processing an event.  This        *
+*                   counter is set to zero by a Load_Parameters interrupt. *
+*                                                                          *
+****************************************************************************
+
+        Clr.L   Stat_Blk_to_TCC_Error_D0_Cnt   ; Zero the Step D0 Error
+                                               ; Recovery Count Counter.
+
+        Clr.L   Stat_Blk_to_TCC_Error_D0_Cnt   ; Zero the Step D3 Error
+                                               ; Recovery Count Counter.
+
+        Clr.L   Stat_Blk_to_TCC_Error_D0_Cnt   ; Zero the Step D15 Error
+                                               ; Recovery Count Counter.
+
+
+****************************************************************************
+*                                                                          *
+*   Now put a message on the  68k_Services  console, then set the status   *
+*   back to TCC, and then wait for the Load_Param interrupt.               *
+*                                                                          *
+****************************************************************************
+
+        PEA.L   Hello_LP_1               ; Push message address on stack.
+        JSR     ChrStrgOut               ; Send the message to the console.
+
+        PEA.L   Hello_LP_2               ; Push message address on stack.
+        JSR     ChrStrgOut               ; Send the message to the console.
+
+        PEA.L   Hello_LP_1               ; Push message address on stack.
+        JSR     ChrStrgOut               ; Send the message to the console.
+
+
+        Move.L   #$00000000,BA_Status_Block_to_TCC    ; Set the first longword
+                                                      ; in the 68k_Services
+                                                      ; Status to TCC to the
+                                                      ; value $00000000.
+
+
+*************************************************************************
+*  Begin Cyclic Event Processing                                        *
+*                                                                       *
+*  Call the House Keeping Orbit Master routine.                         *
+*  This is the NORMAL exit from the Load_Param_ISR routine.             *
+*                                                                       *
+*************************************************************************
+
+        JMP   Begin_Orbit_Master              ; And wait for the first event.
+
+
+
+*************************************************************************
+*                                                                       *
+*  Routine   DSP_NOT_at_Step_D0                                         *
+*                                                                       *
+*  This is a routine that only executes if one (or more) of the DSP's   *
+*  was NOT at Step D0 when their status was checked.  First this        *
+*  routine sets the first word of the  68k_Services_to_TCC Status       *
+*  Block to the value $00000003 which indicates to TCC that one (or     *
+*  more) of the DSP's was not at Step D0.  Then this routine goes into  *
+*  a wait forever dead loop.  It is assumed that TCC will wake us       *
+*  from this loop when it is ready to try again.                        *
+*                                                                       *
+*  Recall that we do NOT attempt any error recovery at this point if    *
+*  a DSP is not at Step D0.                                             *
+*                                                                       *
+*************************************************************************
+
+              ALIGN   4                ; Align to longword address.
+
+DSP_NOT_at_Step_D0:
+
+        Move.L   #$00000003,BA_Status_Block_to_TCC    ; Set the first longword
+                                                      ; in the 68k_Services
+                                                      ; Status to TCC to the
+                                                      ; value $00000003.
+
+Wait_Here:   NOP                         ; Wait in this loop forever.
+             NOP                         ; The Load_Parameters Interrupt
+             JMP    Wait_Here            ; will come and get us out of here.
+
+
+
+
+*************************************************************************
+*                                                                       *
+*  The following are two subroutines that are used in this module.      *
+*                                                                       *
+*************************************************************************
+
+******************************************************************************
+*                                                                            *
+*           This is the subroutine to loads the L15CT Data Block             *
+*           Frame Parameter Section into one of the MVME214                  *
+*           memory modules.                                                  *
+*                                                                            *
+******************************************************************************
+
+        Align   4                         ; Align to Longwords.
+
+Load_Frame_Param:
+
+**********  The first longword in the Frame Parameter Section is    **********
+**********  the "List Length" longword.  The "List Length" long     **********
+**********  word is made up of the following bytes:                 **********
+**********                                                          **********
+**********  Bits   7:0   Number of Universal Parameter Blocks (1).  **********
+**********  Bits  15:8   Number of longwords in the Universal       **********
+**********                 Parameter Block  (i.e. 16).              **********
+**********  Bits  23:16  Number of Frame Term Blocks (equals the    **********
+**********                 number of L15CT Terms that are defined)  **********
+**********  Bits  31:24  Number of longwords per Frame Parameter    **********
+**********                 Term Block  (i.e. 16).                   **********
+**********                                                          **********
+**********  For now we will use the fixed value  $ 10 01 10 01      **********
+
+
+        Move.L   #$10011001,(A0)+            ; Put the "List Length"  longword
+                                             ;   into the MVME214.
+
+**********  Now copy the 16 longwords of the Universal Parameter    **********
+**********  Data into the L15CT Data Block that we are building     **********
+**********  in the MVME214.                                         **********
+
+        MoveA.L  #BA_Parameter_Block+0,A1    ; Load address register A1 with
+                                             ; the Parameter Block Base Adrs
+                                             ; plus the offset to the
+                                             ; beginning of the Universal
+                                             ; Parameter Data.
+
+        FOR.L   D4 = #1 TO  #16  DO.S      ; Copy the 16 longwords of Universal
+           Move.L   (A1)+,(A0)+            ; Parameter Data into the L15CT Data
+        ENDF                               ; Block in the MVME214.
+
+
+**********  Now copy the 16 longwords of Frame Parameter Data       **********
+**********  into the L15CT Data Block that we are building          **********
+**********  in the MVME214.                                         **********
+
+        MoveA.L  #BA_Parameter_Block+128,A1  ; Load address register A1 with
+                                             ; the Parameter Block Base Adrs
+                                             ; plus the offset to the
+                                             ; beginning of the Frame-Local-
+                                             ; Global Parameter Data.
+
+        FOR.L   D4 = #1 TO  #16  DO.S      ; Copy the 16 longwords of Frame
+           Move.L   (A1)+,(A0)+            ; Parameter Data into the L15CT Data
+        ENDF                               ; Block in the MVME214.
+
+**********                                                          **********
+**********  This completes loading the Frame Parameter Section      **********
+**********  into one of the MVME214 memory modules.                 **********
+**********                                                          **********
+
+        RTS                                ; Return to the calling routine.
+
+
+
+******************************************************************************
+*                                                                            *
+*           This is the subroutine to loads the L15CT Data Block             *
+*           Tool Parameter Section into one of the MVME214                   *
+*           memory modules.                                                  *
+*                                                                            *
+******************************************************************************
+
+        Align   4                         ; Align to Longwords.
+
+Load_Tool_Param:
+
+**********  The first longword in the Tool Parameter Section is     **********
+**********  the "List Length" longword.  The "List Length" long     **********
+**********  word is made up of the following bytes:                 **********
+**********                                                          **********
+**********  Bits   7:0   Number of Local Term Blocks (equals the    **********
+**********                 number of L15CT Terms that are defined)  **********
+**********  Bits  15:8   Number of longwords per Local Parameter    **********
+**********                 Term Block  (i.e. 16).                   **********
+**********  Bits  23:16  Number of Global Term Blocks (equals the   **********
+**********                 number of L15CT Terms that are defined)  **********
+**********  Bits  31:24  Number of longwords per Global Parameter   **********
+**********                 Term Block  (i.e. 16).                   **********
+**********                                                          **********
+**********  For now we will use the fixed value  $ 10 01 10 01      **********
+
+
+        Move.L   #$10011001,(A0)+            ; Put the "List Length"  longword
+                                             ;   into the MVME214.
+
+**********  Now copy the 16 longwords of the Parameter Data for     **********
+**********  this crates Term #0  Local  Tool into the L15CT Data    **********
+**********  Block that we are building in the MVME214.              **********
+
+        MoveA.L  #BA_Parameter_Block+1152,A1   ; Load address register A1 with
+                                               ; the Parameter Block Base Adrs
+                                               ; plus the offset to the
+                                               ; beginning of the Local Tool
+                                               ; Parameter Data for Term #0.
+
+        FOR.L   D4 = #1 TO  #16  DO.S      ; Copy the 16 longwords of  Local
+           Move.L   (A1)+,(A0)+            ; Parameter Term #0 data into the
+        ENDF                               ; L15CT Data Block in the MVME214.
+
+
+**********  Now copy the 16 longwords of the Parameter Data for     **********
+**********  this crates Term #0  Global  Tool into the L15CT Data   **********
+**********  Block that we are building in the MVME214.              **********
+
+        MoveA.L  #BA_Parameter_Block+2176,A1   ; Load address register A1 with
+                                               ; the Parameter Block Base Adrs
+                                               ; plus the offset to the
+                                               ; beginning of the Global Tool
+                                               ; Parameter Data for Term #0.
+
+        FOR.L   D4 = #1 TO  #16  DO.S      ; Copy the 16 longwords of  Global
+           Move.L   (A1)+,(A0)+            ; Parameter Term #0 data into the
+        ENDF                               ; L15CT Data Block in the MVME214.
+
+**********                                                          **********
+**********  This completes loading the Tool Parameter Section       **********
+**********  into one of the MVME214 memory modules.                 **********
+**********                                                          **********
+
+        RTS                                ; Return to the calling routine.
+
+
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*************************************************************************
+
+              ALIGN   4                ; Align to longword address.
+
+
+Hello_LP_1    DC.B    1,$0A
+Hello_LP_2    DC.B    51,'  Load Parameters Interrupt Received and Processed.'
+
+
+
+       XDEF    Begin_Load_Param        ; Make this a Global Symbol.
+
+
+       XREF    MPCSR_SIGLP_Loc         ; Reference these Global Symbols.
+       XREF    Save_SP_Loc
+
+       XREF    BAFrameParamVSB
+       XREF    BAToolParamVSB
+       XREF    BA_Parameter_Block
+
+       XREF    BA_Status_Block_to_TCC
+       XREF    Stat_Blk_to_TCC_A2s_Status
+       XREF    Stat_Blk_to_TCC_A3s_Status
+       XREF    Stat_Blk_to_TCC_A4s_Status
+       XREF    Stat_Blk_to_TCC_A1s_Status
+       XREF    Stat_Blk_to_TCC_B3s_Status
+       XREF    Stat_Blk_to_TCC_B4s_Status
+       XREF    Stat_Blk_to_TCC_B1s_Status
+       XREF    Stat_Blk_to_TCC_C3s_Status
+       XREF    Stat_Blk_to_TCC_C4s_Status
+       XREF    Stat_Blk_to_TCC_C1s_Status
+       XREF    Stat_Blk_to_TCC_C2s_Status
+       XREF    Stat_Blk_to_TCC_B2s_Status
+       XREF    Stat_Blk_to_TCC_Error_D0_Cnt
+       XREF    Stat_Blk_to_TCC_Error_D3_Cnt
+       XREF    Stat_Blk_to_TCC_Error_D15_Cnt
+
+       XREF    ChrStrgOut
+       XREF    Begin_Orbit_Master
+
+       XREF    Readout_Ctrl_Port_4
+
+       XREF    MFP_Ratio_Term_0
+       XREF    MFP_Counter_Term_0
+
+       XREF    Flag_SET
+       XREF    All_DSPs_at_Step_D0
+       XREF    LDSP_at_D0
+       XREF    GDSP_at_D0
+
+       XREF    LDSP_A1_Status_Adrs,LDSP_A2_Status_Adrs
+       XREF    LDSP_A3_Status_Adrs,LDSP_A4_Status_Adrs
+       XREF    LDSP_B1_Status_Adrs
+       XREF    LDSP_B3_Status_Adrs,LDSP_B4_Status_Adrs
+       XREF    LDSP_C1_Status_Adrs,LDSP_C2_Status_Adrs
+       XREF    LDSP_C3_Status_Adrs,LDSP_C4_Status_Adrs
+
+       XREF    GDSP_B2_Status_Adrs
+
+       END
+

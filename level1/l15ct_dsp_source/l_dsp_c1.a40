@@ -1,0 +1,665 @@
+******************************************************************************
+*                                                                            *
+*   File  L_DSP_C1.A40                                  Rev.   22-APR-1994   *
+*                                                                            *
+*  "Meaningful" Register Usage                                               *
+*  ---------------------------                                               *
+*  AR4: Base of Peripheral Bus                              Input            *
+*  DP:  Base of Global SRAM                                 Input            *
+*                                                                            *
+*  "Destroyable" Register Usage                                              *
+*  ----------------------------                                              *
+*  R11                                                                       *
+*                                                                            *
+*  Module Description                                                        *
+*  ==================                                                        *
+*                                                                            *
+*  This module performs the Node Initialization for Local DSP Node >> C1 <<. *
+*  This module "hard-wires" the Local DSP Node ID to C1 (i.e. the node that  *
+*  services eta = +15..+18).  There must be a different Local DSP Node       *
+*  Initialization module for each Local DSP Node.                            *
+*                                                                            *
+*  Recall the assignment of Eta Coordinates for this Local DSP Node          *
+*                                                                            *
+*  Relative        Actual          Is this Node        Relative     Actual   *
+*  Eta             Eta             responsible for     Rack         Rack     *
+*  Coordinate      Coordinate      this Eta Coord?     Number       Number   *
+*  ----------      ----------      ---------------     ------       ------   *
+*     n + 0            +13             NO                 1          M109    *
+*     n + 1            +14             NO                 1          M109    *
+*     n + 2            +15             YES                1          M109    *
+*     n + 3            +16             YES                1          M109    *
+*     n + 4            +17             YES                2          M111    *
+*     n + 5            +18             YES                2          M111    *
+*     n + 6            +19             NO                 2          M111    *
+*     n + 7            +20             NO                 2          M111    *
+*                                                                            *
+*  Also recall the assignment of the Comm Ports                              *
+*                                                                            *
+*                                                                            *
+*   Comm Port       Function                                                 *
+*   ---------       ---------                                                *
+*           0       Local-to-Global Transfer:  to DSP #C2 Comm Port #3       *
+*           1       Trigger Tower EM Et Data from Rack #1 (eta +13:+16)      *
+*           2       NOT USED, connected to DSP #C4 Comm Port #3              *
+*           3       Trigger Tower Tot Et Data from Rack #1 (eta +13:+16)     *
+*           4       Trigger Tower EM Et Data from Rack #2 (eta +17:+20)      *
+*           5       Trigger Tower Tot Et Data from Rack #2 (eta +17:+20      *
+*                                                                            *
+*                                                                            *
+*  Then control is returned to the calling module                            *
+*                                                                            *
+*  This module also contains a subroutine to setup the Mark and Force Pass   *
+*  Data Readout.  This subroutine is called from the L_Scan module whenever  *
+*  a Mark-and-Force-Pass event occurs                                        *
+*                                                                            *
+*  This module also contains a routine which is BRANCHED to from the L_Scan  *
+*  module, which is used to wait for the Local-to-Global Transfer from the   *
+*  "previous" LDSP (if appropriate)                                          *
+******************************************************************************
+
+******************************************************************************
+*         Include the Hydra and C40 Specific Constant Definitions            *
+******************************************************************************
+
+         .include   "hydra.inc"
+
+******************************************************************************
+*         Include the       DSP Program-Specific Constant Definitions        *
+******************************************************************************
+
+         .include   "constant.inc"
+                                                                           
+******************************************************************************
+*         Include the MACRO Definitions                                      *
+******************************************************************************
+
+         .include   "macros.inc"
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text
+
+Initialize_Node:
+
+******************************************************************************
+*   This code is specific to Local DSP Node C1.  All "Node-Specific"         *
+*   definitions are handled here.  No other code module is allowed to        *
+*   reference node-specific labels.  This is handled by using this module    *
+*   to copy all node-specific values and pointers into "generic" memory      *
+*   locations                                                                *
+*                                                                            *
+*   Recall the Node-Specific information:                                    *
+*                                                                            *
+*       (1) The base of the LDSP List of Identified Objects                  *
+*       (2) The actual eta coordinates serviced by this node                 *
+*       (3) The EM Et and Total Et Zero Responses for the Trigger Towers     *
+*           serviced by this Local DSP Node                                  *
+*       (4) The Comm Ports corresponding to Rack #1 EM, Rack #1 Total,       *
+*           Rack #2 EM, and Rack #2 Total Inputs                             *
+*       (5) The Comm Port(s) used for transmitting data to the Global DSP    *
+*           (recall that this is fairly complex due to the "staged" nature   *
+*           of the Local-to-Global transfer.                                 *
+*                                                                            *
+*   Note that (1)-(3) are defined simply using assembler .word directives    *
+*   while (4)-(5) require code to execute on the C40                         *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*   Program the Comm Ports and DMA Channels which correspond to              *
+*                                                                            *
+*           >>>>>  Rack #1 EM Et Trigger Tower Data     <<<<<                *
+*           >>>>>  Rack #1 Total Et Trigger Tower Data  <<<<<                *
+*           >>>>>  Rack #2 EM Et Trigger Tower Data     <<<<<                *
+*           >>>>>  Rack #2 Total Et Trigger Tower Data  <<<<<                *
+*           >>>>>  Local-to-Global Transfer to "next"   <<<<<                *
+*                                                                            *
+*   Recall that this DSP does not have a "previous" DSP in the Local-to-     *
+*   Global Transfer chain                                                    *
+*                                                                            *
+*   Programming each DMA Channel is done with the SETUP_DMA macro            *
+*   Programming each Local-to-Global-to-Next Comm Port is done with the      *
+*       SETUP_LG_NEXT_PORT macro                                             *
+*   Programming each Local-to-Global-from-Previous Comm Port is done with    *
+*       the SETUP_LG_PREV_PORT macro                                         *
+******************************************************************************
+                                                                              
+******************************************************************************
+*   Program the Comm Port and DMA Channel corresponding to                   *
+*                                                                            *
+*           >>>>>  Rack #1 EM Et Trigger Tower Data     <<<<<                *
+*                                                                            *
+*   Recall that this is DSP C1                                               *
+*                                                                            *
+*   The EM Et TT Data for Rack #1 arrives on        Comm Port 1              *
+*                                                                            *
+*   The transfer should be Read Synchronized with ICRDY1                     *
+*                                                                            *
+*   The Rack_1_EM_DMA_Finished_ISR should be called by DMAINT1               *
+*                                                                            *
+******************************************************************************
+
+        SETUP_DMA   1, @Rack_1_EM_DMA_Link_Pointer_Loc, @ICRDY1_Read_Synch_Loc, @Rack_1_EM_DMA_Finished_ISR_Loc
+                                                
+        SETUP_CRC_PORT  1
+
+******************************************************************************
+*   Program the Comm Port and DMA Channel which correspond to                *
+*                                                                            *
+*           >>>>>  Rack #1 Total Et Trigger Tower Data  <<<<<                *
+*                                                                            *
+*   Recall that this is DSP C1                                               *
+*                                                                            *
+*   The Total Et TT Data for Rack #1 arrives on     Comm Port 3              *
+*                                                                            *
+*   The transfer should be Read Synchronized with ICRDY3                     *
+*                                                                            *
+*   The Rack_1_Tot_DMA_Finished_ISR should be called by DMAINT3              *
+*                                                                            *
+******************************************************************************
+
+        SETUP_DMA   3, @Rack_1_Tot_DMA_Link_Pointer_Loc, @ICRDY3_Read_Synch_Loc, @Rack_1_Tot_DMA_Finished_ISR_Loc   
+                      
+        SETUP_CRC_PORT  3
+
+******************************************************************************
+*   Program the Comm Port and DMA Channel corresponding to                   *
+*                                                                            *
+*           >>>>>  Rack #2 EM Et Trigger Tower Data     <<<<<                *
+*                                                                            *
+*   Recall that this is DSP C1                                               *
+*                                                                            *
+*   The EM Et TT Data for Rack #2 arrives on        Comm Port 4              *
+*                                                                            *
+*   The transfer should be Read Synchronized with ICRDY4                     *
+*                                                                            *
+*   The Rack_2_EM_DMA_Finished_ISR should be called by DMAINT4               *
+*                                                                            *
+******************************************************************************
+
+        SETUP_DMA   4, @Rack_2_EM_DMA_Link_Pointer_Loc, @ICRDY4_Read_Synch_Loc, @Rack_2_EM_DMA_Finished_ISR_Loc
+
+        SETUP_CRC_PORT  4
+
+******************************************************************************
+*   Program the Comm Port and DMA Channel corresponding to                   *
+*                                                                            *
+*           >>>>>  Rack #2 Total Et Trigger Tower Data  <<<<<                *
+*                                                                            *
+*   Recall that this is DSP C1                                               *
+*                                                                            *
+*   The Total Et TT Data for Rack #2 arrives on     Comm Port 5              *
+*                                                                            *
+*   The transfer should be Read Synchronized with ICRDY5                     *
+*                                                                            *
+*   The Rack_2_Tot_DMA_Finished_ISR should be called by DMAINT5              *
+*                                                                            *
+******************************************************************************
+
+        SETUP_DMA   5, @Rack_2_Tot_DMA_Link_Pointer_Loc, @ICRDY5_Read_Synch_Loc, @Rack_2_Tot_DMA_Finished_ISR_Loc  
+
+        SETUP_CRC_PORT  5
+
+******************************************************************************
+*   Program the Comm Port and DMA Channel corresponding to                   *
+*                                                                            *
+*           >>>>>  LDSP C1 Local-to-Global Transfer  to "next" DSP  <<<<<    *
+*                                                                            *
+*   Recall that this is DSP C1                                               *
+*                                                                            *
+*   The connection to the "next" DSP is on          Comm Port 0              *
+*                                                                            *
+*   The transfer should be Write Synchronized with OCRDY0                    *
+*                                                                            *
+*   The LG_Xfr_to_Next_Complete_ISR  hould be called by DMAINT0              *
+*                                                                            *
+******************************************************************************
+
+        SETUP_DMA   0, @LG_Next_DMA_Link_Pointer_Loc, @OCRDY0_Write_Synch_Loc, @LG_Xfr_to_Next_Complete_ISR_Loc
+
+        SETUP_LG_NEXT_PORT  0
+
+******************************************************************************
+*   Now insert a lot of NOPs to allow the last DMA Dummy List to transfer    *
+*   and allow the DMA Channel to autoinitialize with the Real List           *
+******************************************************************************
+
+        NOP                                         ; These are not
+        NOP                                         ; absolutely necessary
+        NOP                                         ; but I want the DMA
+        NOP                                         ; Channels to be
+        NOP                                         ; fully initialized
+        NOP                                         ; BEFORE control is 
+        NOP                                         ; transferred to the
+        NOP                                         ; next module. 
+        NOP                                       
+        NOP                                       
+        NOP                                       
+        NOP                
+        NOP
+
+        RETS                                            ; Return to the 
+                                                        ; calling module
+               
+******************************************************************************
+*   This section of code is used to set up the Mark and Force Pass Data      *
+*   Readout.  It is called by the L_Scan module whenever a Mark and Force    *
+*   Pass event flows through the Cal Trig (recall that this information is   *
+*   derived from the "DSP Wakeup Word" which comes from the 68K).            *
+*                                                                            *
+*   Recall that this is LDSP C1                                              *
+*                                                                            *
+*   The connection to the "next" DSP is on          Comm Port 0              *
+*                                                                            *
+*   I use the SETUP_MFP_TO_NEXT_DMA  macro to set up the DMA Channel         *
+*   for the "next" data                                                      *
+******************************************************************************
+
+Setup_Mark_and_Force_Pass_DMA:                                                
+
+        SETUP_MFP_TO_NEXT_DMA   0
+
+
+        RETS                                            ; return to the
+                                                        ; calling module
+    
+******************************************************************************
+*   This is the module which is called to wait for the arrival of the        *
+*   data from the "previous" LDSP(s) in the Local-to-Global Transfer         *
+*   Chain.  The arrival of the data is indicated by an interrupt from        *
+*   the                                                                      *
+*                                                                            *
+*   Recall that not all LDSPs have a "previous" LDSP in the Local-to-Global  *
+*   Tranfer Chain.  If there is no "previous" LDSP, then there is            *
+*                                                                            *
+*   If this LDSP does have a "previous" LDSP, then this module is            *
+*           a loop which examines the status of the transfer from the        *
+*           "previous" DSP, followed by a BRANCH back to the                 *
+*           Start_LG_Xfr_to_Next_DSP entry point of L_Scan                   *
+*                                                                            *
+*   If this LDSP does NOT have a "previous" LDSP, then this module is        *
+*           a BRANCH back to the Start_LG_Xfr_to_Next_DSP entry point of     *
+*           L_Scan                                                           *
+*                                                                            *
+*   This is LDSP C1 which does NOT have "previous" LDSP data                 *
+******************************************************************************
+
+Wait_for_Previous_DSP_Data:                             ; Nothing to wait for
+                                                        ; in this LDSP.
+
+        BR      Start_LG_Xfr_to_Next_DSP                ; Return to the
+                                                        ; L_Scan module to
+                                                        ; start the Transfer
+                                                        ; to the next DSP
+
+******************************************************************************
+*  This is the Bulkhead.  This code should never be executed                 *
+******************************************************************************
+
+End_Of_L_DSP_C1:                        ; These instructions should never be
+                                        ; executed in the "normal" operation
+         BR     End_Of_L_DSP_C1         ; of the program.  If the program
+                                        ; counter becomes corrupted or
+         BR     End_Of_L_DSP_C1         ; if we have a bug in the program
+                                        ; we MAY try to execute these
+         BR     End_Of_L_DSP_C1         ; instructions.  If we get to these
+                                        ; instructions the program will appear
+         BR     End_Of_L_DSP_C1         ; to halt.  We could also use a
+                                        ; TRAP instruction here, and jump to
+                                        ; a service routine.
+
+*****************************************************************************
+*       Constants defined using the assembler .set directive                *
+*       These constants differ across Node Initialization Modules           *
+*****************************************************************************
+                                  
+Local_Mem_Ctrl_Reg_Value        .set    1DE70750h       ; Value to use for
+                                                        ; Local Memory
+                                                        ; Interface Control
+                                                        ; Register
+
+Rack_1_EM_ComPort_Input .set Base_of_Peripheral_Bus + Disp_to_ComPort_1_Input
+                                                        ; Port Input Register
+                                                        ; for Rack 1 EM Et
+                                                        ; Trigger Tower Data
+
+Rack_1_Tot_ComPort_Input .set Base_of_Peripheral_Bus + Disp_to_ComPort_3_Input
+                                                        ; Comm Port Input
+                                                        ; Register for Rack 1
+                                                        ; Total Et Trigger Tower
+                                                        ; Data.
+
+Rack_2_EM_ComPort_Input .set Base_of_Peripheral_Bus + Disp_to_ComPort_4_Input
+                                                        ; Port Input Register
+                                                        ; for Rack 1 EM Et
+                                                        ; Trigger Tower Data
+
+Rack_2_Tot_ComPort_Input .set Base_of_Peripheral_Bus + Disp_to_ComPort_5_Input
+                                                        ; Comm Port Input
+                                                        ; Register for Rack 1
+                                                        ; Total Et Trigger Tower
+                                                        ; Data.
+
+LG_to_Next_ComPort_Output .set Base_of_Peripheral_Bus + Disp_to_ComPort_0_Output
+                                                        ; Comm Port Output
+                                                        ; Register for Local
+                                                        ; to Global to Next
+                                                        ; DSP 
+                                                        ; Transfer
+
+LG_to_Next_DMA_Control  .set  Base_of_Peripheral_Bus + Disp_to_DMA_0_Control
+                                                        ; DMA Control 
+                                                        ; Register for Local
+                                                        ; to Global to Next
+                                                        ; DSP
+                                                        ; Transfer
+
+
+*****************************************************************************
+*       Define constants and working variables in the Data Section          *
+*       These constants and working variables are the same for all          *
+*       Node Initialization Modules                                         *
+*****************************************************************************
+
+            .data
+
+Local_Mem_Ctrl_Reg_Value_Loc:                           ; Memory location
+                                                        ; to store the
+            .word        Local_Mem_Ctrl_Reg_Value       ; value of the Local
+                                                        ; MICR         
+
+LG_Next_DMA_Control_Reg_Handle:                         ; Memory location
+                                                        ; which holds the 
+            .word       LG_to_Next_DMA_Control          ; address of the
+                                                        ; Local-to-Global
+                                                        ; DMA Channel
+                                                        ; Control Register
+
+******************************************************************************
+*       Include the "common for all Nodes" parts of the DMA Lists            *
+*   These are defined in an include file                                     *
+******************************************************************************
+
+        .include "l_dmacmn.inc"
+
+****************************************************************************
+*      Define constants and working variables in the Data Section          *
+*      These constants and working variables differ across                 *
+*      Node Initialization Modules                                         *
+****************************************************************************
+
+    .data
+
+LG_Next_DMA_List_Loc:                                   ; The following 7
+                                                        ; memory locations
+                                                        ; define the DMA List
+                                                        ; for the Local to    
+                                                        ; Global to "next"
+                                                        ; DSP DMA Transfer  
+
+LG_Next_DMA_Control_Loc:                                ; Memory location
+                                                        ; which holds the
+        .word    DMA_Start_Word_for_LG_Next             ; Control Register
+
+LG_Next_DMA_Source_Loc:                                 ; Memory location
+                                                        ; which holds the
+        .word    LDSP_C1_ObjectList_Loc                 ; Source Address
+                                                        ; Register
+
+LG_Next_DMA_Source_Index_Loc:                           ; Memory location
+                                                        ; which holds the
+        .word    1                                      ; Source Address Index
+                                                        ; Register
+
+LG_Next_DMA_Counter_Loc:                                ; Memory location
+                                                        ; which holds the
+        .word    LDSP_ObjectList_Length                 ; Transfer Counter
+                                                        ; Register
+
+LG_Next_DMA_Destination_Loc:                            ; Memory location
+                                                        ; which holds the
+        .word    LG_to_Next_ComPort_Output              ; Destination Address
+                                                        ; Register
+
+LG_Next_DMA_Dest_Index_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word    0                                      ; Destination Address
+                                                        ; Index Register
+                                                      
+LG_Next_DMA_Link_Pointer_Loc:                           ; Memory location
+                                                        ; which holds the
+        .word    LG_Next_DMA_List_Loc                   ; Link Pointer
+                                                        ; Register         
+
+
+MFP_DC_DMA_List_Loc:                                    ; The following 7
+                                                        ; memory locations
+                                                        ; define the
+                                                        ; Derived Constant
+                                                        ; data subsection
+                                                        ; of the DMA List for
+                                                        ; the Mark and Force
+                                                        ; Pass section of
+                                                        ; the Data Block
+
+MFP_DC_DMA_Control_Loc:                                 ; Memory location
+                                                        ; which holds the
+        .word    DMA_Cont_Word_for_MFP_Next_End         ; Control Register
+
+MFP_DC_DMA_Source_Loc:                                  ; Memory location
+                                                        ; which holds the
+        .word    MFP_Derived_Const_Data_Loc             ; Source Address
+                                                        ; Register
+
+MFP_DC_DMA_Source_Index_Loc:                            ; Memory location
+                                                        ; which holds the
+        .word    1                                      ; Source Address Index
+                                                        ; Register
+
+MFP_DC_DMA_Counter_Loc:                                 ; Memory location
+                                                        ; which holds the
+        .word    MFP_Derived_Const_Length + 1           ; Transfer Counter
+                                                        ; Register
+
+MFP_DC_DMA_Destination_Loc:                             ; Memory location
+                                                        ; which holds the
+        .word    LG_to_Next_ComPort_Output              ; Destination Address
+                                                        ; Register
+
+MFP_DC_DMA_Dest_Index_Loc:                              ; Memory location
+                                                        ; which holds the
+        .word    0                                      ; Destination Address
+                                                        ; Index Register
+
+MFP_DC_DMA_Link_Pointer_Loc:                            ; Memory location
+                                                        ; which holds the
+        .word    LG_Next_DMA_List_Loc                   ; Link Pointer
+                                                        ; Register
+
+
+This_LDSP_Node_ID_Loc:  .word     Local_DSP_C1          ; Memory location
+                                                        ; to store the Node
+                                                        ; ID of this Local
+                                                        ; DSP
+
+This_LDSP_Ref_Set_Block_Handle:                         ; Memory location  
+                                                        ; to store the 
+             .word     LDSP_C1_Ref_Set_Block_Loc        ; base address of
+                                                        ; this LDSP's 
+                                                        ; Ref Set Data in
+                                                        ; Dual Port Memory
+                                                        ; (for loading
+                                                        ; from TCC)
+
+This_LDSP_to_TCC_Status_Handle:                         ; Memory location
+                                                        ; to store the
+             .word  LDSP_C1_to_TCC_Stat_Base_Address    ; Base Address of
+                                                        ; the "LDSP-to-TCC"
+                                                        ; Status Block in
+                                                        ; Dual Port Memory
+                                                        ; for this LDSP
+
+This_LDSP_to_68K_Status_Handle:                         ; Memory location
+                                                        ; to store the
+             .word  LDSP_C1_to_68K_Stat_Base_Address    ; Base Address of
+                                                        ; the "LDSP-to-68K"
+                                                        ; Status Block in
+                                                        ; Dual Port Memory
+                                                        ; for this LDSP
+
+Eta_Nplus2_Coord_Loc:   .word     Eta_Pos_15            ; Memory location
+                                                        ; to store the actual
+                                                        ; eta coordinate
+                                                        ; corresponding to
+                                                        ; this Node's eta
+                                                        ; "n + 2"
+
+Eta_Nplus3_Coord_Loc:   .word     Eta_Pos_16            ; Memory location
+                                                        ; to store the actual
+                                                        ; eta coordinate
+                                                        ; corresponding to
+                                                        ; this Node's eta
+                                                        ; "n + 3"
+
+Eta_Nplus4_Coord_Loc:   .word     Eta_Pos_17            ; Memory location
+                                                        ; to store the actual
+                                                        ; eta coordinate
+                                                        ; corresponding to
+                                                        ; this Node's eta
+                                                        ; "n + 4"
+
+Eta_Nplus5_Coord_Loc:   .word     Eta_Pos_18            ; Memory location
+                                                        ; to store the actual
+                                                        ; eta coordinate
+                                                        ; corresponding to
+                                                        ; this Node's eta
+                                                        ; "n + 5"
+
+Eta_Nplus0_EM_Et_Zeresp_Loc:                            ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_13_EM_Et_Zero_Response             ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 0"
+
+Eta_Nplus1_EM_Et_Zeresp_Loc:                            ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_14_EM_Et_Zero_Response             ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 1"
+
+Eta_Nplus2_EM_Et_Zeresp_Loc:                            ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_15_EM_Et_Zero_Response             ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 2"
+
+Eta_Nplus3_EM_Et_Zeresp_Loc:                            ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_16_EM_Et_Zero_Response             ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 3"
+
+Eta_Nplus4_EM_Et_Zeresp_Loc:                            ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_17_EM_Et_Zero_Response             ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 4"
+
+Eta_Nplus5_EM_Et_Zeresp_Loc:                            ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_18_EM_Et_Zero_Response             ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 5"
+
+Eta_Nplus6_EM_Et_Zeresp_Loc:                            ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_19_EM_Et_Zero_Response             ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 6"
+
+Eta_Nplus7_EM_Et_Zeresp_Loc:                            ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_20_EM_Et_Zero_Response             ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 7"
+
+Eta_Nplus0_Tot_Et_Zeresp_Loc:                           ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_13_Tot_Et_Zero_Response            ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 0"
+
+Eta_Nplus1_Tot_Et_Zeresp_Loc:                           ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_14_Tot_Et_Zero_Response            ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 1"
+
+Eta_Nplus2_Tot_Et_Zeresp_Loc:                           ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_15_Tot_Et_Zero_Response            ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 2"
+
+Eta_Nplus3_Tot_Et_Zeresp_Loc:                           ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_16_Tot_Et_Zero_Response            ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 3"
+
+Eta_Nplus4_Tot_Et_Zeresp_Loc:                           ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_17_Tot_Et_Zero_Response            ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 4"
+
+Eta_Nplus5_Tot_Et_Zeresp_Loc:                           ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_18_Tot_Et_Zero_Response            ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 5"
+
+Eta_Nplus6_Tot_Et_Zeresp_Loc:                           ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_19_Tot_Et_Zero_Response            ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 6"
+
+Eta_Nplus7_Tot_Et_Zeresp_Loc:                           ; Memory location to
+                                                        ; store the EM Et
+         .word   Eta_20_Tot_Et_Zero_Response            ; Zero Response of 
+                                                        ; this Node's eta
+                                                        ; "n + 7"
+
+
+This_LDSP_ObjectList_Handle:                            ; Memory location to
+                                                        ; store the base Adrs
+         .word   LDSP_C1_ObjectList_Loc                 ; of the List of ID'd
+                                                        ; Objects for this
+                                                        ; Local DSP Node
+                                             
+Mask_of_TT_Data_Blocks_Loc:                             ; Memory location
+                                                        ; to store the Mask
+         .word   Racks_1_2_EM_Tot_TT_Data               ; of Trigger Tower
+                                                        ; Data Blocks.  
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+
+******************************************************************************
+*   Include the Local Definitions and References                             *
+******************************************************************************
+
+    .include    "l_refdef.inc"
+
+******************************************************************************
+*       End of this module                                                   *
+******************************************************************************
+
+         .end
+                                                    
+                       

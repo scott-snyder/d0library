@@ -1,0 +1,1049 @@
+LEVEL 1 SIMULATOR USER'S GUIDE                                3-DEC-1992 
+==============================
+
+I. INTRODUCTION
+II. PROGRAM_BUILDER, D0USER, CALOR_OFF
+III. BUILDING L1SIM
+    III.1 REQUIREMENTS
+    III.2 GENERATING D0USER CODE
+    III.3 GENERATING THE L1SIM EXECUTABLE
+IV. REQUIREMENTS PRIOR TO RUNNING L1SIM
+V. RUNNING L1SIM
+    V.1 DEFINING SYMBOLS AND LOGICALS
+    V.2 OUTPUT EVENT FILE
+    V.3 EVENT PROCESSING OPTIONS
+    V.4 PROCESSING EVENTS
+VI. SUMMARY FILE OUTPUT
+VII. CHANGING PARAMETERS IN THE RCP FILE
+VIII. SPECIFIC TRIGGER PRESCALING 
+IX. DISABLING ENERGY LOOKUP Z-CORRECTION 
+X. LEVEL 1.5
+XI. MINIMUM-BIAS TRIGGERS
+XII. GENERATING DUMPS OF TRGR BANKS
+XIII. LOOKUP SYSTEM MANAGER
+    XIII.1 NOISE
+    XIII.2 DESIGN CHOICES
+XIV. BLS GAIN CORRECTION
+XV. FORCING THE STATE OF UNSIMULATED ANDOR TERMS
+XVI. TRIGGER TOWER ENERGY SATURATION
+XVII. ADDING ON TO L1SIM
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+I. INTRODUCTION
+===============
+
+    L1SIM is a program package that simulates the Level 1 Trigger System, and
+performs the same computations offline using computer generated or real
+ZEBRA event files as input. 
+
+    L1SIM simulates the following Trigger Subsystems:
+
+o   the Level 1 Calorimeter Trigger 
+o   the Level 1 Muon Trigger 
+o   the Level 1 Decision
+o   the Level 1.5 Muon Trigger 
+o   the Level 1.5 Decision 
+
+    The Triggering requirements are programmed into the simulator using the
+same set of directives COOR would give the Trigger Control Computer (TCC)
+or Muon Trigger. COOR_sim allows the L1SIM user to create this set of
+directives from his own desired configuration.
+
+    As output L1SIM generates the simulated trigger decision and TRGR banks
+which may be added to the output ZEBRA event file. 
+
+
+II. PROGRAM_BUILDER, D0USER, CALOR_OFF
+======================================
+
+    L1SIM is not distributed as a standalone program, but as a library and
+Program Builder Description file. It is necessary to use the
+PROGRAM_BUILDER program to generate more source code and link files, and
+then to actually link L1SIM prior to running it. 
+
+    Either the D0USER or CALOR_OFF framework of the Program Builder can be
+used by L1SIM. D0USER is an interactive framework allowing the user to
+modify the default option at run time providing much of the interactive
+user interface through COMPACK menus. The CALOR_OFF framework is not
+interactive and thus more appropriate for batch jobs.  
+
+    The rest of this document describes L1SIM in the D0USER framework. To
+build an executable using the CALOR_OFF framework, follow the 
+procedure described below, substituting CALOR_OFF for D0USER in the
+instructions contained in this manual. Refer to the CALOR_OFF documentation
+for details on running the program. 
+
+
+III. BUILDING L1SIM
+===================
+
+    III.1 REQUIREMENTS
+    ------------------
+
+    Your node must have subscribed to the following products to allow
+creation and support use of the L1SIM executable:
+
+o   PBD: The Program Builder Description Files 
+        including D0$PBD:L1SIM.PBD, D0USER_FRAME.PBD, CALOR_OFF_FRAME.PBD
+   
+o   PROGRAM_BUILDER: The D0 Program Builder Product 
+        including D0$PROGRAM_BUILDER:PROGRAM_BUILDER.EXE
+   
+o   LEVEL1: The LEVEL1 library                 
+        including D0$LEVEL1:LEVEL1.OLB, L1SIM.RCP, and other data files
+
+o   CONFIGS: The Trigger Configuration file library                 
+        including D0$CONFIGS$COOR_SIM:COOR_SIM.EXE, and other data files 
+
+o   CALOR_OFF: The calorimeter offline library 
+        including D0$CALOR_OFF:CAHITS.RCP and CALOR_OFF.OLB
+
+    If some of these products are missing on your node, contact your 
+local D0 Librarian or use a machine on one of the D0 clusters to build your
+executable.
+
+
+    III.2 GENERATING D0USER CODE
+    ----------------------------
+
+    Before creating the executable, Program Builder must first create the
+necessary additional source code and link files. The following DCL command
+will perform this task:
+
+$ PBD/FRAME=D0USER/PACKAGE=L1SIM/ZEBCOM=1000000/ZEBSTP=1000000/PAWC=250000
+
+
+    III.3 GENERATING THE L1SIM EXECUTABLE
+    -------------------------------------
+
+    The executable may then be linked with the command:
+
+$ @L1SIM_D0USER.LNK
+
+    This will produce an executable named L1SIM_D0USER.EXE.
+
+    For more details, or directives to produce a debuggable version of the
+program refer to D0$PROGRAM_BUILDER:PROGRAM_BUILDER.MEM
+    
+
+IV. REQUIREMENTS PRIOR TO RUNNING L1SIM
+=======================================
+
+    Several files must exist before L1SIM can be run:
+
+o   L1SIM.RCP, the parameter file which defines the control parameters and
+    the names of the other configuration files. This file is accessed by 
+    the logical name L1SIM_RCP. By default L1SIM_D0USER.COM points to the
+    distributed D0$LEVEL1:L1SIM.RCP. The parameters in this file point to
+    other distributed configuration files. 
+
+o   A COOR Message file, which is a list of commands COOR would send to
+    the TCC node for the desired configuration. This file is generated from
+    a set of Resource files and Trigger Definition files by the program
+    COOR_sim. COOR_sim is distributed in D0$CONFIGS$COOR_SIM: as an
+    executable image for VMS V5.x. It is not recommended to modify in any
+    way the files produced by COOR_sim.   
+
+    The syntax used in the TRIGGER.INFO message files is defined in the
+    file D0$LEVEL1:COOR_TCC_MESSAGES.DOC.
+
+    The default D0$LEVEL1:L1SIM.RCP uses the file
+    D0$LEVEL1$DATA:EXAMPLE_TRIGGER.INFO which is an example of COOR message
+    file corresponding to a very simple configuration.
+
+    One can also build a COOR message file from a custom set of Trigger
+    Definition files using COOR_SIM. The COOR Message file generated
+    typically has the name TRIGGER.INFO. Note that when the actual Level 1
+    Trigger is operating, the file corresponding to the current Level 1
+    Trigger configuration can be found as
+    D0::ONLINE:[COOR_EXEC]TRIGGER.INFO. Standard configurations are also
+    included in D0$CONFIGS$COOR_SIM: For instructions on using COOR_SIM and
+    how to create a Trigger Definition file, see the document
+    D0$CONFIGS$COOR_SIM:COOR_SIM.DOC.
+
+o   The Level 1 Trigger Resource file, an RCP file which defines the
+    sources of the hardware Andor Terms. This file will also be created by
+    COOR_sim. The resource file created by COOR_sim typically has the name
+    TRIGGER.RES. Note that when the actual Level 1 Trigger is operating,
+    the resource file corresponding to the current hardware can be found as
+    D0::ONLINE:[COOR_EXEC]TRIGGER.RES.
+    ****** note *******
+    The default D0$LEVEL1$DATA:TRIGGER_RESOURCES.RCP is provided and 
+    matches the official trigger configuration in the COOR input file
+    D0$CONFIGS$SOURCE:TRIG_RESOURCES.CTL.  
+
+o   The Lookup System Manager object file. The default points to the file
+    D0$LEVEL1$DATA:CALORIMETER_TRIGGER.LSO, which is the official
+    description of the Level 1 Lookup hardware. Other special files for
+    limited coverage are also distributed in D0$LEVEL1$DATA. For more
+    details, see the section LOOKUP SYSTEM MANAGER below. 
+
+o   A BLS Gain Correction file, necessary only if the BLS Gain Correction
+    factor is to be used in the current simulator run. The default does not
+    use BLS gain correction. For more information, see the section BLS
+    GAIN CORRECTION below. 
+
+o   A ZEBRA event file input to D0USER and L1SIM. L1SIM uses either the
+    CAEP bank or the CAD banks of each ZEBRA event to reconstruct the
+    Calorimeter Trigger Tower Energy deposit. The additional option
+    is available to use an existing TRGR bank as input. At least one of
+    these banks must exist in an input event for L1SIM to be able to
+    generate a TRGR bank.  
+
+    CAEP banks and CAD banks are not equivalent even though they both
+    contain information on the energy deposited in the Calorimeter. A CAEP
+    bank is generated from CAD banks, but the energy deposits may have been
+    subjected to a low energy cut, typically 0.1 GeV. As this cut is not
+    performed on the data the Level 1 hardware receives, it is more
+    accurate to run L1SIM on events containing CAD1 and CAD2 banks rather
+    than on events containing CAEP banks.
+
+    Gain corrections are applied to CAD bank data using routines from
+    CALOR_OFF.  If the simulator is being run on real events, these gains
+    will be retrieved from the DBL3 database.  To inhibit this correction, 
+    set DO_GNSCOR to FALSE in your private copy of D0$CALOR_OFF:CAHITS.RCP
+    or in a private RCP file with a CAHITS_RCPE bank (and logical name).
+
+    ****** note *******
+    L1SIM does not create a CAEP bank from CAD banks. L1SIM reads the
+    information from the CAD banks using the routine CDTUPK and corrects
+    for sampling fraction using the routine CGEV_GAIN initialized by
+    CALOR_INI and CHTINI.  
+    ****** note *******
+    When the option is selected to read from TRGR banks, the Level 0 Fast
+    Vertex is also read from the TRGR bank.
+
+V. RUNNING L1SIM
+================
+
+    V.1 DEFINING SYMBOLS AND LOGICALS
+    ---------------------------------
+
+    Before running L1SIM, the command file L1SIM_D0USER.COM must be run.
+
+$ @L1SIM_D0USER
+
+This will define necessary symbols and logicals. L1SIM can then be run
+with the command $ D0USER.
+
+    V.2 EVENT PROCESSING OPTIONS
+    ----------------------------
+
+    Once running L1SIM, several options can be changed from their defaults
+by selection the menu item "User Dialog" from the D0USER main menu:
+
+o   Input Bank. L1SIM can read Calorimeter Trigger Tower Input Energy from
+    either an existing TRGR bank, raw data CAD1/CAD2 banks, or CAEP banks.
+    The option 'TRGR' uses an existing TRGR bank. Noise may not be added,
+                      Level 0 Vertex is extracted from TRGR bank (NOT from 
+                      ISAJET), or Level 0 Vertex may also be ignored.
+    The option 'ANY'  implies a search order of TRGR, CAD, CAEP.
+    The option 'NONE' will skip reading any bank, no input is applied to
+                      the Calorimeter Trigger Simulator. The Cal Trigger
+                      Tower Energies are not simulated No specific trigger
+                      requiring calorimeter energy can fire. 
+
+
+o   Trigger Tower Noise, if enabled, adds Gaussian noise to the energy
+    deposited in each Trigger Tower. See the section NOISE below for
+    more information. The default is to add noise.
+    ****** note *******
+    The Calorimeter Trigger and the Calorimeter Acquisition are not exposed
+    to the same amount of noise. The feature described here is not
+    equivalent to using Monte-Carlo events with noise introduced during 
+    event generation. 
+
+o   Level 0 Vertex. The Calorimeter Trigger normally uses the Level 0 Fast
+    Vertex Information to select a Level 1 Lookup Page. This Lookup is used
+    to correct the transverse energies. (cf. section on Lookup System
+    Manager). L1SIM offers the option to ignore the Level 0 Information.
+    This option forces the Level 1 to act as if the vertex is at z=0, 
+    and always select the Center Level 1 Lookup Page.
+    ****** note *******
+    The Level 0 Fast Vertex Information is simulated by L1SIM after finding
+    the vertex position from Isajet. L1SIM uses a simplistic geometric
+    segmentation of the z-axis into Level 0 Bins.
+
+o   Fast Trigger Simulation is a mode where the simulator runs faster but
+    does not produce TRGR banks. The same information in the summary file
+    is still produced. The amount of information in the dump files is
+    reduced. The default is full simulation.
+
+o   Prescaling Ratios may be applied to the Specific Triggers. This switch
+    globally enables or disables the use of prescaling. See the section
+    SPECIFIC TRIGGER PRESCALING below for more information. The default is
+    no prescaler.
+
+o   BLS Gain Correction can be applied to the energy deposits from the
+    input events. See the section BLS GAIN CORRECTION below for more
+    information. The default is no BLS gain correction.
+
+o   Calorimeter Trigger and Framework programming information can be added
+    to the standard summary file. The default is to have the programming
+    information in the summary.
+
+o   A Level 1.5 confirmation can be be produced for all events with one or
+    more Level 1.5 Specific Triggers meeting their Level 1 Requirements.
+    For more information see the section LEVEL 1.5 below. Note that this
+    mode does NOT correspond to hardware operation.
+
+    V.3 OUTPUT EVENT FILE
+    ---------------------
+
+    An output event file containing TRGR banks can be written by selecting
+the option "Output Data Files" from the D0USER main menu. The default is to
+write no event file.
+
+    V.4 PROCESSING EVENTS
+    ---------------------
+
+    Once the user has changed any desired options, the menu item "Auto
+Process" can be selected to begin processing events. The following are
+example answers to the questions prompted for.
+
+  Will you be reading files from tape? [N]> N
+
+  Name of input file > FNALD0::MC_DATA$HROOT:[SAMPLE]K_18001_01.GEN
+
+  Is input file in exchange mode? [N]:> N  (Typically, event files will not
+                                            be in exchange mode)
+
+  Store histograms ? 0=NO, 1=after each run, 2=end of job only > 0
+
+
+VI. SUMMARY FILE OUTPUT
+=======================
+
+    At the end of each run L1SIM writes a summary file containing
+histograms, Specific Trigger firing statistics, a listing of run control
+parameters as read from L1SIM.RCP and L1SIM_RCPE and the User Dialog menu
+option, and a listing of the programming information used in configuring
+the simulator as read from the COOR message file and the resource file.
+This file is named D0USER_(run #).OUT. The programming information listing
+can be enabled and disabled by changing the parameter
+PROGRAMMING_LISTING_DEFAULT using the file L1SIM.RCP or L1SIM_RCPE.
+
+    The following HBOOK histograms are written to the summary file:
+
+o //PAWC/L1SIM 1000 = Specific Trigger Hits.
+o //PAWC/L1SIM 1001 = Weighted Specific Trigger Hits.
+o //PAWC/L1SIM 1005 = Level 1.5 Specific Triggers submitted to Level 1.5.
+o //PAWC/L1SIM 1011 = Count of Trigger Towers with EM energy deposit
+o //PAWC/L1SIM 1012 = Count of Trigger Towers with HD energy deposit
+o //PAWC/L1SIM 1013 = Count of Trigger Towers with TOT energy deposit
+o //PAWC/L1SIM 1021 = Sum of EM Trigger Tower energy in GeV.
+o //PAWC/L1SIM 1022 = Sum of HD Trigger Tower energy in GeV.
+o //PAWC/L1SIM 1023 = Sum of TOT Trigger Tower energy in GeV.
+o //PAWC/L1SIM 2001 = 2D Histogram of the sum of EM Trigger Tower energy 
+                         vs. the sum of HD Trigger Tower energy. 
+                         This energy is also given in GeV.
+
+
+VII. CHANGING PARAMETERS IN THE RCP FILE
+========================================
+
+    In order to run L1SIM with your own trigger configuration, it is
+necessary to follow one of two approaches to change parameters in the
+default D0$LEVEL1:L1SIM.RCP. One approach is to use a private copy of 
+D0$LEVEL1:L1SIM.RCP in a local directory. This requires redefining the
+logical L1SIM_RCP, originally defined by L1SIM_D0USER.COM, to point to the
+new file.
+
+    A better approach is to use an RCP edit file in addition to the default 
+D0$LEVEL1:L1SIM.RCP.  Create a file in your local directory containing the
+following lines:
+
+\START L1SIM_RCPE
+
+\STOP
+
+The name of this file is not important, but the DCL logical name L1SIM_RCPE
+must be defined to the name of this file. L1SIM first loads the parameters
+from L1SIM.RCP, and then redefines any parameters found in L1SIM_RCPE.
+
+    To change a parameter found in the default L1SIM.RCP, copy using EVE
+the definition  of the parameter from L1SIM.RCP and insert it into
+L1SIM_RCPE between the \START and \STOP lines.  The definition may then be
+edited.  
+
+    For example, the following parameters in L1SIM.RCP must be changed to
+run L1SIM with a different trigger definition than the default:
+
+o   PROGRAMMING_FILE    The TCC message file produced by COOR_sim
+o   RESOURCE_FILE       The resource file produced by COOR_sim 
+o   LOOKUP_TABLE_FILE   The Lookup tables used by the Calorimeter Trigger
+
+    The default setting for the options listed in paragraph V.2. can also be
+modified using L1SIM_RCPE.
+
+    Warning:
+    ********
+    The RCPE Software has some problems and some limitations. Please always
+verify in your output listings that the intended action was indeed taken.
+In particular, at the moment, RCP Edit can only overwrite existing entries.
+It cannot create new entries or increase the size of a string or array.
+There also seems to be some temporary buffer clearing problem, which
+remembers the end of a longer string or array while a shorter string is
+parsed. Use padding blanks and match L1SIM.RCP entry sizes for best results.
+
+
+VIII. SPECIFIC TRIGGER PRESCALING 
+=================================
+
+    By default, L1SIM will ignore any prescaling of Specific Triggers. 
+To enable prescaling, the parameter APPLY_PRESCALER_DEFAULT must be set to
+.TRUE. either in L1SIM_RCP, L1SIM_RCPE or via the USER_DIALOG submenu of
+D0USER. 
+
+    The Prescaler Ratios are defined in the Trigger Definition files
+read by COOR_sim for each Specific Trigger. 
+
+    L1SIM does not behave exactly like the hardware in applying these
+ratios. If the Prescaler Ratio for a Specific Trigger is set to N, the
+hardware requires the Andor Network for the Specific Trigger to fire N
+times before the Specific Trigger is allowed to fire. In L1SIM, this
+prescaling is applied randomly. The Specific Trigger has a 1/N probability
+of firing whenever its Andor Network fires.  
+
+    This discrepancy has been intentionally introduced to prevent separate
+Specific Triggers to be locked in phase by their prescaling ratios. 
+Several external sources of dead-time for Specific Triggers exist in the
+hardware that provoke such a desynchronization.  The randomness of the
+prescaling will make up for these other sources of dead-times which have no
+equivalent in L1SIM.
+
+
+IX. DISABLING ENERGY LOOKUP Z-CORRECTION 
+========================================
+
+    Normally, the transverse energy read from each Trigger Tower is
+corrected for the Z position of the interaction vertex before any
+further computation or comparison is made on Trigger Tower Energies.
+The Calorimeter Trigger normally uses the Fast Vertex Information from
+the Level 0 and selects a Level 1 PROM Lookup Page. This Lookup is used
+to correct the transverse energies. 
+
+    For some studies, one might want to ignore the Level 0 information, and
+force the Level 1 to act as if the vertex is at z=0. This mode corresponds
+to  always selecting the Center Level 1 Lookup Page. To achieve this with
+L1SIM one must set the RCP parameter FORCE_VERTEX_CENTER in L1SIM_RCP,
+L1SIM_RCPE to .TRUE. or enable this option from the USER DIALOG menu of
+D0USER.  
+
+    For more  information on how the energy z-correction lookup normally
+operates, see the section LOOKUP SYSTEM MANAGER below.
+
+    ****** note *******
+    The Level 0 Fast Vertex Information is simulated by L1SIM after finding
+    the vertex position from Isajet. L1SIM uses a simplistic geometric
+    segmentation of the z-axis into Level 0 Bins.
+
+X. LEVEL 1.5
+============
+
+    Specific Triggers can be of two types: pure Level 1 Specific Triggers
+or Level 1.5 Specific Triggers.
+
+    A Level 1.5 Specific Trigger will receive 2 levels of requirements. It
+receives normal Level 1 Requirements (as for every Specific Trigger), and
+additionally requires decisions made by Level 1.5 subsystems. This 
+confirmation by Level 1.5 introduces dead time into the system, so the
+hardware waits for a Level 1.5 confirmation only if the event would not be
+passed otherwise.  This means that a Level 1.5 confirmation is waited for
+only if no pure Level 1 Specific Triggers fire and one or more Level 1.5
+Specific Triggers meet their Level 1 Requirements. 
+
+    By default, L1SIM behaves like the hardware in that it  does not
+produce a  Level 1.5 confirmation on an event unless no pure Level 1
+Triggers fire and one or more Level 1.5 Triggers meet their Level 1
+requirements. In this case, all Level 1.5 Triggers which have met their
+Level 1 requirements are assumed to fire. For special analysis, it is
+possible to set a flag in L1SIM (from L1SIM_RCP, L1SIM_RCPE or from the
+USER DIALOG menu item) to cause a Level 1.5 evaluation on every event where
+a Level 1.5 Trigger meets its Level 1 requirements. If this flag is set
+such events will be submitted to Level 1.5 even if a pure  Level 1 Specific
+Trigger fires. Note that this mode does NOT correspond to hardware
+operation.
+
+    L1SIM does not behave exactly like the Level 1.5 hardware in only one
+respect.  When a Level 1.5 confirmation is necessary for an event, L1SIM
+completely determines the states of ALL the Level 1.5 Specific Triggers. 
+In comparison, the hardware would not necessarily wait until the states of
+all the Level 1.5 Specific Triggers are determined before accepting the
+event.  It waits only until any one Level 1.5 Specific Trigger is confirmed
+or all Level 1.5 Specific Triggers receive negative confirmations. 
+
+
+
+XI. MINIMUM-BIAS TRIGGERS
+=========================
+
+    A Specific Trigger must have at least one Level 1 Requirement in order
+to operate.  To define a minimum-bias Trigger, the requirement 
+
+ZERO_BIAS REQUIRE
+
+should be given to COOR_SIM in the Trigger Definition file. 
+
+
+
+XII. GENERATING DUMPS OF TRGR BANKS
+===================================
+
+    To generate a formated dump of TRGR banks, accept the defaults in the
+first menu presented by the "Define Dumps" item of the D0USER main menu,
+and then answer Y to the question "Generate formated Dump of the TRGR
+bank?".
+
+    The next menu will prompt for which types of information to include in
+the dump file.  Some items in the dump file are quite lengthy, so the user
+has the option of omitting one or more of them.  The following menu is used
+to select the sections to be included/excluded:
+
+ Control Information                     Yes    No
+ Event Summary Current Event             Yes    No
+ Datablock Contents (PRTRGR)             Yes    No
+ Event Summary Previous Event            Yes    No
+ Andor Term Listing by Name              Yes    No
+ Trigger Tower ADC Values in Counts      Yes    No
+ Trigger Tower ADC Values in GeV         Yes    No
+ Level 1 Datablock Raw Dump              Yes    No
+ Trigger Tower Energy Deposited in GeV   Yes    No
+
+    Control Information       
+    -------------------       
+
+    This section lists the simulation options which are enabled and the
+names of the files which programming information was taken from.
+
+    Event Summary Current Event        
+    ---------------------------       
+
+    This section gives a summary of the results of the Level 1 Calorimeter
+and Level 1 Framework simulation. The Level 1 Datablock crate in the TRGR
+bank contains information from both the current beam crossing and from the
+previous beam crossing. This section takes its information from the current
+event portion of the TRGR bank.
+
+    Datablock Contents (PRTRGR)        
+    ---------------------------       
+
+    This section gives summary of the contents of the Level 1 Datablock
+crate in the TRGR bank.  This information is produced by the routine
+PRTRGR. For more information on the items in this crate see D0 Note 967.
+see file D0$LEVEL1:D0_NOTE_967.DOC.
+
+    Event Summary Previous Event        
+    ----------------------------       
+
+    This section is much like the current event summary (see above), except
+that it gives the information from the previous event portion of the Level
+1 Datablock.
+
+    Andor Term Listing by Name        
+    --------------------------       
+
+    This section lists each known Andor Term by its physical number, along
+with its logical name and its state. This logical name is the one used by 
+COOR to represent the Andor Term. For Andor Terms generated by the Level 1
+Calorimeter subsystem of L1SIM, the programming of the associated
+comparators is also included.
+
+    Trigger Tower ADC Values in Counts       
+    ----------------------------------       
+
+    This section lists the ADC value read for each Trigger Tower.  The
+values are given in units of least counts (typically the scale is 
+1/4 GeV per least count) and typically have an offset added.
+
+    Trigger Tower ADC Values in GeV        
+    -------------------------------       
+
+    This section lists the ADC value read for each Trigger Tower given in
+units of GeV. These values are given with all offsets removed.
+
+    Level 1 Datablock Raw Dump        
+    --------------------------       
+
+    This section gives a hexadecimal dump of the contents of the Level 1
+Datablock crate of the TRGR bank.  
+
+    Trigger Tower Energy Deposited in GeV          
+    -------------------------------------       
+
+    This section lists the energy deposited in each Trigger Tower as read
+from Calorimeter Banks.  The energy is given in units of GeV. This energy
+will include noise generated by L1SIM if the noise simulation option is
+enabled. Note that this section is meaningless if TRGR banks are used as
+input to L1SIM.
+
+
+
+    To view each file directly from the D0user program, answer Y to the
+next question "Dump event to screen?". 
+
+    The Total number of consecutive events dumped is controlled by NDUMP,
+the number of events skipped before the first event is dumped is controlled
+by NSKIP (e.g. to dump all events, pick a large NDUMP and NSKIP=0)
+
+    D0user creates one file for each event dumped, with the name 
+E_(run #)_(event #).DUMP.  
+
+    The contents of the TRGR bank are defined in D0 Note 967. Note that the
+dump of the programming information used to configure the simulator can be
+found in summary file which is written out in the standard summary file
+at the end of each run.
+
+XIII. LOOKUP SYSTEM MANAGER
+===========================
+
+    The Lookup System Manager file contains the parameters used in
+programming the Level 1 Lookup PROMs. The contents of this file reflect the
+characteristics of the hardware.
+
+    XIII.1 NOISE
+    ------------
+
+    If the NOISE option of the simulator is enabled (either by setting the
+NOISE_DEFAULT parameter in L1SIM_RCP, L1SIM_RCPE or by enabling noise from
+the User Dialog submenu), Gaussian noise is added to the energy deposited
+in each Trigger Tower.  L1SIM obtains the standard deviation of the noise
+for each tower from the Lookup System Manager object file. The standard
+deviation of noise for each Trigger Tower can be found in an appendix of
+this document.
+
+    XIII.2 DESIGN CHOICES
+    ---------------------
+
+    Following is a list of all design choices implemented in the Trigger
+hardware and the Lookup System Manager object file. 
+
+o   The Energy signal received from the BLS cards is scaled to its transverse
+    component before it is digitized assuming that the interaction vertex was
+    at z=0. The output of the ADC is recorded in the TRGR bank. 
+
+o   All towers use an ADC energy scale of 1/4 GeV per least significant bit.
+
+o   A constant offset of 08 is included in the Trigger Tower Transverse
+    Energy values of the TRGR bank.
+
+o   The first energy lookup made in the Lookup PROMs is a z-corrected
+    Transverse energy with low energy cut. The second lookup is a
+    raw Transverse Energy with no cut.
+
+o   All energy quantities are computed using 1/4 GeV per LSB, except for the
+    Missing Pt computation and the Total Et Reference Sets which use 1/2
+    GeV per LSB.
+
+o   for all lookup types, the Low Energy Cut is bilateral and uses 
+    +/- 2.5 sigmas of noise with a minimum cut of 0.5 GeV.
+
+o   The zero energy response of each lookup PROMs is tuned to a minimum while
+    preserving a correct lookup of the lowest negative energy read by the ADC.
+
+o   7 Lookup pages are used for the First lookup, a single page is used for
+    the second lookup. The 7 pages for the first lookup are chosen symmetric 
+    around z=0. with one page centered at Z=0. 
+
+o   The Level 0 Fast Vertex position is provided as a bin number
+    (-15..0..+15). Each bin is 6.25 cm wide. Bin #0 is centered around z=0.
+
+o   The 31 Level 0 bins are distributed in the 7 Lookup Pages as
+    [-15,-10], [-9,-6], [-5,-2], [-1,+1], [2,5], [6,9], [10,15] 
+
+o   The geometric center of each lookup page is used to compute the
+    energy correction for vertex position of each page.
+
+o   The Trigger Tower geometry has been computed from D0$STP:CAL_STPFILE.DAT 
+
+o   The center of each Trigger Tower used in computing the energy
+    correction for vertex position is the center of EM3 for EM towers, the 
+    center of FH1 for hadronic towers, and the middle of EM3 and FH1 for TOT
+    (EM+HD) towers.
+
+o   The noise used in the low energy cut and noise simulation was computed from
+    cell capacitances and cable length, it uses D0 note 459. see appendix for
+    Trigger Tower noise values.
+
+
+XIV. BLS GAIN CORRECTION
+========================
+
+    In the hardware, the signal produced by each Calorimeter Depth must be
+corrected and summed into Trigger Towers before it is received by the Level
+1 Calorimeter Trigger Front-End. This function is performed by the Base
+Line Subtractor (BLS) cards. 
+
+    Each calorimeter signal is individually corrected by the BLS to properly
+contribute to its Trigger Tower Signal.  A compromise has been reached to
+limit the number of different BLS cards. 
+
+    The error caused by the deviation of the coefficient applied by a given
+BLS from the ideal computed correction factor can be reproduced and
+studied in the simulator. The parameter USE_BLS_GAIN_CORRECTION_DEFAULT
+must be be enabled in L1SIM_RCP, L1SIM_RCPE or from the User Dialog menu.
+
+    See L1UTIL_EXAMPLE_BLS_FILE.FOR as an example for creating your own BLS
+correction file. The default file D0$LEVEL1$DATA:BLS.DAT introduces no
+correction at the moment.
+
+
+XV. FORCING THE STATE OF UNSIMULATED ANDOR TERMS
+================================================
+
+    In the official Specific Trigger definitions used at D0, triggers
+typically have Level 1 requirements related to beam quality, pulsers, etc.,
+which are not directly simulated by L1SIM.  However, L1SIM can be directed
+to give these terms some constant state for every event. These terms may be
+added to the RCP array FORCED_ANDOR_TERMS in the file L1SIM_RCP or
+L1SIM_RCPE.  The array has the following format:
+
+\ARRAY FORCED_ANDOR_TERMS
+!    1234567890123456 use the max length of 16 char for L1SIM_RCPE overwriting
+    'MRBS_LOSS       '  FALSE   ! andor term 121
+    'MICRO_BLANK     '  FALSE   ! andor term 125
+    'MIN_BIAS        '  TRUE    ! andor term 126
+\END
+
+The string is the logical name of the Andor Term as given in COOR's
+resource file, and TRUE or FALSE is the desired state of the Andor Term.
+
+
+XVI. TRIGGER TOWER ENERGY SATURATION
+====================================
+
+    The energy measured by a Trigger Tower in the Level 1 Hardware will
+saturate at some energy value.  To simulate this effect, saturation values
+may be given in the file L1SIM_RCP or L1SIM_RCPE.  The format of the array
+is as follows:
+
+\ARRAY TRIGGER_TOWER_SATURATION
+!
+!   Currently, the saturation values have only been estimated out to |ETA|=16.
+!
+!        EM Saturation in GeV   HD Saturation in GeV   |ETA|
+!
+                62.                     62.             ! 1
+                62.                     62.             ! 2
+                62.                     62.             ! 3
+                62.                     62.             ! 4
+                55.                     62.             ! 5
+                48.                     62.             ! 6
+                38.                     46.             ! 7
+                29.                     40.             ! 8
+                23.                     30.             ! 9
+                19.                     28.             !10
+                16.                     22.             !11
+                12.                     18.             !12
+                10.                     13.             !13
+                 8.                     11.             !14
+                 7.                      9.             !15
+                 6.                      7.             !16
+              1000.                   1000.             !17
+              1000.                   1000.             !18
+              1000.                   1000.             !19
+              1000.                   1000.             !20
+\END
+
+The values given are the energy values in GeV at which Trigger Towers at
+each ETA tend to saturate. Note that each value is applied to all towers
+with the given ETA magnitude, and that values are given separately for the 
+EM and HD towers at each |ETA|. Also note that since the energy values are
+real numbers, they must be specified with a decimal point in the RCP file.
+A value of 1000. GeV may be given to represent no saturation.
+
+XVII. ADDING ON TO L1SIM
+========================
+
+    It is possible to add functionality to L1SIM. Additional computation
+and analysis may be performed as part of the event processing without
+modifying the LEVEL1 routines. 
+
+    L1SIM is structured so that additional simulators for trigger subsystem
+may be added easily. For more information, see the file
+L1SIM_SUBSYSTEM.DOC
+
+    Also refer to D0$D0USER:D0USER_GUIDE.MEM for a complete description of
+the D0USER framework.
+
+
+
+                                APPENDIX A
+
+Sample Trigger Definition File
+==============================
+content of the file EXAMPLE.CFG: (user-written input to COOR_sim)
+-------------------------------
+Master Configuration File
+This is a very simple test configuration.
+
+@reqs:sptrg_15.trig
+END_OF_CONFIG
+
+content of the file SPTRG_15.TRIG:(user-written input to COOR_sim)
+---------------------------------
+Level 1 configuration file
+Trigger on one or more EM towers with transverse energy over 5. GeV
+
+SPEC_TRIG_15					sptrg_15
+
+NUM_EM_TOWERS	1	REQS:EM_5.RS  REQS:NO_HAD_VETO.RS         REQUIRE
+
+Content of the file EM_5.RS: (user-written input to COOR_sim)
+---------------------------
+ TT_ETA(-20:20)  TT_PHI(1:32)  Thresh_Et #  (5.00) GeV
+
+Content of the file REQS:NO_HAD_VETO.RS: (user-written input to COOR_sim)
+---------------------------------------
+ TT_ETA(-20:20)  TT_PHI(1:32)  Thresh_Et #  (1000.00) GeV
+
+Content of D0$LEVEL1$DATA:EXAMPLE_TRIGGER.INFO (output from COOR_sim)
+----------------------------------------------
+ Example output of COOR_sim for Specific Trigger #15 requiring at least one EM Trigger Tower with more than 5 GeV.
+ 
+  SPECTRIG ANDORREQ  15( 176)
+  SPECTRIG OBEYBUSY  15
+  SPECTRIG OBEYLEV2  15
+  SPECTRIG PRESCALE  15()
+  SPECTRIG  RD_TIME  15( 100)
+  THRESHLD  EMETCNT REF(0)   0(      1)
+    REFSET     EMET SIGN_ETA(POS) MAGN_ETA(1:19) PHI(1:32) 0 (5000)    SIGN_ETA(NEG) MAGN_ETA(1:19) PHI(1:32) 0 (5000) 
+    REFSET   HDVETO SIGN_ETA(POS) MAGN_ETA(1:19) PHI(1:32) 0 (1000000) SIGN_ETA(NEG) MAGN_ETA(1:19) PHI(1:32) 0 (1000000) 
+  ST_VS_RS  EM_LIST  0(   15)
+
+                                APPENDIX B
+
+Sample L1SIM.RCP 
+================
+\START     L1SIM_RCP            ! Name of SRCP bank                             
+\SIZE         77        51
+!------------------------------------------------------------------------------
+!   Name:       L1SIM.RCP
+!------------------------------------------------------------------------------
+!   Purpose:    Define RCP parameters for location of programming files and
+!               default values of run parameters.
+!
+!   Created:     9-SEP-1991 Philippe Laurens, Steven Klocek
+!                              L1C -> L1SIM
+!
+!   Version:     V2.0           OFFICIAL default version for L1SIM
+!------------------------------------------------------------------------------
+!   PROM LOOK_UP file name !
+!------------------------------------------------------------------------------
+ \ARRAY LOOKUP_TABLE_FILE
+    'D0$LEVEL1$DATA:CALORIMETER_TRIGGER.LSO'
+ \END
+!------------------------------------------------------------------------------
+!   Trigger Configuration File Name
+!------------------------------------------------------------------------------
+ \ARRAY PROGRAMMING_FILE
+    'D0$LEVEL1$DATA:EXAMPLE_TRIGGER.INFO'
+ \END
+ \ARRAY RESOURCE_FILE
+    'D0$LEVEL1$DATA:TRIGGER_RESOURCES.RCP'
+ \END
+!----------------------------------------------------------------------
+!   BLS Gain Correction file
+!----------------------------------------------------------------------
+ \ARRAY BLS_GAIN_CORRECTION_FILE
+    'D0$LEVEL1$DATA:BLS.DAT'
+ \END
+!------------------------------------------------------------------------------
+!   Path Specification to CAEP banks.
+!------------------------------------------------------------------------------
+ \ARRAY PATH_DEFAULT
+    'RECO'
+ \END
+!------------------------------------------------------------------------------
+!   List Control parameters
+!------------------------------------------------------------------------------
+ PROGRAMMING_LISTING_DEFAULT  .TRUE.                 !Configuration File Listing
+!------------------------------------------------------------------------------
+!   Constants used by more than one package
+!------------------------------------------------------------------------------
+ FAST_DEFAULT   .FALSE.         !If TRUE, fast version of program invoked
+ NOISE_DEFAULT  .TRUE.          !If TRUE, noise is added to channels.
+ APPLY_PRESCALER_DEFAULT .FALSE. !If TRUE, apply the programmed prescaler to
+                                 ! the Specific Triggers.
+ BLS_GAIN_CORRECTION_DEFAULT .FALSE. !If TRUE, the BLS Gain Correction
+                                     ! Coeffecient is taken into account
+\STOP
+
+                                APPENDIX C
+
+Table of Calorimeter Trigger Tower Noise
+========================================
+
+ The noise in each Trigger Tower is given in MeV.
+ The following is EM trigger tower noise
+  EM:  ETA=  1  PHI= 1:16   77.   73.   70.   77.   83.   85.   91.   93.   95.   91.   86.   83.   77.   71.   73.   79.
+             1  PHI=17:32   75.   79.   81.   94.   96.  103.  104.  110.  109.  105.  101.   96.   94.   81.   79.   75.
+  EM:  ETA=  2  PHI= 1:16   78.   74.   71.   78.   84.   86.   92.   94.   96.   92.   87.   84.   78.   72.   74.   79.
+             2  PHI=17:32   76.   80.   82.   95.   97.  104.  105.  111.  110.  105.  102.   97.   95.   82.   80.   76.
+  EM:  ETA=  3  PHI= 1:16   80.   76.   73.   79.   85.   88.   94.   96.   97.   94.   88.   85.   80.   74.   76.   81.
+             3  PHI=17:32   77.   82.   83.   96.   98.  105.  107.  113.  112.  107.  104.   98.   96.   83.   82.   77.
+  EM:  ETA=  4  PHI= 1:16   82.   79.   76.   82.   88.   90.   96.   98.  100.   96.   91.   88.   82.   76.   78.   84.
+             4  PHI=17:32   80.   84.   86.   99.  101.  108.  109.  115.  114.  109.  107.  101.   99.   86.   84.   80.
+  EM:  ETA=  5  PHI= 1:16   86.   82.   80.   86.   92.   94.  100.  102.  104.  100.   95.   92.   86.   80.   82.   87.
+             5  PHI=17:32   83.   88.   89.  102.  105.  111.  113.  119.  118.  113.  110.  104.  102.   89.   88.   83.
+  EM:  ETA=  6  PHI= 1:16   72.   68.   66.   71.   77.   79.   84.   86.   87.   84.   80.   77.   72.   66.   68.   73.
+             6  PHI=17:32   71.   75.   77.   88.   88.   94.   96.  101.  101.   96.   94.   88.   88.   77.   75.   71.
+  EM:  ETA=  7  PHI= 1:16   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.
+             7  PHI=17:32   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.   45.
+  EM:  ETA=  8  PHI= 1:16  181.  180.  179.  180.  181.  183.  184.  185.  185.  184.  183.  181.  180.  179.  180.  181.
+             8  PHI=17:32  183.  184.  185.  186.  188.  189.  190.  191.  191.  190.  189.  188.  186.  185.  184.  183.
+  EM:  ETA=  9  PHI= 1:16  158.  156.  155.  156.  158.  159.  160.  161.  161.  160.  159.  158.  156.  155.  156.  158.
+             9  PHI=17:32  159.  160.  161.  163.  164.  165.  166.  168.  168.  166.  165.  164.  163.  161.  160.  159.
+  EM:  ETA= 10  PHI= 1:16  143.  142.  141.  142.  143.  145.  146.  147.  147.  146.  145.  143.  142.  141.  142.  143.
+            10  PHI=17:32  145.  146.  147.  149.  150.  151.  152.  154.  154.  152.  151.  150.  149.  147.  146.  145.
+  EM:  ETA= 11  PHI= 1:16  136.  135.  134.  135.  136.  138.  139.  140.  140.  139.  138.  136.  135.  134.  135.  136.
+            11  PHI=17:32  138.  139.  140.  141.  143.  144.  145.  146.  146.  145.  144.  143.  141.  140.  139.  138.
+  EM:  ETA= 12  PHI= 1:16  133.  132.  130.  132.  133.  134.  135.  137.  137.  135.  134.  133.  132.  130.  132.  133.
+            12  PHI=17:32  134.  135.  137.  138.  139.  141.  142.  143.  143.  142.  141.  139.  138.  137.  135.  134.
+  EM:  ETA= 13  PHI= 1:16  132.  130.  129.  130.  132.  133.  134.  136.  136.  134.  133.  132.  130.  129.  130.  132.
+            13  PHI=17:32  133.  134.  136.  137.  138.  139.  141.  142.  142.  141.  139.  138.  137.  136.  134.  133.
+  EM:  ETA= 14  PHI= 1:16  101.  100.   99.  100.  101.  102.  103.  104.  104.  103.  102.  101.  100.   99.  100.  101.
+            14  PHI=17:32  102.  103.  104.  105.  106.  107.  108.  109.  109.  108.  107.  106.  105.  104.  103.  102.
+  EM:  ETA= 15  PHI= 1:16   99.   99.   98.   99.   99.  100.  101.  102.  102.  101.  100.   99.   99.   98.   99.   99.
+            15  PHI=17:32  100.  101.  102.  103.  104.  105.  106.  107.  107.  106.  105.  104.  103.  102.  101.  100.
+  EM:  ETA= 16  PHI= 1:16   99.   98.   97.   98.   99.  100.  101.  102.  102.  101.  100.   99.   98.   97.   98.   99.
+            16  PHI=17:32  100.  101.  102.  103.  104.  105.  106.  106.  106.  106.  105.  104.  103.  102.  101.  100.
+  EM:  ETA= 17  PHI= 1:16   54.   54.   53.   54.   54.   55.   55.   56.   56.   55.   55.   54.   54.   53.   54.   54.
+            17  PHI=17:32   55.   55.   56.   56.   57.   57.   58.   58.   58.   58.   57.   57.   56.   56.   55.   55.
+  EM:  ETA= 18  PHI= 1:16   53.   52.   52.   52.   53.   53.   54.   54.   54.   54.   53.   53.   52.   52.   52.   53.
+            18  PHI=17:32   53.   54.   54.   55.   55.   56.   56.   57.   57.   56.   56.   55.   55.   54.   54.   53.
+  EM:  ETA= 19  PHI= 1:16   52.   51.   51.   51.   52.   52.   53.   53.   53.   53.   52.   52.   51.   51.   51.   52.
+            19  PHI=17:32   52.   53.   53.   54.   54.   55.   55.   56.   56.   55.   55.   54.   54.   53.   53.   52.
+  EM:  ETA= 20  PHI= 1:16    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.
+            20  PHI=17:32    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.
+  EM:  ETA= 21  PHI= 1:16    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.
+            21  PHI=17:32    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.
+  EM:  ETA= -1  PHI= 1:16   79.   73.   71.   77.   83.   86.   91.   95.   93.   91.   85.   83.   77.   70.   73.   77.
+            -1  PHI=17:32   75.   79.   81.   94.   96.  101.  105.  109.  110.  104.  103.   96.   94.   81.   79.   75.
+  EM:  ETA= -2  PHI= 1:16   79.   74.   72.   78.   84.   87.   92.   96.   94.   92.   86.   84.   78.   71.   74.   78.
+            -2  PHI=17:32   76.   80.   82.   95.   97.  102.  105.  110.  111.  105.  104.   97.   95.   82.   80.   76.
+  EM:  ETA= -3  PHI= 1:16   81.   76.   74.   80.   85.   88.   94.   97.   96.   94.   88.   85.   79.   73.   76.   80.
+            -3  PHI=17:32   77.   82.   83.   96.   98.  104.  107.  112.  113.  107.  105.   98.   96.   83.   82.   77.
+  EM:  ETA= -4  PHI= 1:16   84.   78.   76.   82.   88.   91.   96.  100.   98.   96.   90.   88.   82.   76.   79.   82.
+            -4  PHI=17:32   80.   84.   86.   99.  101.  107.  109.  114.  115.  109.  108.  101.   99.   86.   84.   80.
+  EM:  ETA= -5  PHI= 1:16   87.   82.   80.   86.   92.   95.  100.  104.  102.  100.   94.   92.   86.   80.   82.   86.
+            -5  PHI=17:32   83.   88.   89.  102.  104.  110.  113.  118.  119.  113.  111.  105.  102.   89.   88.   83.
+  EM:  ETA= -6  PHI= 1:16   73.   69.   67.   73.   77.   80.   85.   88.   87.   85.   80.   78.   72.   67.   69.   73.
+            -6  PHI=17:32   72.   76.   77.   89.   89.   94.   96.  101.  101.   96.   95.   89.   89.   77.   76.   72.
+  EM:  ETA= -7  PHI= 1:16   73.   70.   68.   73.   77.   78.   83.   84.   84.   83.   78.   77.   73.   68.   70.   73.
+            -7  PHI=17:32   75.   78.   79.   88.   85.   89.   91.   94.   94.   91.   89.   85.   88.   79.   78.   75.
+  EM:  ETA= -8  PHI= 1:16  188.  182.  179.  188.  196.  200.  209.  212.  212.  209.  200.  196.  188.  179.  182.  188.
+            -8  PHI=17:32  192.  199.  201.  219.  214.  222.  226.  233.  233.  226.  222.  214.  219.  201.  199.  192.
+  EM:  ETA= -9  PHI= 1:16  165.  158.  155.  164.  172.  176.  185.  189.  189.  185.  176.  172.  164.  155.  158.  165.
+            -9  PHI=17:32  168.  175.  177.  196.  191.  199.  203.  210.  210.  203.  199.  191.  196.  177.  175.  168.
+  EM:  ETA=-10  PHI= 1:16  151.  144.  141.  150.  158.  162.  171.  175.  175.  171.  162.  158.  150.  141.  144.  151.
+           -10  PHI=17:32  154.  161.  163.  182.  177.  185.  189.  196.  196.  189.  185.  177.  182.  163.  161.  154.
+  EM:  ETA=-11  PHI= 1:16  143.  137.  134.  143.  151.  155.  164.  168.  168.  164.  155.  151.  143.  134.  137.  143.
+           -11  PHI=17:32  147.  154.  156.  175.  170.  178.  181.  189.  189.  181.  178.  170.  175.  156.  154.  147.
+  EM:  ETA=-12  PHI= 1:16  140.  133.  130.  139.  148.  152.  161.  164.  164.  161.  152.  148.  139.  130.  133.  140.
+           -12  PHI=17:32  144.  151.  153.  171.  167.  174.  178.  186.  186.  178.  174.  167.  171.  153.  151.  144.
+  EM:  ETA=-13  PHI= 1:16  139.  132.  129.  138.  147.  151.  159.  163.  163.  159.  151.  147.  138.  129.  132.  139.
+           -13  PHI=17:32  142.  149.  152.  170.  165.  173.  177.  184.  184.  177.  173.  165.  170.  152.  149.  142.
+  EM:  ETA=-14  PHI= 1:16  106.  101.   99.  106.  112.  115.  122.  124.  124.  122.  115.  112.  106.   99.  101.  106.
+           -14  PHI=17:32  109.  114.  116.  130.  126.  132.  135.  140.  140.  135.  132.  126.  130.  116.  114.  109.
+  EM:  ETA=-15  PHI= 1:16  105.  100.   98.  104.  111.  114.  120.  123.  123.  120.  114.  111.  104.   98.  100.  105.
+           -15  PHI=17:32  108.  113.  114.  128.  125.  130.  133.  139.  139.  133.  130.  125.  128.  114.  113.  108.
+  EM:  ETA=-16  PHI= 1:16  104.   99.   97.  104.  110.  113.  120.  122.  122.  120.  113.  110.  104.   97.   99.  104.
+           -16  PHI=17:32  107.  112.  114.  128.  124.  130.  133.  138.  138.  133.  130.  124.  128.  114.  112.  107.
+  EM:  ETA=-17  PHI= 1:16   57.   55.   53.   57.   60.   61.   65.   66.   66.   65.   61.   60.   57.   53.   55.   57.
+           -17  PHI=17:32   58.   61.   62.   69.   67.   70.   71.   74.   74.   71.   70.   67.   69.   62.   61.   58.
+  EM:  ETA=-18  PHI= 1:16   55.   53.   52.   55.   58.   60.   63.   64.   64.   63.   60.   58.   55.   52.   53.   55.
+           -18  PHI=17:32   57.   59.   60.   67.   65.   68.   70.   72.   72.   70.   68.   65.   67.   60.   59.   57.
+  EM:  ETA=-19  PHI= 1:16   54.   52.   51.   54.   57.   59.   62.   63.   63.   62.   59.   57.   54.   51.   52.   54.
+           -19  PHI=17:32   56.   58.   59.   66.   64.   67.   69.   71.   71.   69.   67.   64.   66.   59.   58.   56.
+  EM:  ETA=-20  PHI= 1:16    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.
+           -20  PHI=17:32    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.
+  EM:  ETA=-21  PHI= 1:16    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.
+           -21  PHI=17:32    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.    0.
+ The following is HD trigger tower noise
+  HD:  ETA=  1  PHI= 1:16  298.  293.  289.  298.  306.  309.  317.  318.  320.  316.  310.  306.  299.  291.  293.  300.
+             1  PHI=17:32  296.  301.  303.  319.  321.  329.  330.  338.  337.  331.  327.  320.  320.  303.  301.  294.
+  HD:  ETA=  2  PHI= 1:16  308.  303.  299.  308.  316.  319.  327.  328.  330.  325.  320.  315.  309.  300.  303.  309.
+             2  PHI=17:32  305.  311.  313.  329.  331.  339.  340.  348.  347.  341.  337.  330.  330.  313.  311.  304.
+  HD:  ETA=  3  PHI= 1:16  325.  319.  316.  325.  333.  336.  344.  344.  347.  342.  337.  332.  326.  317.  320.  326.
+             3  PHI=17:32  322.  328.  330.  346.  348.  355.  357.  364.  364.  358.  354.  347.  347.  330.  328.  321.
+  HD:  ETA=  4  PHI= 1:16  329.  323.  320.  329.  337.  339.  347.  348.  351.  346.  340.  336.  330.  321.  324.  330.
+             4  PHI=17:32  326.  331.  333.  349.  351.  359.  361.  368.  367.  361.  358.  350.  350.  333.  331.  325.
+  HD:  ETA=  5  PHI= 1:16  182.  177.  176.  181.  187.  188.  193.  194.  196.  193.  189.  186.  182.  176.  178.  182.
+             5  PHI=17:32  179.  182.  184.  195.  196.  201.  203.  207.  207.  203.  201.  196.  195.  184.  182.  179.
+  HD:  ETA=  6  PHI= 1:16  201.  200.  199.  200.  201.  202.  203.  204.  204.  203.  202.  201.  200.  199.  200.  201.
+             6  PHI=17:32  201.  203.  204.  205.  207.  208.  209.  210.  210.  209.  208.  206.  205.  204.  203.  201.
+  HD:  ETA=  7  PHI= 1:16  371.  369.  367.  369.  371.  373.  375.  377.  377.  375.  373.  371.  369.  367.  369.  371.
+             7  PHI=17:32  373.  375.  377.  379.  380.  382.  384.  386.  386.  384.  382.  380.  379.  377.  375.  373.
+  HD:  ETA=  8  PHI= 1:16  288.  286.  284.  286.  288.  290.  292.  294.  294.  292.  290.  288.  286.  284.  286.  288.
+             8  PHI=17:32  290.  292.  294.  295.  297.  299.  301.  303.  303.  301.  299.  297.  295.  294.  292.  290.
+  HD:  ETA=  9  PHI= 1:16  225.  224.  223.  224.  225.  227.  228.  229.  229.  228.  227.  225.  224.  223.  224.  225.
+             9  PHI=17:32  227.  228.  229.  230.  232.  233.  234.  235.  235.  234.  233.  232.  230.  229.  228.  227.
+  HD:  ETA= 10  PHI= 1:16  262.  261.  260.  261.  262.  264.  265.  266.  266.  265.  264.  262.  261.  260.  261.  262.
+            10  PHI=17:32  264.  265.  266.  268.  269.  270.  272.  273.  273.  272.  270.  269.  268.  266.  265.  264.
+  HD:  ETA= 11  PHI= 1:16  262.  261.  260.  261.  262.  264.  265.  267.  267.  265.  264.  262.  261.  260.  261.  262.
+            11  PHI=17:32  264.  265.  267.  268.  269.  271.  272.  274.  274.  272.  271.  269.  268.  267.  265.  264.
+  HD:  ETA= 12  PHI= 1:16  244.  242.  241.  242.  244.  245.  246.  248.  248.  246.  245.  244.  242.  241.  242.  244.
+            12  PHI=17:32  245.  246.  248.  249.  251.  252.  254.  255.  255.  254.  252.  251.  249.  248.  246.  245.
+  HD:  ETA= 13  PHI= 1:16  236.  234.  233.  234.  236.  237.  239.  240.  240.  239.  237.  236.  234.  233.  234.  236.
+            13  PHI=17:32  237.  239.  240.  242.  243.  244.  246.  247.  247.  246.  244.  243.  242.  240.  239.  237.
+  HD:  ETA= 14  PHI= 1:16  223.  222.  220.  222.  223.  225.  226.  227.  227.  226.  225.  223.  222.  220.  222.  223.
+            14  PHI=17:32  225.  226.  227.  229.  230.  232.  233.  235.  235.  233.  232.  230.  229.  227.  226.  225.
+  HD:  ETA= 15  PHI= 1:16  210.  209.  207.  209.  210.  212.  213.  215.  215.  213.  212.  210.  209.  207.  209.  210.
+            15  PHI=17:32  212.  213.  215.  216.  218.  219.  220.  222.  222.  220.  219.  218.  216.  215.  213.  212.
+  HD:  ETA= 16  PHI= 1:16  202.  201.  199.  201.  202.  204.  205.  206.  206.  205.  204.  202.  201.  199.  201.  202.
+            16  PHI=17:32  204.  205.  206.  208.  209.  211.  212.  214.  214.  212.  211.  209.  208.  206.  205.  204.
+  HD:  ETA= 17  PHI= 1:16  118.  117.  116.  117.  118.  119.  119.  120.  120.  119.  119.  118.  117.  116.  117.  118.
+            17  PHI=17:32  119.  119.  120.  121.  122.  122.  123.  124.  124.  123.  122.  122.  121.  120.  119.  119.
+  HD:  ETA= 18  PHI= 1:16  115.  114.  114.  114.  115.  116.  117.  117.  117.  117.  116.  115.  114.  114.  114.  115.
+            18  PHI=17:32  116.  117.  117.  118.  119.  119.  120.  121.  121.  120.  119.  119.  118.  117.  117.  116.
+  HD:  ETA= 19  PHI= 1:16  113.  112.  111.  112.  113.  113.  114.  115.  115.  114.  113.  113.  112.  111.  112.  113.
+            19  PHI=17:32  113.  114.  115.  116.  116.  117.  118.  118.  118.  118.  117.  116.  116.  115.  114.  113.
+  HD:  ETA= 20  PHI= 1:16  106.  105.  105.  105.  106.  107.  108.  108.  108.  108.  107.  106.  105.  105.  105.  106.
+            20  PHI=17:32  107.  108.  108.  109.  110.  110.  111.  112.  112.  111.  110.  110.  109.  108.  108.  107.
+  HD:  ETA= 21  PHI= 1:16   73.   72.   72.   72.   73.   73.   74.   74.   74.   74.   73.   73.   72.   72.   72.   73.
+            21  PHI=17:32   73.   74.   74.   75.   75.   76.   76.   77.   77.   76.   76.   75.   75.   74.   74.   73.
+  HD:  ETA= -1  PHI= 1:16  300.  293.  291.  299.  306.  310.  316.  320.  318.  317.  309.  306.  298.  289.  293.  298.
+            -1  PHI=17:32  294.  301.  303.  320.  320.  327.  331.  337.  338.  330.  329.  321.  319.  303.  301.  296.
+  HD:  ETA= -2  PHI= 1:16  309.  303.  300.  309.  315.  320.  325.  330.  328.  327.  319.  316.  308.  299.  303.  308.
+            -2  PHI=17:32  304.  311.  313.  330.  330.  337.  341.  347.  348.  340.  339.  331.  329.  313.  311.  305.
+  HD:  ETA= -3  PHI= 1:16  326.  320.  317.  326.  332.  337.  342.  347.  344.  344.  336.  333.  325.  316.  319.  325.
+            -3  PHI=17:32  321.  328.  330.  347.  347.  354.  358.  364.  364.  357.  355.  348.  346.  330.  328.  322.
+  HD:  ETA= -4  PHI= 1:16  330.  324.  321.  330.  336.  340.  346.  351.  348.  347.  339.  337.  329.  320.  323.  329.
+            -4  PHI=17:32  325.  331.  333.  350.  350.  358.  361.  367.  368.  361.  359.  351.  349.  333.  331.  326.
+  HD:  ETA= -5  PHI= 1:16  182.  178.  176.  182.  186.  189.  193.  196.  194.  193.  188.  187.  181.  176.  177.  182.
+            -5  PHI=17:32  179.  182.  184.  195.  196.  201.  203.  207.  207.  203.  201.  196.  195.  184.  182.  179.
+  HD:  ETA= -6  PHI= 1:16  202.  199.  197.  203.  207.  210.  214.  217.  216.  215.  210.  208.  202.  197.  198.  203.
+            -6  PHI=17:32  203.  207.  209.  220.  217.  222.  224.  228.  228.  224.  222.  217.  220.  209.  207.  204.
+  HD:  ETA= -7  PHI= 1:16  362.  357.  354.  363.  369.  373.  379.  382.  382.  380.  373.  369.  362.  354.  356.  363.
+            -7  PHI=17:32  364.  371.  373.  389.  383.  389.  392.  398.  398.  392.  389.  383.  387.  373.  371.  366.
+  HD:  ETA= -8  PHI= 1:16  277.  273.  270.  278.  284.  287.  293.  296.  296.  294.  287.  284.  277.  270.  272.  278.
+            -8  PHI=17:32  279.  285.  287.  302.  297.  303.  306.  311.  311.  306.  302.  297.  301.  287.  285.  281.
+  HD:  ETA= -9  PHI= 1:16  218.  214.  211.  219.  224.  228.  234.  237.  237.  235.  228.  225.  218.  211.  213.  219.
+            -9  PHI=17:32  220.  226.  228.  243.  238.  244.  247.  252.  252.  247.  243.  238.  242.  228.  226.  221.
+  HD:  ETA=-10  PHI= 1:16  261.  255.  252.  261.  269.  273.  280.  284.  284.  282.  273.  270.  261.  252.  254.  261.
+           -10  PHI=17:32  264.  271.  273.  292.  285.  293.  296.  303.  303.  296.  292.  286.  291.  273.  271.  265.
+  HD:  ETA=-11  PHI= 1:16  254.  248.  245.  254.  261.  265.  272.  276.  275.  273.  265.  262.  254.  245.  247.  254.
+           -11  PHI=17:32  256.  263.  265.  283.  277.  284.  287.  294.  294.  287.  283.  277.  282.  265.  263.  257.
+  HD:  ETA=-12  PHI= 1:16  235.  230.  227.  236.  243.  247.  254.  258.  258.  256.  247.  244.  235.  227.  229.  236.
+           -12  PHI=17:32  238.  245.  247.  266.  259.  266.  270.  276.  276.  270.  266.  260.  264.  247.  245.  239.
+  HD:  ETA=-13  PHI= 1:16  228.  222.  219.  229.  236.  240.  247.  251.  251.  249.  240.  237.  228.  219.  222.  229.
+           -13  PHI=17:32  231.  238.  240.  259.  252.  259.  263.  269.  269.  263.  259.  253.  257.  240.  238.  232.
+  HD:  ETA=-14  PHI= 1:16  215.  209.  206.  216.  223.  227.  234.  238.  237.  235.  227.  223.  215.  206.  208.  216.
+           -14  PHI=17:32  218.  225.  227.  245.  239.  246.  250.  256.  256.  250.  245.  239.  244.  227.  225.  219.
+  HD:  ETA=-15  PHI= 1:16  202.  197.  194.  203.  210.  214.  222.  226.  225.  223.  214.  211.  202.  194.  196.  203.
+           -15  PHI=17:32  205.  212.  214.  233.  226.  234.  237.  244.  244.  237.  233.  227.  232.  214.  212.  206.
+  HD:  ETA=-16  PHI= 1:16  194.  189.  186.  195.  202.  207.  214.  218.  217.  215.  207.  203.  194.  186.  188.  195.
+           -16  PHI=17:32  197.  204.  207.  225.  218.  226.  230.  236.  236.  230.  225.  219.  224.  207.  204.  198.
+  HD:  ETA=-17  PHI= 1:16  114.  111.  109.  114.  118.  120.  123.  125.  125.  124.  120.  118.  114.  109.  110.  114.
+           -17  PHI=17:32  115.  119.  120.  129.  125.  129.  131.  134.  134.  131.  129.  126.  128.  120.  119.  116.
+  HD:  ETA=-18  PHI= 1:16  111.  108.  107.  111.  115.  117.  120.  122.  122.  121.  117.  115.  111.  107.  108.  111.
+           -18  PHI=17:32  112.  116.  117.  126.  123.  126.  128.  131.  131.  128.  126.  123.  125.  117.  116.  113.
+  HD:  ETA=-19  PHI= 1:16  108.  106.  104.  109.  112.  114.  118.  120.  120.  119.  114.  113.  108.  104.  105.  109.
+           -19  PHI=17:32  110.  113.  114.  124.  120.  124.  126.  129.  129.  126.  124.  121.  123.  114.  113.  110.
+  HD:  ETA=-20  PHI= 1:16  102.   99.   98.  102.  106.  108.  112.  114.  113.  112.  108.  106.  102.   98.   99.  102.
+           -20  PHI=17:32  103.  107.  108.  117.  114.  118.  120.  123.  123.  120.  117.  114.  117.  108.  107.  104.
+  HD:  ETA=-21  PHI= 1:16   64.   63.   62.   64.   66.   67.   69.   70.   70.   70.   67.   66.   64.   62.   63.   64.
+           -21  PHI=17:32   65.   67.   67.   72.   70.   72.   73.   75.   75.   73.   72.   71.   72.   67.   67.   65.
+

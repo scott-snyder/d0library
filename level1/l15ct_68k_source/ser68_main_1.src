@@ -1,0 +1,108 @@
+
+*************************************************************************
+*                                                                       *
+*                     Level 1.5 Calorimeter Trigger                     *
+*                              68k_Services                             *
+*                                                                       *
+*                  Version: 1         DATE:  13-JUNE-1994               *
+*                ----------------------------------------               *
+*                                                                       *
+*************************************************************************
+
+
+
+SER68_Main  IDNT                          ; title.
+            ORG     $95000                ; start of code in the MVME135-1.
+
+            JMP     StrInt                ; Jump to the start of initialization.
+
+
+*************************************************************************
+*  This sections calls all of the include files.                        *
+*************************************************************************
+
+      INCLUDE  Ser68_Main_Symbols_1.Include    ; Get the main symbol file.
+
+      INCLUDE  Ser68_Version_Number.src        ; Get the Version Number file.
+
+      INCLUDE  Ser68_Revision_Number.src       ; Get the Revision Number file.
+
+*************************************************************************
+*                                                                       *
+*        **********     START OF THE PROGRAM     **********             *
+*                                                                       *
+*************************************************************************
+*                                                                       *
+*  Send the Wake-Up message to the L15CT console.                       *
+*                                                                       *
+*************************************************************************
+
+StrInt  PEA.L   BlankLines              ; Clear the screen on
+        JSR     ChrStrgOut              ; the L15CT console.
+        PEA.L   BlankLines
+        JSR     ChrStrgOut
+
+        PEA.L   Hello                   ; Push the Hello message address on
+        JSR     ChrStrgOut              ; the stack and send it out.
+
+        PEA.L   BlankLn                 ; Push the Blank Line address on the
+        JSR     ChrStrgOut              ; stack and send it out.
+
+
+*************************************************************************
+*  Initialization:                                                      *
+*                                                                       *
+*  Call the following routines to initialize the                        *
+*  hardware and the software of the L15 Cal Trig.                       *
+*************************************************************************
+
+        JSR   Begin_Init_Processor            ;
+
+        JSR   Begin_Init_Ironics              ;
+
+        JSR   Begin_Init_Memory               ;
+
+        JSR   Begin_Init_VBD                  ;
+
+        JSR   Begin_Init_DataStrct            ;
+
+
+*************************************************************************
+*  Begin Cyclic Event Processing                                        *
+*                                                                       *
+*  Call the House Keeping Orbit Master routine.                         *
+*                                                                       *
+*************************************************************************
+
+        JMP   Begin_Orbit_Master              ;
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*  Data used to send messages to the L15CT console screen.              *
+*                                                                       *
+*************************************************************************
+
+BlankLines    DC.B    12,$0A,$0A,$0A,$0A,$0A,$0A,$0A,$0A,$0A,$0A,$0A,$0A
+
+Hello         DC.B    50,'Level 15 Calorimeter Trigger  68k_Services  Ver: 1'
+
+BlankLn       DC.B     4,'    '
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*  Specify the symbols to Import.                                       *
+*************************************************************************
+
+        XREF   Begin_Init_Ironics,Begin_Init_Memory         ; Symbols defined
+        XREF   Begin_Init_VBD,Begin_Init_DataStrct          ; in other modules
+        XREF   Begin_Init_Processor                         ; and used in this
+                                                            ; module.
+        XREF   Begin_Orbit_Master
+        XREF   ChrStrgOut
+
+        END
+

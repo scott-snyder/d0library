@@ -1,0 +1,144 @@
+   Copying the level 2 production release to home institutions.
+
+This document describes using a command procedure written by J. Linnemann
+that is used to set up the trigger simulation portions of the level2 
+production release on nodes other than FNALD0.  Everything described here takes
+place at your home node.  
+
+First, in order for the LIBPROD procedure to set up the necessary
+logicals, the D0 libraries, LEVEL2 and LEVEL1 logicals should be available.
+If the libraries themselves are not available on your node, have the local
+D0Librarian create empty directories for them, for example, 
+D0$DISK:[D0LIBRARY.LEVEL2]
+then run GLOBAL_D0STARTUP to define the logicals.
+
+The logical D0$PROD should be defined in D0$DISK:[D0LIBRARY]D0STARTUP.COM. 
+It should be in the LNM$D0 logical name table.  
+Once D0$PROD:[D0PRODUCTION.L2PROD] exists and D0$PROD is defined in 
+D0STARTUP.COM, running D0STARTUP.COM will define the necessary logicals to 
+allow LIBPROD to work.
+
+Now create the directory structure:
+$SET DEFAULT D0$PROD:[000000]
+$CREATE/DIR D0$PROD:[D0PRODUCTION.L2PROD.NEW]
+$CREATE/DIR D0$PROD:[D0PRODUCTION.L2PROD.OLD]
+optionally,
+    $CREATE/DIR D0$PROD:[D0PRODUCTION.L2PROD.OLD.V04_13]
+    if you want to also support version 4.13; repeat for other versions
+
+Next, you need to copy over a file which tells LIBPROD what logicals to set up.
+$SET DEFAULT D0$PROD:[D0PRODUCTION.L2PROD]
+$COPY D0GS06::d0$prod:[d0production.l2prod]l2prod_package.lis *
+
+Now choose what production version(s) are desired, the choices being Vxx_yy,
+where xx_yy is one of the supported frozen versions; NEW, PREV or OLD with 
+PREV being the default for the GET_L2PROD command procedure.  See note [1] 
+to find what versions NEW, PREV and OLD are currently.
+    
+    Now set default to the directory you want to copy and run GET_L2PROD.COM  
+If this .COM isn't at your institute, copy it from FNALD0 after 
+        $LIBT/GAMMA=D0$L2BETA LEVEL2
+        $COPY D0$LEVEL2$COMMAND_PROC:GET_L2PROD.COM
+Examples:
+
+version 4.13 (for example)
+    $SET DEF d0$prod:[d0production.l2prod.old.V04_13]    
+    $@D0$LEVEL@$COMMAND_PROC:GET_L2PROD V04_13
+        usage: $LIBPROD/OLD=V04_13 L2PROD   !to set up the production logicals
+NEW version
+    $SET DEF d0$prod:[d0production.l2prod.new]    
+    $@D0$LEVEL@$COMMAND_PROC:GET_L2PROD NEW
+        usage: $LIBPROD L2PROD
+PREV version: 
+    $SET DEF d0$prod:[d0production.l2prod]    
+    $@D0$LEVEL@$COMMAND_PROC:GET_L2PROD PREV
+        usage: $LIBPROD/PREVIOUS L2PROD
+old version 
+    $SET DEF d0$prod:[d0production.l2prod.old]    
+    $@D0$LEVEL@$COMMAND_PROC:GET_L2PROD OLD
+        usage: $LIBPROD/OLD L2PROD
+
+Each version takes 40-45000 blocks.
+
+Be prepared for fake error messages when doing $LIBPROD L2PROD 
+on your node; see [2] below.  
+
+Now, set up for running just as you would on FNALDO
+
+$@D0$LEVEL2:SETUP_L2SIM
+
+
+Functions that CAN be performed with the copied version of the
+trigger simulation:  Running the standard VMS_FILTER executable 
+with a standard STP file corresponding to the type of data being
+analysed using a desired set of triggers.  Different versions
+of the STP file corresponding to different Monte Carlo or collider 
+data can be accessed using the CHANGE_VERSION procedure.  
+
+Functions that CANNOT be performed with the copied version of
+the trigger simulation: Running the debug executable, relinking
+the VMS_FILTER executable, rebuilding any STP files, or running
+TRIGPARSE and COOR_SIM.  Not being able to run TRIGPARSE or 
+COOR_SIM from the copied production version  means that those 
+functions should be performed on FNALD0.  For help with different 
+trigger lists and using the D0$CONFIGS library,
+please consult A. Boehnlein, D0TAM1::COPE.
+
+[Note 1]
+-----------------------------------
+    To find out what version number currently corresponds to PREV, NEW, or
+OLD, on FNALD0 you can:
+
+$LIBP L2PROD !(NEW)
+$@d0$level2:setup_l2sim <answer the questions>
+$SHO SYM L2_VERSION_NUM
+$SHO SYM L2_PASS_NUM
+
+You can repeat that procedure for PREV and OLD.
+$LIBP/PREVIOUS L2PROD !(PREV) 
+$LIBP/OLD L2PROD !(OLD)
+
+[Note 2]
+-----------------------------------
+Be prepared for fake error messages when doing 
+$LIBPROD L2PROD 
+on your node.  
+
+In  general, the following are harmless.
+
+%RMS-E-DNF, directory not found
+%TRACE-E-TRACEBACK, symbolic stack dump follows
+module name     routine name                     line       rel PC  abs PC
+GEN_DIR_LIST    GEN_DIR_LIST                     1566      000000C8 00006D18
+PROD_SUB        PROD_SUB                         1287      00000849 00006581
+LIBPROD         LIBPROD                           982      000001B8 000053B8
+%RMS-E-DNF, directory not found
+%TRACE-E-TRACEBACK, symbolic stack dump follows
+module name     routine name                     line       rel PC  abs PC
+GEN_DIR_LIST    GEN_DIR_LIST                     1566      000000C8 00006D18
+PROD_SUB        PROD_SUB                         1287      00000849 00006581
+LIBPROD         LIBPROD                           982      000001B8 000053B8>>
+
+They indicate that you do not subscribe to some of the libraries used to build the
+full level 2 production release.  But you don't need those full libraries
+because GET_L2PROD extracts all you need.
+
+In addition, if you actually try to look at files with full logical names, you 
+will get further alarming messages from
+
+$DIR D0$LEVEL2$DOCS:*.DOC
+Instead use 
+$DIR PROD$L2PROD:*.DOC; not a specific, but less alarming.  Fear not.  The files
+are correctly found from inside the executables, and you event found them
+yourself.
+
+If you try, $DIR D0$LEVEL2$DOCS:*.DOC gives you
+
+Directory $1$DUA3:[D0PROD.D0PRODUCTION.L2PROD.OLD.V04_13]
+%DIRECT-E-OPENIN, error opening PROD$L2PROD$ROOT:[LEVEL2.DOCS]*.DOC;* as input
+-RMS-F-DEV, error in device name or inappropriate device type for operation
+L2_ETACUT.DOC;1     L2_MIN_BIAS.DOC;1
+ 
+  The problem is that libprod also tries to direct you to a directrory 
+structure under D0$PROD:[D0PRODUCTION.L2PROD] which does  not exist.  It would like you 
+to have [.l2prod.level2.docs] etc.  

@@ -1,0 +1,101 @@
+
+IBS_Dump_Event       IDNT                     ; Title of  IBS Dump Event
+                                              ;   program section.
+
+      SECTION   Sect_IBS_Dump_Event,4,C       ; Declare a noncommon code
+                                              ; section.  Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   IBS Dump Event                                     Rev.  10-MAY-1994  *
+*                                                                         *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D3, D4 and A3.     *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            WrIO:  Write bit(s) to the IRONICS I/O card                  *
+*                                                                         *
+***************************************************************************
+
+WrIO    MACRO                         ; Write byte to Ironics I/O Port.
+        Not.B   \1                    ; Complement data byte \1.
+        Move.B  \1,\2                 ; Move to Ironics port at adrs \2.
+        Not.B   \1                    ; Complement data byte \1 to restore it.
+        ENDM
+
+
+*************************************************************************
+*                                                                       *
+*  OK, we are  NOT  going to readout this event.  So:                   *
+*             ----                                                      *
+*                                                                       *
+*  First clear the  Readout Control  paddle card and then clear the     *
+*  Path Select  paddle card.                                            *
+*                                                                       *
+**************************************************************************
+
+Begin_IBS_Dump_Event:
+
+      INCLUDE   Ser68_Clear_RC_and_PS_1.Include    ; Get the include file that
+                                                   ; clears the RC and PS P2's.
+
+
+*************************************************************************
+*                                                                       *
+*   Send an  "i"  character to the MVME135 console to indicate the      *
+*   conclusion of processing for an  IBS Dump  event.                   *
+*                                                                       *
+*************************************************************************
+
+
+        Move.L   #$00000069,-(A7)          ; Push the character "i" to the
+        JSR      SendCharP1                ; LSByte of a longword on the stack.
+                                           ; Call the routine to send it out.
+
+
+*************************************************************************
+*                                                                       *
+*  Now that both of these paddle card are cleared to get them ready     *
+*  for the next trigger,  JMP to the top of the House Keeping Orbit.    *
+*                                                                       *
+*************************************************************************
+
+        JMP      Begin_Orbit_Master         ; Jump to the start of Orbit Master
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section                                                    *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_IBS_Dump_Event                    ; Symbol exported to
+                                                     ; other modules.
+
+      XREF   Readout_Ctrl_Port_4                     ; Symbols used in this
+      XREF   Path_Select_Port_3                      ; module but defined in
+      XREF   Begin_Orbit_Master                      ; another program module.
+      XREF   Which_214_Is_Load_Buf
+      XREF   State_of_RC_FE_Busy
+      XREF   Flag_CLR
+      XREF   Flag_SET
+      XREF   SendCharP1
+
+
+      END
+

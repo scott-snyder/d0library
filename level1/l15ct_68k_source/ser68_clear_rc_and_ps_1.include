@@ -1,0 +1,109 @@
+
+*************************************************************************
+*                                                                       *
+*  This is the beginning of the  Clear_Read_Control_Path_Select.Include *
+*  include file.                                                        *
+*                                                                       *
+*  This is the Include File that contains the routine to Clear the      *
+*  Readout Control P2 Paddle Card and the Path Select P2 Paddle Card    *
+*  to get them ready for the next event.                                *
+*                                                                       *
+*  First clear the Readout Control paddle card.                         *
+*                                                                       *
+*   Recall the layout of Port #4 of the Readout Control Ironics:        *
+*                                                                       *
+*     Port #4  All Bits are Outputs.                                    *
+*                Pulsing Ironics bit 0 high clears the Readout Control  *
+*                  paddle board.                                        *
+*                Setting Ironics bit 1 high or low sets the R.C.        *
+*                  Front-End Busy high or low.                          *
+*                Ironics bit 4 controls the #1 MVME214                  *
+*                  high-->enables VME  low-->enables VSB                *
+*                Ironics bit 5 controls the #2 MVME214                  *
+*                  high-->enables VME  low-->enables VSB                *
+*                Bits 2,3 and 6,7 are not used.                         *
+*                                                                       *
+*   Use the software flags  Which_214_Is_Load_Buf  and                  *
+*   State_of_RC_FE_Busy  to build the proper new value for Readout      *
+*   Control Ironics Port #4.                                            *
+*                                                                       *
+**************************************************************************
+
+
+     IF.B  Which_214_Is_Load_Buf <EQ> #Flag_SET  THEN.S   ; The Flag is SET so,
+                                                          ; MVME214  #2 is the
+                                                          ; current Load Buffer.
+
+           IF.B  State_of_RC_FE_Busy <EQ> #Flag_CLR  THEN.S   ; Test to see if
+                                                              ; RC FE is Busy ?
+
+               Move.B   #%11011101,D4          ; MVME214 #2 is the Load Buf.
+               WrIO     D4,Readout_Ctrl_Port_4 ; R.C. Front-End is NOT set Busy.
+                                               ; #1 214 is set to VME i.e. Read.
+               Move.B   #%11011100,D4          ; #2 214 is set to VSB i.e. Load.
+               WrIO     D4,Readout_Ctrl_Port_4 ; Pulse bit 0 high, and back Low.
+
+           ELSE.S
+
+               Move.B   #%11011111,D4          ; MVME214 #2 is the Load Buf.
+               WrIO     D4,Readout_Ctrl_Port_4 ; R.C. Front-End IS set Busy.
+                                               ; #1 214 is set to VME i.e. Read.
+               Move.B   #%11011110,D4          ; #2 214 is set to VSB i.e. Load.
+               WrIO     D4,Readout_Ctrl_Port_4 ; Pulse bit 0 high, and back Low.
+
+           ENDI
+
+     ELSE.S     ; The Flag is NOT set so MVME214  #1 is the current Load Buffer.
+
+           IF.B  State_of_RC_FE_Busy <EQ> #Flag_CLR  THEN.S   ; Test to see if
+                                                              ; RC FE is Busy ?
+
+               Move.B   #%11101101,D4          ; MVME214 #1 is the Load Buf.
+               WrIO     D4,Readout_Ctrl_Port_4 ; R.C. Front-End is NOT set Busy.
+                                               ; #1 214 is set to VSB i.e. Load.
+               Move.B   #%11101100,D4          ; #2 214 is set to VME i.e. Read.
+               WrIO     D4,Readout_Ctrl_Port_4 ; Pulse bit 0 high, and back Low.
+
+           ELSE.S
+
+               Move.B   #%11101111,D4          ; MVME214 #1 is the Load Buf.
+               WrIO     D4,Readout_Ctrl_Port_4 ; R.C. Front-End IS set Busy.
+                                               ; #1 214 is set to VSB i.e. Load.
+               Move.B   #%11101110,D4          ; #2 214 is set to VME i.e. Read.
+               WrIO     D4,Readout_Ctrl_Port_4 ; Pulse bit 0 high, and back Low.
+
+           ENDI
+     ENDI
+
+
+*************************************************************************
+*                                                                       *
+*  OK, now we are going to Clear the Path Select paddle card.           *
+*                                                                       *
+*  When the Path Select paddle card is cleared it will stop asserting   *
+*  the hardware generated Front-End Busy which it has been sending      *
+*  since it received this most recent L1 Trigger.                       *
+*                                                                       *
+*  Recall the layout of the Path Select P2 Ironics Port #3              *
+*                                                                       *
+*     All bits are Outputs. Bits 0:6 are not used.                      *
+*                           Bit 7 when pulsed high clears the 16RA8     *
+*                             Path Select PAL.  During the time         *
+*                             that Bit 7 is pulsed high the L15 Cal     *
+*                             Trig is forced Front-End_Busy.            *
+*                                                                       *
+*************************************************************************
+
+        Move.B   #$FF,D4                    ; Bit #7 Port 3 pulsed high to
+        WrIO     D4,Path_Select_Port_3      ; clear the Path Select P2.
+
+        Move.B   #$7F,D4                    ; Bit #7 Port 3 set low for
+        WrIO     D4,Path_Select_Port_3      ; normal operation.
+
+*************************************************************************
+*                                                                       *
+*  This is the end of the  Clear_Read_Control_Path_Select.Include       *
+*  include file.                                                        *
+*                                                                       *
+*************************************************************************
+

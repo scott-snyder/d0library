@@ -1,0 +1,1394 @@
+  Michigan State University,                          Revised  14-JUL-1993 
+
+              +-------------------------------------------------+
+              |    DESCRIPTION OF THE COMMUNICATION STANDARD    |
+              |                  BETWEEN COOR                   |
+              |        AND THE TRIGGER CONTROL SOFTWARE         |
+              +-------------------------------------------------+
+
+                                B.Gibbard, BNL.
+                          D.Edmunds, P.Laurens, MSU.
+
+
+1.  DECNET CONNECTIONS BETWEEN COOR
+    AND THE TRIGGER CONTROL SOFTWARE
+
+2.  REQUEST MESSAGE GENERAL FORMAT:
+
+3.  ACKNOWLEDGE MESSAGE FORMAT:
+
+4.  INITIALIZE:
+
+    EXPLICIT REQUEST                                           INITIAL
+    IMPLICIT REQUEST
+    STATE AFTER INITIALIZATION
+
+5.  STOP:                                                         STOP
+
+6.  PAUSE/RESUME and BEGIN/END RUN:                                   
+
+       a) PAUSE/RESUME:                                          PAUSE
+                                                                RESUME         
+       b) BEGIN/END RUN:                                      WRT_HOST  BEG_RUN
+                                                              WRT_HOST  END_RUN
+       c) synchronization with begin/end run:                 WRT_HOST  SYNCHRO
+                                                                               
+7.  SET SPECIFIC TRIGGER:
+
+       a)  AND-OR Input Terms Programming:                    SPECTRIG ANDORREQ
+       b)  Mapping of Specific Trigger                        SPECTRIG STARTDGT
+           versus Start Digitize:
+       c)  Mapping of Front End Busy                          SPECTRIG  FEBZDIS
+           versus Disable Specific Trigger:
+       d)  Global Enabling of Specific Trigger:               SPECTRIG   ENABLE
+       e)  Enable Obeying Crate Busy                          SPECTRIG OBEYBUSY
+           Disabling Requests:
+       f)  Enable Obeying Second Level Supervisor             SPECTRIG OBEYLEV2
+           Disable Requests:
+       g)  Enable Prescaling and Set Ratio:                   SPECTRIG PRESCALE
+       h) Enable Auto disabling of Specific Trigger:          SPECTRIG  AUTODIS
+       i)  Reenable Auto-disabled Specific Trigger:           SPECTRIG REENABLE
+       j) Remove a Specific Trigger                           SPECTRIG     FREE
+          from the list of allocated resources:
+       k)  Messages Associated with the Prescaler Tunning Feature.
+          k.1)  Load Specific Triggers Readout Times          SPECTRIG  RD_TIME
+          k.2) Desired Usage of Acquisition Bandwidth         AUTOTUNE ACQBANDW
+          k.3) Auto-Prescale Set of Specific Triggers         SPECTRIG AUTOTUNE
+       l) Clear Specific Trigger Scalers                      SPECTRIG RESETSCL
+       m) Level 1.5
+          m.1) Identifying Specific Trigger for Level 1.5     SPECTRIG L15_TYPE
+          m.2) Programming Requirements on Level 1.5 Term     SPECTRIG L15_TERM
+
+8.  SET GEOGRAPHIC SECTION:
+
+    Turn off start digitize signal:                           GEO_SECT DGTZ_OFF
+
+9. LOAD REFERENCE SET
+
+    a) definition
+    b) vocabulary
+    c) TRD trigger candidate list
+    d) most likely properties of reference sets
+    e) wish list
+    f) syntax definition                                        REFSET     EMET
+                                                                REFSET   HDVETO
+                                                                REFSET    TOTET
+    g) Large Tile Threshold Reference Sets                      REFSET LRG_TILE
+    h) examples of range specification
+
+10. EXCLUDE ONE TRIGGER TOWER FROM ALL CONTRIBUTION:
+                                                               EXCLUDE  EMTOWER
+                                                               EXCLUDE  HDTOWER
+11.  LOAD GLOBAL THRESHOLD:
+
+       a)  EM Et Threshold:                                   THRESHLD  EMETSUM
+       b)  HD Et Threshold:                                   THRESHLD  HDETSUM
+       c)  TOT Et Threshold:                                  THRESHLD TOTETSUM
+       d) Second Energy Lookup Thresholds.                    THRESHLD  EML2SUM
+                                                              THRESHLD  HDL2SUM
+                                                              THRESHLD TOTL2SUM
+       e)  MISS-Pt-THRES:                                     THRESHLD MISPTSUM
+       f)  EM Et Trigger Tower Count:                         THRESHLD  EMETCNT
+       g)  Total Et Trigger Tower Count:                      THRESHLD TOTETCNT
+
+12.  SPECIFIC TRIGGERS VERSUS REFERENCE SETS IN LEVEL 1 JET LIST TO LEVEL 2
+
+       a)  EM Et Jet List                                     ST_VS_RS  EM_LIST
+       b)  TOT Et Jet List                                    ST_VS_RS TOT_LIST
+       c)  Large Tile Jet List                                ST_VS_RS LRG_TILE
+
+13. DOWNLOAD EVENT IN CALORIMETER TRIGGER
+
+       a) Download new file                                   CAL_TRIG USE_SIMU
+       b) Return to normal mode                               CAL_TIRG USE_REAL
+
+
+1.  DECNET CONNECTIONS BETWEEN COOR AND THE TRIGGER CONTROL SOFTWARE
+
+    0) COOR  and the  Trigger   Control  Software use   "established  links" to
+       communicate.   Connections  must be  first  explicitly  opened, then any
+       number of  messages can be  exchanged.  The links  should be explicitely
+       closed by COOR when communication is finished.
+
+       The communication  consist of Request Messages  from COOR to the Trigger
+       Control  Software  and of   Acknowledgement  Messages  from  the Trigger
+       Control Software to COOR.
+
+       Only reply  messages solicited by  a Request Message  from COOR are sent
+       from the Trigger Control Software  to COOR. No asynchronous messages are
+       sent by the Trigger Control Software to COOR.
+
+    PROTOCOL FOR OPENING THE CONNECTION
+
+    1) the "Request Message Link" is first initiated by the Trigger Control
+       Software using ELNCON's ELN_ACCON routine.
+       This is the normal waiting state before connections are made.
+       The advertized object name is "COOR_REQ".
+
+    2) COOR must  then connect to  this object  using  ELNCON's NETCON routine,
+       specifying its username and password along with the node name.
+
+       COOR's username is  "COOR", password  "PASSWORD". At D0 Hall COOR should
+       thus give D0HTCC"COOR PASSWORD" to  NETCON as a paramter for the name of
+       the ELN node. The  authorization service is  currently not checking this
+       field but will be turned on in the  close future in order to protect the
+       Trigger Control Node Disk and response time.
+
+    3) the "Acknowledge Message Link" is then initiated by the Trigger Control
+       Software using ELNCON's ELN_ACCON routine.
+       The advertized object name is "COOR_ACK"
+
+    4) COOR must  then connect to  this object  using  ELNCON's NETCON routine,
+       specifying its username and password along with the node name.
+
+    PROTOCOL FOR EXCHANGING MESSAGES
+
+    5) The Trigger Control Software then waits for a message to be received on
+       the Request Message Link (ELNCON's ELN_GETNEW).
+
+       If a Request  Message is not  received with a  correct status at step #5
+       and 6, the Trigger Control Software  immediately returns to step 1 (e.g.
+       if the link is closed without explicit exit message).
+
+    6) On reception of  a message sent by  COOR (ELNCON's  SNDNEW), the Trigger
+       Control Software  satisfies internal  synchronization protocol before it
+       parses the Request and executes the necessary programming actions.
+
+       Note  that no  additional   messages from  COOR to  the  Trigger Control
+       Software may be sent while a Request is being serviced.
+
+    7) After  completing the  requested  action, the  Trigger  Control Software
+       sends a reply on the Acknowledge  Message Link (ELNCON's ELN_SNDNEW) and
+       returns to step #5.
+
+       If an Acknowledge  Message is not sent with a correct status at step #7,
+       the Trigger Control Software immediately returns to step #1 (e.g. if the
+       Acknowledge Link is closed before the reply is sent).
+
+    8) COOR must be waiting  for this reply (ELNCON's  GETNEW) or must have set
+       an AST sub process to receive the Acknowledgement (ELNCON's ESTAT).
+
+       COOR can  then send as  many messages as  desired on  the opened Request
+       Message Link starting at step #6
+
+    PROTOCOL FOR CLOSING THE CONNECTION
+
+    9) COOR should  initiate the  closing of  the links to  the Trigger Control
+       Software with the message:
+              12121212     EXIT
+       char # 1......8 10....17
+
+   10) The  Trigger Control  Software  will reply  with a  specific Acknowledge
+       message:
+              43434343   ACKNOW 12121212       OK     EXIT
+       char # 1......8 10....17 19....26 28....35 37....44
+
+   11) The Trigger Control Software  disconnect the links (ELNCON's ELN_DISCON)
+       and  returns to  step #1.  COOR should  also  close the  links (ELNCON's
+       DISCON) at reception of the Acknowledgement.
+
+
+2.  REQUEST MESSAGE GENERAL FORMAT:
+
+         01234567 SPECTRIG REENABLE *************************** . . .****
+         Message  Object   Action   description of Items to Modify
+         Number   Type     Type     (further messages may include file name(s))
+char #:  1......8 10....17 19....26 28......................... . . .1122
+         \-------------------------/\-------------------------- . . .---/
+         Fixed Format                Variable Format
+         Fixed Length                Fixed Length
+
+    a) the total  length of the Request  Messages is fixed  at 1122 characters.
+       Shorter messages must be filled with trailing spaces.
+
+    b) all keywords  in the fixed format  section of the  messages are always 8
+       character long and right justified (i.e. include the necessary number of
+       leading space characters).
+
+    c) separation characters (char# 9, 18 and 27) must be ASCII space (code 32)
+
+    d) some  messages  accept  NEGATIVE  item  numbers  implying  NEGATING  the
+       requested action.
+
+    e) as  many   individual items  as  desired  can be  specified  in a single
+       Request.  The  number of  items is  only  limited by  the  fixed message
+       length.
+
+    f) optional spaces are  ALLOWED anywhere in the  message list except within
+       keywords and between  digits of a same number  (in the limit of rule g).
+       Spaces are NOT REQUIRED before or after parenthesis or minus signs.
+       ex: 13( -23 45  ), 13 ( -23 45 ),  13 ( - 23 45 )  are all equivalent to
+       13(-23 45).
+
+    g) As soon as the  Trigger Control Software  encounters 8 consecutive space
+       characters in  the variable  format  section of the  Request Message, it
+       considers the rest of the string as empty and stops parsing it.
+
+
+3.  ACKNOWLEDGE MESSAGE FORMAT:
+
+         01234567   ACKNOW ABCDEF01      BAD    PARAM ********* . . .****
+         Message  Message  Request  Final    Supplem  Auxiliary String
+         Number   Type     Number   Status   Info     (UNUSED)
+char #:  1......8 10....17 19....26 28....35 37....44 46....... . . ..561
+         \-------------------------------------------/\-------- . . .---/
+         Fixed Format                                  Variable Format
+         Fixed Length                                  Fixed Length
+
+    a) the total length of the Acknowledge Messages is fixed at 561 characters.
+       Shorter messages must be filled with trailing spaces.
+
+    b) all keywords  in the fixed format  section of the  messages are always 8
+       characters long and  right justified (i.e.  include the necessary number
+       of leading space characters).
+
+    c)  parsing the  Final  Status Field  for the  keyword OK  or BAD is always
+       sufficient  to  know  whether  the  action  requested  was  successfully
+       performed.
+
+    LIST OF POSSIBLE ACKNOWLEDGEMENT MESSAGES
+
+             56789ABC   ACKNOW 12345678       OK     DONE
+    Request legal and understood and action successfully performed.
+
+             56789ABC   ACKNOW 12345678       OK NOCHANGE
+    Request legal and understood and action successfully performed, but warning
+    that the  requested configuration  already existed at  least for one of the
+    specified  items  (e.g.  Request to  disable an  already  disabled Specific
+    Trigger).
+
+             56789ABC   ACKNOW 12345678      BAD  UNKNOWN
+    Unrecognized keyword(s) parsed in the fixed format section of the Request
+    Message.
+
+             56789ABC   ACKNOW 12345678      BAD   FORMAT
+    Illegal format parsed in the variable format section of the Request
+    Message. (e.g. unclosed parenthesis)
+
+             56789ABC   ACKNOW 12345678      BAD    PARAM
+    ILLEGAL parameter values parsed in the variable format section of the
+    Request Message (e.g. illegal minus sign)
+
+             56789ABC   ACKNOW 12345678      BAD    RANGE
+    Attempt to  use  unavailable  resources (i.e.  not in  COOR's configuration
+    file).
+
+             56789ABC   ACKNOW 12345678      BAD  FAILURE
+    A Failure was detected while executing the requested action, the
+    corresponding resource is unusable and should be removed from the
+    configuration file until it is repaired.
+    A Significant Event Message will also be sent to the D0 Alarm System with
+    more details about the failing hardware (not yet implemented in July 89).
+
+4.  INITIALIZE:
+
+    EXPLICIT REQUEST
+
+             12345678  INITIAL
+
+    This command will place  the First Level Trigger  in its operational state.
+The following is a  description of the state of the  Trigger Framework after an
+initialize message.
+
+    The following items will remain true until a stop message is sent by COOR.
+
+    a) initialized for  normal operation of the  Trigger Framework all internal
+       timing and control registers not accessed by COOR.
+
+    b) synchronize the  internal double buffering of  the Trigger Framework and
+       initialize  the data block  builder to be  ready to  build and send data
+       blocks.
+
+    The following items will remain true until a message from COOR modifies the
+state of the trigger.
+
+    c) globally  ensure that no Specific  Trigger is  enabled to send any start
+       digitize signal nor build any data block.
+
+    d) all  global  scalers  reset to  zero,  i.e  scalers not  associated with
+       individual Specific Triggers. (e.g. Trigger Number Scaler)
+
+
+    IMPLICIT REQUEST
+
+    COOR implicitly  allocates a new Specific  Trigger by mentioning it for the
+first time in a message. The Trigger  Control Software will place this Specific
+Trigger in a  defined initial  state, before  acting on it  accordingly to this
+Request Message from COOR.
+
+    Once allocated, COOR will have full control over a Specific Trigger until a
+release  message for this  Specific Trigger  or a global  initialize message is
+sent to the Trigger Control Software.
+
+    Unallocated Specific Triggers are  left for the Trigger Control Software to
+privately use  to test the  operation of the  allocated  Specific Triggers. The
+Trigger Control Software might utilize  spare resources and run active tests in
+order  to  facilitate  and  quicken the   detection and   diagnosis of hardware
+problems.
+
+    It is however guaranteed that no start digitizing signal or data block will
+ever be sent by Specific Triggers in test mode. It is also guaranteed that COOR
+will  never be  denied the  use of  a  Specific  Trigger that  is advertized as
+available  in  the   configuration  file. In a  case  were the  Trigger Control
+Software is privately using a Specific  Trigger at the time COOR claims it, the
+Trigger  Control Software  would immediately  allocate the  Specific Trigger to
+COOR, initialize it, and  notify the active test  process of the new allocation
+of this Specific Trigger.
+
+    STATE AFTER INITIALIZATION
+
+    A definition of the  initial state of a Specific  Trigger at the time it is
+allocated  to  COOR  follows.  This  state is  not  guaranteed  for unallocated
+Specific Triggers.
+
+    a) the  Specific  Trigger  will  have its  Andor  Input Terms  requirements
+       programmed in a manner guaranteed not to be met.
+
+    b) The Specific Trigger is globally  disabled
+
+    c) The  Specific  Trigger Firing  vs. Start  Digitizing  Geographic Section
+       Lookup  Table is  programmed in  such a way  that this  Specific Trigger
+       induces  the  digitization  of none  of the   geographic  sections. This
+       includes geographic section #31 (i.e. no Start Data Block).
+
+    d) The  Geographic  Section  Front-end  Busy vs.  Disable  Specific Trigger
+       Lookup Table is  programmed in such a way that  this Specific Trigger is
+       disabled by none of the geographic  section front-end busy signals. This
+       includes  that it  will  not be  requested  disabled  by the  Data Block
+       Builder Full signal.
+
+    e) the prescaler is disabled
+
+    f) the autodisable feature is disabled
+
+    g) The decision made by  the Geographic Section  Front-end Busy vs. Disable
+       Specific Trigger Lookup Table is obeyed
+
+    h) The level 2 disable signal is not obeyed
+
+    i) Specific Trigger Fired Scaler is zeroed, Specific Trigger Enabled Scaler
+       is also zeroed. Both scaler will  remain zero since the Specific Trigger
+       is disabled.
+
+    j) each scaler  associated to a  source of veto will be  zeroed, prescaler,
+       autodisable,  front-end busy, level  2.0 will not  increment. the global
+       disable veto counter will start incrementing.
+
+    k) the Specific Trigger  Andor Fired Scaler is  zeroed and will remain zero
+       because the Andor Input Term condition is guaranteed not to be met.
+
+
+5.  STOP:
+
+             9ABCDEF0     STOP
+
+    This characterizes  the end of a run, COOR  releases all resources. It will
+take a new INITIALIZE message for COOR to regain control of the trigger.
+
+6.  PAUSE/RESUME and BEGIN/END RUN commands:
+
+       a) PAUSE/RESUME:
+
+             9ABCDEF0    PAUSE
+             9ABCDEF0   RESUME
+
+    If a set of items  need to be  modified all at the SAME  TIME for different
+objects and WHILE the  experiment clock and beam is  running, COOR will need to
+force the Trigger  Framework to pause, then modify  the resources, and then let
+the Trigger resume its operation. No  simultaneity can otherwise be guaranteed.
+Even within a  single  message, as soon as  more than one  IO to the trigger is
+neccessary   to  execute  the  action(s)   requested,  the  action  will not be
+simultaneous.
+
+    At reception of a Pause message, all 32 Specific Triggers will stop firing,
+and all Data  Block  Building Cycles  (currently in  progress or  waiting) will
+naturally complete. When a Resume message is received, all 32 Specific Triggers
+are simultaneously  exposed to the  next beam crossings  according to their new
+programming. All subsequent First  Level Data Blocks will thus also reflect the
+updated programming of the First Level Trigger.
+
+
+       b) BEGIN/END RUN, PAUSE/RESUME RUN, BEGIN/END STORE:
+
+             12345678 WRT_HOST  BEG_RUN directory:file_name_with_run_number
+             12345678 WRT_HOST  END_RUN directory:file_name_with_run_number
+             12345678 WRT_HOST PAUS_RUN directory:file_name_with_run_number
+             12345678 WRT_HOST RESU_RUN directory:file_name_with_run_number
+             12345678 WRT_HOST BEG_STOR directory:file_name_with_run_number
+             12345678 WRT_HOST END_STOR directory:file_name_with_run_number
+
+    All of these commands request TCC to open and write a file on the D0::
+host cluster containinig scaler count information. The framework must have
+already been placed in a PAUSE state for this command to be accepted by
+TCC. This is a necessary requirement for proper access to the requested
+data.
+
+    COOR will send TCC a complete file specificataion describing a
+directory on the D0 cluster and a complete file name. TCC will take care of
+the host decnet address field. By convention, the file name should include
+a description of the file type (e.g. 'BEGIN_RUN') and the run number.
+System Logical defined on the D0 cluster are accpetable for the directory
+name. 
+
+
+    Upon reception of a begin or end run message (or Pause/Resume Run, or
+Begin/End Store message),  TCC will initiate the procedure for performing
+the operation and immediately return an acknowlegement message to COOR. The
+acknowledgement will be returned to COOR before the file has been written
+or even opened.
+
+             56789ABC   ACKNOW 12345678       OK INITIATE
+
+    If the request is sent to TCC while the framework is not in a paused
+state, the following acknowledgement message is returned.
+
+             56789ABC   ACKNOW 12345678      BAD RUNGOING 
+
+
+       c) synchronization with begin/end run:
+
+             12345678 WRT_HOST  SYNCHRO
+
+    The "SYNCHRO" synchronization message provides the means to verify the
+completion status of the begin/end run requests. 
+
+    After the begin/end run request (or Pause/Resume Run, or Begin/End
+Store) has been initiated by the messages described in the previous
+paragraph, TCC will open the requested file on the host cluster over
+DECnet, read out and format scaler counts out of the Level 1 hardware, and
+then write the file. This procedure may potentially take several seconds,
+especially during the file opening step.
+
+    The immediate acknowledgement feature described in the previous
+paragraph has the advantage of releasing the ELNCON communication
+subprocess of COOR, and leaving it available for communication with Level 2.  
+
+    However further activity from COOR with Level 1 (e.g. resume the run)
+and the luminosity server (e.g read the file) might depend on the
+completion of the writing of the file to the host. COOR thus needs a
+mechanism to verify that the operation is completed before initiating
+subsequent activities.
+
+    Upon reception of a SYNCHRO message from COOR, TCC will check 
+for the completion status of the previous begin/end run (or Pause/Resume
+Run, or Begin/End Store) request. If the  procedure is not yet completed
+TCC will wait for up to ten more seconds. 
+
+    If (or when) the procedure is successfully completed, TCC will return
+the following acknowledgement:
+
+             56789ABC   ACKNOW 12345678       OK     DONE
+
+    If the procedure failed while opening the file on the host, TCC will
+return the following acknowledgement:
+
+             56789ABC   ACKNOW 12345678      BAD     OPEN ELN_message_string
+
+    If the procedure failed while collecting the Level 1 data (hardware
+failure), TCC will return the following acknowledgement:
+
+             56789ABC   ACKNOW 12345678      BAD     DATA 
+
+    If the procedure failed while writing a record to the file on the host,
+TCC will return the following acknowledgement:
+
+             56789ABC   ACKNOW 12345678      BAD    WRITE ELN_message_string
+
+    If the procedure failed while closing the file on the host, TCC will
+return the following acknowledgement:
+
+             56789ABC   ACKNOW 12345678      BAD    CLOSE ELN_message_string
+
+    If the procedure did not complete before the timeout period, TCC will 
+abort it and return the following acknowledgement:
+
+             56789ABC   ACKNOW 12345678      BAD  TIMEOUT 
+
+
+7.  SET SPECIFIC TRIGGER:
+
+       a)  AND-OR Input Terms Programming:
+
+             01234567 SPECTRIG ANDORREQ 21(1 -4 -125) 25(13 -54 225)
+
+    The specified  Andor Input Terms in  the parenthesis  are to be used in the
+decision   made by  the  Specific   Trigger  number  specified  in front of the
+parenthesis. A POSITIVE  NUMBER means that the  Andor Input Term is REQUIRED to
+be ASSERTED in the Andor Input  Network, a NEGATIVE number means that the Andor
+Input Term is REQUIRED to be NEGATED.
+
+    In each list, all unspecified Andor  Input Terms will be programmed so that
+they do not participate in this Specific Trigger decision.
+
+    All unspecified Specific Triggers are not modified.
+
+    note: in  order to remove  one Andor Input  Term from the  Specific Trigger
+configuration,  it is  necessary to  re-specify the  complete  list omiting the
+Andor Input Term to remove.
+
+       b)  Mapping of Specific Trigger versus Start Digitize:
+
+             01234567 SPECTRIG STARTDGT 21(5 7 24 31) 25(3 5 22)
+
+    All  Geographic Sections  specified inside  the  parenthesis will receive a
+Start  Digitization  Signal  after a  successful  trigger  decision made by the
+Specific Trigger specified with the number preceding the parenthesis.
+
+    In each list, all unspecifed  geographic sections will be programmed not to
+receive a start digitize from this Specific Trigger.
+
+    All unspecified Specific Triggers are not modified.
+
+    This command does not accept negative numbers.
+
+    note: in  order to  remove  all  sections from  the list,  an empty pair of
+parenthesis must be given after the Specific Trigger number.
+
+       c)  Mapping of Front End Busy versus Disable Specific Trigger:
+
+             01234567 SPECTRIG  FEBZDIS 17(6 23 26 13)
+
+    The Specific Trigger specified by  the number preceding the parenthesis may
+be disabled by any of the  Front-End Busy Signals  from the Geographic Sections
+specified inside the parenthesis.
+
+    In each list, all unspecified Geographic Sections will be programmed not to
+disable this Specific Trigger.
+
+    This command does not accept negative numbers.
+
+    Note: The crate busy enable mask must also be set for a Specific Trigger to
+obey the Geographic Section Busy signal (see item 7e).
+
+       d)  Global Enabling of Specific Trigger:
+
+             DEF01234 SPECTRIG   ENABLE 4 23 -27
+
+    A Specific  Trigger  specified  with a  positive number  will be enabled to
+operate normally and will fire as soon as the Programmed and-or input terms are
+satisfied  if  none of  the  enabled  sources  of  disabling is  asserted (e.g.
+Front-End Busy, 2nd Level, Autodisable...).
+
+    A Specific Trigger  specified with a negative  number will be programmed to
+be disabled from firing.
+
+    All unspecified Specific Triggers are not modified.
+
+       e)  Enable Obeying Crate Busy Disabling Requests:
+
+             01234567 SPECTRIG OBEYBUSY 12 23 -5
+
+    A Specific Trigger  specified with a positive  number will be programmed to
+obey    the      Front-End    Busy     disable    signal  that comes out of the
+front-end-busy-vs-disable-specific-trigger   lookup  memory. A Specific Trigger
+specified with a negative number will be programmed not to pay attention to the
+output from that look up memory.
+
+    All unspecified Specific Triggers are not modified.
+
+       f)  Enable Obeying Second Level Supervisor Disable Requests:
+
+             01234567 SPECTRIG OBEYLEV2 12 -7
+
+    A Specific Trigger  specified with a positive  number will be programmed to
+obey the  all-nodes-in-queue-are-busy  disable signal  coming directly from the
+Level 2 Supervisor. A Specific Trigger specified with a negative number will be
+programmed   not to  pay   attention to  the  signal  coming  from  the Level 2
+Supervisor.
+
+    All unspecified Specific Triggers are not modified.
+
+       g)  Enable Prescaling and Set Ratio:
+
+             01234567 SPECTRIG PRESCALE 23(24583) 5(17)
+
+    The Specific Trigger specified by the number preceding the parenthesis will
+be set with the prescale ratio specified inside the parenthesis. (maximum ratio
+is 16777215)
+
+    An empty  pair of   parenthesis or a  prescale  ratio of 1  will remove the
+prescaling feature.
+
+    All unspecified Specific Triggers are not modified.
+
+    This command does not accept negative numbers.
+
+       h) Enable Auto disabling of Specific Trigger:
+
+             01234567 SPECTRIG  AUTODIS 12 -7
+
+    A Specific Trigger  specified with a positive  number will be programmed to
+be  automatically disabled  after firing. A  Specific  Trigger specified with a
+negative number will be programmed to remove the auto-disable feature.
+
+     SPECTRIG  REENABLE is  the  command  necessary  to reset  the auto-disable
+flip-flop once a Specific Trigger programmed with autodisable has fired.
+
+    All unspecified Specific Triggers are not modified.
+
+       i)  Reenable Auto-disabled Specific Trigger:
+
+             DEF01234 SPECTRIG REENABLE 28 13
+
+    All Specific Triggers specified will be reenabled and will be ready to fire
+only once more if they have been programmed to be automatically disabled.
+
+    This command does not accept negative numbers.
+
+    All unspecified Specific Triggers are not modified.
+
+       j) Remove a Specific Trigger from the list of allocated resources:
+
+             01234567 SPECTRIG     FREE 23 24
+
+    This means that COOR will stop using  the specified Specific Triggers which
+thus may   (should?) be  used by  D0TCC to  perform  the best  possible trigger
+integrity tests. COOR can start using  again any one of these Specific Triggers
+at any time, it will be automatically reinitialized as soon as COOR mentions it
+again in a message.
+
+    This command does not accept negative numbers.
+
+
+       k)  Messages Associated with the Prescaler Tunning Feature.
+
+                k.1)  Load Specific Triggers Readout Times
+
+             01234567 SPECTRIG  RD_TIME 0 (30) 1(250) 4(300)
+
+    The  readout time  specified in  milliseconds  inside  parenthesis is to be
+associated with the Specific Trigger  specified with the number in front of the
+parenthesis. The allowed range is 0 to 10000 ( 0-10 seconds ).
+
+    No  modification is made at  this time to  the programming  of any Specific
+Trigger.  The   parameters  given here  will  only be  used  when a request for
+auto-prescaling specific triggers is received.
+
+    The  default  value for a  newly  allocated   specific  trigger remains 100
+milliseconds untill explicitly modified.
+
+    All unspecified specific triggers are not modified.
+
+    This command does not accept negative numbers.
+
+
+                k.2) Desired Usage of Acquisition Bandwidth
+
+             01234567 AUTOTUNE ACQBANDW 75
+
+    The  number  specified in  the  message  represents  the  percentage of the
+acquisition  bandwidth that the  Trigger Control  Software should consider as a
+target when  auto-prescaling a set of  Specific  Triggers. The allowed range is
+from 1 to 100%.
+
+    No  modification is made at  this time to  the programming  of any Specific
+Trigger.  The   parameter  given  here  will  only be  used  when a request for
+auto-prescaling specific triggers is received.
+
+    The default value after an  initialize framework message remains 50% of the
+acquisition bandwidth untill explicitly modified.
+
+    This command does not accept negative numbers.
+
+
+                k.3) Auto-Prescale Set of Specific Triggers
+
+             01234567 SPECTRIG AUTOTUNE  0 3 6
+
+    The list of numbers specified  represents the set of Specific Triggers that
+the Trigger Control Software is  expected to prescale for an equitable usage of
+the available acquisition bandwith.
+
+    The Specific Triggers  readout times and the  available bandwidth to use as
+parameters are specified in the two messages described above (k.2 & k.3)
+
+    The previous prescale ratios are overridden and lost. This command does not
+affect the programming  nor the operation of all  unspecified Specific Triggers
+and they will remain able to fire unless the framework was explicitly paused by
+a previous message.
+
+    This command does not accept negative numbers.
+
+    The method used in finding appropriate rates requires 4 steps:
+
+    i)   disable all Specific Triggers in the specified set
+    ii)  read the average unscaled andor firing rate over a 5s sample time.
+    iii) compute and program the necessary prescaling ratios.
+    iv)  enable all Specific Triggers in the specified set
+
+    The   algorithm  used by  the  Trigger  Control   Software in  step iii) to
+calculate the prescaling ratio is described below. The symbols are defined as:
+
+    N  for the number of Specific Triggers in the set (1<=N<=32)
+    A  for the available acquisition bandwidth (0<A<=1)
+    Ti for the readout time in seconds of the ith Specific Trigger (Ti>=0)
+    Ri for the unscaled andor firing rate in Hertz (Ri>=0)
+    Pi for the prescaled ratios being computed. (Pi>=1)
+
+    The  N  Specific   Triggers  in  the set  are  first   arranged in order of
+increasing Ri*Ti. The  Specific Trigger with i=1  thus has the smallest product
+of rate times readout time (i.e. the smallest bandwidth requirement).
+
+    Starting with i=1, the N prescale  ratios are successively calculated using
+the formula:
+                       Ri * Ti * ( N + 1 - i )
+                Pi = --------------------------
+                              j=i-1
+                              ---    Rj * Tj
+                      ( A -   >      -------  )
+                              ---       Pj
+                              j=1
+
+    and Pi is  rounded to  the  nearest integer,  but set to  1 if the formula
+yields a number smaller than 1.
+
+       l) Clear Specific Trigger Scalers
+
+             01234567 SPECTRIG RESETSCL 0 3 6
+
+    All Specific Triggers specified will have their associated scalers reset to
+zero.
+
+    These consist of:
+        the Specific Trigger Fired Scaler,
+        the Specific Trigger Enabled Scaler,
+        the Specific Trigger Andor Fired Scaler,
+        all the Specific Trigger Veto Scalers by source of disable:
+                Prescaler,
+                Auto-Disable,
+                Global,
+                Level 2,
+                Level 1.5,
+                Front-End Busy
+
+    None of the Global Scalers (Trigger Number, Beam Crossing Number,...) are
+reset by this message. Only the INITIALIZE message will reset theses global
+scalers.
+
+    This command does not accept negative numbers.
+
+    All unspecified Specific Triggers are not modified.
+
+       m) Level 1.5
+
+    Specific Triggers can be of two types: pure Level 1 Specific Triggers or
+Level 1.5 Specific Triggers (cf. 7.m.1)
+
+    A Level 1.5 Specific Trigger will receive 2 levels of requirements. It
+rereceives normal Level 1 Requirements (as for every Specific Trigger) on
+Andor Terms, Front-end Busy, Prescaler, etc... Additional Level 1.5
+Requirements are set on Level 1.5 Input Terms (cf. 7.m.2)
+
+    When Level 1 Requirements are met for any one (or more) of the pure
+Level 1 Specific Triggers, the event is immediately accepted. Moreover all
+Level 1.5 Specific Triggers having met their Level 1 Requirements will be
+set as good. All pure Level 1 or Level 1.5 Specific Triggers that didn't
+meet their Level 1 Requirements are not set.
+
+    When all the Specific Triggers that fired were of type Level 1.5, a
+Level 1.5 confirmation cycle is started for all the Level 1.5 Specific
+Triggers that passed their Level 1 Requirements.
+
+    The event will be accepted as soon as any one of the Level 1.5 Specific
+Triggers for which the cycle was started receives a positive confirmation.
+Moreover all other Level 1.5 Specific Triggers having met their Level 1
+Requirements but still waiting for confirmation will be set as good.
+All Level 1.5 Specific Triggers that either did not meet their Level 1
+Requirements or that already received a negative Level 1.5 confirmation
+are not set.
+
+    A Level 1.5 confirmation cycle is aborted after a fixed timeout period
+of ?200? microseconds and the event is passed. At that time all Level 1.5
+Specific Triggers having met their Level 1 Requirement but still waiting
+for confirmation will be set as good. All Level 1.5 Specific Triggers that
+either did not meet their Level 1 Requirements or that already received a
+negative Level 1.5 confirmation are not set.
+
+    The event is not passed if all the Level 1.5 Specific Triggers that
+passed their Level 1 Requirements have all received negative Level 1.5
+confirmations.
+
+          m.1) Identifying Specific Trigger for Level 1.5
+
+         01234567 SPECTRIG L15_TYPE 12 23 - 5
+
+    A Specific Trigger specified with a positive number will be set to
+require a Level 1.5 confirmation.
+
+    A specific Trigger preceded by a minus sign will be set to a pure
+Level 1 Specific Trigger.
+
+    All unspecified Specific Triggers are not modified.
+
+    The Specific Trigger number is an integer in the range from 0 to 31.
+COOR's configuration file will show which subset of the Specific Triggers
+hold the ADDITIONAL property of allowing Level 1.5 requirements. Please
+note that Specific Triggers flagged as allowing Level 1.5 Requirements
+may be used as pure Level 1 Specific Triggers as well.
+
+          m.2) Programming Requirements on Level 1.5 Term
+
+         01234567 SPECTRIG L15_TERM 12(1 13)  5 (3)
+
+    The Specific Trigger number specified in front of a parenthesis will
+accept confirmation from either one of the Level 1.5 Terms specified in
+the parenthesis.
+
+    The Level 1.5 confirmation will be considered positive as soon as one
+of the Level 1.5 Terms in the list is returned asserted. The Level 1.5
+confirmation will be considered negative only after all the Level 1.5 Terms
+in the list are returned negated.
+
+    In each list, all unspecified Level 1.5 Terms will be programmed so
+that they do not participate in the Level 1.5 decision for this Specific
+Trigger.
+
+    All unspecified Specific Triggers are not modified.
+
+    note: in order to remove one Level 1.5 Term from the Specific Trigger
+configuration, it is necessary to re-specify the complete list omiting the
+Level 1.5 Term to remove.
+
+    note: before the Trigger Framework can consider the Level 1.5 terms for
+a given specific trigger it must have passed all of its level 1
+requirements and have been flagged as being of type Level 1.5 (cf. 7.m.1)
+
+
+8.  SET GEOGRAPHIC SECTION:
+
+    Turn off start digitize signal:
+
+             01234567 GEO_SECT DGTZ_OFF 13 25 -9
+
+    Each Geographic Section receives two signals from the Trigger Framework.
+These are the Start Digitize Signal and the Hold Transfer Signal. Their
+mode of operation during normal data taking is described in D0 Note 827.
+
+    This command will alter the normal mode of operation by preventing Start
+Digitize Signals to be sent out, the Hold Transfer Signals are not affected.
+This mode of operation is used for test with events downloaded into front-end
+crates.
+
+    A Geographic Section specified with a positive number will have its
+Start Digitize Signal turned off. A Geographic Section specified with a
+negative number will be returned to its normal mode of operation.
+
+    If a Specific Trigger fires which is programmed to require the digitization
+of a Geographic Section whose Start Digitize Signal is turned off, then this
+Geographic Section will receive the Hold Transfer pulse, but will not receive
+any Start Digitize Pulse.
+
+    All unspecified Geographic Sections are not modified.
+
+9. LOAD REFERENCE SET
+
+    a) definition
+
+    The Calorimeter  Trigger builds  two types of global  counts of Trigger
+Towers carried  over the whole  detector. Moreover,  four separate sums are
+built for each type of count.
+
+    The first type of count concerns the Electro-Magnetic Trigger Towers. A
+Trigger Tower will be included in an  EM Trigger Tower Count only if its EM
+energy deposit reached or exceeded its programmed transverse energy minimum
+threshold. Optional vetoes can also be programmed  for the Hadronic Trigger
+Towers. A Trigger Tower will be  included in an EM Trigger Tower Count only
+if its Hadronic energy  deposit did not reach or  exceed its  programmed HD
+transverse energy veto.
+
+    The Second type  of count concerns  the Total (i.e.  Electro-Magnetic +
+Hadronic) Trigger Towers. A Trigger Tower will be included in a TOT Trigger
+Tower Count only if its  Total (=EM+HD) energy  deposit reached or exceeded
+its programmed transverse energy minimum threshold.
+
+    b) vocabulary
+
+    Since all three  types of  threshold can be  separately programmed for
+each trigger tower, the name "Reference Set" was chosen to characterize the
+set of all individual  thresholds of a given type  specified over all
+Trigger Towers.
+
+    There    are  thus   three   types  of     Reference  Sets   called the
+Electro-Magnetic Transverse Energy (EM Et) Reference Set, the Hadronic Veto
+(HD Veto) Reference Set, and the Total Transverse Energy (TOT Et) Reference
+Set.
+
+    Four separate Reference Sets are available for each type, numbered from
+0 to 3. The EM Et  Reference Set #0 (respectively  1, 2 or 3) is associated
+with the HD Veto  Reference Set #0 (respectively  1, 2 or 3) to produce the
+EM Trigger Tower Count #0 (respectively 1, 2 or 3).
+
+    c) TRD trigger candidate list
+
+    The  EM Et  #0 and  HD  Veto #0   Reference  Sets have  the  additional
+particularity  to control the  list of  Trigger Towers  passed as "electron
+candidates" to  the TRD  Trigger. This  special Reference  Set may still be
+used in triggering (i.e.  global thresholds can  be set on the global count
+and comparisons  can be required in  the andor  programming of any Specific
+Trigger).
+
+    d) most likely properties of reference sets
+
+    The values of the  thresholds in each  reference set are most likely to
+be chosen   uniformly  constant over  the whole  detector,  or show a small
+number  of    discontinuity   boundaries  in   (eta,phi)  between which the
+thresholds   remain  uniformly  constant.
+
+    It is  also most  likely  for the   thresholds to be  chosen  uniformly
+constant  for all the  32 Trigger  Towers at a  given eta.
+
+    It is also most likely  for the thresholds to  be chosen symmetric with
+respect to the  z=0 plane,  that is have  identical  thresholds for eta and
+minus eta.
+
+    e) wish list
+
+    A  special  effort is  made in the  choice  of  syntax in  order to (a)
+simplify and (b) summarize the  transfer of the information and in order to
+(c) enhance the meaningful information  in the message (i.e. the pattern of
+the thresholds over the detector, and its eventual symmetry aspects) out of
+the 32*20*2=1280 individual thresholds values in each reference set.
+
+    The  syntax for  addressing  Trigger  Towers  should (a)  allow for the
+programming of groups of towers specified as ranges in eta and phi indices,
+(b)  separate the sign  and  magnitude of eta  index to  emphasize eventual
+symmetry  or  asymmetry, (c)  not  prevent from  still  addressing a single
+tower, (d) allow to program the most  likely cases in a single message, but
+(e) also allow  a  multi-message definition  for  complicated patterns, (f)
+allow omission of the sign of eta  when the specification is symmetric with
+respect  to the  z=0  plane, (g)  allow  omission of  the phi  range for an
+azimuthally regular range.
+
+    f) syntax definition
+
+01234567   REFSET     EMET SIGN_ETA(POS NEG) MAGN_ETA(1:20) PHI(1:32) 2(10500)
+01234567   REFSET   HDVETO MAGN_ETA(1:5) 3(10500) MAGN_ETA(6:20) 3(8000)
+01234567   REFSET    TOTET SIGN_ETA(POS) MAGN_ETA(3 5 8) PHI(8) 1(30000)
+
+    The first keyword is REFSET, the second keyword specify the type of
+reference set as above defined (EMET for EM Et, HDVETO for HD Veto, TOTET
+for TOT Et). These two keywords are part of the fixed format section of the
+message.
+
+    A sign of eta is  specified by the keyword  SIGN_ETA followed by a pair
+of parenthesis including  the keyword POS to  specify positive etas, or NEG
+to  specify  negative  etas, or  both POS  and NEG to  specify  a symmetric
+pattern with respect to the z=0 plane. The specification of the sign of eta
+may be omitted when both signs are to be treated identically. The keyword
+SIGN_ETA must always be followed by a parenthesis.
+
+    A set  of  magnitudes  of eta  is  specified  by the  keyword  MAGN_ETA
+followed by a pair of  parenthesis including any  combination of individual
+eta magnitudes and eta magnitude  ranges. A range is specified by its upper
+and lower  bounds separated  by a colon (:).  It is  required for the lower
+(respectively upper) bound to appear  before (respectively after) the colon
+character.  When  two eta  magnitudes  are  separated by a  colon to form a
+range,  they  are  understood  as  equivalent  to the  complete  set of all
+integers  between and  including the upper  and lower  bounds. When two eta
+magnitudes are not  separated by a colon  character and neither one is part
+of the definition  of a range, then  the two numbers  are understood as two
+more discrete values to be included in the set of magnitudes defined inside
+the  parenthesis. A  pair of empty  parenthesis  has no  meaning and is not
+allowed. The  specification  of the eta  magnitudes may be omitted when all
+existing  magnitudes are to  be treated  identically. The  keyword MAGN_ETA
+must always be followed by a parenthesis.
+
+    A set of phi values is specified  by the keyword PHI followed by a pair
+of parenthesis including any  combination of individual phi values  and phi
+ranges. The syntax is identical to the one allowed for the magnitude of eta
+defined  above. A  pair of  empty   parenthesis has  no  meaning and is not
+allowed.  The   specification  of the  phi  values may  be omitted when all
+existing phi values are to be treated identically. The keyword
+PHI must always be followed by a parenthesis.
+
+    The Reference Set and  the threshold value are  specified by the number
+of the Reference Set (0..3) followed by a pair of parenthesis including the
+energy  value  to be   programmed. The  energy  value to  be  programmed is
+specified as an integer in units of MeV of z-corrected Transverse Energies.
+The   Trigger  Control   Computer  will  perform  the   translation  to the
+appropriate quantified value that will be inclusive of the specified value,
+as defined in the beginning of this  section. A number not appearing within
+parenthesis must always be followed by a parenthesis.
+
+    COOR can release  a given  reference set by  specifying a pair of empty
+parenthesis  directly after a  reference set  number. This  means that COOR
+will stop using that reference set and all the associated global thresholds
+which  thus may  (should) be  used by  D0TCC to  perform  the best possible
+trigger integrity tests. COOR may start using it again at any time, it will
+be  automatically   reinitialized as  soon as  COOR  mentions it again in a
+message.
+
+    Several subranges for the same reference set (or several reference sets
+for the same subrange) may be defined within a single message with separate
+threshold  values.
+
+    Whenever  a  Reference  Set  specification  appears  in a  message, the
+threshold value is applied to the specified Reference Set and to all of the
+Trigger Towers specified in the part  of the message before that point (any
+range specification  appearing after that point  in the message will not be
+taken in consideration for that particular threshold).
+
+    Whenever a  specification of a range of sign  of eta, magnitude of eta,
+or phi type appears in a message, then any range specification of this type
+appearing  before that  point in  the message  is  overridden with this new
+range specification, but any previously defined range of any other type (or
+default by omission) remains in effect.
+
+    None of these commands accepts negative numbers.
+
+    All unspecified reference sets are not modified.
+
+    All unspecified Trigger Towers are not modified.
+
+    This   setting is   independent  from  the   programming of  the global
+thresholds acting on the total count carried over the whole detector of the
+number of towers exceeding their individual references.
+
+    g) Large Tile Threshold Reference Sets
+
+    In addition to the Trigger Tower 4  EM and 4 Tot Et Threshold Reference
+Sets and  Trigger Tower  Counts, the  Calorimeter Trigger  also makes Large
+Tile (4 x 8 Trigger Tower in eta x  phi) Tot Et Energy signals and offers 8
+Large  Tile   Threshold  Reference  Sets to   produce 8  Large  Tile Counts
+(independent and  separate from the Trigger Tower  based Reference Sets and
+Trigger Tower Counts).
+
+    The Large Tile Reference Sets are specified with the same syntax as the
+Trigger Tower  Reference Sets (cf.  paragraph 9.f for  details). This means
+that no new indexing scheme is introduced for the Large Tiles.
+
+01234567   REFSET LRG_TILE MAGN_ETA(1:8) 3(8000) MAGN_ETA(9:20) 3(10500) 
+
+    There is however  one additional  syntax constraint  for the Large Tile
+Reference Sets which do not apply to  the Trigger Tower Reference Sets. The
+constraint is  that any  boundary used to  define a range  of Trigger Tower
+Indices cannot cut accross the  coverage of a Large Tile, that is the range
+specified  must cover an  integral  number of  Large Tiles.  The Large Tile
+segmentation  in eta  magnitude is 1..4,  5..8, 9..12,  13..16, 17..20, and
+1..8, 9..16,  17..24, 25..32 in phi.  
+
+    If an   invalid  range is   specified TCC  will  return  a  "BAD PARAM"
+acknowledgement message and take no action.
+
+    Each of the 8 Large  Tile Counts built from  the 8 Large Tile Reference
+Sets is compared to 3 fixed Large  Tile Count Thresholds, namely >=1 , >=2,
+and >=3. There are thus no Large Tile Count Comparators for COOR to program
+(and  no  message  defined  for  it).  COOR  includes  a  Large  Tile Count
+requirement for a  Specific Trigger  Definition by  directly specifying the
+Andor Term hardwired to the Large  Tile Fixed Count Threshold Comparator of
+choice.
+
+    h) examples of range specification
+
+    SIGN_ETA ( POS NEG )  MAGN_ETA ( 1 : 20 ) PHI(1:32) 2(10500)
+
+or  2(10.5)
+
+    specifies a  uniform threshold for  Reference Set #2  of 10.5 GeV of Et
+over all values of eta  within [-20,-1] and [1,20] and phi within [1,32]
+
+    MAGN_ETA(1:16) 0(10000) 1(15000) MAGN_ETA(17:20) 0(5000)
+
+    Specifies   a  pattern   uniform  in  sign eta  and  phi   (omission of
+specification),  but with two steps  in threshold for  Reference Set #0 and
+#1. For the  reference  set #0, the  thresholds  are 10 GeV  for eta within
+[-16,-1]and[1,16], and 5 GeV within  [-20,-17]and[17,20]. The reference set
+#1, is here only defined for eta  within [-16,-1]and[1,16] at 10 GeV. Other
+previous or subsequent  messages might define the  rest of the detector for
+reference set #1 or see default thresholds defined in a separate section.
+
+    MAGN_ETA(1:17) 0(10000) MAGN_ETA(1:4) 1(5000)
+
+    Reference set # 0 is defined over the ranges [-17,-1]and[1,17] in eta.
+    Reference set # 1 is defined over the ranges [-4,-1]and[1,4] in eta.
+
+    2()
+
+    Releases the resource reference set #2 and all global thresholds made
+on the global count that it generates (see global threshold messages below).
+
+
+10. EXCLUDE ONE TRIGGER TOWER FROM ALL CONTRIBUTION:
+
+             01234567  EXCLUDE  EMTOWER SIGN_ETA(NEG) MAGN_ETA(20) PHI(23)
+             01234567  EXCLUDE  HDTOWER SIGN_ETA(NEG) MAGN_ETA(20) PHI(23)
+
+    This gives a "quick fix" ability by forcing to zero the contribution of
+some Trigger  Towers. The energy  deposited in the  excluded Trigger Towers
+will quit contributing  to any Energy or Momentum  sum, to any Tower count,
+and thus to any subsequent Trigger Decision.
+
+    The  syntax  definition  to  specify  ranges or   individual indices of
+Trigger  Towers  is  identical to  the one  allowed  in the  messages about
+Reference Sets.
+
+11.  LOAD GLOBAL THRESHOLD:
+
+    None of these commands accepts negative numbers.
+
+    All unspecified thresholds are not modified.
+
+    All values are interpreted as inclusive. This means that the andor term
+resulting  from the   comparison of a  global  count  against the specified
+threshold will be asserted as soon as the value is equal to or greater than
+the specified threshold.
+
+    This setting is  independent from the  programming of the andor network
+for each specific trigger. COOR will  know from its configuration files how
+the outputs from all the comparisons map onto the 256 Andor Terms.
+
+    COOR can release  a global  threshold resource by  specifying a pair of
+empty  parenthesis.  This means  that COOR will  stop using  that threshold
+which  thus may  (should) be  used by  D0TCC to  perform  the best possible
+trigger integrity tests. COOR may start using it again at any time, it will
+be  automatically   reinitialized as  soon as  COOR  mentions it again in a
+message.
+
+    A maximum of one value is allowed inside any pair of parenthesis for
+these commands.
+
+       a)  EM Et Threshold:
+
+             01234567 THRESHLD  EMETSUM 0(24000) 3(29000)
+
+    For the Global Electro-Magnetic  Transverse Energy Sum carried over the
+whole detector, this command will program the Threshold having the identity
+number specified in front of a pair  of parenthesis with the minimum energy
+value  specified inside the  parenthesis.  The thresholds  are specified in
+units of MeV of global EM Et.
+
+    The identity  number is an  integer in  the range from  0 to 31. COOR's
+configuration file will show the id of the thresholds actually implemented.
+
+       b)  HD Et Threshold:
+
+             01234567 THRESHLD  HDETSUM 1(24000) 3(29000)
+
+    For the Global  Hadronic  Transverse Energy Sum  carried over the whole
+detector,  this  command will  program  the  Threshold  having the identity
+number specified in front of a pair  of parenthesis with the minimum energy
+value  specified inside the  parenthesis.  The thresholds  are specified in
+units of MeV of global HD Et.
+
+    The identity  number is an  integer in  the range from  0 to 31. COOR's
+configuration file will show the id of the thresholds actually implemented.
+
+       c)  TOT Et Threshold:
+
+             01234567 THRESHLD TOTETSUM 1(24000) 3(29000)
+
+    For the Global Total (=Electro-Magnetic+Hadronic) Transverse Energy Sum
+carried over the  whole detector,  this command will  program the Threshold
+having the identity number specified in front of a pair of parenthesis with
+the minimum energy value  specified inside the  parenthesis. The thresholds
+are specified in units  of MeV of global TOT Et.
+
+    The identity  number is an  integer in  the range from  0 to 31. COOR's
+configuration file will show the id of the thresholds actually implemented.
+
+       d) Second Energy Lookup Thresholds.
+
+    A second lookup may be made after the first lookup of Et for the EM and
+HD  channels. This  second lookup  could be the   reconstructed Energy (not
+scaled to its transverse component)  or an other Et lookup with a different
+choice  of   lookup  cuts.  This  second   lookup is  noted  L2 and similar
+thresholds and messages exist for this second lookup.
+
+             01234567 THRESHLD  EML2SUM 1(24000) 3(29000)
+             01234567 THRESHLD  HDL2SUM 1(24000) 3(29000)
+             01234567 THRESHLD TOTL2SUM 1(24000) 3(29000)
+
+       e)  MISS-Pt-THRES:
+
+             01234567 THRESHLD MISPTSUM 1(24000) 3(29000)
+
+    For the Global Missing Transverse Energy Sum carried over the whole
+detector,  this command will  program the Threshold having the identity
+number specified in front of a pair of parenthesis with the minimum energy
+value  specified inside the  parenthesis. The thresholds are specified in
+units of MeV of global Missing Pt.
+
+    The identity number is an integer in the range from 0 to 31. COOR's
+configuration file will show which thresholds are actually implemented.
+
+       f)  EM Et Trigger Tower Count:
+
+             01234567 THRESHLD  EMETCNT REF(2) 2 (1) 3(2)
+
+    For  the   Global   Count   (carried  over  the   whole   detector)  of
+Electro-Magnetic  Trigger  Towers above the  EM Et  reference set specified
+with the  number within  the pair  of   parenthesis  directly following the
+keyword REF,  this  command will program the  Threshold having the identity
+number specified in  front of a pair of  parenthesis with the minimum count
+specified inside  the parenthesis.  The thresholds  are specified in direct
+count of Trigger Towers.
+
+    The identity  number is an  integer in  the range from  0 to 31. COOR's
+configuration file will show the id of the thresholds actually implemented.
+
+    No provision is made to be able to  address Multiple Reference Sets  in
+one message.
+
+       g)  Total Et Trigger Tower Count:
+
+             01234567 THRESHLD TOTETCNT REF(2) 2 (1) 3(2)
+
+    For  the  Global Count   (carried over  the  whole  detector)  of Total
+(Electro-Magnetic+Hadronic)  Trigger  Towers above the TOT Et reference set
+specified with the number within the pair of parenthesis directly following
+the  keyword  REF, this   command will  program  the  Threshold  having the
+identity  number   specified in  front of a  pair of   parenthesis with the
+minimum   count  specified  inside  the   parenthesis.  The  thresholds are
+specified in direct count of Trigger Towers.
+
+    The identity  number is an  integer in  the range from  0 to 31. COOR's
+configuration file will show the id of the thresholds actually implemented.
+
+    No provision is made to be able to  address Multiple Reference Sets  in
+one message.
+
+
+12.  SPECIFIC TRIGGERS VERSUS REFERENCE SETS IN LEVEL 1 JET LIST TO LEVEL 2
+
+    The Level 1 Trigger system provides a "Jet List" for use by the Level 2.
+A Level 2 Node will use the Trigger Towers in the Jet List(s) as seeds to
+electron or jet finding algorithms.
+
+    The Level 1 builds the lists by finding the Trigger Towers that
+exceeded at least one of the Reference Sets.  There is one EM Et Jet list
+including the contribution of all four EM Et (and associated HD Veto)
+Reference Sets. And one TOT Et Jet List made from the four TOT Et
+Reference Sets.
+
+    Since four Reference Sets are merged in a list, the Level 2 needs to
+know which towers in the list contributed to which Specific Trigger. Each
+entry in the list is thus tagged with a 32 bit mask of Specific Triggers
+(see D0 Note #967 for more details).
+
+    The Level 1 will keep a set of eight Primary Masks (one per Reference
+Set) specifying which Specific Triggers "USE" which Reference Set. The
+messages described in this paragraph let COOR program the content of these
+Primary Masks.
+
+    "USING" a particular Reference Set is currently defined as (D0 note #967):
+
+    The programming of the Specific Trigger requires at least 1 comparison
+(either greater than or less than) on the number of Trigger Towers found
+above the Reference Set (see D0 Note #967 for more details).
+
+    The Level 1 will build an Entry Mask for each Trigger Tower found above
+at least one of the Reference Sets.  The corresponding bit will be set high
+in the Entry Mask for every Specific Trigger that met the two conditions
+below:
+         1) The Specific Trigger was "USING" at least one of the Reference
+            Sets that the Trigger Tower passed (as specified by the
+            Reference Set Primary Masks)
+     and 2) The Specific Trigger fired for the current event.
+
+    Note that before a Trigger Tower can become an entry in the Jet List its
+entry mask must have at least one bit set. There are no duplicate entries.
+
+
+       a)  EM Et Jet List
+
+             01234567 ST_VS_RS  EM_LIST 0 ( 1 3 5 ) 2(1 4 6)
+
+    The Specific Triggers specified inside the parenthesis will be
+recognized as using the EM Et (and/or associated HD Veto) Reference set
+specified by the number in front of the parenthesis. The bits
+corresponding to the specified Specific Triggers will be set in the
+corresponding Reference Set Primary Mask.
+
+    Inside each set of parenthesis, all unspecified Specific Triggers are
+recognized as not using the corresponding EM Et Reference Set. The bits
+corresponding to the unspecified Specific Triggers will be cleared from the
+corresponding Reference Set Primary Mask.
+
+    All unspecified EM Et Reference Set Primary Masks are not modified.
+
+    note: in order to remove one Specific Trigger from a Reference Set
+Primary Mask it is necessary to re-specify the complete list, omiting the
+Specific Trigger to remove.
+
+       b)  TOT Et Jet List
+
+             01234567 ST_VS_RS TOT_LIST 0 ( 1 3 5 ) 2(1 4 6)
+
+    The Specific Triggers specified inside the parenthesis will be
+recognized as using the TOT Et Reference set specified by the number in
+front of the parenthesis. The bits corresponding to the specified Specific
+Triggers will be set in the corresponding Reference Set Primary Mask.
+
+    In each set of parenthesis, all unspecified Specific Triggers are
+recognized as not using the corresponding TOT Et Reference Set. The bits
+corresponding to the unspecified Specific Triggers will be cleared from the
+corresponding Reference Set Primary Mask.
+
+    All unspecified TOT Et Reference Set Primary Masks are not modified.
+
+    Note: in order to remove one Specific Trigger from a Reference Set
+Primary Mask it is necessary to re-specify the complete list, omiting the
+Specific Trigger to remove.
+
+       c)  Large Tile Jet List 
+
+    The Large Tile extension to the Calorimeter Trigger can produce
+Jet Lists in the same definition and format as the Trigger Tower EM Et or
+TOT Et Jet Lists. The message described here will specify the Specific
+Trigger usage of Large Tile Reference Sets and will provide the necessary
+information for building these Large Tile Jet Lists.
+
+             01234567 ST_VS_RS LRG_TILE 0 ( 1 3 5 ) 2(1 4 6)
+
+    The Specific Triggers specified inside the parenthesis will be
+recognized as using the Large Tile Reference set specified by the number in
+front of the parenthesis. The bits corresponding to the specified Specific
+Triggers will be set in the corresponding Reference Set Primary Mask.
+
+    In each set of parenthesis, all unspecified Specific Triggers are
+recognized as not using the corresponding Large Tile Reference Set. The bits
+corresponding to the unspecified Specific Triggers will be cleared from the
+corresponding Reference Set Primary Mask.
+
+    All unspecified Large Tile Reference Set Primary Masks are not
+modified.
+
+    note: in order to remove one Specific Trigger from a Reference Set
+Primary Mask it is necessary to re-specify the complete list, omiting the
+Specific Trigger to remove.
+
+
+13. DOWNLOAD EVENT IN CALORIMETER TRIGGER
+
+    The Calorimeter Trigger can be downloaded with a known set of ADC
+values for its 1280 EM and 1280 HD Trigger Towers. When the Calorimeter
+Trigger is placed in this mode, the hardware keeps being normally cycled
+but every subsequent event will reflect the fixed data pattern read from
+the downloaded file.
+
+    Only the Calorimeter Trigger input information to the Trigger Framework
+will be forced to a fixed value. The Trigger Framework continues its normal
+operation and may be shared with other users not needing the Calorimeter
+Trigger information.
+
+    a) Download new file
+
+        01234567 CAL_TRIG USE_SIMU dir:file_name.ext
+
+    This message informs the Trigger Control Computer to place the Front-End of
+the Calorimeter Trigger in simulation mode, and use the file specified to read
+the values to be downloaded into the Front-End.
+
+    The file name must include a valid directory name. The file must reside on
+the D0 cluster. Logical names may be used, as long as they are defined
+system-wide on the D0 cluster.
+
+    b) Return to normal mode
+
+        01234567 CAL_TIRG USE_REAL
+
+    This message informs the Trigger Control Computer to return the
+the Calorimeter Trigger to its normal operation mode. The Front-End will be
+returned to normal digitization of the Calorimeter Trigger input signal coming
+from the BLS cards.
+

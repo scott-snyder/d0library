@@ -1,0 +1,90 @@
+
+
+
+                      D0 Muon Level 2 Filter 
+                          H. T. Diehl 
+1. Introduction 
+
+This note is intended as an outline of the D0 Muon Level 2 tracking 
+filter for use by those setting up the code either online or in a
+simulation program. 
+I presume familiarity with necessary details 
+regarding the online system$^1$ including Level 2 (L2), and with the 
+VMS_FILTERS package$^2$. But it is not necessary to have studied these 
+packages in order to have a good idea what the muon filter does.
+I intentionally skip details regarding the 
+actual muon tracking software. It is not necessary to have a complete
+understanding of the code in order to successfully get the code working.
+Details on the muon algorithm can be found in D0$MUON_UTIL:MUON_ANALYSIS.MEM.
+Furthermore, I skip technical details such as timing studies because
+work in improving such details is not yet finished.
+
+I will add more detail in these glossed-over areas in the not-too-far
+future.
+
+2. The Muon_L2 Filter 
+
+The muon filter is called MUON_L2 and follows the D0 conventions 
+outlined for L2 software$^3$. It has three shell fortran routines
+MUON_L2_INIT, MUON_L2_PARAMETERS, and MUON_L2. All of these re-side 
+in linebreak D0$MUON_UTIL. These structure and function of theses routines is
+patterned identically with the L2 filter L2_JETS written by Rich Astur$^2$.
+It requires an STP file which contains the muon system geometry. It 
+also requires an RCP file containing flags for the muon filter.
+
+MUON_L2_INIT contains the software which combines the muon system 
+STP geometry file with the muon L2 RCP file in order to produce a 
+single STP file for use in the ELN nodes or in a simulation. 
+The current version of the muon geometry STP file is 
+D0$STP:MUO_STPFILE.DAT. The most current release of the RCP file
+is D0$MUON_UTIL:MUON_L2.RCP. At this time the RCP release 
+is behind the
+fortran release so that 
+D0::USER2:[DIEHL.LEVEL2.MUON_FILTER]MUON_L2.RCP
+is more up-to-date. 
+
+MUON_L2_PARAMETERS reads the STP file produced by MUON_L2_INIT. 
+The fortran has comments which contain the details.
+
+MUON_L2 is the fortran routine run for each event which decides the 
+result of the filter based on comparison with a set of parameters 
+passed to the filter either from the configuration file (online) or
+from MUON_L2.RCP (offline). These parameters are: NUM_MUONS
+which is the minimum number of tracks required for the event to pass,
+PTMIN which is the minimum Pt required for a muon to be counted, 
+ABS_ETA_MAX which is the  maximum allowed eta value for a muon may 
+have in order to be included. 
+
+A given event may pass many lower level triggers. Some of these Level 1
+                                                                Page 2
+
+
+and Level 1.5 triggers require a call to MUON_L2. So MUON_L2 may
+be called more than once in a given event. The first time it is called,
+it executes Dave Hedin's tracking routine MUANLZ. Subsequent calls to 
+MUON_L2 in the same event skip the tracking because it has already been done.
+For each time MUON_L2 is called, a loop over tracks counts the muons which
+pass the pt and eta cuts described above. The event passes the filter if 
+the number of muon passing the cuts equals or exceeds NUM_MUONS.
+
+There are three flags in the RCP file which control the tracking routines. 
+IPDFIT should be set to 1 for use in L2. MUVERT should be set to 0 for 
+p-pbar data, 1 for cosmic rays, and 2 for Monte Carlo. SKIP_LEVEL controls
+whether the WAMUS or SAMUS tracking (or both) is being performed. Set 
+SKIP_LEVEL to 4 in order to skip over SAMUS tracking. Set it to 0 in 
+order to both SAMUS and WAMUS tracking.
+
+You need to DEFINE MU$CONST as the geometry file 
+(for example, D0$STP:MUO_STPFILE.DAT).
+You need to DEFINE MUON_L2_RCP as the L2 RCP file 
+(for example,  D0$MUON_UTIL:MUON_L2.RCP).
+
+{1}For more information regarding the online system with respect to 
+Level 2 see D. Nesic,  "Filtering in Level 2", D0 Note #1020, (1990). 
+
+{2}The best example of use of VMS_FILTERS is the document file 
+D0$CALOR_FILTER$ROOT:[SOURCE]L2JETS.DOC by R. Astur.
+
+{3}For more information regarding Level 2 tool conventions see 
+"Draft of Tool Conventions", D0NEWS, September 14, 1990.
+

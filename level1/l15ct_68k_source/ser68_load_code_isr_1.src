@@ -1,0 +1,132 @@
+
+Load_Code_ISR   IDNT                     ; Title of the "Load Code" interrupt
+                                         ; service routine.
+
+     SECTION   Sect_Load_Code_ISR,4,C    ; Declare a noncommon code section.
+                                         ; Align to Longwords.
+
+****************************************************************************
+*                                                                          *
+*  Load Code ISR                                        Rev. 14-JUNE-1994  *
+*                                                                          *
+*  This is the interrupt service routine that runs in response to the      *
+*  "Load Code" interrupt from TCC.  The Load_Code interrupt comes in on    *
+*  the SIGHP bit in the MVME-135's MPCSR.                                  *
+*                                                                          *
+*  When called  Ser68_Load_Code_Interrupt  routine performs the            *
+*  following steps:                                                        *
+*                                                                          *
+*   1. Stop doing what ever 68k_Services was doing.                        *
+*   2. Clear the  SIGHP  interrupt bit from the  MPCSR register.           *
+*   3. Unwind the interrupt by forcing the Stack Pointer to its initial    *
+*        value.                                                            *
+*   4. Set the Interrupt Priority Mask to allow priority 2 and above       *
+*        interrupts.                                                       *
+*   5. Call the  Ser68_Init_Processor_1  routine.                          *
+*   6. Call the  Ser68_Init_Ironics_1  routine.                            *
+*   7. Call the  Ser68_Init_Memory_1  routine.                             *
+*   8. Call the  Ser68_Init_Data_Structures_1  routine.                    *
+*   9. Put a message on the 68k_Services MVME135 console.                  *
+*  10. Set the  68k_Services to TCC  Status Block first longword           *
+*        to $68000000.                                                     *
+*  11. Go into a dead forever loop.                                        *
+*                                                                          *
+*                                                                          *
+*  This routine uses and does not restore registers:  D4.                  *
+*                                                                          *
+****************************************************************************
+
+Begin_Load_Code:
+                                         ; Set the  SIGHP  bit in the
+                                         ; MPCSR register LOW to stop it from
+                                         ; generating more interrupts.
+                                         ; This MPCSR register is accessed
+                                         ; by the 68020 as a byte at address
+                                         ; MPCSR_SIGHP_Loc.  SIGHP is bit D07.
+        Clr.B    MPCSR_SIGHP_Loc         ;   Clear SIGHP.
+
+                                         ; The following is the "RTE".
+        MoveA.L  Save_SP_Loc,A7          ; Restore the initial value of
+                                         ; the Stack Pointer.
+
+                                         ; Allow Interrupts at
+                                         ; Priority 2 and above.
+        Move     SR,D4                   ; Get the status register.
+        AndI.L   #$0000F0FF,D4           ;   set the interrupt
+        ORI.L    #$00000100,D4           ;   priority mask to 1.
+        Move     D4,SR                   ; Copy back to the status register.
+
+
+****************************************************************************
+*                                                                          *
+*   Now do the actual work of the  Load_Code  interrupt routine.           *
+*   This is steps  5:8  as listed above.                                   *
+*                                                                          *
+****************************************************************************
+
+                                         ; Call the routine to Initialize the
+        JSR      Begin_Init_Processor    ; MVME135-1.
+
+                                         ; Call the routine to Initialize
+        JSR      Begin_Init_Ironics      ; the Ironics digital I/O cards.
+
+                                         ; Call the routine to Initialize
+        JSR      Begin_Init_Memory       ; all sections of memory.
+
+                                         ; Call the routine to Initialize
+        JSR      Begin_Init_DataStrct    ; all data structures.
+
+
+****************************************************************************
+*                                                                          *
+*   Now put a message on the  68k_Services  console, then set the status   *
+*   back to TCC, and then wait for the Load_Param interrupt.               *
+*                                                                          *
+****************************************************************************
+
+        PEA.L   Hello_LC_1               ; Push message address on stack.
+        JSR     ChrStrgOut               ; Send the message to the console.
+
+        PEA.L   Hello_LC_2               ; Push message address on stack.
+        JSR     ChrStrgOut               ; Send the message to the console.
+
+
+        Move.L   #$68000000,BA_Status_Block_to_TCC    ; Set the first longword
+                                                      ; in the 68k_Services
+                                                      ; Status to TCC to the
+                                                      ; value $68000000.
+
+Wait_Here:   NOP                         ; Wait in this loop forever.
+             NOP                         ; The Load_Parameters Interrupt
+             JMP    Wait_Here            ; will come and get us out of here.
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*************************************************************************
+
+              ALIGN   4                ; Align to longword address.
+
+
+Hello_LC_1    DC.B    2,$0A,$0A
+Hello_LC_2    DC.B    50,'  Load Code Interrupt Received and Processed.     '
+
+
+
+       XDEF    Begin_Load_Code         ; Make this a Global symbol so that
+                                       ; other modules may reference it.
+
+       XREF    MPCSR_SIGHP_Loc         ; Reference these Global Symbols.
+       XREF    Save_SP_Loc
+       XREF    BA_Parameter_Block
+       XREF    BA_Status_Block_to_TCC
+       XREF    ChrStrgOut
+       XREF    Begin_Init_Processor
+       XREF    Begin_Init_Ironics
+       XREF    Begin_Init_Memory
+       XREF    Begin_Init_DataStrct
+
+
+       End
+

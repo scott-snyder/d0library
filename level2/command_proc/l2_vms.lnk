@@ -1,0 +1,84 @@
+$!==========================================================================
+$!
+$! Name      : L2_VMS.LNK
+$!
+$! Purpose   : run PBD and link a no-debug version of VMS_FILTER_D0USER.EXE
+$!
+$! Arguments : p1 = STANDARD       if the standard packages are to be built
+$!                = VMS_FILTER     to build a private L1SIM/L2SIM package
+$!                = L1SIM          to build a private L1SIM package
+$! Created  16-Jan-1993 James T. Linnemann - extracted  from   SETUP_L2SIM
+$!          17-APR-1993 Daniel R. Claes    - permit  building/linking pkgs
+$!                                           with L1SIM but w/o VMS_FILTER
+$!          26-APR-1993 Daniel R. Claes    - HSTRFL building and all COPY/
+$!                                           CONCATENAT to _D0USER.OBJ now
+$!                                           in a call to LOCAL_PASS which
+$!                                           should allow development work
+$!                                           on pass-released code.
+$!==========================================================================
+$   ON ERROR     THEN $ GOTO ERROR_EXIT
+$   ON CONTROL_Y THEN $ GOTO CONTY_EXIT
+$
+$   SAY :== WRITE SYS$OUTPUT
+$   say "*** Start L2_VMS.LNK ''P1' ***"
+$
+$   IF (P1.EQS."") .OR. (P1.EQS."VMS")
+$   THEN
+$       P1 = "VMS_FILTER"
+$   ENDIF
+$   IF P1.EQS."STANDARD" 
+$   THEN
+$       SAY "Building VMS_FILTER package"
+$       PBD/SWITCH/FRAME=D0USER/PACK=%L12SIM/NAME=VMS_FILTER
+$       p1 = "VMS_FILTER"
+$   ELSE
+$       PKGNAM = p1
+$       SAY           "CALOR,CADMAKE is required if running STAs w/o CADs.  See L2SIM.DOC."
+$       SAY           "CALOR,L1SIM is required  unless using the L1 triggers in real DATA."
+$       SAY           "RECDDN must be included   (MC only)   if  TRACK_MATCH  is required."
+$       SAY " "
+$       SAY           "CADMAKE,RERUN_L12,and RECDDN can be safely included in any package."
+$       SAY           "These routines  DO NOTHING  on data  for which they are not needed."
+$       SAY " "
+$       inquire pbnam "Do you want ANY packages BEFORE ''p1' (give list) [no packages]"
+$       test = F$EXTRACT(0,1,pbnam)
+$       IF test.eqs."%"    
+$       THEN
+$           SAY "Building ''p1' package"
+$           PBD/SWITCH/FRAME=D0USER/PACK='pbnam'/NAME='p1'
+$           GOTO BUILDobj
+$       ENDIF
+$       if pbnam.nes."" then PKGNAM = "''pbnam',''PKGNAM'"
+$       inquire panam "Do you want ANY packages AFTER ''p1' (give list) [no packages]"
+$       if panam.nes."" then PKGNAM = "''PKGNAM',''panam'"
+$       zebsiz = 800000
+$       inquire zebsiz "Give size of ZEBCOM  [''zebsiz']"
+$       if zebsiz.eqs."" then zebsiz = 800000
+$       zebstp = 1200000
+$       inquire zebstp "Give size of ZEBSTP  [''zebstp']"
+$       if zebstp.eqs."" then zebstp = 1200000
+$       SAY "Building ''p1' package"
+$       PBD/SWITCH/FRAME=D0USER/PACK=('PKGNAM')-
+           /NAME='p1'/COMPILE/ZEBCOM='zebsiz'/ZEBSTP='zebstp'-
+           /ZEBWRK=40000/PAWC=200000/NOCOMPILE
+$!
+$   ENDIF
+$!
+$BUILDobj:
+$   @D0$LEVEL2$COMMAND_PROC:LOCAL_PASS "''p1'"
+$!
+$   say "Finished with Program Builder...."
+$   say "*** Start ''p1'_D0USER.LNK ***
+$   @'p1'_D0USER.LNK
+$   say "*** End ''p1'_D0USER.LNK ***
+$   GOTO EXIT
+$!
+$EXIT:
+$   d0$status :== TRUE
+$   say "*** End L2_VMS.LNK ''P1' ***"
+$   EXIT
+$ERROR_EXIT:
+$CONTY_EXIT:
+$   d0$status :== FALSE
+$   say "*** End L2_VMS.LNK ''P1' ***"
+$   EXIT

@@ -1,0 +1,150 @@
+
+                                                       L2_MASSCUT.DOC
+                                                       Kathy Fatyga
+                                                       Nov. 15,1993
+
+          
+             How to use the L2_MASSCUT Level 2 Filter:
+         *****************************************************
+   
+                I) L2_MASSCUT is an invariant mass filter.
+               II) The parameters of L2_MASSCUT
+              III) How L2_MASSCUT works...
+
+         *****************************************************  
+
+
+I)     L2_MASSCUT is an invariant mass filter.
+
+     L2_MASSCUT is a software tool for use in the Level 2 environment. It must
+ be used after a level 2 object finding tool, such as L2JETS. L2_MASSCUT
+ calculates the invariant mass of a pair of objects within an event and passes
+ the event based on the invariant mass of the pair, and the etas of each object.
+ The invariant mass of a pair of objects is:
+
+    INVARIANT MASS= SQUARE ROOT(2*ET1*ET2*(COSH(ETA1-ETA2)-COS(PHI1-PHI2)))
+
+II)   The input parameters for L2_MASSCUT in the configuration file
+
+Defaults for TRIGPARSE:
+
+OBJECT      no default: user must specify   
+                'JET' , 'MUON', 'ELECTRON', or 'PHOTON'
+MASS_MIN    no default: user must specify  
+                Mass threshold in GeV, eg 10.5
+
+NOBJECTS    2 
+LEADING     .FALSE. 
+ETA1_MIN    -999. 
+ETA1_MAX    999. 
+ETA2_MIN    -999. 
+ETA2_MAX    999. 
+ABS_ETABOOST_MIN  0.   
+ABS_ETABOOST_MAX  999. 
+MASS_MAX      -5000.        
+
+    So the default condition is to apply a mass threshold on events with 2 or
+more of the specified objects; any passed objects will be considered.
+
+For details: see below
+  
+parameter   type    values
+---------   ----    ------
+
+OBJECT      C*10    'JET' , 'MUON', 'ELECTRON', or 'PHOTON'
+    Only objects of the single type chosen will be looked at by the tool. 
+
+NOBJECTS    I       2 
+    Describes the MINIMUM number of objects desired in an event. The tool will
+    only pass events with a number of objects  greater than or equal to
+    NOBJECTS. NOBJECTS must be 2 or greater for the tool to work.  NOBJECTS is
+    the number of objects already found, NOT the number of pairs passing the
+    mass test.
+
+LEADING     L       .TRUE. 
+    .TRUE.  tells the tool to look only at the leading Et pair. 
+    .FALSE. tells the tool to look at all pairs of objects.
+
+ETA1_MIN    R       -999. 
+ETA1_MAX    R        999. 
+ETA2_MIN    R       -999. 
+ETA2_MAX    R        999. 
+    These give the desired ranges in ETA for a pair of objects. The two
+    different ranges (ETA1 and ETA2) give the user the freedom  to chose pairs
+    of objects in which each object lies in a different region. An example is 
+    if the user would like one of the pair of objects to be central, while
+    allowing the other object to be anywhere. The object pair will pass the 
+    ETA cut, for two objects A and B, if A is in the ETA1 range and B is in the 
+    ETA2 range, OR if A is in the ETA2 range and B is in the ETA1 range.  Either
+    combination of objects will pass the cut.
+
+    If the user does not wish to use an ETA cut, simply set the ETA ranges to
+    values that will pass all events (-999.0 to 999.0).
+
+ABS_ETABOOST_MIN  R     0.   
+ABS_ETABOOST_MAX  R     999. 
+    The values that describe the desired range in ABS_ETABOOST for a pair of 
+    objects. ABS_ETABOOST= ABS(ETA1+ETA2)/2.  A pair of objects will pass the 
+    ABS_ETABOOST cut if the value lies within the desired range. 
+
+    If the user does not wish to use the ABS_ETABOOST cut, simply set the 
+    ABS_ETABOOST ranges to values that will pass all events (0.0 to 999.0)
+
+MASS_MIN      R     0.    
+MASS_MAX      R     -5000. 
+    The desired range in invariant mass in GeV for a pair of objects. 
+    If the user  would like a mass range, set both MASS_MIN and MASS_MAX to
+    appropriate positive values.
+    If the user would like a mass threshold only, set MASS_MAX to a NEGATIVE
+    number, and set MASS_MIN to the  desired threshold in GeV.  
+    A pair of objects will pass this MASS cut, if the invariant mass of the 
+    pair is greater than MASS_MIN.
+
+
+III)    How L2_MASSCUT works...
+
+     L2_MASSCUT is set up in the following manner. L2_MASSCUT is the main
+ program which calls two subroutines: GET_NEEP and MASSTEST. L2_MASSCUT first
+ reads in the parameters from L2_MASSCUT.RCP. It then calls GET_NEEP. Using the
+ OBJECT bank specified by the user, GET_NEEP reads out the number of objects
+ in an event, and then reads the transverse energy(Et), the eta, and the phi
+ for each object. GET_NEEP places the Et, the eta, and the phi information
+ into 3 arrays, and determines the location in these arrays of the 2 objects
+ with the highest transverse energy (the leading Et pair). If the number of 
+ objects is greater than or equal to the number desired, L2_MASSCUT then
+ splits into one of two available modes. The first mode looks strictly at the
+ leading Et pair of objects.  The second mode looks at all possible pairs of
+ objects in an event, hence it filters on the leading mass pair.
+     The actual 'cuts' are made by MASSTEST. When testing a pair( for the 
+ first mode it would be the leading Et pair, and for the second mode it would
+ be any of the possible pairs), the Et, the eta, and the phi of each object
+ in the pair is sent to MASSTEST.  MASSTEST is separated into three cuts: an
+ eta range cut, an eta boost cut, and an invariant mass cut. The first cut,
+ the eta range cut, looks to see if one object of the pair is in each of the
+ desired eta ranges. The second cut, the eta boost cut, looks to see if the
+ eta boost of the pair is within the desired eta boost range. The third cut, 
+ the invariant mass cut looks to see if the invariant mass is (depending on
+ what the user specified) either greater than a desired threshold, or within a
+ desired mass range. All these cuts are described in greater detail in the 
+ input parameters section. A pair must pass all three cuts in order to pass 
+ MASSTEST. For the leading Et pair mode, if the leading Et pair passes MASSTEST,
+ then L2_MASSCUT passes the event. For the leading mass mode, if any one of 
+ the possible pairs passes MASSTEST, then l2_MASSCUT will pass the event.
+     L2_MASSCUT must follow an object finding routine, such as L2JETS or L2_EM.
+ The user should be aware that the information for only those objects that pass 
+ cuts of the object finding routine is forwarded to L2_MASSCUT. So, if the user
+ would like to make an Et cut on the objects in an event, the Et cut would be 
+ set in the object finding rountine, and only those objects in the event that 
+ pass this Et cut will be looked at by L2_MASSCUT. For example, if the user 
+ would like to filter on the invariant mass of jets which have an Et of greater 
+ than 40 GeV, the user would call L2JETS with a requirement of two jets above
+ 40GeV, and then the user would call L2_MASSCUT. On the other hand, if the user 
+ would like to look only at events which have at least one jet above 20GeV, but 
+ the user would like to look at all jets in the event, the user would call 
+ L2_JETS with a requirement of 1 jet above 20 GeV. This would fail any events
+ that did not have 1 jet above 20 GeV. Then, the user would call L2JETS again
+ with a requirement of 1 jet above 4 GeV. This call would then allow the 
+ information for all jets to be forwarded to L2_MASSCUT. Then, L2_MASSCUT
+ would be called. This implicit Et cut is availble in both L2JETS and L2_EM.
+
+     

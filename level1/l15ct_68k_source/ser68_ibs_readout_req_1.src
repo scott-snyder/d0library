@@ -1,0 +1,242 @@
+
+IBS_Readout_Req      IDNT                     ; Title of IBS Readout_Req
+                                              ;   program section.
+
+      SECTION   Sect_IBS_Readout_Req,4,C      ; Declare a noncommon code
+                                              ; section.  Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   IBS Readout_Req  Routine                           Rev.  10-MAY-1994  *
+*                                                                         *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:   D4.               *
+*                                                                         *
+*                                                                         *
+*   This routine receives the following information in the following      *
+*   registers:                                                            *
+*                                                                         *
+*    D7  Holds the TAS Number for the Crate Header in the L15CT Data Blk. *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            WrIO:  Write bit(s) to the IRONICS I/O card                  *
+*                                                                         *
+***************************************************************************
+
+WrIO    MACRO                         ; Write byte to Ironics I/O Port.
+        Not.B   \1                    ; Complement data byte \1.
+        Move.B  \1,\2                 ; Move to Ironics port at adrs \2.
+        Not.B   \1                    ; Complement data byte \1 to restore it.
+        ENDM
+
+
+*************************************************************************
+*                                                                       *
+*  We arrive here if there has been an  IBS  event and we NEED to       *
+*  read it out.                                           ----          *
+*                                                                       *
+*  We arrive here with the TAS Number stored in register D7 in the      *
+*  Sync Word format that is needed for the crate header section of      *
+*  the L15CT Data Block.                                                *
+*                                                                       *
+*  OK, this is an "IBS" event and we do need to readout.  Thus we       *
+*  need to make the dynamic part of the Crate Header and the word in    *
+*  the Frame Code Section that indicates that this was an "IBS"         *
+*  event.  Let's build these words in 68k local memory (or              *
+*  registers), then verify that we have a Fresh 214 Load Buffer, and    *
+*  then move all of this stuff into the 214 Load Buffer.                *
+*                                                                       *
+*  1. Clear both the Readout Control and then the Path Select P2        *
+*     Paddle Cards by pulsing the proper Ironics lines high.  This      *
+*     also clears the EC Front-End Busy that is generated on the        *
+*     Path Select P2 Card.  It is OK to clear these now because we      *
+*     have captured all of the information that we need to complete     *
+*     the IBS event readout.                                            *
+*                                                                       *
+*  2. Build the dynamic words of the Crate Header.                      *
+*                                                                       *
+*  3. Build the necessary words of the Frame Code Section.              *
+*                                                                       *
+*  4. Check the software flag to see if we have a Fresh 214 Load        *
+*     Buffer. If we do not have a Fresh 214 Load Buffer then start      *
+*     the necessary RC servicing and wait here until we have a Fresh    *
+*     214 Load Buffer.                                                  *
+*                                                                       *
+*  5. Move the dynamic Crate Header words and the necessary Frame       *
+*     Code Sections words into the Fresh 214 Load Buffer.               *
+*                                                                       *
+*  6. Clear the software flag that says that we have a Fresh            *
+*     214 Load Buffer.                                                  *
+*                                                                       *
+*  7. Set the  All_Data_In_Load_Buf  software flag that indicates       *
+*     that all of the data for this event is now in the 214 Load        *
+*     Buffer.                                                           *
+*                                                                       *
+*  8. Jump to the top of the House Keeping Orbit.                       *
+*                                                                       *
+*************************************************************************
+
+
+*************************************************************************
+*                                                                       *
+*  First clear the  Readout Control  paddle card and then clear the     *
+*  Path Select  paddle card.                                            *
+*                                                                       *
+*************************************************************************
+
+Begin_IBS_Readout_Req:
+
+      INCLUDE   Ser68_Clear_RC_and_PS_1.Include    ; Get the include file that
+                                                   ; clears the RC and PS P2's.
+
+*************************************************************************
+*                                                                       *
+*  The next steps are:                                                  *
+*                                                                       *
+*  2. Build the dynamic words of the Crate Header.                      *
+*                                                                       *
+*  3. Build the necessary words of the Frame Code Section.              *
+*                                                                       *
+*  Register D7 currently holds the Sync Word so we only need to make    *
+*  the "Data Validity Word"  to finish making the Crate Header.         *
+*                                                                       *
+*  To make a Data Validity Word that flags the rest of the data in      *
+*  this L15CT Data Block as  NOT  valid, just set the MSByte of this    *
+*  longword to $FF.  Make this Data Validity Word in register D6 and    *
+*  keep it for later use.                                               *
+*                                                                       *
+*  It is not necessary to change any words in the Frame Code section    *
+*  of the L15CT Data Block.                                             *
+*************************************************************************
+
+
+        Move.L    #$000000FF,D6          ; D6 now holds the Data Validity Word.
+                                         ; D7 still holds the Sync Word.
+
+
+*************************************************************************
+*                                                                       *
+*  The next step is:                                                    *
+*                                                                       *
+*  4. Check the software flag to see if we have a Fresh 214 Load        *
+*     Buffer. If we do not have a Fresh 214 Load Buffer then start      *
+*     the necessary RC servicing and wait here until we have a Fresh    *
+*     214 Load Buffer.                                                  *
+*                                                                       *
+*  Note the sequence of steps that are taken if  Fresh_Load_Buf_Availb  *
+*  is not set.  The only way to get a  Fresh Load Buffer  is to swap    *
+*  214 Buffers.  Before you can swap 214 Buffers you need both          *
+*  VBD_Is_Ready  and  All_Data_In_Load_Buf  to be asserted.  The only   *
+*  way to get  VBD_Is_Ready  asserted is to run the  Conclude VBD Cycle *
+*  routine and, if the last event was a  That's Me  event, then the     *
+*  only way to get  All_Data_In_Load_Buf  asserted is to run the        *
+*  All_DSPs_to_Step_D0  routine.                                        *
+*************************************************************************
+
+                                                 ; If Fresh_Load_Buf_Availb flag
+                                                 ; is NOT set, then work here
+                                                 ; until it is set.
+
+TFLBA   IF.B   Fresh_Load_Buf_Availb <EQ> #Flag_CLR   THEN.S
+
+            JSR   Begin_Conclude_VBD_Cycle       ; Try to Conclude VBD cycle.
+            JSR   Begin_All_DSPs_to_Step_D0      ; Try to move DSP's to Step D0.
+            JSR   Begin_Swap_Load_Read_Bufs      ; Try to swap Read Load Buf.
+            JMP   TFLBA                          ; Test Fresh_Load_Buf_Availb
+                                                 ; again to see if it is set.
+        ENDI
+
+*************************************************************************
+*                                                                       *
+*  The next step is:                                                    *
+*                                                                       *
+*  5. Move the dynamic Crate Header words and the necessary Frame       *
+*     Code Sections words into the Fresh 214 Load Buffer.               *
+*                                                                       *
+*************************************************************************
+
+
+        Move.L   D7,BAHeaderVSB           ; Load the Crate Header SYNC Word.
+        Move.L   D6,BAHeaderVSB+16        ; Load the Crate Header VALIDITY Word.
+
+
+*************************************************************************
+*                                                                       *
+*  The next two steps are:                                              *
+*                                                                       *
+*  6. Clear the software flag that says that we have a Fresh            *
+*     214 Load Buffer.                                                  *
+*                                                                       *
+*  7. Set the  All_Data_In_Load_Buf  software flag that indicates       *
+*     that all of the data for this event is now in the 214 Load        *
+*     Buffer.                                                           *
+*                                                                       *
+*************************************************************************
+
+
+        Clr.B    Fresh_Load_Buf_Availb            ; CLEAR  Fresh_Load_Buf_Availb
+
+        Move.B   #Flag_SET,All_Data_In_Load_Buf   ; SET  All_Data_In_Load_Buf
+
+
+*************************************************************************
+*                                                                       *
+*  The next two steps are:                                              *
+*                                                                       *
+*  8. Send an  "I"  character to the MVME135 console to indicate the    *
+*     conclusion of processing for an  IBS Readout Required  event.     *
+*                                                                       *
+*  9. Jump to the top of the House Keeping Orbit.                       *
+*                                                                       *
+*************************************************************************
+
+
+        Move.L   #$00000049,-(A7)          ; Push the character "I" to the
+        JSR      SendCharP1                ; LSByte of a longword on the stack.
+                                           ; Call the routine to send it out.
+
+        JMP      Begin_Orbit_Master
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section                                                    *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_IBS_Readout_Req                   ; Symbol exported to
+                                                     ; other modules.
+
+      XREF   Readout_Ctrl_Port_4                     ; Symbols used in this
+      XREF   Path_Select_Port_3                      ; module but defined in
+      XREF   Begin_Orbit_Master                      ; another program module.
+      XREF   Which_214_Is_Load_Buf
+      XREF   State_of_RC_FE_Busy
+      XREF   Fresh_Load_Buf_Availb
+      XREF   Begin_Conclude_VBD_Cycle
+      XREF   Begin_All_DSPs_to_Step_D0
+      XREF   Begin_Swap_Load_Read_Bufs
+      XREF   BAHeaderVSB
+      XREF   All_Data_In_Load_Buf
+      XREF   Flag_CLR
+      XREF   Flag_SET
+      XREF   SendCharP1
+
+
+      END
+

@@ -1,0 +1,84 @@
+
+Test_New_L1_Trig  IDNT                 ; Title of the Test for a New L1 Trigger
+                                       ;   Program Section.
+
+   SECTION   Sect_Test_New_L1_Trig,4,C    ; Declare a noncommon code section.
+                                          ;   Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Routine to test to see if there has been a new L1 Trigger.            *
+*                                                                         *
+*                                                        Rev. 20-ARP-1994 *
+***************************************************************************
+
+***************************************************************************
+*                                                                         *
+*   This routine tests to see if any new L1 Trigger(s) have Fired.        *
+*   It does this by reading the output of the Path Select P2 card.        *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D4                 *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            RdIO:  Read bit(s) from the IRONICS I/O card.                *
+*                                                                         *
+***************************************************************************
+
+RdIO    MACRO                        ; Read the byte from the Ironics I/O Port.
+        Move.B  \1,\2                ; Move to the byte from the Ironics port
+        ENDM                         ; at address  \1  to the location
+                                     ; specified by  \2.
+
+
+*************************************************************************
+*                                                                       *
+*   Test to see if any new L1 Trigger(s) have fired.                    *
+*                                                                       *
+*************************************************************************
+
+Begin_Test_for_New_L1_Trig:
+
+        RdIO  Path_Select_Port_4,D4        ; Test to see if a new L1 Trigger
+                                           ; has Fired.  Read the output of
+                                           ; the Path Select P2 Card.
+        AndI.B   #$08,D4                   ; Test bit 3 of Port #4 to see it
+                                           ; is set.  If a new L1 Trigger has
+                                           ; Fired then bit 3 of Port #4 will
+        IF.B   D4 <EQ> #$08  THEN.S        ; be set.  If a new L1 Trigger has
+                                           ; Fired then branch to the start of
+           AddQ.L  #4,A7                   ; the linear code section.  If NO
+           JMP  Begin_Something_Happened   ; new L1 trig's have fired then
+                                           ; return to the calling routine.
+        ELSE.S                             ; Notes:
+                                           ;   The symbol "Begin_Something_
+           RTS                             ;   Happened" points to the start
+                                           ;   of the linear code section
+        ENDI                               ;   that processes events.
+                                           ;   If the branch to the event
+                                           ;   processing is taken, the
+                                           ;   return address is pulled from
+                                           ;   the stack.
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section for the  Test for New L1 Trigger  program section. *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Test_for_New_L1_Trig              ; Symbol exported to
+                                                     ; other modules.
+
+      XREF    Path_Select_Port_4                     ; Symbols used in this
+      XREF    Begin_Something_Happened               ; module but defined in
+                                                     ; another program module.
+
+      END
+

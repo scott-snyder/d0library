@@ -1,0 +1,487 @@
+                                                                Meenakshi Narain
+                                                                    J. Linnemann
+                                                                        R. Astur
+                                                                       J. Hoftun
+                                                                   22 April 1992
+
+                       Debugging in Level 2
+                    (ELN programs and EDEBUG)
+
+     A VAXELN system image is a set of program images plus support software
+    that together execute on a target processor to perform an application task.
+
+    JOB :
+        A program in the system image is a job. Multiple jobs can execute the
+        same program code independently of each other. 
+        
+    PROCESS :
+        When the VAXELN kernel creates a job, it also creates a process,
+    MASTER PROCESS, which executes the main program block of the job.
+    This master process can in turn create subrocesses. Multiple subprocesses
+    can also execute the same process block.  Thus a Process is a smaller unit
+    than a Job.
+
+    A process at any given time must be in one of the four states :
+
+    RUNNING, READY, WAITING, SUSPENDED.
+                Running = executing code
+                Ready = not started yet
+                Waiting = waiting for another process to send it a signal
+                Suspended = not executing; put to sleep by another process
+
+    A process is identified by the format
+
+    job,[process] [node]
+        Process 1 is the master process of the job, which creates the other
+        processes.
+    You can use either a number or a name to specify the job, but the process 
+    can only be specified by number. 
+
+    EDEBUG : 
+    With this  command one  can access  one or more  VAXELN nodes  remotely over
+    ethernet simultaneously for debugging  purposes. The debugging described 
+    here is REMOTE debugging, i.e. it  runs on the host cluster  rather than 
+    in the ELN node itself.  Thus,  EDEBUG  is  actually a  VMS  command.  
+    But  since it  depends on communication between the VMS and ELN nodes, some
+    things take place only slowly.
+
+    References: EDEBUG is described in
+        VAXELN volume 11 Chapter 2 (115 pages)
+        Naturally, someone has stolen the copy in the control room.  Please
+        return it!!!!
+
+    To use the bookreader to find information about edebug, on D0::
+1) Select Applications menu from DecWindows Session Manager.
+2) Select Bookreader
+3) Double Click on Library 2
+4) Double Click on Documentation Library Contents
+5) Double Click on Master Listing
+6) Double Click on VAXELN Toolkit (near bottom of VAX*)
+7) Double Click on Introduction to VAXELN
+    8) Double Click on > 12 Debugging an Application
+        This contains discussion of debugging strategy
+        To close, select File and CLOSE BOOK
+or 9) Double Click on VAXELN Utilities Guide
+    10) Double Click on > 2 VAXELN Debugger
+        This section contains the detailed instruction for debugger use
+
+* When can I EDEBUG a node?
+
+    You can EDEBUG a node at any time.  However, you should check first to see
+    whether you are interfering with anything by so doing.
+    a) use AUTO_LOG to see what .EXE has been loaded and when
+    b) user the level 2 performance meter to see whether it is actually being 
+    used for data taking now; you can also use 
+        L2STATE
+        >HELP
+        >7           ( display node list)
+    to see how the nodes are currently set up and check with the shifters to see
+    who is or is about to take data.
+
+* When are things sick enough to NEED debugging?
+
+    If the display in the level 2 performance display, or 
+    SUPCON
+    >HELP
+    >7           ( Status Report: doesn't work when supervisor very busy)
+    shows nodes in a "not responding" state, for example.   
+
+    or if L2STATE/ DISPLAY NODE LIST always shows a node as "ANALYZING"
+
+* Where can I EDEBUG a node from?
+    From the host cluster.  Unfortunately, not from just any node, because of
+    licensing problems.  If nothing useful happens when you say EDEBUG, you will
+    need to open a window on another node which does have an EDEBUG license:
+    @d0$DECW:REMOTE decterm nodename
+    where nodename is d0hs07 (1st choice) or 06 or 09.
+        D0HSB is another possibility (an interesting one since you will also
+        need a window on B in order to retrigger a node, HOWEVER
+    DO NOT RUN A TAKER ON D0HSB.  DO NOT LINK OR COMPILE ON D0HSB.  ONLY trigger
+    nodes or EDEBUG on D0HSB.  D0HSB is part of the online data acquisition and
+    things can go VERY wrong if you distract it.
+        PROVIDED that the network is in decent shape, you may also be able to
+    EDEBUG from a FNALD0 node if it's a university machine with a license.  But
+    be sure the GEEK on shift knows that your are EDEBUGGING a node.
+
+    Syntax of some debug commands....
+    =============================
+
+*   to start the debug session (from VMS)
+
+      $ Edebug node_name
+
+    If a job is in debugger control (eg it has ALREADY crashed) you will see a 
+    message about loading of traceback and eventually the prompt
+    Edebug 8,3>
+    It indicates that process 3 in job 8 has debugger control and any commands
+    entered in this command session are directed to that process.
+
+    If none of the jobs running on this node are under debugger control
+    then one can activate a Control-C session. After Edebug node_name, you 
+    will see that it just reports to you but doesn't give you the edebug prompt,
+    then things are running normally.  If you really want to look, type CTRL/C 
+    and then you will see the prompt
+
+    EDEBUG CTRL/C> 
+
+    which indicates that a CONTROL-C session is active.  However, in this case
+    you are limited in the commands you can use until you do HALT and 
+    SET SESSION.  See also set/cancel control below.
+
+* SHOW SYSTEM
+    displays the Jobs in the system and their status:
+
+Edebug 8,1>sho system       ( the priority/status info has been chopped off )
+
+    Available -- Pages: 6138, Page table slots: 5/73, Pool blocks: 674
+    Uptime:   0 16:08:57.75  Time used by past jobs: 0
+    Idle Time CPU 0:   0 00:02:14.94
+
+    Job 2, program ESDRIVER    \   system level drivers: ethernet etc   
+    Job 3, program DZSDRIVER   /
+    Job 4, program EDEBUGREM       the debugger
+    Job 6, program LEVEL2_LOAD     download real level 2 on demand
+                (when you boot the node, there is no level 2 code there)
+    Job 7, program MPDRVR4000      the driver to make mpm look like vax memory
+    Job 8, program L2_MAIN, priority 12 is ready.   THIS IS THE FILTERING!!!!!
+
+    This is the typical display for a real level 2 node with filters in it
+    You basically don't care about anything but L2_MAIN, which happens to be 
+    job 8 this time (next time it could be 9, 10, or 11).
+
+* SHO PROCESS/ALL 
+        this shows the processes in the node.  You use this to find the numbers
+    you will need to specify what processes you want to talk to.
+        .
+        .
+ Job 8, program L2_MAIN, priority 12 is ready.
+   Shared read/write size: 3270144. Read only size: 17158144
+    Process 1, MAIN, priority 8, in debug command wait.
+        Stack size: 9728. CPU time:   0 00:00:03.41
+        .
+        .
+
+* Which processes do I care about?        
+
+current
+number  name and meaning
+------  ----------------
+ 8,1    MAIN filtering      
+ 8,3    L2_TALKER 
+          tool_parameters entries and reading of the RCP  .ZDAT containing cuts
+ 8,9    STP-LOAD    reading of downloaded STP file
+
+(for more detail, see the appendix)
+
+    The process names are assigned in L2_MAIN for the most part, during calls to
+    ELN system utilities.  The process names are INDEPENDENT of the names of
+    the routines which implement the processes.  The Process Numbers are
+    assigned by the system. The NAMES are stable indicators of what is being
+    done; there is some possibility of the NUMBERS changing.  But, to talk
+    to the debugger, you need the NUMBERS.
+
+* HALT job, process
+
+        To take control of a session or a job which is running. It takes 
+    a while for the sources to be loaded so be patient.  This by itself does NOT
+    put you in a debugging session.  You can halt several processes, but
+    remember you have to set session and GO for each halted process.
+
+* SET SESSION job, process
+       gives you control of the command session of the halted process. It 
+       is almost equivalent to setting scope. 
+
+* breakpoints
+
+    SET BREAK{/qualifiers} [address] DO [command]
+
+    qualifiers :  /all, /job are equivalent and sets the break point for
+    the entire job, else it is in effect for only the current session.    
+       
+    some valid commands...
+
+    SET BREAK %line 600
+    SET BREAK test\ %line 553
+    SET BREAK %line 600  DO (examine myvariable)
+    SET BREAK test\testsub
+    CANCEL BREAK %line 600
+    CANCEL BREAK/all
+
+    ***** NOTE, that if you have set a break point and exited the EDEBUG
+          session then the break point is NOT cancelled, the debugger
+          rememembers it until you retrigger or cancel the breakpoints.
+
+    SHOW BREAK  lists all the break points set for a job
+        
+* SET WATCH does not work.
+
+* EXAMINE
+
+        EXAMINE [address]
+
+- examine variables in the routine you're halted in
+EDEBUG 8,1> EXAMINE error_mode
+ERROR_MODE: FALSE
+
+- changing scope
+
+      To examine a variable in a given routine the address is specified as
+
+        subroutine_name\subroutine_name\variable
+                    (in Fortran the module name is the same as the routine name)
+      for instance to examine a variable ETMIN in the subroutine 
+    L2jet_parameters :
+
+        Edebug x,y> examine l2jets_parameters\l2jets_parameters\ETMIN
+
+    If you get sick of typing, don't forget the up-arrow
+
+-arrays
+    Arrays can only be referred to by specific element, or by the WHOLE array
+    Array referenceing in EDEBUG works in general, but there is a problem with
+    three-dimensional FORTRAN arrays.  
+    To examine arrays of the form y(m,n,0:n) :
+        EXAMINE y(i,j,k+1)   instead of EXAMINE y(i,j,k)
+      Two important arrays are of this form: FILTER_SCRIPT and FILTER_COUNTS.
+    (I have also had problems with PTR2(m,n,-37:37) and have been unable to 
+    guess how to address the correct location: JTL).
+
+- There is NO SET SCOPE command.  The debugger's scope is limited to the current
+  call tree.  You can move up or down the call tree with 
+  PREDECESSOR [n] or SUCCESSOR [n], but nowhere else; SHOW SCOPE says where
+  you are now.
+
+- examining arguments
+
+    There is nothing special about examining arguments if you are halted in the
+    debugger because of a breakpoint.  But you CANNOT examine the value of a 
+    local variable passed as an argument when you have done a HALT. You must 
+    examine it in the routine which called you.  In particular, for a
+
+    filter tool to examine
+
+    parameter set   EXAMINE MAIN_FILTER\MAIN_FILTER\PAR_SET
+    level 1 mask    EXAMINE MAIN_FILTER\MAIN_FILTER\K
+                    K: 3
+                    EXAMINE MAIN_FILTER\MAIN_FILTER\HARDWARE_BIT(3)
+    result flag     EXAMINE MAIN_FILTER\MAIN_FILTER\SCRIPT_PASS
+
+    and to examine newpar in a tool_parameters, 
+    a) make sure to have a breakpoint in tool_parameters or
+    b) copy the variable into common
+
+    More generally, if you need the value of ARG_1 in subroutine XYZ(ARG_1),
+    you will need to know the routine which called it, say ABC.  Then to find
+    out what it was called,
+    SEARCH ABC XYZ
+     Module  ABC
+     282:                 CALL XYZ(LOCAL_VAL)
+    EXAMINE ABC\ABC\LOCAL_VAL
+    
+    If you really don't know where you were called from, if you are stopped in
+    XYZ, you can do PRED and SHOW SCOPE.  Otherwise, open another window and
+    rummage the source yourself.
+
+- EXAMINE
+        examines the next element after the one just looked at
+
+- EXAMINE .
+        reexamines the last one
+
+- SHOW OBJECT address  
+  gives a better representation of event flags than examine does (only important
+  for timing signals (is xxx ready yet?) among routines at the upper levels of
+  the processes)
+
+* EVALUATE expression
+
+* DEPOSIT  adress := expression
+
+    DEPOSIT logvar = -1 or 0 ( for .TRUE. or .FALSE.)
+
+* SET LOG
+         SET LOG filespec
+        logs the session (commands and responses) to the specified file.
+       One can toggle between logging on and off without closing the file
+       by using 
+          SET OUTPUT NOLOG  and SET OUTPUT LOG
+
+* SHOW CALLS to get a call history.
+
+* TYPE [module\] range
+       displays the source text.
+        TYPE 1
+        TYPE 500:900
+        TYPE testsub\250:275
+
+* STEP [/INTO or /OVER] 
+
+* CALL routine
+
+    works.  But 
+        - CALL DBANK and CALL EZBANK don't because they use SMG routines
+            (we will try a patch by dumping out ZEBCOM and STP and running
+            DBANK/EZBANK on them on the host)
+        - SET BREAK in the CALL'ed routine doesn't work
+
+* SHO MODULE
+        to get information on the program which is associated with
+        the current session. It displays whether the symbols and the source
+        are loaded for a given module. 
+       
+* GO
+        continues execution of the session (one for EACH one you HALTed)
+
+* SET CONTROL
+        
+        any new processes that start in the job to which you have set session
+    will automatically come up HALTED, waiting for you to say GO.  This works
+    only if you manage to get hold of the session BEFORE the other processes are
+    activated (for example if you want to look at the STP downloading caused by
+    triggering the node).  This is effectively what happens if you request that
+    the node be downloaded under debugger control from the FILT menu, but this
+    seems to require run control unless you are doing playback.  CANCEL control
+    rescinds this.
+        
+* CANCEL CONTROL
+
+        lets all the processes start executing independently again.  This beats
+    going around and saying GO to each of them individually.
+
+* SPAWN spawns a new session where you can do DCL commands such as showing
+  logicals or typing source code.  Especially handy from home terminals.
+
+* EXIT
+
+        to leave the Edebug session.
+    
+                    APPENDIX: Process and Nodes for Filtering
+
+
+                                                        R. Astur, JTL, J. Hoftun
+                                                            28 Feb 1992
+
+                Processes and Jobs on Level 2 Nodes 
+                      (A debugger's crib sheet)
+                   -----------------------------
+
+ Job 8, program L2_MAIN         the filter framework and code
+
+        process name    main routine/call tree
+        ------------    ------------
+*    Process 1, MAIN:     L2_MAIN
+                            +--FILTER_INIT      !initialize jump table
+                            +--ZBFILL           !make ZEBRA headers for raw data
+                                   +--MAIN_FILTER  !call filters via jump table
+                                         
+        -launches other tasks and maintains synchronization between them
+        -initializes, makes data look like zebra, and calls real filtering
+        -since filter calling is via a jump table, you will never find a
+            statement in any program of the form CALL toolname.  The closest you
+            get is CALL TOOL_DISPATCH(%VAL(TOOL_TABLE(tool_number))
+
+        ( FILTER_INIT is called from FILTER_INITIALIZ in VMS_FILTER;
+            ZBFILL is like FILTER_EVENT in VMS_FILTER)
+
+*    Process 3, L2_TALKER: L2_TALK
+                                +--MAIN_FILTER_BEGIN
+                                    +--FILTER_PARAMETERS
+                                        +--xxx_PARAMETERS
+            
+        -read RCP file from COOR; call xxx_PARAMETERS
+ 
+        (like FILTER_RUN in VMS_FILTER)
+
+*    Process 9, STP-LOAD: GET_STP_FILE
+                                +--FILTER_STP_IN !read new STP file    
+
+        -waits until there is a NEW stp file to be read, then does it
+        (no analog in VMS; done there in FILTER_INITIALIZ, but only once)    
+
+NOTES:
+------
+    FILTER_INIT and FILTER_PARAMETERS are program-generated to include calls
+        to all known filters.
+
+    The process names are assigned in L2_MAIN for the most part, during calls to
+        ELN system utilities.  The process names are INDEPENDENT of the names of
+        the routines which implement the processes.  The Process Numbers are
+        assigned by the system. The NAMES are stable indicators of what is being
+        done; there is some possibility of the NUMBERS changing.
+        
+    JOBS correspond to .EXE files; PROCESSes correspond to pieces of code headed
+        by PROCESS_BLOCK headers.
+
+
+        Auxiliary processes which normally aren't needed for user debugging
+            ------------------------------------------------------------
+    Process 2, SUICIDE          this cleans things out nicely
+    Process 4, EVENT_SENDER     send event to host
+    Process 5, ZBDUMP           communicate with host ZBDUMP program
+    Process 6, M(D)PM-INTERFACE     (most of PLAYBACK mods are here)
+    Process 7, LEVEL-2 LOGIC ANALYZER       for l2 monitoring
+    Process 8, M(D)PM ERROR HANDLER     
+    Process 10, STP-NAME REPORT        find which STP file should be loaded now
+    Process 11, EVENT-RESULT REPORT         for l2 monitoring
+    Process 12, FILTER-COUNT REPORT                 "
+    Process 13, FILTER-SETUP REPORT                 "
+    Process 14, TOGGLE ERROR/DEBUG     set/reset error trapping to debugger/dump
+    Process 15, FILTER_TIME REPORT          for l2 monitoring
+    Process 16, CABLE REPORT                        "
+    Process 17, STATE REPORT                        "
+    Process 18, ZBD-KILL
+
+
+                Call tree of filtering in VMS_FILTER (L2SIM)
+
+VMS frame hooks:                             (routines under L2_MAIN in ELN]
+!FILTER_EVENT!     Process event        (USREVT) [ZBFILL in ELN]
+!FILTER_INITIALIZ! Job Initialization   (USRINI) [L2_MAIN directly in ELN]
+!FILTER_SETUP!     User Dialog          (USDIAL) no such in ELN
+!FILTER_RUN!       Read parameters      (USRPAR) [L2_TALK in ELN]
+!FILTER_SUMMARY!   Standard Summary     (USRSSM) [FILTER_REPORT in ELN]
+
+X means that this routine is EXACTLY the same as in real ELN level 2
+* routine built by FILTER_MAKER based on tools defined in L2TOOL.DAT
+
+    (WARNING--the order is alphabetical, not order calls actually made)
+
++---FILTER_INITIALIZ  job initialization                            [L2_MAIN]
+|    +---FILTER_INIT * X           (build jump table with %LOC)
+|    |    +---ELECTRON
+|    |    +---L2ETMISS
+|    |    +---L2JETS
+|    |    +---MUON_L2
+|    |    +---TOOL1
+|    |    +---FILTER_STP_IN X     read in VMS_FILTER.STP
+
++---FILTER_RUN  begin run initialization                            [L2_TALK]
+     +---MAIN_FILTER_BEGIN X
+          +---FILTER_PARAMETERS * X     (read RUN_000001.ZDAT with RCP cuts)
+          |    +---ELECTRON_PARAMETERS
+          |    +---L2ETMISS_PARAMETERS
+          |    +---L2JETS_PARAMETERS
+          |    +---MUON_L2_PARAMETERS
+          |    +---TOOL1_PARAMETERS
+          +---FILTER_RUN_RCP
+          +---FILTER_TIMING_SETUP
+
++---FILTER_EVENT        once per event                              [ZBFILL]
+|    +---HARDWARE_TRIGGER X
+|    +---MAIN_FILTER X
+|    |         +---FILTER_TIMING_SETUP
+|    |         +---PATHGT
+|    |         +---PATHST
+|    |         +---BKFILT 
+|    |         +---BKFRES 
+|    |         +---MKPATH 
+|    |         +---TOOL_DISPATCH  ( REALLY calls the tools )
+.............................................................................
+               |    +---ELECTRON         ( TOOL_DISPATCH is NOT rebuilt,
+               |    +---L2ETMISS         because it only implicitly contains
+               |    +---L2JETS           these calls via the jump table built
+               |    +---MUON_L2          in FILTER_INIT)
+               |    +---TOOL1
+.............................................................................
+|    |         +---WAIT_EVENT_DONE
+|    |         +---PATHST

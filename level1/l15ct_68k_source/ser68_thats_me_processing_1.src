@@ -1,0 +1,351 @@
+
+Thats_Me_Processing     IDNT                    ; Title of Thats_Me Processing
+                                                ;   program section.
+
+      SECTION   Sect_Thats_Me_Processing,4,C    ; Declare a noncommon code
+                                                ; section.  Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Thats_Me Processing                                Rev.  20-MAY-1994  *
+*                                                                         *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D4, D5, D6 and D7. *
+*                                                                         *
+*   This routine sends out the following information in the following     *
+*   registers:                                                            *
+*                                                                         *
+*     D5  holds the Term Answers that we received from the Global DSP.    *
+*     D6  holds the Mark and Force Pass Mask for the Crate Header in D.B. *
+*     D7  Holds the TAS Number for the Crate Header in the L15CT Data Blk.*
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            RdIO:  Read bit(s) from the IRONICS I/O card.                *
+*                                                                         *
+***************************************************************************
+
+
+RdIO    MACRO                        ; Read the byte from the Ironics I/O Port.
+        Move.B  \1,\2                ; Move to the byte from the Ironics port
+        ENDM                         ; at address  \1  to the location
+                                     ; specified by  \2.
+
+
+*************************************************************************
+*                                                                       *
+*  We arrive here if there has been a new L1 Trigger with  >=1  L15CT   *
+*  Terms that need to be evaluated.                       -----         *
+*                                                                       *
+*  Read the TAS Number.  We might just as well read the TAS Number in   *
+*  a way that puts it into Crate Header Sync Word format (in case we    *
+*  transfer this event).  Build this in register D7 and keep it for     *
+*  later use.                                                           *
+*                                                                       *
+*************************************************************************
+
+Begin_Thats_Me_Processing:
+
+        Move.L    #$FFFFFFFF,D7                ; Read the TAS Number
+                                               ; Get the MSByte of TAS Number.
+        Move.B    Readout_Ctrl_Port_5,D7       ; Shift it up.
+        LSL.L     #8,D7                        ; Get the LSByte of TAS Number.
+                                               ; Swap 0:15 with 16:31.  D7 now
+        Move.B    Readout_Ctrl_Port_6,D7       ; holds the TAS Number in the
+        Swap      D7                           ; Crate Header Sync Word format.
+                                               ; Retain TAS Number in reg D7.
+
+
+*************************************************************************
+*                                                                       *
+*  The next step is to form the new Wake_Up_Word.  We will build this   *
+*  in register D6 but do not send it to the DSP's until we check that   *
+*  all DSP's are at Setp D0.                                            *
+*                                                                       *
+*  To make the new Wake_Up_Word we need to know which L15CT Terms       *
+*  need to be evaluated during this L15CT cycle (read this from the     *
+*  Terms Select P2),   we need to know if this is a normal event or     *
+*  an MFP event,  and we need the LSByte of the TAS Number.             *
+*************************************************************************
+
+
+        Move.L   D7,D6                        ; Build the Wake_Up_Word in D6.
+        LSL.L    #8,D6                        ; The MSByte of the WUW is the
+        AndI.L   #$FF000000,D6                ; LSByte of the 16 bit TAS Number.
+
+                                              ; Get from the Term Select P2 the
+                                              ; mask of Terms that need to be
+        RdIO     Term_Select_Port_4,D6        ; evaluated in this L15CT cycle.
+
+                                                   ; See if this is an MFP event
+        IF.B   MFP_Event <EQ> #Flag_SET  THEN.S    ;   i.e. is the MFP_Event
+                                                   ;        software flag set?
+            ORI.L   #$00000100,D6             ; If it is an MFP event then set
+                                              ; the flag in the Wake_Up_Word.
+        ENDI                                  ; D6 now cantains the new WUW
+                                              ; for both Local and Global DSP's.
+
+
+*************************************************************************
+*                                                                       *
+*  The next step is to verify that all 12 DSP's are at Step D0.  If     *
+*  they are not all at Step D0 then wait here and work to get then      *
+*  all to this Step.                                                    *
+*************************************************************************
+
+                                                            ; Test to see if
+TstAgn  IF.B   All_DSPs_at_Step_D0 <EQ> #Flag_CLR  THEN.S   ; all 12 DSP's
+                                                            ; are at Step D0 ?
+            JSR   Begin_All_DSPs_to_Step_D0             ; If they are NOT all at
+            JMP   TstAgn                                ; Step D0, try to move
+                                                        ; them there and test
+        ENDI                                            ; again.
+
+
+*************************************************************************
+*                                                                       *
+*  Now that we have a new Wake_Up_Word and we have all 12 DSP's at      *
+*  Step D0,  the next task is to send out the Wake_Up_Word; first to    *
+*  the Local DSP's and then to the Global DSP.                          *
+*                                                                       *
+*  As soon as this is done, then CLEAR the  All_DSPs_at_Step_D0         *
+*  software flag.                                                       *
+*************************************************************************
+
+        Move.L   D6,Ser68_to_Hydra_B_Adrs      ; WUW to Local DSP's Hydra-II B.
+        Move.L   D6,Ser68_to_Hydra_A_Adrs      ; WUW to Local DSP's Hydra-II A.
+        Move.L   D6,Ser68_to_Hydra_C_Adrs      ; WUW to Local DSP's Hydra-II C.
+        Move.L   D6,Ser68_to_Hydra_B_Adrs+4    ; WUW to Global DSP  Hydra-II B.
+
+        Clr.B    All_DSPs_at_Step_D0           ; CLEAR  All_DSPs_at_Step_D0 flag
+
+
+*************************************************************************
+*                                                                       *
+*  OK, things should be under control for about 30 usec.  Thus, we      *
+*  have time to get started on some other work.                         *
+*                                                                       *
+*  1. Build the dynamic words of the Crate Header.  Recall that reg     *
+*     D7 currently holds the SYNC word.  Do NOT try to load any of      *
+*     these words into a 214 Load buffer yet.                           *
+*                                                                       *
+*  2. If the  MFP_Event  software flag is set then do the following:    *
+*       Clear the  MFP_Event  software flag.                            *
+*       Load the  MFP_Ratio (given to us by TCC) into the  MFP_Counter. *
+*       Set the  If_Transfer_Want_MFP_Transfer  software flag.          *
+*       Set all Term Answers Hi and then set all Term DONEs active.     *
+*                                                                       *
+*  3. Decrement the  MFP_Counter  and if it now reads zero then:        *
+*       Set the  MFP_Event  software flag to "flag" the next event.     *
+*                                                                       *
+*************************************************************************
+
+*************************************************************************
+*                                                                       *
+*  Build dynamic words of the Crate Header.  We still have the SYNC     *
+*  word in D7.  We do not know enough yet to build the  Data Validity   *
+*  Word.  We can build the  Mark and Force Pass Mask Word.  Lets build  *
+*  it in register D6 and keep it there until we are ready to move it    *
+*  to the Load Buffer.                                                  *
+*                                                                       *
+*************************************************************************
+
+
+        IF.B   MFP_Event <EQ> #Flag_SET  THEN.S   ; Test to see if this event is
+            Move.L   #$00000001,D6                ; an MFP event.  If it is then
+        ELSE.S                                    ; set the Mark and Force Pass
+            Clr.L    D6                           ; Mask Word to indicate this
+        ENDI                                      ; else clear the MFP Mask word
+                                                  ; Retain reg D6 holding the
+                                                  ; data for the MFP MASK Word.
+
+*************************************************************************
+*                                                                       *
+*  The DSP's are still at work so continue 68k_Service work by:         *
+*                                                                       *
+*  If the  MFP_Event  software flag is set then do the following:       *
+*       Clear the  MFP_Event  software flag.                            *
+*       Load the  MFP_Ratio (given to us by TCC) into the  MFP_Counter. *
+*       Set the  If_Transfer_Want_MFP_Transfer  software flag.          *
+*       Set all Term Answers Hi and then set all Term DONEs active.     *
+*                                                                       *
+*************************************************************************
+
+        IF.B   MFP_Event <EQ> #Flag_SET  THEN.S   ; Test to see if this event is
+                                                  ; an MFP event. If it is then:
+           Clr.B    MFP_Event                                ; CLEAR MFP_Event
+
+           Move.L   MFP_Ratio_Term_0,MFP_Counter_Term_0      ; Load MFP Counter
+
+           Move.B   #Flag_SET,If_Transfer_Want_MFP_Transfer  ; SET Want MFP Trns
+
+           Move.B   #$00,Terms_to_M103_Port_4         ; Set all Term Answers Hi.
+           Move.B   #$FF,Terms_to_M103_Port_5         ; All Term DONEs set LOW.
+           Move.B   #$00,Terms_to_M103_Port_5         ; All Term DONEs set HI.
+
+        ENDI
+
+
+*************************************************************************
+*                                                                       *
+*  The DSP's are still at work so continue 68k_Service work by:         *
+*                                                                       *
+*  Decrement the  MFP_Counter  and if it now reads zero then:           *
+*       Set the  MFP_Event  software flag to "flag" that the            *
+*       NEXT event will be MFP.                                         *
+*************************************************************************
+
+
+        SubQ.L   #1,MFP_Counter_Term_0   ; Decriment the MFP Counter for Term 0.
+
+                                                               ; Is MFP_Counter
+        IF.L     MFP_Counter_Term_0 <EQ> #$00000000   THEN.S   ; now at zero ?
+                                                               ; If yes then set
+             Move.B   #Flag_SET,MFP_Event                      ; the flag to
+                                                               ; indicate that
+        ENDI                                                   ; the NEXT event
+                                                               ; will be MFP.
+
+
+*************************************************************************
+*                                                                       *
+*  OK, we hope that we have arrived here before the DSP's have          *
+*  finished their processing.  We will wait here until the Global       *
+*  DSP says that it has reached Step D3.  Once the Global DSP is        *
+*  at Step D3 then it is sending us back the results from its           *
+*  evaluation of the L15CT Terms.  As soon as Global DSP is at Step     *
+*  D3 then we read the Term results from its  DSP to EC Status Word     *
+*  and send these Term results to M103 L15 FW.                          *
+*                                                                       *
+*  Note that the Global DSP has finished evaluating the L15CT Terms,    *
+*  it will wait at Step D3 until it hears from us as to whether or      *
+*  not it should transfer data to the 214 Load Buffer.                  *
+*************************************************************************
+
+Wait_GDSP   Move.L   GDSP_B2_Status_Adrs,D5      ; Read the Global DSP's Status
+
+            IF.W   D5 <NE> #GDSP_at_D3   THEN.S  ; Test to see if the Global
+                                                 ; DSP has reached Step D3 ?
+               JMP   Wait_GDSP                   ; If it is NOT at Step D3 then,
+                                                 ; read its status again and
+            ENDI                                 ; test it again.
+
+                                                 ; OK, the GDSP is at Step D3.
+            SWAP     D5                          ; Extract the Term Answers from
+                                                 ; its status longword and send
+            Not.B    D5                          ; them to the Terms returned
+            Move.B   D5,Terms_to_M103_Port_4     ; to M103 P2 Ironics Port #4.
+
+            Not.B    D5                          ; Retain the Term Answers in
+                                                 ; register D5 in case we need
+                                                 ; them to build the Frame
+                                                 ; Code section of an L15CT
+                                                 ; Data Block.
+
+
+;***!!      Move.L    D7,D4                       ;
+;***!!      Swap      D4                          ;  This is just a temp
+;***!!      LSR.L     #4,D4                       ;  setup to get 50:50
+;***!!      Not.L     D4                          ;  pass reject for
+;***!!      Move.B    D4,Terms_to_M103_Port_4     ;  testing WO beam.
+
+
+
+            Move.B   #$FF,Terms_to_M103_Port_5   ; Take the DONEs all LOW.
+            Move.B   #$00,Terms_to_M103_Port_5   ; Take the DONEs all HI.
+
+
+*************************************************************************
+*                                                                       *
+*  Now wait to to find out from the Readout Control paddle card if      *
+*  this event is going to be "dumped"  i.e. L15 FW Rejected or if       *
+*  this event is going to be readout to L2.                             *
+*                                                                       *
+*  Review the layout of the Readout Control P2 Ironics Port #3.         *
+*                                                                       *
+*    Readout Control Ironics Port #3 all Input bits.                    *
+*                                                                       *
+*      Bit 0   Flag indicating that Readout is Required for this event. *
+*                                                                       *
+*      Bit 1   Flag indicating that this event is to be Dumped.         *
+*                                                                       *
+*      Bits 2,3   Not used.                                             *
+*                                                                       *
+*      Bit 4      VBD DONE hardware signal.                             *
+*                                                                       *
+*      Bits 5:7   Not used.                                             *
+*************************************************************************
+
+
+RdAgn   RdIO    Readout_Ctrl_Port_3,D4         ; Get the contents of RC Port 3.
+        AndI.B  #$03,D4                        ; Select only bits 0 and 1.
+
+        IF.B    #$01 <EQ> D4   THEN.S          ; Test if Readout Required flag
+            JMP   Begin_Thats_Me_Readout_Req   ; is set.  If so jump.
+        ENDI
+
+        IF.B    #$02 <EQ> D4   THEN.S          ; Test if the Dump Event flag
+            JMP   Begin_Thats_Me_Dump_Event    ; is set.  If so jump.
+        ENDI
+
+        JMP     RdAgn                          ; Neither bit was set so read
+                                               ; it again and test again.
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+
+GDSP_at_D3     EQU   $0000000F              ; Global DSP to EC Status Word
+                                            ;   indicating that this DSP is
+                                            ;   at Step D0.
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section                                                    *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Thats_Me_Processing               ; Symbol exported to
+                                                     ; other modules.
+
+
+      XREF   Readout_Ctrl_Port_3                     ; Symbols used in this
+      XREF   Readout_Ctrl_Port_5                     ; module but defined in
+      XREF   Readout_Ctrl_Port_6                     ; another program module.
+      XREF   Terms_to_M103_Port_4
+      XREF   Terms_to_M103_Port_5
+      XREF   Term_Select_Port_4
+
+      XREF   Flag_CLR
+      XREF   Flag_SET
+      XREF   MFP_Event
+      XREF   If_Transfer_Want_MFP_Transfer
+      XREF   All_DSPs_at_Step_D0
+
+      XREF   Begin_Thats_Me_Readout_Req
+      XREF   Begin_Thats_Me_Dump_Event
+      XREF   Begin_All_DSPs_to_Step_D0
+
+      XREF   Ser68_to_Hydra_C_Adrs
+      XREF   Ser68_to_Hydra_A_Adrs
+      XREF   Ser68_to_Hydra_B_Adrs
+      XREF   GDSP_B2_Status_Adrs
+
+      XREF   MFP_Ratio_Term_0
+      XREF   MFP_Counter_Term_0
+
+
+      END
+

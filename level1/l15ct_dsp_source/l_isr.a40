@@ -1,0 +1,822 @@
+******************************************************************************
+*                                                                            *
+*   File  L_ISR.A40                                     Rev.    14-JUN-1994  *
+*                                                                            *
+*  "Meaningful" Register Usage                                               *
+*  ---------------------------                                               *
+*  R6:  Mask of  Full TT Data Blocks                            I/O          *
+*                                                                            *
+*  "Destroyable" Register Usage                                              *
+*  ----------------------------                                              *
+*  R11                                                                       *
+*                                                                            *
+*  Module Description                                                        *
+*  ==================                                                        *
+*                                                                            *
+*  This module contains the Interrupt Service Routines for all Local         *
+*  DSP Nodes.                                                                *
+******************************************************************************
+                                                                            
+******************************************************************************
+*         Include the       DSP Program-Specific Constant Definitions        *
+******************************************************************************
+
+         .include   "constant.inc"
+
+
+******************************************************************************
+*    Interrupt Service Routine:  Default_ISR                                 *
+*                                                                            *
+*   This is the "default" ISR.  All unused vectors in the Trap Vector        *
+*   Table and Interrupt Vector Table will point to this ISR.  This is to     *
+*   protect the system in the event an unexpected interrupt occurs.          *
+*                                                                            *
+*   It is simply a RETI instruction.                                         *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text                             
+
+Default_ISR:                                  
+
+        reti                                ; Just get back to the running
+                                            ; program as though nothing 
+                                            ; happened.  The interrupt will
+                                            ; be cleared "automatically"
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        Default_ISR                         ; Define this symbol
+                                                        ; in this module for
+                                                        ; use in other modules
+
+******************************************************************************
+*   End of Default_ISR                                                       *
+******************************************************************************
+
+
+******************************************************************************
+*    Interrupt Service Routine:  Rack_1_EM_DMA_Finished_ISR                  *
+*                                                                            *
+*   This ISR will execute when the a DMA Transfer corresponding to Rack 1    *
+*   EM Et TT Data is finished.                                               *
+*                                                                            *
+*   It merges a flag into R6 to indicate that this data has been received    *
+*                                                                            *
+*   It also saves and restores the Status Register                           *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text
+
+Rack_1_EM_DMA_Finished_ISR:                                                 
+                                                        ; Save Status Reg
+        PUSH    ST                              
+                   
+        MB0     @One_TT_DMA_Finished_Loc, R6            ; Merge the TT DMA
+                                                        ; finished flag into
+                                                        ; the LSByte of R6    
+
+        POP     ST                                      ; Restore Status Reg
+
+        RETI                                            ; Return 
+
+******************************************************************************
+*       Load constants and working variables into the .data Section          *
+******************************************************************************
+
+        .data                                           ; This is a memory
+                                                        ; location to hold
+Rack_1_EM_DMA_Finished_ISR_Loc:                         ; the address of the
+                                                        ; entry point to 
+        .word       Rack_1_EM_DMA_Finished_ISR          ; the "Rack 1 EM TT
+                                                        ; Input DMA Finished
+                                                        ; ISR"                
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        Rack_1_EM_DMA_Finished_ISR_Loc      ; Define this symbol
+                                                        ; in this module for
+                                                        ; use in other modules
+                                         
+        .ref        One_TT_DMA_Finished_Loc             ; Symbol referenced
+                                                        ; in this module but
+                                                        ; defined in another
+                                                        ; module
+
+******************************************************************************
+*   End of Rack_1_EM_DMA_Finished_ISR                                        *
+******************************************************************************
+
+
+******************************************************************************
+*    Interrupt Service Routine:  Rack_1_Tot_DMA_Finished_ISR                 *
+*                                                                            *
+*   This ISR will execute when the a DMA Transfer corresponding to Rack 1    *
+*   Total Et TT Data is finished.                                            *
+*                                                                            *
+*   It merges a flag into R6 to indicate that this data has been received    *
+*                                                                            *
+*   It also saves and restores the Status Register                           *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text
+
+Rack_1_Tot_DMA_Finished_ISR:                                                  
+
+        PUSH    ST                                      ; Save Status Reg
+                   
+        MB1     @One_TT_DMA_Finished_Loc, R6            ; Merge the TT DMA
+                                                        ; finished flag into
+                                                        ; the next to LSByte
+                                                        ; of R6          
+
+        POP     ST                                      ; Restore Status Reg
+
+        RETI                                            ; Return 
+
+******************************************************************************
+*       Load constants and working variables into the .data Section          *
+******************************************************************************
+
+        .data                                           ; This is a memory
+                                                        ; location to hold
+Rack_1_Tot_DMA_Finished_ISR_Loc:                        ; the address of the
+                                                        ; entry point to 
+        .word       Rack_1_Tot_DMA_Finished_ISR         ; the "Rack 1 Tot TT
+                                                        ; Input DMA Finished
+                                                        ; ISR"                
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        Rack_1_Tot_DMA_Finished_ISR_Loc     ; Define this symbol
+                                                        ; in this module for
+                                                        ; use in other modules
+
+******************************************************************************
+*   End of Rack_1_Tot_DMA_Finished_ISR                                       *
+******************************************************************************
+
+
+******************************************************************************
+*    Interrupt Service Routine:  Rack_2_EM_DMA_Finished_ISR                  *
+*                                                                            *
+*   This ISR will execute when the a DMA Transfer corresponding to Rack 2    *
+*   EM Et TT Data is finished.                                               *
+*                                                                            *
+*   It merges a flag into R6 to indicate that this data has been received    *
+*                                                                            *
+*   It also saves and restores the Status Register                           *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text
+
+Rack_2_EM_DMA_Finished_ISR:                                                   
+
+        PUSH    ST                                      ; Save Status Reg
+                   
+        MB2     @One_TT_DMA_Finished_Loc, R6            ; Merge the TT DMA
+                                                        ; finished flag into
+                                                        ; the next to MSByte
+                                                        ; of R6          
+
+        POP     ST                                      ; Restore Status Reg
+
+        RETI                                            ; Return 
+
+******************************************************************************
+*       Load constants and working variables into the .data Section          *
+******************************************************************************
+
+        .data                                           ; This is a memory
+                                                        ; location to hold
+Rack_2_EM_DMA_Finished_ISR_Loc:                         ; the address of the
+                                                        ; entry point to 
+        .word       Rack_2_EM_DMA_Finished_ISR          ; the "Rack 2 EM TT
+                                                        ; Input DMA Finished
+                                                        ; ISR"                
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        Rack_2_EM_DMA_Finished_ISR_Loc      ; Define this symbol
+                                                        ; in this module for
+                                                        ; use in other modules
+
+******************************************************************************
+*   End of Rack_2_EM_DMA_Finished_ISR                                        *
+******************************************************************************
+
+
+******************************************************************************
+*    Interrupt Service Routine:  Rack_2_Tot_DMA_Finished_ISR                 *
+*                                                                            *
+*   This ISR will execute when the a DMA Transfer corresponding to Rack 2    *
+*   Total Et TT Data is finished.                                            *
+*                                                                            *
+*   It merges a flag into R6 to indicate that this data has been received    *
+*                                                                            *
+*   It also saves and restores that Status Register                          *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text
+
+Rack_2_Tot_DMA_Finished_ISR:     
+                                                                              
+        PUSH    ST                                      ; Save Status Reg
+        
+        MB3     @One_TT_DMA_Finished_Loc, R6            ; Merge the TT DMA
+                                                        ; finished flag into
+                                                        ; the MSByte of R6 
+
+        POP     ST                                      ; Restore Status Reg
+
+        RETI                                            ; Return 
+
+******************************************************************************
+*       Load constants and working variables into the .data Section          *
+******************************************************************************
+
+        .data                                           ; This is a memory
+                                                        ; location to hold
+Rack_2_Tot_DMA_Finished_ISR_Loc:                        ; the address of the
+                                                        ; entry point to 
+        .word       Rack_2_Tot_DMA_Finished_ISR         ; the "Rack 2 Tot TT
+                                                        ; Input DMA Finished
+                                                        ; ISR"                
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        Rack_2_Tot_DMA_Finished_ISR_Loc     ; Define this symbol
+                                                        ; in this module for
+                                                        ; use in other modules
+
+******************************************************************************
+*   End of Rack_2_Tot_DMA_Finished_ISR                                       *
+******************************************************************************
+
+
+******************************************************************************
+*    Interrupt Service Routine:  LG_Xfr_fr_Pr_4_Complete_ISR                 *
+*                                                                            *
+*   This ISR will execute in a Local DSP which recieves previous data from   *
+*   a single LDSP when the Local-to-Global Transfer from the previous DSP    *
+*   is complete.  This previous DSP will always be DSP #{A, B, or C}4.       *
+*                                                                            *
+*>>>This ISR is only used in Local DSPs which receive Previous data from a   *
+*>>>single LDSP.  That is, LDSP A3, B3, and C3.                              *
+*                                                                            *
+*   It sets a return status in LG_Xfr_from_Prev_Status_Loc indicating that   *
+*   the Local-to-Global from Previous is complete and then returns           *
+*                                                                            *
+*   It also saves and restores the Status Register and R11                   *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+         .text
+                   
+LG_Xfr_fr_Pr_4_Complete_ISR:
+                                                                              
+        PUSH    ST                                      ; Save Status Register
+
+        PUSH    R11                                     ; Save R11
+
+        LDI     LG_Xfr_Complete_Flag, R11               ; Set the Transfer
+                                                        ; Complete flag in
+        STI     R11, @LG_Xfr_from_Prev_Status_Loc       ; the Xfr_from_Prev
+                                                        ; Status location
+                                                                  
+        POP     R11                                     ; Restore R11
+
+        POP     ST                                      ; Restore Status Reg
+
+        RETI                                            ; Return 
+
+******************************************************************************
+*       Load constants and working variables into the .data Section          *
+******************************************************************************
+
+        .data                                           ; This is a memory
+                                                        ; location to hold
+LG_Xfr_fr_Pr_4_Complete_ISR_Loc:                        ; the address of the
+                                                        ; entry point to 
+        .word       LG_Xfr_fr_Pr_4_Complete_ISR         ; the "Local-to-Global
+                                                        ; Transfer from Prev
+                                                        ; DSP #4 Complete" ISR
+
+LG_Xfr_from_Prev_Status_Loc:                            ; Memory location to 
+                                                        ; store the Status
+        .word   LG_Xfr_Incomplete_Flag                  ; flag for the 
+                                                        ; "Local-to-Global    
+                                                        ; Transfer from the
+                                                        ; Previous DSP".  It
+                                                        ; should start out 
+                                                        ; invalid.
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        LG_Xfr_fr_Pr_4_Complete_ISR_Loc     ; Define this symbol
+        .def        LG_Xfr_from_Prev_Status_Loc         ; in this module for
+                                                        ; use in other modules
+                                                                              
+******************************************************************************
+*   End of LG_Xfr_fr_Prev_Complete_ISR                                       *
+******************************************************************************
+                                                                            
+
+******************************************************************************
+*    Interrupt Service Routine:  LG_Xfr_fr_Pr_1_Complete_ISR                 *
+*                                                                            *
+*   This ISR will execute in a Local DSP which recieves previous data from   *
+*   two LDSPs on two separate Comm Ports when the Local-to-Global Transfer   *
+*   corresponding to LDSP #{A or C}1 has completed.  Recall that the LDSPs   *
+*   which receive previous data on 2 Comm Ports are LDSP A2 and C2, and      *
+*   they receive data from A1 and A3, or C1 and C3 respectively.             *
+*                                                                            *
+*>>>This ISR is only used in Local DSPs which receive Previous data from     *
+*>>>two LDSPs on two Comm Ports.  That is, LDSP A2 and C2.                   *
+*                                                                            *
+*   It merges a flag into the LG_Xfr_from_Prev_Status_Loc indicating that    *
+*   the Local-to-Global from Previous LDSP {A or C}1 has completed.  If      *
+*   the Local-to-Global from Previous LDSP {A or C}3 has also completed,     *
+*   the information is not lost in this ISR.  It then returns.               *
+*                                                                            *
+*   It also saves and restores the Status Register, R11, and R10             *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+         .text
+                   
+LG_Xfr_fr_Pr_1_Complete_ISR:                                                  
+
+        PUSH    ST                                      ; Save Status Reg
+                                                          
+        PUSH    R11                                     ; Save R11
+
+        PUSH    R10                                     ; Save R10
+
+        LDI     @LG_Xfr_from_Prev_Status_Loc, R11       ; Get the current
+                                                        ; status of the
+                                                        ; Local-to-Global
+                                                        ; from Previous
+                                                        ; DSP Transfer
+
+        LDI     LG_fr_Prev_Half_Done_Flag, R10          ; Load the "half
+                                                        ; done" flag into
+                                                        ; R10
+
+        MB0     R10, R11                                ; Merge the "half
+                                                        ; done" flag into
+                                                        ; the LSByte of
+                                                        ; R11.  This 
+                                                        ; indicates that
+                                                        ; the Transfer from
+                                                        ; LDSP #1 is 
+                                                        ; complete.  The 
+                                                        ; next to LSByte,
+                                                        ; indicating the 
+                                                        ; status of the 
+                                                        ; Transfer from
+                                                        ; LDSP #3, is not
+                                                        ; altered.
+
+        STI     R11, @LG_Xfr_from_Prev_Status_Loc       ; Return the status
+                                                        ; flag.          
+                   
+        POP     R10                                     ; Restore R10
+                                                      
+        POP     R11                                     ; Restore R11
+        
+        POP     ST                                      ; Restore Status Reg
+
+        RETI                                            ; Return 
+
+******************************************************************************
+*       Load constants and working variables into the .data Section          *
+******************************************************************************
+
+        .data                                           ; This is a memory
+                                                        ; location to hold
+LG_Xfr_fr_Pr_1_Complete_ISR_Loc:                        ; the address of the
+                                                        ; entry point to 
+        .word       LG_Xfr_fr_Pr_1_Complete_ISR         ; the "Local-to-Global
+                                                        ; Transfer from Prev
+                                                        ; DSP #1 Complete" ISR
+
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        LG_Xfr_fr_Pr_1_Complete_ISR_Loc     ; Define this symbol
+                                                        ; in this module for
+                                                        ; use in other modules
+                                                                              
+******************************************************************************
+*   End of LG_Xfr_fr_Pr_1_Complete_ISR                                       *
+******************************************************************************
+
+
+******************************************************************************
+*    Interrupt Service Routine:  LG_Xfr_fr_Pr_3_Complete_ISR                 *
+*                                                                            *
+*   This ISR will execute in a Local DSP which recieves previous data from   *
+*   two LDSPs on two separate Comm Ports when the Local-to-Global Transfer   *
+*   corresponding to LDSP #{A or C}3 has completed.  Recall that the LDSPs   *
+*   which receive previous data on 2 Comm Ports are LDSP A2 and C2, and      *
+*   they receive data from A1 and A3, or C1 and C3 respectively.             *
+*                                                                            *
+*>>>This ISR is only used in Local DSPs which receive Previous data from     *
+*>>>two LDSPs on two Comm Ports.  That is, LDSP A2 and C2.                   *
+*                                                                            *
+*   It merges a flag into the LG_Xfr_from_Prev_Status_Loc indicating that    *
+*   the Local-to-Global from Previous LDSP {A or C}3 has completed.  If      *
+*   the Local-to-Global from Previous LDSP {A or C}1 has also completed,     *
+*   the information is not lost in this ISR.  It then returns.               *
+*                                                                            *
+*   It also saves and restores that Status Register, R11, and R10            *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+         .text
+                   
+LG_Xfr_fr_Pr_3_Complete_ISR:
+                                                                              
+        PUSH    ST                                      ; Save Status Reg
+                                                                 
+        PUSH    R11                                     ; Save R11
+
+        PUSH    R10                                     ; Save R10
+
+
+        LDI     @LG_Xfr_from_Prev_Status_Loc, R11       ; Get the current
+                                                        ; status of the
+                                                        ; Local-to-Global
+                                                        ; from Previous
+                                                        ; DSP Transfer
+                                               
+        LDI     LG_fr_Prev_Half_Done_Flag, R10          ; Load the "half
+                                                        ; done" flag 
+                                                        ; into R10
+
+        MB1     R10, R11                                ; Merge the "half
+                                                        ; done" flag into
+                                                        ; the next to LSByte
+                                                        ; of R11.  This
+                                                        ; indicates that
+                                                        ; the Transfer from
+                                                        ; LDSP #3 is 
+                                                        ; complete.  The 
+                                                        ; LSByte,        
+                                                        ; indicating the 
+                                                        ; status of the 
+                                                        ; Transfer from
+                                                        ; LDSP #1, is not
+                                                        ; altered.
+
+        STI     R11, @LG_Xfr_from_Prev_Status_Loc       ; Return the status
+                                                        ; flag.          
+                                                                  
+        POP     R10                                     ; Restore R10
+
+        POP     R11                                     ; Restore R11
+
+        POP     ST                                      ; Restore Status Reg
+
+        RETI                                            ; Return 
+
+******************************************************************************
+*       Load constants and working variables into the .data Section          *
+******************************************************************************
+
+        .data                                           ; This is a memory
+                                                        ; location to hold
+LG_Xfr_fr_Pr_3_Complete_ISR_Loc:                        ; the address of the
+                                                        ; entry point to 
+        .word       LG_Xfr_fr_Pr_3_Complete_ISR         ; the "Local-to-Global
+                                                        ; Transfer from Prev
+                                                        ; DSP #3 Complete" ISR
+
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        LG_Xfr_fr_Pr_3_Complete_ISR_Loc     ; Define this symbol
+                                                        ; in this module for
+                                                        ; use in other modules
+                                                                              
+******************************************************************************
+*   End of LG_Xfr_fr_Pr_3_Complete_ISR                                       *
+******************************************************************************
+
+
+******************************************************************************
+*    Interrupt Service Routine:  LG_Xfr_to_Next_Complete_ISR                 *
+*                                                                            *
+*   This ISR will execute when the this LDSP has transferred all of its      *
+*   data (and the data of the "previous" DSP(s) if appropriate) to the       *
+*   "next" DSP in the Local-to-Global Transfer Chain                         *
+*                                                                            *
+*   It sets a flag in LG_Xfr_to_next_Status_Loc and then returns             *
+*                                                                            *
+*   It also saves and restores the Status Register and R11                   *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+         .text
+                   
+LG_Xfr_to_Next_Complete_ISR:                                                  
+
+        PUSH    ST                                      ; Save Status Reg
+                                                          
+        PUSH    R11                                     ; Save R11
+
+        LDI     LG_Xfr_Complete_Flag, R11               ; Set the Transfer
+                                                        ; Complete flag
+        STI     R11, @LG_Xfr_to_Next_Status_Loc         ; in the Xfr_to_Next
+                                                        ; Status Location
+
+        POP     R11                                     ; Restore R11
+
+        POP     ST                                      ; Restore Status Reg
+
+        RETI                                            ; Return 
+
+******************************************************************************
+*       Load constants and working variables into the .data Section          *
+******************************************************************************
+
+        .data                                           ; This is a memory
+                                                        ; location to hold
+LG_Xfr_to_Next_Complete_ISR_Loc:                        ; the address of the
+                                                        ; entry point to 
+        .word       LG_Xfr_to_Next_Complete_ISR         ; the "Local-to-Global
+                                                        ; Transfer to Next  
+                                                        ; DSP Complete" ISR   
+
+LG_Xfr_to_Next_Status_Loc:                              ; Memory location to 
+                                                        ; store the Status
+        .word   LG_Xfr_Incomplete_Flag                  ; flag for the 
+                                                        ; "Local-to-Global
+                                                        ; Transfer to the
+                                                        ; Next DSP".  It
+                                                        ; should start out 
+                                                        ; invalid.
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        LG_Xfr_to_Next_Complete_ISR_Loc     ; Define this symbol
+        .def        LG_Xfr_to_Next_Status_Loc            ; in this module for
+                                                        ; use in other modules
+
+******************************************************************************
+*   End of LG_Xfr_to_Next_Complete_ISR                                       *
+******************************************************************************
+        
+
+******************************************************************************
+*    Interrupt Service Routine:  Error_Handler_ISR                           *
+*                                                                            *
+*   This ISR will execute when the EC 68K has detected an error and signalled*
+*   the Local DSP by asserting the IIOF2 Interrupt.                          *
+*                                                                            *
+*   It does everything it can to clear the error condition, and then         *
+*   resumes execution of the Local DSP Program at the "waiting for Wakeup    *
+*   Word and ERPB Data" point.                                               *
+*                                                                            *
+*   The best way to do this is to perform the following actions:             *
+*       (1)     Perform the Node-Specific Initialization                     *
+*       (2)     Branch to the beginning of the Scan Routine                  *
+*                                                                            * 
+*   Note that we want to resume program execution at a FIXED point in the    *
+*   code, specifically the beginning of the Scan Routine (i.e. at the        *
+*   Init_for_Loop entry point in L_Scan).  In order to do this we POP the    *
+*   current value off the top of the stack (recall that it contains the      *
+*   PC that we would "naturally" return to), and PUSH the address of the     *
+*   Init_for_Loop entry point onto the stack.  Then when we execute the      *
+*   RETI instruction we will return NOT to where we "naturally" would have   *
+*   but instead to the Scan Routine                                          *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text
+
+Error_Handler_ISR:                  
+
+        LDI     @C40_Stack_Handle,SP                ; Load the Stack Pointer 
+                                                    ; Register with the 
+                                                    ; initial Base Address
+                                                    ; of the Stack space.  
+                                                    ; This is to avoid
+                                                    ; stack overrun if
+                                                    ; the Initialize ISR
+                                                    ; is called multiple
+                                                    ; times from within
+                                                    ; subroutines.
+        
+        LDI     Status_OK, R11                      ; Use R11 to clear the
+                                                    ; Comm Port Status
+        STI     R11, @Com_Port_Status_Loc           ; Longword
+
+        CALL    Initialize_Node                     ; CALL the Node-          
+                                                    ; ^^^^ Specific           
+                                                    ; Initialization          
+                                                    ; Routine                 
+                                                                              
+        LDI     @Init_for_Loop_Loc, R11             ; Put the address of      
+        PUSH    R11                                 ; the beginning of the
+                                                    ; Scan Routine on the
+                                                    ; stack
+
+                    
+        RETI                                        ; Return from interrupt.  
+                                                    ; We have forced a return
+                                                    ; to a specific point
+                                                    ; in the program code.
+
+******************************************************************************
+*       Load constants and working variables into the .data Section          *
+******************************************************************************
+
+        .data                                           ; This is a memory
+                                                        ; location to hold
+Error_Handler_ISR_Loc:                                  ; the address of the
+                                                        ; entry point to 
+        .word       Error_Handler_ISR                   ; the "Error Handler"
+                                                        ; ISR
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        Error_Handler_ISR_Loc               ; Define this symbol
+                                                        ; in this module for
+                                                        ; use in other modules
+                                                                          
+        .ref        Init_for_Loop_Loc                   ; Symbol referenced in
+        .ref        Initialize_Node                     ; this module but 
+        .ref	    Com_Port_Status_Loc  	        ; defined in other 
+        					 	; modules
+
+******************************************************************************
+*   End of Error_Handler_ISR                                                 *
+******************************************************************************
+
+
+******************************************************************************
+*    Interrupt Service Routine:  Initialize_ISR                              *
+*                                                                            *
+*   This ISR will execute when the TCC has received a START command from     *
+*   COOR and signalled the Local DSP by asserting the NMI Interrupt.         *
+*                                                                            *
+*   When the TCC issues a START command each Local DSP should perform the    *
+*   following actions:                                                       *
+*       (1)     Perform the Node-Specific Initialization                     *
+*       (2)     Receive and check the Parameters                             *
+*       (3)     Perform the Tool Initialization                              *
+*       (4)     Branch to the beginning of the Scan Routine                  *
+*                                                                            *
+*   Note that we want to resume program execution at a FIXED point in the    *
+*   code, specifically the beginning of the Scan Routine (i.e. at the        *
+*   Init_for_Loop entry point in L_Scan).  In order to do this we POP the    *
+*   current value off the top of the stack (recall that it contains the      *
+*   PC that we would "naturally" return to), and PUSH the address of the     *
+*   Init_for_Loop entry point onto the stack.  Then when we execute the      *
+*   RETI instruction we will return NOT to where we "naturally" would have   *
+*   but instead to the Scan Routine                                          *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+         .text
+
+Initialize_ISR:                     
+
+        LDI     @C40_Stack_Handle,SP                ; Load the Stack Pointer 
+                                                    ; Register with the 
+                                                    ; initial Base Address
+                                                    ; of the Stack space.  
+                                                    ; This is to avoid
+                                                    ; stack overrun if
+                                                    ; the Initialize ISR
+                                                    ; is called multiple
+                                                    ; times from within
+                                                    ; subroutines.
+
+        LDI   5800h,ST                     ; Clear and Enable the Instruction
+                                           ; Cache,  disable the OVM, disable
+                                           ; interrupts, set the previous
+                                           ; global interrupt enable bit
+
+        LDI     Status_OK, R11                      ; Use R11 to clear the
+                                                    ; Comm Port Status
+        STI     R11, @Com_Port_Status_Loc           ; Longword
+        
+        CALL    Initialize_Node                     ; CALL the Node-          
+                                                    ; ^^^^ Specific           
+                                                    ; Initialization          
+                                                    ; Routine                 
+
+        CALL    Get_Parameters                      ; CALL the Parameter      
+                                                    ; ^^^^ Receiving and      
+                                                    ; Checking Routine        
+
+        LDI     @Init_for_Loop_Loc, R11             ; Put the address of      
+                                                    ; the beginning of the
+        PUSH    R11                                 ; Scan Routine on the
+                                                    ; stack.  Since we reset
+                                                    ; the Stack Pointer at
+                                                    ; entry to this ISR 
+                                                    ; this will be the only
+                                                    ; entry on the stack (i.e.
+                                                    ; the stack will be
+                                                    ; empty after the RETI
+                                                    ; is executed.
+                    
+        RETI                                        ; Return from interrupt.  
+                                                    ; We have forced a return
+                                                    ; to a specific point
+                                                    ; in the program code.
+
+******************************************************************************
+*       Load constants and working variables into the .data Section          *
+******************************************************************************
+
+        .data                                           ; This is a memory
+                                                        ; location to hold
+Initialize_ISR_Loc:                                     ; the address of the
+                                                        ; entry point to 
+        .word       Initialize_ISR                      ; the "Initialize"   
+                                                        ; ISR
+
+******************************************************************************
+*       Cross-References                                                     *
+******************************************************************************
+
+        .def        Initialize_ISR_Loc                  ; Define this symbol
+                                                        ; in this module for
+                                                        ; use in other modules
+                                                                          
+        .ref        Init_for_Loop_Loc                   ; Symbol referenced in
+        .ref        Initialize_Node                     ; this module but 
+        .ref        Get_Parameters		        ; defined in other 
+        .ref        C40_Stack_Handle	                ; modules
+        .ref        Com_Port_Status_Loc
+                      
+******************************************************************************
+*   End of Initialize_ISR                                                    *
+******************************************************************************
+
+        									
+******************************************************************************
+*       End of This Module                                                   *
+******************************************************************************
+
+        .end

@@ -1,0 +1,403 @@
+
+All_DSPs_Step_D0   IDNT                  ; Title of the program section that
+                                         ;   tests and trys to get all 12 DSPs
+                                         ;   to step D0.
+
+   SECTION   Sect_All_DSPs_Step_D0,4,C   ; Declare a noncommon code section.
+                                         ;   Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*  Routine to test to see if all DSP's are at Step D0.  If they are not   *
+*  all at Step D0 then this routine checks to see if it can move them     *
+*  there.                                                                 *
+*                                                    Rev.  21-JUNE-1994   *
+*                                                                         *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D4.                *
+*                                                                         *
+***************************************************************************
+
+
+*************************************************************************
+*                                                                       *
+*  First check to see if the  All_DSPs_at_Step_D0  flag is already set. *
+*                                                                       *
+*************************************************************************
+
+Begin_All_DSPs_to_Step_D0:
+
+
+    IF.B   All_DSPs_at_Step_D0 <EQ> #Flag_SET  THEN.S   ; Test to see if all
+        RTS                                             ; DSP's are already at
+    ENDI                                                ; step D0. If so, exit.
+
+
+*************************************************************************
+*                                                                       *
+*  OK, if we reach here then the  All_DSPs_at_Step_D0  flag is not      *
+*  already set, so let's test to see if we may move all DSP to Step D0. *
+*                                                                       *
+*                                                                       *
+*   Check through the list of 12 software flags that indicate for       *
+*   each of the DSP's whether or not the associated DSP has reached     *
+*   Step D15.  These 12 software flags are called the                   *
+*   "DSP_??_at_Step_D15"   flags.                                       *
+*                                                                       *
+*   Normally some of these flags will be set and some will be           *
+*   cleared.  As soon as you find a flag that is CLEARED then check     *
+*   that DSP's  "DSP to EC Status Word"  to see if it has yet           *
+*   reached Step D15.                                                   *
+*                                                                       *
+*   If the "DSP to EC Status Word" indicates that this DSP HAS          *
+*   reached Step D15 then set its software flag to indicate this and    *
+*   continue checking through the list of software flags.               *
+*                                                                       *
+*   If the "DSP to EC Status Word" indicates that this DSP has NOT      *
+*   yet reached Step D15 then exit this routine.                        *
+*                                                                       *
+*   In this section the Global DSP should be checked first in the       *
+*   list, because it is most likely to be the last DSP to reach         *
+*   Setp D15,                                                           *
+*                                                                       *
+*   NOTE:  When the Global DSP is at Step D15 it may have one of two    *
+*          different values in its Status to 68k_Services depending     *
+*          upon whether or not it transfered data to the 214 Bud on     *
+*          the current L15CT cycle.                                     *
+*************************************************************************
+
+
+      IF.B  DSP_B2_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  B2
+          Move.L  GDSP_B2_Status_Adrs,D4               ;is at Step D15?  If it
+          AndI.W  #$8000,D4                            ;is NOT, then get its
+          IF.W    D4 <EQ> #GDSP_at_D15    THEN.S       ;current status.Test only
+               Move.B  #Flag_SET,DSP_B2_at_Step_D15    ;status bit D15.   Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+
+      IF.B  DSP_A1_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  A1
+          Move.L  LDSP_A1_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_A1_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+      IF.B  DSP_A2_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  A2
+          Move.L  LDSP_A2_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_A2_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+      IF.B  DSP_A3_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  A3
+          Move.L  LDSP_A3_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_A3_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+      IF.B  DSP_A4_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  A4
+          Move.L  LDSP_A4_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_A4_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+
+      IF.B  DSP_B1_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  B1
+          Move.L  LDSP_B1_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_B1_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+      IF.B  DSP_B3_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  B3
+          Move.L  LDSP_B3_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_B3_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+      IF.B  DSP_B4_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  B4
+          Move.L  LDSP_B4_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_B4_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+
+      IF.B  DSP_C1_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  C1
+          Move.L  LDSP_C1_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_C1_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+      IF.B  DSP_C2_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  C2
+          Move.L  LDSP_C2_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_C2_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+      IF.B  DSP_C3_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  C3
+          Move.L  LDSP_C3_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_C3_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+      IF.B  DSP_C4_at_Step_D15 <EQ> #Flag_CLR  THEN.S  ;Test flag to see if  C4
+          Move.L  LDSP_C4_Status_Adrs,D4               ;is at Step D15?  If it
+          IF.W    D4 <EQ> #LDSP_at_D15    THEN.S       ;is NOT, then get its
+               Move.B  #Flag_SET,DSP_C4_at_Step_D15    ;current status.  Does
+          ELSE.S                                       ;its current status
+               RTS                                     ;indicate Step D15?  If
+          ENDI                                         ;YES then set its flag
+      ENDI                                             ;and continue. Else Exit.
+
+
+*************************************************************************
+*                                                                       *
+*  If we reach this point then all 12 DSP indicate via their DSP to EC  *
+*  Status Words that they have reached Step D15.  This being the case,  *
+*  take the following steps:                                            *
+*                                                                       *
+*   Clear the previous valid Wake Up Word.                              *
+*                                                                       *
+*   Clear the 12 Software flags,  DSP_??_at_Step_D15,  that indicate    *
+*   that their associated DSP is at Step D15.                           *
+*                                                                       *
+*   Set the  All_Data_In_Load_Buf  software flag.                       *
+*                                                                       *
+*   Clear the previously valid  "Transfer to 214 Required Word"  that   *
+*   is used by the Global DSP.                                          *
+*                                                                       *
+*   Check to see that all 12 DSP's now indicate in their "DSP to EC     *
+*   Status Words" that they are all at Step D0.                         *
+*                                                                       *
+*   Set the software flag,  All_DSPs_at_Step_D0,  that indicates        *
+*   that all 12 DSP's are at Step D0 and ready for the next WUW.        *
+*                                                                       *
+*   Exit this routine.                                                  *
+*                                                                       *
+*************************************************************************
+
+
+******  CLEAR the previously valid Wake_Up_Word  *******
+
+        Move.L   #$0000FF00,Ser68_to_Hydra_A_Adrs     ; Local DSP's Hydra-II A.
+        Move.L   #$0000FF00,Ser68_to_Hydra_B_Adrs     ; Local DSP's Hydra-II B.
+        Move.L   #$0000FF00,Ser68_to_Hydra_C_Adrs     ; Local DSP's Hydra-II C.
+        Move.L   #$0000FF00,Ser68_to_Hydra_B_Adrs+4   ; Global DSP's Hydra-II B.
+
+
+******  While the DSP's are learning that the previously valid        ******
+******  Wake_Up_Word has been cleared and while they move themselves  ******
+******  to Step D0;  CLEAR all 12 of the  DSP_??_at_Step_D15          ******
+******  software flags.                                               ******
+
+        Clr.B   DSP_A1_at_Step_D15      ; CLEAR  DSP_A1_at_Step_D15  flag.
+        Clr.B   DSP_A2_at_Step_D15      ; CLEAR  DSP_A2_at_Step_D15  flag.
+        Clr.B   DSP_A3_at_Step_D15      ; CLEAR  DSP_A3_at_Step_D15  flag.
+        Clr.B   DSP_A4_at_Step_D15      ; CLEAR  DSP_A4_at_Step_D15  flag.
+
+        Clr.B   DSP_B1_at_Step_D15      ; CLEAR  DSP_B1_at_Step_D15  flag.
+        Clr.B   DSP_B2_at_Step_D15      ; CLEAR  DSP_B2_at_Step_D15  flag.
+        Clr.B   DSP_B3_at_Step_D15      ; CLEAR  DSP_B3_at_Step_D15  flag.
+        Clr.B   DSP_B4_at_Step_D15      ; CLEAR  DSP_B4_at_Step_D15  flag.
+
+        Clr.B   DSP_C1_at_Step_D15      ; CLEAR  DSP_C1_at_Step_D15  flag.
+        Clr.B   DSP_C2_at_Step_D15      ; CLEAR  DSP_C2_at_Step_D15  flag.
+        Clr.B   DSP_C3_at_Step_D15      ; CLEAR  DSP_C3_at_Step_D15  flag.
+        Clr.B   DSP_C4_at_Step_D15      ; CLEAR  DSP_C4_at_Step_D15  flag.
+
+
+******  Give the 12 DSP's even more time to reach Step D0 before    ******
+******  checking on them by right now taking the time to SET the    ******
+******  All_Data_in_Load_Buf  software flag.  This should only be   ******
+******  set if the GDSP had been told to transfer to the 214 memory. ******
+
+        IF.B   Told_GDSP_to_Transfer <EQ> #Flag_SET   THEN.S
+
+            Move.B  #Flag_SET,All_Data_In_Load_Buf  ; SET the All_Data_In_Load_
+                                                    ; _Buf  software flag.
+        ENDI
+
+******  Give the 12 DSP's even more time to reach Step D0 before    ******
+******  checking on them by right now taking the time to CLEAR      ******
+******  the previously valid  "Transfer to 214 Required Word"       ******
+******  that is used by the Global DSP.                             ******
+
+
+        Move.L   #$000000FF,Ser68_to_Hydra_B_Adrs+8     ; Global DSPs card "B".
+
+
+******  OK, now check all 12 DSP to verify that they have all  ******
+******  reached Step D0.                                       ******
+
+Wait_A1   Move.L  LDSP_A1_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  A1.  If it is not at
+             JMP  Wait_A1                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+Wait_A2   Move.L  LDSP_A2_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  A2.  If it is not at
+             JMP  Wait_A2                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+Wait_A3   Move.L  LDSP_A3_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  A3.  If it is not at
+             JMP  Wait_A3                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+Wait_A4   Move.L  LDSP_A4_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  A4.  If it is not at
+             JMP  Wait_A4                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+
+
+Wait_B1   Move.L  LDSP_B1_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  B1.  If it is not at
+             JMP  Wait_B1                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+Wait_B2   Move.L  GDSP_B2_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #GDSP_at_D0  THEN.S     ; DSP  B2.  If it is not at
+             JMP  Wait_B2                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+Wait_B3   Move.L  LDSP_B3_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  B3.  If it is not at
+             JMP  Wait_B3                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+Wait_B4   Move.L  LDSP_B4_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  B4.  If it is not at
+             JMP  Wait_B4                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+
+
+Wait_C1   Move.L  LDSP_C1_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  C1.  If it is not at
+             JMP  Wait_C1                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+Wait_C2   Move.L  LDSP_C2_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  C2.  If it is not at
+             JMP  Wait_C2                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+Wait_C3   Move.L  LDSP_C3_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  C3.  If it is not at
+             JMP  Wait_C3                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+Wait_C4   Move.L  LDSP_C4_Status_Adrs,D4          ; Read the current status of
+          IF.W    D4 <NE> #LDSP_at_D0  THEN.S     ; DSP  C4.  If it is not at
+             JMP  Wait_C4                         ; Step D0 then wait for it
+          ENDI                                    ; to reach Step D0.
+
+
+******  OK, we have verified that all 12 DSP's are at Step D0, so  ******
+******  SET the  All_DSPs_at_Step_D0  software flag and return.    ******
+
+        Move.B  #Flag_SET,All_DSPs_at_Step_D0   ; SET the  All_DSPs_at_Step_D0
+                                                ; software flag.
+
+        RTS                                     ; Return to the calling routine.
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section                                                    *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_All_DSPs_to_Step_D0               ; Symbol exported to
+                                                     ; other modules.
+
+      ; Symbols used in this module but defined in another program module.
+
+
+      XREF    Flag_CLR
+      XREF    Flag_SET
+
+      XREF    All_DSPs_at_Step_D0
+
+      XREF    DSP_A1_at_Step_D15,DSP_A2_at_Step_D15
+      XREF    DSP_A3_at_Step_D15,DSP_A4_at_Step_D15
+      XREF    DSP_B1_at_Step_D15,DSP_B2_at_Step_D15
+      XREF    DSP_B3_at_Step_D15,DSP_B4_at_Step_D15
+      XREF    DSP_C1_at_Step_D15,DSP_C2_at_Step_D15
+      XREF    DSP_C3_at_Step_D15,DSP_C4_at_Step_D15
+
+      XREF    LDSP_A1_Status_Adrs,LDSP_A2_Status_Adrs
+      XREF    LDSP_A3_Status_Adrs,LDSP_A4_Status_Adrs
+      XREF    LDSP_B1_Status_Adrs
+      XREF    LDSP_B3_Status_Adrs,LDSP_B4_Status_Adrs
+      XREF    LDSP_C1_Status_Adrs,LDSP_C2_Status_Adrs
+      XREF    LDSP_C3_Status_Adrs,LDSP_C4_Status_Adrs
+
+      XREF    GDSP_B2_Status_Adrs
+
+      XREF    Ser68_to_Hydra_A_Adrs,Ser68_to_Hydra_B_Adrs
+      XREF    Ser68_to_Hydra_C_Adrs
+
+      XREF    All_Data_In_Load_Buf
+      XREF    Told_GDSP_to_Transfer
+
+      XREF    LDSP_at_D0
+      XREF    GDSP_at_D0
+      XREF    LDSP_at_D15
+      XREF    GDSP_at_D15
+
+      END
+

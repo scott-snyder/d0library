@@ -1,0 +1,742 @@
+
+*************************************************************************
+*                                                                       *
+*     68k_Services Main Symbols                     Rev.  21-JUNE-1994  *
+*                                                                       *
+*                                                                       *
+*                                                                       *
+*  This is the Include file that holds most of the symbols and          *
+*  constants for use with the  68k_Services  program.                   *
+*                                                                       *
+*  When possible all symbols and constants that are used by more        *
+*  than one module should be defined in this file.                      *
+*                                                                       *
+*  Symbols that need to be "exported" to other modules need to be       *
+*  included in an  XDEF  assembler directive and thus given the         *
+*  external definition attribute.                                       *
+*                                                                       *
+*  A few symbols must be defined in other program modules (e.g. the     *
+*  targets of JSR from the main program section).  These need to be     *
+*  included in an  XREF  assembler directive in the module where they   *
+*  are referenced but not defined.                                      *
+*                                                                       *
+*  A symbol that is the operand has the form  "abc".                    *
+*  A symbol that is the address of the operand has the form  "abc_Loc". *
+*  A symbol that is the address of a memory location that holds the     *
+*    address of the operand has the form  "abc_Handle".                 *
+*************************************************************************
+
+
+*************************************************************************
+*                                                                       *
+*  This section defines the Addresses of the Registers on the VBD card. *
+*                                                                       *
+*************************************************************************
+
+VBDBASE       EQU     $10FFA000        ; Short I/O Base Address of the VBD's
+                                       ; Registers as seen by the MVME135-1
+                                       ; through the Vertical Interconnect.
+
+VBDCSR0       EQU     VBDBASE+$0000    ; VBD Control Status Reg 0
+VBDCSR1       EQU     VBDBASE+$0002    ; VBD Control Status Reg 1
+VBDCSR2       EQU     VBDBASE+$0004    ; VBD Control Status Reg 2
+VBDCSR3       EQU     VBDBASE+$0006    ; VBD Control Status Reg 3
+CrateTypeReg  EQU     VBDBASE+$0008    ; Reg for Crate Type for VBD operation
+EvtNmbAdrReg  EQU     VBDBASE+$000A    ; Reg for the Adrs of the Event Number
+CrtIDAdrReg   EQU     VBDBASE+$000C    ; Reg for the Address of the Crate ID
+DControlReg   EQU     VBDBASE+$0010    ; Data Read Format Control Reg.
+PControlReg   EQU     VBDBASE+$0012    ; Parameter Read Format Control Reg.
+IOUPAdrsReg   EQU     VBDBASE+$0014    ; Parameter Read Adrs Bits 31-16
+WCPntList     EQU     VBDBASE+$1000    ; List of Pointers to Word Counts
+DataPntList   EQU     VBDBASE+$1800    ; List of Base Adrs's of Data BLK's
+
+              XDEF   VBDCSR0,CrateTypeReg,EvtNmbAdrReg     ; Define as Global
+              XDEF   CrtIDAdrReg,DControlReg,PControlReg   ; Symbols for use
+              XDEF   IOUPAdrsReg,WCPntList,DataPntList     ; in other program
+              XDEF   VBDCSR2                               ; modules.
+
+
+*************************************************************************
+*                                                                       *
+*  This section defines the data loaded into registers on the VBD       *
+*  card and masks used to test bits in status registers on the VBD.     *
+*                                                                       *
+*************************************************************************
+
+VBDDMATO        EQU     $000C        ; VBD DMA time-out value
+VBDToLock       EQU     $001C        ; VBD DMA time-out value & Lock memory
+VBDReset        EQU     $00CC        ; Reset the VBD and load DMA time-out
+CrateType       EQU     $0001        ; Crate Type is 1  i.e. Calorimeter
+DCtrlData       EQU     $BD00        ; Control format of DMA reads A24-LW
+PCtrlData       EQU     $ED00        ; Control format of param reads A24-W
+IOUPAdrs        EQU     $0000        ; Upper address bits for param reads
+
+
+           XDEF   VBDDMATO,VBDToLock                   ; Define as Global
+           XDEF   VBDReset,CrateType                   ; Symbols for use
+           XDEF   DCtrlData,PCtrlData                  ; in other program
+           XDEF   IOUPAdrs                             ; modules.
+
+
+*************************************************************************
+*                                                                       *
+*  This section defines the Addresses of the storage locations in the   *
+*  2k byte Short I/O memory (Sort 214) that are used to store the Word  *
+*  Counts of the various sections in the L15CT Data Block, the TAS      *
+*  Number (aka Event Number) and the Crate ID Number.                   *
+*************************************************************************
+
+IOMemBase     EQU     $9000            ; Base Address of the Short IO Memory
+                                       ; i.e. starting adrs of the Short 214
+
+IOMemBase135  EQU     $10FF0000+IOMemBase  ; MVME135-1 version of the Base
+                                           ; Address of the Short IO Memory
+                                           ; module (i.e. As seen from the
+                                           ; MVME135-1 through the Vertical
+                                           ; Interconnect).
+
+EvtNmbAdR     EQU     IOMemBase+$0010  ; Short IO Adrs of the Storage Location
+                                       ; of the TAS Number (Event Number) for
+                                       ; the VBD to read.
+
+EvtNmbAdr135  EQU     $10FF0000+EvtNmbAdr  ; MVME135-1 version of the Short IO
+                                           ; Address of the memory location
+                                           ; for the Event Number (i.e. Seen
+                                           ; from the MVME135-1 through the
+                                           ; Vertical Interconnect).
+
+CrateIDAdrs   EQU     IOMemBase+$0020  ; Short IO Adrs of the Storage Location
+                                       ; of the Crate ID Number Event Number
+                                       ; for the VBD to read. NOT a Mike Shea
+                                       ; Crate ID card.
+
+CrateIDAdrs135  EQU  $10FF0000+CrateIDAdrs ; MVME135-1 version of the Short IO
+                                           ; Address of the memory location
+                                           ; for the Crate ID Number (Seen
+                                           ; from the MVME135-1 through the
+                                           ; Vertical Interconnect).
+
+WCStore1       EQU    IOMemBase+$0100     ; Short I/O Address of the storage
+                                          ;   location of the Header Word Cnt.
+WCStore1_135   EQU    $10FF0000+WCStore1  ;   Same location seen from MVME135.
+
+WCStore2       EQU    IOMemBase+$0102     ; Short I/O Address of the storage
+                                          ;   location of the Frame Code WC.
+WCStore2_135   EQU    $10FF0000+WCStore2  ;   Same location seen from MVME135.
+
+WCStore3       EQU    IOMemBase+$0104     ; Short I/O Address of the storage
+                                          ;   location of the Frame Param WC.
+WCStore3_135   EQU    $10FF0000+WCStore3  ;   Same location seen from MVME135.
+
+WCStore4       EQU    IOMemBase+$0106     ; Short I/O Address of the storage
+                                          ;   location of the Tool Param WC.
+WCStore4_135   EQU    $10FF0000+WCStore4  ;   Same location seen from MVME135.
+
+WCStore5       EQU    IOMemBase+$0108     ; Short I/O Address of the storage
+                                          ;   location of the Local DSP WC.
+WCStore5_135   EQU    $10FF0000+WCStore5  ;   Same location seen from MVME135.
+
+WCStore6       EQU    IOMemBase+$010A     ; Short I/O Address of the storage
+                                          ;   location of the Global DSP WC.
+WCStore6_135   EQU    $10FF0000+WCStore6  ;   Same location seen from MVME135.
+
+WCStore7       EQU    IOMemBase+$010C     ; Short I/O Address of the storage
+                                          ;   location of the DeBug Section WC.
+WCStore7_135   EQU    $10FF0000+WCStore7  ;   Same location seen from MVME135.
+
+
+         XDEF   IOMemBase,IOMemBase135                     ; Define as Global
+         XDEF   EvtNmbAdr,EvtNmbAdr135                     ; Symbols for use
+         XDEF   CrateIDAdrs,CrateIDAdrs135                 ; in other program
+         XDEF   WCStore1,WCStore2,WCStore3,WCStore4        ; modules.
+         XDEF   WCStore5,WCStore6,WCStore7
+
+         XDEF   WCStore1_135,WCStore2_135
+         XDEF   WCStore3_135,WCStore4_135
+         XDEF   WCStore5_135,WCStore6_135
+         XDEF   WCStore7_135
+
+
+*************************************************************************
+*                                                                       *
+*  This section defines the Crate ID.  Note that the Crate ID is not    *
+*  read from a Shea Crate ID card.  This Crate ID will go two places.   *
+*  It is loaded into a Short I/O memory location for the VBD to read    *
+*  as it sends out events, and it is built into the Controller Word     *
+*  of the Crate Header.                                                 *
+*                                                                       *
+*************************************************************************
+
+CrateIDNumber  EQU   81                ; The Crate ID Number for this L15CT
+                                       ; crate is decimal 81 which is $51.
+
+               XDEF    CrateIDNumber   ; Make this symbol global.
+
+
+*************************************************************************
+*                                                                       *
+*  This section defines the list of Word Counts for the various blocks  *
+*  of data from the Trigger Crate. (number of Long Words in each block) *
+*  These control the length of the DMA data transfers into the VBD.     *
+*                                                                       *
+*************************************************************************
+
+WCHeader        EQU       6            ; Define the Crate Header Word Count.
+WCFrameCode     EQU       5            ; Frame Code section Word Count.
+WCFrameParam    EQU      33            ; Frame Parameters section Word Count.
+WCToolParam     EQU      33            ; Tool Parameter section Word Count.
+WCLocalDSPs     EQU     275            ; Local DSP's section Word Count.
+WCGlobalDSP     EQU      65            ; Global DSP section Word Count.
+
+WCDeBugShort    EQU       4            ; DeBug section short version Word Count.
+WCDeBugLong     EQU    2930            ; DeBug section long version Word Count.
+
+
+
+         XDEF   WCHeader,WCFrameCode,WCFrameParam           ; Define as Global
+         XDEF   WCToolParam,WCLocalDSPs,WCGlobalDSP         ; Symbols for use
+         XDEF   WCDeBugShort,WCDeBugLong                    ; in other program
+                                                            ; modules.
+
+
+*************************************************************************
+*                                                                       *
+*  This section defines the list of Base Addresses for the various      *
+*  sections of data in the L15CT Data Block.                            *
+*                                                                       *
+*  The Base Address of these various sections are first defined as      *
+*  presented by the 214 Read Buffer.  These are the VME A32 addresses   *
+*  where the VBD will start to read the various sections of the L15CT   *
+*  Data Block.                                                          *
+*                                                                       *
+*  These same memory locations are then defined as presented by the     *
+*  214 Load Buffer using their VSB addresses.                           *
+*                                                                       *
+*  Recall that the MVME135-1 can either access the 214 Load Buffer via  *
+*  its VSB bus or else (if necessary) it can access the 214 Read        *
+*  Buffer via its VME address using the Vertical Interconnect to make   *
+*  the connection bwteeen the two VME backplanes.                       *
+*                                                                       *
+*************************************************************************
+
+BAHeader          EQU    $00300004     ; Define the Crate Header VME Base
+                                       ;   Address as presented by Read Buf.
+BAHeaderVSB       EQU    $01000004     ; Define the Crate Header VSB Base
+                                       ;   Address as presented by Load Buf.
+
+BAFrameCode       EQU    $00300020     ; Frame Code section VME Base
+                                       ;   Address as presented by Read Buf.
+BAFrameCodeVSB    EQU    $01000020     ; Frame Code section VSB Base
+                                       ;   Address as presented by Load Buf.
+
+BAFrameParam      EQU    $00300038     ; Frame Parameters section VME Base
+                                       ;   Address as presented by Read Buf.
+BAFrameParamVSB   EQU    $01000038     ; Frame Parameters section VSB Base
+                                       ;   Address as presented by Load Buf.
+
+BAToolParam       EQU    $00300280     ; Tool Parameters section VME Base
+                                       ;   Address as presented by Read Buf.
+BAToolParamVSB    EQU    $01000280     ; Tool Parameters section VSB Base
+                                       ;   Address as presented by Load Buf.
+
+BALocalDSPs       EQU    $00300688     ; Local DSP's section VME Base Address
+                                       ;   as presented by Read Buffer.
+BALocalDSPsVSB    EQU    $01000688     ; Local DSP's section VSB Base Address
+                                       ;   as presented by Load Buffer.
+
+BAGlobalDSP       EQU    $00300AD8     ; Global DSP section VME Base Address
+                                       ;   as presented by Read Buffer.
+BAGlobalDSPVSB    EQU    $01000AD8     ; Global DSP section VSB Base Address
+                                       ;   as presented by Load Buffer.
+
+BADeBugSect       EQU    $00300BE0     ; DeBug section VME Base Address
+                                       ;   as presented by Read Buffer.
+BADeBugSectVSB    EQU    $01000BE0     ; DeBug section VSB Base Address
+                                       ;   as presented by Load Buffer.
+
+
+         XDEF   BAHeader,BAFrameCode                        ; Define as Global
+         XDEF   BAFrameParam,BAToolParam                    ; Symbols for use
+         XDEF   BALocalDSPs,BAGlobalDSP                     ; in other program
+         XDEF   BADeBugSect                                 ; modules.
+
+         XDEF   BAHeaderVSB,BAFrameCodeVSB
+         XDEF   BAFrameParamVSB,BAToolParamVSB
+         XDEF   BALocalDSPsVSB,BAGlobalDSPVSB
+         XDEF   BADeBugSectVSB
+
+
+
+*************************************************************************
+*                                                                       *
+*  Define the Base Address of the MVME214 memory modules as seen        *
+*  from their VSB memory port.  Note that only one of these memory      *
+*  modules (the Load module) is visible at a time via it VSB port.      *
+*  The other MVME214 has its VME port enabled (the Read module).        *
+*                                                                       *
+*  If in the future it bocomes necessary for the 68k_Services to see    *
+*  inside of the Read module this would be possible via the Vertical    *
+*  interconnect.                                                        *
+*                                                                       *
+*************************************************************************
+
+MVME214BaseVSB    EQU    $01000000     ; MVME214 Memory Module VSB Base
+                                       ;   Addressas presented by Load Buffer.
+
+       XDEF   MVME214BaseVSB           ; Define this as a Global Symbol.
+
+
+
+*************************************************************************
+*                                                                       *
+*  Define the register addresses in the 4 Ironics cards.                *
+*                                                                       *
+*************************************************************************
+
+Terms_to_M103_Port_1  EQU  $FFFFF011   ;Terms returned to M103 Ironics Port #1.
+Terms_to_M103_Port_2  EQU  $FFFFF013   ;Terms returned to M103 Ironics Port #2.
+Terms_to_M103_Port_3  EQU  $FFFFF015   ;Terms returned to M103 Ironics Port #3.
+Terms_to_M103_Port_4  EQU  $FFFFF017   ;Terms returned to M103 Ironics Port #4.
+Terms_to_M103_Port_5  EQU  $FFFFF019   ;Terms returned to M103 Ironics Port #5.
+Terms_to_M103_Port_6  EQU  $FFFFF01B   ;Terms returned to M103 Ironics Port #6.
+
+Term_Select_Port_1    EQU  $FFFFF021   ;Term Select P2 card Ironics Port #1.
+Term_Select_Port_2    EQU  $FFFFF023   ;Term Select P2 card Ironics Port #2.
+Term_Select_Port_3    EQU  $FFFFF025   ;Term Select P2 card Ironics Port #3.
+Term_Select_Port_4    EQU  $FFFFF027   ;Term Select P2 card Ironics Port #4.
+Term_Select_Port_5    EQU  $FFFFF029   ;Term Select P2 card Ironics Port #5.
+Term_Select_Port_6    EQU  $FFFFF02B   ;Term Select P2 card Ironics Port #6.
+
+Readout_Ctrl_Port_1   EQU  $FFFFF041   ;Readout Control P2 card Ironics Port #1.
+Readout_Ctrl_Port_2   EQU  $FFFFF043   ;Readout Control P2 card Ironics Port #2.
+Readout_Ctrl_Port_3   EQU  $FFFFF045   ;Readout Control P2 card Ironics Port #3.
+Readout_Ctrl_Port_4   EQU  $FFFFF047   ;Readout Control P2 card Ironics Port #4.
+Readout_Ctrl_Port_5   EQU  $FFFFF049   ;Readout Control P2 card Ironics Port #5.
+Readout_Ctrl_Port_6   EQU  $FFFFF04B   ;Readout Control P2 card Ironics Port #6.
+
+Path_Select_Port_1    EQU  $FFFFF081   ; Path Select P2 card Ironics Port #1.
+Path_Select_Port_2    EQU  $FFFFF083   ; Path Select P2 card Ironics Port #2.
+Path_Select_Port_3    EQU  $FFFFF085   ; Path Select P2 card Ironics Port #3.
+Path_Select_Port_4    EQU  $FFFFF087   ; Path Select P2 card Ironics Port #4.
+Path_Select_Port_5    EQU  $FFFFF089   ; Path Select P2 card Ironics Port #5.
+Path_Select_Port_6    EQU  $FFFFF08B   ; Path Select P2 card Ironics Port #6.
+
+
+*********  Define these as Global Symbols for use in other modules.  *********
+
+    XDEF   Terms_to_M103_Port_1,Terms_to_M103_Port_2,Terms_to_M103_Port_3
+    XDEF   Terms_to_M103_Port_4,Terms_to_M103_Port_5,Terms_to_M103_Port_6
+
+    XDEF   Term_Select_Port_1,Term_Select_Port_2,Term_Select_Port_3
+    XDEF   Term_Select_Port_4,Term_Select_Port_5,Term_Select_Port_6
+
+    XDEF   Readout_Ctrl_Port_1,Readout_Ctrl_Port_2,Readout_Ctrl_Port_3
+    XDEF   Readout_Ctrl_Port_4,Readout_Ctrl_Port_5,Readout_Ctrl_Port_6
+
+    XDEF   Path_Select_Port_1,Path_Select_Port_2,Path_Select_Port_3
+    XDEF   Path_Select_Port_4,Path_Select_Port_5,Path_Select_Port_6
+
+
+*************************************************************************
+*                                                                       *
+*  Define the symbols for the Software Flags that are maintained by     *
+*  68k_Services.  These symbols are the addresses of the memory         *
+*  locations that actually hold these flags.  Because of their long     *
+*  symbol names that will not have the _Loc suffix.                     *
+*                                                                       *
+*  These are defined as longword locations but they will always be      *
+*  accessed as bytes.                                                   *
+*                                                                       *
+*  The detailed descriptions of these Software Flags is contained in    *
+*  the Services_68k definition document in the TRGL15CT: directory.     *
+*                                                                       *
+*************************************************************************
+
+*****************  Defeine Flag values: SET and CLR  *****************
+
+Flag_CLR       EQU      $00                   ; The value of a CLEARED flag.
+Flag_SET       EQU      $F0                   ; The value of a SET flag.
+
+
+*****************  Software Flags for DSP Management  *****************
+
+            Align  4                          ; Align to longword address.
+
+All_DSPs_at_Step_D0    DC.L    $00000000
+
+DSP_A1_at_Step_D15     DC.L    $00000000
+DSP_A2_at_Step_D15     DC.L    $00000000
+DSP_A3_at_Step_D15     DC.L    $00000000
+DSP_A4_at_Step_D15     DC.L    $00000000
+
+DSP_B1_at_Step_D15     DC.L    $00000000
+DSP_B2_at_Step_D15     DC.L    $00000000
+DSP_B3_at_Step_D15     DC.L    $00000000
+DSP_B4_at_Step_D15     DC.L    $00000000
+
+DSP_C1_at_Step_D15     DC.L    $00000000
+DSP_C2_at_Step_D15     DC.L    $00000000
+DSP_C3_at_Step_D15     DC.L    $00000000
+DSP_C4_at_Step_D15     DC.L    $00000000
+
+
+*************  Software Flags for to Control MFP Events  **************
+
+MFP_Event                        DC.L    $00000000
+
+If_Transfer_Want_MFP_Transfer    DC.L    $00000000
+
+This_Transfer_is_MFP             DC.L    $00000000
+
+Previous_Transfer_Was_MFP        DC.L    $00000000
+
+
+*******  Software Flags for MVME214 Buffer and RC Management  ********
+
+Fresh_Load_Buf_Availb    DC.L    $00000000
+
+All_Data_In_Load_Buf     DC.L    $00000000
+
+Which_214_Is_Load_Buf    DC.L    $00000000
+
+State_of_RC_FE_Busy      DC.L    $00000000
+
+Told_GDSP_to_Transfer    DC.l    $00000000
+
+
+*******  Software Flags for VBD Management  ********
+
+SRDY_Has_Been_Sent       DC.L    $00000000
+
+VBD_Is_Ready             DC.L    $00000000
+
+
+*****  Now define all of these Software Flags as Global Symbols.  *****
+
+        XDEF    Flag_CLR
+        XDEF    Flag_SET
+
+        XDEF    All_DSPs_at_Step_D0
+
+        XDEF    DSP_A1_at_Step_D15,DSP_A2_at_Step_D15
+        XDEF    DSP_A3_at_Step_D15,DSP_A4_at_Step_D15
+        XDEF    DSP_B1_at_Step_D15,DSP_B2_at_Step_D15
+        XDEF    DSP_B3_at_Step_D15,DSP_B4_at_Step_D15
+        XDEF    DSP_C1_at_Step_D15,DSP_C2_at_Step_D15
+        XDEF    DSP_C3_at_Step_D15,DSP_C4_at_Step_D15
+
+        XDEF    MFP_Event,This_Transfer_is_MFP
+        XDEF    If_Transfer_Want_MFP_Transfer
+        XDEF    Previous_Transfer_Was_MFP
+
+        XDEF    Fresh_Load_Buf_Availb,All_Data_In_Load_Buf
+        XDEF    Which_214_Is_Load_Buf,State_of_RC_FE_Busy
+        XDEF    Told_GDSP_to_Transfer
+
+        XDEF    SRDY_Has_Been_Sent,VBD_Is_Ready
+
+
+*************************************************************************
+*                                                                       *
+*  Define the symbol names and the storage locations for the Mark and   *
+*  Force Pass Counters and the Mark and Force Pass Ratios.  The MFP     *
+*  ratios are given to us by TCC.                                       *
+*                                                                       *
+*************************************************************************
+
+          Align  4                                ; Align to longword address.
+
+MFP_Ratio_Term_0         DC.L    $00000010        ; MFP Ratio for Term #0
+MFP_Ratio_Term_1         DC.L    $00000100        ; MFP Ratio for Term #1
+MFP_Ratio_Term_2         DC.L    $00000100        ; MFP Ratio for Term #2
+MFP_Ratio_Term_3         DC.L    $00000100        ; MFP Ratio for Term #3
+MFP_Ratio_Term_4         DC.L    $00000100        ; MFP Ratio for Term #4
+MFP_Ratio_Term_5         DC.L    $00000100        ; MFP Ratio for Term #5
+MFP_Ratio_Term_6         DC.L    $00000100        ; MFP Ratio for Term #6
+MFP_Ratio_Term_7         DC.L    $00000100        ; MFP Ratio for Term #7
+
+MFP_Counter_Term_0       DC.L    $00000000        ; MFP Counter for Term #0
+MFP_Counter_Term_1       DC.L    $00000000        ; MFP Counter for Term #1
+MFP_Counter_Term_2       DC.L    $00000000        ; MFP Counter for Term #2
+MFP_Counter_Term_3       DC.L    $00000000        ; MFP Counter for Term #3
+MFP_Counter_Term_4       DC.L    $00000000        ; MFP Counter for Term #4
+MFP_Counter_Term_5       DC.L    $00000000        ; MFP Counter for Term #5
+MFP_Counter_Term_6       DC.L    $00000000        ; MFP Counter for Term #6
+MFP_Counter_Term_7       DC.L    $00000000        ; MFP Counter for Term #7
+
+*****  Now define all of these MFP symbols as Global Symbols.  *****
+
+        XDEF    MFP_Ratio_Term_0,MFP_Ratio_Term_1
+        XDEF    MFP_Ratio_Term_2,MFP_Ratio_Term_3
+        XDEF    MFP_Ratio_Term_4,MFP_Ratio_Term_5
+        XDEF    MFP_Ratio_Term_6,MFP_Ratio_Term_7
+
+        XDEF    MFP_Counter_Term_0,MFP_Counter_Term_1
+        XDEF    MFP_Counter_Term_2,MFP_Counter_Term_3
+        XDEF    MFP_Counter_Term_4,MFP_Counter_Term_5
+        XDEF    MFP_Counter_Term_6,MFP_Counter_Term_7
+
+
+*************************************************************************
+*                                                                       *
+*   This section defines the Base Addresses of the various control      *
+*   blocks that are uses to communicate status and other information    *
+*   between the 12 DSP's and the 68k_Services.                          *
+*                                                                       *
+*   In the Local DSP to 68k_Services Status Blocks only the first       *
+*   longword is currently used.   The first longword holds the Local    *
+*   DSP Status to 68k_Services longword.  There are 8 longwords in      *
+*   the Local DSP to 68k_Services Status Block.                         *
+*                                                                       *
+*   In the Global DSP to 68k_Services Status Block only the first       *
+*   longword is currently used.  The first longword holds the Global    *
+*   DSP Status to 68k_Services longword.  There are 8 longwords in      *
+*   the Global DSP to 68k_Services Status Block.                        *
+*                                                                       *
+*   There are 16 longwords in each of the 3 68k_Services to Hydra-II    *
+*   card information blocks.  At this time only three of the longwords  *
+*   are in use.  For Hydra-II cards A and C the first longword in the   *
+*   information block holds the Local DSP Wake-Up-Word.  For Hydar-II   *
+*   card B the second longword holds the Global DSP Wake-Up-Word and    *
+*   the third longword holds the Transfer to 214 Required word.         *
+*                                                                       *
+*   For more information about these status and information blocks      *
+*   see the file TrgL15CT:[Hardware_Software_Text] Formats_of_Status_   *
+*   and_Control_Words_Between_the_DSP's_and_the_EC.txt                  *
+*                                                                       *
+*************************************************************************
+
+LDSP_A2_Status_Adrs     EQU   $00A07C80   ; Base Address of DSP A2 Status Block.
+LDSP_A3_Status_Adrs     EQU   $00A07CA0   ; Base Address of DSP A3 Status Block.
+LDSP_A4_Status_Adrs     EQU   $00A07CC0   ; Base Address of DSP A4 Status Block.
+LDSP_A1_Status_Adrs     EQU   $00A07CE0   ; Base Address of DSP A1 Status Block.
+
+LDSP_B3_Status_Adrs     EQU   $00B07D00   ; Base Address of DSP B3 Status Block.
+LDSP_B4_Status_Adrs     EQU   $00B07D20   ; Base Address of DSP B4 Status Block.
+LDSP_B1_Status_Adrs     EQU   $00B07D40   ; Base Address of DSP B1 Status Block.
+
+LDSP_C3_Status_Adrs     EQU   $00C07D60   ; Base Address of DSP C3 Status Block.
+LDSP_C4_Status_Adrs     EQU   $00C07D80   ; Base Address of DSP C4 Status Block.
+LDSP_C1_Status_Adrs     EQU   $00C07DA0   ; Base Address of DSP C1 Status Block.
+LDSP_C2_Status_Adrs     EQU   $00C07DC0   ; Base Address of DSP C2 Status Block.
+
+GDSP_B2_Status_Adrs     EQU   $00B07DE0   ; Base Address of DSP B2 Status Block.
+
+Ser68_to_Hydra_A_Adrs   EQU   $00A07E00   ; Base Adrs 68k_Services to Hydra-II
+                                          ;   card A Information Block.
+Ser68_to_Hydra_B_Adrs   EQU   $00B07E00   ; Base Adrs 68k_Services to Hydra-II
+                                          ;   card B Information Block.
+Ser68_to_Hydra_C_Adrs   EQU   $00C07E00   ; Base Adrs 68k_Services to Hydra-II
+                                          ;   card C Information Block.
+
+    XDEF   LDSP_A1_Status_Adrs,LDSP_A2_Status_Adrs        ; Make these symbols
+    XDEF   LDSP_A3_Status_Adrs,LDSP_A4_Status_Adrs        ; global so that they
+    XDEF   LDSP_B1_Status_Adrs                            ; may be accessed
+    XDEF   LDSP_B3_Status_Adrs,LDSP_B4_Status_Adrs        ; from other program
+    XDEF   LDSP_C1_Status_Adrs,LDSP_C2_Status_Adrs        ; modules.
+    XDEF   LDSP_C3_Status_Adrs,LDSP_C4_Status_Adrs
+    XDEF   GDSP_B2_Status_Adrs
+    XDEF   Ser68_to_Hydra_A_Adrs,Ser68_to_Hydra_B_Adrs
+    XDEF   Ser68_to_Hydra_C_Adrs
+
+
+
+*************************************************************************
+*                                                                       *
+*  This section defines the Address of the  Interrupt Control Register  *
+*  for each of the DSP's.  There are four Interrupt Control Registers   *
+*  on each Hydra-II card.                                               *
+*************************************************************************
+
+DSP_A1_ICR     EQU   $00A10810     ; Address of Interrupt Control Reg for  A1.
+DSP_A2_ICR     EQU   $00A10814     ; Address of Interrupt Control Reg for  A2.
+DSP_A3_ICR     EQU   $00A10818     ; Address of Interrupt Control Reg for  A3.
+DSP_A4_ICR     EQU   $00A1081C     ; Address of Interrupt Control Reg for  A4.
+DSP_B1_ICR     EQU   $00B10810     ; Address of Interrupt Control Reg for  B1.
+DSP_B2_ICR     EQU   $00B10814     ; Address of Interrupt Control Reg for  B2.
+DSP_B3_ICR     EQU   $00B10818     ; Address of Interrupt Control Reg for  B3.
+DSP_B4_ICR     EQU   $00B1081C     ; Address of Interrupt Control Reg for  B4.
+DSP_C1_ICR     EQU   $00C10810     ; Address of Interrupt Control Reg for  C1.
+DSP_C2_ICR     EQU   $00C10814     ; Address of Interrupt Control Reg for  C2.
+DSP_C3_ICR     EQU   $00C10818     ; Address of Interrupt Control Reg for  C3.
+DSP_C4_ICR     EQU   $00C1081C     ; Address of Interrupt Control Reg for  C4.
+
+
+         XDEF    DSP_A1_ICR,DSP_A2_ICR,DSP_A3_ICR,DSP_A4_ICR
+         XDEF    DSP_B1_ICR,DSP_B2_ICR,DSP_B3_ICR,DSP_B4_ICR
+         XDEF    DSP_C1_ICR,DSP_C2_ICR,DSP_C3_ICR,DSP_C4_ICR
+
+
+
+*************************************************************************
+*                                                                       *
+*  This section defines symbols that indicate the State of the DSP's.   *
+*                                                                       *
+*************************************************************************
+
+LDSP_at_D15    EQU   $0000801F              ; Local DSP to EC Status Word
+                                            ;   indicating that this DSP is
+                                            ;   at Step D15.
+
+LDSP_at_D0     EQU   $00000001              ; Local DSP to EC Status Word
+                                            ;   indicating that this DSP is
+                                            ;   at Step D0.
+
+GDSP_at_D15    EQU   $00008000              ; Global DSP to EC Status Word
+                                            ;   indicating that this DSP is
+                                            ;   at Step D15.
+
+GDSP_at_D0     EQU   $00000001              ; Global DSP to EC Status Word
+                                            ;   indicating that this DSP is
+                                            ;   at Step D0.
+
+
+      XDEF    LDSP_at_D0                    ; Make these Global Symbols.
+      XDEF    GDSP_at_D0
+      XDEF    LDSP_at_D15
+      XDEF    GDSP_at_D15
+
+
+
+*************************************************************************
+*                                                                       *
+*  This section defines the  68k_Services_to_TCC Status Block.          *
+*                                                                       *
+*************************************************************************
+
+BA_Status_Block_to_TCC   EQU   $00067A80    ; Base Address of the 32 longword
+                                            ; Status Block that is sent from
+                                            ; 68k_Services to TCC.
+
+Stat_Blk_to_TCC_2nd_LongWord  EQU   BA_Status_Block_to_TCC+4   ; 2nd LW in Blk.
+Stat_Blk_to_TCC_3rd_LongWord  EQU   BA_Status_Block_to_TCC+8   ; 3rd LW in Blk.
+Stat_Blk_to_TCC_4th_LongWord  EQU   BA_Status_Block_to_TCC+12  ; 4th LW in Blk.
+Stat_Blk_to_TCC_5th_LongWord  EQU   BA_Status_Block_to_TCC+16  ; 5th LW in Blk.
+Stat_Blk_to_TCC_6th_LongWord  EQU   BA_Status_Block_to_TCC+20  ; 6th LW in Blk.
+Stat_Blk_to_TCC_7th_LongWord  EQU   BA_Status_Block_to_TCC+24  ; 7th LW in Blk.
+Stat_Blk_to_TCC_8th_LongWord  EQU   BA_Status_Block_to_TCC+28  ; 8th LW in Blk.
+
+Stat_Blk_to_TCC_A2s_Status    EQU   BA_Status_Block_to_TCC+32  ; 68k's view of
+                                                               ;   A2's Status.
+Stat_Blk_to_TCC_A3s_Status    EQU   BA_Status_Block_to_TCC+36  ; 68k's view of
+                                                               ;   A3's Status.
+Stat_Blk_to_TCC_A4s_Status    EQU   BA_Status_Block_to_TCC+40  ; 68k's view of
+                                                               ;   A4's Status.
+Stat_Blk_to_TCC_A1s_Status    EQU   BA_Status_Block_to_TCC+44  ; 68k's view of
+                                                               ;   A1's Status.
+
+Stat_Blk_to_TCC_B3s_Status    EQU   BA_Status_Block_to_TCC+48  ; 68k's view of
+                                                               ;   B3's Status.
+Stat_Blk_to_TCC_B4s_Status    EQU   BA_Status_Block_to_TCC+52  ; 68k's view of
+                                                               ;   B4's Status.
+Stat_Blk_to_TCC_B1s_Status    EQU   BA_Status_Block_to_TCC+56  ; 68k's view of
+                                                               ;   B1's Status.
+
+Stat_Blk_to_TCC_C3s_Status    EQU   BA_Status_Block_to_TCC+60  ; 68k's view of
+                                                               ;   C3's Status.
+Stat_Blk_to_TCC_C4s_Status    EQU   BA_Status_Block_to_TCC+64  ; 68k's view of
+                                                               ;   C4's Status.
+Stat_Blk_to_TCC_C1s_Status    EQU   BA_Status_Block_to_TCC+68  ; 68k's view of
+                                                               ;   C1's Status.
+Stat_Blk_to_TCC_C2s_Status    EQU   BA_Status_Block_to_TCC+72  ; 68k's view of
+                                                               ;   C2's Status.
+
+Stat_Blk_to_TCC_B2s_Status    EQU   BA_Status_Block_to_TCC+76  ; 68k's view of
+                                                               ;   B2's Status.
+
+Stat_Blk_to_TCC_Last_Error    EQU   BA_Status_Block_to_TCC+80  ; Most recent
+                                                               ; type of Error
+                                                               ; Recovery.
+Stat_Blk_to_TCC_Error_D0_Cnt  EQU   BA_Status_Block_to_TCC+84  ; Count of Error
+                                                               ; Recoveries
+                                                               ; from Step D0.
+Stat_Blk_to_TCC_Error_D3_Cnt  EQU   BA_Status_Block_to_TCC+88  ; Count of Error
+                                                               ; Recoveries
+                                                               ; from Step D3.
+Stat_Blk_to_TCC_Error_D15_Cnt  EQU  BA_Status_Block_to_TCC+92  ; Count of Error
+                                                               ; Recoveries
+                                                               ; from Step D15.
+
+Stat_Blk_to_TCC_25th_LongWord  EQU  BA_Status_Block_to_TCC+96  ; 25th LW in Blk.
+Stat_Blk_to_TCC_26th_LongWord  EQU  BA_Status_Block_to_TCC+100 ; 26th LW in Blk.
+Stat_Blk_to_TCC_27th_LongWord  EQU  BA_Status_Block_to_TCC+104 ; 27th LW in Blk.
+Stat_Blk_to_TCC_28th_LongWord  EQU  BA_Status_Block_to_TCC+108 ; 28th LW in Blk.
+Stat_Blk_to_TCC_29th_LongWord  EQU  BA_Status_Block_to_TCC+112 ; 29th LW in Blk.
+Stat_Blk_to_TCC_30th_LongWord  EQU  BA_Status_Block_to_TCC+116 ; 30th LW in Blk.
+Stat_Blk_to_TCC_31st_LongWord  EQU  BA_Status_Block_to_TCC+120 ; 31st LW in Blk.
+Stat_Blk_to_TCC_32nd_LongWord  EQU  BA_Status_Block_to_TCC+124 ; 32nd LW in Blk.
+
+
+         XDEF    BA_Status_Block_to_TCC     ; Make all these Global Symbols.
+
+         XDEF    Stat_Blk_to_TCC_2nd_LongWord,Stat_Blk_to_TCC_3rd_LongWord
+         XDEF    Stat_Blk_to_TCC_4th_LongWord,Stat_Blk_to_TCC_5th_LongWord
+         XDEF    Stat_Blk_to_TCC_6th_LongWord,Stat_Blk_to_TCC_7th_LongWord
+         XDEF    Stat_Blk_to_TCC_8th_LongWord
+
+         XDEF    Stat_Blk_to_TCC_A2s_Status,Stat_Blk_to_TCC_A3s_Status
+         XDEF    Stat_Blk_to_TCC_A4s_Status,Stat_Blk_to_TCC_A1s_Status
+
+         XDEF    Stat_Blk_to_TCC_B3s_Status,Stat_Blk_to_TCC_B4s_Status
+         XDEF    Stat_Blk_to_TCC_B1s_Status
+
+         XDEF    Stat_Blk_to_TCC_C3s_Status,Stat_Blk_to_TCC_C4s_Status
+         XDEF    Stat_Blk_to_TCC_C1s_Status,Stat_Blk_to_TCC_C2s_Status
+
+         XDEF    Stat_Blk_to_TCC_B2s_Status
+
+         XDEF    Stat_Blk_to_TCC_Last_Error
+         XDEF    Stat_Blk_to_TCC_Error_D0_Cnt
+         XDEF    Stat_Blk_to_TCC_Error_D3_Cnt
+         XDEF    Stat_Blk_to_TCC_Error_D15_Cnt
+
+         XDEF    Stat_Blk_to_TCC_25th_LongWord,Stat_Blk_to_TCC_26th_LongWord
+         XDEF    Stat_Blk_to_TCC_27th_LongWord,Stat_Blk_to_TCC_28th_LongWord
+         XDEF    Stat_Blk_to_TCC_29th_LongWord,Stat_Blk_to_TCC_30th_LongWord
+         XDEF    Stat_Blk_to_TCC_31st_LongWord,Stat_Blk_to_TCC_32nd_LongWord
+
+
+
+*************************************************************************
+*                                                                       *
+*  This section defines some miscellaneous symbols                      *
+*                                                                       *
+*************************************************************************
+
+MPCSR_SIGLP_Loc  EQU   $FFFB006B         ; This is the address of the Multi-
+                                         ; Processing Control Status Register
+                                         ; Signal Low Priority location.  We
+                                         ; use this for the Load_Parameters
+                                         ; interrupt.
+
+MPCSR_SIGHP_Loc  EQU   $FFFB006D         ; This is the address of the Multi-
+                                         ; Processing Control Status Register.
+                                         ; Signal High Priority location.  We
+                                         ; use this for the Load_Code
+                                         ; interrupt.
+
+BA_Parameter_Block    EQU   $00060000    ; Base Address of the Parameter
+                                         ; Block that is sent from TCC to
+                                         ; the 12 DSP's and 68k_Services.
+
+
+              Align  4                   ; Align to longword address.
+
+Save_SP_Loc   DC.L     0                 ; Storage location for the initial
+                                         ; value of the Stack Pointer.
+
+
+         XDEF    MPCSR_SIGLP_Loc         ; Make these Global Symbols.
+         XDEF    MPCSR_SIGHP_Loc
+         XDEF    Save_SP_Loc
+         XDEF    BA_Parameter_Block
+
+
+
+*************************************************************************
+*                                                                       *
+*   End of the Global Symbol Include file.                              *
+*                                                                       *
+*************************************************************************
+
+

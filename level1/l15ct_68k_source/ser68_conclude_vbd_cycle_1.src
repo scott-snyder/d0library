@@ -1,0 +1,138 @@
+
+Conclude_VBD_Cycle   IDNT                   ; Title of the  Conclude VBD Cycle
+                                            ;   Program Section.
+
+   SECTION   Sect_Conclude_VBD_Cycle,4,C    ; Declare a noncommon code section.
+                                            ;   Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*  This routine does the processing to conclude a VBD cycle.              *
+*                                                                         *
+*                                                        Rev. 22-ARP-1994 *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D4.                *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            RdIO:  Read bit(s) from the IRONICS I/O card.                *
+*            WrIO:  Write bit(s) to the IRONICS I/O card.                 *
+*                                                                         *
+***************************************************************************
+
+RdIO    MACRO                        ; Read the byte from the Ironics I/O Port.
+        Move.B  \1,\2                ; Move to the byte from the Ironics port
+        ENDM                         ; at address  \1  to the location
+                                     ; specified by  \2.
+
+WrIO    MACRO                        ; Write the byte to the Ironics I/O Port.
+        Not.B   \1                   ; Complement data byte \1.
+        Move.B  \1,\2                ; Move it to the Ironics port at adrs \2.
+        Not.B   \1                   ; Complement data byte \1 to restore it.
+        ENDM
+
+
+*************************************************************************
+*                                                                       *
+*   Recall the layout of two of the Ironics Ports for the Readout       *
+*   Control P2 paddle card.                                             *
+*                                                                       *
+*     Port #2  All bits are Outputs.                                    *
+*                Bit 0 is the Slave Ready Signal to the VBD.  Recall    *
+*                that the VBD SRDY hardware signal is LOW active.       *
+*                Bits 1:7 are not used.                                 *
+*                                                                       *
+*     Port #3  All bits are Inputs.                                     *
+*                Bit 0 indicates that event readout is required.        *
+*                Bit 1 indicates that the event is not to be readout.   *
+*                Bits 2 and 3 are not used.                             *
+*                Bit 4 is the VBD's DONE signal.                        *
+*                Bits 5:7 are not used.                                 *
+*                                                                       *
+*************************************************************************
+
+
+Begin_Conclude_VBD_Cycle:
+
+        RdIO  Readout_Ctrl_Port_3,D4       ; Test to see if the VBD's DONE
+                                           ; signal is set.  Recall that it is
+                                           ; a low voltage active signal.  Read
+                                           ; this hardware signal on the
+                                           ; Readout Control P2 Ironics Port #3
+        AndI.B   #$10,D4                   ; bit 4.  Select only bit number 4,
+                                           ; VBD's DONE signal.
+
+        IF.B   D4 <EQ> #$10  THEN.S        ; If the VBD DONE signal is inactive
+                                           ; i.e. voltage high, then EXIT this
+           RTS                             ; routine.  If the VBD's DONE signal
+                                           ; is set, i.e. voltage LOW, then
+        ENDI                               ; continue and do the following.
+
+
+        Move.B   #$FF,D4                   ; Drop the SRDY signal that goes to
+        WrIO     D4,Readout_Ctrl_Port_2    ; the VBD.  Recall that this is a
+                                           ; low voltage active signal.  It is
+                                           ; bit 0 on port #2 of the Readout
+                                           ; Control p2 paddel card Ironics.
+
+        Clr.B   SRDY_Has_Been_Sent         ; CLEAR  SRDY_Has_Been_Sent  flag.
+
+
+ChkDONEAgn  RdIO  Readout_Ctrl_Port_3,D4   ; Now verify that the VBD's DONE
+                                           ; signal has dropped in response
+                                           ; to SRDY dropping above.
+                                           ; Recall that the VBD's DONE is low
+                                           ; active.  Read this hardware signal
+                                           ; on the Readout Control P2 Ironics
+                                           ; Port #3  bit 4.  Select only bit
+        AndI.B   #$10,D4                   ; number 4 the VBD DONE signal.
+
+        IF.B   D4 <EQ> #$10  THEN.S         ; If the VBD DONE signal has become
+           Move.B   #Flag_SET,VBD_Is_Ready  ; inactive, i.e. voltage high,
+           RTS                              ; then SET the VBD_Is_Ready software
+                                            ; flag and return.
+        ELSE.S                              ; Else if the VBD DONE signal is
+           PEA.L    MsgWaitingDONE          ; still active then push a message
+           JSR      ChrStrgOut              ; address on the stack, send the
+           JMP      ChkDONEAgn              ; message out.  Then read and test
+                                            ; VBD DONE again.
+        ENDI
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*  Data used to send messages to the L15CT console screen.              *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+MsgWaitingDONE     DC.B    27,'  Waiting VBD DONE to drop.'
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section by the Initialize Data Structures program section. *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Conclude_VBD_Cycle                ; Symbol exported to
+                                                     ; other modules.
+
+
+      XREF   Readout_Ctrl_Port_2,Readout_Ctrl_Port_3   ; Symbols used in this
+      XREF   ChrStrgOut                                ; module but defined in
+      XREF   SRDY_Has_Been_Sent,VBD_Is_Ready           ; another program module.
+      XREF   Flag_SET
+
+
+
+      END
+

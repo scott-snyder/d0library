@@ -1,0 +1,1130 @@
+******************************************************************************
+*                                                                            *
+*   File  L_Params.A40                                  Rev.   1-JUN-1994    *
+*                                                                            *
+*  "Meaningful" Register Usage                                               *
+*  ---------------------------                                               *
+*  DP:  Base Address of Global SRAM                         Input            *
+*  RC:  Repeat Counter                                      Variable, Local  *
+*                                                                            *
+*  "Destroyable" Register Usage                                              *
+*  ----------------------------                                              *
+*  R9*, R10*, R11*, AR6, AR7                                                 *
+*                                                                            *
+*       * Note that R9, R10, and R11 are used for communication with         *
+*         the Tool Initialization Routine                                    *
+*                                                                            *
+*  Description of Module                                                     *
+*  =====================                                                     *
+*                                                                            *
+*  This is the the module which is responsible for retrieving the Parameters *
+*  from Dual Port Memory and checking them for validity.                     *
+*                                                                            *
+*  It is not called until the TCC has placed all the Parameters in Dual      *
+*  Port Memory.                                                              *
+*                                                                            *
+*  When called, it reads the appropriate section of Parameter space in the   *
+*  Dual Port Memory (recall that all Parameters for all DSP Nodes are        *
+*  presented in the Dual Port Memory, and this Node must select its own      *
+*  Parameters.                                                               *
+*                                                                            *
+*  First the Universal Parameters are read.  This defines the Dual Port      *
+*  Memory Map Version and Revision, the Crate ID, and the Number of Terms    *
+*  defined for this code.  These Parameters are checked for correctness.     *
+*                                                                            *
+*  The Reference Set Data (for each Reference Set) is then read from the     *
+*  Dual Port Memory.  Recall that the Reference Set Data is arranged by      *
+*  Term in the Dual Port Memory (i.e. the Reference Set Data for Term #0     *
+*  is first, then the Reference Set Data for Term #1, etc.  For this first   *
+*  iteration, only one Reference Set (Reference Set #0) is allowed in the    *
+*  Dual Port Memory.  Additional Reference Sets will be ignored.  Reference  *
+*  Set Data are not checked for correctness.                                 *
+*                                                                            *
+*  Next the Term Parameters are read.  This is a multiple-step process.      *
+*                                                                            *
+*   First the Frame Parameters are read.  Currently no Frame Parameters      *
+*   are used by the Local DSPs so for now we don't actually read             *
+*   Frame Parameters.                                                        *
+*                                                                            *
+*   Then Local Parameters are read.  Local Parameters are stored by Term     *
+*   Number.  For each Term, the Local Parameters are examined to determine   *
+*   which Tool should be used, and the appropriate Tool Initialization       *
+*   Routine is called to actually absorb the Tool-Specific Local Parameters. *
+*   If the specified Tool does not exist, this routine is responsible for    *
+*   setting an error flag to the TCC.  If the specified Tool does exist,     *
+*   the Tool is responsible for checking its Parameters and returning an     *
+*   success/failure exit code to this module.                                *
+*                                                                            *
+*  Note that this Parameter Checker module only allows one Term (Term #0),   *
+*  one Local Tool, and one Global Tool.                                      *
+*                                                                            *
+*  Once all Parameters have been received and checked, this routine sets     *
+*  a return status in the Dual Port Memory indicating the results of the     *
+*  Parameter reading and checking.                                           *
+*                                                                            *
+*  Then contol is returned to the calling module                             *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*         Include the       DSP Program-Specific Constant Definitions        *
+******************************************************************************
+
+         .include   "constant.inc"
+
+******************************************************************************
+*         Load Code into the  .text  Section                                 *
+******************************************************************************
+
+    .text
+
+Get_Parameters:                                                               
+
+        LDI     @Zero_Loc, R9                           ; Zero R9, R10, R11
+                                                        ; These are working
+        LDI     @Zero_Loc, R10                          ; registers and should
+                                                        ; be zeroed before 
+        LDI     @Zero_Loc, R11                          ; beginning Parameter
+                                                        ; processing
+
+******************************************************************************
+*           Extract and Store Universal Parameters                           *
+*                                                                            *
+*   Here we examine the Universal Parameters.                                *
+*                                                                            *
+*   For this version of the code, the Memory Map Version Number and Number   *
+*   of Terms defined for this Crate are checked for correctness but NOT      *
+*   saved.                                                                   *
+*                                                                            *
+*   Currently no other Universal Parameter Data is examined or saved.        *
+*                                                                            *
+*   Recall the structure of the Universal Parameter Block                    *
+*                                                                            *
+*   1: Universal Parameter Block Header Longword                             *
+*                                                                            *
+*      D31          D24 D23         D16 D15          D8 D7           D0      *
+*      +---------------+---------------+---------------+---------------+     *
+*      | Crate ID      | Reserved      | Memory Map    | Memory Map    |     *
+*      |               |               | Version       | Revision      |     *
+*      |               |               | Number        | Number        |     *
+*      +---------------+---------------+---------------+---------------+     *
+*                                                                            *
+*   2: Number of Terms defined for this Crate                                *
+*                                                                            *
+*   3: Number of Universal Parameters defined for this Crate                 *
+*                                                                            *
+*   4: 1st Universal Parameter for this Crate                                *
+*           .                                                                *
+*           .                                                                *
+*           .                                                                *
+*  32: 29th Universal Parameter for this Crate                               *
+*                                                                            *
+*                                                                            *
+*   Also recall that the Universal Parameter Block starts at the beginning   *
+*   of the Dual Port Memory                                                  *
+******************************************************************************
+
+Get_Universal_Parameters:
+
+        LDI     @Univ_Param_Block_Handle,AR7        ; Load the base address
+                                                    ; of the Universal 
+                                                    ; Parameter Block 
+                                                    ; into AR7
+
+        LBU1    *AR7++(1),R11                       ; Load the Memory Map
+                                                    ; Version  Number into
+                                                    ; R11
+                                                    ;   Set AR7 for the
+                                                    ;   next longword
+                                                    ;   (Number of Terms)
+
+        CMPI    Memory_Map_Version_Expected,R11     ; Compare to the Memory
+                                                    ; Map Version required
+                                                    ; by this version of the
+                                                    ; code
+
+        Bne     Memory_Map_Version_Failure          ; If the Memory Map 
+                                                    ; Version is incorrect
+                                                    ; then branch to a 
+                                                    ; failure routine
+
+        LDI     *AR7++(1),R11                       ; Load the Number of Terms
+                                                    ; Defined into R11
+                                                    ;   Set AR7 for the next
+                                                    ;   longword (Univ Parm #1)
+        
+        CMPI    Number_of_Terms_Expected,R11        ; Compare the Number of
+                                                    ; defined Terms to the
+                                                    ; number of Terms allowed
+                                                    ; by this version of the
+                                                    ; code
+
+        Bne     Number_of_Defined_Terms_Failure     ; If the number of Terms
+                                                    ; defined is incorrect
+                                                    ; then branch to a 
+                                                    ; failure routine  
+                                                
+                                                    ; we should now check
+                                                    ; the Universal Params,
+                                                    ; but this version of the
+                                                    ; code does not support
+                                                    ; Universal Parameters.
+
+                                                    ; if we get here then 
+                                                    ; we have not found any
+                                                    ; incorrect data and can
+                                                    ; continue to the next
+                                                    ; section of code
+
+
+******************************************************************************
+*           Extract and Store Reference Set Data                             *
+*                                                                            *
+*   Now   we need to extract the Reference Set Data for each Reference Set.  *
+*   Recall that in this first version of the code there is only one          *
+*   Reference Set.  Recall also that the Reference Set Data has pedestals    *
+*   included (added).  This was done by the TCC when the TCC loaded the      *
+*   Reference Set Data into Dual Port Memory.                                *
+*                                                                            *
+*   Recall also that the Reference Set data is stored packed into bytes:     *
+*                                                                            *
+*      D31          D24 D23         D16 D15          D8 D7           D0      *
+*      +---------------+---------------+---------------+---------------+     *
+*      | Reference Set | Reference Set | Reference Set | Reference Set |     *
+*      | value for TT  | value for TT  | value for TT  | value for TT  |     *
+*      | at eta = n+5  | at eta = n+4  | at eta = n+3  | at eta = n+2  |     *
+*      | phi    = 1    | phi    = 1    | phi    = 1    | phi    = 1    |     *
+*      | for Ref Set i | for Ref Set i | for Ref Set i | for Ref Set i |     *
+*      +---------------+---------------+---------------+---------------+     *
+*                                                                            * 
+*   Only one Reference Set (Ref Set #0, an EM Et Ref Set) is allowed in this *
+*   version of the code.  If any other Reference Sets are defined they will  *
+*   be ignored.                                                              *
+*                                                                            *
+*   No checking of Reference Set Data is performed.                          *
+******************************************************************************
+
+Get_Reference_Set_Data:
+
+        LDI     @This_LDSP_Ref_Set_Block_Handle,AR7 ; Load the base address
+                                                    ; of the Reference 
+                                                    ; set block in Dual   
+                                                    ; Port Memory for this
+                                                    ; LDSP into AR7
+                                                              
+                                                    ; Note that data for
+                                                    ; Ref Set 0 starts
+                                                    ; at the beginning of
+                                                    ; the Ref Set Block.
+
+        LDA     @Ref_Set_Data_Handle,AR6            ; AR2 points to the L15
+                                                    ; Cal Trig Ref Set data.
+                                                                            
+        LDI     31,RC                               ; Set up the Repeat
+                                                    ; counter for 32 trips
+                                                    ; through the following
+                                                    ; loop
+
+        RPTB    Loop_Bottom                         ; Set up a Repeat Block
+                                                    ; withOUT delayed entry
+
+*>>>>>>>>>>>>>><<<<<<<<<<<<<<<          ; Now start the Repeat Block.
+                                        ; ---------------------------
+Loop_Top:
+
+        LBU0    *AR7,R11                            ; Load the Reference Set
+                                                    ; entry for eta n+2 for
+        STI     R11,*AR6++(1)                       ; the current phi into 
+                                                    ; the Global SRAM.
+                                                    ;   Set AR6 for the next
+                                                    ;   Ref Set entry in 
+                                                    ;   Global SRAM
+                                                    ;   AR7 stays pointing at
+                                                    ;   the current phi in
+                                                    ;   Dual Port Memory
+
+        LBU1    *AR7,R11                            ; Load the Reference Set
+                                                    ; entry for eta n+3 for
+        STI     R11,*AR6++(1)                       ; the current phi into
+                                                    ; the Global SRAM.
+                                                    ;   Set AR6 for the next
+                                                    ;   Ref Set entry in       
+                                                    ;   Global SRAM
+                                                    ;   AR7 stays pointing at
+                                                    ;   the current phi in
+                                                    ;   Dual Port Memory
+
+        LBU2    *AR7,R11                            ; Load the Reference Set
+                                                    ; entry for eta n+4 for
+        STI     R11,*AR6++(1)                       ; the current phi into 
+                                                    ; the Global SRAM.
+                                                    ;   Set AR6 for the next
+                                                    ;   Ref Set entry in 
+                                                    ;   Global SRAM
+                                                    ;   AR7 stays pointing at
+                                                    ;   the current phi in
+                                                    ;   Dual Port Memory
+
+        LBU3    *AR7++(1),R11                       ; Load the Reference Set
+                                                    ; entry for eta n+5 for
+Loop_Bottom:                                        ; the current phi into
+                                                    ; the Global SRAM.
+        STI     R11,*AR6++(1)                       ;   Set AR6 for the next
+                                                    ;   Ref Set entry in 
+                                                    ;   Global SRAM
+                                                    ;   Set AR7 for the next 
+                                                    ;   phi in the Dual Port 
+                                                    ;   Memory
+
+*>>>>>>>>>>>>>><<<<<<<<<<<<<<<          ; Return to the top of Repeat Block  
+                                        ; ---------------------------------  
+
+
+******************************************************************************
+*           Extract, Check, and Store Term Parameters                        *
+*                                                                            *
+*   Next we need to extract, check, and store the Term Parameters.           *
+*   Recall that the Term Parameters are composed of:                         *
+*                                                                            *
+*       (1) Frame Parameters                                                 *
+*       (2) Local Parameters  (Local Tool Number and Tool-Specific Params)   *
+*       (3) Global Parameters (Global Tool Number and Tool-Specific Params)  *
+*                                                                            *
+*   This Term Parameter extraction and checking proceeds in multiple parts   *
+*                                                                            * 
+*       (1) Frame Parameters are extracted and checked by this module        * 
+*       (2) The Local Term Parameter Header and Tool Number are              *
+*           extracted by this module                                         *
+*       (3) The appropriate Tool Initialization routine is called to         *
+*           extract, check, and store the Tool-Dependent Local Parameters.   *
+*                                                                            *
+*   Note that the Global Parameters are ignored by this Local DSP            *
+*                                                                            *
+*   If at any point we find an erroneous Parameter we stop the Parameter     *
+*   processing and proceed to the "Parameter Failure" Exit Point.            *
+******************************************************************************
+
+Get_Term_Parameters:                                                      
+
+******************************************************************************
+*           Extract, Check, and Store Frame Parameters                       *
+*                                                                            *
+*   Next we need to extract and check the Frame Parameters                   *
+*                                                                            *
+*   Currently the only Frame Parameter that is allowed is the Pass 1 of N    *
+*   (Mark and Force Pass) value, which actually goes to the 68K.  So         *
+*   this section of code is really just a dummy placeholder.                 *
+*                                                                            *
+*   As we extract and check the Parameters we make them available to the     *
+*   Local Frame code by placing them into pre-defined locations in the       *
+*   Global SRAM (i.e. the memory starting at C000 0000)                      *
+*                                                                            *
+*   If at any point we find an erroneous Parameter we stop the Parameter     *
+*   processing and proceed to the "Parameter Failure" Exit Point.            *
+******************************************************************************
+
+Get_Frame_Parameters:
+
+            NOP                                     ; Dummy instruction
+
+  
+******************************************************************************
+*           Extract, Check, and Store Local Tool-Dependent Term Parameters   *
+*                                                                            *
+*   Now we need to extract and check the Local Tool-Dependent Term           *
+*   Parameters.                                                              *
+*                                                                            *
+*   This is done by looking at the Local Parameter Blocks within the         *
+*   Term Parameter Block.                                                    *
+*                                                                            *
+*   Additionally, only one Tool is allowed.                                  *
+*   This version of the code only looks at the Local Parameters for Term     *
+*   #0, and only calls the Tool Initialization ONCE, with those Parameters.  *
+*   Any Local Parameters given in conjunction with any other Terms will      *
+*   be IGNORED.                                                              *
+*                                                                            *
+*   The Local Parameter Header for Term #0 is examined first.  Recall the    *
+*   format of the Local Parameter Header:                                    *
+*                                                                            *
+*      D31          D24 D23         D16 D15          D8 D7           D0      *
+*      +---------------+---------------+---------------+---------------+     *
+*      | Flag showing  | Reference Set | Parameter     | Term Number   |     *
+*      | whether TCC   | Type used by  | Block Type    | for this Local|     *
+*      | detected that | this Term     |               | Parameter Term|     *
+*      | the L1.5 Ref  |               | ( 0: Frame    | slot          |     *
+*      | Set matched   | ( 0: EM Et    |   1: Local    |               |     *
+*      | a L1 Ref Set  |      Ref Set  |   2: Global)  | for this Term |     *
+*      |               |  FF: Total Et |               | (Term #0)     |     *
+*      | (0,1,2,3:     |      Ref Set) | (these are    | this byte = 0 |     *
+*      |  indicates    |               |  Local Params |               |     *
+*      |  which L1 Ref |               |  so this byte |               |     *
+*      |  set matches; |               |  should be    |               |     *
+*      |  FF: no L1    |               |  set to 1)    |               |     *
+*      |  Ref Set      |               |               |               |     *
+*      |  matches)     |               |               |               |     *
+*      +---------------+---------------+---------------+---------------+     *
+*                                                                            *
+*                                                                            *
+*   The steps in extracting, checking, and storing the Local Parameter       *
+*   Data are as follows:                                                     *
+*                                                                            *
+*   Extract Header information:                                              *
+*       Extract the Term Number from the Header                              *
+*       Extract the Parameter Block Type from the Header                     *
+*       Extract the Reference Set Type fromthe Header                        *
+*                                                                            *
+*   Extract Tool Number (second longword of this Local Parameter Block)      *
+*                                                                            *
+*   Check the Header for correctness                                         *
+*       If Term Number does not match expected Term Number then branch to    *
+*          a failure routine                                                 *
+*       If Parameter Block Type does not match expected Parameter Block      *
+*          Type (Local Parameter Block) then branch to a failure routine     *
+*       Note that the Local Tool must check the Reference Set Type           *
+*                                                                            *
+*   Check the Tool Number and call the Tool Initialization of the            *
+*   specified Tool.  If no Local Tool in this executable matches the         *
+*   specified Tool then branch to a failure routine                          *
+*                                                                            *
+*   Examine Return Status information from the Tool Initialization Routine   *
+*       If Return Status indicates Tool Initialization was unsuccessful      *
+*           then branch to a failure routine                                 *
+*                                                                            *
+*   Report success to the TCC and continue (the code only gets to this       *
+*   point if there were no errors)                                           *
+*                                                                            *
+*                                                                            *
+*   Note that this section of code must know which Tools are available and   *
+*   must be Initialized.                                                     *
+*                                                                            *
+*   Tools are responsible for checking and storing their own Parameters,     *
+*   and returning status information to this module.  This module will then  *
+*   return status information to the TCC via Dual Port Memory.               *
+*                                                                            *
+*   If all Tools are Initialized successfully, then control passes from this *
+*   routine to the following routines.  Otherwise control passes to the      *
+*   appropriate failure routine.                                             * 
+*                                                                            *
+******************************************************************************
+                  
+Get_Local_Parameters:              
+
+        LDI     @Local_Param_Block_Handle,AR7       ; Load the base address
+                                                    ; of the Local Parameter
+                                                    ; Block (in DP Memory)
+                                                    ; into AR7
+
+                                                    ; Note that the Local
+                                                    ; Parameters for Term #0
+                                                    ; start at the beginning
+                                                    ; of the Local Parameter
+                                                    ; Block
+
+        LDI     Term_Number_0,R11                   ; Use R11 to store 
+                                                    ; the Expected Term 
+        STI     R11,@Term_Number_Expected_Loc       ; Number into a memory
+                                                    ; location.  This will
+                                                    ; be needed when multiple
+                                                    ; Terms can be defined
+                                                    ; and the Parameter 
+                                                    ; checking is executed
+                                                    ; multiple times
+                                                                    
+        LBU0    *AR7,R11                            ; Get the Term Number
+                                                    ; from the Header and
+        STI     R11,@Term_Number_Loc                ; store it into a memory
+                                                    ; location
+
+        LBU1    *AR7,R11                            ; Get the Parameter
+                                                    ; Type Flag from the
+                                                    ; Header and store it
+        STI     R11,@Parameter_Block_Type_Loc       ; into a memory      
+                                                    ; location
+
+        LBU2    *AR7++(1),R11                       ; Get the Reference Set
+                                                    ; Type from the Header
+        STI     R11,@Reference_Set_Type_Loc         ; and store it into a 
+                                                    ; memory location   
+                                                    ;   Set AR7 for the
+                                                    ;   next longword in
+                                                    ;   the Local Parameter
+                                                    ;   Block (Tool Number)
+
+        LDI     *AR7,R11                            ; Get the Tool Number
+                                                    ; which should be mapped
+        STI     R11,@Local_Tool_Number_Loc          ; to this Term and
+                                                    ; store it into a memory
+                                                    ; location
+
+                           
+        LDI     @Term_Number_Loc,R11                ; Put the Term Number
+                                                    ; into R11, and compare
+        CMPI    @Term_Number_Expected_Loc,R11       ; to the Expected Term
+                                                    ; Number.  Recall that
+                                                    ; the Expected Term
+                                                    ; Number will be variable
+                                                    ; in future versions of
+                                                    ; this program (so it
+                                                    ; is stored in a memory
+                                                    ; location rather than 
+                                                    ; as a constant)
+
+        Bne     Local_Term_Number_Failure           ; If the Term Number 
+                                                    ; does not match the
+                                                    ; expected Term Number
+                                                    ; then branch to a 
+                                                    ; failure routine
+
+        LDI     @Parameter_Block_Type_Loc,R11       ; Put the Parameter Block
+                                                    ; Type into R11, and 
+        CMPI    Local_Parameter_Block_Type,R11      ; compare it to the 
+                                                    ; Local Parameter Block
+                                                    ; Type
+                                                                    
+        Bne     Local_Param_Block_Type_Failure      ; If this Parameter Block
+                                                    ; isn't a Local Parameter
+                                                    ; Block then branch to 
+                                                    ; a failure routine
+
+        LDI     @Local_Tool_Number_Loc,R11          ; Put the Local Tool
+                                                    ; Number into R11.
+
+        CMPI    EM_1x2_Tot_3x3_Tool,R11             ; Compare it to the
+                                                    ; EM 1x2 vs. Tot 3x3
+                                                    ; Tool's Tool ID
+
+        Bne     Local_Tool_Number_Failure           ; If the Tool Number does
+                                                    ; not match any of the
+                                                    ; allowed Tools then branch
+                                                    ; to a failure routine
+                                                         
+
+                                                    ; if we have made it this
+                                                    ; far then it is time to
+                                                    ; let the Tool
+                                                    ; Initialization take over
+                                                    ; reading and checking 
+                                                    ; Local Parameters
+                                                            
+
+        STI     AR7,@Local_Tool_Parameter_Handle    ; Save the pointer to
+                                                    ; the Tool-Dependent 
+                                                    ; Parameters.  This is
+                                                    ; passed to the Local
+                                                    ; Tool Initialization
+                                                    ; module
+
+        CALL    Initialize_Tool                     ; CALL the Tool
+                                                    ; ^^^^ Initialization
+                                                    ; Routine
+                                                                  
+        CMPI    Status_OK,R11                       ; Compare R11 to Zero.
+                                                    ; The Tool Initialization
+                                                    ; module Zeros R11 to 
+                                                    ; indicate a successful
+                                                    ; initialization
+
+        Bne     Local_Tool_Initialize_Failure       ; If the Local Tool
+                                                    ; Initialization failed
+                                                    ; then branch to a
+                                                    ; failure routine
+
+                                                    ; if we have made it this
+                                                    ; far then all Parameters
+                                                    ; were OK and all Tools
+                                                    ; have initialized. 
+
+******************************************************************************
+*           Clear Dual Port Memory Locations that the Frame will examine     *
+*                                                                            *
+*   After all of this initialization is complete, we need to guarantee       *
+*   that all Dual Port Memory Locations that the Frame will want to examine  *
+*   are set to some benign state                                             *
+*                                                                            *
+*   We perform the following actions:                                        *
+*                                                                            *
+*       (1) Set the Local DSP Wake_Up_Word to a benign state (ffffffffh)     *
+*       (2) Set the Local DSP Status to EC word for this LDSP to a           *
+*           benign state (00000000h)                                         *
+*                                                                            *
+******************************************************************************
+
+Preload_Dual_Port_Memory:
+
+        LDA     @SEK_to_all_DSP_Status_Handle, AR7      ; Use AR7 and R11 to
+                                                        ; program the Local
+        LDI     @All_FF_Loc, R11                        ; Wake Up Word to 
+                                                        ; a benign state
+        STI     R11, *+AR7(Disp_to_Local_WUW)   
+
+
+        LDA     @This_LDSP_to_68K_Status_Handle, AR7    ; Use AR7 and R11 to
+                                                        ; program the Status
+        LDI     @Zero_Loc, R11                          ; to EC Longword to
+                                                        ; a benign state
+        STI     R11, *+AR7(Disp_to_EC_Stat)
+                                                        ; if we get this far
+                                                        ; then everything has
+                                                        ; been done for a 
+                                                        ; successful init.  
+                                                        ; Fall through to 
+                                                        ; the Success Exit
+                                                        ; Point
+
+******************************************************************************
+*           Success Exit Point                                               *
+*                                                                            *
+*   We have successfully Initialized all Tools and the Frame Code.           *
+*                                                                            *
+*   We now need to look for error   codes in the Com_Port_Status_Loc.  If    *
+*   there are no error   codes then we can set an unconditional Status_OK    *
+*   response to the TCC (via Dual Port Memory).                              *
+*                                                                            *
+*   If there is an error  code, then we need to pass that error   code       *
+*   along to the TCC (via Dual Port Memory).                                 *
+*                                                                            *
+*   If either there is no error, or the error code is a CRC Token Error,     *
+*   we return to the calling module.  Otherwise we branch to the Parameter   *
+*   failure dead loop.                                                       *
+*                                                                            *
+******************************************************************************
+
+Parameter_Success:                                               
+                
+        LDA     @This_LDSP_to_TCC_Status_Handle,AR7     ; Store the 
+                                                        ; Base Address of
+                                                        ; the DSP-to-TCC
+                                                        ; Status Longword
+                                                        ; for this LDSP
+                                                        ; into AR7
+
+        LDI     @Com_Port_Status_Loc, R10               ; Move the Comm 
+                                                        ; Port Status into
+                                                        ; R10
+
+        STI     R10, *AR7                               ; Return the 
+                                                        ; appropriate status
+                                                        ; to TCC.
+
+        LBU0    @Com_Port_Status_Loc, R11               ; Examine the LSByte
+                                                        ; of the Comm Port
+        CMPI    Status_OK, R11                          ; Status Longword.
+                                                        ; If it is either
+        Beq     Return_to_Calling_Module                ; Status_OK or
+                                                        ; CRC_Port_Token_Error,
+        CMPI    CRC_Port_Token_Error, R11               ; then branch to the
+                                                        ; "Return to Calling
+        Beq     Return_to_Calling_Module                ; Module" exit point
+
+                                                        ; if we get to this
+                                                        ; point, there was a
+                                                        ; real Comm Port error
+
+        BR      Param_Fail_Dead_Loop                    ; Since there was a
+                                                        ; real error, branch
+                                                        ; to the Parameter 
+                                                        ; Failure Dead Loop.
+
+Return_to_Calling_Module:
+
+        RETS                                        ; Return to the calling
+                                                    ; Module
+
+******************************************************************************
+*           Failure Processing                                               *
+*                                                                            *
+*   We have found an error with a Parameter.  We need to set a "failure"     *
+*   return code to the TCC and wait in an infinite loop.  We cannot          *
+*   proceed further with the Local DSP Code.                                 *
+*                                                                            *
+*   There are many Failure processing routines (one per possible failure     *
+*   type.  All of the Failure processing routines format return status       *
+*   information and then funnel to a single exit point called                *
+*   'Parameter_Failure' which returns the formatted Failure information to   *
+*   the TCC and then waits in an infinite loop                               *
+******************************************************************************
+
+Failure_Processing:
+                                                        
+******************************************************************************
+*           Universal Parameter Failure Processing                           *
+*                                                                            *
+*   This is the processing    corresponding to failures in Universal         *
+*   Parameter extraction and checking.  The possible Universal Parameter     *
+*   Failures are:                                                            *
+*                                                                            *
+*       Failure Description                             Error Code           *
+*       -------------------                             ----------           *
+*       Memory Map Version Mismatch                     141                  *
+*       Incorrect Number of Terms Defined               142                  *
+*       Incorrect Number of Universal Parameters        143     (not used)   *
+*       Universal Parameter out of Range                144     (not used)   *
+*                                                                            *
+*   The Error Codes reserved for Universal Parameter Failures are in the     *
+*   range     141 - 160                                                      *
+*                                                                            *
+*   The Status response to the TCC is composed of 2 longwords:               *
+*                                                                            *
+*   The first longword looks like:                                           *
+*                                                                            *
+*      Bits     Description                                                  *
+*      -----    -----------                                                  *
+*       7:0     Error Code (in the range 141-160, as described above)        *
+*      23:8     Reserved                                                     *
+*      31:24    Memory Map Version expected    (if error code = 141)         *
+*               Number of Terms expected       (if error code = 142)         *
+*               Number of Parameters expected  (if error code = 143)         *
+*               Which Parameter is bad         (if error code = 144)         *
+*                                                                            *
+*   The second longword looks like:                                          *
+*                                                                            *
+*      Bits     Description                                                  *
+*      -----    -----------                                                  *
+*      31:0     Memory Map Version found       (if error code = 141)         *
+*               Number of Terms found          (if error code = 142)         *
+*               Number of Parameters found     (if error code = 143)         *
+*               Value of bad Parameter         (if error code = 144)         *
+*                                                                            *
+******************************************************************************
+
+Memory_Map_Version_Failure              ; The Memory Map Version (not 
+                                        ; the Revision but the Version)
+                                        ; found in the Universal Parameter
+                                        ; Header Longword was incorrect.
+                                        ; R11 contains the Map Version
+                                        ; found in the header
+
+
+        LDI     Memory_Map_Version_Error,R10        ; Put the error
+                                                    ; code for Memory
+                                                    ; Map Version Mismatch
+                                                    ; into R10 (in the LSByte)
+
+        LDI     Memory_Map_Version_Expected, R9     ; Put the Memory Map
+                                                    ; Version expected into
+                                                    ; R9 (in the LSByte)
+
+        BR      Univ_Param_Fail_Message_Format      ; Branch to the routine
+                                                    ; which formats the
+                                                    ; failure messages.
+
+
+Number_of_Defined_Terms_Failure         ; The Number of Defined Terms 
+                                        ; found in the Universal Parameter
+                                        ; Header Longword was incorrect.
+                                        ; R11 contains the number of 
+                                        ; defined Terms found in the header.
+
+
+        LDI     Number_of_Defined_Terms_Error,R10   ; Put the error
+                                                    ; code for Incorrect Number
+                                                    ; of Defined Terms     
+                                                    ; into R10 (in the LSByte)
+
+        LDI     Number_of_Terms_Expected, R9        ; Put the Number of Defined
+                                                    ; Terms   expected into
+                                                    ; R9 (in the LSByte)
+
+                                                    
+        BR      Univ_Param_Fail_Message_Format      ; Branch to the routine
+                                                    ; which formats the
+                                                    ; failure messages.
+
+
+Univ_Param_Fail_Message_Format:             ; Format the Universal Parameter
+                                            ; Failure messages (i.e. the 2
+                                            ; longwords which will be
+                                            ; returned to TCC).  Then branch
+                                            ; to the Parameter Failure Exit
+                                            ; Point.
+
+        LDA     @This_LDSP_to_TCC_Status_Handle,AR7     ; Store the 
+                                                        ; Base Address of
+                                                        ; the DSP-to-TCC
+                                                        ; Status Longword
+                                                        ; for this LDSP
+                                                        ; into AR7
+ 
+        MB3     R9, R10                             ; Merge the information 
+                                                    ; about the expected <x> 
+                                                    ; into the MSB of R10
+
+        STI     R10, *AR7++(1)                      ; Store the LDSP-to-TCC 
+                                                    ; Status Longword #1
+                                                    ; in Dual Port Memory
+                                                    ;    Set AR7 to point to  
+                                                    ;    the Status Longword  
+                                                    ;    #2
+
+        STI     R11, *AR7++(1)                      ; Store the number of
+                                                    ; defined Terms
+                                                    ; found in the Universal
+                                                    ; Parameter Header as
+                                                    ; the LDSP-to-TCC Status
+                                                    ; Longword #2           
+
+        BR      Parameter_Failure                   ; Branch to the Parameter
+                                                    ; Failure Exit Point.
+
+
+******************************************************************************
+*           Frame Parameter Failure Exit Points                              *
+*                                                                            *
+*   This is the processing    corresponding to failures in Frame Parameter   *
+*   extraction and checking.  The possible Frame Parameter Failures are:     *
+*                                                                            *
+*       Failure Description                             Error Code           *
+*       -------------------                             ----------           *
+*       Incorrect Number of Frame Parameters            121     (not used)   *
+*       Frame Parameter out of Range                    122     (not used)   *
+*       Parameter Block Type Flag Mismatch in Header    123     (not used)   *
+*       Term Number Mismatch in Header                  124     (not used)   *
+*                                                                            *
+*   The Error Codes reserved for Frame     Parameter Failures are in the     *
+*   range     121 - 140                                                      *
+*                                                                            *
+*   The Status response to the TCC is composed of 2 longwords:               *
+*                                                                            *
+*   The first longword looks like:                                           *
+*                                                                            *
+*      Bits     Description                                                  *
+*      -----    -----------                                                  *
+*       7:0     Error Code (in the range 121-140, as described above)        *
+*      15:8     Reserved                                                     *
+*      23:16    Term Number (expected)                                       *
+*      31:24    Number of Parameters expected  (if error code = 121)         *
+*               Which Parameter is bad         (if error code = 122)         *
+*               Parameter Type Flag expected   (if error code = 123)         *
+*                                                                            *
+*   The second longword looks like:                                          *
+*                                                                            *
+*      Bits     Description                                                  *
+*      -----    -----------                                                  *
+*      31:0     Number of Parameters found     (if error code = 121)         *
+*               Value of bad Parameter         (if error code = 122)         *
+*               Parameter Type Flag found      (if error code = 123)         *
+*               Term Number found              (if error code = 124)         *
+*                                                                            *
+*   In this version of the code Frame Parameters are not used.  This         *
+*   section of code is a dummy.  No actions occur here                       *
+******************************************************************************
+
+                                        ; dummy code area reserved for
+                                        ; Frame Parameter Error Processing
+                                                                          
+
+******************************************************************************
+*           Local Tool-Dependent Term Parameter Failure Processing           *
+*                                                                            *
+*   This is the processing    corresponding to failures in Frame Parameter   *
+*   extraction and checking.  The possible Local Parameter Failures are:     *
+*                                                                            *
+*       Failure Description                             Error Code           *
+*       -------------------                             ----------           *
+*       Incorrect Local Tool Number (Tool ID)             1                  *
+*       Incorrect Number of Local Tool Parameters         2                  *
+*       Local Tool Parameter out of Range                 3                  *
+*         (note: Tool Number = Parameter Number 0)                           *
+*       Parameter Block Type Flag Mismatch in Header      4                  *
+*       Term Number Mismatch in Header                    5                  *
+*       Reference Set Type Mismatch in Header             6                  *
+*                                                                            *
+*   The Error Codes reserved for Local     Parameter Failures are in the     *
+*   range       1 -  20                                                      *
+*                                                                            *
+*   The Status response to the TCC is composed of 2 longwords:               *
+*                                                                            *
+*   The first longword looks like:                                           *
+*                                                                            *
+*      Bits     Description                                                  *
+*      -----    -----------                                                  *
+*       7:0     Error Code (in the range 1-20, as described above)           *
+*      15:8     Reserved                                                     *
+*      23:16    Term Number (expected)                                       *
+*      31:24    Number of Parameters expected  (if error code = 2)           *
+*               Which Parameter is bad         (if error code = 3)           *
+*               Parameter Type Flag expected   (if error code = 4)           *
+*               Reference Set Type expected    (if error code = 6)           *
+*                                                                            *
+*   The second longword looks like:                                          *
+*                                                                            *
+*      Bits     Description                                                  *
+*      -----    -----------                                                  *
+*      31:0     Tool Number found              (if error code = 1)           *
+*               Number of Parameters found     (if error code = 2)           *
+*               Value of bad Parameter         (if error code = 3)           *
+*               Parameter Type Flag found      (if error code = 4)           *
+*               Term Number found              (if error code = 5)           *
+*               Reference Set Type found       (if error code = 6)           *
+*                                                                            *
+*   The third longword looks like:                                           *
+*                                                                            *
+*      Bits     Description                                                  *
+*      -----    -----------                                                  *
+*      31:0     Tool Number of Tool mapped to the Term Number specified      *
+*               in the first longword (i.e. Tool Number found)               *
+*                                                                            *
+******************************************************************************
+                                                                              
+Local_Tool_Number_Failure               ; The Local Tool Number (Tool ID)
+                                        ; found in the Local Parameter Header
+                                        ; Longword did not match any of the
+                                        ; Local Tools assembled into this
+                                        ; executable.
+                                        ; R11 contains the Local Tool Number
+                                        ; found in the header
+                                                                
+
+        LDI     Local_Tool_Number_Error,R10         ; Put the error
+                                                    ; code for Incorrect
+                                                    ; Local Tool Number    
+                                                    ; into R10 (in the LSByte)
+                                                             
+        LDI     @Zero_Loc,R9                        ; Zero R9 before passing
+                                                    ; control to the format
+                                                    ; routine.  Recall that 
+                                                    ; R9 will become the 
+                                                    ; MSByte of the First
+                                                    ; Status Longword
+
+
+        BR      Local_Param_Fail_Message_Format     ; Branch to routine which
+                                                    ; formats the failure
+                                                    ; message
+
+
+
+Local_Param_Block_Type_Failure          ; The Parameter Block Type found in
+                                        ; the Local Parameter Header Longword
+                                        ; did not indicate that this Block was
+                                        ; a Local Tool Parameter Block.   
+                                        ; R11 contains the Parameter Block  
+                                        ; Type found in the header
+                                                                
+
+        LDI     Local_Param_Block_Type_Error,R10    ; Put the error
+                                                    ; code for Incorrect
+                                                    ; Local Tool Number    
+                                                    ; into R10 (in 
+                                                    ; the LSByte)
+
+                
+        LDI     Local_Parameter_Block_Type,R9       ; Load the  Parameter 
+                                                    ; Block Type expected
+                                                    ; into R9 (in the LSByte)
+        
+        BR      Local_Param_Fail_Message_Format     ; Branch to routine which
+                                                    ; formats the failure
+                                                    ; message           
+
+
+Local_Term_Number_Failure               ; The Term Number          found in
+                                        ; the Local Parameter Header Longword
+                                        ; did not match the expected Term     
+                                        ; Number.
+                                        ; R11 contains the Term Number      
+                                        ; Type found in the header
+                                                                
+
+        LDI     Local_Term_Number_Error,R10         ; Put the error
+                                                    ; code for Incorrect
+                                                    ; Local Parameter Block
+                                                    ; Type Flag
+                                                    ; into R10 (in 
+                                                    ; the LSByte)
+
+        LDI     @Zero_Loc,R9                        ; Zero R9 before passing
+                                                    ; control to the format
+                                                    ; routine.  Recall that 
+                                                    ; R9 will become the 
+                                                    ; MSByte of the First
+                                                    ; Status Longword
+        
+        BR      Local_Param_Fail_Message_Format     ; Branch to routine which
+                                                    ; formats the failure
+                                                    ; message           
+
+Local_Tool_Initialize_Failure:          ; The Local Tool Initialization
+                                        ; Routine has discovered a failure
+                                        ; with its Parameters (or its 
+                                        ; Parameter Header).  It has already
+                                        ; stored the results into R9, R10,
+                                        ; and R11 in a format suitable for
+                                        ; the Local Parameter Failure 
+                                        ; Message Formatter.  
+
+        BR      Local_Param_Fail_Message_Format     ; The error information
+                                                    ; has been stored in
+                                                    ; R9, R10, and R11
+                                                    ; by the Tool
+                                                    ; Initialization module.
+                                                    ; We just have to call
+                                                    ; the output formatter.
+
+Local_Param_Fail_Message_Format:
+ 
+        LDA     @This_LDSP_to_TCC_Status_Handle,AR7     ; Store the 
+                                                        ; Base Address of
+                                                        ; the DSP-to-TCC
+                                                        ; Status Longword
+                                                        ; for this LDSP
+                                                        ; into AR7
+ 
+        MB2     @Term_Number_Expected_Loc,R10       ; Merge the Term Number
+                                                    ; Expected 
+                                                    ; into R10 (in the next 
+                                                    ; to MSByte)
+
+        MB3     R9,R10                              ; Merge the information
+                                                    ; regarding the Parameter
+                                                    ; or Flag which was 
+                                                    ; EXPECTED into R10 (in 
+                                                    ; the MSByte)
+        
+        STI     R10,*AR7++(1)                       ; Store the LDSP-to-TCC 
+                                                    ; Status Longword #1
+                                                    ; in the Dual Port Mem. 
+                                                    ;    Set AR7 for the     
+                                                    ;    Status Longword #2
+
+        STI     R11,*AR7++(1)                       ; Store the information
+                                                    ; regarding the Parameter
+                                                    ; or flag which was     
+                                                    ; FOUND into 
+                                                    ; the LDSP-to-TCC Status
+                                                    ; Longword #2
+                                                    ;    Set AR7 for the     
+                                                    ;    Status Longword #3
+
+        LDI     @Local_Tool_Number_Loc,R11          ; Store the Specified 
+                                                    ; Tool Number in the 
+        STI     R11,*AR7++(1)                       ; LDSP-to-TCC Status   
+                                                    ; Longword #3
+                                                    ;    Set AR7 for the     
+                                                    ;    Status Longword #4
+                                                               
+        BR      Parameter_Failure                   ; Branch to the Parameter
+                                                    ; Failure Exit Point
+
+
+******************************************************************************
+*       Parameter Failure Exit Point                                         *
+*                                                                            *
+*   This is the section of code which loops forever when a parameter         *
+*   failure is discovered.                                                   *
+*                                                                            *
+******************************************************************************
+
+Parameter_Failure:
+                                                  
+Param_Fail_Dead_Loop:
+
+        BR      Param_Fail_Dead_Loop    ; We will wait forever.  We are
+                                        ; stuck.
+    
+******************************************************************************
+*  This is the Bulkhead.  This code should never be executed                 *
+******************************************************************************
+
+End_Of_L_Params:                        ; These instructions should never be 
+                                        ; executed in the "normal" operation
+         BR     End_Of_L_Params         ; of the program.  If the program
+                                        ; counter becomes corrupted or
+         BR     End_Of_L_Params         ; if we have a bug in the program
+                                        ; we MAY try to execute these
+         BR     End_Of_L_Params         ; instructions.  If we get to these
+                                        ; instructions the program will appear
+         BR     End_Of_L_Params         ; to halt.  We could also use a
+                                        ; TRAP instruction here, and jump to
+                                        ; a service routine.                  
+
+******************************************************************************
+*   Load Constants and Working Variables into the .data section              *
+******************************************************************************
+
+    .data
+
+Univ_Param_Block_Handle                         ; Memory location to store
+                                                ; the Base Address of the
+        .word   Univ_Param_Block_Loc            ; Universal Parameter Block
+                                                ; in Dual Port Memory
+
+Frame_Param_Block_Handle                        ; Memory location to store
+                                                ; the Base Address (in Dual-
+        .word   Frame_Param_Block_Loc           ; Port Memory) of the Frame
+                                                ; Parameter Block
+
+Local_Param_Block_Handle                        ; Memory location to store
+                                                ; the Base Address (in Dual-
+        .word   Local_Param_Block_Loc           ; Port Memory) of the Local
+                                                ; Parameter Block
+
+Term_Number_Expected_Loc        .space  1       ; Memory location to store 
+                                                ; the Term Number of the 
+                                                ; Term for which we are
+                                                ; currently processing
+                                                ; Parameters
+
+Term_Number_Loc                 .space  1       ; Memory Location to store
+                                                ; the Term Number found in
+                                                ; the Header of the Parameter
+                                                ; Block we are currently 
+                                                ; reading.  This should 
+                                                ; normally be equal to the
+                                                ; Term for which we are 
+                                                ; currently processing
+                                                ; Parameters
+
+Parameter_Block_Type_Loc        .space  1       ; Memory location to store
+                                                ; the Parameter Block Type
+                                                ; of the Parameter Block
+                                                ; we are currently reading
+
+Reference_Set_Type_Loc          .space  1       ; Memory location to store
+                                                ; the Reference Set Type
+                                                ; of the Reference Set used
+                                                ; by the Tool which is mapped
+                                                ; to the Term for which we    
+                                                ; are currently processing  
+                                                ; Parameters
+                             
+Local_Tool_Number_Loc           .space  1       ; Memory location to store 
+                                                ; the Local Tool Number of
+                                                ; the Tool which is mapped to
+                                                ; the Term for which we are
+                                                ; currently processing 
+                                                ; Parameters
+
+Local_Tool_Parameter_Handle     .space  1       ; Memory location to store
+                                                ; the address (in Dual Port
+                                                ; Memory) of the Tool-
+                                                ; Dependent Parameters for
+                                                ; the Tool which is mapped
+                                                ; to the Term for which we
+                                                ; are currently processing
+                                                ; Parameters
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+
+         .def   Get_Parameters                  ; Symbols defined in this 
+         .def   Local_Tool_Parameter_Handle     ; module for use in other 
+         .def   Term_Number_Loc                 ; modules
+         .def   Reference_Set_Type_Loc
+
+         .ref   Initialize_Tool                 ; Symbol referenced in this 
+         .ref   Dual_Port_Memory_Handle         ; module but defined in an 
+         .ref   Ref_Set_Data_Handle             ; external module
+         .ref   Com_Port_Status_Loc
+         .ref   This_LDSP_Ref_Set_Block_Handle
+         .ref   This_LDSP_to_TCC_Status_Handle
+         .ref   SEK_to_all_DSP_Status_Handle
+         .ref   This_LDSP_to_68K_Status_Handle
+         .ref   All_FF_Loc
+         .ref   Zero_Loc                       
+         .ref   Univ_Param_Block_Loc
+         .ref   Frame_Param_Block_Loc
+         .ref   Local_Param_Block_Loc
+         .end
+                                                                              

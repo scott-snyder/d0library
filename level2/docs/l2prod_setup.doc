@@ -1,0 +1,116 @@
+Logicals
+========
+filter_default  VMS: search list of [], d0$level2$l2sim
+                linking area, loading area
+
+official production logicals
+----------------------------
+D0$PROD             Production Disk (Like D0$DISK)
+PROD$L2PROD$ROOT    D0$PROD:[D0PRODUCTION.L2PROD.]
+
+LIBPROD and its qualifiers defines the logical
+PROD$L2PROD     as follows:
+
+LIBPROD L2PROD      Search list of .NEW, main  directory:   
+                        d0$prod:[D0PRODUCTION.L2PROD.NEW],
+            	            d0$prod:[D0PRODUCTION.L2PROD]
+                    or  prod$l2prod$root:[new],[000000]
+
+LIBPROD/OLD L2PROD  .OLD directory:   
+                        d0$prod:[D0PRODUCTION.L2PROD.OLD]
+LIBPROD/PREVIOUS L2PROD  main directory:   
+                        d0$prod:[D0PRODUCTION.L2PROD]
+
+Directory structure:
+    d0$prod:[d0production.l2prod]           = main = [000000]
+                                .old
+                                .new
+                                .libxyz.source 
+                                .librst
+
+    (after libprod l2prod:)
+    -----------------------
+D0$XYZ          search list of .new, main, .xyz
+                    prod$l2prod,prod$l2prod$root:[xyz]
+D0$XYZ$ABC      search list of .new, .main, .xyz.abc
+                    prod$l2prod,prod$l2prod$root:[xyz.abc]
+    (after libprod/previous l2prod:)
+    -----------------------
+D0$XYZ          search list of main, .xyz
+                    prod$l2prod,prod$l2prod$root:[xyz]
+D0$XYZ$ABC      search list of main, .xyz.abc
+                    prod$l2prod,prod$l2prod$root:[xyz.abc]
+    (after libprod/old l2prod:)
+    -----------------------
+D0$XYZ          search list of .old, .xyz
+                    prod$l2prod,prod$l2prod$root:[xyz]
+D0$XYZ$ABC      search list of .old, .xyz.abc
+                    prod$l2prod,prod$l2prod$root:[xyz.abc]
+
+some derived produciton logicals (for librarians)
+    (These logicals are INDEPENDENT of the exact setup of libprod)
+L2$ROOT         prod$l2prod$root                    root directory
+L2$NEW          D0$PROD:[D0PRODUCTION.L2PROD.NEW]   new directory
+L2$OLD          D0$PROD:[D0PRODUCTION.L2PROD.OLD]   old directory
+L2$TOP          D0$PROD:[D0PRODUCTION.L2PROD]       main directory
+L2$PROD         L2$NEW,L2$TOP                       new,top directory
+L2$COM          D0$PROD:[D0PRODUCTION.ADMIN_UTIL.L2PROD]    library .com's
+L2$WORK         D0$PROD:[D0PRODUCTION.ADMIN_UTIL.L2PROD.WORK]   work area
+
+L2$REGULAR      L2$NEW                              linking
+L2$MGR          D0$PROD:[D0PRODUCTION.ADMIN_UTIL.COM] COMs for releases
+L2$VMS          testing area    (one filter_default)
+L2$ELN          load area   ELN
+
+L2$SRC          l2$NEW          source of patches   ELN (obsolete)
+L2$GAMMA        old production area                     (obsolete)
+
+The exact meaning of these logicals changes with the libprod setup:
+L2$COM          D0$LEVEL2$COMMAND_PROC                COMS for L2
+L2$RCP          D0$LEVEL2$L2SIM                     for STP's (obsolete)
+
+COM FILES
+=========
+Library definition
+--------------------
+VMS 
+    @d0$LEVEL2:SETUP_L2SIM                      at login
+    @vms_filter_d0user                          at login; irrelevant for ELN
+
+    @l2lib_setup    from d0$level2$command_proc
+    @l2rcp_setup    from d0$level2$command_proc
+    @d0$LEVEL@$L2SIM:L2RCP_SETUP
+
+ELN 
+    @L2$ELN:l2_setup (should be modified to define l2$NEW)
+                     (should eventually no longer call any l2rcp_setup at all)
+        calls @l2$NEW:l2prod_setup
+        
+    l2$new:l2prod_setup.com
+        l2$new:setup_l2sim
+            l2$new:l2lib_setup (implicitly: move default there to do this)
+SYMBOLS
+=======
+L2_LINK                 ELN  runs D0$FILTER_UTIL:L2_MAIN.LNK   
+                        VMS: use SETUP_L2SIM (used PBD build to link)
+L2_STP_LINK             ELN  run D0$FILTER_UTIL:FILTER_STP.LNK
+                        VMS: use NEW_STP (points to same filter_stp.lnk)
+
+NEW_STP                 VMS  run subset of FILTER_MAKER
+                        ELN: use L2_STP_LINK
+CHANGE_VERSION          VMS     
+                        ELN: essentially not allowed
+
+D0USER                  VMS  run linked VMS exe
+COOR_SIM                VMS  run coor simulation
+
+FILTER_MAKER            VMS  run D0$vms_filter:filter_maker
+                                needed to make filter frame routines which
+                                encodes knowledge of tools known in type:
+                                    FILTER_INIT, FILTER_PARAMETERS
+                        ELN  run L2_STATE for same functionality
+TOOL_MAKER              VMS  run D0$L2CONTROL:TOOL_MAKER
+                                update L2TOOL.DAT and possibly make dummy tool
+                        ELN  run L2_STATE for same functionality
+FILTER_DISPLAY          VMS,ELN run d0$vms_filter:filter_display to analyze     
+                                run_filter.dat files

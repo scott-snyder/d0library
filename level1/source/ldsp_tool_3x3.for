@@ -1,0 +1,107 @@
+      SUBROUTINE LDSP_TOOL_3x3(L1ETAC,L1PHIC,
+     &             PASSED,OBJ_WORD1,OBJ_WORD2,OBJ_WORD3)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : TOOL FOR THE L15 CAL SIMULATOR.  PERFORMS
+C-                        A CUT ON THE EM 3x3 CLUSTER AND ON THE
+C-                        EM_3x3/TOT_5x5 RATIO.
+C-
+C-   Inputs  : 
+C-             L1ETAC    - INTEGER CANDIDATE ETA
+C-             L1PHIC    - INTEGER CANDIDATE PHI
+C
+C-   Outputs : 
+C-             PASSED    - LOGICAL .TRUE. IF CANDIDATE PASSES LDSP CUTS
+C-             OBJ_WORD1 - INTEGER TOOL DEPENDENT INFO
+C-             OBJ_WORD2 -          "
+C-             OBJ_WORD3 -          "
+C-   Controls: 
+C-
+C-   Created  12-APR-1994   sFahey
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$PARAMS:BYTE_ORDER.PARAMS'
+      INCLUDE 'D0$PARAMS:LEVEL1_LOOKUP.PARAMS'
+      INCLUDE 'D0$PARAMS:L15_FRAMEWORK.PARAMS'
+      INCLUDE 'D0$PARAMS:L15COOR_PARSER.PARAMS'
+      INCLUDE 'D0$INC:L15C_REFSET_THRESHOLDS.INC'
+      INCLUDE 'D0$INC:L15C_TOOL_INIT.INC'
+C
+      INTEGER BYTE_LENGTH
+      PARAMETER (BYTE_LENGTH = 8)
+C
+      INTEGER L1ETAC,L1PHIC
+      LOGICAL PASSED
+      INTEGER OBJECT,REAL_OR_MP,OBJ_INRG,OBJ_TOT_INRG
+      INTEGER OBJ_WORD1,OBJ_WORD2,OBJ_WORD3
+C
+      REAL EM_CLUSTER_ET
+      REAL TOT_CLUSTER_ET
+      REAL ISOLATION
+      REAL EM_CLUSTER_CUT
+      REAL ISOLATION_CUT
+      CHARACTER*3 EM_CLUSTER_SIZE,TOT_CLUSTER_SIZE
+      DATA EM_CLUSTER_SIZE/'3X3'/
+      DATA TOT_CLUSTER_SIZE/'5X5'/
+      INTEGER TWOBYONE_ETA,TWOBYONE_PHI
+C----------------------------------------------------------------------
+      PASSED = .FALSE.
+C
+C   Get cluster sums
+C
+      CALL LDSP_GET_SUMS(L1ETAC,L1PHIC,
+     &                   EM_CLUSTER_SIZE,TOT_CLUSTER_SIZE,
+     &                   EM_CLUSTER_ET,  TOT_CLUSTER_ET,
+     &                   TWOBYONE_ETA,   TWOBYONE_PHI)
+C
+C   Get Term parameters from L15C_TOOL_INIT block
+C
+      EM_CLUSTER_CUT = L15_FLOAT_PARAMS(L15CT_NUM,L15TM_NUM,
+     &                        L15TL_LOC_DSP,L15TL_LOC_NUM,1)
+C
+      ISOLATION_CUT = L15_FLOAT_PARAMS(L15CT_NUM,L15TM_NUM,
+     &                        L15TL_LOC_DSP,L15TL_LOC_NUM,2)
+C
+      IF (EM_CLUSTER_ET.GE.EM_CLUSTER_CUT) THEN
+C
+        ISOLATION = EM_CLUSTER_ET/TOT_CLUSTER_ET
+        IF (ISOLATION.GE.ISOLATION_CUT) THEN
+          PASSED = .TRUE.
+C
+C   Now fill tool dependent words
+C
+          CALL SBYT(L15TM_NUM, OBJ_WORD1, (BYTE1-1)*BYTE_LENGTH + 1,
+     &      BYTE_LENGTH)
+          CALL SBYT(L15TL_LOC_NUM, OBJ_WORD1, (BYTE2-1)*BYTE_LENGTH + 1,
+     &      BYTE_LENGTH)
+          CALL SBYT(L1ETAC, OBJ_WORD1, (BYTE3-1)*BYTE_LENGTH + 1,
+     &      BYTE_LENGTH)
+          CALL SBYT(L1PHIC, OBJ_WORD1, (BYTE4-1)*BYTE_LENGTH + 1,
+     &      BYTE_LENGTH)
+C
+          OBJECT = 1                      ! DUMMIED FOR
+          REAL_OR_MP = 0                  ! NOW
+          OBJ_INRG = INT(EM_CLUSTER_ET*4)
+          CALL SBYT(OBJECT, OBJ_WORD2, (BYTE1-1)*BYTE_LENGTH + 1,
+     &      BYTE_LENGTH)
+          CALL SBYT(REAL_OR_MP, OBJ_WORD2, (BYTE2-1)*BYTE_LENGTH + 1,
+     &      BYTE_LENGTH)
+          CALL SBYT(OBJ_INRG, OBJ_WORD2,
+     &      (BYTE3-1)*BYTE_LENGTH + 1, 2*BYTE_LENGTH)
+C
+          OBJ_TOT_INRG = INT(TOT_CLUSTER_ET*4)
+          CALL SBYT(OBJ_TOT_INRG, OBJ_WORD3,
+     &      (BYTE1-1)*BYTE_LENGTH + 1, 2*BYTE_LENGTH)
+          CALL SBYT(TWOBYONE_ETA, OBJ_WORD3,
+     &      (BYTE3-1)*BYTE_LENGTH + 1, BYTE_LENGTH)
+          CALL SBYT(TWOBYONE_PHI, OBJ_WORD3,
+     &      (BYTE4-1)*BYTE_LENGTH + 1, BYTE_LENGTH)
+C
+        ENDIF
+C
+      ENDIF
+C
+  999 RETURN
+      END

@@ -1,0 +1,394 @@
+
+Thats_Me_Readout_Req      IDNT                  ; Title of Thats_Me Readout_Req
+                                                ;   program section.
+
+      SECTION   Sect_Thats_Me_Readout_Req,4,C   ; Declare a noncommon code
+                                                ; section.  Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Thats_Me Readout_Req  Routine                      Rev.  11-MAY-1994  *
+*                                                                         *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:   D4.               *
+*                                                                         *
+*   This routine receives the following information in the following      *
+*   registers:                                                            *
+*                                                                         *
+*     D5  holds the Term Answers that we received from the Global DSP.    *
+*     D6  holds the Mark and Force Pass Mask for the Crate Header in D.B. *
+*     D7  Holds the TAS Number for the Crate Header in the L15CT Data Blk.*
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            WrIO:  Write bit(s) to the IRONICS I/O card                  *
+*                                                                         *
+***************************************************************************
+
+WrIO    MACRO                         ; Write byte to Ironics I/O Port.
+        Not.B   \1                    ; Complement data byte \1.
+        Move.B  \1,\2                 ; Move to Ironics port at adrs \2.
+        Not.B   \1                    ; Complement data byte \1 to restore it.
+        ENDM
+
+
+*************************************************************************
+*                                                                       *
+*  We arrive here if there has been a  "Thats_Me"  event and we NEED    *
+*  to read it out.                                              ----    *
+*                                                                       *
+*  We arrive here with:                                                 *
+*                                                                       *
+*     The TAS Number stored in register D7 in the Sync Word format      *
+*     that is needed for the Crate Header section of the                *
+*     L15CT Data Block.                                                 *
+*                                                                       *
+*     Register D6 holds the  Mark and Force Pass Mask word for the      *
+*     Crate Header.                                                     *
+*                                                                       *
+*     Register D5, in its LSByte,  holds the Term Answers that we       *
+*     received from the Global DSP .  This is needed for the Frame      *
+*     Code section of the L15CT Data Block.                             *
+*                                                                       *
+*                                                                       *
+*  The first step is:                                                   *
+*                                                                       *
+*  1. Clear both the Readout Control and then the Path Select P2        *
+*     Paddle Cards by pulsing the proper Ironics lines high.  This      *
+*     also clears the EC Front-End Busy that is generated on the        *
+*     Path Select P2 Card.  It is OK to clear these now because we      *
+*     have captured all of the information that we need to complete     *
+*     the "Thats_Me" event readout.                                     *
+*                                                                       *
+*  First clear the  Readout Control  paddle card and then clear the     *
+*  Path Select  paddle card.                                            *
+*                                                                       *
+*************************************************************************
+
+Begin_Thats_Me_Readout_Req:
+
+      INCLUDE   Ser68_Clear_RC_and_PS_1.Include    ; Get the include file that
+                                                   ; clears the RC and PS P2's.
+
+*************************************************************************
+*                                                                       *
+*  The next step is:                                                    *
+*                                                                       *
+*  2. Check the software flag to see if we have a Fresh 214 Load        *
+*     Buffer. If we do not have a Fresh 214 Load Buffer then start      *
+*     the necessary RC servicing and wait here until we have a Fresh    *
+*     214 Load Buffer.                                                  *
+*                                                                       *
+*  Note the sequence of steps that are taken if  Fresh_Load_Buf_Availb  *
+*  is not set.  The only way to get a  Fresh Load Buffer  is to swap    *
+*  214 Buffers.  Before you can swap 214 Buffers you need both          *
+*  VBD_Is_Ready  and  All_Data_In_Load_Buf  to be asserted.  The only   *
+*  way to get  VBD_Is_Ready  asserted is to run the  Conclude VBD Cycle *
+*  routine and, if the last event was a  That's Me  event, then the     *
+*  only way to get  All_Data_In_Load_Buf  asserted is to run the        *
+*  All_DSPs_to_Step_D0  routine.                                        *
+*************************************************************************
+
+                                                 ; If Fresh_Load_Buf_Availb flag
+                                                 ; is NOT set, then work here
+                                                 ; until it is set.
+
+TFLBA   IF.B   Fresh_Load_Buf_Availb <EQ> #Flag_CLR   THEN.S
+
+            JSR   Begin_Conclude_VBD_Cycle       ; Try to Conclude VBD cycle.
+            JSR   Begin_All_DSPs_to_Step_D0      ; Try to move DSP's to Step D0.
+            JSR   Begin_Swap_Load_Read_Bufs      ; Try to swap Read Load Buf.
+            JMP   TFLBA                          ; Test Fresh_Load_Buf_Availb
+                                                 ; again to see if it is set.
+        ENDI
+
+
+*************************************************************************
+*                                                                       *
+*  Now that we know that we have a Fresh 214 Load Buffer, tell the      *
+*  Global DSP that it needs to start transfering data to the 214        *
+*  Load Buffer.                                                         *
+*                                                                       *
+*  The Global DSP has been waiting at Step D3 until it hears from us    *
+*  whether or not it needs to transfer data into the 214 Load Buffer.   *
+*                                                                       *
+*  The Global DSP knows to wait because, until we set it a NEW VALID    *
+*  "Transfer to 214 Required Word" it is only reading an old cleared    *
+*  previously valid "Transfer to 214 Required Word" which tells it      *
+*  to keep on waiting.                                                  *
+*                                                                       *
+*                                                                       *
+*  Recall the Format of the  "Transfer to 214 Required  Word"           *
+*                                                                       *
+*  D31        D24    D23        D16    D15         D8    D7          D0 *
+*  --------------    --------------    --------------    -------------- *
+*  |  Reserved  |    |  Reserved  |    |  Reserved  |    |214Trans Req| *
+*  --------------    --------------    --------------    -------------- *
+*                                                                       *
+*                                                                       *
+*   The  Transfer to 214 Required  word is the third longword in the    *
+*   "68k_Services to all DSPs information block" on Hydra-II card "B".  *
+*                                                                       *
+*   The 214 Transfer Required  byte has the following format:           *
+*                                                                       *
+*     $FF --> The previous valid 214 Transfer Flag has been cleared.    *
+*     $00 --> Tells the Global DSP not to Transfer to the 214 Load Buf. *
+*     $01 --> Tells the Global DSP to begin a Transfer to the Load Buf. *
+*************************************************************************
+
+       Move.L   #$00000001,Ser68_to_Hydra_B_Adrs+8    ; Set Transfer is Reqired
+                                                      ; on Global DSP card "B".
+
+
+       Move.B   #Flag_SET,Told_GDSP_to_Transfer       ; SET the software flags
+                                                      ; that says we have TOLD
+                                                      ; the GDPS to transfer to
+                                                      ; the MVME214 memory.
+
+
+*************************************************************************
+*                                                                       *
+*  The next step is:                                                    *
+*                                                                       *
+*  5. Clear the software flag that says that we have a Fresh            *
+*     214 Load Buffer.                                                  *
+*                                                                       *
+*************************************************************************
+
+
+        Clr.B    Fresh_Load_Buf_Availb            ; CLEAR  Fresh_Load_Buf_Availb
+
+
+*************************************************************************
+*                                                                       *
+*  The next step is:                                                    *
+*                                                                       *
+*  6. Build the dynamic words of the Crate Header and move them into    *
+*     the 214 Load Buffer.                                              *
+*                                                                       *
+*  Register D7 currently holds the Sync Word.                           *
+*  Register D6 currently holds the Mark and Force Pass Mask Word.       *
+*                                                                       *
+*  For now let's set the following "flags" in the Crate Header          *
+*  Data Validity Word:                                                  *
+*                                                                       *
+*     bits   7:0   all zero --> the rest of this Data Block is valid.   *
+*     bits  15:8   all zero --> the M103 L15 FW made a Decision Cycle.  *
+*     bits  23:16  all zero --> something about terminated early.       *
+*     bits  31:25  all zero --> no processing error were detected.      *
+*                                                                       *
+*************************************************************************
+
+        Clr.L    D4                       ; Build the Data Validity Word.
+
+        Move.L   D7,BAHeaderVSB           ; Load the Crate Header SYNC Word.
+        Move.L   D4,BAHeaderVSB+16        ; Load the Crate Header VALIDITY Word.
+        Move.L   D6,BAHeaderVSB+20        ; Load the Crate Header MFP Mask Word.
+
+
+*************************************************************************
+*                                                                       *
+*  The next step is:                                                    *
+*                                                                       *
+*  7. Build the words of the Frame Code Section and load then into      *
+*     the 214 Load Buffer.                                              *
+*                                                                       *
+*  Register D5 LSByte currently holds the Term Answers that we          *
+*  received from the Global DSP.                                        *
+*                                                                       *
+*                                                                       *
+*  Recall the format of the Frame Code Section of the L15CT Data Blk.   *
+*                                                                       *
+*  1nd Longword       L15 CT Engine Control Starting Status             *
+*  2rd Longword       L15 CT Engine Control Finishing Status            *
+*  3th Longword       L15 CT Readout Control Finishing Status           *
+*                                                                       *
+*  4th Longword       List of L1 Sp Trigger Fired for this Event        *
+*                            (in bits 0:15) (upper 16 bits are zeroes)  *
+*                                                                       *
+*  5th Longword       0:8  Mask of Terms that were Evaluated in this    *
+*                                                         L15 CT Cycle  *
+*                     9:15 Mask of Terms that Passed                    *
+*                    16:23 Mask of Terms for which their Evaluation     *
+*                                                        is Incomplete  *
+*                    24:31 Mask of Terms returned to the L1.5           *
+*                                              Hardware Framework M103  *
+*                                                                       *
+*************************************************************************
+
+******  What follows is just a sketch !!!  ******
+
+        MoveA.L   #BAFrameCodeVSB,A3        ; Get the Base Address of the
+                                            ; Frame Code section into reg A3.
+
+        Move.L    #$00000001,(A3)+          ; Load the EC Starting Status.
+
+        Move.L    #$00000002,(A3)+          ; Load the EC Finishing Status.
+
+        Move.L    #$00000003,(A3)+          ; Load the RC Finishing Status.
+
+
+        Clr.L     D4                        ; Get the Spec Trig's Fired List
+                                            ; 15:8.  Shift it up into reg D4
+        Move.B    Term_Select_Port_1,D4     ; 15:8.  Get the Spec Trig's Fired
+        LSL.L     #8,D4                     ; List 7:0 into reg D4  7:0.
+        Move.B    Term_Select_Port_6,D4     ; Reg D4  31:16 is all zeros.
+                                            ; Load the Spec Trigs Fired word
+        Move.L    D4,(A3)+                  ; into the Frame Code section of
+                                            ; the L15 CT Data Block.
+
+              ;;!!**  NOTE Term_Select_Port_1 & 6   are not yet realy assigned.
+              ;;!!**       This is just a code sketch.
+              ;;!!**       Also note we really need to grap this info in the
+              ;;!!**       Thats_Me_Processing module before EC FE Busy drops.
+
+
+        AndI.L    #$000000FF,D5             ; Select only the Term Answers
+                                            ; that we received from the Glb DSP.
+        LSL.L     #8,D5                     ; Shift this into D5  15:8.
+                                            ; Load the Masks of Terms  word
+        Move.L    D5,(A3)+                  ; into the Frame Code section of
+                                            ; the L15 CT Data Block.
+
+              ;;!!**  NOTE   We needed to save additional information
+              ;;!!**         back in the  Thats_Me_Processing module,
+              ;;!!**         before EC FEBusy was dropped, in order to
+              ;;!!**         finish building all the Masks of Terms.
+
+
+*************************************************************************
+*                                                                       *
+*  The next step is:                                                    *
+*                                                                       *
+*  8. Ok, we know that we are going to readout this event.  We also     *
+*     know via the If_Transfer_Want_MFP_Transfer whether or not the     *
+*     Thats_Me_Processing routine wanted this current event to be an    *
+*     MFP event.  So if  If_Transfer_Want_MFP_Transfer  is set then     *
+*     we need to set  This_Transfer_is_MFP  software flag so that the   *
+*     Swap_Load_Read_Buf  routine will know to setup the long Word      *
+*     Count for the DeBug section of the Data Block.  Then always       *
+*     Clear the If_Transfer_Want_MFP_Transfer flag to get ready for     *
+*     the next event.                                                   *
+*************************************************************************
+
+        Move.B   If_Transfer_Want_MFP_Transfer,This_Transfer_is_MFP
+
+        Clr.L    If_Transfer_Want_MFP_Transfer
+
+
+
+*************************************************************************
+*                                                                       *
+*  The next step is:                                                    *
+*                                                                       *
+*  9. The L15CT Data Block DeBug section always has a Type 0 Entry that *
+*     comes from 68k_Services.  The first longword of this Type 0 Entry *
+*     is event to event static and is put in the 214 Buffers by the     *
+*     Initialize Data Structures routine.  The second (and last)        *
+*     longword of the Type 0 Entry is event to event dynamic and will   *
+*     now be put in the 214 Load Buffer.  The value of this second      *
+*     longword depends on whether or not this transfer has MFP data.    *
+*************************************************************************
+
+
+        IF.B   This_Transfer_is_MFP <EQ> #Flag_SET   THEN.S   ; Test to see if
+                                                              ; this transfer is
+            Move.L  #$FFFFFFFF,BADeBugSectVSB+4               ; for a MFP event.
+                                                              ; Set the Type 0
+        ELSE.S                                                ; Entry second LW
+                                                              ; to $F's for MFP
+            Clr.L  BADeBugSectVSB+4                           ; and clear for
+                                                              ; normal events.
+        ENDI
+
+
+*************************************************************************
+*                                                                       *
+*  10. Test the  This_Transfer_is_MFP software flag.  If it is set      *
+*      then,  send an  "F"  character to the MVME135 console to         *
+*      indicate the conclusion of processing for a  That's_Me MFP       *
+*      Readout event.  If the  This_Transfer_is_MFP software flag is    *
+*      cleared then,  send an  "N"  character to the MVME135 console    *
+*      to indicate the conclusion of processing for a   That's_Me       *
+*      Normal  Readout  event.                                          *
+*************************************************************************
+
+
+        IF.B   This_Transfer_is_MFP <EQ> #Flag_SET   THEN.S
+
+            Move.L   #$00000046,-(A7)       ; Push the character "F" to the
+                                            ; LSByte of a longword on the stack.
+        ELSE.S
+
+            Move.L   #$0000004E,-(A7)       ; Push the character "N" to the
+                                            ; LSByte of a longword on the stack.
+        ENDI
+
+
+        JSR      SendCharP1                ; Call the routine to send it out
+                                           ; to the 68k_Services console.
+
+*************************************************************************
+*                                                                       *
+*  The last step is:                                                    *
+*                                                                       *
+*  11. Jump to the top of the House Keeping Orbit.                      *
+*                                                                       *
+*************************************************************************
+
+
+        JMP      Begin_Orbit_Master
+
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section                                                    *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Thats_Me_Readout_Req              ; Symbol exported to
+                                                     ; other modules.
+
+      XREF   Readout_Ctrl_Port_4                     ; Symbols used in this
+      XREF   Path_Select_Port_3                      ; module but defined in
+      XREF   Term_Select_Port_1                      ; another program module.
+      XREF   Term_Select_Port_6
+
+      XREF   Flag_CLR
+      XREF   Flag_SET
+      XREF   Which_214_Is_Load_Buf
+      XREF   State_of_RC_FE_Busy
+      XREF   Fresh_Load_Buf_Availb
+      XREF   This_Transfer_is_MFP
+      XREF   If_Transfer_Want_MFP_Transfer
+      XREF   Told_GDSP_to_Transfer
+
+      XREF   Begin_Orbit_Master
+      XREF   Begin_Conclude_VBD_Cycle
+      XREF   Begin_All_DSPs_to_Step_D0
+      XREF   Begin_Swap_Load_Read_Bufs
+      XREF   SendCharP1
+
+      XREF   Ser68_to_Hydra_B_Adrs
+      XREF   BAFrameCodeVSB
+      XREF   BAHeaderVSB
+      XREF   BADeBugSectVSB
+
+
+      END
+

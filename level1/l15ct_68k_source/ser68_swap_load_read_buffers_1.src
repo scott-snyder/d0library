@@ -1,0 +1,283 @@
+
+Swap_Load_Read_Bufs   IDNT               ; Title of  Swap Load and Read Buffers
+                                         ;   Program Section.
+
+   SECTION  Sect_Swap_Load_Read_Bufs,4,C    ; Declare a noncommon code section.
+                                            ;   Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Routine to swap the Load and Read MVME214 Buffers.  Rev. 23-JUNE-1994 *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D4                 *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            WrIO:  Write bit(s) to the IRONICS I/O card.                 *
+*                                                                         *
+***************************************************************************
+
+WrIO    MACRO                        ; Write the byte to the Ironics I/O Port.
+        Not.B   \1                   ; Complement data byte \1.
+        Move.B  \1,\2                ; Move it to the Ironics port at adrs \2.
+        Not.B   \1                   ; Complement data byte \1 to restore it.
+        ENDM
+
+
+*************************************************************************
+*                                                                       *
+*   Test to see if we should swap 214 Load and Read Buffers.  Exit if   *
+*   it is NOT ok to swap the buffers.                                   *
+*************************************************************************
+
+Begin_Swap_Load_Read_Bufs:
+
+
+        IF.B   Fresh_Load_Buf_Availb <EQ> #Flag_SET  THEN.S   ; Exit if  Fresh_
+           RTS                                                ; _Load_Buf_Avail
+        ENDI                                                  ; is SET.
+
+
+        IF.B   All_Data_In_Load_Buf <EQ> #Flag_CLR  THEN.S    ; Exit if  All_
+           RTS                                                ; _Data_In_Ld_Buf
+        ENDI                                                  ; is NOT set.
+
+
+        IF.B   VBD_Is_Ready <EQ> #Flag_CLR  THEN.S            ; Exit if
+           RTS                                                ; VBD_Is_Ready
+        ENDI                                                  ; is NOT set.
+
+
+
+*************************************************************************
+*                                                                       *
+*   OK, If we reach here then we have ment all of the pre-conditions    *
+*   that are required before swapping the Load and Read 214 Bufs.       *
+*                                                                       *
+*   Now just before actually swapping the buffers, copy the 16 bit      *
+*   TAS Number from the MSWord of the Crate Header SYNC longword to     *
+*   the Short I/O memory location in the Short-214 module where the     *
+*   VBD will read it as the VBD is DMA block reading the rest of the    *
+*   event.                                                              *
+*************************************************************************
+
+
+        Move.W   BAHeaderVSB,EvtNmbAdr135        ; Copy the TAS Number to
+                                                 ; where the VBD will read it.
+
+
+*************************************************************************
+*                                                                       *
+*   OK, We are now ready to actually swap the Read and Write 214 Bufs.  *
+*                                                                       *
+*                                                                       *
+*   The software flag  Which_214_Is_Load_Buf  indicates which 214 is    *
+*   the current Load buffer.                                            *
+*                                                                       *
+*   Which 214 buffer has its VSB port enabled (Load Buf) and which 214  *
+*   buffer has it VME port enabled (Read Buf) is controlled by Port #4  *
+*   bits 4 and 5 on the Readout Control Ironics.                        *
+*                                                                       *
+*   Recall the layout of Port #4 of the Readout Control Ironics:        *
+*                                                                       *
+*     Port #4  All Bits are Outputs.                                    *
+*                Pulsing Ironics bit 0 high clears the Readout Control  *
+*                  paddle board.                                        *
+*                Setting Ironics bit 1 high or low sets the R.C.        *
+*                  Front-End Busy high or low.                          *
+*                Ironics bit 4 controls the #1 MVME214                  *
+*                  high-->enables VME  low-->enables VSB                *
+*                Ironics bit 5 controls the #2 MVME214                  *
+*                  high-->enables VME  low-->enables VSB                *
+*                Bits 2,3 and 6,7 are not used.                         *
+*                                                                       *
+*   Use the software flags  Which_214_Is_Load_Buf  and                  *
+*   State_of_RC_FE_Busy  to build the proper new value for Readout      *
+*   Control Ironics Port #4.                                            *
+*                                                                       *
+*************************************************************************
+
+
+     IF.B  Which_214_Is_Load_Buf <EQ> #Flag_CLR  THEN.S   ; Flag is NOT set so,
+                                                          ; MVME214  #2 becomes
+                                                          ; the NEW Load Buffer.
+
+           Move.B   #Flag_SET,Which_214_Is_Load_Buf   ; SET the software flag
+                                                      ; to indicate this .
+
+           IF.B  State_of_RC_FE_Busy <EQ> #Flag_CLR  THEN.S   ; Test to see if
+                                                              ; RC FE is Busy ?
+
+                                               ; MVME214 #2 is the new Load Buf.
+               Move.B   #%11011100,D4          ; R.C. Front-End is NOT set Busy.
+               WrIO     D4,Readout_Ctrl_Port_4 ; #1 214 is set to VME i.e. Read.
+                                               ; #2 214 is set to VSB i.e. Load.
+           ELSE.S
+                                               ; MVME214 #2 is the new Load Buf.
+               Move.B   #%11011110,D4          ; R.C. Front-End IS set Busy.
+               WrIO     D4,Readout_Ctrl_Port_4 ; #1 214 is set to VME i.e. Read.
+                                               ; #2 214 is set to VSB i.e. Load.
+           ENDI
+
+     ELSE.S                                           ; Flag IS set so,
+                                                      ; MVME214  #1 becomes
+                                                      ; the NEW Load Buffer.
+
+           Clr.B   Which_214_Is_Load_Buf              ; CLEAR the software flag
+                                                      ; to indicate this .
+
+           IF.B  State_of_RC_FE_Busy <EQ> #Flag_CLR  THEN.S   ; Test to see if
+                                                              ; RC FE is Busy ?
+
+                                               ; MVME214 #1 is the new Load Buf.
+               Move.B   #%11101100,D4          ; R.C. Front-End is NOT set Busy.
+               WrIO     D4,Readout_Ctrl_Port_4 ; #1 214 is set to VSB i.e. Load.
+                                               ; #2 214 is set to VME i.e. Read.
+           ELSE.S
+                                               ; MVME214 #1 is the new Load Buf.
+               Move.B   #%11101110,D4          ; R.C. Front-End IS set Busy.
+               WrIO     D4,Readout_Ctrl_Port_4 ; #1 214 is set to VSB i.e. Load.
+                                               ; #2 214 is set to VME i.e. Read.
+           ENDI
+
+     ENDI
+
+
+*************************************************************************
+*                                                                       *
+*   OK, the Load and Read Buffers have been swapped.                    *
+*                                                                       *
+*   Set the software flag that indicates that a Fresh 214 Load Buffer   *
+*   is available.                                                       *
+*                                                                       *
+*************************************************************************
+
+        Move.B   #Flag_SET,Fresh_Load_Buf_Availb    ; SET the  Fresh_Load_Buf_
+                                                    ; _Availb software flag.
+
+*************************************************************************
+*                                                                       *
+*   Now check to see if the Word Count for the DeBug section of the     *
+*   L15CT Data Block needs to be changed.                               *
+*                                                                       *
+*   If the previous 214 transfer was a normal event and this is an MFP  *
+*   event then the Word Count for the DeBug section needs to be set     *
+*   to its long value before the VBD is started.                        *
+*                                                                       *
+*   If the previous 214 transfer was an MFP event and this is a normal  *
+*   event then the Word Count for the DeBug section needs to be set     *
+*   to its short value before the VBD is started.                       *
+*                                                                       *
+*   If the previous 214 transfer was a normal event and this is a       *
+*   normal event then do not change the DeBug section Word Count.       *
+*                                                                       *
+*   If the previous 214 transfer was an MFP event and this is an        *
+*   MFP event then do not change the DeBug section Word Count.          *
+*                                                                       *
+*************************************************************************
+
+                                                                 ; Previous evnt
+        IF.B  Previous_Transfer_was_MFP <EQ> #Flag_CLR  THEN.S   ; was normal
+            IF.B   This_Transfer_is_MFP <EQ> #Flag_SET  THEN.S   ; AND  this
+                                                                 ; event is MFP.
+
+                Move.W    #WCDeBugLong,WCStore7_135         ; Load the LONG
+                                                            ; DeBug Word Count.
+            ENDI
+        ENDI
+
+
+                                                                 ; Previous evnt
+        IF.B  Previous_Transfer_was_MFP <EQ> #Flag_SET  THEN.S   ; was MFP
+            IF.B   This_Transfer_is_MFP <EQ> #Flag_CLR  THEN.S   ; AND  this
+                                                                 ; event is Norm
+
+                Move.W    #WCDeBugShort,WCStore7_135        ; Load the SHORT
+                                                            ; DeBug Word Count.
+            ENDI
+        ENDI
+
+
+*************************************************************************
+*                                                                       *
+*  Send the SRDY signal to the VBD and then update more software flags  *
+*  and return to the calling routine.                                   *
+*                                                                       *
+*  The SRDY hardware signal is controlled by bit 0 on Port #2 of the    *
+*  Readout Control P2 Ironics.  Recall that SRDY is voltage low active. *
+*                                                                       *
+*  SET the flag that indicates that  SRDY  has been sent.               *
+*                                                                       *
+*  CLEAR the flag that indicates that the VBD is ready.                 *
+*                                                                       *
+*  UPDATE the Previous_Trans_was_MFP flag it equal This_Trans_MFP flag. *
+*                                                                       *
+*  CLEAR the  This_Transfer_is_MFP  flag.                               *
+*                                                                       *
+*  CLEAR the  All_Data_In_Load_Buf  flag.                               *
+*                                                                       *
+*  Return                                                               *
+*************************************************************************
+
+
+        Move.B   #%11111110,D4               ; Set the voltage low asserted
+        WrIO     D4,Readout_Ctrl_Port_2      ; SRDY hardware signal to the VBD.
+
+        Move.B   #Flag_SET,SRDY_Has_Been_Sent   ; SET  SRDY_Has_Been_Sent  flag.
+
+        Clr.B    VBD_Is_Ready                ; CLEAR  VBD_Is_Ready  flag.
+
+                                                                 ; Update the
+        Move.B   This_Transfer_is_MFP,Previous_Transfer_was_MFP  ; Prev_Trans
+                                                                 ; flag.
+
+        Clr.B    This_Transfer_is_MFP        ; CLEAR  This_Transfer_is_MFP flag.
+
+        Clr.B    All_Data_In_Load_Buf        ; CLEAR  All_Data_In_Load_Buf.
+
+        RTS                                  ; Return to the calling routine.
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section                                                    ;
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Swap_Load_Read_Bufs               ; Symbol exported to
+                                                     ; other modules.
+
+      XREF    Readout_Ctrl_Port_2                    ; Symbols used in this
+      XREF    Readout_Ctrl_Port_4                    ; module but defined in
+                                                     ; another program module.
+      XREF    Flag_CLR
+      XREF    Flag_SET
+      XREF    Fresh_Load_Buf_Availb
+      XREF    All_Data_In_Load_Buf
+      XREF    VBD_Is_Ready
+      XREF    SRDY_Has_Been_Sent
+      XREF    This_Transfer_is_MFP,Previous_Transfer_was_MFP
+      XREF    Which_214_Is_Load_Buf,State_of_RC_FE_Busy
+
+      XREF    WCDeBugShort,WCDeBugLong,WCStore7_135
+
+      XREF    BAHeaderVSB,EvtNmbAdr135
+
+
+      END
+

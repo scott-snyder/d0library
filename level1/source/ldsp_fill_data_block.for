@@ -1,0 +1,80 @@
+      SUBROUTINE LDSP_FILL_DATA_BLOCK(DSP,NUMCANDS,OBJ_WORD1,
+     &                                OBJ_WORD2,OBJ_WORD3)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :  FILL L15CAL_LOCAL_DSP_DATA_BLOCK
+C-
+C-   Inputs  :  DSP        - INTEGER DSP number
+C-              NUMCANDS   - INTEGER number of candidates
+C-              OBJ_WORD1  - INTEGER array of tool dependent info
+C-              OBJ_WORD2  -                "
+C-              OBJ_WORD3  -                "
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  23-NOV-1993   sFahey
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$PARAMS:BYTE_ORDER.PARAMS'
+      INCLUDE 'D0$PARAMS:LEVEL1_LOOKUP.PARAMS'
+      INCLUDE 'D0$PARAMS:L15COOR_PARSER.PARAMS'
+      INCLUDE 'D0$INC:L15C_REFSET_THRESHOLDS.INC'
+      INCLUDE 'D0$INC:L15C_TOOL_INIT.INC'
+      INCLUDE 'D0$PARAMS:L15_FRAMEWORK.PARAMS'
+      INCLUDE 'D0$PARAMS:L15_LOCAL_DSP.PARAMS'
+      INCLUDE 'D0$PARAMS:L15CALDBB_DATA_BLOCK.PARAMS'
+      INCLUDE 'D0$INC:L15CALDBB_DATA_BLOCK.INC'
+C
+      INTEGER FF
+      PARAMETER (FF = 255)
+      INTEGER BYTE_LENGTH
+      PARAMETER (BYTE_LENGTH = 8)
+      INTEGER WRDS_PER_ENTRY,HEADWRD
+      PARAMETER (WRDS_PER_ENTRY = 3, HEADWRD = 1)
+C
+      INTEGER DSP
+C
+      INTEGER INDEX,STATUS,NUMCANDS
+      INTEGER ENTRY,NENTRIES
+      INTEGER OBJ_WORD1(MAX_PER_DSP),OBJ_WORD2(MAX_PER_DSP)
+      INTEGER OBJ_WORD3(MAX_PER_DSP)
+      INTEGER HEADWORD
+C----------------------------------------------------------------------
+C
+C
+      INDEX = (DSP-1)*(MAX_PER_DSP*WRDS_PER_ENTRY+HEADWRD) + 2
+      CALL SBYT(LDSP_ID(DSP), HEADWORD, (BYTE1-1)*BYTE_LENGTH + 1,
+     &    BYTE_LENGTH)
+C
+      IF (NUMCANDS .GT. MAX_PER_DSP) THEN
+        STATUS = FF
+        NENTRIES = MAX_PER_DSP
+      ELSE
+        STATUS = NUMCANDS
+        NENTRIES = NUMCANDS
+      ENDIF
+C
+      CALL SBYT(STATUS, HEADWORD, (BYTE2-1)*BYTE_LENGTH + 1,
+     &    BYTE_LENGTH)
+      CALL SBYT(MAX_PER_DSP, HEADWORD, (BYTE3-1)*BYTE_LENGTH + 1,
+     &    BYTE_LENGTH)
+      CALL SBYT(WRDS_PER_ENTRY, HEADWORD, (BYTE4-1)*BYTE_LENGTH + 1,
+     &    BYTE_LENGTH)
+C
+      L15CAL_LOCAL_DSP_BLOCK(INDEX) = HEADWORD
+      INDEX = INDEX + 1
+      DO ENTRY = 1,NENTRIES
+C
+        L15CAL_LOCAL_DSP_BLOCK(INDEX) = OBJ_WORD1(ENTRY)
+        INDEX = INDEX + 1
+        L15CAL_LOCAL_DSP_BLOCK(INDEX) = OBJ_WORD2(ENTRY)
+        INDEX = INDEX + 1
+        L15CAL_LOCAL_DSP_BLOCK(INDEX) = OBJ_WORD3(ENTRY)
+        INDEX = INDEX + 1
+C
+      ENDDO
+C
+  999 RETURN
+      END

@@ -1,0 +1,231 @@
+ 11-DEC-1992 : Modifications released by James T. Linnemann
+ 
+    - fix formatting of l2_em_dt.rcp
+
+==============================================================================
+
+ 28-JAN-1993 : Modifications released by James T. Linnemann
+ 
+    - Substantial modifications to level2 release procedures:
+        build_l2prod_exe.com now makes ELN .exes, .stps
+        renaming: build_objs -> build_vms_objs
+                  build_vms_exe -> build_standard_files
+        new procedure: temp_dir to handle temp dir for these
+        new argument NOSETUP to supress @l2lib_setup altogether
+        handling of logicals for STP building mostly by PBD 
+    - wait for .zdat in generate_coor_sim_info
+    - make l2rcp_setup.com default to data processing, not MC
+    - l2_etacut modified to use physics eta for electrons   (A. Brandt)
+    - new tool l2_confirm_l15 (see .doc in d0$level2$docs) (Eric James)
+    - L2_TAU tool (A. Boehnlein) gets new parameter names (see .doc)
+    - provisional release of l2_andor_check (A. Boehnlein)  (see .doc)
+        this tool will not be built into the standard .exe's or l2tool.dat,
+        because it is CRITICAL that its RCP file 
+            L1_ANDOR_RESOURCE.RCP
+        be synchronized with the real modifications of the online resource
+        file; until it is actually demonstrated that the tool is needed, it
+        won't be fully released.
+
+    The new l2lib_setup and setup_l2sim ask slightly different questions than
+    before and copy many fewer files to your area.
+
+    We prefer that you run the standard .EXEs.  If you need to relink on your
+    own, you must re-run SETUP_L2SIM EACH you rebuild your package.  Under no
+    circumstances should you alter or remake the VMS_FILTER_D0USER .OBJs, as
+    they contain all local modifications to the base release .OLBs.
+    
+    There are some problems with the standard package:  it contains ALL the
+    packages which might be of use to you, and some of them are not sufficiently
+    protected to keep them from running when the shouldn't.  However you can
+    turn off irrelevant ones from menu item 15, SWITCHES.  In particular,
+    CADMAKE and RECDDN have been observed to try to do something to some data
+    events, when they shouldn't run at all...
+    
+
+    New level 1 simulation for calorimeter
+        default l1sim.rcp in d0$level2$l2sim contains saturation, and noise ON
+    for MC, noise OFF for DATA.
+    Default level 1 .RS configuration files are also set up for configurations.
+    If you use your own setup, you may need to change l1sim_rcp.  
+    However, the saturation is ignored if you are running from data TRGR banks.
+
+    if you want simulation restricted to present calorimeter coverage (16
+    trigger towers = eta to 3.2), copy d0$level1:mc_l1sim.rcp to your area,
+    modify the logical to your area in your copy of vms_filter_d0user (copy from
+    d0$level2$l2sim) and modify the lookup file to
+        d0$level1$data:L1SIM_COVERAGE_THRU_ETA_16.LSO
+
+	The level 2.0 muon filter normally uses the level 1 bits in  its guided
+    seach. Currently the muon level 1 simulator does not pack the TRGR bank
+    properly. Therefore, a patch in 2 level 1 routines is needed to provide
+    these bits through an ENTRY point.
+
+        affects MU_SUPERVISOR and MU_TRIG_CRATE 
+
+        We ran essentially two versions of code from Aug. 25th 1922 to early
+    January, 1993. The essential differences are: Aug 25 to about Sept 25 
+        -First use of hit converting based on L1 trigger Sept 25 to now (early
+            January) 
+        -New version of muon_util includes cosmic-ray rejection and first
+            use of good constants.
+
+        During late October, Kamel unplugged the cctlatch input for the
+    samus-wamus overlap triggers. This apparently was necessary in order to
+    convert to 7 L1 trigger sectors. This had the effect in L2 that I stopped
+    converting raw hits for samus-wamus overlap triggers into hits for tracking.
+    We have set up a version of the simulator which mimics the online from late
+    October to now (we erase the sam-wam information) but I suspect that the
+    MU_SUPERVISOR routine doesn't mimic the online for the period before Kamel
+    unplugged the sam-wam cctlatch inputs.
+
+        With the next release of muon_l2 code (which include samus_l2 and
+    padfits) the samus-wamus overlap tracking is enabled (hardware too).  This
+    version will be called in production version 3.0 or something higher.
+
+
+==============================================================================
+
+ 30-JAN-1993 : Modifications released by James T. Linnemann
+ 
+    - L2_L0_VERTEX updated by J. Bantly
+ 
+     Because of the change in the L0 multiple interaction bit cuts,
+you will want to use this adjusted version of l2_l0_vertex.for.  Otherwise,
+the MI Flag value returned will not best represent an event's situation.
+  
+
+==============================================================================
+
+  9-FEB-1993 : Modifications released by Daniel R. Claes
+ 
+    - Bug fix in the check against L2_CD_MATCH's memory of previous
+      TRACK_MATCHes in current event (this was a potential problem
+      ONLY when multiple filters of different road size were hung
+      under the same trigger)
+
+
+==============================================================================
+
+ 23-JUN-1993 : Modifications released by Daniel R. Claes
+ 
+    - Merging of all new code from L2PROD/ALPHA/BETA [LEVEL2.COMMAND_PROC]
+
+      BUILD_STANDARD_FILES.COM - Rewrites the generated VMS_FILTER_D0USER.COM
+                                 to point correctly to where standard EXE is
+                                 copied to, and then saves it under L2SIM.
+
+      BUILD_VMS_EXE.COM - Generalized to operate under L2PROD/Official area/
+                          ALPHA/BETA by hand or under release.  Drops NEW
+                          option.
+
+      CHANGE_VERSION.COM - Update MU$CONST to version 3_3
+      L2LIB_SETUP.COM -    Defines symbol LOCAL_PASS
+      L2RCP_SETUP.COM -    Replace FILTER_DEFAULT location of STANDARD with 
+                           L2SIM.  Update MU$CONST to version 3_3.
+      L2RCP_STANDARD.COM - Add FTRAKS and VERTEX _RCPs.
+
+      L2_VMS.LNK - now calls LOCAL_PASS.COM which performs the HSTRFL
+                   building and all COPY/CONCATENATEs.  New options to
+                   accomodate building_to/linking_with L1SIM without
+                   L2SIM(VMS_FILTER).
+
+      LOCAL_PASS.COM -  Run under SETUP_L2SIM (through L2_VMS).  Also a
+                        standalone procedures to be run by users working on
+                        development of code already pass released.  Allows
+                        local copies to supercede modules in PASS_RELEASE.OBJ
+                        by compiling concatenating affected local code to the
+                        local copy of VMS_FILTER_D0USER.OBJ.
+
+      SETUP_L2SIM.COM - Allows building_to/linking_with L1SIM but without
+                        L2SIM(VMS_FILTER), accepts %COMBINEDpackages,
+                        plus protection against user-defined DIR,DELETE.
+
+
+==============================================================================
+
+ 23-JUN-1993 : Modifications released by Daniel R. Claes
+ 
+    - Merging of all new code from L2PROD/ALPHA/BETA [LEVEL2.COSMIC]
+
+    - *NOTE* requires release of IZDLEP.LINK which recreates lost link file 
+      needed by Srini's old COSMIC_L2TRK filter.
+
+    - Revived/repaired old filter code for COSMIC_L2TRK:
+
+      BKDLEP.FOR
+      CDC_L2TRK.FOR     CDC_L2TRK_INIT.FOR   CDC_L2TRK_PARAMETERS.FOR
+      COSMIC_L2CDC.FOR  DCRUNP.FOR           DFSTRK.FOR       DGTTMS.FOR
+      DL2GT_ETA.FOR     DL2TIM.FOR           DL2_RZTRK.FOR    FLDLEP.FOR
+      GTDLEP.FOR        GZL2DTMD.FOR         GZL2DTMW.FOR     ZFIND.FOR
+
+    - Copying over old L2$SRC code from D0::ONLINE:[FILTERS...] area
+      This code ran under the COSMIC_L2 node during commissioning.
+
+      COSMIC_L2_FDC.FORT             COSMIC_L2_FDC_INIT.FORT
+      COSMIC_L2_FDC_PARAMETERS.FORT  DCRUNP_FDC.FORT         DFSTRK_FDC.FORT
+
+      COSMIC_VTX.FORT    COSMIC_VTX_INIT.FORT  COSMIC_VTX_PARAMETERS.FORT
+
+==============================================================================
+
+ 24-JUN-1993 : Modifications released by Daniel R. Claes
+ 
+    - Merging of all new code from L2PROD/ALPHA/BETA [LEVEL2.DOCS]
+
+      L2_MIN_BIAS.DOC  documents tool's expansion to include slow z 
+                       position and flags
+
+    - Merging of all new code from L2PROD/ALPHA/BETA [LEVEL2.L2HBOOK]
+
+      L2_HBERR.FOR     L2_HBOOK1.FOR    L2_HEXIST.FOR     L2_HFILL.FOR
+      L2_HI.FOR        L2_HIDOPT.FOR    L2_HIX.FOR        L2_HLIMIT.FOR
+      L2_HNOENT.FOR    L2_HPAK.FOR      L2_HRESET.FOR     L2_HSTATI.FOR
+      L2_HUNPAK.FOR    L2_HXI.FOR
+
+      These L2_-specifically named copies of L2HBOOK code allow linking
+      to VMS_FILTER with all of its existing (and incompatible) calls to
+      PACKLIB's HBOOK routines.
+
+
+
+==============================================================================
+
+ 25-JUN-1993 : Modifications released by Daniel R. Claes
+ 
+    - MC series S data requires use of STP with muon SRV geometry constants.
+      New COMMAND_PROC files to accomodate this case:
+
+      CHANGE_VERSION.COM - now points to D0$STP:MUO_STPFILE_SRV_2.DAT for
+                           MC versions with p2 = SRV
+
+      SETUP_L2SIM.COM -    selects MUVER = NEW for MC series R,
+                           but     MUVER = SRV for MC series S.
+
+      BUILD_STPS.COM  -    additionally creates VMS_FILTER_4_SRV_MU.STP
+
+==============================================================================
+
+ 25-JUN-1993 : Modifications released by Daniel R. Claes
+ 
+    - Merging of all new code from L2PROD/ALPHA/BETA [LEVEL2.L2SIM]
+
+      D0_FILTER_STP.OPT - include d0$vms_filter's EOPEN,ECLOSE
+
+      [MC_]L1SIM.RCP    - lists COPIED_ANDOR_TERMS needed for L2_L0 tool.
+
+      L2TOOL.DAT - Includes new (10th) parameter for L2SETUP: BANKS_TO_DROP
+                   and revives the CDC_L2TRK cosmic tool being run ONLINE
+
+      [MC_]L2TRAK.RCP - introduces PHITOL, sets new FDC_EDGE, and has been
+                        expanded to include arrays needed by L2_VERTEX_CDC
+
+      PASS_RELEASE.FOR - Dummy released to allow use of PROD procedures
+                         during library (and ALPHA/BETA/GAMMA) releases.
+
+      VERTEX.RCP - From [LEVEL2.L2VERT] testing subdirectory. L2 version
+                   for L2_VERTEX_CDC tool.
+
+      VMS_FILTER_INIT.FOR       
+      VMS_FILTER_PARAMETERS.FOR - Regenerated frame code from new L2TOOL.DAT
+      VMS_FILTER_STP.FOR
+

@@ -1,0 +1,166 @@
+
+Init_Memory   IDNT                     ; Title of Initialize Memory Section.
+
+   SECTION   Sect_Init_Memory,4,C        ; Declare a noncommon code
+                                         ; section. Align to Longwords.
+
+***************************************************************************
+*                                                                         *
+*   Initialize all of the MVME214 Memory Modules.      Rev.  22-ARP-1994  *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*   First initialize all locations in all three MVME214 Memory Modules    *
+*   to be all zeros.                                                      *
+*                                                                         *
+*   This routine does not build any data structures in any of the         *
+*   memory modules.                                                       *
+*                                                                         *
+*                                                                         *
+*                                                                         *
+*   This routine uses and does not restore Registers:  D4 and A3.         *
+*                                                                         *
+***************************************************************************
+
+
+***************************************************************************
+*                                                                         *
+*       This section defines program-specific macros:                     *
+*                                                                         *
+*            WrIO:  Write bit(s) to the IRONICS I/O card                  *
+*                                                                         *
+***************************************************************************
+
+WrIO    MACRO                         ; Write byte to Ironics I/O Port.
+        Not.B   \1                    ; Complement data byte \1.
+        Move.B  \1,\2                 ; Move to Ironics port at adrs \2.
+        Not.B   \1                    ; Complement data byte \1 to restore it.
+        ENDM
+
+
+*************************************************************************
+*                                                                       *
+*  Initialize MVME214 Memory Module #1 to all zeros.                    *
+*  214 Module #1 is currently connected to the VSB bus.                 *
+*                                                                       *
+*************************************************************************
+
+Begin_Init_Memory:
+
+        MoveA.L   #MVME214BaseVSB,A3       ; MVME214BaseVSB is the Base Address
+                                           ; of the MVME214 Load Buffer as
+                                           ; seen from its VSB port.
+
+        FOR.L   D4 = #MVME214BaseVSB  TO  #MVME214BaseVSB+$7FFC  BY #4  DO.S
+           CLR.L   (A3)+
+        ENDF                               ; Clear MVME-214 Memory Module
+                                           ; number 1 which is the currently
+                                           ; the 214 Load Buffer.
+
+
+*************************************************************************
+*                                                                       *
+*  Now swap Load and Read 214 Buffers so that the #2 MVME214 memory     *
+*  module may be initialized to all zeros.                              *
+*  When this is finished swap back the buffers so that the #1 MVME214   *
+*  is the Load Buffer (i.e. is connected to the VSB).                   *
+*                                                                       *
+*  Recall the layout of Port #4 of the Readout Control P2 Ironics       *
+*  card.  This is what control swapping of the Load and Read 214 Buf's. *
+*                                                                       *
+*  Readout Control Ironics Port #4  All Bits are Outputs.               *
+*                Pulsing Ironics bit 0 high clears the Readout Control  *
+*                  paddle board.                                        *
+*                Setting Ironics bit 1 high or low sets the R.C.        *
+*                  Front-End Busy high or low.                          *
+*                Ironics bit 4 controls the #1 MVME214                  *
+*                  high-->enables VME  low-->enables VSB                *
+*                Ironics bit 5 controls the #2 MVME214                  *
+*                  high-->enables VME  low-->enables VSB                *
+*                Bits 2,3 and 6,7 are not used.                         *
+*                                                                       *
+*************************************************************************
+
+        Move.B   #%11011100,D4               ; R.C. Front-End is not set Busy.
+        WrIO     D4,Readout_Ctrl_Port_4      ; #1 214 is set to VME i.e. Read.
+                                             ; #2 214 is set to VSB i.e. Load.
+
+
+        MoveA.L   #MVME214BaseVSB,A3       ; MVME214BaseVSB is the Base Address
+                                           ; of the MVME214 Load Buffer as
+                                           ; seen from its VSB port.
+
+        FOR.L   D4 = #MVME214BaseVSB  TO  #MVME214BaseVSB+$7FFC  BY #4  DO.S
+           CLR.L   (A3)+
+        ENDF                               ; Clear MVME-214 Memory Module
+                                           ; number 1 which is the currently
+                                           ; the 214 Load Buffer.
+
+
+        Move.B   #%11101100,D4               ; R.C. Front-End is not set Busy.
+        WrIO     D4,Readout_Ctrl_Port_4      ; #1 214 is set to VSB i.e. Load.
+                                             ; #2 214 is set to VME i.e. Read.
+
+
+***************************************************************************
+*                                                                         *
+*   Initialize the Short I/O memory to all zeros.  This is the Short-214. *
+*                                                                         *
+***************************************************************************
+
+        MoveA.L   #IOMemBase135,A3        ; IOMemBase135 is the MVME135-1
+                                          ; version of the Base Address
+                                          ; of the Short IO memory module
+                                          ; (i.e. As seen from the MVME135-1
+                                          ; through the Vertical Interconnect).
+
+
+        FOR.L  D4 = #IOMemBase135  TO  #IOMemBase135+$07FE  BY #2   DO.S
+           CLR.W   (A3)+
+        ENDF                              ; Clear the SHORT-214 Memory Module.
+
+
+*************************************************************************
+*                                                                       *
+*  Send the Memory Initialization Complete Message to the console.      *
+*                                                                       *
+*************************************************************************
+
+        PEA.L    MemoryInitCmpt1           ; Push message address on stack.
+        JSR      ChrStrgOut                ; and send it out.
+
+        RTS                                ; Return to the calling routine.
+
+
+*************************************************************************
+*  Define Constants:                                                    *
+*                                                                       *
+*  Data used to send messages to the L15CT console screen.              *
+*                                                                       *
+*************************************************************************
+
+                   ALIGN   4                ; Align to longword address.
+
+MemoryInitCmpt1    DC.B    40,'  Finished 214 Memory initialization.   '
+
+
+*************************************************************************
+*                                                                       *
+*  Constants Section for Initialize Memory program section.             *
+*                                                                       *
+*************************************************************************
+
+      XDEF   Begin_Init_Memory                       ; Symbol exported to
+                                                     ; other modules.
+
+      ; Symbols used in this module but defined in another program module.
+
+      XREF    Readout_Ctrl_Port_4
+      XREF    MVME214BaseVSB
+      XREF    ChrStrgOut
+      XREF    IOMemBase135
+
+      END
+

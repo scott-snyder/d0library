@@ -1,0 +1,1082 @@
+******************************************************************************
+*                                                                            *
+*  File:  L_Scan.A40                                   Rev.     13-MAY-1994  *
+*                                                                            *
+*  "Meaningful" Register Usage                                               *
+*  ---------------------------                                               *
+*  R0  : TT EM Et Data for n+2, n+4          Variable, Global       Output   *
+*  R1  : TT EM Et Data for n+3, n+5          Variable, Global       Output   *
+*  R2  : Valid Object Counter                Variable, Global       Input    *
+*  R6  : Mask of  Full TT Data Blocks        Variable, Global       I/O      *
+*  R7  : DSP Wakeup Word read from 68K       Variable, Local                 *
+*  R8  : EC Status Word to 68K               Variable, Local                 *
+*  AR0 : Pointer for Rack #1 EM Et TT Data   Variable, Global       Output   *
+*  AR1 : Pointer for Rack #2 EM Et TT Data   Variable, Global       Output   *
+*  AR2 : Pointer for Reference Set Data      Variable, Global       Output   *
+*  AR3 : Pointer for Object List             Variable, Global       Output   *
+*  AR5 : Pointer to This LDSP-to-68K Status  Constant, Local                 *
+*  BK  : Length of a TT Data Block           Constant, Global       Output   *
+*  IR0 :                                                                     *
+*  RC  : Repeat Counter                      Variable, Local                 *
+*  RS  : Repeat Block Starting Address       Constant, Local                 *
+*  RE  : Repeat Block Ending Address         Constant, Local                 *
+*                                                                            *
+*  "Destroyable" Register Usage                                              *
+*  ----------------------------                                              *
+*  AR7,R11                                                                   *
+*                                                                            *
+*  Description of Module                                                     *
+*  =====================                                                     *
+*                                                                            *
+*  This is the program module for the "Trigger Tower Scan" for the Local     *
+*  DSP Program.  This module looks for Trigger Towers with EM Et that is     *
+*  over threshold.                                                           *
+*                                                                            *
+*  This module performs the following functions:                             *
+*                                                                            *
+*   (1) Set/reset all pointers, etc.  This either cleans up from the last    *
+*       time the loop was executed or initializes the loop for the first     *
+*       cycle                                                                *
+*                                                                            *
+*   (2) Set status to the 68K (EC) which indicates that this Local DSP has   *
+*       cleaned up and is waiting for all 12 DSPs to be synchronized.  The   *
+*       68K (EC) will indicate that synchronization has occured by making    *
+*       the Wake Up Word invalid.                                            *
+*                                                                            *
+*   (3) Look for a valid Wake Up Word.  When a valid Wake Up Word is found,  *
+*       set status to the 68K (EC) which indicates that this Local DSP has   *
+*       found a valid Wake Up Word                                           *
+*                                                                            *
+*   (4) If the Wake Up Word indicates that this L1.5 Cal Trig Cycle is a     *
+*       Mark and Force Pass, then CALL the Setup Mark and Force Pass         *
+*       routine.  This adds the Mark and Force Pass Data to the Local-to     *
+*       Global Transfer DMA List(s)                                          *
+*                                                                            *
+*   (5) Wait for all ERPB data to arrive.  When all ERPB data arrives, set   *
+*       status to the 68K (EC) which indicates that all ERPB data for this   *
+*       Local DSP has arrived                                                *
+*                                                                            *
+*   (6) Scan through the trigger towers that this Local DSP Node is          *
+*       responsible for (i.e. etas n+2, n+3, n+4, n+5) and look for          *
+*       Trigger Towers with EM Et above the Reference Set (note that only    *
+*       one Reference Set, an EM Et Ref Set, is used in this version of      *
+*       the code).  A Trigger Tower with EM Et above reference is called     *
+*       a Seed.  Recall that "above reference" really means "equal to or     *
+*       greater than EM Ref Set Et".                                         *
+*                                                                            *
+*           The order in which Trigger Towers are scanned is                 *
+*                                                                            *
+*           FOR phi = 1..32                                                  *
+*               FOR eta = n+2 to n+5                                         *
+*                   {Compare to Reference and branch to Tool if necessary}   *
+*               END FOR                                                      *
+*           END FOR                                                          *
+*                                                                            *
+*       When we find a Seed, then we branch to the L15CT Tool code that is   *
+*       used to evaluate the L15CT Term that is under consideration.  This   *
+*       tool code is executed BEFORE finishing the scan looking for all of   *
+*       the TT's above reference.  If the Seed passes the Tool Code, the     *
+*       Tool Code places the appropriate entry in the Local List of          *
+*       Identified Objects (THIS routine does not make the entry, it is      *
+*       done in Tool Code)                                                   *
+*                                                                            *
+*   (7) Add the appropriate Header to the Local List of Identified Objects   *
+*                                                                            *
+*   (8) Initiate the Local to Global Transfer.  Set status to the 68K which  *
+*       indicates that this Local DSP has started its part of the Local-to-  *
+*       Global Transfer.                                                     *
+*                                                                            *
+*   (9) Wait for the Local to Global Transfer to finish.  When it has        *
+*       finished, set status to the 68K (EC) which indicates that this       *
+*       Local DSP has finished its part(s) of the Local-to-Global Transfer   *
+*                                                                            *
+*  (10) Return to step (1)                                                   *
+*                                                                            *
+*  Note that each L15CT Tool is actually composed of 4 separate modules.     *
+*  There is one Tool module for each of the four possible ETA coordinates    *
+*  (i.e. n+2, n+3, n+4, n+5) of the seed Trigger Tower.  The modules are     *
+*  identical except for the details of the hard-wired addressing used to     *
+*  select the appropriate neighboring Trigger Towers.                        *
+*                                                                            *
+*  The L1 Trigger Tower rack data and the L15 Ref Set data are loaded in     *
+*  by a different program section.  The layout of this data is explained     *
+*  that program section.                                                     *
+*                                                                            *
+*  Recall the arrangement of eta's in the racks:                             *
+*                                                                            *
+*    Rack                   Rack #1                   Rack #2                *
+*    Signal           --------------------      ---------------------        *
+*    Names            n    n+1   n+2   n+3      n+4   n+5   n+6   n+7        *
+*                                                                            *
+*    This DSP Node              --------------------------                   *
+*    is Responsible              n+2   n+3      n+4   n+5                    *
+*    for these eta's                                                         *
+*                                                                            *
+*                                                                            *
+*  NOTE that the "Eta Rings" are numbered in the same way,  i.e.  n : n+7    *
+*                                                                            *
+*                                                                            *
+*  Philosophical Layout of the Trigger Tower Scanning Routine                *
+*  ----------------------------------------------------------                *
+*                                                                            *
+*  Most often when a Trig Tower is compared to its Ref Set value, the        *
+*  "call" to the Tool Code is NOT taken.  Therefore, this scanning routine   *
+*  is coded for best performance when it does not branch to the Tool Code.   *
+*                                                                            *
+*  The conditional CALL instruction is not used because there is no point    *
+*  in saving a return address.  This is because there is only one place      *
+*  from which a given eta ring instance of Tool Code can be called.          *
+*                                                                            *
+*  What Information is Passed to the Tool Code .                             *
+*  What Data must the Tool Code Save and Restore.                            *
+*  ----------------------------------------------                            *
+*                                                                            *
+*  There is no need to pass the eta ring value to the Tool Code.  This is    *
+*  because there is a separate instance of the Tool Code for each eta ring.  *
+*  Each instance of the Tool Code must know its  Eta ring (relative eta).    *
+*                                                                            *
+*  The scan loop is written so that when Tool Code starts executing, the     *
+*  appropriate  Aux Reg (AR0 or AR1 depending upon eta ring)  still holds    *
+*  a value that can be used to determine phi if the Tool Code really         *
+*  needs to know phi.                                                        *
+*                                                                            *
+*  A block repeat structure is used to scan the Trig Towers.  If the Tool    *
+*  code uses internally a block repeat structure then it must save and       *
+*  restore the structure for scanning the Trig Towers before it "exits".     *
+*                                                                            *
+*  The Tool Code must save and restore the conditional codes from the        *
+*  status register.  This is because immediately upon returning to the       *
+*  scanning routine a conditional branch will be made based upon condition   *
+*  codes that were calculated during the "delay" part of the conditional     *
+*  branch that called the Tool Code in this first place.                     *
+*                                                                            *
+*  When Tool Codes exits the same values must still be in AR0, AR1, and AR2. *
+*                                                                            *
+*  The Tool Code will be loaded into the same 64k block of Local SRAM as     *
+*  this scan routine.                                                        *
+*                                                                            *
+*                                                                            *
+******************************************************************************
+
+******************************************************************************
+*         Include the       DSP Program-Specific Constant Definitions        *
+******************************************************************************
+
+         .include   "constant.inc"
+
+******************************************************************************
+*        Load Code into the  .text  Section.                                 *
+******************************************************************************
+
+         .text
+
+
+Init_for_Loop:                                      ; Initialize to get ready
+                                                    ; for the scan loop.
+
+         LDA    @Rack_1_EM_Et_TT_Data_Handle,AR0    ; AR0 points to the Rack
+                                                    ; #1 EM Et Trig Tower Data.
+
+         LDA    @Rack_2_EM_Et_TT_Data_Handle,AR1    ; AR1 points to the Rack
+                                                    ; #2 EM Et Trig Tower Data.
+
+         LDA    @Ref_Set_Data_Handle,AR2            ; AR2 points to the L15
+                                                    ; Cal Trig Ref Set data.
+
+         LDA    @This_LDSP_ObjectList_Handle,AR3    ; AR3 points to the
+                                                    ; Object List for this
+                                                    ; Local DSP Node
+
+         LDA    @This_LDSP_to_68K_Status_Handle,AR5 ; AR5 points to the
+                                                    ; "DSP-to-68K"
+                                                    ; communication block in
+                                                    ; Dual Port Memory
+
+         LDA    @SEK_to_all_DSP_Status_Handle,AR7   ; AR7 points to the
+                                                    ; "68K-to-DSP"
+                                                    ; communication block
+                                                    ; in Dual Port Memory
+
+;         LDA    @Zero_Loc,IR0                       ; Zero the Index Reg 0.
+;                                                    ; This is not used right
+;                                                    ; Now but it could be
+;                                                    ; used to select different
+;                                                    ; Reference Sets.
+
+         LDI    LG_Xfr_Incomplete_Flag, R11         ; Use R11 to set
+                                                    ; the Local-to-
+         STI    R11, @LG_Xfr_to_Next_Status_Loc     ; Global Transfer
+                                                    ; to "next" DSP
+                                                    ; Flag to the
+                                                    ; state which
+                                                    ; indicates that
+                                                    ; the transfer is
+                                                    ; incomplete
+
+         LDI    LG_Xfr_Incomplete_Flag, R11         ; Use R11 to set
+                                                    ; the Local-to-
+         STI    R11, @LG_Xfr_from_Prev_Status_Loc   ; Global Transfer
+                                                    ; from "previous" DSP
+                                                    ; Flag to the
+                                                    ; state which
+                                                    ; indicates that
+                                                    ; the transfer is
+                                                    ; incomplete
+
+         LDI    @Zero_Loc, R6                       ; Zero the count of
+                                                    ; filled Trigger Tower
+                                                    ; Data Blocks.
+
+         LDA    @TT_Data_Block_Size_Loc,BK          ; The Block Size register
+                                                    ; is loaded with the size
+                                                    ; of a Trigger Tower Data
+                                                    ; Block;  i.e. 32 words.
+                                                    ; This is used for Circular
+                                                    ; Address if TT Data.
+
+                                                    ; Setup the Repeat Block
+                                                    ; for 32 passes through the
+                                                    ; loop  i.e. the 32 phi's.
+
+;         LDI    @Zero_Loc,R0                        ; Zero the register  R0.
+;         LDI    @Zero_Loc,R1                        ; Zero the register  R1.
+
+          LDI    @Zero_Loc,R2                        ; Zero the register  R2.
+                                                     ; (i.e. the Object
+                                                     ; Counter)
+
+**!!! The following instructions are temporary
+
+          LDI    Invalid_Wakeup_Word_Flag, R11      ; Clear the "Event Type"
+                                                    ; Flag
+          STI    R11, @This_Event_Type_Loc
+
+**!!! End of temporary instructions
+
+
+
+         LDI    31,RC                   ; Setup the Repeat Counter for 32
+                                        ; trips through the scan loop
+                                        ; i.e. the 32 phi's.
+
+                                        ;>>>>  Note the examples in Chapter 12
+                                        ;>>>>  of the C40 User's Guide are all
+                                        ;>>>>  wrong.  The RC register must be
+                                        ;>>>>  loaded before the RPTBD is
+                                        ;>>>>  executed.  See page #3 of the
+                                        ;>>>>  Manual Update Sheet.
+
+******************************************************************************
+*   Now we have cleaned up from the last time through this loop (or if this  *
+*   is the first time through the loop we have initialized all pointers, etc *
+*   for the first time).                                                     *
+*                                                                            *
+*   We need to set status to the 68K (EC) to indicate that we have cleaned   *
+*   up and are waiting for all DSPs to get "in synch."                       *
+*                                                                            *
+*   We need to wait for the 68K (EC) to indicate that all DSPs are "in       *
+*   synch."  The 68K will do this by making the Wakeup Word invalid.  We     *
+*   need to watch the Wakeup Word until we see it become invalid.            *
+*                                                                            *
+*   Once we see the Wakeup Word become invalid, we can progress to           *
+*   the next step.                                                           *
+*                                                                            *
+*   Recall the format of the This-DSP-to-68K Status Block                    *
+*                                                                            *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*                   |------------|------------|--------------|----------|    *
+*   1st Longword:   | TAS Byte   | # Objects  | This Local DSP Status   |    *
+* (Local Status to  |            | Found      |                         |    *
+*  EC Longword)     |---------------------------------------------------|    *
+*                                                                            *
+*       The "Status" Bits are allocated as follows:                          *
+*       When a Status Bit is set to a 1 it means:                            *
+*                                                                            *
+*       D0    This Local DSP is ready for the next (or the first)            *
+*             L15CT Cycle, and it is looking for a new valid Wake_Up_Word.   *
+*                                                                            *
+*       D1    This Local DSP has read a new valid Wake_Up_Word.              *
+*                                                                            *
+*       D2    This Local DSP has received all of its L1 Calorimeter Trigger  *
+*             data via the ERPB's and the CRC.                               *
+*                                                                            *
+*       D3    This Local DSP has started its part(s) of the Local to Global  *
+*             Transfer.  By definition this means that this Local DSP has    *
+*             finished its Local Code (both the Frame and Tool Code) and has *
+*             built its Local List of Identified Objects.  The Number of     *
+*             Objects Found Byte contains the number of objects found by     *
+*             this Local DSP Node in this L1.5 Cal Trig Cycle.               *
+*                                                                            *
+*       D4    This Local DSP has finished its part(s) of the Local to Global *
+*             Transfer (including the Mark Data if this is a Mark and Force  *
+*             Pass event).                                                   *
+*                                                                            *
+*    D5:D14   Not used.  Always set to zero.                                 *
+*                                                                            *
+*       D15   This Local DSP has cleaned up from processing the current      *
+*             L15CT Cycle.  It is waiting for all 12 DSP's to reach this     *
+*             point.  The EC will announce when all 12 DSP's have reached    *
+*             this point by clearing the previous valid Wake_Up_Word.        *
+*                                                                            *
+*       Notes:                                                               *
+*                                                                            *
+*       The reserved byte is set to all zeros.                               *
+*                                                                            *
+*       When bit D0 is set then all bits D1:D15 are cleared.                 *
+*                                                                            *
+*       When bit D0 is set then the Number of Objects Found Byte is          *
+*       cleared to zero.                                                     *
+*                                                                            *
+*       When bit D3 is set then the Number of Objects Found Byte is set to   *
+*       the number of objects found by this Local DSP Node in this L1.5 Cal  *
+*       Trig Cycle.                                                          *
+*                                                                            *
+*       Status bits D1:D14 are "ORed" into the Local DSP Status Word.        *
+*                                                                            *
+*       EC should look for status bit D0 set and D1:D15 cleared to indicate  *
+*       that a Local DSP is ready for the next (or first) L1.5 CT Cycle      *
+*       (i.e. it must look at all 16 status bits, not just bit D0).          *
+*                                                                            *
+*                                                                            *
+*   Also recall the format of the 68K-to-all-DSP Status Block                *
+*                                                                            *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*   1st Longword:   |------------|------------|--------------|----------|    *
+*   (Local DSP      | TAS Byte   | Reserved   | Flags byte   | Terms Req|    *
+*    Wake Up Word)  |            |            |(FF: Wakeup   |          |    *
+*                   |            |            |     Word     |          |    *
+*                   |            |            |     Invalid  |          |    *
+*                   |            |            | 00: "normal" |          |    *
+*                   |            |            |     Cycle    |          |    *
+*                   |            |            | 01: MFP      |          |    *
+*                   |            |            |     Cycle)   |          |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+*                                                                            *
+*   2nd Longword:   |------------|------------|--------------|----------|    *
+*   (Global DSP     | TAS Byte   | Reserved   | Flags byte   | Terms Req|    *
+*    Wake Up Word)  |            |            |(FF: Wakeup   |          |    *
+*                   |            |            |     Word     |          |    *
+*                   |            |            |     Invalid  |          |    *
+*                   |            |            | 00: "normal" |          |    *
+*                   |            |            |     Cycle    |          |    *
+*                   |            |            | 01: MFP      |          |    *
+*                   |            |            |     Cycle)   |          |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+*                                                                            *
+*   3rd Longword:   |------------|------------|--------------|----------|    *
+*   (Transfer Word) | Reserved   | Reserved   | Reserved     | Transfer |    *
+*                   |            |            |              | Required |    *
+*                   |            |            |              |(FF: Trns |    *
+*                   |            |            |              |     Word |    *
+*                   |            |            |              |     Invld|    *
+*                   |            |            |              | 00: Don't|    *
+*                   |            |            |              |     Trns |    *
+*                   |            |            |              |     to   |    *
+*                   |            |            |              |     214  |    *
+*                   |            |            |              | 01: Trns |    *
+*                   |            |            |              |     to   |    *
+*                   |            |            |              |     214) |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+******************************************************************************
+
+Set_Cleanup_Status_to_68K:
+
+        LDI     *+AR5(Disp_to_EC_Stat), R8              ; Get the EC Stat
+                                                        ; longword from the
+                                                        ; Shared Dual Port
+                                                        ; Memory
+
+        OR      Local_Cleaned_Up_Wait_for_Synch, R8     ; Or the flag for the
+                                                        ; current state into
+                                                        ; the Status Word in
+                                                        ; R8
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+Wait_for_Synch:
+
+        LDI     *+AR7(Disp_to_Local_WUW), R7            ; Get the Local DSP
+                                                        ; Wakeup Word
+
+        LBU1    R7, R11                                 ; Extract the Flags
+                                                        ; byte
+
+        CMPI    Invalid_Wakeup_Word_Flag, R11           ; See if the Wakeup
+                                                        ; Word is invalid
+
+        BneAT   Wait_for_Synch                          ; If the Wakeup word
+                                                        ; is not invalid,
+                                                        ; then continue
+                                                        ; waiting for
+                                                        ; synchronization.
+                                                        ; The next 3
+                                                        ; instructions will
+                                                        ; be executed BUT
+                                                        ; annulled in the
+                                                        ; branch is taken
+                                                        ; (i.e. if the WUW
+                                                        ; is not yet invalid)
+
+                                                        ; if we reach this
+                                                        ; point, the 68K (EC)
+                                                        ; has seen all DSPs
+                                                        ; synchronized.  We
+                                                        ; can now advertise
+                                                        ; that we are ready
+                                                        ; for the next event
+
+Set_Ready_Status_to_68K:
+
+        LDI     Local_Looking_for_Valid_W_U_W, R11      ; Load the flag for
+                                                        ; the current
+                                                        ; state in the 2
+                                                        ; LSBytes of R11.
+                                                        ; Don't care what
+                                                        ; happens to 2 MSBytes.
+
+        MH0     R11, R8                                 ; Merge the flag for
+                                                        ; the current state
+                                                        ; (Ready for Next
+                                                        ; Cycle and Looking
+                                                        ; for Valid Wake
+                                                        ; Up Word)
+                                                        ; into the 2 LSBytes
+                                                        ; of R10.  The 2 MSBytes
+                                                        ; will be not be
+                                                        ; changed.
+                                                        ; The previous 2
+                                                        ; LSBytes are lost.
+
+        MB2     @Zero_Loc,R8                            ; Clear the Objects
+                                                        ; Found byte in R8
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+
+******************************************************************************
+*  Now the Scan Routine is Ready for the Next (or First) Cycle.              *
+*                                                                            *
+*   We must wait for a valid Wakeup Word                                     *
+*                                                                            *
+*   Once we have seen a valid Wakeup Word then we set status to the 68K      *
+*   (EC) indicating that we have a valid Wakeup Word                         *
+*                                                                            *
+*   If the Wakeup Word indicates that this is a Mark and Force Pass Cycle    *
+*   then CALL the Setup Mark and Force Pass DMA routine                      *
+******************************************************************************
+
+Look_for_Valid_Wakeup_Word:
+
+        LDI     *+AR7(Disp_to_Local_WUW), R7            ; Get the Local DSP
+                                                        ; Wakeup Word
+
+        LBU1    R7, R11                                 ; Extract the Flags
+                                                        ; Byte from the WUW
+
+        CMPI    Largest_Valid_Wakeup_Word_Flag, R11     ; See if the Wakeup
+                                                        ; Word Flag Byte
+                                                        ; is one of the
+                                                        ; Valid Flag Bytes
+
+        BhiAT   Look_for_Valid_Wakeup_Word              ; If the Wakeup Word
+                                                        ; Flag Byte is larger
+                                                        ; than any Valid Flag
+                                                        ; byte then
+                                                        ; continue waiting
+                                                        ; for a valid wakeup
+                                                        ; word.
+                                                        ; The next 3
+                                                        ; instructions will
+                                                        ; be executed BUT
+                                                        ; annulled in the
+                                                        ; branch is taken
+                                                        ; (i.e. if the WUW
+                                                        ; is not yet VALID)
+
+                                                    ; if we get to this point
+                                                    ; we have a valid Wakeup
+                                                    ; word and should signal
+                                                    ; the 68K
+
+Set_Valid_W_U_W_Status_to_68K:
+
+        LBU3    R7, R10                                 ; Get the new TAS#
+                                                        ; from the Wake Up
+                                                        ; Word and store it
+                                                        ; in the LSByte of R10
+
+        MB3     R10, R8                                 ; Merge the new TAS#
+                                                        ; into the MSByte of
+                                                        ; R8
+
+        OR      Local_Received_Valid_W_U_W, R8          ; OR the status flag
+                                                        ; (Valid Wake Up
+                                                        ; Word Received)
+                                                        ; into R8
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+**!!! The following 3 instructions are temporary
+
+        LDI     @WUW_N_Minus_1_Loc, R10                 ; Keep a short
+                                                        ; history of the
+        STI     R10, @WUW_N_Minus_2_Loc                 ; last 2 Wake Up
+                                                        ; Words
+        STI     R7, @WUW_N_Minus_1_Loc
+
+
+**!!! End of temporary instructions
+
+Check_for_MFP_Cycle:
+
+        LBU1    R7, R11                                 ; Get the Flags byte
+                                                        ; from the WUW
+
+        CMPI    MFP_Wakeup_Word_Flag, R11               ; See if the Wakeup
+                                                        ; Word says that
+                                                        ; this is a Mark
+                                                        ; and Force Pass
+                                                        ; Cycle
+
+**!!! temporary change in instructions
+
+        Beq     This_Event_is_MFP                       ; If this is MFP
+                                                        ; then go to MFP
+                                                        ; setup
+
+        CMPI    Normal_Wakeup_Word_Flag, R11            ; Is this Normal?
+
+        Beq     This_Event_is_Normal                    ; If so, go to
+                                                        ; normal setup
+
+                                                        ; if we get to this
+                                                        ; point, the WUW
+                                                        ; is neither 0 nor
+                                                        ; 1.
+
+Illegal_Wake_Up_Word:
+
+        BR      Illegal_Wake_Up_Word                    ; If the WUW is
+        BR      Illegal_Wake_Up_Word                    ; illegal, HANG!!!
+        BR      Illegal_Wake_Up_Word
+        BR      Illegal_Wake_Up_Word
+
+This_Event_is_MFP:
+
+        LDI     MFP_Wakeup_Word_Flag, R11               ; Set the "This Event
+                                                        ; Type" Flag to the
+        STI     R11, @This_Event_Type_Loc               ; value which indicates
+                                                        ; MFP processing, CALL
+        CALL    Setup_Mark_and_Force_Pass_DMA           ; the Setup_MFP_DMA
+                                                        ; routine in L_DSP_%%,
+        BR      Check_Reported_Comm_Ports               ; and branch to the
+                                                        ; Check Comm Ports
+                                                        ; point of this module.
+
+
+This_Event_is_Normal:
+
+        LDI     Normal_Wakeup_Word_Flag, R11            ; Set the Event Type
+                                                        ; Flag to "normal", and
+        STI     R11, @This_Event_Type_Loc               ; then branch to the
+                                                        ; Comm Port Checker
+        BR      Check_Reported_Comm_Ports               ; in this module
+
+
+;       CALLeq  Setup_Mark_and_Force_Pass_DMA           ; If this is a Mark
+;                                                       ; and Force Pass
+;                                                       ; Cycle then set up
+;                                                       ; the Local to Global
+;                                                       ; DMA accordingly
+;
+
+**!!! End of temporary code changes
+
+******************************************************************************
+*   Now we have a Valid Wakeup Word and have set up the Mark and Force Pass  *
+*   DMA (if required).                                                       *
+*                                                                            *
+*   We need to wait for valid Trigger Tower Data.  Recall that an Interrupt  *
+*   Service Routine is being used to count the number of Comm Ports which    *
+*   have reported with TT Data.  Here we simply monitor that count and do    *
+*   not begin to run the Scan Routine until all Trigger Tower Data has       *
+*   arrived                                                                  *
+*                                                                            *
+*   When all Trigger Tower Data has arrived, we set a status to the 68K      *
+*   indicating that all Trigger Tower Data has arrived                       *
+******************************************************************************
+
+Check_Reported_Comm_Ports:
+
+    CMPI    @Mask_of_TT_Data_Blocks_Loc, R6         ; Compare the Mask of
+                                                    ; Trigger Tower Data
+                                                    ; Blocks which have been
+                                                    ; filled (via Com Ports)
+                                                    ; to the Mask of Expected
+                                                    ; Trigger Tower Data Blocks
+
+    Bne     Check_Reported_Comm_Ports               ; If not all TT Data Comm
+                                                    ; Ports have responded,
+                                                    ; continue waiting.
+
+Set_TT_Data_Rcvd_Status_to_68K:
+
+        OR      Local_Received_all_ERPB_Data,R8         ; OR the status flag
+                                                        ; (All ERPB Data
+                                                        ; Received)
+                                                        ; into R8
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+******************************************************************************
+*  Now we are actually ready to run the Scan Routine.  All Trigger Tower     *
+*  Data has arrived (and additionally the "Local DSP Wakeup Word" has        *
+*  been seen)                                                                *
+******************************************************************************
+
+******************************************************************************
+*   Recall that the Reference Set Data is stored with the pedestals included *
+*   (added).  This was taken care of by TCC.                                 *
+*   Therefore we can compare Reference Set Data directly to Trigger Tower    *
+*   Data because both have the same pedestal.                                *
+******************************************************************************
+
+         RPTBD   Loop_Bottom            ; Setup a Repeat Block with delayed
+                                        ; entry.
+
+         LBU2    *AR0,R0                ; AR0 is pointing to Rack #1 TT data
+                                        ; for the proper phi,  so load byte
+                                        ; D16:D23 which is eta n+2 data into
+                                        ; register R0.
+                                        ; This instruction is not part of
+                                        ; the Repeat Block
+
+         NOP                            ; This instruction is not part of
+                                        ; the Repeat Block
+
+         CMPI    *AR2++(1),R0           ; Set the Status Reg flags based on
+                                        ; TT data - Ref Set data.  Then
+                                        ; increment the pointer to the Ref Set
+                                        ; data to be ready for the next TT.
+                                        ; This instruction is not part of
+                                        ; the Repeat Block
+
+
+*>>>>>>>>>>>>>><<<<<<<<<<<<<<<          ; Now start the Repeat Block.
+                                        ; ---------------------------
+Loop_Top:
+
+         BhiD   Start_Tool_Ring_Nplus2  ; Make a delayed branch to Tool Code
+                                        ; for eta ring n+2 if the TT data is
+                                        ; bigger than Ref Set.
+                                        ; The next three instructions are
+                                        ; all executed before the jump
+
+         LBU3    *AR0++(1)%,R1          ; AR0 is pointing to Rack #1 TT data
+                                        ; for the proper phi,  so load byte
+                                        ; D24:D31 which is eta n+3 data into
+                                        ; register R1.  Then increment the
+                                        ; pointer to the Rack #1 data to get
+                                        ; ready for the next phi.
+
+         NOP                            ; Execute this NOP to fill one of the
+                                        ; delay slots
+
+         CMPI    *AR2++(1),R1           ; Set the Status Reg flags based on
+                                        ; TT data - Ref Set data.  Then
+                                        ; increment the pointer to the Ref Set
+                                        ; data to be ready for the next TT.
+
+
+Return_from_Tool_Ring_Nplus2:
+
+         BhiD   Start_Tool_Ring_Nplus3  ; Make a delayed branch to Tool Code
+                                        ; for eta ring n+3 if the TT data is
+                                        ; bigger than Ref Set.
+                                        ; The next three instructions are
+                                        ; all executed before the jump
+
+         LBU0    *AR1,R0                ; AR1 is pointing to Rack #2 TT data
+                                        ; for the proper phi,  so load byte
+                                        ; D0:D7 which is eta n+4 data into
+                                        ; register R0.
+
+         NOP                            ; Execute this NOP to fill one of the
+                                        ; delay slots
+
+         CMPI    *AR2++(1),R0           ; Set the Status Reg flags based on
+                                        ; TT data - Ref Set data.  Then
+                                        ; increment the pointer to the Ref Set
+                                        ; data to be ready for the next TT.
+
+
+Return_from_Tool_Ring_Nplus3:
+
+         BhiD   Start_Tool_Ring_Nplus4  ; Make a delayed branch to Tool Code
+                                        ; for eta ring n+4 if the TT data is
+                                        ; bigger than Ref Set.
+                                        ; The next three instructions are
+                                        ; all executed before the jump
+
+
+         LBU1    *AR1++(1)%,R1          ; AR1 is pointing to Rack #2 TT data
+                                        ; for the proper phi,  so load byte
+                                        ; D8:D15 which is eta n+5 data into
+                                        ; register R1.  Then increment the
+                                        ; pointer to the Rack #1 data to get
+                                        ; ready for the next phi.
+
+         NOP                            ; Execute this NOP to fill one of the
+                                        ; delay slots
+
+         CMPI    *AR2++(1),R1           ; Set the Status Reg flags based on
+                                        ; TT data - Ref Set data.  Then
+                                        ; increment the pointer to the Ref Set
+                                        ; data to be ready for the next TT.
+
+
+Return_from_Tool_Ring_Nplus4:
+
+         BhiD   Start_Tool_Ring_Nplus5  ; Make a delayed branch to Tool Code
+                                        ; for eta ring n+5 if the TT data is
+                                        ; bigger than Ref Set.
+                                        ; The next three instructions are
+                                        ; all executed before the jump
+
+         LBU2    *AR0,R0                ; AR0 is pointing to Rack #1 TT data
+                                        ; for the proper phi,  so load byte
+                                        ; D16:D23 which is eta n+2 data into
+                                        ; register R0.
+
+         NOP                            ; Execute this NOP to fill one of the
+                                        ; delay slots
+
+         CMPI    *AR2++(1),R0           ; Set the Status Reg flags based on
+                                        ; TT data - Ref Set data.  Then
+                                        ; increment the pointer to the Ref Set
+                                        ; data to be ready for the next TT.
+
+Loop_Bottom:                            ; The last 4 instructions in a
+                                        ; Repeat Block must be "clean".
+Return_from_Tool_Ring_Nplus5:           ; This NOP is used to pad
+                                        ; the end of the Repeat Block
+         NOP                            ; Note that this means that the last
+                                        ; 4 instructions EXECUTED in a
+                                        ; Repeat Block must be clean (i.e.
+                                        ; we have to pay attention to the
+                                        ; final instructions in the Tool
+                                        ; Code also.  Since all Tool Code
+                                        ; exit points end with a BRD and then
+                                        ; 3 "clean" instructions we need to
+                                        ; execute one more "clean" instruction
+                                        ; before returning to the top of the
+                                        ; scan loop when returning from the
+                                        ; eta n + 5 Tool Code.  To accomplish
+                                        ; this we return to the point before
+                                        ; the last NOP rather than directly to
+                                        ; the top of the loop as one might
+                                        ; naturally think.
+
+*>>>>>>>>>>>>>><<<<<<<<<<<<<<<          ; Return to the top of the scan loop.
+                                        ; -----------------------------------
+
+******************************************************************************
+*  Now that we've completely executed the Scan Loop we need to write the     *
+*  Local DSP Header Word for this DSP into the appropriate location in       *
+*  memory.                                                                   *
+*                                                                            *
+*  Recall the format of the Local DSP Header Word:                           *
+*                     D        D   D        D   D          D   D       D     *
+*                     3        2   2        1   1          0   0       0     *
+*                     1        4   3        6   5          8   7       0     *
+*                   |------------|------------|--------------|----------|    *
+*   1st Longword:   | Length of  | Number of  | Number of    | DSP Node |    *
+*                   | each entry | entries in | VALID Entries| ID in    |    *
+*                   | in Long-   | this List  | in this list | hex      |    *
+*                   | words (3)  |   (8)      | (0..8 or     |          |    *
+*                   |            |            |  FF = ovrflw)|          |    *
+*                   |---------------------------------------------------|    *
+*                                                                            *
+******************************************************************************
+
+Build_ObjectList_Header:
+
+         LDA    @This_LDSP_ObjectList_Handle,AR3        ; Re-load AR3 with
+                                                        ; the Object List
+                                                        ; handle for this
+                                                        ; LDSP Node
+
+         LDI    @This_LDSP_Header_Constant_Loc,R11      ; Load the "constant
+                                                        ; part" of the Header
+                                                        ; Word for this LDSP
+                                                        ; Node
+
+         MB1    R2,R11                                  ; Merge the Valid
+                                                        ; Object Counter into
+                                                        ; the next to LSB of
+                                                        ; R11
+
+         STI    R11,*AR3                                ; Store the Local
+                                                        ; DSP Node Header
+                                                        ; for this LDSP Node
+                                                        ; in the Object List
+
+Wait_for_LG_Xfr_from_Prev_DSP:
+
+         BR     Wait_for_Previous_DSP_Data              ; Make an unconditional
+                                                        ; branch to
+                                                        ; the "Wait for
+                                                        ; Local-to-Global
+                                                        ; Data from the
+                                                        ; Previous LDSP"
+                                                        ; module.  This
+                                                        ; module is node-
+                                                        ; specific, and
+                                                        ; only waits for
+                                                        ; data if this LDSP
+                                                        ; has a "previous"
+                                                        ; LDSP (if there is
+                                                        ; no previous LDSP
+                                                        ; then the module
+                                                        ; returns immediately).
+
+                                                    ; We are waiting in
+                                                    ; a different module
+                                                    ; for the Local-to-
+                                                    ; Global Transfer
+                                                    ; from the "previous"
+                                                    ; LDSP to finish and
+                                                    ; will not execute
+                                                    ; the next instruction
+                                                    ; until it does.
+
+Start_LG_Xfr_to_Next_DSP:
+
+         LDA    @LG_Next_DMA_Control_Reg_Handle,AR7     ; Use R11, AR7 to load
+                                                        ; "Force Start" DMA
+         LDI    @DMA_Force_Start_Loc,R11                ; Channel Control Word
+                                                        ; into the DMA Control
+         OR     *AR7,R11                                ; Register for the
+                                                        ; DMA Channel running
+         STI    R11,*AR7                                ; the Local to Global
+                                                        ; Transfer.  This
+                                                        ; starts the Local
+                                                        ; to Global transfer
+                                                        ; for this LDSP.
+
+Set_LG_to_Next_Status_to_68K:
+
+        OR      Local_Started_Loc_Glob_Xfr, R8          ; OR the status flag
+                                                        ; (Local to Global
+                                                        ; Transfer Started)
+                                                        ; into R8
+
+        MB2     R2, R8                                  ; Put the Number of
+                                                        ; Found Objects into
+                                                        ; the Status Longword
+                                                        ; in R8
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+
+Wait_for_LG_Xfr_to_Next_DSP:                            ; note that the ISR
+                                                        ; which sets this flag
+                                                        ; will be called during
+                                                        ; this loop.  This will
+                                                        ; not cause an error
+                                                        ; no matter which
+                                                        ; instruction is
+                                                        ; interrupted.
+
+        LDI     @LG_Xfr_to_Next_Status_Loc, R11         ; Get the flag which
+                                                        ; indicates whether the
+                                                        ; Local-to-Global xfr
+                                                        ; to the "next" DSP
+                                                        ; is complete (this
+                                                        ; flag is set in
+                                                        ; an ISR)
+
+        CMPI    LG_Xfr_Complete_Flag, R11               ; See if the transfer
+                                                        ; is complete
+
+        Bne     Wait_for_LG_Xfr_to_Next_DSP             ; If the transfer
+                                                        ; is not complete,
+                                                        ; then continue
+                                                        ; waiting for
+                                                        ; the transfer to
+                                                        ; finish.
+
+                                                    ; the next instruction
+                                                    ; does not execute
+                                                    ; until the transfer
+                                                    ; to the next DSP
+                                                    ; is complete
+Set_LG_Xfr_Done_Status_to_68K:
+
+         BRD    Init_for_Loop                           ; Unconditionally
+                                                        ; branch to the init-
+                                                        ; ialize code for the
+                                                        ; Scan Loop.  The next
+                                                        ; 3 instructions will
+                                                        ; be executed.
+
+        OR      Local_Finished_Loc_Glob_Xfr, R8         ; OR the status flag
+                                                        ; (Local to Global
+                                                        ; Transfer Finished)
+                                                        ; into R8
+
+        STI     R8, *+AR5(Disp_to_EC_Stat)              ; Put the "DSP-to-68K"
+                                                        ; Status Longword
+                                                        ; into the Shared
+                                                        ; Dual Port Memory
+
+        NOP                                             ; also execute this
+                                                        ; instruction
+
+******************************************************************************
+*  This is the Bulkhead.  This code should never be executed                 *
+******************************************************************************
+
+End_Of_L_Scan:                          ; These instructions should never be
+                                        ; executed in the "normal" operation
+         BR     End_Of_L_Scan           ; of the program.  If the program
+                                        ; counter becomes corrupted or
+         BR     End_Of_L_Scan           ; if we have a bug in the program
+                                        ; we MAY try to execute these
+         BR     End_Of_L_Scan           ; instructions.  If we get to these
+                                        ; instructions the program will appear
+         BR     End_Of_L_Scan           ; to halt.  We could also use a
+                                        ; TRAP instruction here, and jump to
+                                        ; a service routine.
+
+
+******************************************************************************
+*        Load Constants and Working Variables into the  .data  Section.      *
+******************************************************************************
+
+        .data
+
+
+Rack_1_EM_Et_TT_Data_Handle:                               ; Mem Loc holding
+                       .word    Rack_1_EM_Et_TT_Data_Loc   ; Pointer to the
+                                                           ; Rack #1 EM Et
+                                                           ; Trig Tower data.
+
+Rack_1_Tot_Et_TT_Data_Handle:                              ; Mem Loc holding
+                       .word    Rack_1_Tot_Et_TT_Data_Loc  ; Pointer to the
+                                                           ; Rack #1 Tot Et
+                                                           ; Trig Tower data.
+
+Rack_2_EM_Et_TT_Data_Handle:                               ; Mem Loc holding
+                       .word    Rack_2_EM_Et_TT_Data_Loc   ; Pointer to the
+                                                           ; Rack #2 EM Et
+                                                           ; Trig Tower data.
+
+Rack_2_Tot_Et_TT_Data_Handle:                              ; Mem Loc holding
+                       .word    Rack_2_Tot_Et_TT_Data_Loc  ; Pointer to the
+                                                           ; Rack #2 Tot Et
+                                                           ; Trig Tower data.
+
+
+Ref_Set_Data_Handle:   .word    Ref_Set_Data_Loc           ; Mem Loc holding
+                                                           ; Pointer to the L15
+                                                           ; CT Ref Set data.
+
+TT_Data_Block_Size_Loc:   .word    00000020h               ; Memory location
+                                                           ; holding the value
+                                                           ; of the size of the
+                                                           ; Trigger Tower
+                                                           ; Data Blocks
+
+Init_for_Loop_Loc:      .word   Init_for_Loop              ; Memory location
+                                                           ; holding the
+                                                           ; address of the
+                                                           ; entry point to
+                                                           ; this module
+
+DMA_Force_Start_Loc:    .word     00c00000h             ; Memory location to
+                                                        ; store the mask used
+                                                        ; to force a DMA
+                                                        ; Channel into "Start"
+                                                        ; (i.e. Transfer Data)
+                                                        ; Mode
+
+
+**!!! The following 3 variables are temporary
+
+WUW_N_Minus_1_Loc:      .space      1                   ; Space for
+                                                        ; WUW history
+WUW_N_Minus_2_Loc:      .space      1
+
+This_Event_Type_Loc:    .space      1                   ; Space for Event
+                                                        ; Type Flag
+**!!! End of temporary variables
+
+******************************************************************************
+*  Cross-References                                                          *
+******************************************************************************
+
+         .def    Init_for_Loop                          ; Define these symbols
+         .def    Init_for_Loop_Loc                      ; in this module for
+                                                        ; use in other modules
+         .def    Return_from_Tool_Ring_Nplus2
+         .def    Return_from_Tool_Ring_Nplus3
+         .def    Return_from_Tool_Ring_Nplus4
+         .def    Return_from_Tool_Ring_Nplus5
+         .def    Start_LG_Xfr_to_Next_DSP
+
+         .def    Ref_Set_Data_Handle
+
+
+         .ref    Zero_Loc                               ; Symbols referenced
+                                                        ; in this module but
+         .ref    Start_Tool_Ring_Nplus2                 ; defined in other
+         .ref    Start_Tool_Ring_Nplus3                 ; modules.
+         .ref    Start_Tool_Ring_Nplus4
+         .ref    Start_Tool_Ring_Nplus5
+
+         .ref    Rack_1_EM_Et_TT_Data_Loc
+         .ref    Rack_1_Tot_Et_TT_Data_Loc
+         .ref    Rack_2_EM_Et_TT_Data_Loc
+         .ref    Rack_2_Tot_Et_TT_Data_Loc
+         .ref    Ref_Set_Data_Loc
+         .ref    This_LDSP_ObjectList_Handle
+         .ref    This_LDSP_Header_Constant_Loc
+         .ref    Mask_of_TT_Data_Blocks_Loc
+         .ref    SEK_to_all_DSP_Status_Handle
+         .ref    This_LDSP_to_68K_Status_Handle
+
+         .ref    LG_Next_DMA_Control_Reg_Handle
+
+         .ref    Setup_Mark_and_Force_Pass_DMA
+         .ref    Wait_for_Previous_DSP_Data
+
+         .ref    LG_Xfr_from_Prev_Status_Loc
+         .ref    LG_Xfr_to_Next_Status_Loc
+
+******************************************************************************
+*       End of this module                                                   *
+******************************************************************************
+
+         .end
