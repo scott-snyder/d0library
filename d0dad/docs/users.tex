@@ -1,0 +1,511 @@
+
+%%  $Log$
+%% Revision 1.3  1995/05/23  17:15:45  hobbs
+%% Version released with file format version 1.6
+%%
+%% Revision 1.2  1995/01/04  18:40:15  hobbs
+%% Release incorporating bad-file RCP parameters and TEXT_STREAM modes
+%%
+%% Revision 1.1  1994/08/04  16:11:06  hobbs
+%% Initial revision
+%%
+
+\documentstyle[12pt,epsf]{article}
+\textwidth 6.75 truein
+\textheight 9.0 truein
+\oddsidemargin -0.25 truein
+\evensidemargin -0.25 truein
+\topmargin -0.5 truein
+
+\def\h4{\hskip 0.5truecm}
+\def\vh3{\vphantom{} \hskip 0.325truecm}
+
+\begin{document}
+
+ \title{ D\O\ Dad User's Guide}
+ \author{ John D. Hobbs }
+ \date{\today  \\ \vskip -0.2truecm {\small $Revision$}\\ }
+
+\maketitle
+\setlength{\parindent}{0.75truecm}
+
+This note describes the user's view of the D0DAD system providing 
+\underline{d}irect \underline{a}ccess I/O to D\O\ \underline{d}ata.  
+The User's Guide begins with instructions for reading data using the centrally
+maintained D0DAD files. Section~\ref{ss-ug-rcp} describes optional RCP 
+parameters used to select or reject runs based on run or date.  
+Section~\ref{ss-ug-lumi} explains how to compute the luminosity corresponding
+to the data in a given D0DAD file.  Sections \ref{ss-ug-personal} 
+to \ref{ss-ug-utils} describe utilities for creating D0DAD files, 
+creating DST's from D0DAD files and examining the contents of D0DAD files.
+%%  Finally, appendix~\ref{app-proposal} is a copy of the
+%% original note distributed when the preliminary implementation was presented
+%% to the OCPB.
+
+\vskip 1.0 truecm\par{\small
+\begin{list}{ }{\leftmargin 0.25 in \rightmargin 0.25 in }
+\item Original version: June  9, 1994 
+\item {\bf Revision 1.1} (September 5, 1994): New format for 
+  NEW\_RUNS\_xxxxxx.LIS files 
+\item {\bf Revision 1.2} (December 22, 1994): Additional RCP parameters for 
+  reporting/controlling errors from  unreadable Zebra files.
+  OMNI\_FILTER and RECO version selection  (See section~\ref{ss-ug-rcp}).
+\item {\bf Revision 1.3} (May 22, 1995): Modified d0dad file format for 
+  increased streaming efficiency.  New mode, TEXT\_STREAM.  Centrally maintained
+  trigger and filter d0dad files. (See section~\ref{ss-ug-tstream}.)
+\end{list}
+}
+
+\newpage
+
+\section{Using Standard D0DAD Streams \label{ss-ug-standard}}
+\par
+The primary use of D0DAD is to replicate standard D\O\ data streams streams
+in a manner which does not require splitting data for different streams
+into separate Zebra files.  The data in a given stream is read by 
+specifying a D0DAD file as the input file to an analysis job in the 
+place of a (set of) Zebra file(s).  The standard set of D0DAD files is created 
+for the streams defined in omni\_filter and stored in the directory 
+D0\$DATA\$D0DAD.  Table~\ref{t-stand} lists the standard stream names and the 
+corresponding D0DAD filenames for the run 1b data.  The run 1a data will have
+the D0DAD file names as for run 1b, with the string RUN1B replaced by the
+string RUN1A.   An example of reading 
+D0DAD-specified data within the D0USER frame is given in figure~\ref{f-easy}.
+
+\par
+D0DAD files are also created for all triggers and filters defined in normal
+physics running.  These files are in the directory D0\$DATA\$D0DAD\$TRIGFILT.
+The file names are RUN1{\it x}\_{\it cccc}\_{\it trigger/filter}.D0DADF.  
+Here {\it x} is either {\it A} or {\it B} 
+for runs Ia and Ib respectively, {\it cccc} is either {\it TRIG} or 
+{\it FILT} for level 1 and level 2 respectivley  and {\it trigger/filter}
+is the name defined in the trigger list.
+
+\par
+In order to be able to read only runs added after a certain
+date, the file {\tt NEW\_RUNS\_YYMMDD.LIS} will be created
+in the directory D0\$DATA\$D0DAD each day that
+the master catalog is updated.  This file will list all runs entered into the
+catalog on the date {\tt MM/DD/YY} in which {\tt YY}, {\tt MM} and {\tt DD}
+are the year, month and day respectively.  These files can be used with the
+RCP parameters described in section~\ref{ss-ug-rcp} to select specific runs 
+either by run number or via a time stamp.
+{\tiny
+\begin{table}
+  \begin{center}
+  \begin{tabular}{|l|l|}\hline
+     {\small \bf Stream} & {\small \bf D0DAD file name} \\
+    \hline
+      QCD\_GAMMA 	& RUN1B\_QCD\_GAMMA.D0DADF \\
+      MU1\_B      	& RUN1B\_MU1\_B.D0DADF \\
+      MU\_B      	& RUN1B\_MU\_B.D0DADF \\
+      MU2\_B     	& RUN1B\_MU2\_B.D0DADF \\
+      NP\_LQ\_2EM 	& RUN1B\_NP\_LQ\_2EM.D0DADF \\
+      NP\_LQ\_ENU 	& RUN1B\_NP\_LQ\_ENU.D0DADF \\
+      NP\_LSS\_SELECT 	& RUN1B\_NP\_LSS\_SELECT.D0DADF \\
+      NP\_SCALAR     	& RUN1B\_NP\_SCALAR.D0DADF \\
+      NP\_SQGL 		& RUN1B\_NP\_SQGL.D0DADF \\
+      NP\_MSP 		& RUN1B\_NP\_MSP.D0DADF \\
+      NP\_TAU	 	& RUN1B\_NP\_TAU.D0DADF \\
+      NP\_MUNU 		& RUN1B\_NP\_MUNU.D0DADF \\
+      NP\_MET 		& RUN1B\_NP\_MET.D0DADF \\
+      NP\_WRIGHT 	& RUN1B\_NP\_WRIGHT.D0DADF \\
+      TOP\_EE 		& RUN1B\_TOP\_EE.D0DADF \\
+      TOP\_EJET 	& RUN1B\_TOP\_EJET.D0DADF \\
+      TOP\_EMU 		& RUN1B\_TOP\_EMU.D0DADF \\
+      TOP\_JETS 	& RUN1B\_TOP\_JETS.D0DADF \\
+      TOP\_MUJET 	& RUN1B\_TOP\_MUJET.D0DADF \\
+      TOP\_MUMU 	& RUN1B\_TOP\_MUMU.D0DADF \\
+      TOP\_TOP\_EE 	& RUN1B\_TOP\_TOP\_EE.D0DADF \\
+      TOP\_TOP\_EJET 	& RUN1B\_TOP\_TOP\_EJET.D0DADF \\
+      TOP\_TOP\_EMU 	& RUN1B\_TOP\_TOP\_EMU.D0DADF \\
+      TOP\_TOP\_JETS 	& RUN1B\_TOP\_TOP\_JETS.D0DADF \\
+      TOP\_TOP\_MUJET 	& RUN1B\_TOP\_TOP\_MUJET.D0DADF \\
+      TOP\_TOP\_MUMU 	& RUN1B\_TOP\_TOP\_MUMU.D0DADF \\
+      FAKE\_E\_CANDIDATE & RUN1B\_FAKE\_E\_CANDIDATE.D0DADF \\
+      ELF\_W 		& RUN1B\_ELF\_W.D0DADF \\
+      ELF\_Z 		& RUN1B\_ELF\_Z.D0DADF \\
+      MU1\_WZT 		& RUN1B\_MU1\_WZT.D0DADF \\
+      MU2\_WZT 		& RUN1B\_MU2\_WZT.D0DADF \\
+      WZ\_ELF\_MU 	& RUN1B\_WZ\_ELF\_MU.D0DADF \\
+      ELF\_MED 		& RUN1B\_ELF\_MED.D0DADF \\
+      QCD\_STA 		& RUN1B\_QCD\_STA.D0DADF \\
+      QCD\_GAP 		& RUN1B\_QCD\_GAP.D0DADF \\
+      QCD\_JJJ 		& RUN1B\_QCD\_JJJ.D0DADF \\
+      QCD\_QJT 		& RUN1B\_QCD\_QJT.D0DADF \\
+      QCD\_NTR 		& RUN1B\_QCD\_NTR.D0DADF \\
+      TOP\_BKG 		& RUN1B\_TOP\_BKG.D0DADF \\
+      NP\_CLEAN\_TAU 	& RUN1B\_NP\_CLEAN\_TAU.D0DADF \\
+      NP\_SCALAR\_TIGHT & RUN1B\_NP\_SCALAR\_TIGHT.D0DADF \\
+      NP\_SQGL\_TIGHT 	& RUN1B\_NP\_SQGL\_TIGHT.D0DADF \\
+      NP\_LQ\_2EM\_TIGHT & RUN1B\_NP\_LQ\_2EM\_TIGHT.D0DADF \\
+      LQNUE 		& RUN1B\_LQNUE.D0DADF \\
+      LQNN 		& RUN1B\_LQNN.D0DADF \\
+      NP\_LSS\_TIGHT 	& RUN1B\_NP\_LSS\_TIGHT.D0DADF \\
+      NP\_WRIGHT\_TIGHT & RUN1B\_NP\_WRIGHT\_TIGHT.D0DADF \\
+      NP\_MULQ\_TIGHT 	& RUN1B\_NP\_MULQ\_TIGHT.D0DADF \\
+      ELF 		& RUN1B\_ELF.D0DADF \\
+      MINBIAS 		& RUN1B\_MINBIAS.D0DADF \\
+      MU1\_FILT 	& RUN1B\_MU1\_FILT.D0DADF \\
+      PI0\_FILTER 	& RUN1B\_PI0\_FILTER.D0DADF \\
+      TWOJET\_FILTER 	& RUN1B\_TWOJET\_FILTER.D0DADF \\
+      THREEJET\_FILTER 	& RUN1B\_THREEJET\_FILTER.D0DADF \\
+      EMAG\_JETS 	& RUN1B\_EMAG\_JETS.D0DADF \\
+      NP\_MULQ          & RUN1B\_NP\_MULQ.D0DADF \\
+      TAU\_FILTER       & RUN1B\_TAU\_FILTER.D0DADF \\
+      TOP\_SGL          & RUN1B\_TOP\_SGL.D0DADF \\
+      TOP\_TOP\_SGL     & RUN1B\_TOP\_TOP\_SGL.D0DADF \\
+      NEW\_GAM\_JET     & RUN1B\_NEW\_GAM\_JET.D0DADF \\
+      SPR8              & RUN1B\_SPR8.D0DADF \\
+      SPR9              & RUN1B\_SPR9.D0DADF \\
+      SPR0              & RUN1B\_SPR0.D0DADF \\
+   \hline
+  \end{tabular}
+  \caption{Standard streams and the corresponding D0DAD filenames.  This set
+     is maintained by the production group.  The filenames shown are
+     for the {\bf run 1b} data. The {\bf run 1a} filenames have 
+     the string RUN1B replaced by RUN1A with the rest of the file name 
+     unchanged.  
+     All files are in the directory D0\$DATA\$D0DAD. \label{t-stand}}
+  \end{center}
+\end{table}  }% End small
+
+\begin{figure}
+   \centerline{\line(1,0){300}}
+   \begin{verbatim}
+   Menu: D0USER SETUP 
+   
+      1: Manual Process                      2: Auto Process
+      3: Input Data File                     4: Output Data Files
+      5: Set Interrupt Menu                  6: User Dialog
+      7: Event Displays                      8: Define dumps
+      9: Zero Summaries                     10: D0HPLT package
+     11: QUIT                               12: Start Logging to File
+     13: Stop Logging to File               14: Run Command File
+     15: Switches                           16: Control Menu
+   \end{verbatim}
+   {\tt 
+   \h4 Select: \{command, \#, HELP (\#), MENU, EXIT\} > { \bf input} \\
+   \vh3 Will you be reading files from tape? [N]> { \bf N}
+   }
+   \begin{verbatim}
+   If you give wild card all files with given string are processed
+   but option Manual Process will stop after N events requested.
+   If you give generic name no wild card will be allowed
+   If generic name points to a tape stage will be invoked
+   If you give generic name no wild card will be allowed
+   If generic name points to a tape stage will be invoked
+   If name of input file is NONE no file will be open.
+   If name of input file is FILE_NAMES expect logical FILE_NAMES
+   to be assigned to an ASCII file with lists of files.
+   \end{verbatim}
+   {\tt
+   \h4 Input File Name> { \bf D0\$DATA\$D0DAD:RUN1B\_NP\_MET.D0DADF } \\
+   \vh3 Input file modes are X (exchange), G (special X), or N (native) \\
+   \vh3 File mode X,G or N ? [N]:> {\bf X}
+   }
+
+   \centerline{\line(1,0){300}}
+   \vskip 2.0 truecm
+
+  \caption{An example of the input file specification portion of a D0USER job 
+      which reads the NP\_MET stream data using a D0DAD file.  The user's
+      typing appears in bold.\label{f-easy}}
+\end{figure}
+
+\par
+For each Zebra file successfully opened by D0DAD, a message of the form
+\begin{verbatim}
+     D0DAD: ProcessingFile: <filename>
+\end{verbatim}
+is printed.
+If a Zebra data file cannot be opened by d0dad, an error message of the form:
+\begin{verbatim}
+    D0DAD_READ_EVENT-W :OPEN_FAILURE
+    FailedFile: D0$DATA$DST:all_072814m01.x_mds01reu1210_all41_nonex00_4070812
+\end{verbatim}
+is printed using the standard D\O\ error message utility.  All such occurances
+are printed, so the log file can be searched to find the name of files to be
+excluded from the luminosity calculation.  
+
+\par
+In addition, the error-handling RCP parameters 
+described in section~\ref{ss-ug-rcp} allow an analysis job to be stopped with 
+a fatal error message if any unreadable files are encountered 
+(See parameter FILE\_ERROR\_IS\_FATAL)
+and allow the writing of a d0dad file containing references to all unreadable 
+events (See parameter ERROR\_LIST\_FILE).
+
+\section{RCP Control \label{ss-ug-rcp}}
+\par
+In order to provide finer control over the data read via D0DAD, an RCP file
+can be used to select data based on run number and date.
+Figure~\ref{f-RCP} contains an 
+example of the optional RCP file {\em d0dad.rcp}\footnote{A copy of this RCP
+file can be found in D0\$D0DAD:D0DAD.RCP on the Vaxes or in \$d0d0dad/d0dad.rcp
+on Unix systems.}.  The RCP parameters are defined in table~\ref{t-rcp}.
+This RCP file and any of the parameters are optional.  If the RCP file is not
+found or if any parameter is missing, the parameter(s) is(are) set to have no 
+effect.  For all jobs, a message is printed (via the ERRMSG utility) indicating
+whether or not the RCP file was found.  The parameter values are not printed.
+\begin{table}{\small
+  \begin{list}{ }{\leftmargin 0.75 in \rightmargin 0.75 in }
+     \item {\bf START\_RUN} - The run number of the first run to be analyzed.
+     \item {\bf STOP\_RUN}  - The run number of the last run to be analyzed.
+     \item {\bf VETO\_RUNS} - A list (RCP ARRAY) of runs to skip
+     \item {\bf SELECT\_RUNS } - A list of runs to read.
+     \item {\bf SELECT\_EVENTS } - A list of run/event ranges to be read. An
+       entry is of the form ``RUN\# FirstEvent\# LastEvent\#''.  All events in
+       run RUN\# between FirstEvent\# and LastEvent\# will be read.  The
+       RCP array can hold up to 1000 entries.  The NEW\_RUNS\_xxxxxx.LIS files
+       described above are formatted to match this entry and provide a means
+       for reading data added on a given day.
+     \item {\bf START\_TIME} - The
+       time given in the START\_TIME array is of the form {\tt YYMMDD HHMM} in
+       which {\tt YY} is the year, {\tt MM} the month, {\tt DD} the day, 
+       {\tt HH} the hour and {\tt MM} the time.  For example, 
+       June 12, 1994 at 9:30 am is specified as {\tt 940612 0930}.  All
+       runs whose catalog time stamp is later than the date specified in 
+       START\_TIME will be read.  The catalog time stamp is the time the run was
+       entered.
+     \item {\bf NSKIP} - Number of events to skip.  The number of events 
+       skipped counter 
+       is incremented only if a given run/event passes all of the above 
+       requirements.
+     \item {\bf NEVENTS} - The maximum number of events to read.  The counter
+        is incremented only if a given run/event passes all of the above 
+        requirements.
+     \item { \bf RECO\_VERSION} - Allowed RECO version range. This is derived
+        from the file name.
+     \item { \bf OMNI\_VERSION} - Allowed OMNI\_FILTER version range. This
+        is also derived from the filename.
+     \item { \bf FILE\_ERROR\_IS\_FATAL} - Logical which, if true, means that 
+        open errors for Zebra data files are fatal errors (Default: FALSE)
+     \item { \bf ERROR\_LIST\_FILE} - Name of a D0DAD file to which events in
+        bad files are written.  This can be used as the input file to another
+        run which would recover all lost data.
+  \end{list}}
+  \caption{Definitions of the RCP parameters in D0DAD.RCP \label{t-rcp}}
+\end{table}
+\begin{figure}
+  \centerline{\line(1,0){300}}
+  \tiny
+  \begin{center}
+   \begin{verbatim}
+     \START    D0DAD_RCP
+     \SIZE         67        39
+     !----------------------------------------------------------------------
+     !    Name:       D0DAD.RCP
+     !    Package:    D0DAD
+     !    Library:    GENERAL
+     !    Purpose:    Optional control to select input runs/events
+     !    Version
+     !    Created:    11-Jul-1994 John D Hobbs
+     !----------------------------------------------------------------------
+     !
+     NSKIP            0   ! Number of events to skip
+     NEVENTS          0   ! Maximum number to read (0==>Read all)
+
+     START_RUN   57712    ! Lowest run number for reading
+     STOP_RUN   100000    ! Highest run for reading
+     \ARRAY VETO_RUNS     ! Up to 100 runs to be vetoed.
+      12345
+      36405   
+     \END
+     \ARRAY SELECT_RUNS   ! If this array has any entries, only runs listed 
+       72736              ! will be read.
+       73980
+       74263
+     \END
+     \ARRAY SELECT_EVENTS ! List of run/event ranges (See NEW_RUNS_xxxx)
+       81372       2   11364
+       81372   11365   22852
+       81382   23986   34378
+       81384       2   10568
+       81461       2   11297
+       81461   11298   15372
+     \END 
+
+     FILE_ERROR_IS_FATAL .TRUE. ! Stop the job for read or open errors for 
+                                !   Zebra data files
+     ERROR_LIST_FILE     'BAD_EVENTS.D0DADF'
+                                ! D0DAD file containing references to unread
+                                !   events
+     \ARRAY START_TIME  
+      940101 1200         ! Earliest date for runs to read: DATE TIME
+     \END
+     \ARRAY RECO_VERSION  
+      1210  1215          ! Read data RECO'd with versions 12.10 - 12.15
+     \END
+     \ARRAY OMNI_VERSION 
+      30   41             ! Read data from OMNI_FILTER versons 3.0 to 4.1
+     \END
+     \STOP    !   D0DAD_RCP
+   \end{verbatim}
+  \end{center}
+  \centerline{\line(1,0){300}}
+  \vskip 1.0 truecm
+  \caption{An example of the optional RCP file {\em d0dad.rcp}\label{f-RCP}}
+\end{figure}
+
+\section{Computing Luminosity \label{ss-ug-lumi}}
+\par
+The luminosity corresponding to the data referenced in a D0DAD file is computed
+using the standard luminosity utilities GET\_FILE\_LUM.  To use 
+these utilities, the run numbers used in producing the
+stream must be known.  The file { D0\$DATA\$D0DAD:RUN1B\_MDS.FILECAT} is an
+ASCII file containing a list of the files used to produce the master catalog.
+The first line of this file is a header, and the remaining lines are the
+list of files.  This file can be copied and editted to produce the list needed
+by the luminosity utilities.  Each file-entry line contains four fields.  The 
+first field is the Zebra file name and is all that is needed to get the 
+luminosity.  A file is put in the file catalog even if no events are selected
+into D0DAD files, so the file catalog contains the complete list of Zebra 
+files.
+
+\section{Creating Personal D0DAD Streams \label{ss-ug-personal}}
+\par
+\subsection{Creating D0DAD Streams from Run/Event lists \label{sss-ug-personal}}
+Given a file containing run/event number pairs, users can
+create D0DAD files referencing the events.  This section describes the steps
+needed to create the D0DAD file.  The two steps are:
+\begin{center}
+\begin{tabular}{l}
+  \$ d0setup d0dad \\
+  \$ d0dad {\em input\_text\_file output\_d0dad\_file event\_catalog\_file} \\
+\end{tabular}
+\end{center}
+The D0DAD command on the second line takes three filenames as arguments.  The
+first file is a file containing run/event pairs, one pair per line, in a format
+readable by a fortran ``*'' format descriptor.  The second file is the name of
+the new D0DAD output file.  The third file is the name of a master catalog 
+containing the run/event information for the desired input run/event pairs.
+For {\bf run 1a} data the file catalog is 
+{ D0\$D0DAD\$CATALOGS:RUN1A\_MDS.EVTCAT}, and for {\bf run 1b} 
+data the catalog is
+{ D0\$D0DAD\$CATALOGS:RUN1B\_MDS.EVTCAT}.
+These catalogs reference only microDST's.  There are currently no plans to 
+build catalogs for DST's or STA's. 
+
+\par
+If the input text file name is any of ``--'', ``stdin'' or ``SYS\$INPUT'', 
+the run/event
+pairs will be read from the standard input until an end-of-file\footnote{
+On VMS machines, the end-of-file character is ctrl-Z; On unix machines, ctrl-D.}
+is reached.  
+
+\par
+Other catalogs may be created. For example, the catalog TOPMC.EVTCAT contains
+the
+standard decay mixture of $t\overline{t} $ events generated at masses of 120,
+140, 160 and 180 GeV.  All catalogs will be in the D0\$D0DAD\$CATALOGS 
+directory\footnote{On D0 Unix systems, the catalog directory is defined by the
+environment variable d0d0dad\_\_catalogs.}.  D0DAD files are transportable 
+across platforms, so a file written on (e.g.) a Vax can be copied via rcp
+to an SGI and used as is.  The reverse also holds.
+
+\subsection{Creating Streams Based on Bitmasks \label{ss-ug-tstream}}
+\par
+It can be useful to produce a set of streams based on different criteria.  
+Although this can be done by creating a set of run/event text files as described
+in the preceeding section, that method is rather inefficient.  There is a new
+command invoked via: \\
+\centerline{d0dad /mode=text\_stream \it 
+  bitmask\_file bitmask\_defn event\_catalog}
+which produces a set of output d0dad files based on a text file
+defining the correspondance between streams and events. Three files are needed:
+\begin{enumerate}
+\item {\it bitmask\_file} -- This file contains a list of run/event pairs and 
+  the bitmasks defining the streams to which the event belongs.  The format of
+  each line in the list is: \
+  
+  \centerline{         run\# event\# bbbb}
+
+  in which bbbb is a hex bitmask.  A  set bit implies that the event is written
+  to the corresponding stream.  Up to 160 streams may be defined and the entries
+  must be sorted by run/event. 
+
+
+\item {\it bitmask\_defn} -- This is a file which contains one line for each bit
+  used.  The line contains the d0dad file name.  If no output file is desired
+  for a given bit, the corresponding line must be blank.  For example if
+  bit \#1 is used to create a file called BIT1.D0DADF, bit 2 is unused, bit \#3
+  is used to create/update a file called BIT3.D0DADF and bit \#4 is used to
+  create/update file called BIT4.D0DAD, the bitmask definition text
+  file would be:
+\begin{verbatim}
+         BIT1.D0DADF
+                                          <-- Blank line in file
+         BIT3.D0DADF
+         BIT4.D0DADF
+\end{verbatim}
+
+\item {\it event\_catalog} --  The event catalog defined as for the preceeding
+  section
+\end{enumerate}
+
+\section{Creating DST's from D0DAD Streams.\label{ss-ug-copy}}
+\par
+It is also possible to invert the process of creating D0DAD files from Zebra
+files.  The following two commands\footnote{The D0SETUP D0DAD command is 
+necessary only once for each login window.} will create a Zebra file called
+{\em mydata.mds} from the d0dad file called {\em d0dad\_file.d0dadf}:
+\begin{center}
+\begin{tabular}{l}
+   \$ d0setup d0dad \\
+   \$ d0dad /mode=copy {\em d0dad\_file.d0dadf mydata.mds} \\
+\end{tabular}
+\end{center}
+
+\par
+The additional command line options ``/run=\#'' and ``/event=\#' can be added
+to the d0dad command to select a single run or event or a single range of runs
+or events within a run.  For example, the command
+\begin{center}
+\begin{tabular}{l}
+    \$d0dad /mode=copy /run=58203 {\em all\_runs.d0dadf r58203}
+\end{tabular}
+\end{center}
+will create a $\mu$DST file called {\em r58203} containing the events from 
+run 58203 found in the d0dad file {\em all\_runs.d0dadf}.  The allowed formats 
+of these options are:
+\begin{center}
+\begin{tabular}{ll}
+  /run=r1      & Select events in run number r1  \\
+  /run=r1--r2  & Select events in run numbers r1 to r2 inclusive \\
+  /event=r1    & Select events having event number r1   \\
+  /event=r1--r2 & Select events having events numbers r1 to r2 inclusive \\
+\end{tabular}
+\end{center}
+These options may be used together to select a subset of events from a set
+of runs.  The command
+\begin{center}
+\begin{tabular}{l}
+\$ d0dad /mode=copy /run=58203 /event=4980 ...
+\end{tabular}
+\end{center}
+will select only event 4980 in run 58203.
+
+\section{Formatted Printout Utility\label{ss-ug-utils}}
+\par
+Because the D0DAD event catalogs and d0dad files are binary data,\footnote{The 
+file catalogs are in ascii format.}
+a formatted dump utility has been written.  The command
+\begin{center}
+ \$ d0dad /mode=dump {\em file\_name}
+\end{center}
+will print an ascii summary of the file {\em file\_name}.  Here 
+{\em file\_name} is the name of either an event catalog or a d0dad file.  
+In addition to the /event and /run options as
+described above, this command also accepts 
+the /event option without any event number.
+In this case, the summary listing is changed to include information for every
+event in the catalog or d0dad file.
+
+
+\end{document}
+
+
+
+
+

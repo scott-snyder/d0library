@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VD0DAD()
+      VD0DAD = ' D0DAD'//
+     X                   '  OFFICIAL V1.02'//
+     X                   ' 11-JUL-1997 11:20:16.99'
+      Return
+      End

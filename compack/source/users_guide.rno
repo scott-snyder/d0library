@@ -1,0 +1,320 @@
+.ap
+.p 2 1 2
+.style headers 3,0,6,3,7,4,2,9,3
+.layout 1,3
+.no headers
+##
+.b 2
+.lm 5
+.rm 75
+.c
+COMPACK,
+.b
+.C
+A Command Input Package for Interactive Programs.
+.b 1
+.C
+Users Guide.
+.b
+.c
+Software Version 4.20
+.b 1
+.c
+J. S. Hoftun
+.c
+Brown University
+.flags substitute
+.c ;31 May 1989
+.hl Starting \a program
+ A program written using COMPACK as the user interface, will in most cases be
+installed as a "foreign" command under VMS which means that you just type the
+program name with possible qualifiers to start it up. 
+ The qualifiers which may be useful are: 
+.b 2
+.lm +10
+.i -7;/FULLSCREEN:
+.br;The program starts up in full screen mode.
+.b 1
+.i -7;/NOCONFIRM:
+.br;When EXIT is requested, the program will NOT ask for a confirmation. 
+.b 1
+.i -7;/COMMAND=fname:
+.br;The program will read a command file 'fname'# when it starts up. 
+The default file type is '.INP'.
+This file may be set up inside the program as described later.
+.b 1
+.i -7;/NOSMG:
+.br;To make sure Screen Managment Guideline (SMG) routines are NOT used to 
+do screen I/O. This is useful when you want to debug your part of a program.
+The interrupt menu will work in this mode. 
+.b 1
+.i -7;/SPLIT:
+.br;Start the program up with the split screen mode already set up. The
+default number of lines will be used for the upper message area. 
+.pg
+.b 1
+.i -7;/STATUS:
+.br;Start the program up with the status display already present. The
+default number of lines (3) will be used for the upper status area. 
+.b 1
+.i -7;/USER=(par1,par2...):
+.br;If special input parameters are needed, the programmer will have
+included code to interpret the parts of the parameter list in this
+qualifier. 
+.test page 12
+.b 2
+.lm -10
+ A single command may be performed directly from the VMS prompt by typing the 
+command string directly following the program name. The program will then 
+perform that command if possible, and exit immediately. This way of running 
+the program may be combined with the /COMMAND qualifier described above and/or
+the command itself may run a command file. 
+.tp 10
+.hl Normal operation.
+ Besides a possible split screen mode and/or a status display on top, the
+program will be in one of two modes when it starts: 
+.b 2
+.lm +10
+.i -7;LINE MODE:
+.br;The program will issue a menu title line and a prompt line indicating
+which commands are available at that level. The captilatized choices are
+special control commands. If you are on a VT100 compatible terminal, pushing
+one of the PF keys will also issue one of the control commands where PF2 is
+HELP, PF3 toggles LINE and MENU mode and PF4 is EXIT or BACK (back one level).
+On a VT200-series terminal the DO key and the HELP key will work as PF1 and
+PF2 respectively. Parameters for a command may be entered directly on the
+command line (strings should be enclosed in double-quotes(")), any missing
+parameters will be prompted for. The parser will compare the entered line to
+the beginning of commands as it appears in the menu when deciding if it was a
+valid command. This means that only enough characters to make the command
+unique have to be typed. 
+ To go down to a sublevel and perform a single command there, the delimiter 
+character ';' may be used. Several such commands may be nested. If the last 
+command in the chain is a simple command, the program will remain at the 
+original level, otherwise it will stay at the sublevel where it ended up.
+ Commands are saved in a recall buffer and you may move around in that buffer
+using the "up-arrow" or "down-arrow" keys just like normal under VMS. This
+may be done at ANY parameter or command prompt, and parameter entries are
+saved just like command entries. You may use arrow keys, DELETE key, CTRL-E
+key etc. to edit the command line before returning it to the program. This
+is very useful if you want to enter a series of very similar commands or
+parameters.
+.test page 10
+.b 2
+.i -7;MENU MODE:
+.br;The menu part of the screen will consist of the the top title 
+line, the bottom key label line and the middle, menu scrolling region.
+Commands are chosen by moving the arrow-like cursor (using the cursor moving
+keys) to the desired item and using the key 
+indicated on the label line to execute the command (DO) or get help (HELP) for
+that command (labels correspond to PF1-PF4 on the VT100 keypad, DO and HELP are
+also separate keys on a VT200-series keyboard). Notice that
+the key labels may change as you go down to other levels. Once 'inside' a
+command, parameters will either be prompted for or a full screen mode will be 
+used to change only selected parameters. Notice that the PF keys are still
+active at this level, i.e you may get help or abort a command by using the
+appropriate PF key. Some commands may offer its own menu of choices before
+actually performing its task. 
+.lm -10
+ Typing the word MENU (or enough of it to make it unique) at the LINE MODE
+prompt will switch the program to MENU MODE. In MENU MODE, hitting PF3 will
+take you to LINE MODE (PF3 also works as MENU in LINE MODE).
+.hl Special parameter entry mode.
+ Some action routines will use a method of asking for parameters where only 
+selected ones may be changed.
+ In MENU MODE, a full screen display much like the menu itself will appear.
+The left hand side of the screen contains a set of high-lighted labels and the
+right hand side contains the current values for the parameters. You may move
+the cursor to the desired item and EDIT the current value just like one edits
+the command line in VMS. (DELETE, BACKSPACE, OVERSTRIKE, INSERT MODE, and
+CTRL/E all work.) For character-string parameters one cannot enter more than
+the number of characters which fits on the line. The changes made does NOT
+take effect until one exits from the display by hitting PF1. PF4
+will abort the entering of parameters WITHOUT saving any of them (after a
+confirm via PF1). 
+ In LINE MODE, a similar page is displayed, but one here has to type the 
+number of the parameter one wants to change and the new value after a space 
+character. 
+These changes take effect when BACK is typed, ABORT may be used to return
+without making any changes.
+.hl Special options entry mode.
+ Some action routines will use a method of asking for parameters by
+presenting a set of options to choose from.
+ In MENU MODE, a full screen display much like the menu itself will appear.
+The left hand side of the screen contains a set of labels and the
+right hand side contains the available options for each parameter. You may move
+the cursor to the desired item with the 'up-arrow' or 'down-arrow' keys and
+select the desired option with the 'left-arrow' or 'right arrow' keys. If
+the option list wraps to more than one line, the left-arrow and
+right-arrow keys will wrap in the same manner. If only one parameter with
+many options is being asked for, the up-arrow and down-arrow keys will
+move up and down one line at a time as in the normal menu display.
+The changes made does NOT take
+effect until one exits from the display by hitting PF1. PF4
+will abort the entering of parameters WITHOUT making any changes (after a
+confirm via PF1). 
+ In LINE MODE, a similar page is displayed, but here one has to type the 
+number of the parameter one wants to change and the new NUMBER of the
+option one wants to choose. One space must separate the two numbers.
+These changes take effect when BACK is typed, ABORT may be used to return
+without making any changes.
+.hl Special array display mode.
+ Some application programs may use a special table display facility to output
+arrays of numbers or character strings on the screen. In MENU mode one may
+use the up and down cursor keys to move around in the display as well as
+using PF1 to get the NEXT full page of numbers. The page will always be as
+full as possible. In LINE mode a prompt will be issued after each full
+page, with the only two possible choices being the next page and BACK.
+When the whole array has been displayed, a BACK will be done
+automatically. 
+.hl Special editor display mode.
+ Some application programs may use an editor (under VAX/VMS the standard
+EVE editor will be used) to display information which may take up many
+pages. An EXIT from the editor (CTRL-Z for EVE) will bring the provious
+menu display back on the screen again.
+.hl Mode \without menu \or prompt display.
+ To make it possible to have special displays (like graphics output) stay on 
+the screen when a command action routine finishes, the menu will sometimes not
+be immediately displayed again. The PF-label line will appear in MENU MODE
+with PF4 labelled as 'MENU'. This key as well as any other valid MENU MODE key
+will put the menu back on the screen. In LINE MODE no prompt will appear, but
+a <CR> will bring it back. This feature is normally only used in interrupt
+menus. 
+.hl Handling \of broadcast messages.
+ When a broadcast message (new MAIL, reply from another user, hitting CTRL-T) is
+sent to the terminal, the program will trap the message and display it on the
+upper half of the split screen. If not currently in a split screen mode, the
+program will be forced into such a mode. See below for how to easily switch
+between the split and non-split modes. 
+.hl Switching \between SPLIT screen and NON_SPLIT screen modes.
+ The ENTER key on the far lower right on the VT keypad is activated to toggle
+between the two modes.
+.hl Switching \on \and \off  STATUS display.
+ The KEYPAD 0 key on the lower left of the VT keypad is activated to toggle
+between the two modes.
+.hl Use \of CTRL-R \and CTRL-W.
+ When a program is in SMG mode (on VT terminals and not started with /NOSMG),
+ CTRL-R and CTRL-W will refresh the screen. This is useful when using multiple
+ sessions on a LAT or in other cases when the screen gets messed up.
+.hl Exiting \from \a program.
+ In the top level of MENU MODE the label for PF4 is EXIT (in sublevels it
+is labelled BACK and then takes you up one level in the tree). Hitting PF4
+will then (after a possible confirm with PF1) exit the program.
+.hl+1 Special use \of CTRL-Y \and CTRL-C.
+ When a program is in MENU MODE, the normal VAX cursor will not be visible
+on the screen. To avoid having it stay invisible when you for some reason
+exit the program by using a CTRL-Y or a CTRL-C, a special mode has been
+implemented. When a CTRL-Y or a CTRL-C is struck, the screen will be cleared
+and you will be asked to confirm that you really want to exit. Notice that
+this ONLY occurs in MENU MODE and that you CANNOT continue or debug the
+program after it exits.                                  
+.hl-1 Standard  commands
+ There is a set of commands built into the system which may or may not show up 
+in a program, either at top level or in any of the submenus. They are:
+.b 2
+.lm +10
+.i -7;SET UP COMMAND FILE:
+.br;The program will first ask for the name of the
+command file you want to create (do NOT use any file type in this name, the
+program uses .INP internally), and then present the menu or prompt for a command
+again indicating either below the title line (MENU MODE) or by typing 
+before the prompt line that you are in the SET UP MODE. Parameters will be
+prompted for as before, but the values are written to the command file instead
+of being used to perform the command. You exit from SET UP MODE by using the 
+control command EXIT or BACK (PF4) at the level where you started the SET UP 
+MODE. The program will then be back at that same level, ready for a new 
+command. While in an Interrupt Menu, this recording of commands and parameters
+is turned off. 
+.b 1
+.i -7;START LOGGING TO FILE:
+.br;The program will ask for the name of the                   
+command file you want to create (do NOT use any file type in this name, the
+program uses .INP internally), and then continue the program as normal, just 
+indicating either below the title line (MENU MODE) or by typing 
+before the prompt line that you are in the LOGGING MODE. Parameters will be
+written to the command file as well as being used to perform the command. You 
+may stop the logging mode by using the STOP LOGGING TO FILE command at ANY 
+level (up or down from where logging was started). While in an Interrupt Menu,
+this recording of commands and parameters is turned off.
+.b 1
+.i -7;STOP LOGGING TO FILE:
+.br;The program will end the LOGGING MODE and close the file with the saved 
+commands. This file may then be used as an input command file in the same or 
+in a later session.
+.b 1
+.i -7;RUN COMMAND FILE:
+.br;The program will either look for a name of a command 
+file (set up as indicated above) on the command line or present a menu of
+available files for you to choose from. It will then read commands from the
+chosen file until it reaches the end of the file. 
+.b 1
+.i -7;TOP MENU:
+.br;The program will go back to the top level menu from any sublevel.
+.b 1
+.i -7;SPLIT SCREEN:
+.br;The program will first ask for how many lines to use for the split screen,
+(3 is minimum because it needs two lines for the border around the split
+screen region, the prompt will indicate the maximum to have enough room for the
+MENU MODE. Messages etc. will then appear on the upper half of the screen, menu
+activity on the bottom half. 
+.b 1
+.i -7;SINGLE SCREEN:
+.br;The program will go back to a single display mode after being in SPLIT
+SCREEN MODE.
+.b 1
+.i -7;STATUS SCREEN:
+.br;The program will first ask for how many lines to use for the status
+display, 
+(3 is minimum because it needs two lines for the border around the split
+screen region, 5 is maximum to have enough room for the MENU MODE and a posible
+SPLIT SCREEN.
+Special status messages etc. will then appear in this display.
+.b 1
+.i -7;DIRECTORY FOR COM-FILES:
+.br;The program will ask for a directory specification to be used when
+reading command files. This specification may be overridden by including a
+directory specification when typing the command file name directly on the
+command line. 
+.b 1
+.i -7;ADD MENU ITEM:        
+.br;This command will prompt for the name of the command to be 
+added (which will appear as the menu item for this command) 
+and then for the actual VMS command to be executed
+when this command is entered. Some restrictions apply as to which commands may be
+used; see help information inside the program for details.
+These added commands stay around only as long as the program is running. For
+adding more permanent commands, use the startup command file as described above
+or talk to the keeper of the program to implement a new command permanently.
+.b 1
+.i -7;CHANGE COLUMNS IN MENU:
+.br;The program will prompt for the number of columns 
+to use in the menu display. Any number of columns from 1 and upwards may be
+used. The items will be truncated to fit in the available space.
+.b 1
+.i -7;CHANGE SPACING IN MENU:
+.br;The program will prompt for the line spacing to be used 
+in the menu display. Any spacing between 1 and 3 may be
+used. 
+If there are more commands than will fit on the screen, the menu will scroll
+with a sign indicating in which direction there are more commands. 
+.b 1
+.i -7;SPAWN SUBPROCESS:
+.br;The program will create a subprocess for you to do any
+VMS work in. An additional subprocess is used to put a little reminder in
+the upper right hand corner of the screen. To leave the subprocess use 
+the standard LOGOUT command. After leaving the subprocess you will be back 
+in the program you created it from. This command sometimes runs into
+'quota' problems.
+.b 1
+.i -7;CONTROL OF MENU:
+.br;In many programs the above commands will appear in a separate submenu,
+usually labelled by CONTROL OF MENU as a command at any other level.
+.lm -10
+.test page 15
+.hl Short-hand notation
+ Some commands have short hand equivalents which may be used in LINE MODE.
+They are similar to the VMS use of the same symbols. They are:
+.list 1 " "
+.le;?###Equivalent to HELP.
+.le;@###Equivalent to RUN COMMAND FILE.
+.end list

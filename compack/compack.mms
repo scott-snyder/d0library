@@ -4,7 +4,7 @@
 !
 ! Purpose   : Update target: COMPACK.TSP
 !
-! Created  15-JUL-97   11:58:05  USERLIB V6.00 18-FEB-1991
+! Created  13-AUG-97   10:08:45  USERLIB V6.00 18-FEB-1991
 !------------------------------------------------------------
 !
 

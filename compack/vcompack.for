@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VCOMPACK()
       VCOMPACK = ' COMPACK'//
-     X                   '  OFFICIAL V4.33'//
-     X                   ' 15-JUL-1997 11:57:46.16'
+     X                   '  TEST V4.33_01'//
+     X                   ' 13-AUG-1997 10:08:30.03'
       Return
       End

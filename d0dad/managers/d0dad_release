@@ -1,0 +1,79 @@
+#! /bin/csh -f
+source `uff $d0unix/d0local.cshrc`
+###############################################################################
+#
+# Name:  d0dad_release
+#
+# Purpose: UNIX release script to build d0dad management code.
+#
+# Usage Notes:
+#
+# 1.  This script should be executed from the top directory of the
+#     d0dad library section.
+#
+# 2.  This script should be released via the VMS d0library release procedures
+#     in the source group of the d0dad library section.
+#
+# Created 29-Mar-1994  John D Hobbs
+# Modified 06-Jan-1994 John D. Hobbs - Get d0dad.o from d0dad libraries
+#
+##############################################################################
+#
+# Build d0dad executables
+#
+
+tasteofd0 $D0FLAVOR < source/d0dad.for | vmstounix >source/d0dad.f
+tasteofd0 $D0FLAVOR < source/event_scan.for | vmstounix >source/event_scan.f
+
+# Optimized versions...
+
+$f77 $f77flags $optflags -c source/d0dad.f
+$f77 $f77flags $optflags -c source/event_scan.f
+$cc $ccflags $optflags -c source/check_newruns.c
+
+$f77 $ldflags -o d0dad.x d0dad.o \
+  `uff $d0offline_util/offline_util.a` \
+  `uff $d0general/general.a` \
+  `uff $d0unix/unix.a` \
+  `uff $d0cernlib/packlib.a` \
+  `uff $d0cernlib/kernlib.a` \
+  $syslibs
+
+$f77 $ldflags -o event_scan.x event_scan.o \
+  `uff $d0offline_util/offline_util.a` \
+  `uff $d0general/general.a` \
+  `uff $d0unix/unix.a` \
+  `uff $d0cernlib/packlib.a` \
+  `uff $d0cernlib/kernlib.a` \
+  $syslibs
+
+$cc $lccflags -o check_newruns check_newruns.o
+
+# Debug versions...
+
+$f77 $f77flags $debflags -c source/d0dad.f
+$f77 $f77flags $debflags -c source/event_scan.f
+$cc $ccflags $debflags -c source/check_newruns.c
+
+$f77 $ldflags -o deb_d0dad.x d0dad.o \
+  `uff $d0offline_util/deb_offline_util.a` \
+  `uff $d0general/deb_general.a` \
+  `uff $d0unix/deb_unix.a` \
+  `uff $d0cernlib/packlib.a` \
+  `uff $d0cernlib/kernlib.a` \
+  $syslibs
+
+$f77 $ldflags -o deb_event_scan.x event_scan.o \
+  `uff $d0offline_util/deb_offline_util.a` \
+  `uff $d0general/deb_general.a` \
+  `uff $d0unix/deb_unix.a` \
+  `uff $d0cernlib/packlib.a` \
+  `uff $d0cernlib/kernlib.a` \
+  $syslibs
+
+$cc $lccflags -o deb_check_newruns check_newruns.o
+
+rm *d0dad.o *event_scan.o *check_newruns.o >& /dev/null
+
+cp managers/setup_d0dad.csh .
+cp source/d0dad.rcp .

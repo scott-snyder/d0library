@@ -1,0 +1,75 @@
+      PROGRAM D0DAD
+C-------------------------------------------------------------------------
+C  Master control program for maintaining D0Dad datasets.  
+C
+C  Author:  John D. Hobbs
+C  Date:     1-NOV-1993
+C
+C-------------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE  'D0$INC:d0dadcom.inc'
+      INCLUDE  'D0$INC:d0dad.inc'
+C
+      INTEGER IDOPT,IERR,IFLAG
+      CHARACTER CMDLIN*1024,CDUMMY*132
+C
+C  Initialize (include parsing command line)...
+C
+      IFLAG=0
+      CALL LIB$GET_FOREIGN(CMDLIN,%VAL(0),%VAL(0),IFLAG)
+      CALL D0DAD_INIT(CMDLIN,IDOPT,IERR)
+      IF( IERR.NE.0 ) GOTO 999
+C
+C  Do the processing based on the /mode=XXXXXX qualifier...
+C
+      IERR=0
+      IF( IDOPT.EQ.IMRCP ) THEN
+         CALL D0DAD_RCPSCAN(FZBNAM,FUENAM,UECOPT,IERR)
+      ELSE IF( IDOPT.EQ.IMSCAN ) THEN
+         CALL D0DAD_SCAN(FZBNAM,FUENAM,UECOPT,IERR)
+      ELSE IF( IDOPT.EQ.IMUPDT ) THEN
+         CALL D0DAD_UPDATE(FUENAM,FECNAM,FFCNAM,IERR)
+      ELSE IF( IDOPT.EQ.IMSTRM) THEN
+         CALL D0DAD_STREAM(FECNAM,ISTBIT,FDFNAM,DFCOPT,IERR)
+      ELSE IF( IDOPT.EQ.IMUSER ) THEN
+         CALL D0DAD_USER(FZBNAM,FDFNAM,FECNAM,DFCOPT,IERR)
+      ELSE IF( IDOPT.EQ.IMCOPY ) THEN
+         CALL D0DAD_FXCOPY(FDFNAM,FZBNAM,IERR)
+      ELSE IF( IDOPT.EQ.IMCREA ) THEN
+         CALL D0DAD_CREATE(FZBNAM,IERR)
+      ELSE IF( IDOPT.EQ.IMDUMP ) THEN
+         CALL D0DAD_DUMP(FZBNAM,IERR)
+      ELSE IF( IDOPT.EQ.IMXLAT ) THEN
+         CALL D0DAD_XLATE(FFCNAM,FZBNAM,IERR)
+      ELSE IF( IDOPT.EQ.IMTEST ) THEN
+         CALL D0DAD_TESTDF(FDFNAM,FFCNAM,IERR)
+      ELSE IF( IDOPT.EQ.IMCHEK ) THEN
+        CALL D0DAD_CHECK(FZBNAM,IERR)
+      ELSE IF( IDOPT.EQ.IMINFO ) THEN
+        CALL D0DAD_INFO(FUENAM,FZBNAM,IERR)
+      ELSE IF( IDOPT.EQ.IMFIX ) THEN
+        CALL D0DAD_REPAIR(FECNAM,IERR)
+      ELSE IF( IDOPT.EQ.IMEDIT ) THEN
+        CALL D0DAD_EDIT(FZBNAM,EDSTRING,IERR)
+      ELSE IF( IDOPT.EQ.IMTSTR ) THEN
+        CALL D0DAD_TEXT_STREAM(FZBNAM,FDFNAM,FECNAM,IERR)
+      ELSE IF( IDOPT.EQ.IMMERG ) THEN
+        CALL D0DAD_MERGE(FNTEXT,FECNAM,IERR)
+      ELSE
+         WRITE(*,*) ' Unknown command line option.  Quit'
+         CALL EXIT(IDOPT)
+      ENDIF
+C
+      IF( LDDBG.GT.4 ) THEN
+        WRITE(6,*) '  '
+        CALL ERRSUM(6)
+      ENDIF
+C
+C&IF VAXVMS
+      IERR=ABS(IERR)+1
+C&ENDIF
+ 999  CONTINUE
+      IERR=ABS(IERR)
+      CALL EXIT(IERR)
+      END
