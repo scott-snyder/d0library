@@ -1,0 +1,171 @@
+        SUBROUTINE PCJET1
+C-
+C-   Purpose and Methods : SET UP lego PLOT for one jet in JETS bank
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Modified 29-JAN-1991   N. Oshima( Adds PC_SET_CAPH )
+C-   Created  21-MAR-1989   S. Hagopian
+C-   Updated  22-FEB-1991   Lupe Howell  Implementing PIXIE using COPACK 
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C----------------------------------------------------------------------
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$LINKS:IZJPTS.LINK'
+      INCLUDE 'D0$PARAMS:CAL_OFFLINE.PARAMS'
+      INTEGER LENGTH
+      INTEGER IMARK
+      INTEGER IJET,NJET,IHIT
+      INTEGER IL,IP,IE,I, IETA
+      INTEGER INDCES,NCH
+      INTEGER LJETS,LJPTS,LCAEH
+      INTEGER GZCAEH,GZJETS
+      INTEGER INX,NREP
+      REAL    ENER,ET
+      REAL    ARRAY1(NPHIL,2*NETAL),ARRAY2(NPHIL,2*NETAL)
+      INTEGER NX,NY, TYP
+      REAL XMIN,XMAX,YMIN,YMAX,ZMAX
+      INTEGER NXMIN,NYMIN,N
+      INTEGER NXG,NYG,IER,II,JJ
+      REAL ZSCAL
+      REAL EMIN   ! MINIMUM ENERGY/CELL  TO APPEAR IN LEGO PLOT
+      LOGICAL CALPLOT,EZERROR
+C-
+      CHARACTER*4  PATH,CNUM
+      CHARACTER*3  COL1,COL2
+      CHARACTER*24 XLAB,YLAB,ZLAB
+      CHARACTER*32 PLTITL
+      CHARACTER*80 STRING
+      CHARACTER*19 STR1
+      CHARACTER*30 PROM1,MESS1,MESS2
+      CHARACTER*17 MESS3,MESS4
+      CHARACTER*48 MESS5
+C-
+      DATA IMARK/0/
+      DATA COL1,COL2/'RED','CYA'/   
+      DATA PROM1/'Enter JET index to be plotted '/
+      DATA MESS1/'Error - cannot read JET index '/
+      DATA MESS2/'PCJET1- Bank does not exist   '/
+      DATA MESS3/'Number of jets = '/
+      DATA MESS4/'(Jet 0 GEAN only)'/
+C----------------------------------------------------------------------
+      CALL PATHGT(PATH)
+      CALL EZPICK('PX_CALDIS_RCP')
+      IF ( EZERROR(IER) ) THEN
+        CALL ERRMSG('PIXIE','PCJET1','Cannot find PX_FDCDIS_RCP','W')
+        GOTO 999
+      ENDIF
+C-
+      IF (PATH .EQ. 'RECO') THEN
+        CALL PC_SET_CAPH('JETS',IER)
+        IF (IER .NE. 0)      GO TO 900
+      ENDIF
+C-
+      LJETS = GZJETS()
+      IF (LJETS. LE. 0)      GO TO 900
+      LCAEH = GZCAEH()
+      IF (LCAEH. LE. 0)      GO TO 900
+      NREP = IQ(LCAEH+2)
+C PRINT OUT NUMBER OF jets BANKS
+      CALL GTNJET(LJETS,NJET)
+      IF(PATH .EQ. 'GEAN')   NJET=NJET-1
+      CALL PXITOC(NJET,4,CNUM)
+      IF(PATH .EQ. 'GEAN') THEN
+        MESS5=MESS3//CNUM//MESS4
+      ELSE
+        MESS5=MESS3//CNUM
+      ENDIF
+      CALL PUMESS(MESS5)
+C CHOOSE JET index
+      IJET=1
+      CALL GETPAR(1,PROM1,'U',STRING)
+      CALL SWORDS(STRING,II,JJ,LENGTH)
+      IF(LENGTH.NE.0)THEN
+        READ(STRING(1:LENGTH),*,ERR=700) IJET
+      ENDIF
+      CALL PUMESS(STRING)
+C Get minimum energy for cell to be plotted
+      CALL PUGETV('CALEGO EMIN',EMIN)
+      IF(PATH .EQ. 'GEAN') THEN
+        NJET=-1
+      ELSE
+        NJET=0
+      ENDIF
+      CALL VZERO(ARRAY1,NPHIL*2*NETAL)
+      CALL VZERO(ARRAY2,NPHIL*2*NETAL)
+   20 IF(LJETS.LE.0)GO TO 150
+      LJPTS=LQ(LJETS-IZJPTS)
+      IF(LJPTS.LE.0)GO TO 150
+      NCH=IQ(LJPTS+2)
+      IF(NCH.LE.1)GO TO 150
+      NJET=NJET+1
+      IF(IJET.NE.NJET)GO TO 21
+        DO 100 I=1,NCH
+        IHIT=NREP*(IQ(LJPTS+I+2)-1)
+        INX=LCAEH+IHIT
+        IE=IQ(INX+12)
+        IP=IQ(INX+13)
+        IL=IQ(INX+14)
+        ET=Q(INX+8)
+        IF(ET.LE.0)GO TO 100
+          IF(ET.LE.0.OR.IL.GT.MXLYCH) GO TO 100
+  703 FORMAT(' IE=',I3,' IP=',I3,' IL=',I3,' ET=',F8.2)
+        IF(IE.LT.0)THEN
+           IETA=IE+NETAL+1
+        ELSE
+           IETA=IE+NETAL
+        ENDIF
+        IF(IL.GE.MNLYEM.AND.IL.LE.MXLYEM) THEN
+          ARRAY1(IP,IETA)=ARRAY1(IP,IETA)+ET
+        ELSEIF(IL.GE.MNLYFH.AND.IL.LE.MXLYFH) THEN
+          ARRAY2(IP,IETA)=ARRAY2(IP,IETA)+ET
+        ELSEIF(IL.GE.MXLYCH.AND.IL.LE.MXLYCH)THEN
+          ARRAY2(IP,IETA)=ARRAY2(IP,IETA)+ET
+        ENDIF
+  100   CONTINUE
+C GO TO THE NEXT JET BANK
+   21 LJETS=LQ(LJETS)
+      GO TO 20
+  150 CONTINUE
+C GET MINIMUM ENERGY FOR CELL TO BE PLOTTED
+C      CALL PUGETV('CALEGO EMIN',EMIN)
+      NY=NETAL*2
+      NX=NPHIL
+      YMIN=-NETAL
+      YMAX=NETAL
+      XMIN=1.
+      XMAX=NPHIL
+      ZMAX=-1.
+      PLTITL='JETS ETA-PHI'
+      XLAB='PHI'
+      YLAB='ETA'
+      ZLAB='E'
+      NXMIN=1
+      NYMIN=1
+      NXG=1
+      NYG=1
+      N=NX
+      ZSCAL=.2
+      CALPLOT = .FALSE.                 ! Cal Plot ET
+      CALL P2LEGO(NX,XMIN,XMAX,NY,YMIN,YMAX,EMIN,ZMAX,PLTITL,
+     X     XLAB,YLAB,ZLAB,COL1,COL2,ARRAY1,ARRAY2,
+     X     NXMIN,NYMIN,NXG,NYG,N,ZSCAL,IMARK,CALPLOT)
+      WRITE(STR1,200) EMIN
+  200 FORMAT('CALEGO EMIN= ',F6.2)
+      CALL PCTEXT(2,STR1)
+      GO TO 999
+  700 CALL PUMESS(MESS1)
+  900 CALL PUMESS(MESS2)
+C-
+C---  RESET CAPH
+C-
+  999 IF (IER .EQ. 0) THEN
+        CALL PC_RESET_CAPH
+      ENDIF
+C-
+      CALL EZRSET
+      RETURN
+      END

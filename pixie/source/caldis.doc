@@ -1,0 +1,507 @@
+
+ +-------------+
+ | PIXIE V3.7  |
+ |  N. Oshima  |
+ | 15-FEB-1993 |
+ +-------------+
+
+                  CALDIS - CALORIMETER DISPLAY 
+
+
+     CALDIS is the D0 calorimeter display package. It displays calorimeter
+ cells in 2-D and 3-D,  makes energy histograms in divisons of ETA or PHI,
+ and makes LEGO plots of E or Et in bins of ETA and PHI. CALDIS is part of
+ the PIXIE library, which can be run in various frameworks.  Hooks are set
+ up for PIXIE in each Frames( D0USER, EXAMINE2 and CALOR_OFF ).
+     The calorimeter displays  can be run separately with only CALOR_OFF's
+ package, CAHITS but it is recommended that you set up  ALL_DISPLAY_D0USER
+ since you will  be able to display  not only CALDIS  but also COMBDIS for
+ combined view  of each detector,  and  sub-detector displays of CDC, FDC,
+ MUON, SAMUS, TRD and also the ZTRAKS tracking display( See  separate  DOC
+ files ). 
+     The D0 Event Display uses the same menu system,  COMPACK,  as D0USER,
+ EXAMINE2 and CALOR_OFF. The viewing screen and interactive parameters are
+ stored in PX_CALDIS.RCP for  the calorimeter displays,  PX_CDCDIS.RCP for
+ the  CDC displays(CDCDIS), etc.  The  combined view displays(COMBDIS) and
+ parameters to override individual detector display parameters  are stored
+ in PX_COMBDIS.RCP.
+
+
+I. GETTING ALL_DISPLAY_D0USER
+
+
+ A. Use standard LINK file in D0LIBRARY:
+
+    1. $LIBTEST PIXIE,D0USER
+
+    2. $@D0$D0USER:ALL_DISPLAY_D0USER.LNK DI3000
+        or copy LINK file to your directory and modify it as desired.
+
+    3. $@D0$D0USER:ALL_DISPLAY_D0USER ! to set up needed RCP logicals
+
+    4. $@D0$D0USER:EVENT_DISPLAY ! to setup needed STP files and DI3000 
+                                   drivers.
+       ( See D0$DOCS:DI3000_GUIDE.DOC about type of device driver )
+
+     5. $RUN ALL_DISPLAY_D0USER
+
+ B. Execute the Program Builder.
+
+    $ PBD/frame=D0USER/package=ALL_DISPLAY%/name=ALL_DISPLAY-
+          /zebcom=1400000/ZEBSTP=800000
+
+   The program builder generates following files.
+        ALL_DISPLAY_COMBINED_PACKAGES.PBD
+        ALL_DISPLAY_D0USER.COM
+        ALL_DISPLAY_D0USER.FOR
+        ALL_DISPLAY_D0USER.LNK
+        ALL_DISPLAY_D0USER.OBJ
+        DEB_ALL_DISPLAY_D0USER.OBJ
+
+
+II. Link: Execute ALL_DISPLAY_D0USER.LNK
+
+   Remember to set up the DI3000 logicals before LINKING:
+
+   You can make your EXE file as you like by one of following commands.
+    $ @ALL_DISPLAY_D0USER.LNK DI3000       - Non debug DI3000 version 
+    $ @ALL_DISPLAY_D0USER.LNK DI3000 DEBUG - Debug DI3000 version
+    $ @ALL_DISPLAY_D0USER.LNK EASDI3       - Evans&Sutherland emulator 
+                                             version
+    $ @ALL_DISPLAY_D0USER.LNK UISDI3       - UIS(DEC VWS) emulator version
+
+
+III. Set up and Execute ALL_DISPLAY_D0USER.EXE
+
+   *** The DI3000 logicals should be set up. ***
+
+   The sharable version of DI3000 should be requested by the command:
+
+    $ DISETSHR EXT HI 
+
+  a) To set up ALL_DISPLAY_D0USER environment and logicals, you need to 
+    execute these two COM files.
+
+    $ @ALL_DISPLAY_D0USER.COM  - Define logicals and RCP files
+    $ @D0$D0USER:EVENT_DISPLAY - Define STP files, Input data type and
+                                 DI3000 Drivers.
+   The first driver should correspond to the type of terminal you are 
+   logged on to; the second one to a hardcopy device[ e.g. PST ].
+
+  b) To execute ALL_DISPLAY_D0USER.EXE, just type,
+    $ D0USER
+
+   Select the menu "Event Displays" from the D0USER SETUP Menu.   You will
+   receive following questions from this menu.
+  
+    - How many events to display (<20)? [1] > (RET)
+
+    - Give Run# and Event#.
+      If Run#<0, first event read is displayed.
+
+      If Event#<0, first event of Run# is displayed.
+
+      To display consecutive events use the Next Event feature
+
+      in the Event Display menu.
+
+      Run no.> -1 (RET)
+
+      Event no.> -1 (RET)
+
+   You are return to the D0USER SETUP Menu again,  select "Manual Process"
+
+    - Store histograms ? 0=NO, 1=after each run, 2=end of job only > 0 (RET)
+
+    -  Will you be reading files from tape? [N]> (RET)
+
+      If you give wild card all files with given string are processed
+
+      but option Manual Process will stop after N events requested.
+
+      If name of input file is NONE no file will be open.
+
+    - Name of input file > USR$SCRATCH:[OSHIMA]MY_STA_FILE.GEN (RET)
+
+    - Is input file in exchange mode? [N]:> (RET)
+
+    - Process all events for remaining runs? Y/N > Y (RET)
+
+
+   Here we are! Now you are in the Event Display menu system. 
+   Select "CAL" or whatever you want to play from following menus.
+
+    SUB_LEVEL: PIXIE    SETUP
+    Select: {command, #, HELP (#), MENU, BACK} > MENU (RET)
+
+          ->COMBINED                          ZTRAKS
+
+            VTX                               TRD
+
+            CDC                               FDC
+
+            CAL                               MUTRAKS
+
+            MUON                              SAMUS
+
+            PHYSICS                           LV0
+
+
+IV. What is PX_CALDIS.RCP?
+
+   This RCP file is defined in ALL_DISPLAY_D0USER.COM as follows.
+
+        $ DEFINE PX_CALDIS_RCP D0$PIXIE:PX_CALDIS.RCP
+
+     which picks up a DEFAULT version from the PIXIE library.
+
+   This  can be overriden  by  a file in your own area  by redirecting the 
+   logical:
+
+        $ DEFINE PX_CALDIS_RCP PX_CALDIS.RCP
+
+  A. CALDIS MENUS in PX_CALDIS.RCP:
+
+    Three menus which do not depend on CALDIS package, 'ISAJET Tracks',
+
+   '3D DST Display' and 'DST LEGO' are moved into the new package PHYDIS.
+
+--------------------------------------------------------------------------------
+*CALDIS Menu Title      * Function & Remark                                    *
+--------------------------------------------------------------------------------
+ End View Calorimeter   - Displays a 2-D circular histogram of the end view of
+                         the calorimeter. The range of ETA that is included in
+                         the histogram is determined  by the interactive para-
+                         meters IETAMIN and IETAMAX. Values of +-13 choose the
+                         central cal,  +- 32 choose the central & end  with 64 
+                         phi bins,  +- 37 for a ll. Red is for EM energy; blue 
+                         for hadronic.
+
+ ETA Histo Calorimeter  - The side view of the calorimeter  is displayed  as a 
+                         box histogram,  with bins  in ETA,  summed over  PHIs
+                         which were selected in the end view or defined by the
+                         system menu  MODIFY.  Red is for EM energy;  blue for 
+                         hadronic.
+
+ Side View Calorimeter  - This is the new Side view display which uses a color
+                         coded energy to cells.  Each cell's energy was summed
+                         over (PHI-DPHI) to (PHI+DPHI).
+
+ 3D Cal Cells           - Calorimeter cells  with  energy .GT. EMIN  are shown
+                         in 3D view.  Cells are color coded  for their energy.
+
+ Lego Cal CAEP          - An eta-phi lego PLOT  is made for the energy  in the 
+                         calorimeter.  The  bins are in  the detector indices: 
+                         IETAC, IPHIC.
+
+ CAL and ICD_MG Lego    - An eta-phi two lego PLOTs are made for the energy in
+                         the calorimeter and ICD/MG.
+
+ END SIDE Calorimeter   - Display calorimeter  SIDE  and 3 END Views( EC-S, CC 
+                         and EC-N ) in the same screen.
+
+ EM Layer LEGO          - An  eta-phi  lego PLOT is made for the energy in the 
+                         calorimeter EM layers.
+
+ FH Layer LEGO          - An  eta-phi  lego PLOT is made for the energy in the
+                         calorimeter FH layers.
+
+ EM Tower Hist          - IPHI-EM Layer  and  IETA-EM Layer Histogram. PHI and
+                         ETA are given by picking at End View Calorime ter and
+                         ETA Histo Calorimeter respectively.
+
+
+ CAJETS                 - Gives you JETS displays.
+
+*CAJETS Submenu Title   * Function & Remark                                    *
+--------------------------------------------------------------------------------
+ Tower Lego CATE        - Lego plot of Calorimeter Tower bank, CATE.
+                          ET is plotted in bins of IETAC and IPHIC( which have
+                          not been corrected for vertex position.)
+
+ Jets_Lego PLOT         - Lego plot of JETS bank.(same variables as CATE LEGO)
+
+ CATE+JETS_LEGO         - Display of Lego plot of CATE and JETS banks.
+
+ One JET LEGO           - LEGO plot for individual JET with EM  and HAD energy
+                         shown differently.
+
+ Jets_3D Cell           - Display related cells with JETS banks in 3D view.
+--------------------------------------------------------------------------------
+
+
+ CAPHEL                 - Gives you CLUSTER and ELECTON displays.
+
+*CAPHEL Submenu Title   * Function & Remark                                    *
+--------------------------------------------------------------------------------
+ Tower Lego CATE        - Lego plot of Calorimeter Tower bank, CATE.
+
+ Clustr LEGO CACL       - Lego plot of Calorimeter cluster bank, CACL.   ET is
+                         plotted  in bins  of  ETA  and  PHI,  which have been 
+                         corrected for vertex position.
+
+ CATE+CLUS_LEGO         - Display of Lego plot of CATE and CACL banks.
+
+ Cluster 3D CACL        - Display related cells with CACL banks in 3D view.
+
+ Elec_LEGO PECL         - Lego plot of PELC bank.
+
+ Elec+Clus_LEGO         - Lego plot of PELC and CACL banks.
+
+ Elec_3D PELC           - Display related cells with PELC banks in 3D view.
+--------------------------------------------------------------------------------
+
+
+ CATRIG                 - Gives you Calorimeter Trigger Tower displays.
+
+*CAJETS Submenu Title   * Function & Remark                                    *
+--------------------------------------------------------------------------------
+ Trig End View          - Cal End View by Trigger Tower.
+
+ Trig Side View         - Cal Side View Histogram by Trigger Tower.
+
+ Trig Lego Plot         - Cal Trigger Tower Lego Plot.
+--------------------------------------------------------------------------------
+
+
+  B. CALDIS PARAMTERS in PX_CALDIS.RCP:
+
+--------------------------------------------------------------------------------
+* Parameter Name    * Default[Type]  * Remark                                  *
+--------------------------------------------------------------------------------
+ 'CAL ONLY'         .TRUE.[L]        'Set True, if you use only CALDIS package
+                    and set False when you have a combined package.  CALDIS is
+                    identical now to True and False of CAL ONLY.'
+       Related Menus: [None]
+
+ 'ELECALGORITHM'    'ELECTRON'[C]    'Name of electron algorithm'
+ 'ELECWORDS'        0.0[F]           'Number of words to check'
+ 'ELECWORD1'        0.0[F]           'Pointer of first word in Bank'
+ 'ELECVALUE1'       0.0[F]           'Value of first word'
+ 'ELECWORD2'        0.0[F]           'Pointer of second word in Bank'
+ 'ELECVALUE2'       0.0[F]           'Value of second word'
+       Related Menus: [JETS LEGO PLOT, ONE JET LEGO, CLUSTER LEGO CACL,
+                       JETS_3D CELL, CLUSTER 3D CACL]
+
+ 'JETSALGORITHM'    'CONE_JET'[C]    'Name of jets algorithm'
+ 'JETSWORDS'        1.0[F]           'Number of words to check'
+ 'JETSWORD1'        6.0[F]           'Pointer of first word in Bank'
+ 'JETSVALUE1'       0.7[F]           'Value of first word'
+ 'JETSWORD2'        0.0[F]           'Pointer of second word in Bank'
+ 'JETSVALUE2'       0.0[F]           'Value of second word'
+       Related Menus: [JETS LEGO PLOT, ONE JET LEGO, CLUSTER LEGO CACL,
+                       JETS_3D CELL, CLUSTER 3D CACL]
+
+ 'CAL EMIN'         1.0[F]           'Energy cut value to display 3D cells and
+                    the cells of side View.  The cell  which has energy  above 
+                    CAL EMIN appears  in the 3D view  and  the cell  which has 
+                    sumed up energy of selected PHI  above CAL EMIN appears in
+                    the side view.'
+       Related Menus: [CELL CAL 3D CAEP, SIDE VIEW CALORIMETER, JETS_3D CELL,
+                       CLUSTER 3D CACL, ELEC_3D PELC]
+
+ 'CALEGO EMIN'      1.0[F]           'Minimum value  of  energy/eta-phi bin to 
+                    appear in LEGO plot.'
+       Related Menus: [LEGO CAL CAEP, TOWER LEGO CATE, JETS_LEGO PLOT,
+                       ONE JET LEGO, CLUSTER LEGO CACL, ELEC_LEGO PELC]
+
+ 'CATRIG LEGO EMIN' 1.0[F]           'Minimum value  of  energy/eta-phi bin to
+                    appear in Cal. Trigger LEGO plot.'
+       Related Menus: [TRIG LEGO PLOT]
+
+ 'CAL E COLORANGE'  1.0[F]           'Color range of the energy for LEGEND.'
+       Related Menus: [CELL CAL 3D CAEP, SIDE VIEW CALORIMETER, JETS_3D CELL,
+                       CLUSTER 3D CACL, ELEC_3D PELC]
+
+ 'CAL PHI'          16[I]            'The  currently    selected   calorimeter
+                    azimuth index (1:64).   It is set either  by  selecting an
+                    azimuth on  the end view of  the calorimeter.  The current
+                    value  is  used  to  select  the  azimuthal slice  of  the 
+                    calorimeter that will be displayed  in the side view.  The
+                    current values of CAL PHI  and CAL DPHI  are  displayed by 
+                    arcs drawn just outside the calorimeter  in the end view.'
+       Related Menus: [END VIEW CALORIMETER, SIDE VIEW CALORIMETER,
+                       ETA HISTO CALORIMETER]
+
+ 'CAL DPHI'         15[I]            'The current half width of the calorimeter
+                    slice to be displayed in the side view. The slice runs from
+                    (CAL PHI)-(CAL DPHI)to  (CAL PHI)+(CAL DPHI).  It is set to 
+                    CAL JET DPHI  when a calorimeter azimuth is set  by picking
+                    in the end view.  CAL DPHI is normally initialized to 15.
+                     The initial calorimeter side view thus includes the entire
+                    azimuthal range.
+       Related Menus: [END VIEW CALORIMETER, SIDE VIEW CALORIMETER,
+                       ETA HISTO CALORIMETER]
+
+ 'CAL JET DPHI'     1[I]             'The azimuthal half range used  to set CAL
+                    DPHI when an azimuth is picked in the end view.  The normal
+                    initial value is 1, which is meant to be an estimate of the
+                    half width of a jet in the calorimeter(too tight?).'
+       Related Menus: [END VIEW CALORIMETER, SIDE VIEW CALORIMETER, 
+                       ETA HISTO CALORIMETER]
+
+ 'CAL ETA'          0[I]             'The current value is displayed by a short 
+                    line drawn just outside the Eta Histo Calorimeter view. The
+                    value 0, which is not a legal eta index(-37:37), is used to
+                    signal that no eta is displayed.  CAL ETA  is set by system
+                    menu MODIFY or by picking in ETA Hist Calorimeter.
+       Related Menus: [ETA HISTO CALORIMETER]
+
+ 'CAL EMAX'        50.0[F]           'Maximum Energy  or Et  for  END View Hist
+                   when CAL FIXEMAX is TRUE.'
+       Related Menus: [END VIEW CALORIMETER]
+
+ 'CAL IETAMIN'      -13[I]           'The  currently  selected  calorimeter eta 
+                    minimum index up to -37 in the end view. CAL IETAMIN is set
+                    by system menu MODIFY  and it should be  .LT.  CAL IETAMAX. 
+                    The value 0 is not a legal eta index.
+       Related Menus: [END VIEW CALORIMETER]
+
+ 'CAL IETAMAX'      13[I]            'The  currently  selected  calorimeter eta 
+                    maximum index up to 37 in the end view.  CAL IETAMAX is set
+                    by system menu MODIFY  and it should be  .GT.  CAL IETAMIN. 
+                    The value 0 is not a legal eta index.'
+       Related Menus: [END VIEW CALORIMETER]
+
+ 'CAL FIXEMAX'       .FALSE.[L]      'If true - use  CAL EMAX  for combined END
+                     views, otherwise EMAX is calcurated event by event.'
+       Related Menus: [END VIEW CALORIMETER]
+
+ 'CAL LAYMIN'        1[I]            'Calorimeter minimum layer number  to make
+                     Lego plot by CAEP bank( 1:17 ).'
+       Related Menus: [LEGO CAL CAEP]
+
+ 'CAL LAYMAX'       17[I]            'Calorimeter maximum layer number  to make
+                     Lego plot by CAEP bank( 1:17 ).'
+       Related Menus: [LEGO CAL CAEP]
+
+ 'CAL ETORE'        .TRUE.[L]        'True  for  Et  in  the end view hist  and
+                    False for Energy.'
+       Related Menus: [END VIEW CALORIMETER]
+
+ 'JET TYPE'         1[I]             'CATE bank index.  1  for  electromagnetic
+                    energy and 2 for total energy.'
+       Related Menus: [TOWER LEGO CATE]
+--------------------------------------------------------------------------------
+
+
+  C. CALDIS SCREENS in PX_CALDIS.RCP:
+    
+    Each basic menu has own screen parameters. Here we show two examples,
+   one for 2D view and another one is for 3D view.
+
+!---------------------------------------------------------
+! Definition of CALDIS Screens
+!---------------------------------------------------------
+\ARRAY PXSCREEN
+  'NSCREEN'             16          ' Total Number of screens in array'
+  'NAME'   'END VIEW CALORIMETER'   ' END VIEW CALORIMETER'
+  'PICKABLE'          .TRUE.        ' TRUE if pickable'
+  'VIEW3D'            .FALSE.       ' True if 3D viewport'
+  'KEEPCIRCLE'        .TRUE.        ' True if circles are kept'
+  'VPORTXMIN'         -1.0000       ' TESTING X min Viewport'
+  'VPORTXMAX'          1.0000       ' X max Viewport'
+  'VPORTYMIN'         -1.0000       ' Y min Viewport'
+  'VPORTYMAX'          1.0000       ' Y max Viewport'
+  'WINDOWXMIN'      -400.0000       ' X Min Window limit'
+  'WINDOWXMAX'       400.0000       ' X Max Window limit'
+  'WINDOWYMIN'         0.0000       ' Y Min Window limit'
+  'WINDOWYMAX'        -1.0000       ' Y Max Window limit'
+  'VIEWREFX'           0.0000       ' X View reference pnt'
+  'VIEWREFY'           0.0000       ' Y View reference pnt'
+  'VIEWREFZ'           0.0000       ' Z View reference pnt'
+  'UPVECX'             0.0000       ' X Up vector'
+  'UPVECY'             1.0000       ' Y Up vector'
+  'UPVECZ'             0.0000       ' Z Up vector'
+  'CAMX'               0.0000       ' X Camera point'
+  'CAMY'               0.0000       ' Y Camera point'
+  'CAMZ'               1.0000       ' Z Camera point'
+
+  ......
+  ......{ There are more 14 screens.}
+  ......
+
+  'NAME'       '3D CAL CELLS'       ' 3D CAL CELLS'
+  'PICKABLE'          .TRUE.        ' TRUE if pickable'
+  'VIEW3D'            .TRUE.        ' True if 3D viewport'
+  'KEEPCIRCLE'        .TRUE.        ' True if circles are kept'
+  'VPORTXMIN'         -1.0000       ' X min Viewport'
+  'VPORTXMAX'          1.0000       ' X max Viewport'
+  'VPORTYMIN'         -1.0000       ' Y min Viewport'
+  'VPORTYMAX'          1.0000       ' Y max Viewport'
+  'WINDOWXMIN'      -400.0000       ' X Min Window limit'
+  'WINDOWXMAX'       400.0000       ' X Max Window limit'
+  'WINDOWYMIN'      -400.0000       ' Y Min Window limit'
+  'WINDOWYMAX'       400.0000       ' Y Max Window limit'
+  'VIEWREFX'           0.0000       ' X View reference pnt'
+  'VIEWREFY'           0.0000       ' Y View reference pnt'
+  'VIEWREFZ'           0.0000       ' Z View reference pnt'
+  'UPVECX'             0.0000       ' X Up vector'
+  'UPVECY'             1.0000       ' Y Up vector'
+  'UPVECZ'             0.0000       ' Z Up vector'
+  'CAMX'               0.0000       ' X Camera point'
+  'CAMY'            1000.0000       ' Y Camera point'
+  'CAMZ'            2000.0000       ' Z Camera point'
+\END
+
+
+
+V. System Menus and References
+
+    This is a menu list which CALDIS has and all menus after 'CATRIG' are, 
+  so call System Menus.
+
+
+SUB_LEVEL: CALORIMETER Event Display    PIXIE
+Select: {command, #, HELP (#), MENU, BACK} > MENU (RET)
+
+          ->End View Calorimeter              ETA Histo Calorimeter
+
+            Side View Calorimeter             3D Cal Cells
+
+            Lego Cal CAEP                     CAL and ICD_MG Lego
+
+            END SIDE Calorimeter              EM Layer LEGO
+
+            FH Layer LEGO                     EM Tower Hist
+
+            CAJETS                            CAPHEL
+
+            CATRIG                            NEXT Event
+ 
+            GO TO Event                       ZOOM
+
+            ROTATE                            PICK
+
+            HARDCOPY                          MODIFY
+
+            Change Display Mode               Superimpose(On/Off)
+
+            Set Path                          Dump Bank
+
+            Dump Event                        Write Event
+
+            Start Sequencial Display          COMPACK System Menu
+
+
+ For further information see D0$PIXIE:PX_SYSTEM.DOC
+
+
+
+   *** The folowing user guides may be helpful. ***
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and 
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction  to the use of the
+                                   commercial graphics package,  DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives  more than introduction  to D0USER
+                                   which provides an offline framework.
+
+    4. D0$EXAMINE2:EXAMINE_GUIDE.DOC - Users guide  to EXAMINE,   the ONLINE
+                                      event monitoring framework.
+
+    5. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE Event Display
+

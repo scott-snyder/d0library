@@ -1,0 +1,485 @@
+  2-DEC-1991 : Modifications released by Nobuaki Oshima
+ 
+    - 
+=================================================================BEGIN
+
+    ********* WARNING FOR VTXDIS/COMBDIS USERS !!! **************
+    * If your STA/DST files were made by VTX_UTIL older than    *
+    * V1.02_02, this release will crash in the VTX routines     *
+    * until the new version of VTXTHT.FOR in VTX_UTIL V1.02_03  *
+    * is released.                                              *
+    *************************************************************
+    
+ 2-OCT-1991(Rev. 22-OCT) : Modifications made by L. Howell
+
+    -PX_ZTRAKSDIS.RCP: Clean up old views left behind.  Change the order of the
+     menu names.
+
+    -PX_TRDDIS.RCP: The value of TRD EMIN was incremented from 1000. to 5000
+     so the views will not be so crowded.
+
+    -PVERTX: Adding a error check for EZPICK VTRAKS_RCP
+
+    -PU_HARDCOPY: An output parameter was palced to indicate the state of the 
+     hardcopy driver.  If IER=0 there was a hardcopy driver set, If IER=-1
+     there was NOT hardcopy driver set.
+
+    -PUSYSTEM: The PU_HARDCOPY call had to be modified to meet its output 
+     parameter required.  The hardcopy utility was improved by checking the
+     output parameter from PU_HARDCOPY to see if the driver was set.  If there
+     was no hardcopy driver set the previous view will not be redrawn.
+     A menu for `Start sequence mode' was added to implement sequence display.
+
+    -PTRDVW: The display of TRD Emin should only be done if TRD ONLY and
+     cleanup
+
+    -PDTRCK: The colors of the tracks were changed to colors when using color
+     device line styles otherwise. Also cleanup.
+
+    -LEGEND_LINE: The color definition was change using a call to PXCOLN with
+     the option of color if color device line style otherwise.
+
+    -PDRZVW: The colors of the tracks were changed to colors when using color
+     device line styles otherwise. Also cleanup.
+
+    -PCDST_LEGO: The box legend was implemented instead of the line legend
+
+    -LEGEND_ROAD: The foreground color added to the legend.
+
+    -PUINIT: Adding SEQUENCE_MODE flag
+
+    -PUMENUDO: Sequence display implemented 
+     The interrupt menu is activated while in sequence mode each time
+
+    -PU_UPDATE_COMMAND_STACK: New entries added to implement the sequence
+     display by creating a sequence command fifo queue.  The new entries are:
+        PX_ENABLE_SEQUENCE_FIFO:Loads the content of the COMMAND_FIFO queue
+                        into SEQUENCE_FIFO and sets environment for sequence.
+        PX_GET_NEXT_SEQUENCE:Gets the next command from SEQUENCE_FIFO.
+        PX_CHECK_SEQUENCE:Checks the events skipped and the sequenec count.
+        PX_STOP_SEQUENCE:Stops the sequence display mode disabling flags and
+                        canceling the interrupt menu.
+
+    -PX_DELAY_SEQUNCE:(NEW) Waits a given amount of seconds before going on
+     displaying the next sequence display.
+
+    -PX_SETUP_SEQUENCE_INTERRUPT(NEW): Sets up the interrupt routine to the end 
+     of the sequence display (PX_STOP_SEQUENCE).
+
+    -PX_START_SEQUENCE(NEW): initiates a sequence of views separated by some 
+     delay.  A sequence command is identified by the '$' prefix.
+
+    -SYSMENU: `Other Option' menu deleted and `Start Sequence' added to main
+     menu.
+
+    -MENEXG: the reset of PF is done without checking the WAIFLG.  There was a
+     bug.  When the menu system was setting up for the second input from the
+     user it will repeate the previous input (first command) and the alloud the
+     user to enter a command.
+
+    -DISPLAYMOD: Input parameter added: LAST_COMMAND. This parameter is use for
+     modify combined views easier.  The call to PXMOD_COMBINED_VIEWS was change
+     to acomadate its new use.  The main change of this routine is that ALL 
+     modifycations done to parameters will done to them in their corresponding 
+     PX_*DIS_RCP file except when the parameter is the view being modifed .i.e 
+     combined view, then the new value should be place there.
+     The modify menu items will depend on the precence of PXSCREEN/PXPARAM.  If 
+     the current RCP file does not have PXSCREEN the menu 'MODIFY SCREEN' will 
+     be supress,  in the same way if PXPARAM is not found the menu item 'MODIFY
+     PARMETERS' will be supress.
+
+    -PUSYSTEM: The last valid command chosen was send as a parameter in the
+     DISPLAYMOD call.
+
+    -PXMOD_COMBINED_VIEWS: Displays the names of combined-view arrays available
+     in the current rcp. If the AUTO flag is on the display of all 
+     the combined views will be skipped using LAST_COMMAND as the combined 
+     display to modify.   Once a combined view is chosen either by the user 
+     or by LAST_COMMAND a list of the available packages that belong to that 
+     view will be displayed to choose from. This routine returns the menu 
+     index corresponding to the chosen parameter to modify 
+     (SCREEN or PARAMETERS)
+     ENTRY PXMOD_COMBINED_ARRAY(NEW ENTRY): Modifies a given parameter in 
+     the combined array if it is found.
+
+     ENTRY PXGET_COMBINED_PARAM(NEW ENTRY): Given a list of parameters and
+     their values the routine checks if the combined view selected has any of
+     these parameters and if it does replace its value with the value in the
+     combined view.
+
+    -PX_SELECT_PACKAGE: This routine was made more general by alowing not only
+     to select all the packages available but out of a specific list of
+     packages.  Three new parameters are use for these purpouse: PACKAGES:list
+     of parameter, TOTPACK: total numebr in the list, OUTNUM: index of package
+     selected.  If the parameter PACKAGES is left blank (' ') the list of all
+     available pacakges will be used.
+
+    -PXMOD_SCREEN: This routine was made more general.  It will get all the
+     screen parameters of the current package and it will check if a combined
+     view is been modified.  If it is replaces the values of the screen
+     parameters with the ones found in the combined view.  To do this a new
+     input parameter was added COMBINED.   Also, the call to 
+     PX_DISPLAY_SCREEN cahnged to acomodate the new parameter COMBINED.
+
+    -PX_DISPLAY_SCREEN: Displays the available screens for the user to
+     choose.  If COMBINED flag is ON the screens that will be displayed  
+     will be the ones available in the combined views chosen.
+     If there is only one screen on this list the list will not shown 
+     and the default screen will be the only one present.
+
+    -PXMAIN: Cancels the interrupt menu if it is active before entring PIXIE.
+
+    -PXMODIFY_DELETE_VIEW: Deletion of viewports in a single port view is 
+     not permited.
+
+    -PXBUILD_MODIFY: Write current RCP file implemented.
+
+    -PXMODIFY_WRITE(NEW): Writes a current RCP file by reading the bank.
+
+    -PXMODIFY_MERGE: the call to the ez merge routine changed to use new name.
+
+    -PXWRITE_PARAM: The maximum size of the remark had to be change to
+     accomodate the two differnt formats (40 or 34)
+
+    -EZ_MODIFY_ARRAY: The error code is set to 0 if no error found
+
+    -EZMERGE_BANKS: Merges two given RCP banks into another RCP bank
+
+    -EZMERGE_PARAMS: Merges the element(s) of a given paramters 
+     into the same parameter found in BANKNAME.
+     If the given parameter and the one in the bank have size one it will 
+     merge the two values in an array if their values are not different.
+
+    -EZZDMP: Size of the array increased more.
+
+    -EZ_CVT_ELEMENT: Consider the case when an element is of type E-format 
+     Also the size of the LINE was chaged to 132.
+
+    -EZ_REMOVE_ELEMENT: The size of the buffer changed from 80 to 132.
+
+=================================================================
+ 11-OCT-1991 : Modifications made by N. Oshima
+
+    These routines and RCP file are created for the new package PHYDIS.
+        PPEXEC.FOR      - Driving routine for the PHYDIS package.
+        PPINIT.FOR      - Initialize PHYDIS by reading RCP file.
+        PX_PHYDIS.RCP   - RCP file for PHYDIS package.
+
+    These routine are modified for the new package PHYDIS.
+        PC3DST.FOR, PCDST_LEGO.FOR and PISATRACK.FOR
+
+    Minor change or bug fix were done for following routines.
+        PCECOL.FOR      - change the label of last line.
+        PCEVEN.FOR      - put a X-Y label.
+        PCPICK.FOR      - change format for picked cells.
+        PCSVHIST.FOR    - put a ETA label.
+        PIPICK.FOR      - adapt for system picking.
+        PLCASV.FOR      - put a Pbar P label.
+        PLISTK.FOR      - fix a bug on color.
+
+    New documentation for calorimeter display.
+        CALDIS.DOC      
+
+=================================================================
+ 16-OCT-1991 : Modifications made by S. Hagopian
+
+     BUG FIXES: PXMARK - Removed WRITE 41. 
+                PXCOLFIL -  Changed RLEVEL from INTEGER to REAL.  
+                COLOR -  Fixed postscript colors. 
+                PX_MUODIS.RCP - Window size was increased.
+
+     Track Road boundaries:
+              Routines were added to allow VTXDIS and FDCDIS to display track
+              road boundaries. These include PFPHI_ROAD,PFTHETA_ROAD,
+              PVPHI_ROAD, PVTHETA_ROAD, PZPHI_ROAD and PZTHETA_ROAD.
+              Commands were added to the corresponding execution routines
+              PFEXEC and PVEXEC. The "DRAW ROAD" commands were added
+              to PX_FDCDIS.RCP and PX_VTXDIS.RCP. PX_COMBDIS.RCP and
+              PX_ZTRAKSDIS.RCP were also modified.
+ 
+=================================================================
+ 18-OCT-1991 : Modifications made by S. Hagopian
+
+  Added MUON SYSTEM SIDE VIEW, which includes the y_z view of
+  SAMUS and WAMUS to PX_COMBDIS.RCP.
+
+=================================================================
+ 18-OCT-1991 : Modifications made by C. Yoshikawa and S. Hagopian
+
+    PMEVNT.FOR - Use IFW2 in MUOT to throw away hopeless tracks.  
+                 Also, include "MUON TK FIT" to draw only "good" fits
+                 in MUOT. -( C.Y.)
+                And added view=12 for PMMUD1 call. - ( S.H.)
+
+=================================================================
+ 25-OCT-1991 : Modifications made by S. Hagopian
+
+              SUBROUINE COLOR was modified for UISDI3.
+ 
+              Small bugs for MUON DRAW SAMUS and DST LEGO
+              removed from PX_COMBDIS.RCP
+              Samus added to  D0 FULL SIDE VIEW.
+              Muon layers B and C added to 
+              D0 FULL END VIEW.
+        
+=================================================================
+ 31-OCT-1991 : Modifications made by L. Howell
+
+A. PIXIE ROUTINES
+
+    -PU_UPDATE_COMMAND_STACK: handles MAX_EVENT_SKIPS equal to 0, by not
+     skipping any events and displaying them sequentially.
+     Also, the defaulte value for MAX_EVENT_COUNT is set to 9999999 a large
+     number so it will continue until the interrupt botton is hit.
+
+    -PXMODIFY_CHANGE_ACTION - If an action routine name is enter and it was not
+     found clear the CURRENT_ACTION variable.
+    
+    -PXMODIFY_DELETE_VIEW - If the user tries to delete a one viewport 
+     combined view a message will be display not letting him.
+
+    -PX_GET_COMBINED_ACTION - The error message was changed to a INTMSG message
+    so it will not be as disrupting on the screen.
+
+    -PX_CHANGE_ACTION- The prompt message was broken into to calls (INTMSG &
+     GETPAR)  This was done because the inputwill be cut off when it reached the
+     end of the screen.
+
+    -PXMODIFY_NAME: Tidy Up 
+
+B. SRCP ROUTINES
+
+    -EZ_MODIFY_ELEMENT: I thought this was fixed but I found it was not.  The
+     800 was in the wrong spot, it skipped part of the code.
+
+    -EZ_REMOVE_ELEMENT: Tidy up for the loop skipping elements.  The condition
+     to exit should be LT instead of LE sho it will not read the next name after
+     the view desired to delete.
+
+=================================================================
+ 31-OCT-1991 : Modifications made by N. Oshima & C. Yoshikawa
+
+    - PM3DHT.FOR - Bug fixed on using GTMHOT(MUON_UTIL routine).
+
+    - PM3DTH.FOR - Killed PMUO & MUON dependence on MUOT bank and
+                   eliminate use of ORIGIN in PMUO & MUON.
+
+    - PMEVNTC.FOR - Killed PMUO & MUON dependence on MUOT, eliminated use of 
+                    QUAD in MUOT totally and also eliminate use of ORIGIN in
+                    PMUO & MUON.    Changed RNUM for endview.
+
+    - PUTEXT.FOR - Add JVSAVE/JVLOAD and reset Screen Params(VUPNT,UPVEC,NORML)
+                   after JVSAVE in ENTRY PUTEXT_SET.
+
+=================================================================
+ 22-OCT-1991 : Modifications made by Robert E. Avery
+
+!!!!!!!!!!!   THE FOLLOWING CHANGES TO FDCDIS DISPLAYS IN PIXIE     !!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!    REQUIRE RELEASE OF D0$INC !!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!  AND REQUIRE TEST VERSION V1.03_04 OF FDC_UTIL (or later)!!!!!!!!!!!!
+    (This version of FDC_UTIL should already have arrived to most nodes).
+
+    Modifications of FDCDIS routines to use contents of FHIT bank:
+
+    - PFDELH.FOR,PFDHDR.FOR,PFGETD.FOR,PFTSEC.FOR,PFTQUAD.FOR,
+      PFTHET.FOR,PFQUADL.FOR  
+        Modify global FDC views to use FHIT bank if full hit 
+        banks are not available (e.g. in STA output). New version of
+        FDDELP.INC is used. Makes use of new FDC_UTIL routines for
+        getting and decoding FHIT information, therefore:
+
+!!!!!!!!!!!!!!!!!!!!   REQUIRES RELEASE OF D0$INC !!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!! AND REQUIRES TEST VERSION V1.03_04 OF FDC_UTIL (or later)!!!!!!!!!!!!
+    (This version of FDC_UTIL should already have arrived to most nodes).
+
+    - PFTHIT.FOR,PFPHIT.FOR,PFTHIT_HORIZ.FOR,PFPHIT_HORIZ.FOR,PFHBYS.FOR,
+      PFGETHITS.FOR,PFHITS.FOR
+        Modify FDC sector views to use FHIT bank if full hit 
+        banks are not available.
+
+=================================================================
+ 22-OCT-1991 : Modifications made by Robert E. Avery
+
+    Other misc. FDCDIS modifications:
+
+    - PFTKDR.FOR,PFTKDRL.FOR Add option to label FDC tracks in Global FDC views.
+        Controlled by the parameter "FDC DRAW TRACK LABEL" in PX_FDCDIS_RCP.
+        Also change PFTTRK_HORIZ.FOR, PFPTRK_HORIZ.FOR to use the same 
+        labeling scheme.
+
+    - PF_FIT_SEGMENTS - Allow interactive  options controlling the fit:
+        "FDC FIT NO DL" controls whether Delay Line is included in fit.
+        "FDC FIT SEGTRK" controls fit is full fit to all hits or 
+        simpler fit just using segment information.
+
+    - PFINIT - Do complete initialization of FDC geometry (call to FGEOM_INIT).
+
+    - PFHALF.FOR,PFTHTA.FOR - Clean up.(Move PFTKDR call from pfthta to pfhalf.)
+
+=================================================================
+ 22-OCT-1991 : Modifications made by Jeffrey Bantly
+
+    - PF16AD.FOR,PF1ADC.FOR,PF8ADC.FOR,PFUHIS.FOR  
+        Display of Pulse Shape subtraction now is completely implemented 
+        Also cleanup some hardcoded numbers that should be parameters.
+
+=================================================================
+ 31-OCT-1991 : Modifications made by L. Howell
+
+    ============================ PIXIE LIBRARY ==================
+    -MUON_YZCUT_A:------+ 
+     MUON_YZCUT_C       |
+     MUON_YZCUT_F       |     Call to PMPICK to aloud the user to pick 
+     MUON_XYCUT_A       |---> the muon detector and the legend will be 
+     MUON_XYCUT_F       |     displayed.
+     MUON_ZXCUT_F       |     
+     MUON_ZXCUT_A ------+
+
+    -PSAM_TK: A go to end statement had to be changed to included a EZRSET
+     of the PICKed RCP file to avoid warnings.
+
+    -PMPICK(NEW):THis routine checks on the input selection of the user to make
+     sure it was in the muon detector area.  If the input was in the muon area
+     it will display the corresponding legend.
+
+    -PMEVNTC: A new entry was added PMLEGEND.  This entry displays the
+     corresponding  legend of the muon detector.
+
+    -PMEXEC: Two head routines added.
+
+    -PX_MUODIS.RCP: The parameter PICKABLE in view "YZ CUT" was set to TRUE 
+     Also, two new views added to the package Y-Z CUT_A-LAYER and Z-X
+     CUT_A-LAYER.
+
+    -PX_DISPLAY_ITEMS(NEW): Displays items from a given list alowing selection 
+     of an item.  It no item selected it will return the value of 0.
+
+    -PSEXEC: two views were converted into combined views.
+
+    -PUZSEL:Displays the Zebra and local PIXIE RCP files for the user to select
+     one and returns its nameand length.
+
+    -PXBUILD_EDIT_MENU: The menu was updated
+
+    -PXBUILD_MODIFY: Merge implemented
+
+    -PXBUILD_RCP: The building of the PXPARAMS array had to be fix, it wasn't
+     working.
+
+    -PXMODIFY_MERGE(NEW): Merges current RCP file with one selected by the user
+
+    -COM_ACTIONS.RCP---+
+     CAL_ACTIONS.RCP   |
+     CDC_ACTIONS.RCP   |
+     FDC_ACTIONS.RCP   |
+     MUO_ACTIONS.RCP   |
+     TRD_ACTIONS.RCP   |--> Update it to their news versions of it.
+     VTX_ACTIONS.RCP   |
+     ZTR_ACTIONS.RCP   |
+     ISZ_ACTIONS.RCP   |
+     SAM_ACTIONS.RCP   |
+     USE_ACTIONS.RCP---+
+
+    -DISPLAYMOD--------------+
+     PXMOD_COMBINED_VIEWS    |
+     PX_DISPLAY_SCREEN       |---> The calls to MENUOP replace with 
+     PX_SELECT_PACKAGE       |     PX_DISPLAY_ITEMS
+     PX_STACT_SEQUENCE       |
+     PXGET_COMBINED_VIEWS    |
+     PX_RESTORE_PARAMS       |
+     PMDUMP                  |
+     PUGET_SCREENS-----------+
+
+    -PX_CDCDIS.RCP-----------+
+     PX_ZTRAKSDIS.RCP        |
+     PX_ISZGRF.RCP           |----> Clean up.
+     PX_SAMDIS.RCP-----------+
+
+    ============================ SRCP LIBRARY ===================
+    -EZZDMP: MAXBUF was increased from 300 to 1000
+
+    -EZMERGE(NEW): Merges two given RCP files into another
+
+    -EZ_REMOVE_PARAM: the condition to exit the number of parameters 
+     skipped had to be fix to avoid exiting at the wrong time.
+
+=================================================================
+ 31-OCT-1991 : Modifications made by N. Oshima
+
+    - PCEVME.FOR and PCSVME.FOR : Modified for the new GTPNUT.FOR of
+                                 CALOR_UTIL.
+
+=================================================================
+  5-NOV-1991 : Modifications made by Q. Li-Demarteau
+
+    PDRZVW, PDTRCK, PFTKDR, PVRZTRK, PVTRAK and PZTRK_3D :   
+    VEEs bits have been moved from IQ(Lxxxx+1) to IQ(Lxxxx), so that 
+    VEEs bit is in the same status word with electron, muon and taus 
+    bits.
+
+=================================================================
+ 8-NOV-1991 : Modifications made by Robert E. Avery
+
+    - PF_PR_SEGMENTS.FOR,PF_PR_TRACKS.FOR,PFPICK_TRACK.FOR - Change 
+        calculation of CHI-NORM to agree with the fit done by FDC_SEGTRK.FOR
+
+    - PFDHDR.FOR, PFTKDR.FOR, Now call new logical function, PFPHICHK.FOR,
+        to test if hit, or track, is within Phi bounds. 
+        PHI1 is now allowed to be < 0.0, and PHI4 allowed to be > 2*pi.
+
+    -PX_FDCDIS.RCP, Include new params, "FDC DRAW TRACK LABEL" and
+        "FDC FIT SEGTRK" mentioned above. Also include the 
+        FDC COMBINED VIEW that already appears in ZTRAKSDIS.
+
+=================================================================
+ 8-NOV-1991 : Modifications made by S. Hagopian        
+
+             Documentation has been written for the SYSTEM menu and
+             parameters, PX_SYSTEM.DOC, for the MUON (WAMUS) display,
+             MUODIS.DOC and for the SAMUS display, SAMDIS.DOC. 
+                CALDIS.DOC was also updated.
+            Bug in PMEVNT for X-Z view, latched cells, was fixed.
+
+=================================================================
+ 14-NOV-1991 : Modifications made by Robert E. Avery
+
+    PFEXEC.FOR - Delete obsolete NWA routine.
+
+=================================================================
+ 15-NOV-1991 : Modifications made by Q. Li-Demarteau
+
+    CDCDIS.DOC - Documentation for CDC display package.
+
+=================================================================
+ 18-NOV-1991 : Modifications made by N. Oshima
+
+    PCDST_LFILL.FOR - Set 'RED' for Jets.
+    PCEXEC.FOR      - Remove PHYDIS routines.
+    PX_CALDIS.RCP   - Remove PHYDIS menus.
+
+=================================================================
+ 20-NOV-1991 : Modifications made by L. Howell and J.F. Glicenstein
+
+    -PTPICK: Added the Cathode toggle 
+
+    -PTRD_TOGGLE(NEW): action routine to execute the cathode toggle 
+
+    -PTRDVW: Implementing the cathode toggle to draw the corresponding data
+
+    -PX_TRDDIS.RCP: Adding the cathode toggle menu 
+
+    -TRD_ACTIONS.RCP: Update the actions with the new PX_TRDDIS
+
+=================================================================
+ 21-NOV-1991 : Modifications made by Robert E. Avery
+
+    - PFDHDR.FOR, PFTKDR.FOR, PFPHICHK.FOR, PFGPHI.FOR,PFINIT.FOR -
+        Change so that Upper half of R-Z plot is PHI1 to PHI2 (following
+        same covention as CDC). Cleanup and improve  PFGPHI.FOR.
+
+    - PFPICK_SEGMT.FOR, PFPICK_TRACK.FOR, PF_PR_SEGMENTS.FOR -
+        Change information that is printed out for segments.
+
+    - PX_FDCDIS.RCP Clean up and improve documentation.
+
+=================================================================END

@@ -1,0 +1,389 @@
+                                                               S. Hagopian
+                                                               March 23, 1993
+                                                               Version 2
+
+                         COMBDIS - Combined Event Display
+
+ I. INTRODUCTION
+
+      COMBDIS is the package with the combined views of D0 sub-detectors with 
+    events displayed. It is part of the PIXIE library, which can be run in 
+    various frameworks. Hooks are set up for PIXIE in D0USER and EXAMINE2. 
+    (See .DOCs) It displays detector outlines, hits, and tracks in cut views,
+    where a cross-section of the detector is displayed and hits and tracks 
+    from these modules are projected onto this plane. Not all tracks
+    and hits are displayed in a cut view. Calorimeter energy is displayed 
+    as histograms or towers in these cut views. A 3-D view of cal. cells
+    and reconstructed tracks is also available, which can be rotated.
+
+
+II. GETTING COMBINED DISPLAYS
+
+    These combined displays are built up out of sub-detector dipslays,
+    so COMBDIS must be used with the other display packages in ALL_DISPLAY.
+
+ 
+ A. Use standard LINK file in D0LIBRARY:
+
+    1. $LIBTEST PIXIE,D0USER
+
+    2. $@D0$D0USER:ALL_DISPLAY_D0USER.LNK DI3000
+        or copy LINK file to your directory and modify it as desired.
+
+    3. $@D0$D0USER:ALL_DISPLAY_D0USER ! to set up needed RCP logicals
+
+    4. $@D0$D0USER:EVENT_DISPLAY ! to setup needed STP files and DI3000 drivers
+      answer question about whether data is  COSMIC or MC (monte carlo)
+      answer question about type of device driver (See D0$DOCS:DI3000_GUIDE.DOC)
+
+     5. $RUN ALL_DISPLAY_D0USER
+
+
+ B. Execute the Program Builder.
+
+    Use the package ALL_DISPLAY_COMBINED.PBD
+
+    $ PBD/frame=D0USER/package=ALL_DISPLAY_COMBINED/name=ALL_DISPLAY-
+          /zebcom=1000000/ZEBSTP=600000
+
+   The program builder generates following files.
+
+        ALL_DISPLAY_D0USER.COM
+        ALL_DISPLAY_D0USER.FOR
+        ALL_DISPLAY_D0USER.LNK
+        ALL_DISPLAY_D0USER.OBJ
+        DEB_ALL_DISPLAY_D0USER.OBJ
+
+
+   Or combined displays can be made in the EXAMINE framework. Use
+   D0_DISPLAY_COMBINED.PBD (PIXIE is included, so it does not have
+   to be chosen as a separate package.)
+
+
+III. Link: Execute ALL_DISPLAY_D0USER.LNK
+
+   Remember to set up the DI3000 logicals before LINKING:
+
+   You can make your EXE file as you like by one of following commands.
+    $ @ALL_DISPLAY_D0USER.LNK DI3000       - Non debug DI3000 version 
+    $ @ALL_DISPLAY_D0USER.LNK DI3000 DEBUG - Debug DI3000 version
+    $ @ALL_DISPLAY_D0USER.LNK EASDI3       - Evans&Sutherland emulator version
+    $ @ALL_DISPLAY_D0USER.LNK UISDI3       - UIS(DEC VWS) emulator version
+
+
+
+
+
+
+
+ IV. Set up and Execute ALL_DISPLAY_D0USER.EXE
+
+   *** The DI3000 logicals should be set up. ***
+
+   The sharable version of DI3000 should be requested by the command:
+
+    $ DISETSHR EXT HI 
+
+  a) To set up ALL_DISPLAY_D0USER environment and logicals, you need to 
+    execute these two COM files.
+
+    $ @ALL_DISPLAY_D0USER.COM  - Define logicals and RCP files
+    $ @D0$D0USER:EVENT_DISPLAY - Define STP files, Input data type and
+                                 DI3000 Drivers.
+   The first driver should correspond to the type of terminal you are 
+   logged on to; the second one to a hardcopy device[ e.g. TLP ].
+
+  b) To execute ALL_DISPLAY_D0USER.EXE, just type,
+    $ D0USER
+
+   Select the menu "7: Event Displays" from the D0USER SETUP Menu. You
+   will receive following questions from this menu.
+  
+    - How many events to display (<20)? [1] > (RET)
+
+    - Give Run# and Event#.
+      If Run#<0, first event read is displayed.
+
+      If Event#<0, first event of Run# is displayed.
+
+      To display consecutive events use the Next Event feature
+
+      in the Event Display menu.
+
+      Run no.> -1 (RET)
+
+      Event no.> -1 (RET)
+          
+
+
+                                                                        Page 3
+
+
+   You are return to the D0USER SETUP Menu again, select "1: Manual Process"
+
+    - Store histograms ? 0=NO, 1=after each run, 2=end of job only > 0 (RET)
+
+    -  Will you be reading files from tape? [N]> (RET)
+
+      If you give wild card all files with given string are processed
+
+      but option Manual Process will stop after N events requested.
+
+      If name of input file is NONE no file will be open.
+
+    - Name of input file > USR$SCRATCH:[OSHIMA]MY_STA_FILE.GEN (RET)
+
+    - Is input file in exchange mode? [N]:> (RET)
+
+    - Process all events for remaining runs? Y/N > Y (RET)
+
+
+
+ V. COMBDIS MENU
+
+
+        ___________________________________________________________________
+        |  SUB_LEVEL: Combined Event Display    PIXIE                      |
+        |  Select: {command, #, HELP (#), MENU, BACK} > help               |
+        |                                                                  |
+        |  1. D0 Full Side View                   2. D0 Full End View      |
+        |  3. D0 Full Top View                    4. D0 End View           |
+        |  5. CAL+TRACKS R-Z View                 6. CAL+TRACKS End View   |
+        |  7. END CAP South                       8. END CAP north         |
+        |  9. TRACKS R-Z View                    10. TRACKS End View
+        | 11. D0 Full 3D View                    12: NEXT Event            |
+        | 13: GO TO EVENT                        14: ZOOM                  |
+        | 15: ROTATE                             16: PICK                  |
+        | 17: HARDCOPY                           18: MODIFY                | 
+        | 19: Change Display Mode                20: Superimpose(On/Off)   | 
+        | 21: Set Path                           22: Dump Event            |
+        | 23: Write Event                        24: Start Sequence display|
+        | 25: COMPACK System Menu                                          |
+        ____________________________________________________________________
+
+ For further information on menu items 12 - 25, see D0$PIXIE:PX_SYSTEM.DOC
+
+
+--------------------------------------------------------------------------------
+*COMBDIS Menu Title    * Function & Remark                                    *
+--------------------------------------------------------------------------------
+
+  D0 Full Side View -  Full side view of D0 detector. Includes the Y-Z cut view
+                    of the wide angle muon detector (hits and tracks in muon
+                    planes perpindicular to the Y or Z axes). (Note: not all
+                    muon tracks and hits are displayed in this view) The Y-Z 
+                    small  angle muon chambers, hits and tracks are also shown.
+                    R-Z projections of VTX, CDC and FDC hits and tracks
+                    with fixed PHI angle cuts of -45. deg to +45. deg
+                    (with same+ 2 PI slice plotted below the axes) are shown. 
+                    Only hits with Z information appear, when available.
+                    The cal. display is in ETA towers, with EM, Fine had. and
+                    coarse had. summed separtaely and color coded for energy.
+                    Note that since this display includes Y-Z muon tracks and
+                    R-Z central tracks and cal., the muon tracks often do not
+                    overlap the CD tracks or the hit cal. cells. To see how
+                    well the muon and CD tracks match, look at the END VIEW
+                    or the 3-D display. This view is meant to give a general 
+                    overview.                    
+                    
+                      
+    D0 Full End View - Full end view of D0. This includes the X-Y cut view
+                    of the wide angle muon detector (hits and tracks in muon
+                    planes perpindicular to the X or Y axes). (Note: not all
+                    muon tracks and hits are displayed in this view) The 
+                    CDC and VTX X-Y view is displayed with optional sector
+                    markings, hits and tracks. The muon tracks should match
+                    the CD tracks in this view. A TRD sector plot with 
+                    energy histogram is also show as well as a cal. histogram
+                    in phi divisions with EM and HAD energy color coded.
+
+  D0 Full Top View -  Full top view of D0 detector. Includes the X-Z cut view
+                    of the wide angle muon detector (hits and tracks in muon
+                    planes perpindicular to the X or Z axes). (Note: not all
+                    muon tracks and hits are displayed in this view) The X -Z 
+                    small  angle muon chambers, hits and tracks are also shown.
+                    R-Z projections of VTX, CDC and FDC hits and tracks
+                    with fixed PHI angle cuts of +45. deg to +135. deg
+                    (with same+ 2 PI slice plotted below the axes) are shown. 
+                    Only hits with Z information appear, when available.
+                    The cal. display is in ETA towers, with EM, Fine had. and
+                    coarse had. summed separtaely and color coded for energy.
+                    Note that since this display includes Y-Z muon tracks and
+                    R-Z central tracks and cal., the muon tracks often do not
+                    overlap the CD tracks or the hit cal. cells. To see how
+                    well the muon and CD tracks match, look at the END VIEW
+                    or the 3-D display. This view is meant to give a general 
+                    overview.                    
+                    
+
+
+    D0 End View -  End view of D0 (muon A layer only) This view is the
+                   same as the full end view, but only the muon A-layer
+                   chamber and hits area shown. This gives a larger view
+                   of the central detector and calorimeter. 
+
+
+    CAL+TRACKS R-Z View -   This view has the R-Z historgram of CAL energy
+                   with electromagnetic and hadronic energy shown separataely.
+                   It also has the R-Z projection of tracks and hits in the 
+                   CDC, VTX and FDC chambers. This view can be sliced with
+                   a PHI cut by using "PICK" in the CAL part of the END VIEW
+                   to choose a central PHI value. The width of the PHI slice
+                   is set by CAL DPHI (default=3 secotrs, approx. width of 
+                   a JET.) 
+    
+
+    CAL+TRACKS End View - End view of the central detector. This is the X-Y 
+                  (R-PHI) view of the CDC and VTX chambers with the TRD sector
+                  energy histogram. The PHI histogram of CAL energy or Et is
+                  also displayed with electromagnetic and hadronic energy 
+                  shown separataely.
+
+
+    END CAP South - This is an X-Y view of the south end cap. It includes
+                    the FDC south, the R-PHI Et or E histogram for the
+                    south calorimeter end cap (determined by parameter 
+                    'CAL ETORE'), and muon tracks which are within 45 deg of 
+                    the +Z axis. 
+
+    END CAP North - This is an X-Y view of the north end cap. It includes
+                    the FDC north, the R-PHI Et or E histogram for the
+                    north calorimeter end cap (determined by parameter 
+                    'CAL ETORE'), and muon tracks which are within 45 deg of 
+                    the -Z axis. 
+
+    TRACKS R-Z View -   This view has the R-Z projection of tracks and hits 
+                     in the CDC, VTX and FDC chambers.
+
+    TRACKS End View - End view of the central detector. This is the X-Y 
+                   (R-PHI) view of the CDC and VTX chambers with the TRD sector
+                   energy histogram. 
+
+    D0 Full 3D View -  3D view of D0 with tracks. This include cal. cells 
+                     with energy above EMIN, color coded, muon tracks and
+                     hits, and ZTRAKS ( Cen. detector tracks reconstructed
+                     in 3-dimensions.) This view can be rotated on VAXSTATIONS
+                     or the Evans and Sutherland, using the ROTATE command.
+
+
+
+ VI. COMBDIS VIEWS in PX_COMBDIS.RCP:
+
+     The COMBINED VIEWS are multiviews (indicated by a % after the command)
+     The parameters for COMBDIS are used to override the sub-detector display
+     parameters (so all diplays are in same coordinate system, etc.)
+     Below is D0 FULL END VIEW, as an example of a multiview command.
+
+!-------------------------
+! MultiView commands
+!-------------------------
+\ARRAY D0_FULL_SIDE_VIEW%
+ '%TITLE'       'D0 Full Side View'   ' '
+
+ '%PACKAGE'     'CDCDIS'        ' '
+ '%ACTION'      'CDC_R-Z VIEW'  ' '
+ '%PARAMS'      ' '     ' '
+    'CDC ONLY'            FALSE ' '
+    'CDC DRAW SECTORS'   1      ' '
+    'CDC DRAW VERTEX'    1      ' '
+    'CDC DRAW LABEL'     0      ' '
+    'ALL PHI PICK'       0      ' '
+ '%SCREEN'      ' '     ' '
+    'WINDOWXMIN'      -1000.0000 ' '
+    'WINDOWXMAX'       1000.0000 ' '
+    'WINDOWYMIN'         0.0000 ' '
+    'WINDOWYMAX'        -1.0000 ' '
+
+ '%PACKAGE'     'VTXDIS'        ' '
+ '%ACTION'      'VTX_R-Z VIEW'  ' '
+ '%PARAMS'      ' '     ' '
+    'VTX ONLY'            FALSE ' '
+    'VTX DRAW VERTEX'    0      ' '
+    'VTX DRAW BEAMLINE'  0      ' '
+ '%SCREEN'      ' '     ' '
+    'WINDOWXMIN'      -1000.0000 ' '
+    'WINDOWXMAX'       1000.0000 ' '
+    'WINDOWYMIN'         0.0000 ' '
+    'WINDOWYMAX'        -1.0000 ' '
+
+ '%PACKAGE'     'FDCDIS'        ' '
+ '%ACTION'      'FDC_R-Z VIEW'  ' '
+ '%PARAMS'      ' '     ' '
+    'FDC ONLY'            FALSE ' '
+    'FDC DRAW ISATRK'     1     ' '
+ '%SCREEN'      ' '     ' '
+    'WINDOWXMIN'      -1000.0000   ' '
+    'WINDOWXMAX'       1000.0000   ' '
+    'WINDOWYMIN'         0.0000   ' '
+    'WINDOWYMAX'        -1.0000   ' '
+
+ '%PACKAGE'     'MUODIS'        ' '
+ '%ACTION'      'YZ CUT'      ' '
+ '%PARAMS'      ' '     ' '
+  'MUON ONLY'       .FALSE.        ' Muon Only'
+  'MUON TK FIT'  .FALSE.   ' T- plot only tk with good fit;F- plot all'
+    'TRACK PTMIN'        1.0000 ' '
+ '%SCREEN'   ' '        ' '
+    'WINDOWXMIN'       -1000.0000 ' '
+    'WINDOWXMAX'        1000.0000 ' '
+    'WINDOWYMIN'          0.0000 ' '
+    'WINDOWYMAX'         -1.0000 ' '
+ '%PACKAGE'     'SAMDIS'        ' '
+ '%ACTION'      'YZ SAMUS N'    ' '
+ '%PARAMS'      ' '     ' '
+    'TRACK PTMIN'        5.0000 ' '
+    'SAMUS ONLY'          .FALSE.        ' not SAMUS Only'
+ '%SCREEN'      ' '     ' '
+    'WINDOWXMIN'       -1000.0000 ' '
+    'WINDOWXMAX'        1000.0000 ' '
+    'WINDOWYMIN'          0.0000 ' '
+    'WINDOWYMAX'         -1.0000 ' '
+
+ '%PACKAGE'     'SAMDIS'        ' '
+ '%ACTION'      'YZ SAMUS S'    ' '
+ '%PARAMS'      ' '     ' '
+    'TRACK PTMIN'        5.0000 ' '
+    'SAMUS ONLY'          .FALSE.        ' not SAMUS Only'
+ '%SCREEN'      ' '     ' '
+    'WINDOWXMIN'       -1000.0000 ' '
+    'WINDOWXMAX'        1000.0000 ' '
+    'WINDOWYMIN'          0.0000 ' '
+    'WINDOWYMAX'         -1.0000 ' '
+
+ '%PACKAGE'     'CALDIS'        ' '
+ '%ACTION'      'SIDE VIEW CALORIMETER'  ' '
+ '%PARAMS'      ' '     ' '
+    'CAL ONLY'            FALSE ' '
+    'CAL PICK PHI'        FALSE ' '
+    'CAL PICK CELL'       FALSE ' '
+    'CAL JET DPHI'      3       ' '
+ '%SCREEN'      ' '     ' '
+    'WINDOWXMIN'      -1000.0000 ' '
+    'WINDOWXMAX'       1000.0000 ' '
+    'WINDOWYMIN'         0.0000 ' '
+    'WINDOWYMAX'        -1.0000 ' '
+\END
+
+
+ V. DOCUMENTATION
+
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and 
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction to the use of the
+                                   commercial graphics package, DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives more than introduction to D0USER
+                                   which provides an offline framework.
+
+    4. D0$EXAMINE2:EXAMINE_GUIDE.DOC - Users guide to EXAMINE,  the ONLINE
+                                       event monitoring framework.
+
+    5. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE Display System
+
+    6. D0$PIXIE:D0_EVENT_DISPLAY.DOC - General guide to the D0 Event Display
+
+    7. D0$PIXIE:CALDIS.DOC, CDCDIS.DOC, MUODIS.DOC etc. Guides to the
+                                   various sub-detector displays.

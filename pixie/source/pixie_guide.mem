@@ -1,0 +1,831 @@
+
+
+
+                                          USER'S GUIDE TO
+
+                                      THE DZERO DISPLAY PACKAGE
+
+                                               PIXIE
+
+                                            Version V3.0
+
+
+
+                                            Lupe Howell
+
+                                      Florida State University
+                                     Somewhere with Palm Trees
+
+                                        Harrison B. Prosper
+
+                               Fermi National Accelerator Laboratory
+                               P.O. Box 500, Batavia, Illinios 60510
+
+
+                                             1-Mar-1991
+                                        Revised 19-MAR-1991
+                                        Revised 25-MAR-1992
+
+
+
+                                   CONTENTS
+
+
+
+CHAPTER 1       INTRODUCTION
+
+        1.1     PIXIE PACKAGES . . . . . . . . . . . . . . . . . . 1-1
+
+
+CHAPTER 2       CREATING A PIXIE APPLICATION
+
+        2.1     CREATING AN EXECUTABLE FILE  . . . . . . . . . . . 2-1
+        2.1.1     Example: EXAMINE2  . . . . . . . . . . . . . . . 2-1
+        2.1.2     Example: D0USER  . . . . . . . . . . . . . . . . 2-2
+        2.2     SETTING UP A PIXIE APPLICATION . . . . . . . . . . 2-2
+        2.2.1     Defining RCP-files . . . . . . . . . . . . . . . 2-2
+        2.2.2     Defining Graphics Device Drivers . . . . . . . . 2-2
+
+
+CHAPTER 3       RUNNING A PIXIE APPLICATION
+
+        3.1     SYSTEM COMMANDS  . . . . . . . . . . . . . . . . . 3-2
+
+
+APPENDIX A      EXAMPLE OF A PIXIE PACKAGE SUB-MENU
+
+
+APPENDIX B      EXAMPLE OF PIXIE RCP-FILE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  2
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 1
+
+                                  INTRODUCTION
+
+
+
+   PIXIE is a library of routines organized as a  set  of  interactive  graphics
+packages  which  can  be used to display all or part of the DZero detector.  The
+user interacts with the graphics packages via COMPACK menus (in a VT200  window)
+and, in some cases, via a mouse associated with the graphics window.
+
+   The PIXIE software uses the commercial graphics system, DI3000, which is  the
+current  Dzero graphics interface standard.  A typical PIXIE routine consists of
+a sequence of calls to DI3000 primitives (JMOVE, JDRAW etc.) bounded by  a  call
+to  the  PIXIE  routine PUOPEN (which opens a segment) and PUCLOSE (which closes
+the segment).  A full description of programming details is beyond the scope  of
+this  guide.   For  details  on  how  to  program PIXIE applications consult the
+document D0$PIXIE:PIXIE_MANUAL.MEM (to be written).
+
+
+
+1.1  PIXIE PACKAGES
+
+   The term PACKAGE is used here in the sense of the program-builder.   A  PIXIE
+package consists of 3 elements:
+
+
+      o  A routine to initialize the package
+
+      o  A routine to execute the views
+
+      o  An RCP-file describing the package
+
+
+   A VIEW (or SCREEN) is a picture drawn within a graphics VIEWPORT,  which,  in
+turn,  is  a rectangular area within the physical graphics display area.  A view
+is created by a single routine (with no arguments) called an ACTION routine.
+
+   PIXIE packages can be plugged into any one  of  the  existing  DZero  program
+frameworks:   D0USER,  EXAMINE2  and  CALOR_OFF.  (In addition to these programs
+PIXIE has its own very simple framework intended for use in developing  graphics
+packages.  That framework has two hooks:  PXINIT and PXEXEC.)
+
+
+
+                                 1-1
+                           INTRODUCTION
+
+   The manner in which a PIXIE package is plugged into a framework is  described
+by the appropriate framework-dependent PBD file.
+For example, the PIXIE package CALDIS consists of the elements:
+
+      o  PCINIT.FOR
+
+      o  PCEXEC.FOR
+
+      o  D0$PIXIE:PX_CALDIS.RCP
+
+The corresponding PBD file is called CALDIS.PBD and one such file  should  exist
+for each framework.
+
+IMPORTANT: The following PIXIE naming scheme must be observed.  The name of
+        the  package defines the name of the RCP-bank pertaining to that
+        package as well as the name of  the  PBD-file.   For  a  package
+        called  PACKAGE the name of the PBD file must be PACKAGE.PBD and
+        the RCP-bank must be called PX_PACKAGE_RCP.  The  RCP-file  from
+        which the RCP-bank is created should be called PX_PACKAGE.RCP.
+
+Here is a list of the PIXIE packages.
+
+     1.  COMBDIS - combined views of the D0 detector (see note below)
+
+     2.  ZTRAKSDIS - combined views of the central tracking detector
+
+     3.  VTXDIS - views of the VTX tracking system
+
+     4.  TRDDIS - views of the Transition Radiation detector
+
+     5.  CDCDIS - views of the Central drift chamber
+
+     6.  FDCDIS - views of the Forward Drift chambers
+
+     7.  CALDIS - views of the Calorimeter
+
+     8.  MUTRAKSDIS - combined views of the muon systems.
+
+     9.  MUODIS - views of the Wide Angle Muon System (WAMUS)
+
+    10.  SAMDIS - views of the Small Angle Muon System (SAMUS)
+
+    11.  PHYDIS - displays of physics variables.
+
+    12.  ISAJETDIS - displays of ISAJET tracks
+
+    13.  USER_LEGO - user LEGO plots
+
+    14.  CD_ELECTRONICSDIS - FADC displays for central detector 
+
+The package COMBDIS provides combined views of the DZero detector.  COMBDIS does
+not  itself  execute  views  directly:   it merely orchestrates the combining of
+views from the various sub-detector packages according to instructions  provided
+in the RCP-file D0$PIXIE:PX_COMBDIS.RCP.  Therefore, if you wish to get complete
+combined views it is necessary to link in all the sub-detector packages as  well
+as the package COMBDIS.
+                                 1-2
+
+
+
+                                   CHAPTER 2
+
+                          CREATING A PIXIE APPLICATION
+
+
+
+2.1  CREATING AN EXECUTABLE FILE
+
+The DI3000 logicals must be set up before LINKing:
+
+     1.  To set up the DI3000 logicals do:
+
+          o  $ SETUP DI3000
+
+
+     2.  To get the shareable high precision version do:
+
+          o  $ DISETSHR EXT HI
+
+
+     3.  If you want to use the TEST version of PIXIE do:
+
+          o  $ LIBTEST PIXIE
+
+          o  $ LIBTEST GENERAL
+
+
+An  executable  file  can  be  built  (for  any  framework)  by  following   the
+instructions   provided   in   the   guide   D0$DOCS:PROGRAM_BUILDER.DOC.    For
+completeness, however, we  show  in  the  following  examples  how  to  run  the
+program-builder  to  create a combined-package object module.  For more specific
+instructions refer to the document for your favorite framework.
+
+
+
+2.1.1  Example:  EXAMINE2
+
+We wish to create an executable file containing the PIXIE  packages  CALDIS  and
+CDCDIS.  The command
+
+        $ PBD/FRAME=EXAMINE2/NAME=TEST/PACKAGE=(FILE,PIXIE,CALDIS,CDCDIS)
+
+will create the object module TEST_EXAMINE2.OBJ containing hooks which call  the
+packages FILE, PIXIE, CALDIS and CDCDIS.
+
+                                 2-1
+CREATING A PIXIE APPLICATION
+
+
+                                      NOTE
+
+        EXAMINE2 was designed to be a simple, highly factorized,  frame.
+        Therefore,  PIXIE  is NOT part of the EXAMINE2 frame; instead it
+        must be introduced into EXAMINE2, explicitly, by linking in  the
+        EXAMINE2  utility  package  PIXIE,  together  with  the  desired
+        graphics packages.  In the D0USER framework PIXIE is part of the
+        frame.
+
+The file TEST_EXAMINE2.LNK can now be executed to create an EXAMINE2  executable
+file.
+
+
+
+2.1.2  Example:  D0USER
+
+   We wish to create an executable file containing all of  the  PIXIE  packages.
+By convention this is called ALL_DISPLAY.  The command
+
+        $ PBD/FRAME=D0USER/NAME=TEST/PACKAGE=(MYPACK,ALL_DISPLAY%)
+
+will create the object module TEST_D0USER.OBJ containing hooks  which  call  the
+packages  MYPACK  and  all  the  packages  listed  in  the combined-package file
+D0$D0USER:ALL_DISPLAY_COMBINED_PACKAGES.PBD.  The file TEST_D0USER.LNK  can  now
+be executed to create a D0USER executable file.
+
+
+
+2.2  SETTING UP A PIXIE APPLICATION
+
+2.2.1  Defining RCP-files
+
+   Each PIXIE PBD-file specifies the name of its  corresponding  RCP-file.   The
+program-builder  reads  the  contents  of  the  various  PBD-files and creates a
+command procedure which defines  the  RCP-file  logicals  names  needed  by  the
+packages.   If  the combined-package name is TEST and if the framework is D0USER
+then the name of the procedure would be TEST_D0USER.COM.   The  procedure  would
+contain lines like
+
+        $ DEFINE PX_CALDIS_RCP D0$PIXIE:PX_CALDIS.RCP 
+        $ DEFINE PX_CDCDIS_RCP D0$PIXIE:PX_CDCDIS.RCP 
+                        : :          
+
+If you need to use your own version of one or more of the  RCP-files  then  make
+the  logical  name  D0$PIXIE  into a search-list which begins with the directory
+containing  your  copy  of  the  RCP-files  and  which  ends   with   the   area
+D0$PIXIE$ROOT:[000000].
+
+
+
+2.2.2  Defining Graphics Device Drivers
+
+One or two DI3000 device  drivers  should  be  set.   The  first  driver  should
+
+                                 2-2
+                                          CREATING A PIXIE APPLICATION
+
+
+correspond  to  the  type  of  terminal you are logged onto; the second one to a
+hardcopy device.
+
+        $ SETDRV TYPE1 (TYPE2)
+
+Some common terminal types and their DI3000 codes are
+
+      o  T10 - Tektronix 4010
+
+      o  240 - VT240
+
+      o  TLL - TALARIS, landscape mode
+
+      o  TLP - TALARIS, Portrait mode
+
+      o  LN3 - DEC LN03, Laser printer
+
+      o  GPV - UIS VMS VAXSTATION
+
+      o  XDW - DECwindows VMS VAXSTATION
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                 2-3
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 3
+
+                          RUNNING A PIXIE APPLICATION
+
+
+
+   To the user an executing PIXIE application consists of two windows:
+
+      o  A COMPACK window
+
+      o  A GRAPHICS window
+
+The user interacts mostly with the COMPACK window.  On occasions one may pick an
+item  from  within  the graphics window.  Each package will have its own menu of
+options.  If more than one PIXIE package is linked-in  then  the  top-most  menu
+(called  PIXIE)  will  contain a list of the linked-in PIXIE packages.  Figure 1
+shows what one would see if all the standard PIXIE packages were linked-in.
+                            PIXIE MENU DISPLAY
+
+
+          ->COMBDIS                           VTXDIS
+
+            TRDDIS                            CDCDIS
+
+            FDCDIS                            CALDIS
+
+            MUODIS
+
+
+       +----------+    +----------+    +---------+    +----------+
+       |    DO    |    |    HELP  |    |  LINE   |    |   BACK   |
+       +----------+    +----------+    +---------+    +----------+
+
+
+                                    Figure 1
+
+        Top-most Menu (PIXIE) for ALL_DISPLAY.  The order  of  the  menu
+        options  (packages)  is  determined  by  the  order in which the
+        packages were combined to form ALL_DISPLAY.
+
+A selection of one of these packages will cause the sub-menu  belonging  to  the
+selected package to be displayed.
+
+
+
+                                 3-1
+RUNNING A PIXIE APPLICATION
+
+
+3.1  SYSTEM COMMANDS
+
+   At run-time, PIXIE appends automatically to each package sub-menu  a  set  of
+system menu options, i.e.  system commands, thereby making them available at all
+menu levels.  The more important system commands are listed below.
+
+      o  Next Event - Display  the  next  event.   The  subsequent  behavior  is
+         determined by the Display Mode.
+
+      o  Go to Event - Go to the given event number.  The subsequent behavior is
+         determined by the Display Mode.
+
+      o  Change Display Mode - This is a toggle which affects  the  behavior  of
+         the  system  commands Next Event and Go To Event.  In one mode the last
+         view to be executed will be executed automatically,  that  is,  without
+         user  intervention and then the program will wait for some user action.
+         In the complementary mode no view is executed and  the  program  merely
+         waits for action from the user.
+
+      o  Superimpose (On/Off) - This is a Toggle between superimposing  and  NOT
+         superimposing one view over another.
+
+      o  Zoom a View - The  user  is  asked  to  pick  two  points,  defining  a
+         rectangular  area,  within  the  view  to be Zoomed.  If the points are
+         correctly chosen a zoomed view of that rectangular  area  is  provided.
+         Note:  zooms can be compounded.
+
+      o  Modify Parameters - This allows the user to modify any parameter within
+         the  RCP-bank  of  any of the active PIXIE packages.  Figure 2 sketches
+         what one would see  if  this  option  were  selected  from  the  CALDIS
+         package.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                 3-2
+                                           RUNNING A PIXIE APPLICATION
+
+
+
+                              CALORIMETER EVENT DISPLAY 
+
+
+             CAL EMIN                              | 1.0000[]
+             CALEGO EMIN                           | 1.0000
+             CAL PHI                               | 15
+             CAL DPHI                              | 16
+             CAL JET DPHI                          | 1
+             CAL ETA                               | 0
+             CAL LAY                               | 0
+             CAL ONLY                              | T
+             CAL PICK PHI                          | T
+             CAL PICK CELL                         | T
+              <>
+                +----------+    +----------+    +---------+    +----------+
+                |  MODIFY  |    |    HELP  |    |   QUIT  |    |   SAVE   |
+                +----------+    +----------+    +---------+    +----------+
+
+
+                                        Figure 2
+
+
+         One can move up and down the list by using the up and down arrow  keys.
+         A  "diamond"  <>  will  be  placed  at  the  bottom  or top of the list
+         indicating that there are more parameters in the  list.   To  modify  a
+         parameter one positions the cursor on the parameter to be modified, and
+         then one presses the MODIFY key (PF1).  This  will  erase  the  current
+         value  and  place  the cursor at the start of the value field.  Hit the
+         SAVE key to save the modified values and to exit from  the  menu.   Use
+         QUIT to do the same without saving the values.
+
+      o  Hardcopy - This creates a a hard-copy file of the  current  view.   The
+         name  of  the  file  is determined by the name of the hard-copy device:
+         for example, LN03P.DAT for the LN03 printer,  TALARIS.DAT  for  Talaris
+         etc.
+
+      o  Set Path - Set the ZEBRA data path in /ZEBCOM/ to RECO, GEAN or FILT.
+
+      o  COMPACK System Menu - This displays the standard COMPACK system menu.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                 3-3
+
+
+
+
+
+
+
+
+
+
+
+
+                                   APPENDIX A
+
+                      EXAMPLE OF A PIXIE PACKAGE SUB-MENU
+
+
+
+The following is a listing of simplfied menu for the PIXIE package CALDIS.
+
+                           CAL EVENT DISPLAY
+
+
+          ->Cell Cal 3D Caep                  Lego Cal CAEP
+
+            Change Display Mode               Superimpose(On/Off)
+
+            Next Event                        Go To Event
+
+            Zoom a View                       Modify Parameters                 
+
+            Hardcopy                          Show Parameters
+
+            Set Path                          Other Options
+
+            COMPACK System Menu
+
+
+       +----------+    +----------+    +---------+    +----------+
+       |    DO    |    |    HELP  |    |  LINE   |    |   BACK   |
+       +----------+    +----------+    +---------+    +----------+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                 A-1
+
+
+
+
+
+
+
+
+
+
+
+
+                                   APPENDIX B
+
+                           EXAMPLE OF PIXIE RCP-FILE
+
+
+
+The following is a listing of a simplified version of the RCP-file for the PIXIE
+package  CALDIS.   In  this  example  two simple views are defined plus one view
+which is a combination of the two.  A combined-view  command  is  denoted  by  a
+command name with the % symbol at the end.
+
+\START  PX_CALDIS_RCP   ! RCP bank name for PIXIE package CALDIS
+\SIZE       2000 50
+!------------------------------------------------------------------------------
+!   Name:         PX_CALDIS.RCP
+!   Purpose:      Example RCP-file
+!   Created:      2-MAY-1990   L. HOWELL
+!------------------------------------------------------------------------------
+ACTIVE          TRUE    ! Package is active
+MENDEF          FALSE
+!------------------------------------------------------------------------------
+   COMPACK SETUP
+!------------------------------------------------------------------------------
+\ARRAY COMPACK_MENUS
+    'CALDIS'
+\END
+
+\ARRAY CALDIS
+    TRUE                        !Menu Item Active
+    FALSE
+      'Cell Cal 3D Caep'        !Menu item as seen on screen
+      'CELL CAL 3D CAEP'        !Menu command returned by MENUDO
+      '     Cal. cells with energy .GT. EMIN are displaye'      !Help text
+      'd in 3-D color coded for their energy.            '
+
+    TRUE
+    FALSE
+      'Lego Cal CAEP'
+      'LEGO CAL CAEP'
+      '   AN eta-phi lego PLOT is made for the energy in '
+      'the calorimeter. The bins are in the physics indic'
+      'es: IETAC, IPHIC.                                 '
+
+    TRUE
+
+                                 B-1
+EXAMPLE OF PIXIE RCP-FILE
+
+
+    FALSE
+      '3Dcell_&_Lego'
+      '3DCELL_&_LEGO%'
+      '   Compare CAEP in 3D view and LEGO PLOT.         '
+\END
+!---------------------------------------------------------
+! Definition of CALDIS Parameters
+!---------------------------------------------------------
+\ARRAY PXPARAMS
+  'ELECALGORITHM'       'ELECTRON'      'Name of electron algorithm'
+  'ELECWORDS'           0.0             'Number of words to check'
+  'ELECWORD1'           0.0             'Number of words to check'
+  'ELECVALUE1'          0.0             'Number of words to check'
+  'ELECWORD2'           0.0             'Number of words to check'
+  'ELECVALUE2'          0.0             'Number of words to check'
+
+  'JETSALGORITHM'       'CONE_JET'      'Name of jets algorithm'
+  'JETSWORDS'           1.0             'Number of words to check'
+  'JETSWORD1'           6.0             'Number of words to check'
+  'JETSVALUE1'          0.7             'Number of words to check'
+  'JETSWORD2'           0.0             'Number of words to check'
+  'JETSVALUE2'          0.0             'Number of words to check'
+
+  'CAL EMIN'       1.0000           ' Cal Min'
+  'CALEGO EMIN'    1.0000           ' Calego emin'
+  'CAL PHI'            16           ' Cal Phi'
+  'CAL DPHI'           15           ' Cal Dphi'
+  'CAL JET DPHI'        1           ' Cal Jet Dphi'
+  'CAL ETA'             0           ' Cal Eta'
+  'CAL LAY'             0           ' Cal lay'
+  'CAL ONLY'          .TRUE.        ' Cal Only'
+  'CAL PICK PHI'      .TRUE.        ' Cal Pick phi'
+  'CAL PICK CELL'     .TRUE.        ' Optionally pick cal cell'
+  'CAL IETAMIN'       -13           ' Min. ETA for CC end view hist'
+  'CAL IETAMAX'        13           ' Max. ETA for CC end view hits'
+  'CAL ETHIST'        .TRUE.        ' T plot Et in cal end view hist, F for E'
+  'ROTATE_VIEW'       .TRUE.        ' Rotate 3D view(T) or not(F)'
+\END
+!---------------------------------------------------------
+! Definition of CALDIS Views (Screens)
+!---------------------------------------------------------
+\ARRAY PXSCREEN
+  'NSCREEN'             2           ' Total Number of screens in array'
+
+  'NAME'       'CELL CAL 3D CAEP'   ' Name of the screen'
+  'NVIEWPORT'           1           ' Number of Viewports'
+  'VIEW3D'            .TRUE.        ' True if 3D viewport'
+  'KEEPCIRCLE'        .TRUE.        ' True if circles are kept'
+  'VPORTXMIN'         -1.0000       ' X min Viewport'
+  'VPORTXMAX'          1.0000       ' X max Viewport'
+  'VPORTYMIN'         -1.0000       ' Y min Viewport'
+  'VPORTYMAX'          1.0000       ' Y max Viewport'
+  'WINDOWXMIN'      -400.0000       ' X Min Window limit'
+
+                                 B-2
+                                             EXAMPLE OF PIXIE RCP-FILE
+
+
+  'WINDOWXMAX'       400.0000       ' X Max Window limit'
+  'WINDOWYMIN'      -400.0000       ' Y Min Window limit'
+  'WINDOWYMAX'       400.0000       ' Y Max Window limit'
+  'VIEWREFX'           0.0000       ' X View reference pnt'
+  'VIEWREFY'           0.0000       ' Y View reference pnt'
+  'VIEWREFZ'           0.0000       ' Z View reference pnt'
+  'UPVECX'             0.0000       ' X Up vector'
+  'UPVECY'             1.0000       ' Y Up vector'
+  'UPVECZ'             0.0000       ' Z Up vector'
+  'CAMX'               0.0000       ' X Camera point'
+  'CAMY'            1000.0000       ' Y Camera point'
+  'CAMZ'            2000.0000       ' Z Camera point'
+
+  'NAME'          'LEGO CAL CAEP'   ' Name of the screen'
+  'NVIEWPORT'           1           ' Number of Viewports'
+  'VIEW3D'            .FALSE.       ' True if 3D viewport'
+  'KEEPCIRCLE'        .TRUE.        ' True if circles are kept'
+  'VPORTXMIN'         -1.0000       ' X min Viewport'
+  'VPORTXMAX'          1.0000       ' X max Viewport'
+  'VPORTYMIN'         -0.9946       ' Y min Viewport'
+  'VPORTYMAX'          0.9985       ' Y max Viewport'
+  'WINDOWXMIN'     -1000.0000       ' X Min Window limit'
+  'WINDOWXMAX'      1000.0000       ' X Max Window limit'
+  'WINDOWYMIN'     -1000.0000       ' Y Min Window limit'
+  'WINDOWYMAX'      1000.0000       ' Y Max Window limit'
+  'VIEWREFX'           0.0000       ' X View reference pnt'
+  'VIEWREFY'           0.0000       ' Y View reference pnt'
+  'VIEWREFZ'           0.0000       ' Z View reference pnt'
+  'UPVECX'             0.0000       ' X Up vector'
+  'UPVECY'             1.0000       ' Y Up vector'
+  'UPVECZ'             0.0000       ' Z Up vector'
+  'CAMX'               0.0000       ' X Camera point'
+  'CAMY'               0.0000       ' Y Camera point'
+  'CAMZ'               1.0000       ' Z Camera point'
+\END
+!-------------------------
+! MultiView commands
+!-------------------------
+\ARRAY 3DCELL_&_LEGO%
+  '%TITLE'      '3DCELL_&_LEGO'         'Combined View Title'
+
+  '%PACKAGE'    'CALDIS'                ' '
+  '%ACTION'     'CELL CAL 3D CAEP'      ' '
+  '%SCREEN'     ' '                     ' '
+    'VIEW3D'      TRUE               'True if 3D viewport'
+    'VPORTXMIN'             -0.9890  'X min Viewport'
+    'VPORTXMAX'              0.0066  'X max Viewport'
+    'VPORTYMIN'             -0.9945  'Y min Viewport'
+    'VPORTYMAX'              0.9848  'Y max Viewport'
+    'WINDOWXMIN'          -500.0000  'X Min Window limit'
+    'WINDOWXMAX'           500.0000  'X Max Window limit'
+    'WINDOWYMIN'          -500.0000  'Y Min Window limit'
+    'WINDOWYMAX'           500.0000  'Y Max Window limit'
+
+                                 B-3
+EXAMPLE OF PIXIE RCP-FILE
+
+
+  '%PACKAGE'    'CALDIS'         ' '
+  '%ACTION'     'LEGO CAL CAEP'  ' '
+  '%SCREEN'     ' '              ' '
+    'VPORTXMIN'              0.0219  'X min Viewport'
+    'VPORTXMAX'              0.9957  'X max Viewport'
+    'VPORTYMIN'             -0.4853  'Y min Viewport'
+    'VPORTYMAX'              0.9821  'Y max Viewport'
+\END
+\STOP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                 B-4

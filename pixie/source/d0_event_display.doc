@@ -1,0 +1,527 @@
+                                                               D0 NOTE 1355
+                                                               February 24, 1992
+                                                               Version 1.1
+
+                 D0 EVENT DISPLAY USERS GUIDE 
+
+   R. Avery, J. Bantly, S. Blessing,J. Glicenstein, P. Grudberg,
+   S. Hagopian, G. Howell, Q. Li-Demarteau N. Oshima,H. Prosper,  T. Trippe
+
+
+ I. INTRODUCTION
+
+      The D0 EVENT DISPLAY is a set of packages, one for each D0 sub-detector,
+    including the calorimeter (CAL), vertex tracking chamber (VTX), central
+    tracking chamber (CDC), forward drift chamber (FDC), transition radiation
+    detector (TRD), wide angle muon detector (WAMUS)  and small angle muon
+    detector (SAMUS) with combined views and individual views available.
+    The D0 Event Display is part of the PIXIE library, which can be run in 
+    various frameworks. Hooks are available for PIXIE in D0USER 
+    and EXAMINE2 and .PBD files have been defined for the full
+    D0 Event Display for these frameworks.
+
+         The D0 event Display show detector outlines, hits and tracks in cut
+    views, where a cross-section of the detector is displayed and hits and 
+    tracks from these modules are projected onto this plane. Not all tracks
+    and hits are displayed in a cut view. Calorimeter energy is displayed 
+    as histograms or towers in these cut views. A 3-D view of cal. cells
+    and reconstructed tracks is also available, which can be rotated.
+    Various LEGO plots for energy or transverse energy in bins of ETA and PHI
+    can also be made.
+
+        This note describes the full event display with all the sub-detectors.
+    For up-to-date information on individual sub-detector displays, see the 
+    D0$PIXIE:___DIS.DOC files listed at the end of this note. For the list of
+    people resposible for the display packages, see D0$PIXIE:PIXIE_CZARS.DOC.
+
+ II. SETUP DI3000
+
+          The D0 Event Display uses the commercial graphics library,
+       DI3000 for its graphics tools and device drivers.
+
+
+       *** The DI3000 logicals should be set up before linking ***
+
+       If they are not automatically setup, do $SETUP DI3000 
+       or find out where DI3000 is stored on your node and execute DILOGIN.COM
+
+   The sharable version of DI3000 should be requested by the command:
+
+    $ DISETSHR EXT HI 
+
+    This allows the user to run on a variety of devices without relinking
+    the program. The device is specified just before running the program by:
+
+
+    $SETDRV cod1 cod2 ! to setup the DI3000 device Drivers.
+
+    The first driver should correspond to the type of terminal or workstation
+    you are logged on to; the second one to a hardcopy device (optional).
+
+
+      Some common device codes are:
+
+               GPV - VAX VMS workstation with UIS (without DECWINDOWS)
+               XDW - VAX VMS workstation with DECWINDOWS
+               240 - VT240
+               T10 - TEKTRONIX 4010 emulator
+               X11 - VAX VMS workstation with DECWINDOWS (X11 version)
+               
+            Hardcopy printers:
+
+               TLL - TALARIS laser printer, LANDSCAPE MODE      
+               TLP - TALARIS laser printer, PORTRAIT MODE      
+               LN3 - DEC LN03 laser printer
+               PST - Postscript printer
+
+    For more information see D0$DOCS:DI3000_GUIDE.DOC
+
+
+III. GETTING a D0 EVENT DISPLAY 
+
+ A. IN EXAMINE2
+
+   1. Make the .EXE
+
+    Use the program builder file, D0_DISPLAY_COMBINED.PBD, with the 
+    procedure MAKE_HOOKS (Do not list PIXIE explicitly, since it is
+    already in D0_DISPLAY_COMBINED.PBD) and then use MMS.
+    (See D0$EXAMINE2:EXAMINE_GUIDE.DOC)
+
+   2. SETUP THE LOGIALS
+
+      Use the task_SETUP.COM file made by the program builder to setup
+      logicals for the STP geometry files and PX____DIS.RCP files
+      which contain the interactive display parameter and screen
+      definition parameters and display menu.
+ 
+  3. RUN EXAMINE2
+
+      After "BEGIN PROCESSING" in EXAMINE2, choose menu item
+            "EVENT DISPLAY" in the INTERRUPT menu.
+
+ B. IN D0USER
+
+   1. Use standard LINK file in D0LIBRARY:
+
+      Remember to set up the DI3000 logicals before LINKING
+
+    a. $LIBTEST PIXIE,D0USER
+
+    b. $@D0$D0USER:ALL_DISPLAY_D0USER.LNK DI3000
+        or copy LINK file to your directory and modify it as desired.
+
+    c. $@D0$D0USER:ALL_DISPLAY_D0USER ! to set up needed RCP logicals
+
+    d. $@D0$D0USER:EVENT_DISPLAY ! to setup needed STP files and DI3000 drivers
+      answer question about whether data is  COSMIC or MC (monte carlo)
+      answer question about type of device driver (See D0$DOCS:DI3000_GUIDE.DOC)
+
+    e. $RUN ALL_DISPLAY_D0USER
+
+
+
+   2. Execute the Program Builder.
+
+    Use the package ALL_DISPLAY_COMBINED.PBD
+
+    $ PBD/frame=D0USER/name=ALL_DISPLAY/zebcom=1000000/ZEBSTP=600000
+          
+
+   The program builder generates following files.
+
+        ALL_DISPLAY_D0USER.COM
+        ALL_DISPLAY_D0USER.FOR
+        ALL_DISPLAY_D0USER.LNK
+        ALL_DISPLAY_D0USER.OBJ
+        ALL_DISPLAY_D0USER.OPT
+        DEB_ALL_DISPLAY_D0USER.OBJ
+
+
+
+  3. Use your own ALL_DISPLAY_D0USER.LNK file made by the program builder.
+
+   You can make your EXE file as you like by one of following commands.
+    $ @ALL_DISPLAY_D0USER.LNK DI3000       - Non debug DI3000 version 
+    $ @ALL_DISPLAY_D0USER.LNK DI3000 DEBUG - Debug DI3000 version
+    $ @ALL_DISPLAY_D0USER.LNK EASDI3       - Evans&Sutherland emulator version
+    $ @ALL_DISPLAY_D0USER.LNK UISDI3       - UIS(DEC VWS) emulator version
+
+
+ 5. SET UP LOGICALS
+
+  a) To set up ALL_DISPLAY_D0USER environment and logicals, you need to 
+    execute these two COM files.
+
+    $ @ALL_DISPLAY_D0USER.COM  - Define logicals and RCP files
+    $ @D0$D0USER:EVENT_DISPLAY - Define STP files, Input data type and
+                                 DI3000 Drivers.
+   The first driver should correspond to the type of terminal you are 
+   logged on to; the second one to a hardcopy device[ e.g. TLP ].
+
+ 6. RUN D0USER
+
+   To execute ALL_DISPLAY_D0USER.EXE, just type,
+    $ D0USER
+
+    Events can be displayed in D0USER in three modes. The user can enter  
+    a set of RUN-EVENT numbers to display, they can set a flag to display 
+    every event, or they can choose the "EVENT DISPLAY" item in the 
+    INTERRUPT menu, after choosing "INTERRUPT MENU" in the D0USER SETUP menu. 
+
+   For the first two modes, select the menu "7: Event Displays" from the 
+   D0USER SETUP Menu. You will receive following questions from this menu.
+  
+    - How many events to display (<20)? [1] > (RET)
+    - Give Run# and Event#.
+
+      If Run#<0, first event read is displayed.
+      If Event#<0, first event of Run# is displayed.
+      To display consecutive events use the Next Event feature
+      in the Event Display menu.
+
+      Run no.> -1 (RET)
+      Event no.> -1 (RET)
+
+   You are return to the D0USER SETUP Menu again, select "1: Manual Process"
+    - Store histograms ? 0=NO, 1=after each run, 2=end of job only > 0 (RET)
+    -  Will you be reading files from tape? [N]> (RET)
+      If you give wild card all files with given string are processed
+      but option Manual Process will stop after N events requested.
+      If name of input file is NONE no file will be open.
+    - Name of input file > USR$SCRATCH:[OSHIMA]MY_STA_FILE.GEN (RET)
+    - Is input file in exchange mode? [N]:> (RET)
+    - Process all events for remaining runs? Y/N > Y (RET)
+
+   Here we are! Now you are in the Event Display menu system. 
+
+
+ IV.D0 EVENT DISPLAY MENUS
+
+   A. PIXIE MENU
+
+     _______________________________________________________________
+     |     SUB_LEVEL: PIXIE    SETUP                               |
+     |    Select: {command, #, HELP (#), MENU, BACK} > HELP (RET)  |
+     |                                                             |
+     |       1: COMBINED                         2: ZTRAKS         |
+     |       3: VTX                              4: TRD            |
+     |       5: CDC                              6: FDC            |
+     |       7: CAL                              8: MUTRAKS        |
+     |       9: MUON                            10: SAMUS          |
+     |      11: PHYSICS                                            |
+     |_____________________________________________________________|
+
+   B. PIXIE SYSTEM MENU
+
+         The PIXIE SYSTEM appends 14 menu items to the bottom of the
+      DISPLAY package application menu items. The SYSTEM menu items are
+      of a general nature and are useful for many different packages.
+      (See D0$PIXIE:PIXIE_SYSTEM.DOC for up-to-date information.)
+
+       An example of a PIXIE APPLICATION menu with 3 application items 
+       would become:
+
+     _________________________________________________________________
+     |  1: Application item 1                  2: Application item 2 |
+     |  3: Application item 3                  4: NEXT Event         |
+     |  5: GO TO EVENT                         6: ZOOM               |
+     |  7: ROTATE                              8: PICK               |
+     |  9: HARDCOPY                           10: MODIFY             |
+     | 11: Change Display Mode                12: Superimpose(On/Off)|
+     | 13: Set Path                           14: Dump Event         |
+     | 15: Write Event                        16: Start Sequential   |
+     | 17: COMPACK System Menu                                       |
+     |_______________________________________________________________|
+
+     NOTE: To display D0GEANT output directly (before reconstruction)
+           do "SET PATH" and enter GEAN. (Default is PATH RECO).
+
+
+   C. PIXIE SUB-MENUS
+
+      1. COMBINED - Combined views of sub-detectors and event displayS.
+         For a detailed description of these displays see D0$PIXIE:COMBDIS.DOC.
+
+        _________________________________________________________________
+        |  SUB_LEVEL: Combined Event Display    PIXIE                   |
+        |  Select: {command, #, HELP (#), MENU, BACK} > help            |
+        |                                                               |
+        | 1. D0 Full Side View                   2. D0 Full End View    |
+        | 3. D0 Full Top View                    4. D0 End View         |
+        | 5. CAL+TRACKS R-Z View                 6. CAL+TRACKS End View |
+        | 7. TRACKS R-Z View                     8. TRACKS End View     |
+        | 9. D0 Full 3D View                                            |
+        |_______________________________________________________________|
+
+
+     2.ZTRAKS MENU - Combined tracking detector displays, with ZTRAKS.
+       For a detailed description of these displays see D0$PIXIE:ZTRAKSDIS.DOC
+
+        __________________________________________________________________
+        | SUB_LEVEL: ZTRAKS Event Display    SETUP                       |
+        | Select: {command, #, HELP (#), MENU, BACK} > ?                 |
+        |                                                                |
+        |   1: CEN Detect R-PHI                    2: VTX+CDC+FDC R-PHI  |
+        |   3: VTX+CDC+FDC R-Z View                4: Combined 3-D Tracks|
+        |   5: FDC Combined View                   6: FDC_Hits           |
+        |   7: ZTRAKS Top View                     8: ZTRAKS Side View   |
+        |________________________________________________________________|
+
+      3. VTX MENU - VERTEX detector displays.
+         For a detailed description of these displays see D0$PIXIE:VTXDIS.DOC
+
+        _________________________________________________________________
+        | SUB_LEVEL: VTX Event Display    PIXIE                         |
+        | Select: {command, #, HELP (#), MENU, BACK} > help             |
+        |                                                               |
+        |    1: VTX_R-phi View                    2: VTX_R-Z View       |
+        |    3: VTX_Z-Y View                      4: VTX_FADC_Wires     |
+        |    5: VTX_FADC_Strips                                         |
+        |_______________________________________________________________|
+
+      4. TRD MENU -Transition Radiation Detector Displays.
+         For a detailed description of these displays see D0$PIXIE:TRDDIS.DOC
+
+        _________________________________________________________________
+        | SUB_LEVEL: TRD System Display    SETUP                        | 
+        | Select: {command, #, HELP (#), MENU, BACK} > help             |
+        |                                                               |
+        |    1: TRD TK R-PHI                        2: TRD HITS Display |
+        |    3: SELECT WIRE TK R-PHI                4: SELECT WIRE HITS | 
+        |_______________________________________________________________|
+        _________________________________________________________________
+        | SUB_LEVEL: Select Wire Hits      SETUP                        | 
+        | Select: {command, #, HELP (#), MENU, BACK} > help             |
+        |                                                               |
+        |    1: FADC Displaya of a awire            2: Energy of wire   |
+        |    3: Anode/cathode                                           | 
+        |_______________________________________________________________|
+
+
+
+     5. CDC MENU
+        _________________________________________________________________
+        | SUB_LEVEL: CDC System Display    SETUP                        |
+        | Select: {command, #, HELP (#), MENU, BACK} > help             |
+        |                                                               |
+        |   1: CDC_X-Y View                        2: CDC_R-Z VIEW      |
+        |   3: CDC_X-Y Segments                    4: CDC_3Sec Segments |
+        |   5: CDC_1layer FADCs                    6: CDC_One_FADC      |
+        |   7: CDC_4layer FADCs%                   8: CDC_3sec Tracks   |
+        |_______________________________________________________________|
+
+
+    6. FDC MENU
+        _________________________________________________________________
+        | SUB_LEVEL: FDC Event Display    SETUP                         |
+        | Select: {command, #, HELP (#), MENU, BACK} > ?                | 
+        |                                                               |
+        |   1: FDC Track & Sectors                 2: FDC Hits          |
+        |   3: FDC Track & FADCs                   4: FDC Fit Segments  |
+        |   5: FDC Theta Sector                    6: FDC Phi Sector    |
+        |   7: FDC Theta FADC                      8: FDC Phi FADC      |
+        |   9: FDC R-Z View                       10: FDC R-Phi View    |
+        |  11: FDC Combined View                  12: FDC Y-Z/X-Z View  |
+        |  13: FDC 3D Tracks                      14: FDC 3D 1 Track    |
+        |  15: FDC 3D Segments                    16: FDC Crate FADC    |
+        |_______________________________________________________________|
+
+    7. CAL MENU
+        _________________________________________________________________
+        | SUB_LEVEL: CAL Event Display    SETUP                         |
+        | Select: {command, #, HELP (#), MENU, BACK} > ?                | 
+        |                                                               |
+        |   1:  End View Cal                       2:  ETA Histo Cal    |
+        |   3:  Side View Cal                      4:  3D Cal Cells     |
+        |   5:  Lego Cal CAEP                      6:  3D cells & LEGO  |
+        |   7:  CAJETS                             8: CAPHEL            |
+        |   9:  CATRIG                                                  |
+        |_______________________________________________________________|
+
+        _________________________________________________________________
+        | SUB_LEVEL: CAJETS Event Display    SETUP                      |
+        | Select: {command, #, HELP (#), MENU, BACK} > ?                | 
+        |                                                               |
+        |   1:  Tower Lego CATE                    2:  Jets_Lego PLOT   |
+        |   3:   CATE+JETS_LEGO                    4:  One JET LEGO     |
+        |   5:   Jets_3D Cell                                           |
+        |_______________________________________________________________|
+
+        _________________________________________________________________
+        | SUB_LEVEL: CAPHEL Event Display    SETUP                      |
+        | Select: {command, #, HELP (#), MENU, BACK} > ?                | 
+        |                                                               |
+        |   1:  Tower Lego CATE                    2:   Clustr LEGO CACL|
+        |   3:  CATE+CLUS_LEGO                     4:   Cluster 3D CACL |
+        |   5:  Elec_LEGO PECL                     6:   Elec+Clus_LEGO  |
+        |   7:  Elec_3D PELC                                            |
+        |_______________________________________________________________|
+
+        _________________________________________________________________
+        | SUB_LEVEL: CATRIG Event Display    SETUP                      |
+        | Select: {command, #, HELP (#), MENU, BACK} > ?                | 
+        |                                                               |
+        |   1:  TRIG End View                      2:  TRIG Side View   |
+        |   3:  TRIG LEGO                                               |
+        |_______________________________________________________________|
+
+
+ 8. MUTRAKS MENU - Combined WAMUS+SAMUS displays with combined tracks
+    as well as tracks with SAMUS hits only or WAMUS hits only.
+    For a detailed description of these displays see D0$PIXIE:MUTRAKSDIS.DOC
+
+        __________________________________________________________________
+        | SUB_LEVEL: MUTRAKS Event Display    SETUP                      |
+        | Select: {command, #, HELP (#), MENU, BACK} > ?                 |
+        |                                                                |
+        |   1: MUTRAKS SIDE VIEW                   2: MUTRAKS TOP VIEW   |
+        |________________________________________________________________|
+
+
+ 9. MUON MENU
+
+        __________________________________________________________________
+        | SUB_LEVEL: MUON Event Display    PIXIE                         |
+        | Select: {command, #, HELP (#), MENU, BACK} > help              |
+        |                                                                | 
+        |    1: All Views                           2: Tk Blowup         |
+        |    3: Y-Z View                            4: X-Y View          |
+        |    5: X-Z View                            6: YZ cut            |
+        |    7: XY cut                              8: ZX cut            |
+        |    9. R-Z view                           10. MUON DUMP         |
+        __________________________________________________________________
+
+ 10. SAMUS MENU
+
+        __________________________________________________________________
+        | SUB_LEVEL: SAMUS Event Display    PIXIE                        |
+        | Select: {command, #, HELP (#), MENU, BACK} > help              |
+        |                                                                |
+        |    1: YZ VIEW SAMUS                       2: XY VIEW SAMUS     |
+        |    3: ZX VIEW SAMUS                       4: YZ SAMUS N        |
+        |    5: XY N A SAMUS                        6: XY N B SAMUS      |
+        |    7: XY N C SAMUS                        8: ZX SAMUS N        |
+        |    9. YZ SAMUS S                         10. XY S A SAMUS      |
+        |   11. XY S B SAMUS                       12. XY S C SAMUS      |
+        |   13. ZX SAMUS S                                               |
+        __________________________________________________________________
+
+ 11. PHYSICS MENU - Plots of physics variables. Can be used on STA or DST
+     files as well as in D0USER or EXAMINE.
+     For a detailed description of these displays see D0$PIXIE:PHYSDIS.DOC
+
+        __________________________________________________________________
+        | SUB_LEVEL: PHYSICS Event Display    SETUP                      |
+        | Select: {command, #, HELP (#), MENU, BACK} > ?                 |
+        |                                                                |
+        |   1: ISAJET TRACKS                   2: 3-D DST DISPLAY        |
+        |   1: DST LEGO                                                  |
+        |________________________________________________________________|
+
+
+
+
+ V. INTERACTIVE PARAMETERS
+
+
+           The user can modify some aspects of the displays by changing
+       interactive parameters. Default values for these parameters are
+       stored in display package RCp files, D0$PIXIE:PX_codDIS.RCP,
+       where cod is the first three letters of the display package name.
+       The SETUP.COM files made by the program builder define corresponding
+       LOGICALS: $DEFINE PX_codDIS_RCP D0$PIXIE:PX_codDIS.RCP. The user
+       can copy the appropriate file to their default directory and edit
+       it, changing values of the parameters as desired. Then they should 
+       redefine the LOGICAL: $DEFINE PX_codDIS_RCP PX_codDIS.RCP
+       Or the values of these parameters can be changed after execution
+       has begun, by choosing the PIXIE SYSTEM MENU item, "MODIFY"
+       and then choosing "PARAMETERS". 
+
+           There are no unique parameters for the combined views, which are 
+       just built out of individual sub-detctor displays. But parameters for 
+       some of these displays are overriden by values set in PX_COMBDIS.RCP.
+       (ZTRAKSDIS is not strictly combined views and does have a few parameters)
+
+
+
+  VI. DEFINITION OF  MENUS and SCREENS 
+
+
+      A. MENUS
+
+         The D0 Event Display uses the COMPACK menu system. The menu items
+         are given in the RCP file for each package. Corresponding commands
+         and calls to action routines are coded in *EXEC.FOR routines stored
+         in the PIXIE library. See D0$PIXIE:PIXIE_GUIDE.MEM for more 
+         information.
+
+
+      B. SCREENS
+
+         Viewing parameters for the various displays are also stored in the
+         RCP files. See D0$PIXIE:PIXIE_GUIDE.MEM for further information.
+         See the sub-detector display documentation for examples.
+         Small changes in the screen parameters can be made by editting
+         the RCP files before running or by using the menu item MODIFY
+         then choosing SCREENS. But to make major changes or to create 
+         new screens, it is best to use the interactive program, PXBUILD. 
+         (See D0$PIXIE:PXBUILD.DOC)
+
+         
+         
+
+
+
+
+ VII. DOCUMENTATION
+
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and 
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction to the use of the
+                                   commercial graphics package, DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives more than introduction to D0USER
+                                   which provides an offline framework.
+
+    4. D0$EXAMINE2:EXAMINE_GUIDE.DOC - Users guide to EXAMINE,  the ONLINE
+                                       event monitoring framework.
+
+    5. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE display framework
+                                  and packages.
+
+    6. D0$PIXIE:CALDIS.DOC - Guide to the D0 Calorimeter display package.
+
+    7. D0$PIXIE:CDCDIS.DOC - Guide to the D0 Central Tracking detector
+                             display package.
+
+    8. D0$PIXIE:COMBDIS.DOC - Guide to Combined views of the D0 Detector.
+
+    9. D0$PIXIE:FDCDIS.DOC - Guide to D0 Forward Drift detector displays.
+
+   10. D0$PIXIE:MUODIS.DOC - Guide to the D0 Wide Angle Muon (WAMUS) displays.
+
+   11. D0$PIXIE:MUTRAKSDIS.DOC - Guide to Combined MUON Detectors Displays.
+
+   12. D0$PIXIE:PHYDIS.DOC - Guide to physics analysis displays.
+
+   13. D0$PIXIE:SAMDIS.DOC - Guide to the D0 Small Angle Muon (SAMUS) displays.
+
+   14. D0$PIXIE:TRDDIS.DOC - Guide to the D0 Transition Radiation Detector
+                             displays.
+
+   15. D0$PIXIE:VTXDIS.DOC - Guide to the D0 Vertex Detector displays.
+
+   16. D0$PIXIE:ZTRAKSDIS.DOC - Guide to Combined Tracking Detector Displays.
+
+   17. D0$PIXIE:PX_SYSTEM.DOC - Guide to PIXIE SYSTEM MENU items and parameters.
+
+   18. D0$PIXIE:SEQUENCE_DISPLAY.DOC - Guide to making an automatic sequence
+                               of event displays. Uses an RCP array instead
+                               of an interactive menu.
+
+   19. D0$PIXIE:PXBUILD.DOC - Guide to using an interactive program to make new
+                           PIXIE display RCP files, or modify or merge old ones.

@@ -1,0 +1,99 @@
+    ********** New class segment system, as described below ***********
+
+              PIXIE Class Segment,   Version 2.0             Olivier Callot
+                                                             19-Jan-88
+
+
+    This system is intended to manipulate DI3000 segments and insure the
+uniqueness of each segment number. The basic idea is that various simultaneous
+users have a 'CLASS', and that they asks the system for a new segment number
+in their class when they want one. This way avoid clashes of segments number
+( DI3000 fatal error ) and allows to retrive the list of used segments.
+    A maximum number of segment and of classes if defined in the (only)
+common used by this system, PZCOMN.INC.
+
+
+   Variables used to describe these routines:
+
+   CLANUM [Integer] = Class number. Given by a call to PZCLAS. Input to
+                      all other routines. In all these routines, a CLANUM of 0
+                      means "the current one", i.e. the CLANUM output by the
+                      most recent call to PZCLAS.
+   SEGNUM [Integer] = Segment number, as used by DI3000. Output of PZOPEN
+                      and PZLSEG, input to PZPURG.
+   OFSET  [Integer] = Used to scan all the segments in a class. Set it to
+                      0 the first time, then test if 0 after the call: This
+                      means that there are no more segments.
+   CLANAM [Character*(*)] = Name to be given to the class. Only the first
+                      16 characters are relevant.
+   UNIT   [Integer] = Fortran unit number where you want a description of
+                      the segment and class usage.
+
+------------------------------------------------------------------------------
+
+   PZOPEN( CLANUM, SEGNUM ) : Open a new DI3000 segment and tag it as used for
+                              class "CLANUM". The number is output in "SEGNUM".
+                              The number is the lowest available segment
+                              number. If a segment is already open, we close
+                              it to avoid DI3000 error.
+
+   PZLSEG( CLANUM, SEGNUM, OFSET ) : Gives the next segment number in the class.
+                              OFSET is the offset, i.e. OFSET = 0 gives the
+                              first segment number in this class. OFSET
+                              is incremented after each call, and returned
+                              as -1 when there are no more segments.
+
+   PZFREE( CLANUM )   :  Free all the segments in the class and purge them from
+                              DI3000 internal list. 
+
+   PZPURG( CLANUM, SEGNUM ) : Purge the specified segment. Check that it
+                              exists in this CLANUM before purging.
+
+   PZCLAS( CLANUM, CLANAM ) : Create a new class with name CLANAM, a character
+                              variable whose first 16 characters will be keept
+                              for diagnostic purposes, and return the number in
+                              variable CLANUM. If another class with same
+                              CLANAM exists, CLANUM will be the number of
+                              this existing class, and the previous content
+                              of this class will be erased thru call to
+                              PZFREE. There is a maximum number of classes.
+
+   PZDUMP( UNIT ) : Produce on unit UNIT a description of the segment
+                    usage by the various classes. Is called if we run out
+                    of segments with UNIT = 6, but may be called by the user.
+
+
+    *******  CDC routines modified, to use ZEBSTP for geometry inputs and
+             to allows choices in the display content
+
+    *******  Few changes in the general utilities PXMENU, PXRDIN, PXSAVE
+*** Group CALTESTGM routine CELDAT - Has labels corrected for layer 3
+  
+*** Group CAL (CCEM) routine PCCEP4 - has been corrected for layer 3 problems.
+              routine PCVIEW - bug for LASER plot of ETA-PHI fixed.
+   
+*** Group UTIL routine PXDV06 added - Draws section of TUBE.
+   
+*** Group FH has been created for the display of CC fine hadronic.
+              It contains the following subroutines:
+
+      PIXCFH - Main routine for display of CC fine hadronic module
+      PCFDIS - Command dispatching routine for CC FH
+      PCFVUE - Viewing routine for CC FH
+      PCCEP5 - Makes Eta-Phi LEGO plot for CC FH
+      PCFGTA - Gets eta,phi,layer number for max. eta for CC FH
+      PCFGTP - Gets max. eta in physics variables for CC FH
+      PCFSEM - Sets up correspondence between module labels and
+               physics variables for CCFH. 
+      PCFGEM - Second ENTRY in PCFSEM - Gets the module labels 
+               given the values of the physics variables.
+
+*** Group MUON routine PIXMUO has been added. It is the main routine for
+               the MUON display.
+  
+*** Group DOC has been created. It contains:
+
+     PIXIE_CLASSES.DOC - Documentation for the DI-3000 segment 
+                         class system
+     PIXIE_UTILS.DOC - Documentation for the utility routines for
+                      the D0 use of DI-3000

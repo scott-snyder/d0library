@@ -1,0 +1,417 @@
+                                                            R. Avery
+                                                            November 23, 1991
+                                                            Version 1.0
+
+                         FDCDIS - FDC Event Display
+
+ I. INTRODUCTION
+      FDCDIS is the FDC event display package.  It is part of the
+    PIXIE library, which can be run in various frameworks.
+    Hooks are set up for PIXIE in D0USER and EXAMINE2. (See .DOCs)
+    It can display FDC information from all levels of processing:
+    raw FADC traces, results of hit finding, track segments made from
+    these hits in a given FDC cell, and full tracks for the full FDC.
+    The information displayed by FDCDIS comes from the banks created
+    by the FDC reconstruction package (FTRAKS, by itself, or as called
+    from ZTRAKS). Most displays can be made from the banks that are saved 
+    in the standard output stream (STA), although a few of the displays
+    require the full output of FTRAKS in order to be useful.
+    Only full FDC track information can be displayed from DST files.
+
+II. GETTING an FDC DISPLAY
+
+ A. Program builder
+
+    The package FDCDIS must be included in the package list to get
+    the FDC event display. To get combined displays, including all
+    calorimeter, tracking and muon displays, just use the package
+    ALL_DISPLAY_COMBINED.PBD for D0USER or D0_DISPLAY_COMBINED.PBD 
+    for EXAMINE.
+
+
+ B. LINK
+
+    The normal D0USER link does not include the event display
+    package. One needs to do: $@FTRAKS_D0USER.LNK DI3000.
+    Also, it is usually best to do a $LIBT PIXIE in order to
+    pick up the latest event display routines and parameters.
+
+ C. Setup for RUN
+
+
+   1. DI3000 logicals
+
+      If the DI3000 logicals are not automatically setup, do
+      $SETUP DI3000 or find out where DI3000 is stored on your node
+      and execute DILOGIN.COM
+
+      The sharable version of DI3000 should be requested by the command:
+
+      $ DISETSHR EXT HI
+
+    $SETDRV cod1 cod2 ! to setup the DI3000 device Drivers.
+
+    The first driver should correspond to the type of terminal you are
+    logged on to; the second one to a hardcopy device[ e.g. TLP ].
+
+    For more information see D0$DOCS:DI3000_GUIDE.DOC
+
+ 2. PIXIE logicals. The event display needs a RCP file to define the views
+    to be displayed and the interactive parameters which control them.
+    For the FDC display, the file needed is D0$PIXIE:PX_FDCDIS.RCP.
+    The corresponding logical is PX_FDCDIS_RCP.
+    The user may redirect the RCP logicals to their own files.
+    The FDCDIS routines also need access to some of the parameters
+    used in FDC reconstruction. The required RCP file is
+    D0$TRACKING_UTIL:FTRAKS.RCP, and the corresponding logical is
+    FTRAKS_RCP. If the user has included the package ALL_DISPLAY,
+    these will both be defined by ALL_DISPLAY_D0USER.COM, however
+    the command file D0$D0USER:EVENT_DISPLAY.COM must also be executed.
+    (This procedure does $SETDRV and sets up the STP files.)
+
+ D. RUNNING
+
+    1. Running EXAMINE2
+
+       After "BEGIN PROCESSING" in EXAMINE2, choose menu item
+       "EVENT DISPLAY" in the INTERRUPT menu.
+
+    2.  Running D0USER.
+
+       There are two ways to use event display. The first
+       is to turn on the interactive menu and then, while analyzing
+       events, do a DISPLAY EVENT. This will start at a random event.
+       One can also turn on the automatic event display by doing
+       EVENT DISPLAYS (7) before starting the run. It will ask how
+       many events and their particular IDs (if -1 then assumes
+       consecutive).
+
+
+ III. FDCDIS MENU
+
+SUB_LEVEL: FDC Event Display    SETUP
+Select: {command, #, HELP (#), MENU, BACK} > ?
+
+   1: FDC Track & Sectors                 2: FDC Hits
+   3: FDC Track & FADCs                   4: FDC Fit Segments
+   5: FDC Theta Sector                    6: FDC Phi Sector
+   7: FDC Theta FADC                      8: FDC Phi FADC
+   9: FDC R-Z View                       10: FDC R-Phi View
+  11: FDC Combined View                  12: FDC Y-Z/X-Z View
+  13: FDC Isajet & Sectors               14: FDC Road & Sectors
+  15: FDC 3D Full                        16: FDC one FADC
+  17: NEXT Event                         18: GO TO Event
+  19: ZOOM                               20: ROTATE
+  21: PICK                               22: HARDCOPY
+  23: MODIFY                             24: Change Display Mode
+  25: Superimpose(On/Off)                26: Set Path
+  27: Dump Bank                          28: Dump Event
+  29: Write Event                        30: Start Sequencial Display
+  31: COMPACK System Menu
+
+ For further information on menu items 17 - 31, see D0$PIXIE:PX_SYSTEM.DOC
+
+
+--------------------------------------------------------------------------------
+*FDCDIS Menu Title    * Function & Remark                                    *
+--------------------------------------------------------------------------------
+  FDC Track & Sectors   - After being shown the full FDC R-Z view of all
+        tracks in the event, the user is prompted for a track number. 
+        Each of the three chamber cells that the track passes through are 
+        displayed, showing all hits, track segments, and full tracks in 
+        that FDC sector. 
+        (Sector displays are the same as drawn by "FDC Phi Sector" and 
+        "FDC Theta Sector", see further description  below)
+
+  FDC Track & FADCs     - Similar to Track & Sectors, but instead of displaying
+        the sector displays, the raw FADC trace for each track segment is shown.
+        (FADC displays are the same as drawn by "FDC Phi FADC" 
+        and "FDC Theta FADC" below)
+
+  FDC Fit Segments      - Allows the user to create his own track using
+        up to one segment from each of three layers.
+        The resulting track parameters are displayed, and the three FDC 
+        sectors that the track passes through are displayed.
+
+  FDC Hits   - Displays all hits and track segments in an FDC half. 
+        Each sector (cell) of  each FDC theta quadrant 
+        and each FDC Phi sector is displayed on one page. 
+        The arrangement of this display does not reflect 
+        the true geometry of the FDC! 
+        The page is divided into 4 columns, each showing three 
+        layers of the FDC in order: 
+                1) an inner theta quadrant (INR),
+                2) on forth of the Phi sectors (9 cells),
+                3) an outer theta quadrant (OUTR).
+        If the segment is not on a full track, it is drawn as dotted green line.
+        If the segment is on a full track, it is drawn as solid line 
+        in forground color.
+                                
+  FDC Theta Sector      - Displays all of the hits, track segments, and
+        full tracks that are found in a single Theta sector (cell). 
+        The plot is of drift direction (horizontal) vs Z (vertical).
+        Hits put on segments are marked with an X. 
+        Hits with an associated delay line are marked with an 0. 
+        Segments put on on full tracks are marked with ticks on each end.
+        Full tracks are drawn as dotted lines, and extend outside the 
+        cell boundary. Ticks on the full tracks indicate segments
+        from the other two layers have been placed on the track.
+
+        Below the Sector drawing is an indication of information in
+        the delay line direction (perpendicular to drift and beam line). 
+        For segments with associated delay lines, the delay line
+        position is indicated by a segment label above the line. 
+        The track position is indicated by a track label below the line.
+
+  FDC Phi Sector        - Same as "FDC Theta Sector", for a Phi sector.
+
+  FDC Theta FADC        - Displays the FADC traces for all 8 theta sense wires
+        and 2 ends of the delay line. Hits that have been found are marked, 
+        if not on a segment with a +;  
+        if on the n'th  segment, with X,Y,V,A,*,U,T,W, or 0 (in that order).
+
+  FDC Phi FADC          - Displays the FADC traces for all 16 Phi sense wires
+                                (same as FDC Theta FADC)
+
+  FDC R-Z View          - Displays all tracks found in the FDC in R-Z view.
+        Delay line hits are shown only if they are associated with a segment. 
+        If that segment is placed on a track, the hit is marked with a *, 
+        otherwise it is marked with a +. 
+        Tracks are labeled 0-9, then A-Z, then a-z.
+        The top half consists of hits and tracks within the region Y>0. 
+        The way that the The top region is chosen can be modified 
+        by changing the RCP parameter "FDC PHI MODE" ( The bottom half 
+        of the display is always the region diametrically opposite.)
+                Mode=0, default, top is y>0.
+                Mode=1, Top is region 'PHI CENTER'+- 'PHI WIDTH'
+                        given in PX_SYSTEM_RCP. 
+                Mode=2, User is prompted for top Phi region.
+                Mode=-1, top is X>0 
+                        (for test beam, where almost all tracks were in X>0)
+        If tracking was done in roads, the theta extent of the roads are drawn.
+
+  FDC R-Phi View        - Displays all tracks found in one FDC half 
+        in R-Phi view. If tracks are found only in one half, that half 
+        is drawn, else user is prompted for half.
+        The outline of all theta quadrants is drawn.
+        Hits and tracks are drawn as in the R-Z view.
+        If tracking was done in roads, the phi extent of the roads are drawn.
+                                
+  FDC Combined View     - Displays a combined view of R-Z, and R-Phi for 
+        both FDC halves. Hits and tracks are drawn as in the R-Z view,
+        but no track labels are drawn.
+
+  FDC Y-Z/X-Z View      - Displays all tracks found in the FDC in the
+        Y-Z (top) and X-Z (bottom) view. 
+        Hits and tracks are drawn as in the R-Z view.
+
+  FDC Isajet & Sectors - Similar to "FDC Track & Sectors", but based 
+        on ISAJET tracks. After being shown the full FDC R-Z view of all
+        tracks in the event, the user is prompted for an ISAJET track number. 
+        Each of the three chamber cells that the track passes through are 
+        displayed, showing all hits, track segments, full tracks, and
+        ISAJET tracks in that FDC sector. 
+
+  FDC Road & Sectors - Similar to "FDC Track & Sectors", but based 
+        on ZTRAKS roads. After being shown the full FDC R-Z view of all
+        tracks in the event, the user is prompted for a ZTRAKS road.
+        Each of the three chamber cells that the road passes through are 
+        displayed, showing all hits, track segments, full tracks, and
+        the ZTRAKS road (as a red dotted line).
+
+  FDC 3D Full           - A 3-D view of Full FDC is shown.
+        FDC outline is drawn in Cyan.
+        FDC tracks drawn in forground color (unless identified).
+        Delay line hits are shown only if they are associated with a segment. 
+        FDC hits drawn in forground color if on tracks, else in red.
+
+  FDC one FADC          - Displays FADC trace for a single channel. Also 
+        displays first and second differences. Vertical scale is chosen
+        by user.
+
+
+--------------------------------------------------------------------------------
+    In addition to the above displays, there are a few more special purpose
+    displays that are turned off by default. The user can turn these on 
+    by editting the PX_FDCDIS.RCP file.
+
+  FDC Track List & Sectors - Same as "FDC Track & Sectors" except that 
+        instead of the R-Z view being draw first, a list of all tracks in
+        FDC (and associated parameters) is printed.
+
+  FDC Flip Segment      - After the user chooses a segment (by half,
+        layer and segment number), the FDC sector display is drawn
+        as usual, but in addition the sector is drawn flipped to the
+        other side of the sense wire plane, and the Chi-square of the
+        segment fit for each side is printed for comparison.
+
+  FDC Theta Boundary    - The FDC sector display for two adjoining
+        Theta sector sectors is drawn, particularly useful for looking
+        at segments that pass from one sector to another.
+
+  FDC Phi Boundary      - Same as "FDC Theta Boundary", for Phi sectors.
+
+  FDC 3D Segments       - Allows the user to create his own track using
+        up to one segment from each of three layers.
+        Resulting track is then displayed in 3-D.
+
+  FDC 3D Tracks         - A 3-D view of all tracks in an FDC half is shown.
+        User is asked to to choose a view:
+                1) Looking above and the side of the FDC.
+                2) Looking from the side of the FDC.
+                3) Looking along the beam line towards the FDC.
+                User is asked for a track number. 
+                This effectively just determines the Half.
+
+  FDC 3D 1 Track        - A 3-D view of one track in FDC is shown.
+        User is asked to to choose a view:
+                1) Looking above and the side of the FDC.
+                2) Looking from the side of the FDC.
+                3) Looking along the beam line towards the FDC.
+                User is asked for a track number. 
+
+  FDC Crate FADC        - Displays the FADC traces for all 16 channels on
+        a single FADC card specified by its electronics location 
+        (Data cable, Crate, Card).
+--------------------------------------------------------------------------------
+
+ IV. FDCDIS PARAMETERS in PX_FDCDIS.RCP:
+    The above descriptions are the default behavior. The user can modify
+    some aspects of the displays by modifying the RCP parameters in 
+    the PX_FDCDIS.RCP file, either by directly editting the file before
+    running, or interactively, via the menu command, MODIFY.
+    There are many (too many) FDCDIS parameters, many of which the user
+    should not have to change (some will likely disappear in a future release).
+
+--------------------------------------------------------------------------------
+* Parameter Name    * Default[Type]  * Remark                                  *
+--------------------------------------------------------------------------------
+ FDC ONLY                 TRUE   True for FDC only displays, 
+                                 false for combined views.
+ FDC CHOOSE HALF          TRUE   If false, "FDC HALF" is used for R-PHI view.
+                                 If true, user is prompted for which FDC 
+                                 half to draw (unless there are only tracks
+                                 in one half, or no tracks at all).
+ FDC PHI MODE                0   Determine which region is drawn in top half 
+                                   of R-Z views.
+                                 Mode=0, default, top half is y>0.
+                                 Mode=1, Top half is the region:
+                                   'PHI CENTER'+- 'PHI WIDTH' in PX_SYSTEM_RCP. 
+                                 Mode=2, User is prompted for top Phi region.
+                                 Mode=-1, Top is X>0 (default for Test Beam). 
+ FDC FIT NO DL               0   For "FDC Fit Segments" view, determine
+                                 whether Delay line is included in fit.
+                                 If <0 DL included, if >0 DL not included,
+                                 =0 default taken from FTRAKS_RCP.
+ FDC FIT SEGTRK          FALSE   For "FDC Fit Segments" view, determine
+                                 whether fit is done from segments (true)
+                                 or from hits (false, default).
+ FDC PULSHP               TRUE   For FADC displays - Show pulse shape 
+                                 subtraction results if turned on in FTRAKS_RCP.
+ FDC PRINT LIST          FALSE   If TRUE, always print list of tracks, 
+                                 and segments when choosing, else only once
+                                 per event.
+ FDC DRAW ALL ISA        FALSE   Draw all isajet tracks, else only those in FDC.
+ FDC DRAW SECTOR             0   0 = Draw all Quadrant boundaries in R-Phi view.
+                                 1 = Draw all Sector boundaries.
+                                 2 = Draw Sector boundaries in cells with hits.
+For most of the following, 0=N,1=Y:
+ FDC DRAW ISATRK             0   Draw isajet track (in R-PHI,R-Z 
+                                                        and SECTOR views)
+ FDC DRAW TRACK LABEL        0   Draw track labels (in R-PHI, and R-Z view)
+ FDC DRAW ROAD               1   Draw road limit (in R-PHI, and R-Z view)
+ FDC DRAW EXTENDED TRACK     1   Extend track to beam (in R-PHI, and R-Z view)
+ FDC DRAW LABEL              1   Label each sector (in R-PHI view)
+ FDC DRAW DELAY              1   Draw delay line hits (in R-PHI, and R-Z view)
+ FDC DRAW TRACK              1   Draw fitted track (in R-PHI, and R-Z view)
+ FDC DRAW WIRE               1   Draw wire positions (in HITS and SECTOR views)
+ FDC DRAW HITS               1   Draw hit  positions (in HITS and SECTOR views)
+ FDC DRAW TSEG               1   Draw track segments (in SECTOR views)
+ FDC DRAW TMEAN              0   Label truncated mean (in SECTOR views)
+ FDC DRAW PERP               1   Shaw perp. (DL) direction  (in SECTOR views)
+ FDC HALF                    0   FDC Half    = 0-1
+ FDC UNIT                    0   FDC Unit    = 0-2
+ FDC QUAD                    0   FDC Quadrant= 0-3
+ FDC SECT                    0   FDC Sector  = 0-5,0-35
+ FDC WIRE                    0   FDC Wire    = 0-9,0-15
+ FDC IMPACT CUT            5.0   Impact parameter cut for extended tracks.
+ FDC FADC BINS             100   Number of bins in 1 FADC display
+ FDC MAX HITS             5000   IF # Hits > Max, don't draw HITS view.
+ FDC COLR LABELS           FOR   Colour used for FDC labels      
+ FDC COLR TRACK            FOR   Colour used for FDC tracks      
+ FDC COLR SEGMENT          GRE   Colour used for FDC segments    
+ FDC COLR ISAJET           MAG   Colour used for isajet trks     
+ FDC COLR HITS             RED   Colour used for FDC hits        
+ FDC COLR TKHITS           FOR   Colour used for FDC hits on trk 
+ FDC COLR BOUNDARY         BLU   Colour used for FDC boundaries  
+ FDC COLR SECTOR           CYA   Colour used for FDC Sectors     
+ FDC DRAW 3DHITS             1   Draw 3D hit positions (in 3D views)
+ FDC DRAW 3DTRKS             1   Draw 3D track (in 3D views)
+ FDC DRAW 3D DETAIL         -1   Determines amount of detail for full 3d view
+                               0   Don't draw FDC geometry
+                               > 0 Draw cylinder of Phi chamber.
+                               +-1 Draw outer outline of Theta chambers
+                               +-2 Draw partial inner outline of theta chambers
+                                   and connecting lines to outer outline.
+                               +-3 Draw full inner outline of theta chambers.
+                                   and connecting lines to outer outline.
+ FDC DRAW 3DSECS             1   Draw 3D sectors (in 3D track views)
+ FDC DRAW 3DPLNS             0   Draw 3D segment. planes (in 3D track views)
+ FDC DRAW 3DLINS             0   Draw 3D lines (in 3D track views)
+ FDC 3D VIEW                 1   Used internally for 3D displays
+ ELECT VERT SCALE            0   For CD_elect, for convenience
+ ELECT COLR HITS           RED   For CD_elect, for convenience
+ ELECT COLR LABELS         FOR   For CD_elect, for convenience
+
+V. FDCDIS SCREENS in PX_FDCDIS.RCP:
+
+    Each basic menu has own screen parameters. Here we show an example,
+    for the FDC Theta Sector view.
+
+!---------------------------------------------------------
+! Definition of FDCDIS Screens
+!---------------------------------------------------------
+
+ 'NAME'  'FDC THETA SECTOR'       'FDC Theta Sector'
+ 'PICKABLE'                FALSE  ' TRUE if pickable'
+ 'VIEW3D'                  FALSE  ' True if 3D viewport'
+ 'KEEPCIRCLE'               TRUE  ' True if circles are kept'
+ 'VPORTXMIN'             -1.0000  ' X min Viewport'
+ 'VPORTXMAX'              1.0000  ' X max Viewport'
+ 'VPORTYMIN'             -1.0000  ' Y min Viewport'
+ 'VPORTYMAX'              1.0000  ' Y max Viewport'
+ 'WINDOWXMIN'           -25.0000  ' X Min Window limit'
+ 'WINDOWXMAX'            25.0000  ' X Max Window limit'
+ 'WINDOWYMIN'           -25.0000  ' Y Min Window limit'
+ 'WINDOWYMAX'            25.0000  ' Y Max Window limit'
+ 'VIEWREFX'               0.0000  ' X View reference pnt'
+ 'VIEWREFY'               0.0000  ' Y View reference pnt'
+ 'VIEWREFZ'               0.0000  ' Z View reference pnt'
+ 'UPVECX'                 0.0000  ' X Up vector'
+ 'UPVECY'                 1.0000  ' Y Up vector'
+ 'UPVECZ'                 0.0000  ' Z Up vector'
+ 'CAMX'                   0.0000  ' X Camera point'
+ 'CAMY'                   0.0000  ' Y Camera point'
+ 'CAMZ'                   1.0000  ' Z Camera point'
+
+
+
+ VI. DOCUMENTATION
+
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction to the use of the
+                                   commercial graphics package, DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives more than introduction to D0USER
+                                   which provides an offline framework.
+
+    4. D0$EXAMINE2:EXAMINE_GUIDE.DOC - Users guide to EXAMINE,  the ONLINE
+                                       event monitoring framework.
+
+    5. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE Event Display
+
+

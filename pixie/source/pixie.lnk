@@ -1,0 +1,162 @@
+$!------------------------------------------------
+$!
+$! Name      : PIXIE.LNK
+$!
+$! Purpose   : Standard link file for PIXIE
+$!
+$! Arguments : [p1]     NODEBUG, DEBUG
+$!                      NODEBUG is the default
+$!             [p2]     Program prefix
+$!
+$! Created  13-OCT-1990 Harrison B. Prosper
+$!
+$!------------------------------------------------
+$   ON ERROR     Then Goto EXIT
+$   ON CONTROL_Y Then Goto EXIT
+$
+$   WR        :== WRITE SYS$OUTPUT
+$   Def_dir   = F$ENVIRONMENT("DEFAULT")
+$
+$!       Program name
+$
+$   Program   = "PIXIE"
+$   Prefix    = P2
+$
+$!       Link options
+$
+$   switches  = "/NOMAP"
+$
+$!       Decode argument
+$
+$   DI3000    = "TRUE"
+$   DEBUG     = ""
+$   L   = F$LENGTH(P1)
+$   IF F$EXTRACT(0,1,p1) .EQS. "D" THEN DEBUG  = "TRUE"
+$
+$   IF DEBUG
+$   THEN
+$       switches     = switches+"/DEBUG"
+$       Deb          = "DEB_"
+$   ELSE
+$       Deb          = ""
+$   ENDIF
+$
+$!------------------------------------------------
+$!      Check beta_util symbols are defined
+$!------------------------------------------------
+$
+$   IF F$TYPE(USERLIB) .EQS. ""
+$   THEN
+$       LIBTEST BETA_UTIL
+$       @D0$BETA_UTIL:SETUP_BETA_UTIL
+$   ENDIF
+$
+$!------------------------------------------------
+$!      Check if pgbd_sources_object and
+$!      user_libraries strings are defined.
+$!------------------------------------------------
+$
+$   IF F$TYPE(PGBD_SOURCES_OBJECT) .EQS. ""
+$   THEN
+$       PGBD_SOURCES_OBJECT     = ""
+$   ENDIF
+$
+$   IF F$TYPE(USER_LIBRARIES) .EQS. ""
+$   THEN
+$       USER_LIBRARIES          = ""
+$   ENDIF
+$
+$!------------------------------------------------
+$!      Name of user option file
+$!------------------------------------------------
+$   ALPHA_FILE = F$TRNLNM("USR$ALPHA")
+$   IF ALPHA_FILE .EQS. ""
+$   THEN
+$       ALPHA_OPT = ""
+$   ELSE
+$       ALPHA_OPT = ALPHA_FILE + "/OPT,"
+$   ENDIF
+$
+$!------------------------------------------------
+$!      Name of beta option file
+$!------------------------------------------------
+$   BETA_FILE = F$TRNLNM("USR$BETA")
+$   IF BETA_FILE .EQS. ""
+$   THEN
+$       BETA_OPT = ""
+$   ELSE
+$       BETA_OPT = BETA_FILE + "/OPT,"
+$   ENDIF
+$
+$!------------------------------------------------
+$!      Name of executable file
+$!------------------------------------------------
+$   program_name = deb+prefix+program
+$
+$   IF F$TRNLNM("USR$EXE") .EQS. ""
+$   THEN
+$       DEFINE/NOLOG USR$EXE 'DEF_DIR'
+$   ENDIF
+$   exe_name    = "USR$EXE:"+program_name
+$
+$   WR "  "
+$   WR " Linking Program     "+program_name
+$   WR "  "
+$   WR " in area             "+F$TRNLNM("USR$EXE")
+$   WR "  "
+$
+$   IF ALPHA_FILE          .NES. "" .OR. -
+       BETA_FILE           .NES. "" .OR. -
+       PGBD_SOURCES_OBJECT .NES. ""
+$   THEN
+$   WR " with "
+$   ENDIF
+$
+$   WR "  "
+$   IF PGBD_SOURCES_OBJECT .NES. ""
+$   THEN
+$       PGBD = PGBD_SOURCES_OBJECT-","
+$       WHERE 'PGBD'
+$   ENDIF
+$
+$   IF ALPHA_FILE .NES. ""
+$   THEN
+$       WHERE USR$ALPHA
+$   ENDIF
+$
+$   IF BETA_FILE .NES. ""
+$   THEN
+$       WHERE USR$BETA
+$   ENDIF"
+$
+$   IF DI3000
+$   THEN
+$       WR " Link WITH    DI3000"
+$       WR " "
+$       Link_Command = "DI3LOAD"
+$       Link_Mode    = "SHARE"
+$   ELSE
+$       WR " Link WITHOUT DI3000"
+$       WR " "
+$       Link_Command = "LINK"
+$       Link_Mode    = ""
+$   ENDIF
+$
+$!------------------------------------------------
+$!  Link command
+$!------------------------------------------------
+$   WR "  "
+$   COMMAND = -
+"''LINK_COMMAND' " + -
+"''PGBD_SOURCES_OBJECT'" + -
+"''ALPHA_OPT'" + -
+"''BETA_OPT'" + -
+"D0$PIXIE:''DEB'PIXIE/OPT" + -
+"''SWITCHES'/EXE=''EXE_NAME'" + -
+" ''link_mode'
+$   WR "''COMMAND'"
+$
+$  'COMMAND'   ! Execute link command
+$
+$EXIT:
+$   EXIT

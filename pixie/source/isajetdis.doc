@@ -1,0 +1,172 @@
+                                                            S. Hagopian
+                                                            March 11, 1992
+                                                            Version  1.0
+
+                         ISAJETDIS - ISAJET Event Display
+
+ I. INTRODUCTION
+
+      ISAJETDIS is the ISAJET display package. It displays the ISAJET 
+    tracks for each event in 2 or 3 dimensions. It can plot the ISAJET 
+    tracks in XYZ or PT space,  using a log scale or not.  It provides 
+    parameters for turning on or off the plotting of neutral particles,
+    neutrinos, and making cuts on minimum THETA, P or Pt. It is part 
+    of the PIXIE library, which can be run in various frameworks. 
+    A hook is set up for PIXIE in D0USER. (See D0USER_GUIDE.DOC)
+    
+II. GETTING a ISAJET DISPLAY
+
+ A. Program builder
+
+    The package ISAJETDIS must be included in the package list to get
+    the ISAJET track display. It can be used with ISANALYZE.PBD
+    or PHYDIS.PBD.
+
+ B. LINK
+
+    The normal D0USER link does not include the event display
+    package. One needs to do: $@ISAJET_D0USER.LNK DI3000.
+    Also, it is usually best to do a $LIBT PIXIE in order to
+    pick up the latest event display routines and parameters.
+
+ C. Setup for RUN
+
+
+   1. DI3000 logicals
+
+      If the DI3000 logicals are not automatically setup, do
+      $SETUP DI3000 or find out where DI3000 is stored on your node
+      and execute DILOGIN.COM
+
+      The sharable version of DI3000 should be requested by the command:
+
+      $ DISETSHR EXT HI
+
+    $SETDRV cod1 cod2 ! to setup the DI3000 device Drivers.
+
+    The first driver should correspond to the type of terminal you are
+    logged on to; the second one to a hardcopy device[ e.g. TLP ].
+
+    For more information see D0$DOCS:DI3000_GUIDE.DOC
+
+ 2. PIXIE logicals. The event display needs a RCP file to define the views
+    to be displayed and the interactive parameters which control them.
+    For the ISAJET display, the file needed is D0$PIXIE:PX_ISAJETDIS.RCP.
+    The corresponding logical is PX_ISAJETDIS_RCP. The user may redirect
+    the RCP logicals to their own files. 
+
+ D. RUNNING D0USER
+
+       There are two ways to use event display. The first
+       is to turn on the interactive menu and then, while analyzing
+       events, do a DISPLAY EVENT. This will start at a random event.
+       One can also turn on the automatic event display by doing
+       EVENT DISPLAYS (7) before starting the run. It will ask how
+       many events and their particular IDs (if -1 then assumes
+       consecutive).
+
+
+ III. ISAJETDIS MENU
+
+SUB_LEVEL: ISAJET Event Display    SETUP
+Select: {command, #, HELP (#), MENU, BACK} > ?
+   1: ISAJET Y-Z View                     2: ISAJET X-Y View
+   3: ISAJET Z-X View                     4: 3D ISAJET event
+   5: NEXT event                          6: GO TO EVENT
+   7: ZOOM                                8: ROTATE
+   9: PICK                               10: HARDCOPY
+  11: MODIFY                             12: Change display Mode
+  13: Superimpose(On/Off)                14: Set Path
+  15: Dump Event                         16: Write Event
+  17: Start Sequence Display             18: COMPACK System menu 
+
+ For further information on menu items 5 - 18, see D0$PIXIE:PX_SYSTEM.DOC
+
+
+--------------------------------------------------------------------------------
+*ISAJETDIS Menu Title    * Function & Remark                                   *
+--------------------------------------------------------------------------------
+
+
+
+ IV. ISAJETDIS PARAMETERS in PX_ISAJETDIS.RCP:
+    The above descriptions are the default behavior. The user can modify
+    some aspects of the displays by modifying the RCP parameters in
+    the PX_ISAJETDIS.RCP file, either by directly editting the file before
+    running, or interactively, via the menu command, MODIFY.
+
+--------------------------------------------------------------------------------
+* Parameter Name    * Default[Type]  * Remark                                  *
+--------------------------------------------------------------------------------
+  'LOG SCALE ON'        FALSE           ' '
+  'NEUTRALS PLOTTED'    FALSE           ' '
+  'NETRINOS PLOTTED'    TRUE            ' '
+  'XYZ OR PT SPACE'    0               '0=XYZ, 1=PT'
+  'P MIN CUT'               0.0000          'GEV'
+  'PT MIN CUT'               1.0000          'GEV'
+  'THETA MIN CUT'      10.0000          'In degrees'
+
+
+ When plotting in Pt space, ISZGRF scales it's DI3000 window to the length 
+ of the longest ISAJET track, so modifying windows when using this display 
+ is not recommended.  However, you may change the windows in XYZ space.
+ 
+ When plotting in XYZ space, it displays cylinders representing the D0 VTX 
+ and D0 CDC chambers.  You can disable the display of these cylinders using
+ the parameters menu.  (item VTX & CDC SHOWN)
+ 
+ When plotting in Pt space, you may plot on a log scale. This plot displays 
+ reference circles with the following radii:
+ 
+ LOG(1.)-LOG(.1)      
+ LOG(10.)-LOG(.1)
+ LOG(100.)-LOG(.1)
+ 
+ If you plot in Pt space on a normal scale, the reference circles are
+ at 1., 10., and 100. respectively.  ISZGRF only displays the reference circles
+ which are less than the maximum Pt in the event, so you may see displays with
+ only one or two circles.  
+
+V. ISAJETDIS SCREENS in PX_ISAJETDIS.RCP:
+
+     Below is ISAJET X-Y View, as an example.
+
+  'NAME'   'ISAJET_X-Y_VIEW'        ' X-Y VIEW'
+  'ACTION'   'ISZ2D'               'Action Routine'
+  'PICKABLE'            F           ' TRUE if pickable'
+  'VIEW3D'            FALSE       ' True if 3D viewport'
+  'KEEPCIRCLE'        TRUE        ' True if circles are kept'
+  'VPORTXMIN'         -1.0000       ' X min Viewport'
+  'VPORTXMAX'          1.0000       ' X max Viewport'
+  'VPORTYMIN'         -1.0000       ' Y min Viewport'
+  'VPORTYMAX'          1.0000       ' Y max Viewport'
+  'WINDOWXMIN'       -90.0000       ' X Min Window limit'
+  'WINDOWXMAX'        90.0000       ' X Max Window limit'
+  'WINDOWYMIN'       -90.0000       ' Y Min Window limit'
+  'WINDOWYMAX'        90.0000       ' Y Max Window limit'
+  'VIEWREFX'           0.0000       ' X View reference pnt'
+  'VIEWREFY'           0.0000       ' Y View reference pnt'
+  'VIEWREFZ'           0.0000       ' Z View reference pnt'
+  'UPVECX'             0.0000       ' X Up vector'
+  'UPVECY'             1.0000       ' Y Up vector'
+  'UPVECZ'             0.0000       ' Z Up vector'
+  'CAMX'               0.0000       ' X Camera point'
+  'CAMY'               0.0000       ' Y Camera point'
+  'CAMZ'               1.0000       ' Z Camera point'
+
+
+ VI. DOCUMENTATION
+
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction to the use of the
+                                   commercial graphics package, DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives more than introduction to D0USER
+                                   which provides an offline framework.
+
+    4. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE Event Display
+

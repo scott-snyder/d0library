@@ -1,0 +1,142 @@
+      SUBROUTINE PSAMAG(IVIEW,IFLAG)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : TO DRAW THE SAMUS MAGNET
+C-
+C-   Inputs  : IVIEW    1 = Z Y     (HORIZONTAL-VERTICAL)
+C-                      2 = X Y
+C-                      3 = X Z
+C-
+C-             IFLAG   > 0 : + Z (SOUTH SAMUS MAGNET)
+C-                     < 0 :  -Z (NORTH SAMUS MAGNET)
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  14-MAY-1991   Cary Y. Yoshikawa
+C-   Updated  29-JAN-1993   Vladimir Glebov  ! Change Z Magnet position 
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C----------------------------------------------------------------------
+      INTEGER IVIEW,I,IFLAG
+      REAL DXMAG,DYMAG,DZMAG,DXHOLE,DYHOLE,DZHOLE,XCEN,YCEN,ZCEN
+      REAL XOMIN,XOMAX,YOMIN,YOMAX,ZOMIN,ZOMAX
+      REAL XIMIN,XIMAX,YIMIN,YIMAX,ZIMIN,ZIMAX
+      REAL XDOMIN,XDOMAX,YDOMIN,YDOMAX,XDIMIN,XDIMAX,YDIMIN,YDIMAX
+      REAL MAG(9,2)
+      REAL DEL
+      INTEGER IDRAW
+      CHARACTER*20 SAMUS_MAG_ARRAY(2)
+      LOGICAL SAMONLY
+      DATA SAMUS_MAG_ARRAY /'SAMUS_MAGNET-Z','SAMUS_MAGNET+Z'/
+      DATA MAG /81.3,88.9,82.8, ! NEG. Z: HALF SIZES OF MAGNET
+     &          25.4,25.4,82.8, !         HALF SIZES OF MAGNET HOLE
+     &          0.0,0.0,-526.76,!         POSITION IN MOTHER VOLUME
+     &          81.3,88.9,82.8, ! POS. Z: HALF SIZES OF MAGNET
+     &          25.4,25.4,82.8, !         HALF SIZES OF MAGNET HOLE
+     &          0.0,0.0,+526.76/!         POSITION IN MOTHER VOLUME
+C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+C DRAW MAGNET IF SAMONLY=TRUE     
+      CALL PUGETV('SAMUS ONLY',SAMONLY)
+      IF(.NOT.SAMONLY)GO TO 999
+      CALL PUGETV('SAMUS DRAW MAGNET',IDRAW)
+      IF(IDRAW.EQ.0)GO TO 999
+      CALL PUOPEN
+      CALL PXCOLR('YEL')
+      IF (.NOT.(-4.LE.IFLAG.AND.IFLAG.LE.+4)) THEN
+        WRITE (6,*)'IFLAG ERROR IN PSAMAG'
+        GOTO 900
+      ENDIF
+      IF (IFLAG.LT.0) I=1
+      IF (IFLAG.GT.0) I=2
+C        CALL EZGETA(SAMUS_MAG_ARRAY(I),START,END,STEP,VAL,IER)
+      DXMAG=MAG(1,I)
+      DYMAG=MAG(2,I)
+      DZMAG=MAG(3,I)
+      DXHOLE=MAG(4,I)
+      DYHOLE=MAG(5,I)
+      DZHOLE=MAG(6,I)
+      XCEN=MAG(7,I)
+      YCEN=MAG(8,I)
+      ZCEN=MAG(9,I)
+C
+C    CALCULATE INNER & OUTER CORNERS OF MAGNET
+C
+      XOMIN=XCEN-DXMAG
+      XOMAX=XCEN+DXMAG
+      YOMIN=YCEN-DYMAG
+      YOMAX=YCEN+DYMAG
+      ZOMIN=ZCEN-DZMAG
+      ZOMAX=ZCEN+DZMAG
+      XIMIN=XCEN-DXHOLE
+      XIMAX=XCEN+DXHOLE
+      YIMIN=YCEN-DYHOLE
+      YIMAX=YCEN+DYHOLE
+      ZIMIN=ZCEN-DZHOLE
+      ZIMAX=ZCEN+DZHOLE
+C
+C    TAKE CARE OF IVIEW
+C
+      IF (IVIEW.EQ.1) THEN
+        XDOMIN=ZOMIN
+        XDOMAX=ZOMAX
+        YDOMIN=YOMIN
+        YDOMAX=YOMAX
+        XDIMIN=ZIMIN
+        XDIMAX=ZIMAX
+        YDIMIN=YIMIN
+        YDIMAX=YIMAX
+      ELSEIF (IVIEW.EQ.2) THEN
+        DEL=-2.
+        XDOMIN=XOMIN
+        XDOMAX=XOMAX
+        YDOMIN=YOMIN
+        YDOMAX=YOMAX
+        XDIMIN=XIMIN+DEL
+        XDIMAX=XIMAX-DEL
+        YDIMIN=YIMIN+DEL
+        YDIMAX=YIMAX-DEL
+      ELSEIF (IVIEW.EQ.3) THEN
+        XDOMIN=ZOMIN
+        XDOMAX=ZOMAX
+        YDOMIN=XOMIN
+        YDOMAX=XOMAX
+        XDIMIN=ZIMIN
+        XDIMAX=ZIMAX
+        YDIMIN=XIMIN
+        YDIMAX=XIMAX
+      ELSE                              ! ERROR
+        CALL ERRMSG('PIXIE','PSAMAG','IVIEW OUT OF RANGE','W')
+        GOTO 900
+      ENDIF
+C
+C    DRAW THE MAGNET
+C
+      IF (IVIEW.EQ.1 .OR. IVIEW.EQ.3) THEN
+        CALL JMOVE(XDIMIN,YDIMAX)
+        CALL JDRAW(XDOMIN,YDOMAX)
+        CALL JDRAW(XDOMAX,YDOMAX)
+        CALL JDRAW(XDIMAX,YDIMAX)
+        CALL JDRAW(XDIMIN,YDIMAX)
+        CALL JMOVE(XDOMIN,YDOMIN)
+        CALL JDRAW(XDIMIN,YDIMIN)
+        CALL JDRAW(XDIMAX,YDIMIN)
+        CALL JDRAW(XDOMAX,YDOMIN)
+        CALL JDRAW(XDOMIN,YDOMIN)
+      ELSEIF (IVIEW.EQ.2) THEN
+        CALL JMOVE(XDOMIN,YDOMIN)
+        CALL JDRAW(XDOMIN,YDOMAX)
+        CALL JDRAW(XDOMAX,YDOMAX)
+        CALL JDRAW(XDOMAX,YDOMIN)
+        CALL JDRAW(XDOMIN,YDOMIN)
+        CALL JMOVE(XDIMIN,YDIMIN)
+        CALL JDRAW(XDIMIN,YDIMAX)
+        CALL JDRAW(XDIMAX,YDIMAX)
+        CALL JDRAW(XDIMAX,YDIMIN)
+        CALL JDRAW(XDIMIN,YDIMIN)
+      ELSE
+        WRITE(6,*)'IVIEW ERROR IN PSAMAG'
+      ENDIF
+  900 CALL JRCLOS
+  999 RETURN
+      END

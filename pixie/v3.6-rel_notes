@@ -1,0 +1,425 @@
+   **********************************************************
+   * 22-SEP-1992 : Modifications released by Nobuaki Oshima *
+   **********************************************************
+ 
+=================================================================
+ 19-JUN-1992: Modifications made by Robert E. Avery for FDCDIS and ZTRAKSDIS
+
+    - New routines: PFDC3D.FOR, PFDC3D_GEO.FOR, PFHITS_3D.FOR,
+                    PFTQUAD_3D.FOR, PFTRK_3D.FOR
+      Modified routines: PZCD3D.FOR,PFEXEC.FOR
+
+      New FDC 3d display routines for D0 combined 3d views.
+        FDC outline is drawn in Cyan.
+        FDC tracks drawn in forground color (unless identified).
+        FDC hits drawn in forground color if on tracks, else in red.
+
+      The parameter 'FDC DRAW 3D DETAIL' in PX_FDCDIS_RCP determines how
+      much detail of FDC geometry to draw.
+                     = 0        Don't draw FDC geometry
+                     > 0        Draw cylinder of Phi chamber.
+                     = +-1,     Draw outer outline of Theta chambers
+                     = +- 2     Draw part of inner outline of theta chambers
+                                    and connecting lines to outer outline.
+                     = +- 3     Draw full inner outline of theta chambers.
+                                    and connecting lines to outer outline.
+      View appears in ZTRAKSDIS combined 3d view, and also in new
+      FDCDIS "FDC 3D FULL" view (FDC only).
+
+    - PX_ZTRAKSDIS.RCP  Add parameter 'ZTRAKS DRAW FTRKS'
+
+    - PX_FDCDIS.RCP  Add display 'FDC 3d FULL'. Delete some
+        obsolete parameters. Change hit colors as mentioned above.
+
+    - PF1ADC.FOR,PFFADC.FOR,PFFLAGS.FOR,PFINIT.FOR,PFUHIS.FOR
+      More improvement to single FADC display. Allow user to choose
+      vertical scale. Some other internal changes to clean up code.
+
+    - PFTTKR.FOR, PFPTKR.FOR, Minor change, segments on tracks now solid.
+
+    - PZTRAKS_RZ.FOR, PZTRAKS_RPHI.FOR  Change parameter name from
+      'ZTRAKS DRAW TRACKS' to 'ZTRAKS DRAW ZTRKS'.
+
+    - FDCDIS.DOC,ZTRAKSDIS.DOC   Update documentation.
+
+=================================================================
+ 19-JUN-1992: Modifications made by Robert E. Avery for CD_ELECTRONICSDIS
+
+    - PZEINIT.FOR,PZFOUR.FOR,PZVCRT.FOR,PZCRAT.FOR  Modifications in
+      how scaling is done (for consistancy with above).
+      User shouldn't see any change.
+
+=================================================================
+  7-JUL-1992 : Modifications made by Q. L. Demarteau
+
+  The following changes are made in 3D CDC display routines and RCP file.
+
+    PDCDC3D_GEO.FOR     PDHITS_3D.FOR       PDTRK_3D.FOR       PZCD3D.FOR
+    PZHITS_3D.FOR       PX_ZTRAKSDIS.RCP
+
+ 1) Impact parameter cut. 
+  The tracks has big impact parameter in X-Y plane were not drawn. Now I put 
+  the cut in the RCP file and set the default value as 50.0 cm. That means 
+  we don't cut on any CDC tracks. One can change this cut interactively, 
+  if you want to get the tracks very close to the beam spot.
+
+ 2) Raja suggested to give different color for the hits and its mirror hits.
+   It is done now. The hits on track are marked "light blue", as same color
+   as the tracks. For the hits on tracks, no mirror hits are drawn. For the
+   hits are not on tracks, the ones with +phi direction from the anode plane
+   are drawn in purple, the ones with -phi direction from the anode plane
+   are green.
+
+ 3) CDC cell outlines in 3D display are updated by alignment bank.
+
+=================================================================
+  9-JUL-1992 : Modifications made by S. Hagopian
+
+              Bug for packing in bank MUHT was fixed in PC3DHT.
+              PC3DST and PCDST_LFILL had CALL GZPMUO argument
+              changed from 1 to 0.
+                PC3DST now allows MUON tracks not fitted thru
+              vertex to be plotted .
+                 PX_PHYDIS.RCP had TK PT MIN changed to 1. to
+               match ETMIN in the DST LEGO plot.
+
+=================================================================
+  9-JUL-1992 : Modifications made by L. Howell
+
+    PUMENUDO - Add the queue mode for the general que can feed commands to
+        PXIIE.  Also command stack is updated when the user exits a menu level.
+    
+    PU_PUSH_QUEUE(NEW) - Pushes a command into the new general queue
+        ENTRY PU_POP_QUEUE -Pops a command from the general queue
+
+    PU_UPDATE_COMMAND_STACK - Decrease the command stack when the user enters
+        exit.   A bug was found in sequence display with multiple packages 
+        (PX_ENABLE_SEQUENCE_FIFO).  
+
+    PU_UPDATE_SCREEN_PARAMS(NEW) - Updates all transformations and windowing
+        screen parameters of the current viewport from DI3000.
+
+    PX_COMBINE_VIEWS - A counter for submenu levels installed.  This solves the
+        problem with sequence display.
+
+    PX_ROTATE - A call to PU_UPDATE_PARAMS and push of commands was implemented 
+        for the emulator part.
+
+    PX_START_SEQUENCE - Set the sequence flag on at this level to let know the
+        menu system we are in sequence display.  This is done for the special
+        case of submenus.
+
+=================================================================
+ 10-JUL-1992: Modifications made by N. Oshima
+
+    1. Make a new package COM3DIS to expand 3D functions.
+
+       These are new routines, RCP and PBD files.
+    PCOM3DIS_INIT.FOR   PCOM3DIS_EXEC.FOR   PX_COM3DIS.RCP  COM3DIS.PBD 
+
+        ALL_PIXIE_COMBINED.PBD - Modified for COM3DIS package.
+
+    2. Update MUON 3D routines
+        
+        PM3DHT.FOR - Draw hits on B and C layer, too.
+
+        PM3DMD.FOR - Draw module in 3D when the mudule has hits.
+
+        PM3DTH.FOR - Display Muon list on COMPACK screen.
+
+        PMEXEC.FOR - Call PM3DMD with PM3DTH.
+
+        PX_MUODIS.RCP - Add new param 'MUON DRAW MODULE' and activated
+                        'MUON 3-D' menu again.
+
+    3. PX_PHYDIS.RCP
+
+        - Add 'PHYDIS ESUM PATH' for handling ESUM Bank.
+
+        - Add 'PHYDIS DRAW LEGEND' to control Label and Legend in
+          combined view with other 3D view.
+
+=================================================================
+ 14-JUL-1992 : Modifications made by L. Howell
+
+    PU_GET_VIEWPORT- If a combined view has as one of its actions a system
+        command, i.e., (hardcopy,rotate,pick,change display mode,superimpose,
+        zoom), skip that view for checking viewport selection
+
+    PX_CHECK_SYSTEM_COMMAND(NEW)- Given a command it check if it is a system
+        command.  a system command includes: Hardcopy, Rotate, Pick, Change
+        Display Mode, Supermpose, and Zoom a View.
+
+    PX_COMBINE_VIEWS- The case when there is a submenu in a combine view
+        followed by a nother view needed to be fixed.  The submenu should be
+        exited before the command for the next package is entered.
+
+    PVGPHI - The way the propmpt message is display was change so it works with
+        SGI.
+
+=================================================================
+ 15-JUL-1992 : Modifications made by Q. L. Demarteau
+
+    PDTRCK.FOR - It will not draw the mirror hits for the hits on 
+                 tracks in the normal 2D display.
+
+=================================================================
+ 15-JUL-1992: Modifications made by N. Oshima
+
+    1) Modified to use the fixed maximum Energy/Et in CAL combined views
+      event by event.
+    
+        P2LEGO.FOR          PCALEG.FOR        PCENERGY.FOR( New Routine)
+        PCEVEN.FOR          PCEXEC.FOR
+       and
+        PX_CALDIS.RCP
+
+    2) Create new routines for making ESUM LEGO Plot.
+
+        PESUM_LEGO.FOR      PU_GET_ESUM.FOR   P5LEGO.FOR          
+        PPEXEC.FOR( Modified routine )
+       and
+        PX_PHYDIS.RCP
+
+=================================================================
+  7-JUL-1992: Modifications made by S. Blessing and T. Joffe-Minor
+
+    PFUHIS.FOR - use HITS_PER_WIRE.
+
+=================================================================
+ 22-JUL-1992: Modifications made by L. Howell
+
+    PU_INITIALIZE_VIEWS.FOR - Take into account Character Values.
+
+=================================================================
+ 28-JUL-1992: Modifications made by N. Oshima
+
+    1. Create the new Menu 'EM Tower Hist'.
+
+    PCEMHST.FOR(New) - Action routine to make EM Tower Histogram.
+
+    PCPETA.FOR(New)  - get IETA by picking at 'ETA Histo Calorimeter'.
+
+    PCEXEC.FOR       - Add the new action routine call.
+
+    PLABEL.FOR       - Modified for PCEMHST.FOR
+
+    - Following routines are modified for IPHI handling.
+
+    PCEVEN.FOR      PCPPHI.FOR      PCSVEN.FOR      PCSVHIST.FOR
+    PCTREV.FOR      PCTRSV.FOR
+
+
+    2. Others
+
+    PM3DHT.FOR - Draw used hits at B and C layers, too.
+
+    PM3DMD.FOR - Draw the module which has #of hits .GE. 2.
+
+    PU_UPDATE_SCREEN_PARAMS.FOR - Fix "CALL J3RGET/J4RGET" problem 
+                                  on DI3000.
+
+    PX_ROTATE.FOR - Fix the push commands problem.
+
+    3. RCP files
+
+    PX_CALDIS.RCP - Add the new menu 'EM Tower Hist'.
+
+    PX_PHYDIS.RCP - Add the new menu 'ALL ESUM LEGO'.
+
+=================================================================
+ 28-JUL-1992 : Modifications made by J. Bantly
+
+              A new package to make Level 0 event dipslays was
+              added to PIXIE. It includes the following files:
+
+           * LV0DIS.PBD - PROGRAM BUILDER file for Level 0 display.
+                          This display is used with PIXIE and the
+                          analysis packages ZTRAKS or FTRAKS or 
+                          in the post-analysis combined package, ALL_DISPLAY.
+
+          (*) Bantly is asking Serban to put this PBD file into D0$PBD cms.
+
+             PX_LV0DIS.RCP - The PIXIE Run control parameter file for Level 0
+                             display.
+
+             P0EXEC.FOR - Command execution routine for Level 0 display
+
+             P0INIT.FOR - Initialization routine for Level 0 display
+
+             P0PADS.FOR - Action routine to display one LV0 array with
+                          hits and tracks.  
+
+             P0RPHI.FOR - Displays one LV0 array in R-Phi view 
+                           with hits and projected FTRAKS points.
+
+             P0RZ.FOR  - Display the Level 0 in R-Z view.
+          
+             P0RZEND.FOR - Displays one LV0 array in R-Z view with
+                           hits and projected FTRAKS points.
+
+             P0VSTR.FOR  - Output a string at the given position.
+       
+             P0XZ.FOR  - Display the Level 0 in X-Z view.
+
+             P0XZEND.FOR - Displays one LV0 array in X-Z view with
+                           hits and projected FTRAKS points.
+
+             P0YZ.FOR  - Display the Level 0 in Y-Z view.
+
+             P0YZEND.FOR - Displays one LV0 array in Y-Z view with
+                           hits and projected FTRAKS points.
+
+=================================================================
+ 29-JUL-1992 : Modifications made by S. Hagopian
+
+            PMEVNT and PMEVNTC had a check for no MUOT bank added.
+
+=================================================================
+  4-AUG-1992: Modifications made by N. Oshima
+
+    PCPICK.FOR - Clean up all EAS part. EAS_J3RGET.FOR handles this
+                 function(Transform 3D Vector) now.
+
+    PDRZVW.FOR - Fix color problem on CDC tracks in R-Z(Side) views.
+
+=================================================================
+ 14-AUG-1992 : Modifications made by L. Howell
+
+    PU_HARDCOPY: The hardcopy will be done using retained segments if we are in
+        superimpose mode.    This is necessary because if a superimpose is done
+        and hardcopy is requested only the last view will be printed due to the
+        lack of track to the views displayed using the superimpose mode.
+
+    PUHEAD: The entry RETAIN_PUHEAD was created to draw the pixie heading using
+        retain segments.  This was done to satisfy the problem with hardcopy
+        using superimpose mode.  If the hardcopy is done using retained segments
+        the heading will be left out.  So for hardcopy while superimpose mode on
+        the heading is redrawn using retained segments.
+
+=================================================================
+ 18-AUG-1992 : Modifications made by S. Hagopian
+
+       A new parameter, MUON TRACK QUAL, was added to PX_MUODIS.RCP.
+      This allows the user to plot only tracks of good quality,
+      (IFLG4=0) if they desire. The default is set=0 (plot all tks)
+      Subroutines PMEVNT and PMEVNTC were modified to check this 
+      parameter.
+
+=================================================================
+ 18-AUG-1992: Modifications made by Robert E. Avery for FDCDIS
+
+    - PF1ADC.FOR, PFUHIS.FOR  Some bug fixes to retain functionality
+      for displaying pulse shape subtracted traces.
+
+    - PFPICK_TRACK.FOR  Add track quality to printout.
+ 
+=================================================================
+ 21-AUG-1992: Modifications made by N. Oshima
+
+    1) Take account of PNUT Bank level.
+
+        PCEVEN.FOR      PCEVME.FOR
+
+    2) Skip action when PICKING was active.
+
+        PM3DMD.FOR      PM3DTH.FOR      PZCD3D.FOR
+
+    3) Others
+
+    PCPETA.FOR - Fix a bug on IETA for -1
+
+    PX_MUTRAKSDIS.RCP - Change the WAMUS actions
+
+=================================================================
+ 27-AUG-1992 : Modifications made by S. Hagopian
+
+               PM3DMD, which displays muon modules in 3-D was modified
+               so that if the parameter, "MUON DRAW 3D MODULE" =0, no
+               modules are drawn or if "MUON DRAW 3D MODULE"= 4, all
+               all modules are drawn. The default in PX_MUODIS.RCP
+               is set to 0.  
+ 
+=================================================================
+ 28-AUG-1992: Modifications made by N. Oshima
+
+ 1) RCP files were modified for MUODIS 3D menu.
+
+        PX_MUODIS.RCP       PX_COMBDIS.RCP       PX_COM3DIS.RCP
+
+ 2) Calorimeter Display
+
+    PCSVEN.FOR - Display Et in 'Side View Calorimeter' in Calorimeter
+                 Display. This action routine is using D0 TOP/SIDE View 
+                 and CAL+TRAKS R-Z View in Combined Display, too. If you
+                 want to display Energy instead of Et, modify 'CAL ETORE'
+                 Ture to False.
+
+=================================================================
+  3-SEP-1992: Modifications made by L. Howell
+
+    PUMENUDO.FOR      - Fix the HARDCOPY problem with Combined views.
+
+=================================================================
+  8-SEP-1992: Modifications made by N. Oshima
+
+  1) For Hardware Rotation Mode
+
+    PC3DCL.FOR        - Add 'HARDWARE_ROTATE' flag check for new 
+                       PIXIE system working.
+
+    PUINIT.FOR        - Book new flag 'HARDWARE_ROTATE'.
+
+    PUOPEN.FOR        - Remove CALL JESCAP for Evans & Sutherland.
+ 
+    PU_SELECT_VIEWPORT.FOR - Distinguish between Software Rotation and
+                       Hardware Rotation.
+
+    PU_SET_3D_POINT.FOR(New) - Receive picked coordinates by virtual and
+                       world via JESCAP and save them.
+
+    PU_UPDATE_SCREEN_PARAMS.FOR - CAMera point calculation was changed.
+
+    PX_PICK.FOR       - Remove QUIT button from HARDWARE_ROTATE mode.
+
+    PX_ROTATE.FOR     - Set 'HARDWARE_ROTATE' flag and store coordinate 
+                       information by PU_SET_3D_POINT.
+
+
+  2) Miscellaneous Stuffs
+
+    DI3_ROTATE_3D.FOR - Add 'EXIT' check by virtual coordinate.
+
+    PIXIE.FOR         - It will ask an input file before quit the program.
+
+
+=================================================================
+  16-SEP-1992 : Modifications made by S. Hagopian
+
+     Overflow of particle list in PC3DST fixed.
+
+=================================================================
+  17-SEP-1992 : Modifications made by S. Hagopian and P. Quintas
+
+   Pt of muon tk is optionally written next to track number in
+   PM3DTH,PMEVENTC and PMRZTK depending on the MUON INTERACTIVE
+   PARAMETER "MUON LABEL TKS". If =0, no track label, if =1,
+   label with track number, if =2, label with both tk number and
+   pt (with .) PX_COMBDIS.RCP and PX_MUODIS.RCP have this
+   new parameter added.
+
+=================================================================
+  17-SEP-1992 : Modifications made by J. Bantly
+
+   LV0DIS.DOC, the documentation for the level 0 display was added.
+
+=================================================================
+  17-SEP-1992 : Modifications made by N. Oshima
+
+    PZCD3D.FOR - Check draw or don't draw hits module by module as 
+                 same as tracks.
+
+    PZ_VERTEX_3D.FOR - Make bigger mark for the vertex.
+
+    PX_ZTRAKSDIS.RCP - Add VTX parameter 'ZTRAKS DRAW VTRKS'
+

@@ -1,0 +1,584 @@
+.!   Created by Jeffrey Bantly on 19-JUL-1990
+.!
+.PAGE SIZE  60,80     .LEFT MARGIN  5    .RIGHT MARGIN  75
+.LAYOUT  3,2
+.RIGHT ;D0 Note 997###
+.RIGHT ;Jeffrey Bantly
+.RIGHT ;19-JUL-1990###
+.BLANK 1     !--- underlined title on next line
+.CENTER ; ^& FDC Event Display Package \&  
+.BLANK 2
+.!------------ main text start here.
+.PARAGRAPH  3   ! arg = horizontal indentation
+The FDC Event Display package has many graphics displays that are useful for
+both the D0 environment and the NWA Testbeam.  This event display uses DI-3000  
+and can be called
+from any D0USER or EXAMINE framework that has linked in the PIXIE displays.  For
+details on those packages see the documentation in D0$D0USER:D0USER__GUIDE.MEM  
+and D0$EXAMINE2:EXAMINE__GUIDE.DOC.  The FDC displays use processed event 
+information as stored in
+Zebra banks.  The structure and contents of all of the FDC Zebra banks can be
+found in D0$ZEB:FDC*.MEM.  Each display is described below under its            
+'action routine'.   Basic use of the PIXIE display packages and further         
+information on
+'action routines' is available in D0$PIXIE:EVENT__DISPLAY__USERS__GUIDE.DOC and
+EVENT__DISPLAY.DOC.
+.PARAGRAPH  3   ! arg = horizontal indentation
+Four data files necessary to use the FDC Event Display.  The two PIXIE files    
+are FDC_.SCREEN and 
+FDC_.PXPARA and are found in D0$PIXIE$DATA.  The screen file (see Appendix A)
+contains the graphics screen dimensions for each display along with the action
+routine name and display title.   It is a binary ZEBRA file and can not be
+editted or printed directly.  The parameter file (see Appendix B) contains
+the parameters necessary to regulate the actions performed by the displays and
+also acts as temporary storage for some variables.  It is an ASCII file and can
+be printed and editted.  Two other data files are required.  FDC__STPFILE.DAT   
+contains the design geometry
+information along with other event processing parameters.  It can be found in
+D0$STP.   FTRAKS.RCP contains the run control parameters used to process events
+and a few of these paremeters are used by the display package.  It can be found
+in D0$TRACKING__UTIL.  A description of the FDC itself is contained in          
+D0_ Note_ _#748.
+.PARAGRAPH  3   ! arg = horizontal indentation
+This document includes the following details of the FDC package:
+.LIST 
+.LIST ELEMENT; FDC Action Routines - a short listing
+.LIST ELEMENT; FDC Color Conventions
+.LIST ELEMENT; FDC Action Routines - a full listing
+.LIST ELEMENT; Appendix A : FDC Screen File Listing
+.LIST ELEMENT; Appendix B : FDC Parameter File Description
+.LIST ELEMENT; Appendix C : Special Display Utility Routines
+.LIST ELEMENT; Appendix D : FDC Tracking__Util Routines
+.END LIST
+.PAGE
+^& FDC  Action  Routines \&
+.BLANK 1
+Each display or 'screen' is listed below in the order it appears on the menu
+shown during a graphics session.  The action routine name, a display title, and 
+a short description are given.
+PFEXEC, the main FDC calling routine, currently contains all of the action
+routines listed.
+.BLANK 1
+.LIST 
+.LIST ELEMENT; PFTHTA - 'FDC HITS _& TRACK' - This screen shows a beam view of
+an FDC Half with Theta sectors, delay line hits, Isajet tracks, and found       
+tracks.
+.LIST ELEMENT; PFFADC - 'FDC FADC DATA'     - This screen shows one FADC
+channel trace and its derivative. 
+.LIST ELEMENT; PFHITS - 'FDC HITS _& SEGTS' - This screen shows one Half of the
+FDC on the sector level with all of the hits.  A future release will also show  
+all of the segments that have been found. 
+.LIST ELEMENT; PFDCYZ,PFDCXZ - 'FDC Y-Z/X-Z VIEW' - This screen shows a side
+view and a top view of the CD region with the FDC, delay line hits, Isajet
+tracks, and found tracks.
+.LIST ELEMENT; PF8ADC - 'FDC Theta FADC D' - This screen shows one Theta
+sector's FADC traces with hits and hits on segments labelled.
+.LIST ELEMENT; PF16AD - 'FDC Phi FADC DAT' - This screen shows one Phi sector's
+FADC traces with hits and hits on segments labelled.
+.LIST ELEMENT; PFDCTB,PFDCTB - 'FDC Testbeam Tra' - This screen shows a Y-Z and
+an X-Z view of one FDC Half with delay line hits, found tracks, and PWCs.
+.LIST ELEMENT; PFTB3D - 'FDC Testbeam 3-D' - This screen shows one FDC Half in
+3-D from a choice of three views and includes sense wire hits, found track, and
+tracking by planes.
+.LIST ELEMENT; PFDCRZ - 'FDC R-Z View'     - This screen shows the CD region in
+R-Z with the FDC, delay line hits, Isajet tracks, and found tracks.
+.PARAGRAPH  3   ! arg = horizontal indentation
+The following screens are not listed on the menu and can be added by using the
+'Edit Screen Files' menu. 
+All the necessary routines are already linked in and used by other screens.
+.LIST ELEMENT; PFPHI  - 'FDC Phi Chamber'  - This screen shows a beam view of
+an FDC Phi chamber.  
+.LIST ELEMENT; PFDCYZ - 'FDC Y-Z VIEW' - This screen shows a side view of the
+CD region with the FDC, delay line hits, Isajet tracks, and found tracks.
+.LIST ELEMENT; PFDCXZ - 'FDC X-Z VIEW' - This screen shows a top view of the
+CD region with the FDC, delay line hits, Isajet tracks, and found tracks.
+.END LIST
+.PAGE
+^& FDC Color Conventions \&
+.PARAGRAPH  3   ! arg = horizontal indentation
+Colors have been chosen to be consistent across all of the screens thus
+avoiding some possible confusion.  These colors are set in the FDC.PXPARA file.
+For more information on using colors in PIXIE see D0$PIXIE:COLORTABLE.DOC.
+.LIST "."
+.LIST ELEMENT; 'FOR' - (Foreground)  General purpose, titles, questions to user.
+Used by PF16AD and PF8ADC.
+.LIST ELEMENT; 'RED' - (Red) FDC Hits, includes actual hits, mirror-image hits, 
+sense wire hits, and delay line-associated hits.  Used by PF3DDRAW, PF3DSGDR,   
+PFDHXZ, PFDHYZ, PFDELH, PFPHIT, and PFTHIT.
+.LIST ELEMENT; 'GRE' - (Green) FDC Inner Theta layer Sectors, full layers, and  
+wires.  Used by PF3DTH, PFPHI, PFPWIR, PFTWIR, and PFTRAK.
+.LIST ELEMENT; 'DGR' - (Dark Green) FDC Outer Theta layer Sectors.  Used by     
+PF3DTH.
+.LIST ELEMENT; 'BGR' - (Blue Green) FDC Phi Sectors.  Used by PF3DPH.
+.LIST ELEMENT; 'MAG' - (Magenta) Intersection lines of 3-D planes and labels.   
+Used by PFILIN and PFHLAB.
+.LIST ELEMENT; 'DMA' - (Dark Magenta) Planes in 3-D.  Used by PFPLAN.
+.LIST ELEMENT; 'CYA' - (Cyan) Labels and Isajet tracks.  Used by PF16AD, PF1ADC,
+PF8ADC, PF3DDRAW, PFHLF4 and PFISTR.
+.LIST ELEMENT; 'WHI' - (White) none yet.
+.LIST ELEMENT; 'BLA' - (Black) none yet.
+.LIST ELEMENT; 'PUR' - (Purple) none yet.
+.LIST ELEMENT; 'DPU' - (Dark Purple) none yet.
+.LIST ELEMENT; 'BLU' - (Blue) none yet.
+.LIST ELEMENT; 'DBL' - (Dark Blue) none yet.
+.LIST ELEMENT; 'DRE' - (Dark Red) none yet.
+.LIST ELEMENT; 'ORA' - (Orange) none yet.
+.LIST ELEMENT; 'YEL' - (Yellow) none yet.
+.END LIST
+.PAGE
+^& FDC  Action  Routines - a Full Listing \&
+.BLANK 1
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC HITS _& TRACK' shows a beam view of one FDC Half.  When this screen is
+chosen, the user is queried as to which FDC Half to display (0 or 1).  The
+screen draws in the delay line hits in their Theta sectors as found by FDHITS in
+the hitfinding routines.  By changing the parameter 'FDC DRAW SECTOR', one can
+change the way the screen chooses to draw sectors.  The default draws only those
+sectors that contain at least one delay line hit.  Each sector is labelled by
+'quadrant sector' as the default.  '3 2' would indicate that Quadrant_  3,      
+Sector_ 2 was the particular sector shown.  The labels can be turned off by
+setting the parameter 'FDC DRAW LABEL' to zero.  Delay line hit drawing can be
+turned off by setting the parameter 'FDC DRAW DELAY' to zero.  The default is to
+draw them.  For each delay line hit in
+sectors 3, 4 , and 5, there are the two drift solutions, positive and negative. 
+These two are indicated by different symbols on the display and a key is
+provided in the upper right hand corner.  If the user
+wishes to reposition the key, the parameters 'FDC XLAB' and 'FDC YLAB' 
+need to be changed.   After the delay line hits are drawn, reconstructed
+tracks are drawn along the distance they pass through the FDC.  By setting 'FDC
+DRAW TRACK' to zero, they are not drawn.  Last, the Isajet tracks (if any) are
+drawn from their vertex to where they enter the FDC.  At that position, the
+Isajet track number is drawn.  Isajet tracks are not drawn if 'FDC DRAW
+ISATRK' is set to zero.
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC HITS _& SEGTS' draws an FDC Half in a 'simplified' view so that all the
+sense wire hits may be shown.   The screen does not look like the FDC but is
+actually a form of unfolding the chambers so that all the drift distances can be
+displayed accurately without any viewing angle involved.  The user is asked
+which FDC Half is desired (0 or 1).  There are four columns shown and each      
+contains the three layers of an FDC Half.  From left to right is the inner Theta
+layer (INR), the Phi layer, and the outer Theta layer (OUTR).  Each Theta layer 
+is unfolded vertically starting with Sector_ 0 at the top and Sector_ 5 at the
+bottom.  Each is labelled by 'quadrant sector' and contains the wire positions
+shown by a '_+'.  Staggering of the wires is included.  The Phi layer is divided
+into four quarters of nine sectors each and are labelled by sector only.  Both
+positive and negative hit solutions are drawn and, in most cases, the correct
+solution is visually determinable.  At some future time, segments will be drawn
+over the hits they use.  Drawing wires can be turned off by setting 'FDC DRAW
+WIRE' to zero.  Drawing hits can be turned off by setting 'FDC DRAW HITS' to
+zero.   Drawing segments can be turned off by setting 'FDC DRAW TSEG' to zero.
+The defaults are to draw wires and hits but not segments.
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC Y-Z_/X-Z VIEW' shows a side view (Y-Z) and a top view (X-Z) of the FDC.
+Delay line hits, reconstructed tracks, and Isajet tracks (if any) are drawn
+similarly to the 'Hits and Tracks' screen.   None may be turned off.   The
+chambers are drawn in a simplified cut view at x=0 (Y-Z) and at y=0 (X-Z).
+Some of the hits may appear 'outside' the chamber as drawn.  Isajet tracks
+are drawn with an 'x' at their vertex and their track number at the point they
+enter the FDC.  
+.PAGE
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC Y-Z VIEW' and 'FDC X-Z VIEW' are just screens where a view is drawn to
+use the whole screen by itself instead of the split format of the 'FDC
+Y-Z_/X-Z VIEW'.  Otherwise, they are identical.
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC FADC DATA' draws the FADC trace of one channel of FDC data along with its
+first difference.  The user is queried to ascertain which channel is desired and
+the location Half, Unit, Qaudrant, and Sector are stored in 'FDC HALF', 'FDC
+UNIT', 'FDC QUAD', 'FDC SECT', and 'FDC WIRE'.  The traces are displayed along
+with a maximum bin height noted along the vertical axis.  Pulses that have been
+found as hits are labelled with a 'o'.  If the hit is on a segment, it is also
+labelled with a 'x'.  If not, it is labelled with a '_+'.  Delay line hits are
+only marked with a '_+'.
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC Theta FADC D' draws the FADC traces for one Theta Sector's channels
+including the delay lines.  This screen is similar to 'FDC FADC DATA' except it
+does not draw the first differences.  The two delay line channels are drawn at
+the top and the sense wires below.   This places the delay line hits close to
+the sense wire 0 trace for useful correlation.  Sense wire hits found are marked
+as to whether or not they are on a segment.  Delay line hits are
+only marked with a '_+'.
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC Phi FADC DA' draws the FADC traces for one Phi Sector's channels.  This
+screen is similar to 'FDC Theta FADC D' but the Phi chambers have no delay
+lines.  Sense wire hits found are marked as to whether or not they are on a     
+segment.
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC Testbeam Tra' draws  Y-Z_/X-Z views of the FDC for the 1990 Testbeam runs.
+The screen draws one FDC Half and two small boxes representing the PWCs.  The
+views are drawn side-by-side to maximize the size.  The PWC positions can be
+changed by setting the values of PWCX and PWCY in FTRAKS.RCP.  The PWCs are
+drawn and their tracks will be included in the future.  The screen draws the
+delay line hits, reconstructed tracks, and the Isajet tracks (if any).
+.PAGE
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC Testbeam 3-D' draws one FDC track in full detail in 3-D.  The user is
+queried for which view of the track is desired.  View 1 is looking from above
+and back from the center of D0 towards the center of the FDC Half of the track. 
+View 2 is looking from the center region of D0 out along the beam line towards
+the FDC Half of the track.  View 3 is looking from the center region of the D0
+detector towards the point of entry of the track on the FDC Half.  The user is
+queried for which track, of those reconstructed, is desired.  The default
+choices are the previously chosen view (View 1, if none) and the first track    
+listed.  The track's parameters are displayed and the track is drawn.  Also
+drawn are the sectors containing the segments that make up the track, the sense
+wire hits of each segment shown using both drift distances and delay line       
+positions.   For each segment in the track, a plane is formed using the hits of 
+the segment adjusted by their residuals to the segment fit and allowing the
+delay line (or third coordinate) position to vary.  If the track has only two
+segments, the display will show an unused segment taken from a sector overlapped
+by the sectors of the segments in the other two layers.  For single tracks in
+the testbeam, this is very successful.  If the track already uses three segments
+then the outer Theta layer segment is treated as the unused segment.  The unused
+segment has its parameters listed on the screen as well as having a plane fit to
+its hits.  For each pair of planes drawn, the intersection line is calculated
+and drawn.  These actions are taken in all three views.  A color screen is very
+helpful when using this display because of the many lines drawn.  
+Setting the 'FDC DRAW 3DHITS' parameter to zero turns off drawing of hits.
+Setting the 'FDC DRAW 3DSEGS' parameter to zero turns off drawing of segments.
+This feature should be available in the future so the current default is zero.
+Setting the 'FDC DRAW 3DTRKS' parameter to zero turns off drawing of tracks.
+Setting the 'FDC DRAW 3DSECS' parameter to zero turns off drawing of sectors.
+The defaults are all set on (=1) except for 3DSEGS.  'FDC 3D VIEW' stores the
+current view chosen.  'FDC 3D X0', 'FDC 3D Y0', 'FDC 3D X02', and 'FDC 3D Y02'
+are used for storing and setting the camera view point.
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC R-Z VIEW' shows the Central Detector region of D0 with just the FDCs drawn
+in simplified cut views.  This screen is similar to the 'FDC Y-Z_/X-Z VIEW'
+screen except the vertical axis is R where +R is used for Y>=0 and -R is used
+for Y<0.  A future release will limit the R-Z view to show only those tracks
+along a road if 'FDC ONLY' is set to false.  This is for use with the
+ALL__DISPLAY and other packages.
+.PARAGRAPH  3   ! arg = horizontal indentation
+'FDC Phi Chamber' draws a cut view through the center plane of an FDC Phi
+chamber.  It does nothing else so far.  
+.PAGE
+.CENTER ; ^& APPENDIX A :    FDC  Screen  File  Listing \&
+.BLANK 2
+.PARAGRAPH  3   ! arg = horizontal indentation
+The FDC screen file FDC.SCREEN is listed below.  Each seperate screen has a
+listing started by 'We have ...' giving the number of viewports and the screen
+title.  The DI-3000 viewport limits and window limits define the physical screen
+area used and the scale of the view for the user.  Three dimensional screens
+have a view reference point, up vector, and camera point also defined.  Finally,
+the action routines for the screen are listed.
+.PARAGRAPH  3   ! arg = horizontal indentation
+.LITERAL
+
+
+ We have   1 viewport(s) in the screen "FDC HITS & TRACK"
+
+ Viewport limits ( x1,x2,y1,y2 )=    -1.0000    1.0000   -1.0000    1.0000
+ Window   limits ( x1,x2,y1,y2 )=     -100.0     100.0       0.0      -1.0
+          View reference point =       0.0000      0.0000      0.0000
+          Up vector            =       0.0000      1.0000      0.0000
+          Camera point         =       0.0000      0.0000      1.0000
+        1 action routine(s) for this viewport :  PFTHTA
+
+
+ We have   1 viewport(s) in the screen "FDC FADC DATA - "
+
+ Viewport limits ( x1,x2,y1,y2 )=    -1.0000    1.0000   -1.0000    1.0000
+ Window   limits ( x1,x2,y1,y2 )=    -1000.0    1000.0   -1000.0    1000.0
+        1 action routine(s) for this viewport :  PFFADC
+
+
+ We have   1 viewport(s) in the screen "FDC HITS & SEGTS"
+
+ Viewport limits ( x1,x2,y1,y2 )=    -1.0000    1.0000   -1.0000    1.0000
+ Window   limits ( x1,x2,y1,y2 )=      -50.0      50.0     -50.0      50.0
+        1 action routine(s) for this viewport :  PFHITS
+
+
+ We have   2 viewport(s) in the screen "FDC Y-Z/X-Z VIEW"
+
+ Viewport limits ( x1,x2,y1,y2 )=    -0.9961    0.9941    0.0029    0.9897
+ Window   limits ( x1,x2,y1,y2 )=     -200.0     200.0       0.0      -1.0
+        1 action routine(s) for this viewport :  PFDCYZ
+
+ Viewport limits ( x1,x2,y1,y2 )=    -0.9941    0.9941   -0.9920    0.0002
+ Window   limits ( x1,x2,y1,y2 )=     -200.0     200.0       0.0      -1.0
+        1 action routine(s) for this viewport :  PFDCXZ
+
+
+ We have   1 viewport(s) in the screen "FDC Theta FADC D"
+
+ Viewport limits ( x1,x2,y1,y2 )=    -1.0000    1.0000   -1.0000    1.0000
+ Window   limits ( x1,x2,y1,y2 )=    -1000.0    1000.0   -1000.0    1000.0
+        1 action routine(s) for this viewport :  PF8ADC
+.END LITERAL
+.PAGE
+FDC Screen File, cont.
+.BLANK 2
+.LITERAL
+ We have   1 viewport(s) in the screen "FDC Phi FADC DAT"
+
+ Viewport limits ( x1,x2,y1,y2 )=    -1.0000    1.0000   -1.0000    1.0000
+ Window   limits ( x1,x2,y1,y2 )=    -1000.0    1000.0   -1000.0    1000.0
+        1 action routine(s) for this viewport :  PF16AD
+
+
+ We have   2 viewport(s) in the screen "FDC Testbeam Tra"
+
+ Viewport limits ( x1,x2,y1,y2 )=    -0.9980   -0.0010   -0.9973    0.9978
+ Window   limits ( x1,x2,y1,y2 )=      -50.0      50.0       0.0      -1.0
+        1 action routine(s) for this viewport :  PFDCTB
+
+ Viewport limits ( x1,x2,y1,y2 )=     0.0010    1.0000   -1.0000    0.9978
+ Window   limits ( x1,x2,y1,y2 )=      -50.0      50.0       0.0      -1.0
+        1 action routine(s) for this viewport :  PFDCTB
+
+
+ We have   1 viewport(s) in the screen "FDC Testbeam 3-D"
+
+ Viewport limits ( x1,x2,y1,y2 )=    -1.0000    1.0000   -1.0000    1.0000
+ Window   limits ( x1,x2,y1,y2 )=     -150.0     150.0       0.0      -1.0
+          View reference point =       0.0000      0.0000   -120.0000
+          Up vector            =       0.0000      1.0000      0.0000
+          Camera point         =     100.0000    100.0000      0.0000
+        1 action routine(s) for this viewport :  PFTB3D
+
+
+ We have   1 viewport(s) in the screen "FDC R-Z View    "
+
+ Viewport limits ( x1,x2,y1,y2 )=    -1.0000    1.0000   -1.0000    1.0000
+ Window   limits ( x1,x2,y1,y2 )=     -150.0     150.0       0.0      -1.0
+        1 action routine(s) for this viewport :  PFDCRZ
+
+.END LITERAL
+.PAGE
+.CENTER; ^& APPENDIX B :    FDC Parameter File Description \&
+.BLANK 2
+.PARAGRAPH  3   ! arg = horizontal indentation
+The FDC display parameter file FDC.PXPARA contains the many parameters that are
+used by the package to determine levels of drawing and to temporarily store some
+quantities.  A listing of the parameters in the file with their data type and   
+current default
+values is given below.  Each parameter has a brief description and list of
+routines that use it.  Any value can be changed by using the 'Modify Parameters'
+menu item but some FDC routines will force a certain value by setting it
+themselves.
+.LIST "-"
+.LIST ELEMENT; General FDC Display Parameters
+.LIST "."
+.LIST ELEMENT; STRING QUALITY####[I]###########1 - Not usually used by FDC      
+directly.  PF16AD, PF8ADC, and PFTB3D set the string quality to 3 automatically
+for their displays and reset to previous value when done.
+.LIST ELEMENT; WAIT FOR MENU#####[L]###########T - Not used by FDC directly
+except in the PFHITS screen where the menu directly blocks the display at all
+times.  It is set TRUE by PFHITS and PFPHI and reset to previous value when     
+done.
+.LIST ELEMENT; PRINT HARDCOPY####[L]###########F - Not used by FDC directly.
+.LIST ELEMENT; FDC ONLY##########[L]###########T - Not used by FDC directly.
+.END LIST
+.LIST ELEMENT; FDC Stored Temporary Parameters
+.LIST "."
+.LIST ELEMENT; FDC HALF##########[I]###########0 - Used extensively where it is
+necessary to know which FDC Half is being displayed.  It can equal 0 or 1 and is
+set by PF16AD, PF8ADC, PFFADC, and PFTHET.  It is used by PF16AD, PF1ADC,
+PF8ADC, PFTSEC, and PFDELH.
+.LIST ELEMENT; FDC UNIT##########[I]###########0 - Used extensively where it is
+necessary to know which FDC Unit is being displayed.  It can equal 0 or 1 and is
+set by PFFADC and subsequently used by PF1ADC.
+.LIST ELEMENT; FDC QUAD##########[I]###########0 - Used extensively where it is
+necessary to know which FDC Theta Quadrant is being displayed.  It can equal 0  
+to 7 and is set by PF8ADC, PFFADC, AND PFTHET.  It is used by PF1ADC, PF8ADC,   
+PFTSEC, PFDELH, and PFSECL.
+.LIST ELEMENT; FDC SECT##########[I]###########0 - Used extensively where it is
+necessary to know which FDC Sector is being displayed.  It can equal 0 to 35
+depending on the Unit (Unit=0->Sector=0-5 only) and is set by PF16AD, PF8ADC,
+PFFADC, and PFTHET.  It is used by PF16AD, PF1ADC, PF8ADC, PFTSEC, PFDELH, and
+PFSECL.
+.LIST ELEMENT; FDC WIRE##########[I]###########0 - Used extensively where it is
+necessary to know which FDC Wire is being displayed.  It can equal 0 to 15
+depending on the Unit (Unit=0->Wire=0-9 only) and is set by PFFADC.  It is used
+by PF1ADC.
+.END LIST
+.LIST ELEMENT; FDC Screen Specific Parameters
+.LIST "."
+.LIST ELEMENT; FDC DRAW SECTOR###[I]###########2 - PFTHTA Screen draws FDC Theta
+sectors depending on the value.  Used by PFTHET.  0=draw no sectors, 1=draw all
+sectors, 2=draw only sectors with delay line-associated hits, 3=currently draw
+no sectors.
+.LIST ELEMENT; FDC DRAW LABEL####[I]###########1 - PFTHTA Screen puts sector
+labels on each sector drawn.  Label reads        
+'quadrant sector'.  Used by PFTSEC, if the value is greater than 0 then calls   
+PFSECL to draw the label.  
+.LIST ELEMENT; FDC DRAW DELAY####[I]###########1 - PFTHTA Screen draws delay
+line hits depending on the value.  Used by PFHALF, if the value is greater than 
+0 then it calls PFHLAB to draw the hit label key.  Used by PFTSEC, if the value 
+is greater than 0 then it calls PFDELH to draw the delay line-associated hits.
+.LIST ELEMENT; FDC DRAW ISATRK###[I]###########1 - PFTHTA Screen draws Isajet
+tracks that pass through the FDC.  Used by PFHALF, if the value is greater than
+0 then it calls PFISTR to draw the Isajet tracks.
+.LIST ELEMENT; FDC DRAW TRACK####[I]###########1 - PFTHTA Screen draws tracks
+found by FTRAKS package and stored in FDCT Zebra banks.  Used by PFTHET, if
+value is greater than zero, it calls PFTRAK to draw all the FDC tracks found in 
+one FDC Half.
+.LIST ELEMENT; FDC XLAB##########[F]#####55.0000 - PFTHTA Screen uses the value
+as a position in the window where it will draw the hit label key.  PFHLAB uses
+the value as an x coordinate.
+.LIST ELEMENT; FDC YLAB##########[F]#####58.0000 - PFTHTA Screen uses the value
+as a position in the window where it will draw the hit label key.  PFHLAB uses
+the value as a y coordinate.
+.LIST ELEMENT; FDC DRAW WIRE#####[I]###########1 - PFHITS Screen draws wires in
+the Sectors of the screen.  PFPHI4 and PFTHT4 will draw a '+' at each wire
+location if value is greater than 0.
+.LIST ELEMENT; FDC DRAW HITS#####[I]###########1 - PFHITS Screen draws hits in
+on each wire in a Half.  PFPHI4 and PFTHT4 will draw a '.' at each wire
+location if value is greater than 0.
+.LIST ELEMENT; FDC DRAW TSEG#####[I]###########0 - PFHITS Screen will some day  
+draw segments found in the Sectors displayed on the screen.  PFPHI4 and PFTHT4  
+will draw a line for each segment if the value is greater than 0.
+.LIST ELEMENT; FDC DRAW 3DHITS###[I]###########1 - PFTB3D Screen draws hits
+along a track in 3-D.   Used by PF3DDRAW and PF3DSGDR, the hits are drawn using
+the FDCT Zebra track bank information and delay line hit information if the
+value is equal to 1.
+.LIST ELEMENT; FDC DRAW 3DSEGS###[I]###########0 - PFTB3D Screen will some day  
+draw the segments along a track in 3-D.   Used by PF3DDRAW and PF3DSGDR, the    
+segments are drawn using
+the FDCT track Zebra bank and FSGn segment Zebra bank information if the
+value is equal to 1.  
+.LIST ELEMENT; FDC DRAW 3DTRKS###[I]###########1 - PFTB3D Screen draws a track  
+in 3-D.   Used by PF3DDRAW and PF3DSGDR, the tracks are drawn using
+the FDCT Zebra track bank information if the value is equal to 1.
+.LIST ELEMENT; FDC DRAW 3DSECS###[I]###########1 - PFTB3D Screen draws FDC
+sectors along a track in 3-D.   Used by PF3DDRAW and PF3DSGDR, the sector shapes
+are drawn using the FDCT Zebra track bank information if the
+value is equal to 1.
+.LIST ELEMENT; FDC 3D VIEW#######[I]###########1 - PFTB3D Screen chooses one of
+three possible views to draw based on the value.  Value is set by user response
+in PFPICK__TRACK and used by PFTB3D to set the DI-3000 viewing parameters.
+Choices are: 1=General view of an FDC Half from x=100.0 cm, y=100.0 cm, z=0.0.
+2=Along the beamline from x,y,z = 0.0 cm.  3=Along the track from x,y,z = 0.0
+cm.  Choice 1 and 2 look at the center of the FDC Half of the track.  Choice 3
+looks at the spot of entry for the track on the FDC Half.   FDC Half is chosen
+for the user when the track to draw is chosen.
+.LIST ELEMENT; FDC 3D X0#########[F]######0.0000 - PFTB3D Screen uses the value
+to set the camera point x coordinate if view choice is 2.  PFTB3D uses the
+value.
+.LIST ELEMENT; FDC 3D Y0#########[F]######0.0000 - PFTB3D Screen uses the value
+to set the camera point y coordinate if view choice is 2.  PFTB3D uses the
+value.
+.LIST ELEMENT; FDC 3D X02########[F]######0.0000 - PFTB3D Screen uses the value
+for storage of the camera point x coordinate.  PFPICK__TRACK sets the value and
+PFTB3D uses the value.
+.LIST ELEMENT; FDC 3D Y02########[F]######0.0000 - PFTB3D Screen uses the value
+for storage of the camera point y coordinate.  PFPICK__TRACK sets the value and
+PFTB3D uses the value.
+.END LIST
+.PAGE
+.LIST ELEMENT; FDC Color Parameters - See FDC Color Conventions for usage.
+.LIST "."
+.LIST ELEMENT; FDC COLOR GENERAL#[A]########FOR - Frame and general labelling.
+.LIST ELEMENT; FDC COLOR HITS####[A]########RED - FDC Hits.
+.LIST ELEMENT; FDC COLOR SECTORS#[A]########GRE - Any FDC Sector.
+.LIST ELEMENT; FDC COLOR TSECTOR#[A]########DGR - FDC Theta Sectors only.
+.LIST ELEMENT; FDC COLOR PSECTOR#[A]########BGR - FDC Phi Sectors only.
+.LIST ELEMENT; FDC COLOR LINES3D#[A]########MAG - Plane intersection lines in
+3-D and hit label key.
+.LIST ELEMENT; FDC COLOR PLANE3D#[A]########DMA - Planes in 3-D.
+.LIST ELEMENT; FDC COLOR LABELS##[A]########CYA - Additional labelling.
+.END LIST
+.LIST ELEMENT; PIXIE Specific Parameters
+.LIST "."
+.LIST ELEMENT; KEYBOARD INPUT####[L]###########F - Not used by FDC directly.
+.LIST ELEMENT; MAX EVENT SKIP####[I]##########50 - Not used by FDC directly.
+Sets the maximum number of events the PIXIE display can skip in one pick of the
+menu item 'GOTO EVENT'.
+.LIST ELEMENT; UTILITY WRITE#####[L]###########F - Not used by FDC directly.
+.LIST ELEMENT; UTILITY DUMP######[L]###########F - Not used by FDC directly.
+.LIST ELEMENT; UTILITY EDT SCR###[L]###########F - Not used by FDC directly.
+.END LIST
+.END LIST
+.PAGE
+.PARAGRAPH  3   ! arg = horizontal indentation
+Several of the routines depend reconstruction values to draw the displays.
+These values are stored in FTRAKS.RCP in D0_$TRACKING__UTIL.  
+.LIST "."
+.LIST ELEMENT; BILIPT is the knee position used by the bilinear conversion of   
+the FADC pulses when they are drawn in the FADC trace displays.  This is used   
+by PF16AD, PF1ADC, and PF8ADC.
+.LIST ELEMENT; BILIRT is the slope used by the bilinear conversion of the FADC  
+pulses when they are drawn in the FADC trace displays.  This is used by PF16AD, 
+PF1ADC, and PF8ADC.  
+.LIST ELEMENT; MXWIRT is the maximum label of FDC Theta Sector sense wires per
+sector.  The default is 7, that is the outermost wire when counting from zero is
+number 7.  This value is used by PF1ADC and PF8ADC.
+.LIST ELEMENT; Z0(2) are the values of the track-fitting reference points along
+the Z axis (along the beam).  Z(1) is the point for Half 0 and Z(2) is the point
+for Half 1.  The values are used by PF3DDRAW, PFPICK__TRACK, PFTB3D, and PFTRAK.
+.LIST ELEMENT; CYLTRK is the logical set TRUE if tracking was to be done in
+cylindrical coordinates instead of spherical.  This was used for the Testbeam
+runs.  
+.LIST ELEMENT; PWCX,PWCY are the locations of the PWC chambers for a given run. 
+This information is used by PFPWCX.
+.END LIST
+.PAGE
+.CENTER; ^& APPENDIX C :    FDC Special Display Utility Routines\&
+.BLANK 2
+.PARAGRAPH  3   ! arg = horizontal indentation
+Listed below are some useful routines in the PIXIE library that were written for
+use with the FDC displays.  Others may find them 
+of use or to serve as a model for variants.  Use at your own risk but send
+complaints to me and I will try to fix problems.  It is best to do a _$ search
+pf*.for _"routine__name_" in D0_$PIXIE_$SOURCE to find an example of how I use
+each routine.
+.LIST "."
+.LIST ELEMENT; PFHBYS - Lists the hits by sector for an input FDC Unit.  PF16AD,
+PF8ADC, and PFFADC call this routine to display the number of hits per sector
+and then eliminate the DI-3000 segment when the user is done with the
+information.  
+.LIST ELEMENT; PFUHIS - This is a variation of PUHIST except that it uses two
+colors and marks the FADC clusters as they are drawn.  FADC clusters are drawn
+in a second color which the user must input in the call.  If a cluster has been
+found as one or more hits, PFUHIS will mark these with a choice of markers.
+Both the hits and markers are input.  Examples are in PF16AD, PF1ADC, and
+PF8ADC.
+.LIST ELEMENT; PFUMES - This routine allows one to write several lines of
+messages, one under the other, on the left hand side of the display.  Each call
+will put the input line of the message just below the previous message.  One can
+reset the current location back to the top by calling PFUMES with an empty, one
+space message.
+.LIST ELEMENT; PFUVST - This routine is called by PFUMES to write the message.
+.LIST ELEMENT; PFRSTR - This routine is an entry point in PFUVST for queries to 
+user.
+.LIST ELEMENT; PF3MES - This routine is similar to PFUMES except that it works
+(most of the time) in 3-D.  PF3MES writes messages upright and starting at the
+top of the display.  
+.LIST ELEMENT; PF3VST - This routine is called by PF3MES to write the message.
+.END LIST
+.PAGE
+.CENTER; ^& APPENDIX D :    FDC Tracking__Util Routines\&
+.BLANK 2
+.PARAGRAPH  3   ! arg = horizontal indentation
+There are many utility routines used in the FDC displays and a general summary
+is given below of what these routines do.  Their listings can be found in
+D0_$TRACKING__UTIL_$FDC
+.LIST "-"
+.LIST ELEMENT; FCODER is the generic decoder/encoder of the FDC Logical Channel
+Addresses.  The LCA can be decoded into FDC Half, Unit, Quadrant, Sector, and
+Wire or encoded from these values.
+.LIST ELEMENT; FDUNPK unpacks the FDC raw FADC
+clusters as they are stored in the CDD3 bank.
+.LIST ELEMENT; FMCPDS and FGTPDS get the
+pedestal values associated with each channel's data from the STP pedestal banks.
+.LIST ELEMENT; INZSTP and FDISTP are used to read in the FDC STP file if it has
+not already been done.  This allows the display package to be run seperately
+from reconstruction packages.
+.LIST ELEMENT; GTxxxx routines are basic utilities to fetch the contents of
+Zebra banks for the user.  The user does not need to know the Zebra tree
+structure to get to the banks.  See the individual routines for details.  The
+Zebra bank contents are listed in the various D0_$ZEB_$FDCyyyy directories.
+.LIST "."
+.LIST ELEMENT; GTFTRH, GTFITR, and GTFDCT get track bank information.
+.LIST ELEMENT; GTFSEG gets segment bank information.
+.LIST ELEMENT; GTFPSC, GTFTSC, GTFPHT, and GTFTHT get hit bank information.
+.LIST ELEMENT; GTFWAL and GTFWTX get STP geometry bank information.  These
+return the position and size of various FDC chambers and parts.
+.LIST ELEMENT; GTFALH gets STP alignment bank information.  It is used to find
+the exact center position of a wire in the FDC.
+.END LIST
+.LIST ELEMENT; DRIDIR returns the gas drift direction in an FDC sector given the
+Logical Channel Address.
+.END LIST

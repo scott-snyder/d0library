@@ -1,0 +1,271 @@
+==================================================================
+ 21-JUN-1990 : Modifications made by Carol Francis
+
+     SUBROUTINES PMBLOW,PMCHNM,PMSAVE and PMVIEW were modified.
+     A new subroutine, PMCHNM2 was written to put chamber labels
+     in the BLOW-UP view.
+==================================================================
+ 21-JUN-1990 : Modifications released by C. Cretsinger
+COMMENTS ON THE SECOND RELEASE OF TESTBEAM ONE-EVENT DISPLAY:
+
+                 --C.E.Cretsinger      21-JUN-1990
+
+Three main purposes lie behind the changes to the Testbeam one-event display:
+The first is speed; some of the old routines were painfully slow.  The second
+is inclusion of the remaining calorimeter layers in the testbeam cryostat:
+ICH and the five MH layers are now included.  The third is an attempt to make
+the package more informative and easy-to-use.
+
+These existing routines were modified:
+    PTBEXEC.FOR-- Control of the value of WAIT FOR MENU parameter, making 
+                menus less of a hassle.
+    PTBSETUP.FOR-- Gets and stores DI3000 driver info at setup time.
+    PTB_ALL_VIEW.FOR-- All 14 layers now appear on two screens; a menu enables
+                user to switch back and forth or exit the view.
+    PTB_CAL_GEOM_INIT.FOR-- Now includes data for ICH and MH geometry.
+    PTB_COLOR.FOR-- Now operates from PIXIE colortable.
+    PTB_COMB_VIEW.FOR--  Uses new routine PTB_DRAW_PROFILES to show hits.
+    PTB_CONV_INDICES.FOR--  Updated to convert ICH and MH indices.
+    PTB_DRAW_CELLS.FOR--  Added MHXOFF to facilitate drawing of hits in MH.
+    PTB_DRAW_LAYER.FOR--  Draws outline of MH as a pentagon on its side, other
+                layers are still circles.
+    PTB_GRAY.FOR-- Uses PIXIE routines for grayscales.
+    PTB_LAYER_VIEW.FOR-- Menu to select layer to draw.
+    PTB_LEGLYR_VIEW.FOR-- Menus to select layer and view angle (Default, Edge,
+                or Key)..The limited view options are done for increased speed.
+    PTB_LEGO_BLOCK.FOR--  Simplified method of determining faces to draw speeds
+                up the lego views.  Also minor modification for MH.
+    PTB_LEGO_DRAW_CELLS.FOR--  Revised to draw cells in prearranged order, much
+                faster than previous sort method.
+    PTB_PICKONE.FOR-- Minor adaptations to make pick work for MH cells also.
+    PTB_REV_CONV.FOR-- Updated to convert ICH and MH indices.
+    PTB_SIDE_VIEW.FOR-- Now uses PTB_DRAW_PROFILES for faster display of hits.
+    PTB_THREED_VIEW.FOR-- Menu to choose to view All, EM, IH, or MH layers.
+    PTB_TOP_VIEW.FOR-- Now uses PTB_DRAW_PROFILES for faster display of hits.
+
+The following new routines were added:
+    PTB_DRAW_PROFILES.FOR-- Makes an array of points to draw hits in top and
+                side views many times faster than previous versions.
+    PTB_ESUMS.FOR-- Gives energy information about various calorimeter 
+                sections.
+    PTB_LEGEND.FOR-- Shows color code for energy scales.
+    PTB_PROFILES.FOR--  Constructs array used by PTB_DRAW_PROFILES.FOR.
+    PTB_PXCOLN.FOR-- Private version of a PIXIE routine to facilitate use of
+                new version of PTB_COLOR.FOR.
+    PUMES2-- Same as PIXIE routine PUMESS, but this version outputs message
+                in a non-retained segment so that it can be easily erased.
+    PUSTRG-- All text will be output via call to J3STRG to improve control 
+                over text size and placement.
+
+Changes to .INC files (necessitating minor changes in several routines):
+    PTBOPT.INC has been eliminated.  That information is now stored in 
+        the common block PTB_CAL_PARAMS.INC.
+    PTB_CAL_PARAMS.INC now contains all information formerly stored in PTBOPT.
+        Arrays have been enlarged to contain ICH and MH. Also now stores 
+        relevant information on the DI3000 driver.
+    PTB_ETAEQV.INC now contains two arrays: ETA_EQVS, as before, and 
+        MHETA_EQVS, for eta conversions in MH section.
+
+Minor revisions for compatibility made to:
+    PTB_BEAM_VIEW.FOR,PTB_EVT_IN.FOR,PTB_FIND_MAXNRG.FOR,PTB_ZENERGY.FOR.
+
+Changes to PXPARAMS and PXSCREEN:
+    TESTBEAM.PXPARA-- WAIT FOR MENU is now false on initialization, so main
+        menu appears right away.
+    TESTBEAM.SCREEN-- Windows for TOP,SIDE,COMBINED, and 3D views have been
+        changed so that ICH and MH can be seen.
+
+
+==============================================================================
+
+ 26-JUN-1990 : Modifications released by Qizhong Li
+ 
+    - PDTRCK and PDRZVW: modified to use "CDC draw label" to switch on/off
+                         track number
+
+    - CDC.pxpara and ZTRAKS.pxpara: modified parameter "CDC draw label"
+==============================================================================
+ 19-JUN-1990 : Modifications released by Lupe Howell
+
+  PUINIT   -  The color table wil not be set (SETCOLTB) if the device use has
+              11 or less colors available.   The intensity flag is tested here.
+  
+  SETCOLTB -  The original color indexs of DI3000 (1=red,2=green,etc) were not
+              redefined in the color table.  The indexes 10 and higher were use
+              to define the new colors (purple,orange,etc).   
+
+  COLOR    -  If a device has 11 colors or less the color table will not have
+              any of the new colors since there are any indexes available to 
+              define them.  If a color device with 4 bit map (11 colors
+              avalable) is using XDW driver the dark colors will not be
+              available since this driver doesn't darken the colors.  The colors
+              will be repeated without the darker shade.
+
+===============================================================================
+ 2-JUL-1990 : Modifications released by Sharon Hagopian
+
+   The items  MUON TK BLOWUP, MUON YZ CUT VIEW, and MUON XY CUT VIEW
+   were added to the MUON.SCREEN file.  The new MUON menu is:
+   
+     MUON ALL VIEWS - gives the Y-Z,X-Y, and Z-X view of MUON modules which
+                      have hits and shows the hits and tracks.
+
+     MUON TK BLOWUP - the user can display a blown-up view of a track in
+                      either the bend or non-bend view.
+
+     MUON YZ CUT - Cut view in the Y-Z plane of the MUON modules in the 
+                   A-LAYER, hits in the A-layer and tracks is displayed.
+                   (B-LAYER and C-LAYER to come later)
+     MUON XY CUT - Cut view in the X-Y plane of the MUON modules in the 
+                   A-LAYER, hits in the A-layer and tracks is displayed.
+                   (B-LAYER and C-LAYER to come later)
+
+    MUON Y-Z VIEW - gives the Y-Z view of the MUON MODULES which have
+                    hits and shows the hits and tracks
+
+    MUON X-Y VIEW - gives the X-Y view of the MUON MODULES which have
+                    hits and shows the hits and tracks
+
+    MUON Z-X VIEW - gives the Z-X view of the MUON MODULES which have
+                    hits and shows the hits and tracks
+
+    The MUON command execution routine, MUEXEC, had these new commands added.
+    Routines PMCUTVIEW,PMDDETC,PMEVNTC and PMHITC were added to draw 
+    these views. Routines PIXMUO,PLBLOW,PMEVNT and PMHITS were modified
+    slightly to be compatable with the new views. A new parameter,
+    MUON CUT LAYER was added to MUON.PXPARA. It has the following values:
+    0 = ALL, 1 = A LAYER, 2 = CEN ONLY. The choice =0 is not operative yet.
+
+    The file ALL_DISPLAY.SCREEN has been modified so that the cut view
+    of the A-layer of the MUON chambers is added to the CEN. D0 END VIEW,
+    and D0 DET SIDE VIEW. The new MUON parameter was added to ALL_DISPLAY.PXPARA
+
+
+==============================================================================
+
+  7-AUG-1990 : Modifications released by Jeffrey Bantly
+ 
+    - Update of the FDC displays.  Added color parameters to FDC.PXPARA so now
+      many FDC routines get color choices from there.  3-D view can now be
+      seen from three different angles by user choice.   Also, other general
+      upgrades as well.  Routines changed are: PF16AD,PF1ADC,PF3DDRAW,PF3DPH,
+      PF3DTH,PF3MES,PF3VST,PF8ADC,PFBOX,PFDCDRTB,PFDHXZ,PFDHYZ,PFFADC,PFHLF4,
+      PFILIN,FPPHI4,PFPICK_TRACK,PFPLAN,PFPWCX,PFPWIR,PFTB3D,PFTHT4,PFTSEC,
+      PFTWIR,PFUHIS.
+
+    - New routines are:
+      PF3DSGDR : draws segment with hits in 3D
+      PFPTRAK  : draws track with hits in 3D
+
+    - Changed FDC.PXPARA, FDC.SCREEN as well.
+==============================================================================
+ 8-AUG-1990 : Modifications released by Lupe Howell
+
+ PUINIT   -  The UIS call to determine if the user is using a Color divice with
+             4 bit planes or an intensity station was taken out.  In its place
+             the user is question if he is either in a color station or a black
+             and white station.  This question will be ask only when the user is
+             in a device with 11 colors available (that is the abiguious case).
+
+
+ SETCOLTB -  The UIS to check if the user is in a intensity station was taken
+             out.  This routine will be entered only if the number of colors
+             available to the device is greather than 11, this leaves out the
+             intensity and 4 bit plane stations out.
+
+ PXMAIN - bug in command GOTO EVENT was fixed.
+==============================================================================
+ 17-AUG-1990 : Modifications released by Lupe Howell
+
+ PUUPDT  -  There was a problem when an update of a alphanumeric parameter was 
+            done.  The value displayed on the top was not right.  
+
+ PUSTRG  -  The String Quality parameter is not use to determine what quality
+            string level to use.  The routine will always use J2STRG quality 2.
+
+==================================================================
+ 23-AUG-1990 : Modifications made by Cathy Cretsinger
+
+ .             Include file PTB_CAL_PARAMS.INC was changed.
+               SUBROUTINES PTB_CAL_GEOM_INIT,PTB_DRAW_CELLS
+               and PTB_BEAM_SETUP were revised.
+
+==================================================================
+ 27-AUG-1990 : Modifications made by Qizhong Li
+
+    - PZEXEC: added VTX+CDC+FDC R-Z view and PELC CD tracks in R-PHI view
+
+    - PFDCRZ: added a flag FDC ONLY
+
+    - PZPELC: new routine to draw CD information associated with PELC
+              banks (electrons)
+
+    - PVTSEC_GEO, PDXYVW_GEO and PTRDXY_GEO: new routines to draw VTX, CDC 
+              and TRD geometry in R-PHI view
+
+    - PV1TRK, PD1TRK and PT1TRK: new routines to draw one VTX tarck, one
+              CDC track or one TRD track
+
+    - ELECTRON.SCREEN and ELECTRON.PXPARA: added CD electron (PELC) tracks
+                                           display and parameters
+
+    - ZTRAKS.SCREEN and ZTRAKS.PXPARA: added VTX+CDC+FDC+vertex R-Z view
+                                       display and parameter
+=========================================================
+
+ 1-SEP-1990 : Modifications released by S. Hagopian
+ Several screen files were updated for the MUON display. These
+ included ALL_DISPLAY.SCREEN, MUON.SCREEN and MUON_CD.SCREEN.
+ MUON_CD.SCREEN and MUON_CD.PXPARA are improved versions of
+ MUON_CD_RPHI files which combine views of the MUON,VTX,CDC and
+ FDC chambers. The routine PMAXES was changed from 3-D to 2-D
+ axes to remove confusion.
+   The EVENT_DISPLAY_USERS_GUIDE was updated.
+=========================================================
+
+ 5-SEP-1990 : Modifications released by N. Oshima and M. Peters
+   
+ Changes were made in several cal. display routines to allow
+for software picking of cal. cells and isajet tracks. These 
+include PCPICK.FOR, PUDRAW.FOR,PUHEAD.FOR,PULOC3.FOR, PUSLVP.FOR
+and PXAMINE.FOR. PXPARA.INC was also changed for this reason.
+Calls to CAEHFL were removed from PCCAEH,PCJET1 and PCJETC.
+PCSVEN was changed so that coarse and fine hadronic energy
+are summed and displayed separately. New routines PIDIST and
+PIPICK were added to pick ISAJET tracks. 
+  DEB_PIXIE.OPT and SETUP_CALDIS.COM files for the Evans and
+Sutherland were put in D0$PIXIE$DATA.
+   
+===============================================================
+ 5-SEP-1990 : Modifications released by N. Graf
+   
+   Many TRD routines were modified by Norm Graf. These include
+PTECUT, PTEGFL, PTEVEN, PTFADC, PTLCOL, PTLOCA, PTPICK, PTRDTK
+and PTRDVW. TRHITW.INC and TRD.PXPARA were also changed.
+
+===================================================================
+ 20-SEP-1990 : Modifications released by Jeffrey Bantly
+
+ - PFTHET,PFISTR,PFHLF4 add a missing IERR argument in call to 
+   FDISTP, now it's fixed.  Also, added the FDC_DISPLAY.RNO to 
+   PIXIE.  If you want the pictures, see D0 Note No. 997.
+===================================================================
+ 27-SEP-1990 : Modifications released by Lupe Howell 
+
+ PUSTRG - The string quality parameter is use in some displays so it
+ was reinstall.
+===================================================================
+ 28-SEP-1990 : Modifications released by Lupe Howell 
+
+ PUSETV - The maximum number allow for the parameters was increased 
+ from 100 to 150 to accomodate the growing number of parameters.
+============================================================
+
+ 10-OCT-1990 : Modification released by  S. Hagopian
+
+  A new parameter COSMIC RAYS (LOGICAL) was added to ALL_DISPLAY.PXPARA
+  and MUON.PXPARA. New data files were also added: COSMIC_RAYS.PXPARA
+  and COSMIC_RAYS.SCREEN in preparation for the cosmic ray commissioning.
+     SUBROUTINE PXMARK, used in the MUON displays, was modified so
+that the marks are drawn smaller on VAXSTATIONS. PCSVEN has the
+labels turned off for COSMICS until the label routines are revised.

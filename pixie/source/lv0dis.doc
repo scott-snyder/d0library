@@ -1,0 +1,240 @@
+                                                            J. Bantly
+                                                            September 1, 1992
+                                                            Version 1.0
+
+                         LV0DIS - Level 0 Event Display
+
+ I. INTRODUCTION
+      LV0DIS is the Level 0 event display package.  It is part of the
+    PIXIE library, which can be run in various frameworks.
+    Hooks are set up for PIXIE in D0USER and EXAMINE2. (See .DOCs)
+    It can display LV0 information from all levels of processing:
+    raw ADC values from the TRGR Zebra bank to results of hit processing
+    stored in the PLV0 Zebra bank.  The information displayed by LV0DIS
+    comes from the banks created by the LV0 reconstruction package LEVEL0.
+    Most displays can be made from the PLV0 bank saved in the DST output
+    files, although a few of the displays require the presence of the
+    TRGR bank (STA or RAW files) in order to be maximally useful.
+
+II. GETTING an LV0 DISPLAY
+
+ A. Program builder
+
+    The package LV0DIS must be included in the package list to get
+    the LV0 event display.  It is recommended that the LEVEL0 package
+    be included BEFORE the LV0DIS package when processing RAW data files.
+    To get combined displays, including all calorimeter, tracking and
+    muon displays, just use the package ALL_DISPLAY_COMBINED.PBD for
+    D0USER or D0_DISPLAY_COMBINED.PBD for EXAMINE.
+
+
+ B. LINK
+
+    The normal D0USER link does not include the event display
+    package. One needs to do: $@yourname_D0USER.LNK DI3000.
+    Also, it is usually best to do a $LIBT PIXIE in order to
+    pick up the latest event display routines and parameters.
+
+ C. Setup for RUN
+
+
+   1. DI3000 logicals
+
+      If the DI3000 logicals are not automatically setup, do
+      $SETUP DI3000 or find out where DI3000 is stored on your node
+      and execute DILOGIN.COM
+
+      The sharable version of DI3000 should be requested by the command:
+
+      $ DISETSHR EXT HI
+
+    $SETDRV cod1 cod2 ! to setup the DI3000 device Drivers.
+
+    The first driver should correspond to the type of terminal you are
+    logged on to; the second one to a hardcopy device[ e.g. TLP ].
+
+    For more information see D0$DOCS:DI3000_GUIDE.DOC
+
+ 2. PIXIE logicals. The event display needs a RCP file to define the views
+    to be displayed and the interactive parameters which control them.
+    For the LV0 display, the file needed is D0$PIXIE:PX_LV0DIS.RCP.
+    The corresponding logical is PX_LV0DIS_RCP.
+    The user may redirect the RCP logicals to their own files.
+    The LV0DIS routines also need access to some of the parameters
+    used in LV0 reconstruction. The required RCP file is
+    D0$LEVEL0:LEVEL0.RCP, and the corresponding logical is
+    LEVEL0_RCP. If the user has included the package ALL_DISPLAY,
+    these will both be defined by ALL_DISPLAY_D0USER.COM, however
+    the command file D0$D0USER:EVENT_DISPLAY.COM must also be executed.
+    (This procedure does $SETDRV and sets up the STP files.)
+
+ D. RUNNING
+
+    1. Running EXAMINE2
+
+       After "BEGIN PROCESSING" in EXAMINE2, choose menu item
+       "EVENT DISPLAY" in the INTERRUPT menu.
+
+    2.  Running D0USER.
+
+       There are two ways to use event display. The first
+       is to turn on the interactive menu and then, while analyzing
+       events, do a DISPLAY EVENT. This will start at a random event.
+       One can also turn on the automatic event display by doing
+       EVENT DISPLAYS (7) before starting the run. It will ask how
+       many events and their particular IDs (if -1 then assumes
+       consecutive).
+
+
+ III. LV0DIS MENU
+
+SUB_LEVEL: LV0 Event Display    SETUP
+Select: {command, #, HELP (#), MENU, BACK} > ?
+
+   1: LV0 Pads Hit N                      2: LV0 Pads Hit S
+   3: LV0 R-Z                             4: Combo LV0 View
+   5: Duel LV0 View                       6: NEXT Event
+   7: GO TO Event                         8: ZOOM
+   9: ROTATE                             10: PICK
+  11: HARDCOPY                           12: MODIFY
+  13: Change Display Mode                14: Superimpose(On/Off)
+  15: Set Path                           16: Dump Bank
+  17: Dump Event                         18: Write Event
+  19: Start Sequencial Display           20: COMPACK System Menu
+
+ For further information on menu items 6 - 20, see D0$PIXIE:PX_SYSTEM.DOC
+
+--------------------------------------------------------------------------------
+* LV0DIS Menu Title    * Function & Remark                                    *
+--------------------------------------------------------------------------------
+  LV0 Pads Hit N  - Displays the North Level 0 scintillator array with
+        the scintillator pads that were hit shaded proportionally to the
+        amount of charge collected from the associated PMT signal.
+        Any pad hit also has its electronics readout channel number written
+        in the center of the pad.  Small numbers in a particular
+        pad cell show the number of Forward Drift Chamber reconstructed tracks
+        passing through that pad and the '+' markers show the projected position
+        of the track.
+
+  LV0 Pads Hit S  - similar to the 'LV0 Pads Hit N' display except the South
+        Level 0 scintillator array is shown.
+
+  LV0 R-Z - displays an R-Z view of the Level 0 scintillator pads that have hits
+        in them along with markers for projected FDC tracks.  The short
+        counters are displayed in the two inner layers.  The horizontal long
+        counters are displayed in the innermost layer and the vertical long
+        counters are displayed in the outermost layer.  Short counters
+        centered at y=0 are shown in the outermost layer.  In addition, the
+        FASTZ z position is marked with an 'F' along the beampipe.  The Slow
+        Z position is marked with an 'Sn' where n=1,2,3,or 4, the multiple
+        interaction flag value.  If turned on, an extra Slow Z value is
+        available which uses software results with additional cuts.  It is
+        displayed as 'Tn'.
+
+  Combo LV0 View - is a combined view of the LV0 Pads Hit N & S and the R-Z
+        view.
+
+  Duel LV0 View - is similar to the R-Z view but are correctly projected
+        X-Z and Y-Z views.
+
+--------------------------------------------------------------------------------
+    In addition to the above displays, there are a few more special purpose
+    displays that are turned off by default. The user can turn these on
+    by editting the PX_LV0DIS.RCP file.
+
+  LV0 X-Z View  - is the X-Z projection similar to the R-Z view.
+
+  LV0 Y-Z View  - is the Y-Z projection similar to the R-Z view.
+
+--------------------------------------------------------------------------------
+
+ IV. LV0DIS PARAMETERS in PX_LV0DIS.RCP:
+    The above descriptions are the default behavior. The user can modify
+    some aspects of the displays by modifying the RCP parameters in
+    the PX_LV0DIS.RCP file, either by directly editting the file before
+    running, or interactively, via the menu command, MODIFY.
+    There are many (too many) LV0DIS parameters, many of which the user
+    should not have to change (some will likely disappear in a future release).
+
+--------------------------------------------------------------------------------
+* Parameter Name    * Default[Type]  * Remark                                  *
+--------------------------------------------------------------------------------
+ LV0 ONLY                 TRUE   True for LV0 only displays,
+                                 false for combined package views.
+ LV0 PHI MODE                0   Determine which region is drawn in top half
+                                   of R-Z views.  (not implemented)
+                                 Mode=0, default, top half is y>0.
+                                 Mode=1, Top half is the region:
+                                   'PHI CENTER'+- 'PHI WIDTH' in PX_SYSTEM_RCP.
+                                 Mode=2, User is prompted for top Phi region.
+                                 Mode=-1, Top is X>0 (default for Test Beam).
+ LV0 PRINT LIST          FALSE   If TRUE, always print list of tracks,
+                                 and segments when choosing, else only once
+                                 per event.
+ LV0 DRAW ALL ISA        FALSE   Draw all isajet tracks, else only those in LV0.
+For all of the following, 0=N,1=Y:
+ LV0 DRAW CHAN HIT           1   Draw all LV0 channels/pads hit
+ LV0 DRAW PAD                1   Draw all scint pad outlines
+ LV0 DRAW HIT                1   Fill in pads that are hit
+ LV0 DRAW FHIT               1   Mark number assoc FDC tracks, requires FTRAKS
+ LV0 DRAW FPOS               1   Mark position of assoc FDC tracks, "       "
+ LV0 USE COLR                1   >=1 Color is used for LV0 shading
+ LV0 COLR LABELS           FOR   Color used for LV0 labels
+ LV0 COLR PAD              FOR   Color used for LV0 pad drawing
+ LV0 COLR PADON            RED   Color used for outlining LV0 hit pads
+ LV0 COLR FHIT             RED   Color used for numbering FDC track positions
+ LV0 COLR FPOS             GRE   Color used for marking FDC track positions
+ STRING QUALITY              1   Default string quality
+
+V. LV0DIS SCREENS in PX_LV0DIS.RCP:
+
+    Each basic menu has own screen parameters. Here we show an example,
+    for the 'LV0 Pads Hit N' view.
+
+!---------------------------------------------------------
+! Definition of LV0DIS Screens
+!---------------------------------------------------------
+
+ 'NAME' 'LV0 PADS HIT N'          ' LV0 Pads Hit N'
+ 'ACTION'    'P0PADS'             'Action Routine'
+ 'PICKABLE'                    F  'TRUE if pickable'
+ 'VIEW3D'                   TRUE  'True if eD viewport'
+ 'KEEPCIRCLE'               TRUE  'True if circles are kept'
+ 'VPORTXMIN'             -1.0000  'X min Viewport'
+ 'VPORTXMAX'              1.0000  'X max Viewport'
+ 'VPORTYMIN'             -1.0000  'Y min Viewport'
+ 'VPORTYMAX'              1.0000  'Y max Viewport'
+ 'WINDOWXMIN'           -60.0000  'X Min Window limit'
+ 'WINDOWXMAX'            60.0000  'X Max Window limit'
+ 'WINDOWYMIN'             0.0000  'Y Min Window limit'
+ 'WINDOWYMAX'            -1.0000  'Y Max Window limit'
+ 'VIEWREFX'               0.0000  'X View reference pnt'
+ 'VIEWREFY'               0.0000  'Y View reference pnt'
+ 'VIEWREFZ'            -142.3000  'Z View reference pnt'
+ 'UPVECX'                 0.0000  'X Up vector'
+ 'UPVECY'                 1.0000  'Y Up vector'
+ 'UPVECZ'                 0.0000  'Z Up vector'
+ 'CAMX'                   0.0000  'X Camera point'
+ 'CAMY'                   0.0000  'Y Camera point'
+ 'CAMZ'                   0.0000  'Z Camera point'
+
+
+
+ VI. DOCUMENTATION
+
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction to the use of the
+                                   commercial graphics package, DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives more than introduction to D0USER
+                                   which provides an offline framework.
+
+    4. D0$EXAMINE2:EXAMINE_GUIDE.DOC - Users guide to EXAMINE,  the ONLINE
+                                       event monitoring framework.
+
+    5. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE Event Display
+

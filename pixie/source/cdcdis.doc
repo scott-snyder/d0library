@@ -1,0 +1,339 @@
+                                                           Qizhong Li-Demarteau
+                                                           November 14, 1991
+                                                           Version 1.0
+
+                         CDCDIS - CDC Event Display
+
+ I. INTRODUCTION
+
+      CDCDIS is the package for D0 Central Drift Chamber (CDC) event display. 
+    It is part of the PIXIE library, which can be run in various frameworks. 
+    Hooks are set up for PIXIE in D0USER and EXAMINE2. (See .DOCs)
+    It can be combined with other detector's event display too.
+    It displays the chamber layer and sector outlines, wires, hits, segments 
+    and tracks as well as FADC traces. There are many choices to make the 
+    display flexible. For example, one can select a phi region for the R-Z 
+    view display. 
+    If the event is fully reconstructed with the particle information, the
+    dislay uses the colour to distinguish the different particles:
+    Green track indicates this track is in a muon road,
+    Red track indicates this track is in an electron road,
+    Blue track indicates that this track is in a tau road and
+    Yellow track indicates that this track contributed to a Vee.
+
+
+II. GETTING a CDC DISPLAY
+
+  A. Program Builder 
+
+    The package CDCDIS must be included in the package list to get the CDC 
+    event display. To get combined displays for the Central Detector's all 
+    subdetectors, just use the package CDDIS_COMBINED.PBD for D0USER or
+    CD_DISPLAY_COMBINED.PBD for EXAMINE2. To get combined displays, 
+    including CAL, MUON and all CD subdetectors just use the package 
+    ALL_DISPLAY_COMBINED.PBD for D0USER or D0_DISPLAY_COMBINED.PBD for 
+    EXAMINE. To do CDC reconstruction and make CD event display in the 
+    same program, the package DTRAKS and CDCDIS should be both included.
+    For example to make a D0USER which can do CDC reconstruction and CDC
+    display, one should run PBD as:
+    $ PBD/FRAME=D0USER/PACKAGE=(DTRAKS,CDCDIS)/NAME=xxxx
+
+
+  B. Link
+
+    Once the package CDCDIS is included in your PBD command, the DI3000
+    have to be include in the link command.
+    For example,
+    $ @xxxx_D0USER.LNK DI3000
+    
+    Also, it is usually best to do a $LIBT PIXIE in order to pick up the 
+    latest event display routines and parameters.
+
+
+  C. Setup for Run
+
+   1. DI3000 Logicals 
+      If the DI3000 logicals are not automatically setup, do
+
+      $SETUP DI3000 
+
+      or find out where DI3000 is stored on your node and execute DILOGIN.COM.
+      The sharable version of DI3000 should be requested by the command:
+
+      $ DISETSHR EXT HI 
+
+      $ SETDRV driv1 driv2 ! to setup the DI3000 device Drivers.
+
+      The first driver driv1 should correspond to the type of terminal you are 
+      logged on to; the second one driv2 to a hardcopy device [e.g. LN3].
+
+      For more information see D0$DOCS:DI3000_GUIDE.DOC
+
+   2. PIXIE Logicals. 
+      The event display needs a RCP file to define the views to be 
+      displayed and the interactive parameters which control them.
+      For the CDC display, the file needed is D0$PIXIE:PX_CDCDIS.RCP.
+      The corresponding logical is PX_CDCDIS_RCP.
+      The user may redirect the RCP logicals to their own files.
+      The logicals pointing to the default files are defined in the 
+      program builder file, xxxx_D0USER.COM.  Execute:
+
+      $ @xxxx_D0USER
+
+      to get all RCP logicals defined.
+
+   3. STP File Logical
+      The CDC display also needs STP file to define the geometry. There 
+      are two default STP files for CDC in the library: one is for Monte
+      Carlo data and one is for real data. Execute the following command 
+      file, you will get proper STP file for your data:
+
+      $ @D0$D0USER:EVENT_DISPLAY
+
+      (This procedure setup STP file and does $SETDRV)
+
+  D. Running
+
+   1. Running EXAMINE2
+      After "BEGIN PROCESSING" in EXAMINE2, choose menu item
+      "EVENT DISPLAY" in the INTERRUPT menu.
+
+   2. Running D0USER. 
+      There are two ways to use event display. The first is to turn on 
+      the interactive menu and then, while analyzing events, do a 
+      DISPLAY EVENT. This will start at a random event.
+      One can also turn on the automatic event display by select the item
+      EVENT DISPLAYS (7) before entering the input data file. It will ask 
+      how many events and their particular IDs (answer -1, if you want to
+      start the event display from the first event).
+
+
+III. CDCDIS MENU
+
+    SUB_LEVEL: CDC System Display    SETUP
+    Select: {command, #, HELP (#), MENU, BACK} > help
+
+    1: CDC_X-Y View                        2: CDC_R-Z VIEW
+    3: CDC_X-Y Segments                    4: CDC_3Sec Segments%
+    5: CDC_1layer FADCs                    6: CDC_One_FADC
+    7: CDC_4layer FADCs%                   8: CDC_3sec Tracks
+    9: CDC_3D View                        10: NEXT Event
+   11: GO TO Event                        12: ZOOM
+   13: ROTATE                             14: PICK
+   15: HARDCOPY                           16: MODIFY
+   17: Change Display Mode                18: Superimpose(On/Off)
+   19: Set Path                           20: Dump Bank
+   21: Dump Event                         22: Write Event
+   23: Start Sequencial Display           24: COMPACK System Menu
+
+
+--------------------------------------------------------------------------------
+*CDCDIS Menu Title    * Function & Remark                                    *
+--------------------------------------------------------------------------------
+   1: CDC_X-Y view -    shows a X-Y view of CDC event display. It can show
+                        the chamber layer and sector outlines, sector numbers,
+                        the sense wires, all hits, all tracks, track numbers,
+                        and the hits on the tracks.
+                        If the parameter CDC ONLY is true, the tracks will be
+                        extended to the center of the CDC. If the parameter
+                        CDC ONLY is false, the tracks will be drawn within
+                        CDC region.
+
+   2: CDC_R-Z view -    shows a R-Z view of CDC event display. It can show
+                        the chamber outlines, beam lines, delay lines, all 
+                        delay line hits, all tracks which have theta 
+                        information, track numbers, reconstructed vertex,
+                        isajet vertex if the isajet information is available
+                        and a dimension scale at the down-right corner.
+                        The R-Z view also allows a phi road cut for the display.
+                        The cut value is defined for the Upper half of the CDC.
+                        The lower part is always displays the opposite region 
+                        in phi for the upper part.
+                        There are three ways to choose a phi road:
+                         . use the default (0.0 - 180.0 degree). That means
+                           you display the tracks in a full phi region 
+                         . use PHI region from PX_SYSTEM.RCP. That means
+                           you display the tracks in the same phi cut region 
+                           as in the other detectors (for a combined package
+                           with other detector's displays).
+                         . enter the phi road cut values by yourself. By this
+                           way you can choose any phi region for the display
+                           as you like.
+
+                         Here is an example when you want to get a CDC_R-Z view
+                         display with a phi region selected between 30 degree
+                         to 60 degree. You can answer these questions 
+                         inteactively.
+                         
+        Phi from   0.0 to 180.0 (degree) Y/N> (?:for help; default:Y) ?
+            The CDC R-Z view display is split into two hemispheres.
+            The Upper hemisphere is shown on the upper part of the screen,
+            The Lower hemisphere is shown on the lower part of the screen.
+            One can select a phi region for the R-Z view display.
+            The phi region has to be defined for the Upper part. The lower
+            part is always the opposite region in phi for the upper hemisphere.
+
+        Phi from   0.0 to 180.0 (degree) Y/N> (?:for help; default:Y) N
+            select a mode to determine the phi region for the R-Z display
+            0: default (0. - 180. degree)
+            1: use PHI values from PX_SYSTEM.RCP
+            2: enter PHI values by yourself
+
+        Enter the mode number [0 or 1 or 2] (default is 0) 2
+
+        Enter minimum PHI value [0.0 - 180.0 degree]: 30.0
+
+        Enter maxmum PHI value  [0.0 - 180.0 degree]: 60.0
+
+   3: CDC_X-Y Segments: shows a X-Y view of CDC segments display. It is as same
+                        as the CDC_X-Y display except that it displays all
+                        segments (track within a layer) instead of tracks.
+
+   4: CDC_3Sec Segments%: This is a combined display. It contains two displays:
+                        On the left side of the screen, it is a FADC trace 
+                        display which shows the trigger pulse signal.
+                        On the right side of the screen, it is a CDC_X-Y
+                        segments display for 3 sectors only. One can choose
+                        the item MODIFY to change the parameter CDC SECTOR
+                        to select the sectors you want to display. The 
+                        parameter CDC SECTOR indicates the middle sector's
+                        number. (The default value for CDC SECTOR is 1, so
+                        the default display is for sector 0, 1 and 2).
+                      
+  5: CDC_1layer FADCs:  It shows 7 sense wires's FADC traces and 4 delay line
+                        readout's FADC traces in a given layer and a sector. 
+                        The layer and sector numbers are defined by the 
+                        parameter CDC LAYER and CDC SECTOR. One can choose
+                        the item MODIFY to change the parameters. The default
+                        values are:
+                        CDC LAYER       0
+                        CDC SECTOR      1
+
+  6: CDC_One_FADC:      It shows a FADC trace for a specific channel. Which 
+                        FADC is in display is determined by the parameters:
+                        CDC LAYER, CDC SECTOR and CDC FADC.
+                        One can choose the item MODIFY to change the parameter
+                        values. The default values are:
+                        CDC LAYER       0
+                        CDC SECTOR      1
+                        CDC FADC        0
+                  
+  7: CDC_4layer FADCs%  It shows a complete FADC traces for a sector. It 
+                        includes the 28 sense wires and 16 delay line readouts
+                        devided into 4 layers.  The sector number is determined
+                        by the parameter CDC SECTOR. 
+                        One can choose the item MODIFY to change the parameter
+                        value. The default value is:
+                        CDC SECTOR      1
+
+  8: CDC_3sec Tracks:   It shows the CDC_X-Y view track display for 3 sectors
+                        only for a more close look at these three sectors.
+                        One can choose the item MODIFY to change the parameter 
+                        CDC SECTOR to select the sectors you want to display. 
+                        The parameter CDC SECTOR indicates the middle sector's
+                        number. (The default value for CDC SECTOR is 1, so
+                        the default display is for sector 0, 1 and 2).
+
+  9: CDC_3D View:       It is a 3D view of the CDC display, which includes
+                        the dislay of the CDC outer line, sectors, wires,
+                        hits and tracks. Only the hits and tracks, which have
+                        3D information are shown. i.e. the hits on the inner
+                        sense wires are not shown, since their Z information
+                        are unknown. The hits display is controled by the
+                        parameter "CDC DRAW 3D HITS":
+                        draw 3D hits = 1 all hits are same color (purple)
+                        draw 3D hits = 2 mark hit on track (blue)
+                        draw 3D hits = 3 mark mirror hits (+phi purple;
+                                                           -phi green)
+                        The default value is:
+                        CDC DRAW 3D HITS      3
+                        The tracks in 3D display can be controled by the
+                        parameter "CDC DRAW TRKS" and "CDC IMPACT CUT". 
+                        Only those tracks, which passes the impact parameter 
+                        cut, are drawn in 3D. The default values are:
+                        CDC DRAW 3D TRKS      1  
+                        CDC IMPACT CUT     50.0  
+                        i.e. draw all the tracks cross CDC inner wall.
+                        This 3D view can be rotated on VAXSTATIONS or the 
+                        Evans and Sutherland, using the ROTATE command.
+
+  For further information on menu items 10 - 24, see D0$PIXIE:PX_SYSTEM.DOC
+
+
+IV. CDCDIS PARAMTERS in PX_CDCDIS.RCP:
+
+--------------------------------------------------------------------------------
+* Parameter Name    * Default value  * Remark                                  *
+--------------------------------------------------------------------------------
+ 'CDC MAX HITS'             4000  'IF # CDC HITS .GT. MAX, no display'
+ 'CDC LAYER'                   0  'CDC Layer number:  0-3'
+ 'CDC SECTOR'                  1  'CDC Sector number: 0-31'
+ 'CDC FADC'                    0  'CDC FADC number:   0-10'
+ 'CDC DRAW SECTORS'            3  'draw CDC geo 0=N,1=part,2=full,3=sec#,-1=cir'
+ 'CDC DRAW WIRES'              0  'display-draw CDC wires   0=N, 1=Y'
+ 'CDC DRAW HITS'               1  'display-draw CDC hits    0=N, 1=Y'
+ 'CDC DRAW TSEG'               1  'CDC segments 0=N,1=all,2(3)=on(off)track'
+ 'CDC DRAW TRACK'              1  'display-draw CDC tracks   0=N, 1=Y'
+ 'CDC DRAW ROAD'               0  'Draw road limit           0=N, 1=Y'
+ 'CDC DRAW ISATRK'             0  'display-draw isajet tracks 0=N, 1=Y'
+ 'CDC DRAW VERTEX'             2  'display-draw vertices 0=N,1=RECO,2= RE'
+ 'CDC DRAW LABEL'              3  'write phi road region and draw scale 0=N'
+ 'CDC DRAW 3D SEC'             2  'draw 3D sectors in CDC module'
+ 'CDC DRAW 3D HITS'            3  '0=no, >0 draw CDC hits in 3D'
+ 'CDC DRAW 3D TRKS'            1  '0=no, >0 draw CDC tracks in 3D'
+ 'CDC IMPACT CUT'           50.0  'only draw tracks passes impact<cut for 3D'
+ 'CDC ONLY'                 TRUE  'only display CDC, no other detectors'
+ 'ALL PHI PICK'                2  '0=NO PICK,2=PICK PHI slice using menu'
+
+
+V. CDCDIS SCREENS in PX_CDCDIS.RCP:
+    
+    Each basic menu has its own screen parameters. Here is an example,
+    for the CDC_R-Z view display.
+
+ --------------------------------------------------------
+  * Definition of CDCDIS Screens
+ ---------------------------------------------------------
+ 'NAME' 'CDC_R-Z VIEW'            ' CDC_R-Z VIEW'
+ 'PICKABLE'                    F  ' TRUE if pickable'
+ 'VIEW3D'                  FALSE  ' True if 3D viewport'
+ 'KEEPCIRCLE'               TRUE  ' True if circles are kept'
+ 'VPORTXMIN'             -1.0000  ' X min Viewport'
+ 'VPORTXMAX'              1.0000  ' X max Viewport'
+ 'VPORTYMIN'             -1.0000  ' Y min Viewport'
+ 'VPORTYMAX'              1.0000  ' Y max Viewport'
+ 'WINDOWXMIN'          -126.5000  ' X Min Window limit'
+ 'WINDOWXMAX'           126.9000  ' X Max Window limit'
+ 'WINDOWYMIN'          -126.8000  ' Y Min Window limit'
+ 'WINDOWYMAX'           126.6000  ' Y Max Window limit'
+ 'VIEWREFX'               0.0000  ' X View reference pnt'
+ 'VIEWREFY'               0.0000  ' Y View reference pnt'
+ 'VIEWREFZ'               0.0000  ' Z View reference pnt'
+ 'UPVECX'                 0.0000  ' X Up vector'
+ 'UPVECY'                 1.0000  ' Y Up vector'
+ 'UPVECZ'                 0.0000  ' Z Up vector'
+ 'CAMX'                   0.0000  ' X Camera point'
+ 'CAMY'                   0.0000  ' Y Camera point'
+ 'CAMZ'                   1.0000  ' Z Camera point'
+
+
+VI. DOCUMENTATIONS
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and 
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction to the use of the
+                                   commercial graphics package, DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives more than introduction to D0USER
+                                   which provides an offline framework.
+
+    4. D0$EXAMINE2:EXAMINE_GUIDE.DOC - Users guide to EXAMINE,  the ONLINE
+                                       event monitoring framework.
+
+    5. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE Event Display
+
+    6. d0$PIXIE: PX_SYSTEM.DOC - gives an introduction to PIXIE SYSTEM MENU 
+                                 and PARAMETERS.
+

@@ -9,10 +9,12 @@ C-
 C-   Created  22-SEP-1992   Cecilia E. Gerber
 C-   Updated  24-MAY-1993   use new PMUO format
 C-   Updated  25-NOV-1993   use new CLEANMU
+C-   Updated  23-MAR-2004   compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$INC:pi.def'
       INCLUDE 'D0$LINKS:IZISAE.LINK'
 C
       INTEGER MODMU,NTDIM
@@ -480,9 +482,9 @@ C calculate opening angle between the two muons
           DOT = VDOT(PT1,PT2,2)/MODPT1/MODPT2
           IF (DOT.GT.1.) DOT = 1.0
           IF (DOT.LT.-1.) DOT = -1.0
-          DPHI = ACOSD(DOT)
-          THE1 = ACOSD(P3MU1(3)/MODP1)
-          THE2 = ACOSD(P3MU2(3)/MODP2)
+          DPHI = ACOS(DOT)*180/pi
+          THE1 = ACOS(P3MU1(3)/MODP1)*180/pi
+          THE2 = ACOS(P3MU2(3)/MODP2)*180/pi
           IF (DPHI.LT.90.) THEN
             DTHE = ABS(THE1-THE2)
           ELSE

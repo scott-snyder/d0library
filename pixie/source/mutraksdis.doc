@@ -1,0 +1,176 @@
+                                                            S. Hagopian
+                                                            February 26, 1992
+                                                            Version  1.0
+
+                         MUTRAKSDIS - MUON System Track Display
+
+ I. INTRODUCTION
+      MUTRAKSDIS is the combined MUON system event display package.
+    It makes displays that combine hits, tracks and detector modules
+    from the Wide Angle Muon System (WAMUS) and the Small Angle Muon 
+    System (SAMUS). More detailed views can be found in the individual 
+    detector packages (MUODIS and SAMDIS). It is part of the PIXIE library, 
+    which can be run in various frameworks. Hooks are set up for PIXIE 
+    in D0USER and EXAMINE2. (See .DOCs)
+
+
+II. GETTING a MUTRAKS DISPLAY
+
+ A. Program builder
+
+    The package MUTRAKSDIS must be included in the package list to get
+    the MUTRAKS event display. Since MUTRAKSDIS makes combined displays using
+    displays from MUODIS and SAMDIS, these should also be included.
+    If the user wants displays during reconstruction, they should use
+    MUON_ONLINE in EXAMINE, and MUONLY in D0USER.
+    To get combined displays, including CAL and all tracking and muon
+    displays, just use the package ALL_DISPLAY_COMBINED.PBD for D0USER 
+    or D0_DISPLAY_COMBINED.PBD for EXAMINE. 
+    
+ B. LINK
+
+    The normal D0USER link does not include the event display
+    package. One needs to do: $@MUONLY_D0USER.LNK DI3000.
+    Also, it is usually best to do a $LIBT PIXIE in order to
+    pick up the latest event display routines and parameters.
+
+ C. Setup for RUN
+
+
+   1. DI3000 logicals
+
+      If the DI3000 logicals are not automatically setup, do
+      $SETUP DI3000 or find out where DI3000 is stored on your node
+      and execute DILOGIN.COM
+
+      The sharable version of DI3000 should be requested by the command:
+
+      $ DISETSHR EXT HI
+
+    $SETDRV cod1 cod2 ! to setup the DI3000 device Drivers.
+
+    The first driver should correspond to the type of terminal you are
+    logged on to; the second one to a hardcopy device[ e.g. TLP ].
+
+    For more information see D0$DOCS:DI3000_GUIDE.DOC
+
+ 2. PIXIE logicals. The event display needs a RCP file to define the views
+    to be displayed and the interactive parameters which control them.
+    For the MUTRAKS display, the file needed is D0$PIXIE:PX_MUTRAKSDIS.RCP.
+    The corresponding logical is PX_MUTRAKSDIS_RCP. The user may redirect
+    the RCP logicals to their own files. 
+        All the required RCP files are defined automatically by the
+    'combined_package'_D0USER.COM if the MUTRAKS or ALL_DISPLAY packages have
+    been included. The command file D0$D0USER:EVENT_DISPLAY.COM must also
+    be executed. (This procedure does $SETDRV and sets up the STP files.)
+
+ D. RUNNING
+
+    1. Running EXAMINE2
+
+       After "BEGIN PROCESSING" in EXAMINE2, choose menu item
+       "EVENT DISPLAY" in the INTERRUPT menu.
+
+    2.  Running D0USER.
+
+       There are two ways to use event display. The first
+       is to turn on the interactive menu and then, while analyzing
+       events, do a DISPLAY EVENT. This will start at a random event.
+       One can also turn on the automatic event display by doing
+       EVENT DISPLAYS (7) before starting the run. It will ask how
+       many events and their particular IDs (if -1 then assumes
+       consecutive).
+
+
+ III. MUTRAKS MENU
+
+SUB_LEVEL: MUTRAKS Event Display    SETUP
+Select: {command, #, HELP (#), MENU, BACK} > ?
+
+        1: MUTRAKS SIDE VIEW                   2: MUTRAKS TOP VIEW
+        3: NEXT Event                          4: ZOOM 
+        5: GO TO EVENT                         6: ROTATE 
+        7: PICK                                8: HARDCOPY  
+        9: MODIFY                             10: Change Display Mode   
+       11: Superimpose(On/Off)                12: Set Path 
+       13: Dump Event                         14: Write Event 
+       15: Other Options                      16: COMPACK System Menu
+
+
+ For further information on menu items 3 - 16, see D0$PIXIE:PX_SYSTEM.DOC
+
+
+--------------------------------------------------------------------------------
+*MUTRAKSDIS Menu Title    * Function & Remark                                   *
+--------------------------------------------------------------------------------
+
+  MUTRAKS SIDE VIEW - Side view of SAMUS system, and hit WAMUS modules. Tracks
+                      are color codes for SAMUS only, WAMUS only or combined
+                      SAMUS+WAMUS tracks.
+
+  MUTRAKS TOP VIEW - TOP view of SAMUS system and hit WAMUS modules. Tracks
+                      are color codes for SAMUS only, WAMUS only or combined
+                      SAMUS+WAMUS tracks.
+
+
+ IV. MUTRAKSDIS PARAMETERS in PX_MUTRAKSDIS.RCP:
+    The above descriptions are the default behavior. The user can modify
+    some aspects of the displays by modifying the RCP parameters in
+    the PX_MUTRAKSDIS.RCP file, either by directly editting the file before
+    running, or interactively, via the menu command, MODIFY.
+    Many aspects of the displays can be modified by changing parameters 
+    of the individual detector displays (MUODIS or SAMDIS).
+
+
+V. MUTRAKSDIS SCREENS in PX_MUTRAKSDIS.RCP:
+
+     The MUTRAKS COMBINED VIEWS are all multiviews.  The parameters 
+     for MUTRAKSDIS are used to override the sub-detector display parameters
+     (so all displays are in same coordinate system, etc.).
+     Below is MUTRAKS_SIDE_VIEW, as an example of a multiview command.
+
+\ARRAY MUTRAKS_SIDE_VIEW%
+ '%TITLE'  'MUTRAKS_SIDE_VIEW'          'MUTRAKS_SIDE_VIEW'   
+ '%PACKAGE'           'MUODIS'              ' '                                 
+ '%ACTION' 'Y-Z VIEW'                ' '                                        
+ '%SCREEN'            ' '                   ' '                                 
+ 'VIEW3D'                  FALSE            ' '                                 
+ 'VPORTXMIN'             -1.0000            ' '                                 
+ 'VPORTXMAX'              1.0000            ' '                                 
+ 'VPORTYMIN'             -1.0000            ' '                                 
+ 'VPORTYMAX'              1.0000            ' '                                 
+ 'WINDOWXMIN'         -1100.0000            ' '                                 
+ 'WINDOWXMAX'          1100.0000            ' '                                 
+ 'WINDOWYMIN'         -1100.0000            ' '                                 
+ 'WINDOWYMAX'          1100.0000            ' '                                 
+ 'VIEWREFX'               0.0000            ' '                                 
+ 'VIEWREFY'               0.0000            ' '                                 
+ 'VIEWREFZ'               0.0000            ' '                                 
+ 'UPVECX'                 0.0000            ' '                                 
+ 'UPVECY'                 1.0000            ' '                                 
+ 'UPVECZ'                 0.0000            ' '                                 
+ 'CAMX'                   0.0000            ' '                                 
+ 'CAMY'                   0.0000            ' '                                 
+ 'CAMZ'                   1.0000            ' '                                 
+
+
+ VI. DOCUMENTATION
+
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction to the use of the
+                                   commercial graphics package, DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives more than introduction to D0USER
+                                   which provides an offline framework.
+
+    4. D0$EXAMINE2:EXAMINE_GUIDE.DOC - Users guide to EXAMINE,  the ONLINE
+                                       event monitoring framework.
+
+    5. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE Event Display
+
+    6. D0$PIXIE:MUODIS.DOC and SAMDIS.DOC - Guides to individual muon displays.
+

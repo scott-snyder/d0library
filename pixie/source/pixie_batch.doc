@@ -1,0 +1,244 @@
+                                                                         Page 1
+                                                                      L. Howell
+                                                                    S. Hagopian
+                                                                 March 22, 1993
+                           EVENT_DISPLAY_BATCH.DOC
+                        BATCH JOBS USING EVENT DISPLAY
+
+
+ I. INTRODUCTION 
+
+    This document explains how to submit D0USER as a BATCH job and PIXIE small
+    framework to make Event Display hardcopies of selected events.  
+    These events can be selected in 3 ways:
+
+    1. A predetermined list of up to 20 event numbers can be used as input in
+       the COMPACK input command file.
+
+    2. The PIXIE RCP file for the chosen display package can specify to display
+       every event or every nth event on the SEQUENCE card.
+
+    3. The user can set the EVENT_DISPLAY flag in the analysis package for
+       events meeting their criteria or cuts.
+
+    The "Sequential Display" mode is used to specify the set of views to be
+    displayed (See D0$PIXIE:SEQUENTIAL_DISPLAY.DOC).  D0USER is set into
+    processing by means of COMPACK initialization file.   DI3000 is notified
+    that there is no CRT only a hardcopy device by the SETDRV command.
+
+II. SET UP THE BATCH JOB
+
+    When PIXIE is submitted as a batch job an input file must be specified so
+    its commands will be read into COMPACK.
+
+    A typical command procedure to submit PIXIE as a batch job is:
+      $!
+      $! Setting hardcopy driver as the primary driver
+      $ SETDRV PST PST
+      $! Executing PIXIE setup 
+      $ @D0$D0USER:EVENT_DISPLAY.COM
+      $!
+      $! Set logical to run exeuctable
+      $ BATCH_D0USER:==$D0$D0USER:ALL_DISPLAY_D0USER.EXE/COMMAND=SETUP$TEMP.INP
+      $!
+      $! Running executable
+      $ BATCH_D0USER
+
+    Where  SETUP$TEMP.INP is the file that will be use to input the commands for
+    COMPACK menu system. 
+
+    The .INP file should reflect the criteria of the user to select the events
+    desired to be scan by PIXIE.
+
+    Here is an example of a .INP file:
+        Manual Process
+        0    !-<Store histograms ? (0,1,2)<cr>:0 >
+        n    !-< Will you be reading files from tape? [N]>
+        PIXIE$DATAFILE !-< Logical Name of input file >
+        N    !-< File mode X,G or N ? [N]:>
+        y    !-< Process all events for remaining runs? Y/N >
+        Cal  !-< Select Calorimeter submenu
+        Start Sequencial Display  !-< Select Sequential Display menu
+        1    !-< Pick First sequential display
+        BACK !-< Backup out of Calorimeter submenu
+        BACK !-< Backup of All display menu
+        EXIT !-< Exit D0user
+
+
+III. SETUP SEQUENTIAL VIEW 
+
+    PIXIE batch runs using sequential display mode.  The user must set up
+    his/her own sequential display if there is not one already defined with the
+    views he/she will like.  
+
+    For  example,  if  you  will  like  to  submit PIXIE as a batch job and make
+    hardcopies  of the "D0 Full Side View" for every event, copy to your
+    local area PX_COMBDIS.RCP and add to it a sequential array in that looks 
+    like:
+
+        \ARRAY $AUTO_HARDCOPY
+        '%TITLE'   'Auto Hardcopy'         ' '
+        '%PACKAGE' 'COMBDIS'               ' '
+        '%ACTION'  'D0_FULL_SIDE_VIEW%'    ' '
+        '%ACTION'  'DELAY 1.0'             ' '
+        '%ACTION'  '%SEQUENCE 0 999'        ' '
+        \END
+   This sequential array will display the "D0 Full Side View" for every event
+   making hardcopies of each one.
+    
+
+IV. Examples
+
+    EXAMPLE I
+    ---------
+
+      (1) Typical COM file to submit D0USER as a batch job to make 
+         Event Display hardcopies:
+
+$!========================================================================
+$!
+$! Name      : BATCH_D0USER
+$!
+$! Purpose   : Command procedure used when D0USER is submitted as a batch job 
+$!             to make Event Display hardcopies.
+$!
+$! Arguments : None
+$!
+$! Created  12-FEB-1993   Lupe Howell
+$!
+$!========================================================================
+$   ON ERROR     THEN $ GOTO EXIT
+$   ON CONTROL_Y THEN $ GOTO EXIT
+$!
+$!-----------------------------+
+$! Initialize D0USER logicals  |
+$!-----------------------------+
+$   @D0$D0USER:ALL_DISPLAY_D0USER.COM
+$!
+$!------------------------------------------+
+$! Initialize EVENT DISPLAY logicals        |
+$!  This takes 3 input parameters:          |
+$!   p1 is the type of data(MC,data,cosmic) |
+$!   p2 1rst driver in BATCH always PST     |
+$!   p3 2nd driver in BATCH always PST      |
+$!------------------------------------------+
+$   @D0$D0USER:EVENT_DISPLAY.COM  MC PST PST
+$!
+$!-----------------------------+
+$!  Define DATAFILE logical    |
+$!-----------------------------+
+$   DEF PIXIE$DATAFILE FSHES9$DKB200:[D0DATA.D0RECO]SAMUS_58390.STA
+$!
+$!---------------------------------+
+$!  Define local RCP               |
+$!  (if you want to use your own)  |
+$!---------------------------------+
+$   DEF PX_CALDIS_RCP USER1$ROOT1:[LUPE.PIXIE.D0USER]PX_CALDIS.RCP
+$!
+$!-----------------------------------------------------+
+$! Set symbol for executable with correct command file |
+$!-----------------------------------------------------+
+$ BATCH_D0USER :== $D0$D0USER:ALL_DISPLAY_D0USER /COMMAND=SETUP$TEMP.INP
+$!
+$!-----------------------+
+$! Run executable        |
+$!-----------------------+
+$ BATCH_D0USER
+$!
+$EXIT:
+$ SET NOVERIFY
+$   EXIT
+
+    To submit this file you should use the command:
+
+        $ SUBMIT/QUE=QUE_NAME/NOTIFY/NOLOG BATCH_D0USER.COM
+
+    If you want to make a log file use the parameter /LOG=LOGFILE.LOG
+
+    (2) Command file SETUP$TEMP.INP to run D0USER as a batch
+            
+Manual Process
+0    !-<Store histograms ? (0,1,2)<cr>:0 >
+N    !-< Will you be reading files from tape? [N]>
+PIXIE$DATAFILE !-< Name of input file >
+N    !-< File mode X,G or N ? [N]:>
+y    !-< Process all events for remaining runs? Y/N >
+Cal
+Start Sequencial Display
+BACK
+BACK
+EXIT
+       This command file will make hardcopies of the Calorimeter sequential 
+       display.  Note that there is only one defined so the particular
+       sequential display did not have to be specified.
+
+    EXAMPLE II
+    ----------
+
+       (1) Typical COM  file to submit the small framework PIXIE:
+
+$!========================================================================
+$!
+$! Name      : BATCH_PIXIE
+$!
+$! Purpose   : Command procedure used to submit the small framework of 
+$!          PIXIE as a batch job to make Event Display hardcopies.
+$!
+$! Arguments : None
+$!
+$! Created  12-FEB-1993   Lupe Howell
+$!
+$!========================================================================
+$   ON ERROR     THEN $ GOTO EXIT
+$   ON CONTROL_Y THEN $ GOTO EXIT
+$!
+$!-----------------------------+
+$! Initialize D0USER logicals  |
+$!-----------------------------+
+$   @D0$PIXIE:SETUP_PIXIE.COM
+$!
+$!-----------------------------+
+$!  Define DATAFILE logical    |
+$!-----------------------------+
+$   DEF PIXIE$DATAFILE FSHES9$DKB200:[D0DATA.D0RECO]SAMUS_58390.STA
+$!
+$!---------------------------------+
+$!  Define local RCP               |
+$!  (if you want to use your own)  |
+$!---------------------------------+
+$   DEF PX_CALDIS_RCP USER1$ROOT1:[LUPE.PIXIE.PIXIE]PX_CALDIS.RCP
+$!
+$!--------------------------+
+$!  Define Hardcopy driver  |
+$!  (always in batch mode)  |
+$!--------------------------+
+$   SETDRV PST PST
+$!
+$!-----------------------------------------------------+
+$! Set symbol for executable with correct command file |
+$!-----------------------------------------------------+
+$ BATCH_PIXIE :== $D0$PIXIE:ALL_DISPLAY_PIXIE.EXE/COMMAND=SETUP$PIXIE_TEMP.INP
+$! 
+$!-----------------------+
+$! Run executable        |
+$!-----------------------+
+$ BATCH_PIXIE
+$!
+$EXIT:
+$ SET NOVERIFY
+$   EXIT
+
+    (2) Command file SETUP$PIXIE_TEMP.INP to run the small framework of PIXIE
+       as a batch
+
+CAL                  !-< Going 
+Start Sequential Display !-< Go to COMPACK Sys Menu
+Back                 !-< Get out of CAL menu
+EXIT                 !-< Get out of PIXIE menu
+Quit                 !-< Quit PIXIE
+
+       This command file will make hardcopies of the Calorimeter sequential 
+       display.  Note that there is only one sequential display defined in
+       this package therefore it does not have to be requested specifically,
+       it will start the only one it has automatically.
+

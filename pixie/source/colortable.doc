@@ -1,0 +1,319 @@
+
+                                                Version 1.0 January 30, 1990
+
+
+
+
+
+
+
+
+
+
+
+                      The D0 Color/Line Style Table
+                      =============================
+
+
+
+
+
+
+                            Guadalupe Howell
+
+
+
+
+
+
+
+                        Florida State University
+
+
+
+                           Tallahassee, Florida
+
+
+
+
+
+
+
+
+
+
+
+
+
+         This document describes the D0 Color/Line Style Table for
+     programmers and users.   This document will help to implement
+     the color table so it will be used to its best capability.
+
+    
+                                                                   Page  2
+1)General Information: 
+  --------------------                                                    
+
+     The purpose  of  the  Color/Line  Style table is to allow the user to 
+pick  a  color  for  his/her  display and not have to worry about what the 
+output  is  going to look like in different devices.  The Color/Line Style 
+Table  will take care of that.  It also provide a table with ordered  line 
+styles to easy access for the user.
+
+     The Color/Line  Style Table can create three tables for the user: the
+Color Table, the Line Style Table and the Line Width Table.  Each of these 
+are available to the user upon request. 
+     
+
+2)Color Table:
+  ------------
+     The  color table will give  17 different  colors to choose from.   It
+will give  you  the  color  requested  or  its equivalent according to the 
+device that you are in.   If  the user is in a monochrome monitor, display
+will show solid blacjk lines.
+
+   PXCOLR - It is equivalent to a JCOLOR call.
+
+       Input: This routine has one input parameter:
+                   COLOR [C*3]                                           
+       COLOR: character  3  parameter that  should  have  the  first three 
+       letters  of  the color requested.    If  the  color  desired  is  a 
+       "Dark Col"  use DCO  as input  for COLOR.   Use the first letter of 
+       Dark D and the first two letters of the color.  The letters  should 
+       be all in caps.
+       They input should be as follows:       COLOR
+              ICTAB(1) - white                'WHI'
+                   (2) - black                'BLA'
+                   (3) - dark purple          'DPU'
+                   (4) - purple               'PUR'
+                   (5) - dark blue            'DBL'
+                   (6) - blue                 'BLU'
+                   (7) - cyan                 'CYA'
+                   (8) - dark green           'DGR'
+                   (9) - green                'GRE'
+                  (10) - blue green           'BGR'
+                  (11) - dark magenta         'DMA'
+                  (12) - dark red             'DRE'
+                  (13) - red                  'RED'
+                  (14) - magenta              'MAG'
+                  (15) - orange               'ORG'
+                  (16) - yellow               'YEL'
+                  (17) - foreground           'FOR'
+
+      NOTE: When the PXCOLR  interface  routine  is used the user does not 
+            make a JCOLOR call.    The routine will do all calls necessary  
+            to perform the table color requested.
+    
+                                                                   Page  3
+
+   PXCOLFILL-will access the color table and perform the color and filling
+      operations equivalents to a JPIDEX and a JPINTR calls.
+
+      If the user is in a monochrome monitor, it will provide a series of 
+      grey shades instead of the colors.   If the user is in a monochrome 
+      device  that  does  not  support  grey  shadings, different filling 
+      patterns will be provided (TeKtronics).
+
+      Input: COLOR [C*3]
+      COLOR: character  3  parameter  that  should  have  the  first three 
+      letters of the color requested. If the color desired if a "Dark Col" 
+      use DCO as input for COLOR.   Use the first letter of Dark D and the 
+      first two letters of the color.  The letters should be all in caps.
+
+      NOTE:This routine will do all the operations necessary for a polygon 
+            fill. 
+
+   
+3)Line Styles Table:
+  ------------------
+                                                                         
+     This table have different line styles patterns available.   There are
+10 different line styles available (dots, dashes, etc.).   The table has a 
+total of 17 elements. After the first ten elements the line style patterns 
+are repeated.
+
+  PXLNSTY - This is equivalent to JLNSTYl.
+      Input: This routine has one input parameter:
+               INDX  [I]
+      INDX: Integer parameter that will determine what line style the user 
+      want. There are ten different line styles available to the user.  If 
+      the user is using a S04 driver there are only will be six.  
+      The line style patterns are the following:
+            ICTAB(1) - solid line
+                 (2) - small dashes
+                 (3) - fine dots
+                 (4) - two dots and a small dash
+                 (5) - medium dots 
+                 (6) - medium dashes
+                 (7) - one dot medium dash
+                 (8) - one dot larger dot
+                 (9) - larger dashes
+                (10) - much larger dashes
+                (11) - same as (1)
+                (12) - same as (2)
+                (13) - same as (3)
+                (14) - same as (4)
+                (15) - same as (5)
+                (16) - same as (6)
+                (17) - solid 
+
+    
+                                                                   Page  4
+4)Line Width Table:
+  -----------------
+   PXLWID - gives  a  table  that contains 17 differen line widths styles. 
+           This table is ONLY available using a GPV driver.
+
+       Input: Only one parameter
+               INDX [I]
+       INDX: Integer  that  will  determine what line width style the user
+       want.
+
+
+5)Direct Access Information:
+  --------------------------
+
+     The Color/Line  Style  Table  can  be access directly through PXCOLN. 
+This method is recommend to be use by those that are familiar with DI300.
+
+  Routine Name: PXCOLN
+
+  Input: IDET   - [C*3] detector code (CDC, MUO, CAL)
+         INDX   - [I] index corresponding to the ith element of the color, 
+                  line style or line width table. (1 - 17 )
+         ITYP   - [I] Table requested by the user:
+                  0-for Line Style table, 
+                  1-for Color table,
+                  2-for Line Width Styles table (VAX Workstations ONLY),
+                  3-for  Color  table  if  in  color device or  Line Width 
+                    Styles if in monochrome device,
+                  4-for Color table if in color  device  or  Line Style if 
+                    in a monochrome device 
+         IDEV   - [I] device num ( 1 or 2 ) assume 2 is B/W hardcopy
+         CALFLG - [L] Flag  determining  if  the  user  wants  to  let the 
+                  subroutine  make the  JCOLOR (Color table),  JLSTY (Line 
+                  Style table) calls for him/her.  
+                      .FALSE. - will not make the call for you
+                      .TRUE.  - will make the calls 
+
+  Output: KCOLOR - the color  parameter to be use in JCOLOR if the user is 
+                   making his/her own calls.
+          KINTEN - Color intensity code to be use in JPIDEX(KCOLOR,KINTEN)
+          KFILL  - fill pattern code to be use in JPINTR calls
+          KSTYL  - line style to be use in JLSTYL or JLWIDE calls
+
+  Description: For  a  given detector, the calling routine can request the 
+    nth color value, line style or width. The subroutine finds out whether 
+    the device is color or black and white  and  the  type of driver it is 
+    using to give the appropriate values to the table.
+
+  Initialization: The  first  time the  routine is called with an ITYP the 
+    device  type  will be inquired and the table will be set up  with  the 
+    appropriate  values.   This  values  will remain  until  a new Ityp is 
+    requested.
+  
+  Inputs: IDET - Eventually this  parameter  will be use adding a layer of 
+    complication.    Detector  named  i with color input index j will give 
+    color table index k i.e. for Cal the 1rst color maybe yellow while for 
+    TRD 1rst color may be green.
+
+    INDX - This  integer  represents  the index on the tables i.e. the ith 
+    element in the respective table.
+
+    ITYP - Determines what table (color/line styles) is going to be use.
+
+
+                                                                   Page  5
+
+    IDEV - This parameter is use to tell  the subroutine if it a  hardcopy 
+    will  be use or not.  If IDEV is 1  the tables (color and line styles)
+    will  set  up  for screen display  according to the device you are in.   
+    If IDEV is 2 the table will be set up for hardcopy device LN03.   This 
+    option has not been perfected jet and in the future it will be.    For
+    now use IDEV equal to 1.
+
+    CALFLG - The  user  can  call  PXCOLN  and then make his/her own color 
+    calls  by setting CALFLG input parameter to FALSE.   If CALFLG is TRUE 
+    the color/line  style table  will only make JCOLOR (if the color table 
+    is  requested),  JLSTYL (if line  style table is requested), or JLWIDE 
+    (if line width style table is requested).   
+
+  
+6)Tables:
+  -------
+
+  a) Color Table:
+     ------------                             Index 
+      If the GPV driver the table is:         -----
+              ICTAB(1) - white                  1  
+                   (2) - black                  2 
+                   (3) - dark purple            3 
+                   (4) - purple                 4 
+                   (5) - dark blue              5 
+                   (6) - blue                   6 
+                   (7) - cyan                   7 
+                   (8) - dark green             8 
+                   (9) - green                  9 
+                  (10) - blue green            10 
+                  (11) - dark magenta          11
+                  (12) - dark red              12
+                  (13) - red                   13
+                  (14) - magenta               14
+                  (15) - orange                15
+                  (16) - yellow                16
+                  (17) - foreground            17
+       If the S04 driver is used the colors will be:
+              ICTAB(3) - dark purple
+                   (4) - purple
+                   (5) - dark blue
+                   (6) - blue
+                   (7) - cyan
+                   (8) - dark green 
+                   (9) - green 
+                  (10) - green
+                  (11) - dark magenta 
+                  (12) - dark red 
+                  (13) - red
+                  (14) - magenta 
+                  (15) - red 
+                  (16) - yellow
+ 
+                                                                   Page  6
+  b)Line Styles Table:
+    ------------------
+         Using the GPV driver sets 10 line types:
+            ILTAB(1) - solid
+                 (2)--| 
+                 (3)  |
+                 (4)  |
+                 (5)  |---> dot styles
+                 (6)  |
+                 (7)  |
+                 (8)  |
+                 (9)  |
+                (10)--|                                                 
+         Using  the  S04 driver  set 6 line styles repeating the 1st four 
+         styles in the table twice.     
+                                                                         
+  c)Line Width Table:
+    -----------------                                                      
+
+   The  Line  Width  Table  is  only supported under the GPV driver.  This 
+   table has seventeen different line width styles.  
+
+
+  d)Color or Line Style Tables ?:
+    -----------------------------
+
+   The  input  parameter ITYP options 3 and 4 will give you an alternative
+   might be useful. 
+
+     These options  will  be  useful  when a  program  uses color lines to 
+  differentiate lines in a display.  If the user is in  a color device the 
+  colors  will  show  the  intended differences  and  if  the user is in a 
+  monochrome device the display must use something  other  than  color  to 
+  show the differences i.e line styles or line widths.  That's where these 
+  options might be useful.   Remember that  the line width styles are ONLY 
+  available in the GPV driver.
+   
+

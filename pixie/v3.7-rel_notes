@@ -1,0 +1,355 @@
+ **********************************************************
+ * 23-NOV-1992 : Modifications released by Nobuaki Oshima *
+ **********************************************************
+ 
+==================================================================
+ 25-SEP-1992 : Modifications made by A. Brandt
+
+    New routines: PSCAN_EXEC.FOR, SCAN_INI.FOR, SCAN_START.FOR, SCAN_SAVE.FOR
+                  EZMOVE_ZEBCOM.FOR
+    Modified routine   BKPROC.FOR (adds new structural link for SCAN bank
+                       + 4 spare links--version 3 of PROC)
+    
+    With the new Pixie Beta Release, there is a new
+    event display menu called SCANNING.  This is an RCP-driven
+    scanning sheet.  There are three options under the Scanning menu,
+    which can be included in Pixie using SCANDIS.PBD and needs
+    the RCP file PX_SCANDIS.RCP.
+    
+    1)  START SCAN  gets the date and time and checks if the event has
+    previously been scanned.  This should be DONE (using PF1)
+    at the beginning of the scanning of each  event.  
+
+    2) DO SCAN gives a list of scanning questions stored in 
+    PX_SCANDIS.RCP and allows the user to type in answers.
+    A standard question list is being formed for systematic
+    scanning of events.  The array QUESTION_LIST determines the number of
+    questions, with an array of questions and dummy answers following this.
+    The number and content of the questions are the only parameters in the
+    RCP file that might be changed by the user.  DO SCAN should be done
+    after START SCAN  and can be exited and reentered at will.  For example,
+    the user may wish to answer a couple questions, go back to the main 
+    menu, change views, answer more questions, etc.  The arrow keys are
+    used to move from one question to another (or <CR> can be used), the
+    down arrow key should be used to access questions that are off the screen
+    if there are more than 20 questions.
+
+    3) SAVE SCAN writes the new answers into the RCP bank and
+    copies the RCP bank to ZEBCOM (using EZMOVE_ZEBCOM)
+    where it hangs under a new 8th structural link of the PROC bank.  
+    This should be done at the end of each event that is to be written 
+    out.
+ 
+    Note: If the event is  written  out (which can not currently be 
+    done in PIXIE framework, but can be in other frames) a subsequent
+    scanning of the event will get the answers to any questions that are
+    common between the current RCP file and the one previously used.  
+
+==================================================================
+ 25-SEP-1992 : Modifications made by J.B. Singh and N. Oshima
+
+1) Source files
+
+    PIXIE.FOR   - Check for RUN/EVENT number for 'GO TO EVENT' via
+                  EVTIN. When it does not find the event, it will skip
+                  the event just after read a its header.
+
+    PUINIT.FOR  - Book a flag 'GOTO_EVENT'.
+
+    PUSYSTEM.FOR - Set a flag 'GOTO_EVENT' to .TRUE. when the menu 'GO TO
+                   EVENT' was selected.
+
+    PUFINDEVNT.FOR - Find event to be displayed given by the user with
+                     a particular RUN and EVENT number.If RUN and/or
+                     EVENT number given by the user is LESS THAN 0,
+                     it accepts the event.   
+
+    PXEVENT_READ_OK.FOR(New) - Interface routine to PUFINDEVNT.FOR.
+
+    PU_GET_EVNT_NUM.FOR - Reads now RUN and EVENT number to be displayed.  
+
+2) INC file
+
+    PXCOMK.INC  - Added RUNCNT to taking care of RUN number in PUFINDEVNT.
+
+3) PBD files
+
+    ALL_PIXIE_COMBINED.PBD - Added new packages SCANDIS and PIXIE_EVENT.
+
+    PIXIE_EVENT.PBD - New package for the hook READ_EVENT.
+
+    PIXIE_FRAME.PBD - Added READ_EVENT hook.
+
+==================================================================
+  2-OCT-1992 : Modifications made by L. Howell
+
+    PUFINDEVNT - The feature of "Get Next Event" was modifyied.  You can search
+        a particular event giving the run number and the event number.  This 
+        option lets the user enter both the run and event number of the 
+        desired event that he/she wants to go to.  If the user do not want to
+        specifiy a run number he/she should just hit return at the run number
+        prompt.    This option also does not assume that the events nor
+        run numbers are in any sequential order.  
+        There is a limit in number of events skipped during the search (200),
+        when the limit is reached the user will be prompt if he/she wants to
+        continue the search.
+
+    PU_GET_EVNT_NUM - Use GETPAR for questions.
+
+    PU_UPDATE_COMMAND_STACK: Check the range of the index used in the
+        COMMAND_STACK array, guarding for possible errors.
+        ENTRY PX_ZERO_COMMAND_STACK: The variable LAST_MENU is clear at this
+        point to indicate the command stack array is being clear.
+
+    PX_SYSTEM.RCP: MAXSEARCH and GET RUN_EVENT added.  
+        MAXSEARCH is the limit of number of events scaned when a go to event 
+        is called.  Default is 200 after 200 the system prompts a question 
+        asking if the user wants to continue the scanning for another 200 
+        events.
+        GET RUN_EVENT flag that is set the run number and the event number is
+        requested when the Go To Event utility is selected.  If it's false
+        only the event number will be requested.
+
+    PX_SYSTEM_DOC: Update the documentation to include the new feature of Go To
+        Event.
+
+=================================================================
+  5-OCT-1992 : Modifications made by J. Bantly
+
+           The Level 0 display was updated to make use of the new
+           LEVEL0.OLB TEST release. These include changes to
+           P0PADS,P0RPHI,P0RX,P0RZEND,P0XZ,P0XZEND,P0YZ,P0YZEND and 
+           a new routine P0LGND.FOR. New parameters were added to
+           PX_LV0DIS.RCP.  A new LV0DIS.PBD was also made.
+
+
+==================================================================
+  5-OCT-1992 : Modifications made by N. Oshima
+
+    1) Use GTJETS and GTJETS_NOEP to take no account of electron and
+       photon on Jets.
+
+       PC3DST.FOR       PCDST_LFILL.FOR
+
+    2) Added Tau in 3D DST Display.
+
+       LEGENDTK.FOR      PC3DST.FOR     PLTRKS.FOR
+
+==================================================================
+  9-OCT-1992 : Modifications made by J. Singh
+
+    PU_GET_EVNT_NUM.FOR - Changed the way of question about RUN and
+                          EVENT number.
+
+==================================================================
+  9-OCT-1992 : Modifications made by V. Bhatnagar
+
+    PC3DST.FOR - Activated Picking for DST objects.
+
+    PICK_DST.FOR(New) - Handling routine for DST objects picking.
+
+==================================================================
+  9-OCT-1992 : Modifications made by N. Oshima
+
+    1) Resolved a conflict of PIXIE System(Command FIFO and QUEUE) in
+       the COM3DIS Package.
+    
+       PU_PUSH_QUEUE.FOR - Fixed a bug on the Command queue name and
+                           added new ENTRY PU_RESET_QUEUE.
+
+       PX_ROTATE.FOR     - Call PU_RESET_QUEUE when HARDWARE_ROTATE mode
+                           has done.
+
+    2) Others
+
+       PUFINDEVNT.FOR    - Changed the way to print RUN and EVENT number.
+
+=================================================================
+ 14-OCT-1992: Modifications made by Robert E. Avery for FDCDIS and ZTRAKSDIS
+
+    - New display created, 'FDC  Road & Sectors'.
+        After being shown the full FDC R-Z view of all tracks and roads
+        in the event, the user is prompted for a ZTRAKS road.
+        Each of the three chamber cells that the road passes through are
+        displayed, showing all hits, track segments, full tracks, and
+        the ZTRAKS road (as a red dotted line), for comparison.
+
+      The following new routines are associated with this display:
+        PF_ROAD_LAYERS.FOR -  Action routine
+        PFPICK_ROAD.FOR - Prompts user for road.
+        PFTTRK_ROAD.FOR, PFPTRK_ROAD.FOR - drawing routine for road.
+
+      The following files were modified.
+        PFEXEC.FOR, PF_THETA_SECT_VIEW.FOR, PF_PHI_SECT_VIEW.FOR
+        PF_FDCDIS.RCP, FDCDIS.DOC
+
+    Other changes:
+    - PZTHETA_ROAD  Use ZVTX to determine roads, as is now done in FLFSEC.FOR.
+
+    - PFPHI_ROAD  Don't draw full tracking (2*pi) road.
+
+    - PF_3_SECTORS  Draw sector if the track passes through at either
+             first or last wire of cell (for theta).
+
+==================================================================
+ 14-OCT-1992 : Modifications made by L. Howell
+
+    PUMENUDO- In the previous TEST release PUMENUDO was modified so when a
+        HARDCOPY command was enterd we DO a reset of the views.  This was done
+        to help the hardcopy when superimpose was active.  It turn out that this
+        mess up the HARDCOPY of a view that was zoomed.  So I put back the
+        condition to exempt the reset of the views if HARDCOPY was called but I
+        added to it the condition to reset the views if .NOT. in SUPERIMPOSE
+        mode.
+
+    PCSVEN- I tested this routine with a data file that did not have a CAEH bank
+        and I found that the EZRSET call to reset PX_CALDIS_RCP set in this
+        routine was missed.  So I moved the EZRSET call to the end of the
+        routine and put a GOTO 900 to insure it will not be missed.  this was
+        probably over looked because we have being using good data files.
+
+==================================================================
+ 18-OCT-1992 : Modifications made by N. Oshima
+
+    1) Now Trigger/Filter name were picked up from TSUM Bank instead
+       of TRIG_FILT_RUN.INFO. PIXIE can show the reliable Trigger/Filter
+       name with not only EXAMINE but also other( D0USER, CALOR_OFF and
+       PIXIE ) frames.
+
+    PU_GET_TRIG_INFO.FOR - Use TSUM Bank instead of the file TRIG_FILT_RUN
+                           to get Trigger/Filter Name.
+
+=================================================================
+ 21-OCT-1992 : Modifications made by S. Hagopian
+
+               P4LEGO was modified to draw cirles of radius 
+               SQRT(del eta **2 + del phi **2).
+               P4LEGO,PCDST+_LEGO,PCDST_LFILL, PLEGO_BIN and
+               LEGEND_DST_LEGO  were modifed to include TAUs.  
+               A new routine LEGEND_TAU was written to make a
+               label for the taus.
+
+==================================================================
+ 23-OCT-1992 : Modifications made by Q. L. Demarteau
+
+    - added the 3D View into the CDCDIS. 
+
+      PDCDC3D.FOR     PDCDC3D_GEO.FOR      PDHITS_3D.FOR
+      PDTRK_3D.FOR    PDEXEC.FOR
+
+      PX_CDCDIS.RCP   CDC_ACTIONS.RCP
+
+      CDCDIS.DOC      ZTRAKSDIS.DOC
+
+    - reordered to set color for the roads
+
+      PDTRCK.FOR      PDRZVW.FOR 
+
+=================================================================
+ 23-OCT-1992 : Modifications made by N. Oshima and T. Trippe
+
+    - Added VTX hits to 3D Combined CD Display
+      PZCD3D.FOR - Add VTX 3D tracks and hits
+      PVTRK_3D.FOR - Draw 3D VTX tracks
+      PVHITS_3D.FOR - Draw 3D VTX hits  (Requires test release of 
+                      VTX_UTIL with GTVHIT.FOR and VHIT_UNPACK.FOR)      
+
+    ( These routines need two new VTX_UTIL routines GTVHIT and VHIT_UNPACK. )
+
+==================================================================
+ 26-OCT-1992 : Modifications made by V. Bhatnagar
+
+       PICK_DST.FOR - Display the HMATRIX quantities with PELC/PPHO 
+                      information.
+
+==================================================================
+ 28-OCT-1992 : Modifications made by N. Oshima
+
+    1) Two kinds of GTJETS usage( with/without GTJETS_NOEP ) are available
+       by 'PHYDIS DRAW JETS' parameter in PX_PHYDIS.RCP.
+
+       PC3DST.FOR       PCDST_LFILL.FOR      PX_PHYDIS.RCP
+
+    2) Add 'HARDWARE_ROTATE' flag checking.
+
+       PC3DST.FOR       PISATRACK.FOR
+
+==================================================================
+  2-NOV-1992 : Modifications made by L. Howell
+
+    PTEXEC.FOR - A new view action routined added, TRD_3D
+
+    PU_GOTO_SCREEN.FOR - The number of teh parameter NUMBER_ELEMENTS 
+                         had to be decreased to 20 so the search works.
+
+    PVEXEC.FOR -  A new view action routined added, VTX_3D
+
+    PVTX3D.FOR - Action rotine for new view VTX_3D
+
+    PZTRAKS_EXEC.FOR - Add the view "3D CD TRACKS"
+
+    PZTRK_3D.FOR - Added a check for the "DRAW ZTRKS" parameter before it 
+                   executes the routine.
+
+
+    PX_TRDDIS.RCP - The new view, TRD_3D was added
+
+    PX_VTXDIS.RCP - The new view VTX_3D was added
+
+    PX_ZTRAKDSDIS.RCP - The view VTX+CDC+FDC_3D_VIEW was made a combined view.
+
+
+  *** The list of the routines that were modified since PX_DISPLAY_ITEMS ***
+  *** was moved to COMPACK and renamed as DISPLAY_ITEMS.                 ***
+
+    DISPLAYMOD.FOR      PMDUMP.FOR      PUGET_SCREENS.FOR       PUZSEL.FOR
+    PXBUILD_SELECT.FOR  PXGET_COMBINED_VIEWS.FOR  PXMOD_COMBINED_VIEWS.FOR
+    PX_DISPLAY_SCREEN.FOR   PX_RESTORE_PARAMS.FOR    PX_SELECT_PACKAGE.FOR
+    PX_START_SEQUENCE.FOR
+
+==================================================================
+  4-NOV-1992 : Modifications made by L. Howell
+ 
+    PX_COMBDIS.RCP - Modified the "D0 Full 3D view" so the new ZTRAKS 3D 
+        combined view is used 
+
+    PX_COM3DIS.RCP - Modified the "D0_EVENT_3D_VIEW" and "D0 3D VIEW"  so the
+        new ZTRAKS combined view is used.
+
+    PX_TRDDIS.RCP - Renamed the TRD_3D view to TRD_3D_GEOMETRY
+
+    PX_ZTRAKSDIS.RCP - Renamed the TRD_3D view to TRD_3D_GEOMETRY
+
+
+    PXMOD_COMBINED_VIEWS.FOR - Updated and fixed the problem.
+
+==================================================================
+  5-NOV-1992 : Modifications made by L. Howell
+
+    PDTRK_3D.FOR - Add "CALL EZPICK('PX_ZTRAKSDIS_RCP')".
+
+    PVTX3D.FOR   - Call hits and tracks drawing routines.
+
+    PTEXEC.FOR   - Change the command name 'TRD_3D' to 'TRD_3D_GEOMETRY'.
+
+==================================================================
+  5-NOV-1992 : Modifications made by S. Hagopian
+
+             Bug in PZPHI_ROAD when road crossed PHI=0. was fixed.
+
+==================================================================
+  5-NOV-1992 : Modifications made by N. Oshima
+
+    PVHITS_3D.FOR - Remove the ZTRAKS parameter 'DRAW_HITS' checking.
+
+==================================================================
+  6-NOV-1992 : Modifications made by P. Grudberg
+
+    PVRZTRK.FOR - Updated for the upcoming VTX_UTIL test release.
+
+==================================================================
+ 17-NOV-1992 : Modifications made by L. Howell
+
+    PUMENUDO.FOR - The reset of view is done only if HARDWARE ROTATE
+                   flag is NOT set.
+                  

@@ -1,0 +1,300 @@
+
+ +--------------+
+ | PIXIE V3.7   |
+ |  S. Hagopian |
+ |  N. Oshima   |
+ |  C. Stewart  |
+ | 10-MAY-1993  |
+ +--------------+
+
+
+                         PHYDIS - PHYSICS Event Display
+
+
+
+ I. INTRODUCTION
+
+      PHYDIS is a display of physics variables for each event. It is part of
+    the PIXIE library, which can be run in various frameworks. Hooks are set
+    up for PIXIE in D0USER, EXAMIN2 and CALOR_OFF. ( See, D0USER_GUIDE.MEM )
+    It displays event tracks in 3 dimensions  and can display ISAJET  tracks
+    for monte carlo events.   It also display  LEGO plots of JET,  MUON  and 
+    ELECTRON Et and track ETA-PHI. 
+      Other objects banks of DST, CATD, ESUM and CASH  are displayed by this
+    package.
+
+
+
+II. GETTING a PHYSICS DISPLAY
+
+ A. Program builder 
+
+    The package  PHYDIS  must be included  in  the package list  to get  the 
+    PHYSICS  event display.  To get  combined displays,  including  CAL  and
+    ZTRAKS  as  well  as  WAMUS  and  SAMUS,  use  the package  ALL_DISPLAY_
+    COMBINED.PBD with D0USER.  To display  only physics variables from a DST
+    file, use PHYDIS.PBD and DST.PBD with D0USER.
+
+ B. LINK
+
+    The normal D0USER link  does not include  the event display package. One 
+    needs to do: $@DST_D0USER.LNK DI3000.   Also, it is usually best to do a
+    $LIBT PIXIE  in order to  pick up  the latest event display routines and
+    parameters.
+
+ C. Setup for RUN
+
+   1. DI3000 logicals 
+
+      If the DI3000 logicals are  not automatically setup,  do $SETUP DI3000
+      or  find  out  where  DI3000  is  stored  on  your  node  and  execute 
+      DILOGIN.COM
+
+      The sharable version of DI3000 should be requested by the command:
+
+      $ DISETSHR EXT HI 
+
+      $SETDRV cod1 cod2 ! to setup the DI3000 device Drivers.
+
+      The first driver  should correspond  to  the type of terminal  you are 
+      logged on to; the second one to a hardcopy device[ e.g. PST ].
+
+      For more information see D0$DOCS:DI3000_GUIDE.DOC
+
+   2. PIXIE logicals. 
+
+      The event display needs a RCP file to define the views to be displayed
+      and  the interactive parameters  which  control them.  For the PHYSICS
+      display, the file needed is D0$PIXIE:PX_PHYDIS.RCP.  The corresponding
+      logical is  PX_PHYDIS_RCP.  The user may redirect  the RCP logicals to
+      their own files.
+        If the user  has included the package ALL_DISPLAY,  the command file
+      D0$D0USER:EVENT_DISPLAY.COM must also be executed. This procedure does
+      $SETDRV and sets up the STP files.
+
+ D. RUNNING D0USER 
+
+    There are  two ways  to use  event display.  The first is to turn on the
+    interactive menu and then, while analyzing events,   do a DISPLAY EVENT.
+    This will start at a random event.    One can also turn on the automatic
+    event display by doing 'EVENT DISPLAYS' before starting the run. It will
+    ask  how  many  events  and  their  particular  IDs  (if -1 then assumes 
+    consecutive). 
+
+
+
+ III. PHYSICS MENU
+
+     SUB_LEVEL: PHYSICS Event Display    PIXIE
+     Select: {command, #, HELP (#), MENU, BACK} > help
+
+        1: ISAJET Tracks                       2: 3D DST Display
+        3: DST LEGO                            4: PELC_CASH LEGO
+        5: PELC CASH PLOT                      6: CAL TOWER LEGO
+        7: ESUM LEGO                           8: 3D ESUM Display
+        9: EMLAYER CASH LEGO                  10: ALL ESUM LEGO
+        11: ISATOP                             12: NEXT Event
+        13: GO TO Event                        14: ZOOM
+        15: ROTATE                             16: PICK
+        17: HARDCOPY                           18: MODIFY
+        19: Change Display Mode                20: Superimpose(On/Off)
+        21: Set Path                           22: Dump Bank
+        23: Dump Event                         24: Write Event
+        25: Start Sequential Display           26: Add/Remove Views
+        27: COMPACK System Menu
+
+ For further information on menu items 12 - 27, see D0$PIXIE:PX_SYSTEM.DOC
+
+
+--------------------------------------------------------------------------------
+*PHYSICS Menu Title    * Function & Remark                                     *
+--------------------------------------------------------------------------------
+
+   ISAJET TRACKS  - displays ISAJET tracks  in  3 dimensions.   Tracks  can be 
+                   rotated by choosing the system menu item, "ROTATE".  Tracks
+                   of different types  can be  selectively plotted  by setting
+                   the  interactive  parameter,  ISAJET TRACK CHOICE  to their
+                   ISAJET ID number (absolute value.)
+
+   3D DST display - displays missing Et vector and JET vecter(s), and ELECTRON 
+                   and MUON track tracks with length proportional to Et.
+
+   DST LEGO       - a LEGO plot in ETA-PHI bins of Et of each JET  and missing
+                   Et. JETs  have electromagnetic energy plotted in red and
+                   hadronic energy  plotted in blue. The size of each JET
+                   in ETA-PHI is indicated by a circle drawn around the JET.
+                   Particle identified MUON, PHOTONS, ELECTRONS and TAUS 
+                   are  also  plotted. Optionally the positon of central 
+                   detector tracks (ZTRAKS) are plotted as arrows and raw 
+                   muon tracks (MUOT bank) are plotted as lines with M on top.
+                   (Use interactive parameters to turn track plotting on or off)
+   
+   PELC_CASH LEGO - a LEGO plot of the CASH Bank which associated to PELC
+                   Bank.
+
+   PELC CASH PLOT - a color coded energy plot in Eta-Phi space and a
+                   histogram in layers from EM1 to FH1.
+
+   CAL TOWER LEGO - a LEGO Plot of the packed calorimeter towers CATD Bank.
+
+   ESUM LEGO      - a LEGO plot of the one PATH of ESUM bank.
+
+   3D ESUM DISPLAY- displays ESUM objects, JETS, Muons, elctrons, Photons,
+                   Tau and Miss. ET.
+
+   EMLAYER CASH LEGO - a LEGO plot of the all EM Layer by CASH Bank.
+
+   ALL ESUM LEGO  - a LEGO plot of the all PATH of ESUM bank.
+
+   ISATOP         - Submenu that gives you Isajet information dispays for 
+                   the ttbar event.
+
+*ISATOP Submenu Title   * Function & Remark                                    *
+--------------------------------------------------------------------------------
+ Lego ISP1              - a LEGO PLOT of ISP1s for ttbar events.
+                         This produces a lego plot of top ISP1 particles color
+                         coded to show the top decay content of each bin in eta
+                         and phi space. The color convention is controled via
+                         the PX_PHYDIS.RCP file.
+                          In this display the W's have decayed into partons 
+                         which then fragment (for hadronic decays) into eta/phi
+                         regions which can be identified by the lego tower 
+                         color. 
+                          There are two other RCP controls that can set the 
+                         minimum particle Pt and can turn off/on neutrino 
+                         display: 'TOPDIS NEUTRINOS' and 'TOPDIS ETMIN'.
+                         The default is that neutrinos and any particle under
+                         Pt=0.1 GeV are supressed in the lego plot. 
+     
+ Lego ISAQ              - a LEGO PLOT of ISAQs for ttbar events. This is a 
+                         lego plot of top ISAQ partons using the same 
+                         conventions as the ISP1 lego display.  Currently 
+                         neutrinos are displayed in the ISAQ lego independent
+                         of what the TOPDIS NEUTRINOS switch is set to in RCP. 
+
+ Top Tracks             - a 3D display of ISP1s for ttbar events.  This is a 
+                         '3D' track display of ISP1 with the same color 
+                         conventions.
+                          Note: I've found the lego displays to be more 
+                         informative than the 3D display. 
+
+ Top Partons            - a 3D display of ISAQs for ttbar events. This is a 
+                         '3D' track display of ISAQ with the same color 
+                         conventions.
+
+ TOP and DST            - Lego ISAQ and DST LEGO.
+
+ ISP1 and ISAQ          - Lego ISP1 and Lego ISAQ.
+--------------------------------------------------------------------------------
+
+
+ IV. PHYSICS PARAMETERS in PX_PHYDIS.RCP:
+
+--------------------------------------------------------------------------------
+* Parameter Name    * Default[Type]  * Remark                                  *
+--------------------------------------------------------------------------------
+
+  'ELECALGORITHM'       'ELECTRON'      'Name of electron algorithm'
+  'ELECWORDS'           0.0             'Number of words to check'
+  'ELECWORD1'           0.0             'Number of words to check'
+  'ELECVALUE1'          0.0             'Number of words to check'
+  'ELECWORD2'           0.0             'Number of words to check'
+  'ELECVALUE2'          0.0             'Number of words to check'
+
+  'JETSALGORITHM'       'CONE_JET'      'Name of jets algorithm'
+  'JETSWORDS'           1.0             'Number of words to check'
+  'JETSWORD1'           6.0             'Number of words to check'
+  'JETSVALUE1'          0.7             'Number of words to check'
+  'JETSWORD2'           0.0             'Number of words to check'
+  'JETSVALUE2'          0.0             'Number of words to check'
+
+  'PHYDIS ESUM PATH'    'FILT'      ' Summary type.   FILT TRGR RECO ISAE'
+  'ISAJET TRK CHOICE'   0           ' Abs val of ISAJET ID to plot tk, 0= all,
+                                      12=elec, 14= muon, 16= tau'
+  'TRACK PTMIN'        5.0000       ' Track Ptmin'
+  'TRACK DPT'          5.0000       ' Track Pt step for color code'
+  'TRACK LENGTH'       300.00       ' Track length when it had no end vertex'
+  'PHYDIS EMIN'          1.         ' Emin for 3-D and LEGO DST displays'
+  'PHYDIS ETMIN'         1.         ' Minimum ET for LEGO DST display'
+  'PHYDIS DRAW TRACKS'     1        ' 0= no CD tracks in 3-D or LEGO,=1 to 
+                                      display'
+  'PHYDIS DRAW MUOT'       1        ' 0=No MUOT tracks drawn,1=draw MUOT tracks'
+  'PHYDIS DRAW JETS'       1        ' 0=only jets passed NOEP, 1=All Jets'
+  'PHYDIS DRAW LEGEND'     1        ' 0=Not drawn,1=draw '
+  'PHYLEGO LAYMN'          1        ' CAL Min. Layer Number(EM1)'
+  'PHYLEGO LAYMX'         11        ' CAL Max. Layer Number(FH1)'
+  'PHYLEGO FEMAX'      .FALSE.      ' True, use same EMAX for all plots'
+  'MUON TK QUAL'           0        ' 1 = DRAW ONLY GOOD QUALITY MUOT TK, 
+                                      0= DRAW ALL TKS'
+  'MUON TK FIT'        .FALSE.      ' T:plot only tk with good fit, F:plot all'
+  'TOPDIS NEUTRINOS'       0        ' 1=DISPLAY Neutrinos too'
+  'TOPDIS ETMIN'         0.1        'ET MINIMUM for ISP1 TRACKS'
+  'TOPDIS WCOL'            5        'MAG W+ COLOR FROM T'
+  'TOPDIS BCOL'            3        'YEL B+ COLOR FROM T'
+  'TOPDIS WBCOL'           2        'CYA W- COLOR FROM TBAR'
+  'TOPDIS BBCOL'          11        'BLU B- COLOR FROM TBAR'
+  'TOPDIS IRCOL'           7        'RED  INITIAL RADIATION COLOR '
+  'TOPDIS UNCOL'           1        'GRE COLOR FROM UNDERLYING EVENT'
+
+
+V. PHYSICS SCREENS in PX_PHYDIS.RCP:
+    
+    Each basic menu has own screen parameters. Here we show an example,
+    3D DST DISPLAY.
+
+!---------------------------------------------------------
+! Definition of PHYDIS Screens
+!---------------------------------------------------------
+
+
+  'NAME'       '3D DST DISPLAY'     ' 3D DST DISPLAY'
+  'ACTION'     'PC3DST'             'Action routine'
+  'PICKABLE'           TRUE         'TRUE if pickable'
+  'VIEW3D'            .TRUE.        'True if 3D viewport'
+  'KEEPCIRCLE'        .TRUE.        'True if circles are kept'
+  'VPORTXMIN'         -1.0000       'X min Viewport'
+  'VPORTXMAX'          1.0000       'X max Viewport'
+  'VPORTYMIN'         -1.0000       'Y min Viewport'
+  'VPORTYMAX'          1.0000       'Y max Viewport'
+  'WINDOWXMIN'      -400.0000       'X Min Window limit'
+  'WINDOWXMAX'       400.0000       'X Max Window limit'
+  'WINDOWYMIN'      -400.0000       'Y Min Window limit'
+  'WINDOWYMAX'       400.0000       'Y Max Window limit'
+  'VIEWREFX'           0.0000       'X View reference pnt'
+  'VIEWREFY'           0.0000       'Y View reference pnt'
+  'VIEWREFZ'           0.0000       'Z View reference pnt'
+  'UPVECX'             0.0000       'X Up vector'
+  'UPVECY'             1.0000       'Y Up vector'
+  'UPVECZ'             0.0000       'Z Up vector'
+  'CAMX'               0.0000       'X Camera point'
+  'CAMY'            1000.0000       'Y Camera point'
+  'CAMZ'            2000.0000       'Z Camera point'
+
+
+ VI. ISATOP DISPLAY PACKAGE
+
+     ISATOP displays identified top decay products from ISAZEB banks 
+    (ISAJ,ISAQ,ISP1) in LEGO and 3D track views. It may be useful
+    during a top analysis to be able to scan ISAJET or HERWIG (after ZEBWIG 
+    May 1993 beta release) top events and see how the top decays unfold. 
+
+     If anyone has suggestions for improvements (simple ones) to the 
+    ISATOP display please contact me (FNAL::STEWART). The more complicated
+    suggestions should be directed to Nobu Oshima(D0SFT::OSHIMA) who was 
+    instrumental in preparing this package. 
+
+
+ VII. DOCUMENTATION
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and 
+                                    references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives  an introduction to the use of the
+                                    commercial graphics package, DI3000, and
+                                    hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives  more than  introduction to D0USER
+                                    which provides an offline framework.
+
+    4. D0$PIXIE:PIXIE_GUIDE.DOC   - General guide to PIXIE Event Display.
+

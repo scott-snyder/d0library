@@ -1,0 +1,122 @@
+Documentation for [D0LIBRARY.PIXIE.SOURCE]PLFIND.FOR
+  
+ DISTANCE variables:                       ANGLE variables (in degrees)
+ D(1)= Dist from (U1,V1) to (U2,V2)        TH23 = Angle opposite D23
+ D(2)= Dist from (U1,V1) to (U3,V3)        TH25 = Angle opposite D25
+ D(3)= Dist from (U1,V1) to (U4,V4)        TH14 = angle opposite D(3)
+ D(4)= Dist from (U1,V1) to (U5,V5)        PHI1 = Angle opposite DU 
+ D23 = Dist from (U2,V2) to (U3,V3)        PHI2 = Angle opposite DV
+ D25 = Dist from (U2,V2) to (U5,V5)
+ DU  = Proj. of D(4) onto D(1)
+ DV  = Proj. of D(4) onto D(2)
+  
+ RECTANGLE in World coordinates:         DIAMOND in Virtual Coordinates:
+  (X3,Y3)               (X1,Y1)                  (U3,V3)       
+     ----------------------                         ^
+     |                    |                        / \
+     |                    |                       /   \ 
+     |                    |                      /     \
+     |                    |                     /       \
+     |                    |             (U1,V1)<   x     > (U4,V4)
+     ----------------------                     \(U5,V5)/
+  (X4,Y4)                (X3,Y3)                 \     /
+                                                  \   /
+                                                   \ /
+                                                    V 
+                                                  (U2,V2) 
+  Angles and distances used to find DU,DV
+
+                    ^       ^
+                   /       / \
+                  /       /   \ 
+                 /       /     \
+                /       /+++++++\ 
+               /       /  TH14   \
+             D(2)     /           \
+             /       /             \
+            /       /               \
+           /       / \               \
+          /       /   \               \
+         /       /     \               \
+        /    DV /       \DU            +\
+       /       /         \             + \
+      /       /           \            +  \
+     /       /PHI1     PHI2\       TH23+   \
+    v       <---------------X 5th      +    >
+             \TH25          | pt       +   /
+              \             |          +  /
+               \            |          + /
+                \           |          +/
+                 \          |          /
+                  \         |         /
+              D(1) \        |        /
+                    \       |D25    /
+                     \      |      /
+                      \     |     /
+                       \    |    /
+                        \   |   /
+                         \  |  /
+                          \ | /
+                           \|/
+                            V        
+
+  Method to check if 5th (PICKED) point is inside the diamond:
+         Make a 4 sided polygon by substituing the 5th point
+         for the corner of the diamond neareast to it.
+         Check the 2 angles it makes with adjacent corners.
+         If either of these 2 angles is greater than the corresponding
+         angle in the original diamond, the point is outside the
+         diamond.
+  Variables used in this check:
+
+   IDD1= Index of corner in U,V system closest to 5th point
+   IDD2= Index of corner opposite to IDD1
+   IDD3,IDD4 = other 2 corners of diamond.
+   
+   DD(1)= Dist. from 5th point to (U1,V1)
+   DD(2)= Dist. from 5th point to (U2,V2)
+   DD(3)= Dist. from 5th point to (U3,V3)
+   DD(4)= Dist. from 5th point to (U4,V4)
+
+   DG3=Dist. from U(IDD2,V(IDD2) to U(IDD3),V(IDD3)
+   DG4=Dist. from U(IDD2,V(IDD2) to U(IDD4),V(IDD4)   
+
+   AL3= Angle between DD(IDD3) and DG3
+   AL4= Angle between DD(IDD4) and DG4
+
+  Angles and distances used to check if 5th point is inside diamond:
+                          IDD1  
+                            ^
+                           / \    
+                          /   \     
+                         /     \     
+                        /+++++++\                
+                       /  TH14   \           X (5th point)  
+                      /           \        # 
+                     /             \    #    #
+                    /               \       (
+                   /              #  \     ( #
+                  /            #      \   (     
+                 /          #          \(    #
+                /        #            ( \   
+               /      #             (    \  #
+              /    #              (      +\ 
+             /  #               (        + \#
+       IDD3< #   )          AL4(     TH23+   >IDD4
+             \    )             (        +  /
+              \    ) AL3         (       + /
+               \  )               (      +/
+                \)                 (     /
+                 \                  (   /
+                  \                  (/
+               DG3 \                 /DG4
+                    \               /
+                     \             /
+                      \           /
+                       \         /
+                        \       /
+                         \     /
+                          \   /
+                           \|/
+                            V        
+                           IDD2 

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VPIXIE()
+      VPIXIE = ' PIXIE'//
+     X                   '  OFFICIAL V3.16'//
+     X                   ' 13-APR-1995 16:56:54.10'
+      Return
+      End
