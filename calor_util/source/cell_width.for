@@ -22,6 +22,7 @@ C-                                        1: NO CLYR BANK FOR GIVEN INDICES
 C-   Controls: 
 C-
 C-   Created   13-MAR-1992   Stephen Kahn
+C-   Updated   21-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -123,7 +124,11 @@ C
         BL = C(LQCLYR+ICPAR5)   ! half base of cell
         DR = 2.* HI
         DZ = 2.*C(LQCLYR + ICPAR1)
+C&IF LINUX
+C&        TANALF = TAN( C(LQCLYR + ICPAR7))
+C&ELSE
         TANALF = TAND( C(LQCLYR + ICPAR7))
+C&ENDIF
         X1 = XC - HI
         X2 = X1
         Y1 = YC - BL - HI*TANALF

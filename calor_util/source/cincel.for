@@ -19,6 +19,7 @@ C-                                        1: NO CLYR BANK FOR GIVEN INDICES
 C-   Controls: 
 C-
 C-   Created    8-JUN-1989   Stephen Kahn
+C-   Updated   21-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -135,7 +136,7 @@ C
 C
       IF( IC(LQCLYR + ICSHAP) .EQ. ICHAR41 ) THEN      ! CC cells
         IF( ABS(Z-ZC) .GT. C(LQCLYR+ICPAR1)) GO TO 900     ! failed Z
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&        TANALF = TAN( C( LQCLYR + ICPAR7)*RADIAN)     ! tan(alpha_i)
 C&ELSE
         TANALF = TAND( C( LQCLYR + ICPAR7))     ! tan(alpha_i)

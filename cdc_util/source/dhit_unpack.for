@@ -23,6 +23,7 @@ C-
 C-   Created   1-NOV-1991   Qizhong Li-Demarteau
 C-   Updated   4-MAR-1992   Qizhong Li-Demarteau  use BYTE_ORDER.PARAMS 
 C-   Updated  12-APR-1994   C. Klopfenstein use new (or old) version of DHIT    
+C-   Updated  27-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -32,7 +33,7 @@ C----------------------------------------------------------------------
       INTEGER I4WORD, STATUS
       INTEGER*2 I2WORD(2)
       EQUIVALENCE (I2WORD(1), I4WORD)
-      REAL    TIME, ZPOS, AREA
+      REAL    TIME, ZPOS, AREA, tmpfloat
 C----------------------------------------------------------------------
 C
 C   unpack the first word
@@ -51,17 +52,19 @@ C
       ZPOS = 999.9
       AREA = 0.0
       I4WORD = DHIT_WORDS(2)
-      TIME = FLOAT(I2WORD(WORD1))/10.                  ! in ns
+      tmpfloat = I2WORD(WORD1)
+      TIME = tmpfloat/10.                              ! in ns
       IF (WIRE .EQ. 0 .OR. WIRE .EQ. 6) THEN
-        ZPOS = FLOAT(I2WORD(WORD2))/100.               ! in mm
+        tmpfloat = I2WORD(WORD2)
+        ZPOS = tmpfloat/100.                           ! in mm
 C  new version of DHIT has 3rd word, with pulse area for
 C  outer sense wire hits
         if (words_per_hit .ge. 3) then
           I4WORD = DHIT_WORDS(3)
-          area = float(I2WORD(WORD1))
+          area = I2WORD(WORD1)
         endif
       ELSE
-        AREA = FLOAT(I2WORD(WORD2))
+        AREA = I2WORD(WORD2)
       ENDIF
 C
   999 RETURN

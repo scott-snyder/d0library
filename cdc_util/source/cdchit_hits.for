@@ -14,6 +14,7 @@ C-   Updated  23-FEB-1994   Gregory L. Landsberg  -- minor bugs fixed
 C-   Updated  22-AUG-1994   Gregory L. Landsberg  -- switch to VXY_BEAM
 C-   Updated   7-FEB-1995   Gregory L. Landsberg  -- switch to VXY_BEAM1 
 C-   Updated  27-APR-1995   Gregory L. Landsberg  -- added NCloud info 
+C-   Updated  27-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       Implicit        None
@@ -30,6 +31,9 @@ C----------------------------------------------------------------------
       Integer         NCloud, ICloud
       Logical         LCheck
       Real            Coord(3,1), Theta, TheMin, TheMax, DXV, DYV
+C
+      integer mask_fffc07ff
+      parameter (mask_fffc07ff = 'FFFC07FF'X)
 C
       NCell = 0
       Call CDCHIT_Cell(PhiMin,PhiMax,NCell,IAddr)
@@ -49,7 +53,7 @@ C
       NCloud = 0
       Do I = 1,IQ(LDHIT+2)
         IWORD = IQ(LDHIT + IQ(LDHIT+3)*(I-1) + 4)
-        IMASK = IOR(IWORD,'FFFC07FF'X)
+        IMASK = IOR(IWORD, mask_FFFC07FF)
         Do J = 1,NCell
           If (IMASK .eq. IAddr(J)) Then      ! The cell matches
             Call GTDHIT(I,WORDS,ILAY,ISEC,IWIR,IHIT,ITrack,ISIDE,IZTRK,

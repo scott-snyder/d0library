@@ -39,8 +39,6 @@ C-                                          recalculating X and Y.
 C-                                     
 C-   Updated   5-AUG-1995   Meenakshi Narain   Call CEMDPTH_LAYER
 C-                                          to fill LAYER_HOT array
-C-   Updated  11-FEB-1995   sss - fix division-by-zero error for clusters
-C-                                  with z=0.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:CEMPRF.INC'
@@ -343,7 +341,7 @@ C phi and z for a given row,column FOR CC ONLY
 C Now add theta correction to the CC USING THE PV
 C This has to be applied to MC as well since that's were the correction came
 C from
-         THETA = ATAN2 (R_CCEM,(Z_NEW-PV))
+         THETA = ATAN (R_CCEM/(Z_NEW-PV))
          IF (THETA.LT.0.) THETA = THETA + PI
          DZ = (THETA - HALFPI)*CC_THETA_A1 + ((THETA - HALFPI)**3)
      &     *CC_THETA_A3 + ((THETA - HALFPI)**5)*CC_THETA_A5

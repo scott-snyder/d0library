@@ -25,6 +25,7 @@ C-                                        7: Shape not yet coded (effects EC/OH)
 C-   Controls: 
 C-
 C-   Created   25-MAR-1992   Stephen Kahn
+C-   Updated   27-Jan-1996  sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -139,7 +140,11 @@ C
         BL = C(LQCLYR+ICPAR5)   ! half base length of cell
         DR = 2.* HI
         DZ = 2.*C(LQCLYR + ICPAR1)
+C&IF LINUX
+C&        TANALF = TAN ( C(LQCLYR + ICPAR7) * RADIAN)
+C&ELSE
         TANALF = TAND( C(LQCLYR + ICPAR7))
+C&ENDIF
         X1 = XC - HI
         X2 = X1
         Y1 = YC - BL - HI*TANALF

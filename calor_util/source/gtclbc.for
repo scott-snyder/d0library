@@ -11,6 +11,7 @@ C-   Outputs : NBAD    - number of bad channels found
 C-   Controls: BAD(9)  - flags for all possible channels (0->good)
 C-
 C-   Created   2-NOV-1994   Jan Guida
+C-   Updated  22-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -60,7 +61,7 @@ C
         IF (IADC.NE.ICARD) GO TO 100
         NBAD = NBAD + 1
         ICHAN = IBLS + ITWR + (IBLS+7)/8   ! (IBLS+7)/8 to take care of PD ch
-        BAD(ICHAN) = IAND(IC(LCLBC+I+1),'FFFF'X)
+        BAD(ICHAN) = IAND(IC(LCLBC+I+1), 65535) ! 0xffff
   100   CONTINUE
       ENDDO
 C

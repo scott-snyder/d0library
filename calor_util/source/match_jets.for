@@ -45,6 +45,7 @@ C-
 C-   Controls:
 C-
 C-   Created   4-JAN-1991   Harrison B. Prosper
+C-   Updated  22-Jan-1996   sss - avoid g77 warning.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -84,6 +85,7 @@ C----------------------------------------------------------------------
       NUMJET2 = 0
       NUMMATCH= 0
       IER     = 0
+      MATCH_JETS = 0
 C
       IF ( FIRST ) THEN
         FIRST = .FALSE.

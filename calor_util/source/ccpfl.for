@@ -22,6 +22,7 @@ C-   Updated   17-Feb-1992 Herbert Greenlee
 C-      UNIX version.  Replace OPEN with call to D0OPEN.
 C-      Use machine independent word order in ICAP/JCAP equivalence.
 C-   Updated  13-NOV-1993   Jan Guida  Remove IOS variable (FLINT) 
+C-   Updated  18-MAR-2004   sss - use idate2k instead of idate
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -88,7 +89,7 @@ C
         ELSE
           CALL BKCCUA(LCCPH,LCCP)
         END IF
-        CALL IDATE(I,J,K)
+        CALL IDATE2k(I,J,K)
         JDATE=I*10000+J*100+K
         CALL TIME(STIME)
         READ(STIME,'(I2,1X,I2,1X,I2)')I,J,K

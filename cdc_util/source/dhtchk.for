@@ -17,7 +17,7 @@ C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:ZEBCOM.INC'
       INTEGER LAYER, SECTOR, TASK
-      INTEGER LKCDCH, GZCDCH, IBIT, BTEST, IBSET, IH
+      INTEGER LKCDCH, GZCDCH, IBIT, IBSET, IH
       LOGICAL OK
 C----------------------------------------------------------------------
       OK = .FALSE.

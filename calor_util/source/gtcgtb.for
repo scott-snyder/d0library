@@ -52,7 +52,7 @@ C
         IF (IADC.NE.ICARD) GO TO 100
         NBAD = NBAD + 1
         ICHAN = IBLS*8 + ITWR*2 + (IDEP-12)
-        BAD(ICHAN) = IAND(IC(LCGTB+I+1),'FFFF'X)
+        BAD(ICHAN) = IAND(IC(LCGTB+I+1), 65535) ! 0xffff
   100   CONTINUE
       ENDDO
 C

@@ -10,6 +10,7 @@ C-   Controls:
 C-
 C-   Created   9-NOV-1993   Gregory L. Landsberg
 C-   Updated   7-FEB-1995   Gregory L. Landsberg  -- Switch to VXY_BEAM1 
+C-   Updated  27-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       Implicit      None
@@ -20,6 +21,9 @@ C----------------------------------------------------------------------
       Real          PhiMin, PhiMax, TheMin, TheMax, X, Y, Phi, Theta
       Real          R, Z, Z1, Z2, ZHit, ZV, XV, YV, ZVTX, DXV, DYV
       Logical       LCheck
+C
+      integer mask_0003fffe
+      parameter (mask_0003fffe = '0003FFFE'X)
 C
       IFL = 0
       NSeg = 0
@@ -42,7 +46,7 @@ C
                 IFlag(IFL+1) = IFlag(IFL+1) + 1
                 Go To 5
               Else
-                Z = ZHit(IAND(IQ(LDTSG+22*J-5),'0003FFFE'X))
+                Z = ZHit(IAND(IQ(LDTSG+22*J-5),mask_0003FFFE))
                 If (Abs(Z) .gt. 99) Then
                   NSeg = NSeg + 1
                   IFlag(IFL+1) = IFlag(IFL+1) + 1
@@ -52,7 +56,7 @@ C
                 Go To 4
               End If
             Else If (IQ(LDTSG+22*J-5) .eq. 0) Then
-              Z = ZHit(IAND(IQ(LDTSG+22*J-11),'0003FFFE'X))
+              Z = ZHit(IAND(IQ(LDTSG+22*J-11),mask_0003FFFE))
               If (Abs(Z) .gt. 99) Then
                 NSeg = NSeg + 1
                 IFlag(IFL+1) = IFlag(IFL+1) + 1
@@ -61,8 +65,8 @@ C
               IFL = 1
               Go To 4
             Else
-              Z1 = ZHit(IAND(IQ(LDTSG+22*J-11),'0003FFFE'X))
-              Z2 = ZHit(IAND(IQ(LDTSG+22*J-5),'0003FFFE'X))
+              Z1 = ZHit(IAND(IQ(LDTSG+22*J-11),mask_0003FFFE))
+              Z2 = ZHit(IAND(IQ(LDTSG+22*J-5),mask_0003FFFE))
               If (Abs(Z1) .gt. 99) Then
                 If (Abs(Z2) .gt. 99) Then
                   NSeg = NSeg + 1

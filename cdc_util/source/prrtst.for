@@ -9,6 +9,7 @@ C-   Outputs : on unit PRUNIT
 C-   Controls: none
 C-
 C-   Created  23-OCT-1995 09:20:30.95  Jadwiga Warchol
+C-   Updated  29-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -21,6 +22,17 @@ C----------------------------------------------------------------------
       INTEGER I, J, NTDATA, IDATA, NTFDATA, LP, L, IPULSE, IFDATA
       INTEGER RADDR
       DATA RADDR /'1C0D'X/
+C
+      integer mask_000000ff
+      parameter (mask_000000ff = '000000ff'X)
+      integer mask_0000ff00
+      parameter (mask_0000ff00 = '0000ff00'X)
+      integer mask_00ff0000
+      parameter (mask_00ff0000 = '00ff0000'X)
+      integer mask_ff000000
+      parameter (mask_ff000000 = 'ff000000'X)
+      integer mask_0000ffff
+      parameter (mask_0000ffff = '0000ffff'X)
 C----------------------------------------------------------------------
       LRTST = GZRTST()
       IF ( LRTST .LE. 0 ) THEN
@@ -48,15 +60,15 @@ C
         IFDATA = 1
         IPULSE = 1
     9   CONTINUE
-        LP = IAND(IQ(I+IDATA),'0000FFFF'X)
+        LP = IAND(IQ(I+IDATA),mask_0000FFFF)
         WRITE(PRUNIT,1009) IPULSE,IQ(I+IDATA)/65536,LP
         IDATA = IDATA + 1
         IFDATA = IFDATA + 1
         DO L=1,LP/4
-          WRITE(PRUNIT,1010) IAND(IQ(I+IDATA),'000000FF'X),
-     &                    IAND(IQ(I+IDATA),'0000FF00'X)/256,
-     &                    IAND(IQ(I+IDATA),'00FF0000'X)/65536,
-     &                    ISHFTC(IAND(IQ(I+IDATA),'FF000000'X),8,32)
+          WRITE(PRUNIT,1010) IAND(IQ(I+IDATA),mask_000000FF),
+     &                    IAND(IQ(I+IDATA),mask_0000FF00)/256,
+     &                    IAND(IQ(I+IDATA),mask_00FF0000)/65536,
+     &                    ISHFTC(IAND(IQ(I+IDATA),mask_FF000000),8,32)
           IDATA = IDATA + 1
           IFDATA = IFDATA + 1
           IF( IFDATA .GT. NTFDATA) GOTO 10

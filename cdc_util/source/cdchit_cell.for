@@ -11,6 +11,7 @@ C-             IAddr - array with encoded address, as in DHIT bank.
 C-   Controls: None
 C-
 C-   Created   4-NOV-1993   Gregory L. Landsberg
+C-   Updated  27-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       Implicit        None
@@ -18,6 +19,9 @@ C----------------------------------------------------------------------
       Include        'D0$INC:PI.INC'
       Real            PhiMin, PhiMax
       Integer         NCell, IAddr(1), I1, I2, I, J, J1, ICell
+C
+      integer mask_fffc07ff
+      parameter (mask_fffc07ff = 'FFFC07FF'X)
 C
       NCell = 0
       If (PhiMin .gt. PhiMax) Return
@@ -35,7 +39,7 @@ C
             J1 = J + 32
           End If
           IAddr(NCell) = IOR(IOR(ISHFT(I,16),ISHFT(J1,11)),
-     &                         'FFFC07FF'X)
+     &                         mask_fffc07ff)
         End Do
       End Do
 C

@@ -14,6 +14,7 @@ C-   Controls:
 C-
 C-   Created  20-JUN-1989   Qizhong Li-Demarteau
 C-   Updated  29-MAY-1991   Qizhong Li-Demarteau  added EZRSET and EZERROR
+C-   Updated  27-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -21,7 +22,8 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:DDEBUG.INC'
       INTEGER BIN(*), EXPDAT(0:*), LMAX, IPEV, IFBIN
       INTEGER BINCHK, BINDIF, BADLMT, BADDAT, ERR
-      INTEGER CON1, CON2, CON3, CON4, I, J
+      LOGICAL CON1, CON2, CON3, CON4
+      INTEGER I, J
       INTEGER IER
       LOGICAL FIRST
       LOGICAL EZERROR

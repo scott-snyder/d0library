@@ -10,12 +10,24 @@ C-                          printed
 C-   Outputs : Dump T0RW bank(s) on the specified unit
 C-
 C-   Created   3-MAY-1992   Gregory L. Landsberg
+C-   Updated  27-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT      NONE
       INCLUDE      'D0$INC:ZEBCOM.INC'
       INTEGER       LUN, IFADC
       INTEGER       LT0RW, GZT0RW, I, J, ISTR, IEND, K, L, LP
+C
+      integer mask_000000ff
+      parameter (mask_000000ff = '000000ff'X)
+      integer mask_0000ff00
+      parameter (mask_0000ff00 = '0000ff00'X)
+      integer mask_00ff0000
+      parameter (mask_00ff0000 = '00ff0000'X)
+      integer mask_ff000000
+      parameter (mask_ff000000 = 'ff000000'X)
+      integer mask_0000ffff
+      parameter (mask_0000ffff = '0000ffff'X)
 C
       LT0RW = GZT0RW(IFADC)
       IF (LT0RW .EQ. 0) THEN
@@ -40,13 +52,13 @@ C
           WRITE(LUN,1000) IQ(LT0RW-5),(IQ(LT0RW+I),I=-1,2)
           J = 2 + LT0RW
           DO I = 1,IQ(LT0RW+2)
-            LP = IAND(IQ(J+1),'0000FFFF'X)
+            LP = IAND(IQ(J+1),mask_0000FFFF)
             WRITE(LUN,1010) I,IQ(J+1)/65536,LP
             DO L=1,LP/4
-              WRITE(LUN,1020) IAND(IQ(J+L+1),'000000FF'X),
-     &                        IAND(IQ(J+L+1),'0000FF00'X)/256,
-     &                        IAND(IQ(J+L+1),'00FF0000'X)/65536,
-     &                        ISHFTC(IAND(IQ(J+L+1),'FF000000'X),8,32)
+              WRITE(LUN,1020) IAND(IQ(J+L+1),mask_000000FF),
+     &                        IAND(IQ(J+L+1),mask_0000FF00)/256,
+     &                        IAND(IQ(J+L+1),mask_00FF0000)/65536,
+     &                        ISHFTC(IAND(IQ(J+L+1),mask_FF000000),8,32)
             ENDDO
             J = J+LP/4+1
           ENDDO

@@ -16,6 +16,7 @@ C-   Updated   7-MAR-1991   Jan Guida  Added CRATE argument, and ability
 C-                                      to do multiple crates 
 C-   Updated   2-MAR-1993   Jan Guida  Increment NBAD after checking ADC number 
 C-   Updated  13-NOV-1993   Jan Guida  Replace AND with IAND (FLINT) 
+C-   Updated  22-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -55,7 +56,7 @@ C
         IF(ADC.NE.ICARD) GOTO 100
         NBAD = NBAD + 1
         CHAN = 48*BLS + 12*TWR + LYR
-        BAD(CHAN+1) = IAND(IC(LCGB1+I+1),'FFFF'X)
+        BAD(CHAN+1) = IAND(IC(LCGB1+I+1), 65535) ! 0xffff
   100 CONTINUE
   999 RETURN
       END

@@ -21,6 +21,7 @@ C-                                        1: NO CLYR BANK FOR GIVEN INDICES
 C-   Controls: 
 C-
 C-   Created   18-APR-1989   Stephen Kahn
+C-   Updated   21-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -133,7 +134,7 @@ C
         NS = 12              ! 12 side
         NC = 8               ! 8 corner
         DO 210 I = 0, 4, 4
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&        TANALF = TAN( C( LQCLYR + ICPAR7 + I)*RADIAN)     ! tan(alpha_i)
 C&ELSE
         TANALF = TAND( C( LQCLYR + ICPAR7 + I))     ! tan(alpha_i)
@@ -181,7 +182,7 @@ C
         NC = 8
 C
         DO 310 I = 0, 4, 4
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&        SINBEG = SIN(C(LQCLYR + ICPAR4)*RADIAN)
 C&        COSBEG = COS(C(LQCLYR + ICPAR4)*RADIAN)
 C&        SINEND = SIN(C(LQCLYR + ICPAR5)*RADIAN)
@@ -215,7 +216,7 @@ C                                        ! IH and MH calorimeter cells
         NC = 8
 C
         DO 410 I = 0, 4, 4
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&        SINBEG = SIN(C(LQCLYR + ICPAR6)*RADIAN)
 C&        COSBEG = COS(C(LQCLYR + ICPAR6)*RADIAN)
 C&        SINEND = SIN(C(LQCLYR + ICPAR7)*RADIAN)
@@ -244,7 +245,7 @@ C
   410   CONTINUE
 C
       ELSE IF(IC(LQCLYR + ICSHAP) .EQ. ICHAR45) THEN        ! OH cells
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&        SINBEG = SIN(C(LQCLYR+ICPAR1)*RADIAN)   ! sin of begin angle
 C&        COSBEG = COS(C(LQCLYR+ICPAR1)*RADIAN)   ! cos "    "     "
 C&        SINEND = SIN(C(LQCLYR+ICPAR2)*RADIAN)   ! sin of end angle

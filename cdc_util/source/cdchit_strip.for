@@ -9,6 +9,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created   9-NOV-1993   Gregory L. Landsberg
+C-   Updated  27-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       Implicit      None
@@ -22,6 +23,13 @@ C----------------------------------------------------------------------
       Logical       LCheck
       Common /CDCHIT/ NW
 C
+      integer mask_0003fffe
+      parameter (mask_0003fffe = '0003FFFE'X)
+      integer mask_00400000
+      parameter (mask_00400000 = '00400000'X)
+      integer mask_FFBFFFFF
+      parameter (mask_FFBFFFFF = 'FFBFFFFF'X)
+C
       NG = 0
       If (NH .le. 0) Return
 C
@@ -29,7 +37,7 @@ C ---- Throw away hits which are on the tracks
 C
       I = 1
       Do While (I .le. NH)
-        If (IAND(IH(I),'00400000'X) .ne. 0) Call Squeeze(I,NH,IH)
+        If (IAND(IH(I),mask_00400000) .ne. 0) Call Squeeze(I,NH,IH)
         I = I + 1
       End Do
       NW = NH
@@ -42,11 +50,11 @@ C
           If (IQ(LDTSG+22*J-19) .ne. 0) Then  ! segment is on a DTRAK
             If (NH .eq. 0) Return
             Do K = 5,11
-              IWORD = IAND(IQ(LDTSG+22*J-K),'0003FFFE'X)
+              IWORD = IAND(IQ(LDTSG+22*J-K),mask_0003FFFE)
               L = 1
               Do While (L .le. NH)
-                If (IWORD .eq. IAND(IH(L),'0003FFFE'X)) Then
-                  If ((IH(L) .and. '00400000'X) .eq. 0)
+                If (IWORD .eq. IAND(IH(L),mask_0003FFFE)) Then
+                  If ((IH(L) .and. mask_00400000) .eq. 0)
      &              Call Squeeze(L,NH,IH)
                 End If
                 L = L + 1
@@ -65,15 +73,15 @@ C
               If (IQ(LDTSG+22*J-5) .eq. 0) Then
                 Go To 4
               Else
-                Z = ZHit(IQ(LDTSG+22*J-5) .and. '0003FFFE'X)
+                Z = ZHit(IQ(LDTSG+22*J-5) .and. mask_0003FFFE)
                 If (Abs(Z) .gt. 99) Go To 4
               End If
             Else If (IQ(LDTSG+22*J-5) .eq. 0) Then
-              Z = ZHit(IQ(LDTSG+22*J-11) .and. '0003FFFE'X)
+              Z = ZHit(IQ(LDTSG+22*J-11) .and. mask_0003FFFE)
               If (Abs(Z) .gt. 99) Go To 4
             Else
-              Z1 = ZHit(IQ(LDTSG+22*J-11) .and. '0003FFFE'X)
-              Z2 = ZHit(IQ(LDTSG+22*J-5) .and. '0003FFFE'X)
+              Z1 = ZHit(IQ(LDTSG+22*J-11) .and. mask_0003FFFE)
+              Z2 = ZHit(IQ(LDTSG+22*J-5) .and. mask_0003FFFE)
               If (Abs(Z1) .gt. 99) Then
                 If (Abs(Z2) .gt. 99) Go To 4
                 Z = Z2
@@ -87,11 +95,11 @@ C
     4       Continue
             If ((The .gt. TheMin) .and. (The .lt. TheMax)) Then ! Count hits
               Do K = 5,11
-                IWORD = IAND(IQ(LDTSG+22*J-K),'0003FFFE'X)
+                IWORD = IAND(IQ(LDTSG+22*J-K),mask_0003FFFE)
                 Do L = 1,NH
-                  If (IWORD .eq. IAND(IH(L),'0003FFFE'X)) Then
-                    If (IAND(IH(L),'00400000'X) .eq. 0) Then
-                      IH(L) = IOR(IH(L),'00400000'X)
+                  If (IWORD .eq. IAND(IH(L),mask_0003FFFE)) Then
+                    If (IAND(IH(L),mask_00400000) .eq. 0) Then
+                      IH(L) = IOR(IH(L),mask_00400000)
                       NG = NG + 1
                     End If
                   End If
@@ -100,11 +108,11 @@ C
             Else  ! Throw away hits on this segment
               If (NH .eq. 0) Return
               Do K = 5,11
-                IWORD = IAND(IQ(LDTSG+22*J-K),'0003FFFE'X)
+                IWORD = IAND(IQ(LDTSG+22*J-K),mask_0003FFFE)
                 L = 1
                 Do While (L .le. NH)
-                  If (IWORD .eq. IAND(IH(L),'0003FFFE'X)) Then
-                    If ((IH(L) .and. '00400000'X) .eq. 0)
+                  If (IWORD .eq. IAND(IH(L),mask_0003FFFE)) Then
+                    If ((IH(L) .and. mask_00400000) .eq. 0)
      &                Call Squeeze(L,NH,IH)
                   End If
                   L = L + 1
@@ -116,7 +124,7 @@ C
     1 Continue
 C
       Do I = 1,NH
-        IH(I) = IAND(IH(I),'FFBFFFFF'X)
+        IH(I) = IAND(IH(I),mask_FFBFFFFF)
       End Do
 C----------------------------------------------------------------------
       Return

@@ -37,7 +37,7 @@ C
 C
 C- Read in the PHYSICS ordered table.
 C
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&      OPEN(     UNIT=KIUNIT,
 C&     &          FILE='TB90L1_PHYSICS_SORT_BINARY_DAT',
 C&     &          FORM='UNFORMATTED',
@@ -60,7 +60,7 @@ C
 C- Read in the ADC ordered table.
 C
 50      CONTINUE
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&        OPEN(     UNIT=KJUNIT,
 C&     &          FILE='TB90L1_ADC_SORT_BINARY_DAT',
 C&     &          FORM='UNFORMATTED',

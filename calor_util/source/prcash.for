@@ -22,6 +22,7 @@ C-   Controls: none
 C-
 C-   Created  25-FEB-1992 15:09:00.17  Norman A. Graf
 C-   Updated   6-SEP-1994  J. Drinkard                Add SUNOS switch
+C-   Updated  27-Jan-1996  sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -122,7 +123,7 @@ C&IF VAXVMS,ULTRIX,SIUNIX,SUNOS
   104 FORMAT(/,1X,<NCHLIN>('   ETA PHI LYR BITS ENERGY'))
   105 FORMAT(<NCHLIN>(2X,3I4,2X,Z2,F8.3))
 C&ENDIF
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&  104 FORMAT(/,1X,3('   ETA PHI LYR BITS ENERGY'))
 C&  105 FORMAT(3(2X,3I4,2X,Z2,F8.3))
 C&ENDIF

@@ -10,6 +10,7 @@ C-   Outputs : LT0TH_0 pointing to the T0TH bank created
 C-
 C-   Created  23-APR-1992   Gregory L. Landsberg
 C-   Updated  25-APR-1992   Gregory L. Landsberg
+C-   Updated  27-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT      NONE
@@ -24,6 +25,10 @@ C
       DATA          MPT0TH / 0, 4, 3, 9, 0 /
 C
       SAVE     L_FIRST
+
+      integer mask_fffc0000, mask_0003ffff
+      parameter (mask_fffc0000 = 'FFFC0000'X,
+     &           mask_0003ffff = '0003FFFF'X)
 C----------------------------------------------------------------------
       IF( L_FIRST ) THEN
         L_FIRST = .FALSE.
@@ -42,8 +47,8 @@ C
         LT0TZ = 0
       ENDIF
       LQ(LT0TH - 4) = GZHSTR()        ! Reference Link to latest History
-      IQ(LT0TH)     = IOR( IAND(IQ(LT0TH),'FFFC0000'X),
-     &                     IAND(IQ(LZTRH),'0003FFFF'X) )
+      IQ(LT0TH)     = IOR( IAND(IQ(LT0TH),mask_fffc0000),
+     &                     IAND(IQ(LZTRH),mask_0003ffff) )
       IQ(LT0TH)     = ISETVN(IQ(LT0TH),0)
       LVERT         = GZVERT(1)
       IF (LVERT .GT. 0) THEN
