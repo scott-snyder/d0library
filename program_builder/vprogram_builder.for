@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VPROGRAM_BUILDER()
       VPROGRAM_BUILDER = ' PROGRAM_BUILDER'//
-     X                   '  OFFICIAL V2.13'//
-     X                   ' 29-JUN-1994 15:43:02.20'
+     X                   '  TEST V2.13_01'//
+     X                   ' 13-AUG-1997 09:21:49.66'
       Return
       End
