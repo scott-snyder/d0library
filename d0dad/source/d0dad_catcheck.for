@@ -14,6 +14,7 @@ C-     run number referencing file...
 C-   Modified 09-Oct-1996   JDH - Restructure for efficiency and add
 C-     counts of events for each FID and optional comparison of disk
 C-     and file catalog consistancy.
+C-   Updated  18-MAR-2004   sss - compile with g77
 C-
 C-----------------------------------------------------------------------
       IMPLICIT NONE
@@ -296,7 +297,7 @@ C
  1009       FORMAT(' ',A,' on disk, but not active',A,' in catalog')
           ENDIF
         ENDDO
-        CALL LIB$FIND_FILE_END(CONTEXT)
+        found = LIB$FIND_FILE_END(CONTEXT)
         ISTART=IEND+1
       ENDDO
 C

@@ -9,11 +9,12 @@ C-
 C-   Modified 16-FEB-1994   Nobuaki Oshima
 C-                          MUNGT_INI was replaced by MUONLY_INI
 C-   Created  25-OCT-1989   Serban D. Protopopescu
+C-   Updated  10-Jan-1996  sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
       LOGICAL ALL_DISPLAY_INI
-      LOGICAL ZTRINI,CALOR_INI,CHTINI,MUONLY_INI,OK,VEEINI
+      LOGICAL ZTRINI,CALOR_INI,CHTINI,MUONLY_INI,OK
 C----------------------------------------------------------------------
       OK=.TRUE.
       OK=OK.AND.ZTRINI()

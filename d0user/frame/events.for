@@ -15,11 +15,12 @@ C-   Updated  20-AUG-1991   Susan K. Blessing   Added option of displaying
 C-    the first event of a run.  Added option of processing only events in
 C-    event display list - ENTRY ANALYZE_EVT.  Fixed bug in displaying
 C-    event list.
+C-   Updated  10-Jan-1996  sss - compile with g77.
 C-   
 C------------------------------------------------------------------------------
       IMPLICIT NONE
 C
-      LOGICAL EVWRIT,USRWRT
+      LOGICAL USRWRT
       LOGICAL FLGVAL,NOMORE
       LOGICAL OK,ASK,ASK1,PICK_EVTS
 C

@@ -32,6 +32,9 @@ C----------------------------------------------------------------------
       CHARACTER*80  VALSTR
       CHARACTER*(*) ERRMSG
       PARAMETER(    ERRMSG = ' %ASKVAL-ERROR-')
+C&IF LINUX
+C&      character*1024 tmp
+C&ENDIF
 C----------------------------------------------------------------------
 C
       NP = LEN (PRT)
@@ -42,7 +45,12 @@ C ****  Ask for value
 C
       ACTIVE = .TRUE.
       DO WHILE ( ACTIVE )
+C&IF LINUX
+C&        tmp = prt
+C&        CALL GETSTR (tmp(1:NP)//' '//DEFSTR(1:N)//'> ',STRING,OK,BACK)
+C&ELSE
         CALL GETSTR (PRT(1:NP)//' '//DEFSTR(1:N)//'> ',STRING,OK,BACK)
+C&ENDIF
         IF ( BACK ) GOTO 999
         IF ( OK  ) THEN
 C

@@ -1,5 +1,4 @@
       FUNCTION D0HPLT_EVENT()
-      ENTRY D0HPLT_EVENT1
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Execute D0HPLT.
@@ -18,6 +17,7 @@ C-   Updated  20-FEB-1991   Harrison B. Prosper
 C-      Call d0hpld(command) directly 
 C-   Updated   8-MAY-1992   Harrison B. Prosper  
 C-      Call d0hindex_refresh to refresh listing 
+C-   Updated  13-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -34,6 +34,8 @@ C
       PARAMETER( D0HPLT_TITLE = 'D0HPLT' )
 C
       SAVE OLD_COMMAND
+C----------------------------------------------------------------------
+      ENTRY D0HPLT_EVENT1
 C----------------------------------------------------------------------
       D0HPLT_EVENT1= .TRUE.
       D0HPLT_EVENT = .TRUE.

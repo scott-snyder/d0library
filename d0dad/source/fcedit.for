@@ -8,6 +8,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created  12-JAN-1996   John Hobbs
+C-   Updated  18-MAR-2004   sss - compile with g77
 C-
 C-----------------------------------------------------------------------
       IMPLICIT NONE
@@ -52,7 +53,7 @@ C
         DO WHILE( FC_NEXT_PARTITION(ILUN,NFILES,SELECTION_FIELD,IFID) )  
           IF( LDDBG.GT.4 ) THEN
             WRITE(*,1002) ACTION(1:I),IFID
- 1002       FORMAT(' Performing ',A', operation on FID ',I6)
+ 1002       FORMAT(' Performing ',A,', operation on FID ',I6)
           ENDIF
           IF( ACTION(1:I).EQ.'DELETE' ) THEN 
             CALL FCRUB(ILUN,IFID,-1,IERR)

@@ -13,6 +13,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created  28-OCT-1996   John Hobbs
+C-   Updated  18-MAR-2004   sss - compile with g77
 C-
 C-----------------------------------------------------------------------
       IMPLICIT NONE
@@ -119,7 +120,7 @@ C-   Search the EC for these events
       NFIDS=0
       CALL VZERO(FIDLIST,NFIDMAX)
       DO I=1,NFIDMAX
-        FIDLIST(I)=' '
+        FIDLIST(I)=4H    
       ENDDO
       DO I=1,NEV
         CALL ECGET(ECLUN,RUN,EVENTS(I),MASK,IFID,IDUM,IDUM,IERR)

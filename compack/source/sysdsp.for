@@ -24,7 +24,8 @@ C
       INTEGER SPAWIT,ISTAT,LIBERA,LIBREP,I,LENINT,LININ,LOCMAX
       LOGICAL SETMOD
       CHARACTER*80 PROMPT
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
+C&      character*40 p1, p2
 C&      character*40 parint
 C&      integer trulen
 C&      external parint, trulen
@@ -54,11 +55,13 @@ C
         ELSE
           LOCMAX=PBSAVE-7
         ENDIF
-C&IF IBMAIX   ! losing ibm compiler doesn't have varible formats...
+C&IF IBMAIX,LINUX   ! these don't support variable formats
+C&        p1 = parint (locmax)
+C&        p2 = parint (spllin)
 C&        prompt = 'Enter LINES for split screen display (3-' //
-C&     &           parint (locmax)(1:trulen (parint (locmax))) //
+C&     &           p1(1:trulen (parint (locmax))) //
 C&     &           ') [' //
-C&     &           parint (spllin)(1:trulen (parint (spllin))) //
+C&     &           p2(1:trulen (parint (spllin))) //
 C&     &           '] > '
 C&ELSE
         WRITE(PROMPT,101) LOCMAX,SPLLIN
@@ -78,11 +81,13 @@ C&ENDIF
         ENDIF
       ELSEIF(INDEX(COMIN,'CALL SPLSTA').GT.0) THEN
         LOCMAX=5
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
+C&        p1 = parint (locmax)
+C&        p2 = parint (spllin)
 C&        prompt = 'Enter LINES for status display (3-' //
-C&     &           parint (locmax)(1:trulen (parint (locmax))) //
+C&     &           p1(1:trulen (parint (locmax))) //
 C&     &           ') [' //
-C&     &           parint (spllin)(1:trulen (parint (stalin))) //
+C&     &           p2(1:trulen (parint (stalin))) //
 C&     &           '] > '
 C&ELSE
         WRITE(PROMPT,102) LOCMAX,STALIN

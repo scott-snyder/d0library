@@ -6,6 +6,7 @@ C-    Use EVOPWO and EVCLWO
 C-                                                                   -
 C-                       SDP Nov,1986                                -
 C-             Modified May, 1989
+C-   Updated  10-Jan-1996  sss - compile with g77.
 C-                                                                   -
 C---------------------------------------------------------------------
       IMPLICIT NONE             
@@ -155,5 +156,5 @@ C           print list again
       ENDIF
 C
   999 RETURN
-  101 FORMAT(X,10('...',A4))
+  101 FORMAT(1X,10('...',A4))
       END

@@ -18,6 +18,8 @@ C-   Updated   1-FEB-1992   Krzysztof L. Genser
 C-    Interface to FATMEN + CALL CLTOU(NAMIN), NAMIN now 255 char long
 C-   Updated  18-MAR-1992   Serban D. Protopopescu   
 C-    Added use of FILE_NAMES
+C-   Updated   4-APR-1995   Ulrich Heintz  fixed passing of XCHOPT via
+C-    entry point INPUT_F_INFO 
 C-
 C---------------------------------------------------------------------
       IMPLICIT NONE
@@ -35,7 +37,8 @@ C
       LOGICAL NOIN,OK,FLGVAL,TAPE,FIRST
       INTEGER ERR,IRC
       CHARACTER*4 XCHOPT
-      CHARACTER*1 XOPT,XMOD
+      CHARACTER*1 XOPT
+      CHARACTER*2 XMOD
       CHARACTER*76 MESG
       CHARACTER*255 NAMIN,FNAME,TMPFNAME
       CHARACTER*(*) NAME
@@ -167,6 +170,7 @@ C
 C
       ENTRY INPUT_F_INFO(NAME,XMOD)
       NAME=FNAME
-      XMOD=XOPT
+      XMOD=XCHOPT
       RETURN
       END
+

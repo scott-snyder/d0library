@@ -1,3 +1,4 @@
+C-------------------------------------------------------------------------
       PROGRAM EVENT_SCAN
 C-------------------------------------------------------------------------
 C  Header scan Zebra file for trigger and filter information.
@@ -219,9 +220,7 @@ C&ENDIF
           ELSE
             CALL D0OPEN(IEUNIT, EVENTFILE, 'OFL', OPENOK)
             IF(.NOT.OPENOK)THEN
- 8888         CONTINUE
-              PRINT *,'Error opening '//EVENTFILE
-              STOP
+              goto 8888
             ENDIF
           ENDIF
 CJDH 94/12/29          WRITE(IEUNIT,'(I6)')RUN
@@ -402,4 +401,8 @@ C&ENDIF
       IF( LFLOOP ) GOTO 20
       GOTO 999
 C
+ 8888         CONTINUE
+              PRINT *,'Error opening '//EVENTFILE
+              STOP
+
       END

@@ -10,6 +10,7 @@ C-
 C-
 C-   Created   9-MAR-1988   Serban D. Protopopescu
 C-   Updated  25-OCT-1993   William Cobau  - add check for logical hst4_file 
+C-   Updated  10-Jan-1996  sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -36,7 +37,7 @@ C- check is logical is set pointing to histogram file,
 C-   if so, store histograms in that file
 C
         ISTAT=TRNLNM(LOGNAME,LOGTRANS,LENGTH)
-        IF(ISTAT.AND.(LENGTH.GT.0))THEN
+        IF(ISTAT.EQ.1.AND.(LENGTH.GT.0))THEN
           MSG=' Storing all histograms in '//logtrans
           WRITE (HISFIL,1000)
  1000     format('hst4_file')

@@ -24,6 +24,7 @@ C-             BACK        If true go back to upper menu level
 C-
 C-   Created   4-MAR-1988   Harrison B. Prosper
 C-   Modified 15-APR-1988
+C-   Updated  18-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
       IMPLICIT NONE
       LOGICAL       OK,BACK,ACTIVE,EQUATE
@@ -35,6 +36,9 @@ C----------------------------------------------------------------------
       CHARACTER*64  STRING
       CHARACTER*(*) PRT,ERRMSG
       PARAMETER(    ERRMSG = ' %ASKRLS-ERROR-')
+C&IF LINUX
+C&      character*1024 tmp
+C&ENDIF
 C----------------------------------------------------------------------
 C
 C
@@ -54,7 +58,12 @@ C ****  Ask for range
 C
       ACTIVE = .TRUE.
       DO WHILE ( ACTIVE )
+C&IF LINUX
+C&        tmp = prt
+C&        CALL GETSTR (tmp(1:NP)//' '//RANGE(1:N)//'> ',STRING,OK,BACK)
+C&ELSE
         CALL GETSTR (PRT(1:NP)//' '//RANGE(1:N)//'> ',STRING,OK,BACK)
+C&ENDIF
         IF ( BACK ) THEN
           RETURN
         ENDIF

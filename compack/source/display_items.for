@@ -17,6 +17,7 @@ C-
 C-   Created   5-NOV-1991   Lupe Howell  Based in FNDFIL by Jan S. Hoftun
 C-   Updated   3-JAN-1992   Lupe Howell  Temporary fix for the help 
 C-   Updated   7-JAN-1992   Lupe Howell  Add array with remarks
+C-   Updated  18-MAR-2004   sss - compile with g77
 C-   
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -110,14 +111,21 @@ C
           IF ( UCOMAND(I:4) .EQ. 'HELP' ) THEN
             STRING = UCOMAND(5:80)
             CALL SWORDS(STRING,I,J,K) ! Get the number for help
+C&IF LINUX
+C&            READ(STRING(I:J),*)NUM
+C&ELSE
             READ(STRING(I:J),30)NUM
+C&ENDIF
             CALL SWORDS(REM(NUM),I,K,J)
             CALL INTMSG(REM(NUM)(1:K))
             GOTO 20
           ENDIF
         ENDIF
       ENDIF
+C&IF LINUX
+C&ELSE
    30 FORMAT(I<K>)
+C&ENDIF
    40 FORMAT(A2)
       RETURN
       END

@@ -11,6 +11,7 @@ C-
 C-   ENTRY MCDINI: tell about defaults at initialization
 C-
 C-   Created  20-JAN-1989   Serban D. Protopopescu
+C-   Updated  10-Jan-1996  sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -101,8 +102,8 @@ C
   999 RETURN
 C
   110 FORMAT(' Following banks will be dropped: ',54A6)
-  111 FORMAT(' Chose PATH (RECO, FAKE or GEAN), ['A4']:>')
+  111 FORMAT(' Chose PATH (RECO, FAKE or GEAN), [',A4,']:>')
   112 FORMAT(' Default PATH is ',A4,'. Use option User Dialog to change'
-     &  ' PATH or drops.')
+     &  ,' PATH or drops.')
   113 FORMAT(' Default PATH is now ',A4,'.')
       END
