@@ -1,0 +1,769 @@
+
+
+                             ISAJET COMMANDS
+                                                         BNL May 14,1990
+                               F.E. Paige
+                               S.D. Protopopescu
+
+  
+            COMMAND FILE STRUCTURE
+            ----------------------
+
+        ISAJET is   controlled by  commands read  from the  specified input
+file by subroutine READIN. (In the interactive version, this file is  first
+created by subroutine  DIALOG.) Syntax errors  will generate a  message and
+stop  execution.  Based on  these  commands,  subroutine  LOGIC  will setup
+limits for all variables and check  for inconsistencies.  Several runs with
+different  parameters  can be  combined into  one job.  The  required input
+format is: 
+    
+Title   
+Ecm,Nevent,Nprint,Njump/    
+Reaction    
+(Optional parameters)   
+END 
+(Optional additional runs)  
+STOP    
+    
+with all lines starting in column 1 and typed in UPPER case. These  
+lines are explained below. The units for mass, momenta and energy 
+are GeV. The units for angles are radians.
+    
+      Title line: Up to 80 characters long. If the first four letters   
+are STOP, control is returned to main program. If the first four letters    
+are SAME, the parameters from previous run are used excepting those 
+which are explicitly changed.   
+    
+      Ecm line: This line must always be given even if the title is 
+SAME. It must give the center of mass energy (Ecm) and the number of    
+events (Nevent) to be generated. One may also specify the number of 
+events to be printed (Nprint) and the increment (Njump) for printing.   
+The first event is always printed if Nprint.gt.0. For example:  
+800.,1000,10,100/   
+generates 1000 events at Ecm=800 GeV and prints 10 events. The events   
+printed are: 1,100,200,.... Note that an event typically takes several  
+pages of output. This line is read with a list directed format (READ*). 
+    
+     After Nprint events have been printed, a single line containing the    
+run number, the event number, and the random number seed is printed 
+every Njump events (if Njump is nonzero). This seed can be used to start    
+a new job with the given event if in the new run NSIGMA is set equal to 
+zero:   
+SEED    
+value/  
+NSIGMA  
+0/  
+In general the same events will only be generated on the same type of   
+computer. 
+
+  For more details see BNLCL6::$2$DUA14:[ISAJET.ISALIBRARY]ISAJET.TXT.
+
+
+
+            REACTIONS
+            ---------
+
+DRELLYAN
+
+  Production of a W in  the standard model,  including a  virtual photon, a
+  W+, a  W-, or  a Z0,  and  its  decay  into  quarks or    leptons. If the
+  transverse momentum qt of the W is  fixed equal to zero  then the process
+  simulated is 
+      quark + antiquark --> W --> quark + antiquark,    
+                              --> lepton + antilepton.  
+  Thus  the  W has  zero    transverse  momentum   until  initial state QCD
+  corrections are taken into account. If non-zero limits on the  transverse
+  momentum qt for the W are set, then instead the processes 
+      quark + antiquark --> W + gluon,  
+      gluon + quark     --> W + quark   
+  are simulated, including the full matrix element for the W decay. 
+
+
+HIGGS
+
+  Production and decay  of the standard model  Higgs boson. The  production
+  processes are 
+      gl + gl --> HIGGS  (through a quark loop) 
+      qk + qb --> HIGGS  (with tp + tb dominant)    
+      W+ + W- --> HIGGS  (with longitudinally polarized W)  
+      Z0 + Z0 --> HIGGS  (with longitudinally polarized Z)  
+  If the Higgs  is lighter  than 2 * mw,  then it will  decay into pairs of
+  fermions with  branching ratios  proportional to  mf**2. If it is heavier
+  than 2 *  mw, then it  will decay  primarily  into W+ W-  and Z0 Z0 pairs
+  with widths given approximately by 
+      Gamma(HIGGS --> W+ W-) = GF * mh**3 / ( 8 * pi * sqrt(2) )    
+      Gamma(HIGGS --> Z0 Z0) = GF * mh**3 / ( 16 * pi * sqrt(2) )   
+  
+
+MINBIAS
+
+  No hard scattering at all, so that the event consists  only of beam jets.
+  Note that at high energy the jet  cross sections  become large; it may be
+  better to  use a  sample of  TWOJET  events with   the  lower limit on pt
+  chosen to give a cross section equal to the  inelastic cross section. 
+    
+
+PHOTON
+
+  Single  and  double  photon   production  through the  lowest   order QCD
+  processes: 
+      gluon + quark     --> photon + quark  
+      quark + antiquark --> photon + gluon  
+      quark + antiquark --> photon + photon 
+  Higher order corrections are not  included. But photons, W's, and Z's are
+  radiated from final state quarks in  all processes, allowing study of the
+  bremsstrahlung contributions. 
+
+
+SUPERSYM
+
+  Production    of  pairs  of    particles in  the    simplest  N=1  global
+  supersymmetry model.  The left and right scalar  partners are  assumed to
+  be   degenerate,  the  same  mixing  is  used  for   photino-zino as  for
+  photon-Z0, and mixings of gauginos  with Higgsinos are ignored.  Then the
+  cross sections are completely  determined by the masses and  the standard
+  model. Included are the  order alphas**2  processes for two  colored susy
+  particles, e.g. 
+
+      gluon + gluon --> gluino + gluino,    
+      gluon + quark --> gluino + squark,    
+
+  and  also the  order   alpha*alphas  processes  for  the  production of a
+  gaugino (photino, wino or zino) 
+
+      gluon + quark     --> gaugino + squark    
+      quark + antiquark --> gaugino + gluino    
+
+  No decay modes are specified, since  these depend strongly on the masses.
+  The user can  either add  new modes to  the decay table  or use the FORCE
+  command. 
+
+
+TWOJET
+
+  All order alphas**2 QCD processes, which give rise in lowest order to two
+  high-pt jets. Included are, e.g. 
+      gluon + gluon --> gluon + gluon,  
+      gluon + quark --> gluon + quark,  
+      gluon + gluon --> quark + antiquark, .... 
+  Masses are neglected for c and lighter quarks but are taken into  account
+  for b and t quarks. The Q**2 scale is taken to be 
+      Q**2 = 2*s*t*u/(s**2+t**2+u**2).  
+  The default  structure functions  are those of  Eichten, Hinchliffe, Lane
+  and Quigg,  Solution I.  Note that  structure functions  for heavy quarks
+  are included, so that processes like 
+      gluon + top --> gluon + top   
+  can be generated. The Duke-Owens  structure functions are also available;
+  these do not contain b or t quarks. 
+
+
+WPAIR
+
+  Production   of  pairs  of  W  bosons  in  the   standard  model  through
+  quark-antiquark annihilation, 
+      quark + antiquark --> W+ + W-,    
+                        --> Z0 + Z0,    
+                        --> W+ + Z0, W- + Z0    
+                        --> W+ + gamma, W- + gamma. 
+  The  full matrix  elemant  for the  W  decays,  calculated in  the narrow
+  resonance     approximation,  is   included.   However, the  higher order
+  processes, e.g. 
+      quark + quark --> quark + quark + W+ + W- 
+  are ignored, although they in fact dominate at high enough mass. 
+
+
+
+                OPTIONAL PARAMETERS
+                -------------------
+
+
+    All commands for optional parameters are in capital letters and 
+have the form:
+COMMAND
+input values/
+the input values may be integer, floating point, character or logical.
+Character string input values must be enclosed in single quotes.
+
+      The parameters can be classified in several groups:   
+    
+Jet Limits:    W Limits:      Decays:        Constants:     Other:  
+    
+JETTYPE1       PHIW           FORCE          CUTJET         BEAMS   
+JETTYPE2       QMH            FORCE1         CUTOFF         NEVOLVE    
+JETTYPE3       QMW            NODECAY        FRAGMENT       NFRGMNT  
+P              QTW            NOETA          GAUGINO        NPOMERON 
+PHI            THW            NOEVOLVE       HMASS          NSIGMA   
+PT             WTYPE          NOFRGMNT       HMASSES        NTRIES   
+TH             XW             NOPI0          LAMBDA         SEED     
+X              YW                            SIGQT          STRUC    
+Y                                            SIN2W          WMMODE   
+WMODE1                                       SLEPTON        WPMODE   
+WMODE2                                       SQUARK         Z0MODE   
+                                             TMASS  
+                                             WMASS  
+                                             XGEN   
+                                             XGENSS 
+
+
+
+-------------------------------------------------------------------
+BEAMS      
+type1,type2
+
+Select initial beams, allowed choices are 'P','AP','N','AN'. The default
+values are 'P','P'.
+
+
+-------------------------------------------------------------------
+CUTJET
+mu    
+
+Cutoff mass (in GeV) for QCD mass evolution. Default value is 6.0.
+
+
+-------------------------------------------------------------------
+CUTOFF                                                                  
+mu2,nu                   .200,1.0                                     
+
+Cutoff qt**2=mu2*Q**nu for DRELLYAN events, default values are mu2=.2 and
+nu=1.0. 
+
+
+-------------------------------------------------------------------
+FORCE                                                                   
+i,i1,...,i5/
+FORCE1
+i,i1,...,i5/
+                                                                     
+      These keywords requires special care. Their list must contain the    
+numerical particle IDENT codes, e.g.    
+FORCE   
+140,130,-120/   
+The charge-conjugate mode is also forced for its antiparticle. Thus the 
+above example forces both AD0 --> K+ PI- and D0 --> K- PI+. If only a   
+specific decay is wanted one should use the FORCE1 command; e.g.    
+FORCE1  
+140,130,-120/   
+only forces AD0 --> K+ PI-. 
+    
+      To force a heavy quark decay one must generally separately force  
+each hadron containing it. If the decay is into three leptons or quarks,    
+then the real or virtual W propagator is inserted automatically. One can    
+force all particles containing a top or 4th generation quark to decay in    
+a given mode by forcing a quark decay. This automatically generates the 
+equivalent FORCE's for the corresponding hadrons. For example,  
+FORCE1  
+6,-12,11,5/ 
+forces all particles containing a top quark to decay into an positron,  
+neutrino and a b-quark (which will be hadronized). If the top mass is   
+greater than the W mass, then the positron and neutrino will come from a    
+real W. 
+    
+      Modes not listed in the decay table are allowed, but caution is   
+advised because a wrong decay mode can cause an infinite loop.  
+    
+      FORCE (FORCE1) can be called at most 20 (40) times in any run plus    
+all subsequent 'SAME' runs. If it is called more than once for a given  
+parent, all calls are listed, and the last call is used. Note that FORCE    
+applies to particles only, but that for gamma, W+, W-, Z0 and   
+supersymmetric particles the same IDENT codes are used both as jet types    
+and as particles.   
+
+
+-------------------------------------------------------------------
+FRAGMENT                                                                
+Pud,...                  
+
+***Fragmentation parameters. See also sigqt, etc.     
+
+
+-------------------------------------------------------------------
+GAUGINO                                                             
+m1,m2,m3,m4              
+
+Masses for gluinos (GLSS), photinos (GMSS), Winos (W+SS) and Zinos (Z0SS).
+The default values are 50.,0.,100.,100.
+
+
+-------------------------------------------------------------------
+HMASS       
+m   
+
+Mass for standard Higgs, defaults value is 0. The range of the
+generated mass is set by QMH.
+
+
+-------------------------------------------------------------------
+HMASSES                                                                  
+m1,...,m9                
+
+Higgs meson masses for charges 0,0,0,0,0,1,1,2,2. The default masses are 0.
+
+
+-------------------------------------------------------------------
+JETTYPE1     
+'GL','UP',...
+JETTYPE2     
+'GL','UP',...
+JETTYPE3     
+'GL','UP',...
+
+Select types for jets. The jet types are
+GL = gluons, 
+UP(UB) = up (anti-)quark     , DN(DB) = down (anti-)quark
+ST(SB) = strange (anti-)quark, CH(CB) = charm 
+BT(BB) = bottom (anti-)quark , TP(TB) = top (anti-)quark
+ X(XB) = 4th gen(anti-)quark , Y (YB) = 4th gen(anti-)quark
+E+(E-) = electrons, MU+ (MU-) = muons, TAU+(TAU-)= tau leptons
+GM = photons, W+(W-) = W boson, Z0 = Z0 boson
+
+Special values
+ALL = allow all jets, QUARKS = allow only quark jets, LEPTONS= allow only
+leptons.
+
+The default value is 'ALL'.
+
+
+-------------------------------------------------------------------
+LAMBDA                                      
+Lambda         
+
+QCD scale parameter. Default value is .2
+
+
+-------------------------------------------------------------------
+NEVOLVE
+nevolutions
+
+This parameter is used to control the maximum number of times the
+evolution of partons for a given reaction will be tried before   
+starting a new event. This is useful to speed up generation of
+jets with heavy quarks and must be used in conjunction with the
+user supplied subroutine REJHVY, see example in the ISAJET library
+(BNLCL6::$2$DUA14:[ISAJET.ISALIBRARY.ISAJET]REJHVY.FOR). 
+
+NOTE: the value of Nevent (in Ecm line) in this case does not correspond
+to the number of accepted events but rather generated events (where each
+attempt at parton evolution is treated as a separate event).
+
+
+-------------------------------------------------------------------
+NFRGMNT
+nfragmentations
+
+This parameter is used to control the maximum number of times the
+fragmentation of partons for a given reaction will be tried before   
+starting a new event. This is useful to speed up generation of
+jets with leptons and must be used in conjunction with the
+user supplied subroutine REJLEP, see example in the ISAJET library
+(BNLCL6::$2$DUA14:[ISAJET.ISALIBRARY.ISAJET]REJLEP.FOR). 
+
+NOTE: the value of Nevent (in Ecm line) in this case does not correspond
+to the number of accepted events but rather generated events (where each
+attempt at parton fragmentation is treated as a separate event).
+
+
+-------------------------------------------------------------------
+NODECAY                                     
+TRUE or FALSE   
+
+If set to true all decays are suppressed. The default value is false.
+Note that evolution and hadronization of jets still takes place.
+
+
+-------------------------------------------------------------------
+NOETA        
+TRUE or FALSE
+
+Supress eta decays, default value is false.
+
+
+-------------------------------------------------------------------
+NOEVOLVE                                                                
+TRUE or FALSE       
+
+Suppress QCD evolution and hadronization. Useful parameter when
+ISAJET is used for computing cross sections. Default value is false.
+
+
+-------------------------------------------------------------------
+NOHADRON                                                                
+TRUE or FALSE            FALSE                                        
+
+Suppress hadronization of jets and beam jets. Useful parameter for
+studies requiring only partons.
+
+
+-------------------------------------------------------------------
+NONUNU                                                                       
+TRUE or FALSE
+ 
+Suppress Z0 neutrino decays. Default value is false.
+
+
+-------------------------------------------------------------------
+NOPI0                                                            
+TRUE or FALSE
+ 
+Suppress pi0 decays. Default value is false.
+
+
+-------------------------------------------------------------------
+NPOMERON                                                                
+n1,n2                    
+
+Allow n1<n<n2 cut pomerons. Controls beam jet multiplicity. The higher
+the value of n1 the higher the minimum multiplicity, the lower the
+value of n2 the lower the maximum multiplicity. The default values are
+n1=1, n2=20.
+
+
+-------------------------------------------------------------------
+NSIGMA                                                                  
+n
+
+Generate n unevolved  events for initial cross  section calculation. The
+default value is 20. The higher that value the more accurate the weights
+for the first events.  If there is no need to  compute the cross section
+and only a small number of events are being generated, setting NSIGMA to
+0 will speed up the initialization considerably.
+
+
+-------------------------------------------------------------------
+NTRIES                                                                   
+n
+
+Stop if after n tries cannot find a good event. The default value is
+1000. If parameters have been set so that only a small percentage of
+phase space is allowed this parameter may need to be increased.
+
+
+-------------------------------------------------------------------
+P                                                                        
+pmin(1),...,pmax(3)                 
+
+Momentum limits for jets. Default values are  1.,.5*Ecm  
+
+
+-------------------------------------------------------------------
+PHI                                                                  
+phimin(1),...,phimax(3)  
+ 
+Phi limits for jets. Default values are 0 to 2pi.
+
+
+-------------------------------------------------------------------
+PHIW             
+phimin,phimax    
+ 
+Phi limits for W. Default values are 0 to 2pi.
+
+
+-------------------------------------------------------------------
+PT or PPERP                                 
+ptmin(1),...,ptmax(3)   
+
+Pt limits for jets. Default for TWOJET only  .05*Ecm,.2*Ecm .
+
+
+-------------------------------------------------------------------
+QMH                                         
+min,max              
+
+Mass limits for higgs meson. Default values .05*Ecm,.2*Ecm. Note that the
+default values do not necessarily overlap the H mass.
+
+
+-------------------------------------------------------------------
+QMW                                         
+qmin,qmax              
+
+Mass limits for W. Default values .05*Ecm,.2*Ecm. Note that the
+default values do not necessarily overlap the W mass, this is a
+mass range set for the DRELLYAN reaction. When requesting W's
+one should set qmin, qmax to something like 70.,90. and when
+requesting Z0 to 80.,100.
+
+
+-------------------------------------------------------------------
+QTW                                                                      
+qtmin,qtmax                          
+
+Qt limits for W. Fix qt=0 for standard Drell-Yan. The default values
+are set to .1,.025*ecm. NOTE: if qtmin is 0 standard Drell -Yan is
+generated, this does NOT include W (or Z0) plus jets.
+
+
+-------------------------------------------------------------------
+SEED                                                                    
+real
+
+Random number seed (double precision if 32 bit). Default value is 0.
+
+
+-------------------------------------------------------------------
+SIGQT                                                                   
+sigma 
+
+***Internal kt parameter for jet fragmentation. Default value is .35.
+
+
+-------------------------------------------------------------------
+SIN2W     
+sin**2(th)
+
+***Weinberg angle, set to .230.
+
+
+-------------------------------------------------------------------
+SLEPTON                  
+m1,...,m6                
+
+Masses for supersymmetric leptons: 
+selectron neutrino (NESS), selectron (E-SS), smuon neutrino (NMSS)
+smuon (M-SS), stau neutrino (NTSS), stau (T-SS).
+Default values 100. + lepton partner mass.
+
+
+-------------------------------------------------------------------
+SQUARK
+m1,...,m6
+
+Masses for supersymmetric quarks:
+up squark (UPSS), down squark (DNSS), strange squark (STSS),
+charm squark (CHSS), bottom squark (BTSS), top squark (TPSS).
+Default values 100.+ quark partner mass
+
+
+-------------------------------------------------------------------
+STRUC                                                                       
+name  
+
+***Structure functions. EICHTEN (EHLQ) or DUKE (DO).         
+Default value is 'EICHTEN'.
+
+
+-------------------------------------------------------------------
+TH or THETA                                                             
+thmin(1),...,thmax(3)
+
+Theta limits for jets in radians. Do not set both TH and Y.   
+Default values are 0 to pi.
+
+
+-------------------------------------------------------------------
+THW                                                                     
+thmin,thmax              0,pi                                          
+
+Theta limits for W in radians. Do not set both THW and YW.         
+Default values are 0 to pi.
+
+
+-------------------------------------------------------------------
+TMASS        
+mt,my,mx     
+
+Masses for top and 4th generation quarks. The default values
+are 140. for top and -1. for the 4th generation quarks. If the
+mass for the 4th gen. is <0 those quarks are not generated.
+
+
+-------------------------------------------------------------------
+WMASS
+mw,mz
+
+Masses for W and Z. Default values are 80.0 and 91.0. Note that
+the mass range for W and Z generation are set by QMW.
+
+
+-------------------------------------------------------------------
+WMMODE         
+'UP',...,'TAU+'
+
+Decay modes for W- in parton cascade. See JETTYPE. Default is 'ALL'.
+
+
+-------------------------------------------------------------------
+WMODE1         
+'UP','UB',...  
+WMODE2         
+'UP','UB',...  
+
+Decay modes for WPAIR. See JETTYPE. Default is 'ALL'.
+
+
+-------------------------------------------------------------------
+WPMODE         
+'UP',...,'TAU+'
+
+Decay modes for W+ in parton cascade. See JETTYPE. Default is 'ALL'.
+
+
+-------------------------------------------------------------------
+WTYPE                                                                    
+type1,type2
+
+Select W type: W+,W-,GM (gamma) and Z0.  Do not mix W+,W- and GM,Z0.  
+Default values 'GM','Z0'.
+
+
+-------------------------------------------------------------------
+X                                           
+xmin(1),...,xmax(3)
+
+Feynman x limits for jets.  Default values are -1. to 1.
+
+
+-------------------------------------------------------------------
+XGEN                   
+a(1),...,a(8)          
+
+*** Parameters for jet fragmentation, Peterson fragmentation with
+Eps=xgen/m**8 for n=4-8.
+Default values are ????
+
+
+-------------------------------------------------------------------
+XGENSS                                      Fragmentation of GLSS, UPSS,    
+a(1),...,a(7)            .5,.5,...          etc. with eps=xgenss/m**2   
+
+Parameters for jet fragmentation of supersymmetric quarks and gluons
+with eps=xgenss/m**2.
+Default values are .5,....,.5
+
+
+-------------------------------------------------------------------
+XW                                          
+xmin,xmax
+
+Feynman x limits for W. Default values -1. to 1.
+
+
+-------------------------------------------------------------------
+Y                                                                        
+ymin(1),...,ymax(3)      
+
+Y limits for each jet. Do not set both Y and TH.    
+The default range depends on pt range.
+
+
+-------------------------------------------------------------------
+YW                                                                       
+ymin,ymax    
+ 
+Y limits for W. Do not set both Y and TH.    
+Default range depends on QTW range.
+
+
+-------------------------------------------------------------------
+Z0MODE                                                                      
+'UP',...,'TAU+'  
+ 
+Decay modes for Z0 in parton cascade. See JETTYPE.        
+Default is 'ALL'.
+
+
+-------------------------------------------------------------------
+
+
+
+                EXAMPLES
+                --------
+
+
+    Examples of input files for ISAJET:
+
+
+100 GeV Jets at 2 TeV in y range -1.0 - 1.0
+2000.00, 10, 0, 1/
+TWOJET  
+PT      
+100.0,120.0/
+Y       
+-1.0,1.0/
+END     
+STOP                                                                            
+
+Heavy top with TP decaying to mu+.
+2000.,10, 2, 1/
+TWOJET  
+JETTYPE1
+'TP','TB'/
+JETTYPE2
+'TP','TB'/
+TMASS   
+180./
+FORCE1
+6,-14,13,5/
+END     
+STOP                                                                            
+
+W + jets at 2 TeV decaying to e's and mu's
+2000.00, 100, 1, 1/
+DRELLYAN
+JETTYPE1
+'E+','E-','NUE','MU+','MU-','NUM'/
+WTYPE   
+'W+','W-'/
+QMW     
+70.0,90.0/
+QTW     
+40.,120./
+YW      
+-2.5,2.5/
+END     
+STOP                                                                            
+
+W pairs with one W decaying to e + nu.
+2000.,200,1,1/
+WPAIR   
+PT      
+10.,100.,10.,100./
+Y
+-2.5,2.5,-2.5,2.5/
+JETTYPE1
+'W+','W-'/
+JETTYPE2
+'W+','W-'/
+WMODE1  
+'E+','E-','NUS'/
+WMODE2  
+'UP','DN','UB','DB','CH','CB','ST','SB'/
+END     
+STOP                                                                            
+
+
+HIGGS to Z0,Z0 at 40 TeV, Z0 to e's and mu's
+40000.00, 10, 1, 1/
+HIGGS   
+QMH     
+600.,1000./
+HMASS   
+800./
+WMODE1
+'MU+','MU-','E+','E-'/
+WMODE2
+'MU+','MU-','E+','E-'/
+PT
+50.,1000.,50.,10000./
+JETTYPE1
+'Z0'/
+JETTYPE2
+'Z0'/
+END     
+STOP                                                                            
+
+SUPERSYMMETRY at 40 TeV
+40000,100,1,1/   
+SUPERSYM    
+PT  
+50,100,50,100/  
+JETTYPE1    
+'GL'/   
+JETTYPE2    
+'GL'/   
+GAUGINO 
+300,5,200,200/   
+FORCE   
+29,30,1,-1/ 
+END 
