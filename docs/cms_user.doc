@@ -1,0 +1,157 @@
+                                                    John Featherly
+                                                  Serban Protopopescu
+                                                    Nov. 11,1988
+                                                  Updated Nov.8,1991
+
+                        Bare Bones CMS Interaction
+
+
+        Anyone developing code that is being maintained using CMS at BNL should
+read this  note. All CMS  transactions  shown below  do not show  the 'Remark:'
+prompt that accompanies them. The remark you supply should be a brief, meaning-
+ful as possible, comment on the associated transaction. While it is possible to
+supply a null  remark, it is  advised that  you only do so  with a FETCH trans-
+action.  To be  able to  modify  code  in any  given  CMS  library you must get
+authorization  from the  library CZAR, to  find the czar's  name and address of
+library XXXX you simply:
+
+$ SHOW LOGICAL D0$XXXX$CZAR
+
+You can send mail  messages to any czar using the  logical name. 
+
+    Interactions with the CMS library involving creating, deleting, moving
+or replacing elements should be done using CMSINTERFACE, invoked simply by
+
+$ CMSINT
+
+for details on that program see D0$DOCS:CMS_INTERFACE.DOC. Below we list
+items the D0 CMS user should be aware of:
+
+        1. General
+                A "CMS Library" contains a set of "elements" and possibly an
+        associated structure on that set.  The structure consists of "groups"
+        and "classes".  Any element in the set can be changed (in any way, but
+        USUALLY incrementally) thereby producing a new "generation" of the
+        element.  A group consists of any subset of element names, any number
+        of groups are allowed (disjoint or overlapping).  A class consists of
+        a specific generation of any number of elements.  It may help to think
+        of a class as a temporal structure and a group as a spatial structure.
+                Operations on a CMS library consist of a number of transaction
+        commands.  Any operation that changes the library is recorded in the
+        library history accompanied by the operators ID and remarks.
+
+        2. Access
+        Get a FNALD0 account, requests should be made to FNALD0::HOLZMAN.
+        You must also request that the D0CMS identifier with resource attribute
+        be granted to you.  Login to the FNALD0 VAX cluster (your login file
+        should execute the D0LOCAL command to setup the necessary symbols)
+        and issue a CMS set library command.  Say you were working on D0GEANT:
+
+                $ CMS SET LIB D0$CMS:[D0GEANT]
+
+        3. See what's in the library;
+                $ CMS SHOW GROUPS/CONTENTS      ! Displays elements by group
+                $ CMS SHOW ELEMENTS             ! Displays all elements
+                $ CMS SHOW CLASS/CONTENTS       ! Displays generations by class
+                $ CMS SHOW HISTORY              ! Displays entire history
+                $ CMS SHOW HISTORY ANLCAL.FOR   ! Displays history of ANLCAL.FOR
+                $ CMS SHOW RESERVATIONS         ! Displays reserved elements
+                        .
+                        .
+                        .
+
+        4. To modify an existing element it should first be reserved
+                $ CMS RESERVE ANLCAL.FOR        ! Puts ANLCAL.FOR in your
+                                                ! default directory
+                $ CMS UNRESERVE ANLCAL.FOR      ! Cancel reservation without
+                                                ! replacement or deletion
+
+        5. To create or replace elements you should use CMSINTERFACE
+           instead of CMS CREATE or CMS REPLACE. This is particularly
+           important for ofline code to ensure that files are checked
+           for conforming to offline standards. For details on CMSINTERFACE
+           see D0$DOCS:CMS_INTERFACE.DOC
+
+        6. Working with groups and wildcards
+                Where ever an element name (like ANLCAL.FOR above) appears, a
+        group name or element name with wildcard characters is also allowed.
+        Typically, you will use the /CONFIRM switch when giving an element
+        expression that evaluates to more than a single element.
+                $ CMS RESERVE/CONFIRM CAL       ! Reserves elements in the CAL
+                                                ! group selectively.  You will
+                                                ! be prompted for a Y/N response
+                                                ! to each element name.
+                $ CMS RESERVE/CONFIRM A*.FOR    ! Selectively reserves all
+                                                ! elements that begin with 'A'
+                                                ! and end with '.FOR'
+
+
+        7. Checking out an element for reading only
+                $ CMS FETCH ANLCAL.FOR ""       ! Puts ANLCAL.FOR in your
+                                                ! default directory without
+                                                ! reserving it.  The empty
+                                                ! string "" tells CMS that this
+                                                ! transaction will not be re-
+                                                ! corded in the library history.
+                                                ! A <CR> response to the
+                                                ! 'Remark:' prompt is equivalent
+                                                ! This is the only anonomyous
+                                                ! (unrecorded) transaction that
+                                                ! you can perform.
+                $ CMS FETCH/CONFIRM CAL ""      ! Selective fetch
+
+
+        8. Creating Classes & Defining new releases
+
+                The words 'generation' and 'version' will be used interchangably
+        when referring to an element.  The policy for release class names is
+        that they will be 'Vn.mm_ll' where n increments for "major" official
+        releases (mm is reset to 00, ll is not present), mm for "minor" official
+        releases (_ll is not present) and ll for test releases. The time order
+        of version names is:
+                Vn.mm_01, Vn.mm_02...Vn.mm+1, Vn.mm+1_01...Vn.mm_2...Vn+1.00
+        This is the "ASCII" order. 
+
+                You can also define classes for non-release use and give them
+        any name like 'MyBestVersion7.1'. 
+
+                $ CMS CREATE CLASS V3.17        ! Defines the class name 'V3.17'
+                $ CMS INSERT GENERATION ANLCAL.FOR V3.17
+                                                ! Puts the most recent version
+                                                ! of ANLCAL.FOR into class V3.17
+                $ CMS INS GEN/CON CAL V3.17     ! Selective insert into V3.17
+                $ CMS INS GEN/GEN=n ANLCAL.FOR V3.17
+                                                ! Inserts generation 'n' of
+                                                ! ANLCAL.FOR into V3.17 (where
+                                                ! 'n' is not necessarily the
+                                                ! most recent version)
+                $ CMS REMOVE GENERATION ANLCAL.FOR V3.17
+                                                ! Removes whatever version of
+                                                ! ANLCAL.FOR that happens to be
+                                                ! in V3.17 from the class.
+
+        9. Using groups
+                $ CMS CREATE GROUP CAL          ! Adds the group CAL
+                $ CMS INSERT ELEMENT ANLCAL.FOR CAL
+                                                ! Puts the element name
+                                                ! ANLCAL.FOR into the CAL group
+                $ CMS INSERT ELEMENT/CONFIRM *.FOR CAL
+                                                ! Selective insert
+                $ CMS INSERT ELEMENT MUO CAL    ! Puts entire contents of MUO
+                                                ! group into CAL group
+                $ CMS REMOVE ELEMENT ANLCAL.FOR CAL
+                                                ! Removes ANLCAL.FOR from CAL
+                $ CMS REMOVE ELEMENT/CONFIRM *.* CAL
+                                                ! Selective removal
+
+        10. Help
+                The manuals and pocket guide are useful, there is of course
+        online help via $ CMS HELP, and $ HELP CMS.
+
+
+        11. Releases
+                Before a release of a given library users should
+        update the release notes using the RELEASE_NOTES program.
+        A release can only be requested by the library CZAR (see
+        D0$DOCS:LIBRARY_CZARS.LIST), so users should contact them
+        if they a want a release to occur.

@@ -1,0 +1,53 @@
+                EVENT LISTS
+                                    S. Protopopescu
+                                    June 23,1992
+
+
+    The   EVENT_UTIL   library  (part of   GENERAL)  has a  set of  utility
+subroutines useful for making and using lists of events. Event lists have a
+very simple format:
+
+run_number   number_of_events_in_run
+event_id1  event_id2  event_id3 ......
+run_number   number_of_events_in_run
+event_id1  event_id2  event_id3 ......
+    :         :         :
+    :         :         :
+
+Example:
+
+43112 4
+211 300 411 500
+44335 1
+125
+
+
+    The  EV_MERGE_LISTS program will  read lists with  the above format and
+merge  them into  one. It  expects a  file  defined to  logical  FILE_NAMES
+containing a list of names for the files with event lists.
+Example:
+
+$ DEFINE FILE_NAMES FILE_NAMES.LIST
+
+FILE_NAMES.LIST:
+EVENT.LIST1
+EVENT.LIST2
+EVENT.LIST3
+  :
+  :
+
+the contents of each event list file is as described above. The contents of
+the files are  merged and sorted so  that the resulting  file (logical name
+EVENT_LIST) has the runs  and events in ascending  order. This file is read
+by the PICK_EVENTS package which then writes one file per event on list.
+
+One can create an event list from inside a program selecting events
+by simply calling the utility: 
+
+        CALL EV_ADD_TO_LIST(run_number,event_id)
+
+each time you select an event. At the end of job one must then call
+
+        CALL EV_WRITE_LIST
+
+to write the list to the file EVENT_LIST.

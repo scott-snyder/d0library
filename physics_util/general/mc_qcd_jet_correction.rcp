@@ -1,5 +1,5 @@
 \START    QCD_JET_CORRECTION_RCP
-\SIZE        364       170
+\SIZE       1716       267
 !----------------------------------------------------------------------
 !    Name:       QCD_JET_CORRECTION.RCP
 !    Package:
@@ -9,6 +9,11 @@
 !    Created:     5-JUL-1993   Richard V. Astur
 !    Updated:     8-JUL-1993   Meenakshi Narain  add HVSCALE parameter
 !    Updated:    Aug-15-1995   Bob Kehoe, Rich Astur -- updated for version 5.0
+!    Updated:    10-JAN-1997   Bob Hirosky  updated for version 5.1
+!    Updated:     7-FEB-1997   Ela Barberis MC updated for version 5.1
+!                              !!CAVEAT!! cone size 1.0 to be implemented,
+!                              for now 1.0 uses the 0.7 corrections
+!!! These correction have been derived using Reco 12 Monte Carlo !!!
 !----------------------------------------------------------------------
 !
 !       General switches and settings for jet corrections
@@ -24,11 +29,16 @@
 !           events taken at a luminosity of 10E30.
 !
 !----------------------------------------------------------------------
+RECO_DEFAULT                 12 ! default reconstruction (eg. use if ntuple)
 MC_RCP                        1 ! 0/1 = This RCP file is for DATA/MC
-RECO_DEFAULT                 10 ! default reconstruction (eg. use if ntuple)
-DO_BIAS_CORRECTION            F ! switch for low Et bias correction
-DO_DET_SCALE_CORRECTION       F ! switch for ICD/cryostat/HV corrections
-DO_WIDTH_CORRECTION           T ! switch for RMS-dependence of response
+    MC_LUMIN               -1.0 ! [-1.0] MC Overlap Luminosity value
+                                ! in units of 10E30
+                                ! 0.0 = noise only, -1.0 = no overlap
+DO_BIAS_CORRECTION            T ! switch for low Et bias correction
+    UNBIAS_ALL_JETS           T ! unbias all jets or only some
+    NJETS_TO_UNBIAS          20 ! if not all, unbias this many
+DO_DET_SCALE_CORRECTION       T ! switch for ICD/cryostat/HV corrections
+    DO_ETA_CORRECTION         T ! do eta dependent jet correction [T]
 DO_RESPONSE_CORRECTION        T ! switch for energy dependence of response
 !
 \ARRAY MIN_JET_ET               ! order is 0.3, 0.5, 0.7, NN, 1.0
@@ -39,56 +49,244 @@ DO_RESPONSE_CORRECTION        T ! switch for energy dependence of response
 !   MPF low Et correction for RECO Et cut bias
 !
 !--------------------------------------------------------------------------
-max_bias        1.30            ! maximum allowed correction, 1.3 recommended
+max_bias        1.30   ! maximum allowed correction, 1.3 recommended from V5.0
 !
-\ARRAY LOW_ET_SYS
-    0.050   0.005
+\ARRAY MPF_BIAS7
+    5.584   -0.6783
 \END
-\ARRAY LOW_ET_BIN
-    10.0     15.0
+\ARRAY MPF_BIAS7_MIN
+    8.55    -1.03
+\END
+\ARRAY MPF_BIAS7_MAX
+    4.90    -0.55
 \END
 !
-\ARRAY MPF_RLOW5
-     4.637483       -0.6241091
+\ARRAY MPF_BIAS5
+    6.337   -0.744
 \END
-\ARRAY MPF_RLOWNN
-    -0.9387968      -0.1989768
+\ARRAY MPF_BIAS5_MIN
+    9.303   -1.0957
 \END
-\ARRAY MPF_ERRLOW5
-     0.5024800       0.04946254
+\ARRAY MPF_BIAS5_MAX
+    5.653   -0.6157
 \END
-\ARRAY MPF_ERRLOWNN
-     0.9266858       0.08468062
+!
+\ARRAY MPF_BIAS3
+    6.079   -0.7103
+\END
+\ARRAY MPF_BIAS3_MIN
+    9.045   -1.062
+\END
+\ARRAY MPF_BIAS3_MAX
+    5.395   -0.582
+\END
+!
+\ARRAY MPF_BIAS1
+    5.584   -0.6783
+\END
+\ARRAY MPF_BIAS1_MIN
+    8.55    -1.03
+\END
+\ARRAY MPF_BIAS1_MAX
+    4.90    -0.55
+\END
+!
+!----------------------------------------------------------------------
+! For Underlying event - allow paramatrization in terms of luminosity only
+! or luminosity and MITOOL
+! Also allow for special traetment of split or merged jets
+!                                              (if are info available)
+!----------------------------------------------------------------------
+    USE_LUM_AND_MI          .FALSE.    ! use lum and mitool info to get offset
+                                       ! Don't set .true. for MC!!!!
+    USE_RECO_AREA           .FALSE.    ! use true area of jet to scale offest
+!----------------------------------------------------------------------
+! New NOISE/ZSP/added event ET densities by Gian Di Loreto (1800 GeV)
+!   A1,..,A8   (note: 8 parameters are expected in the arrays below!)
+!     ETDENS = A1 + A2*X + A3*SIN(A4*X-A5) + A6*SIN(A7*X-A8)
+! or by John Krane (630 GeV)
+!     ETDENS = A1 / (1+A2*(10*X)**A3) + A4 / (1+A5*(3*X)**A6)
+!----------------------------------------------------------------------
+! note: to use 630 offset params w/ MC data, the LUM_LIST ad ZSP_LUM*
+!       arrays must be replaced w/ those from the 630 data rcp file
+!       before setting USE_630_MODEL to .TRUE.
+!----------------------------------------------------------------------
+\ARRAY LUM_LIST  ! luminosity values for density measurements in units 10E30
+  0.100   3.347   5.105   10.05   13.85
 \END
 !----------------------------------------------------------------------
+USE_630_MODEL                 F ! Switch for 630 data (chooses noise model) [F]
+!----------------------------------------------------------------------
+! ZSP densities averaged over MITOOL VALUES
+!----------------------------------------------------------------------
+\ARRAY ZSP_LUM
 !
-! Underlying Event and Zero suppression
-! Underlying Event from Min Bias events (difference between MI=1,2 and 3,4)
-! Noise is assumed to be the rest.
+! 0.3 Cone Radius, <MITOOL>
+!   L=0          3            5           10          14
+  -1.15300    -0.14372     1.12144     7.36676   -16.34912   !a1
+   6.88137     7.07329     5.67875     5.32569     1.94971
+  78.17002    77.61558    81.33154    88.35049    33.93677
+  -0.09174    -0.09631    -0.07322    -0.06397    -0.06949
+  -0.02372    -0.01485     0.00190     0.07012    -0.54589
+  -0.04689     0.12527    -0.04378     0.09600     0.07521
+  -2.68687    -1.27565    -2.96290    -3.40462    -3.44148
+  13.35141    13.37119     6.00978     7.79452     8.21427   !a8
 !
-!-----------------------------------------------------------------------
-UNDER_A0_DENSITY         .310                 ! Gev/radian/unit eta
-UNDER_A1_DENSITY         .034                 ! UEV = A0 + A1*ABS(ETA)
-UNDER_ICD_DENSITY        .000                 ! extra in ICR
-UNDER_ERROR              .100                 ! error
+! 0.5 Cone Radius, <MITOOL>
+!   L=0          3            5           10          14
+  -0.23448    22.97065     1.36830     7.66091   -16.02727
+   7.09089    -0.29044     6.27184     5.63426     1.35506
+  77.39870    68.94606    80.62361    88.10899    34.29438
+  -0.09613    -0.01119    -0.08214    -0.06862    -0.05264
+  -0.01353     0.28629     0.00294     0.07097    -0.53783
+  -0.04899     2.70919     0.04717     0.09553     0.08005
+  -2.60648     0.34041    -2.94053    -3.42409    -3.51636
+  13.47089     1.10333     9.17165     7.80328     8.08097
 !
-! NO NOISE for MC version!
-ZEROZSP_A0_DENSITY       .0                   ! GeV/radian/unit eta
-ZEROZSP_A1_DENSITY       .0                   ! N = A0 + A1*sin(theta)
-ZEROZSP_ICD_DENSITY      .000                 ! extra in ICR
-ZEROZSP_ERROR            .00                  ! error
-!---------------------------------------------------------------------
-! Number of interactions is taken from the luminosity as determined by
-! GETLUM when (USE_LUM = .TRUE. ). Use luminosity to determine the number
-! of extra interactions.
-!       #   = 1 + sigma*tcross*lum
-!                   sigma = 49 mbarns
-!                   tcross= 3.5 usec
-!       NUM_PER_LUM = .1715 (# interactions per 1E30 luminosity)
-! If ( USE_LUM = .FALSE. ), #=1 (MITOOL=1,2), #=2 (MITOOL=3,4)
-!--------------------------------------------------------------------------
-USE_LUM             FALSE           ! Use luminosity dependence. Else MITOOL
-NUM_PER_LUM         .1715           ! =1.715 interactions at 10E30
+! 0.7 Cone Radius, <MITOOL>
+!   L=0          3            5           10          14
+   0.24507     0.08829     1.48954     7.94059   -15.70648
+   7.33026     7.06992     6.31339     5.83965     0.72994
+  76.60065    76.82295    80.50377    87.91165    35.03701
+  -0.10098    -0.09748    -0.08324    -0.07186    -0.03390
+  -0.00874    -0.01357     0.00314     0.07219    -0.52186
+  -0.05343     0.05271     0.04814     0.10022     0.08743
+  -2.48549    -1.94249    -2.77612    -3.42165    -3.54753
+  13.71971    11.54619     9.41516     7.82953     8.00134
+!
+! 1.0 Cone Radius, <MITOOL>
+!   L=0          3            5           10          14
+   0.66495     0.34494     3.23588     8.17344   -15.25358
+   7.53613     7.20740     6.71214     6.06442    -0.14593
+  76.09792    76.72231    79.37680    87.22218    35.98248
+  -0.10505    -0.09985    -0.09059    -0.07573    -0.00758
+  -0.00455    -0.01143     0.02325     0.07339    -0.49870
+  -0.05940     0.04994     0.05636     0.11101     0.09999
+  -2.40307    -2.19283    -2.91650    -3.40395    -3.53158
+  13.87629    10.78895     9.14419     7.89515     8.00660
+\END
+!----------------------------------------------------------------------
+! ZSP densities for MITOOL=1,2
+!----------------------------------------------------------------------
+\ARRAY ZSP_LUM_MI1
+!
+! 0.3 Cone Radius, MITOOL=1,2
+!   L=0          3            5           10          14
+  -1.15300    16.97560     0.77766     7.95269     7.97902    !a1
+   6.88137    -7.71868     4.84855     6.36440     6.23357
+  78.17002   -44.16119    84.97803    88.51502    86.88609
+  -0.09174    -0.17214    -0.05982    -0.07641    -0.07703
+  -0.02372    -0.36191    -0.00325     0.07897     0.08006
+  -0.04689     0.04831     0.05351    -0.08505     0.07786
+  -2.68687    -4.38580    -3.08285    -3.37758    -3.52268
+  13.35141     6.34391     8.95224     4.54035     7.55782    !a8
+!
+! 0.5 Cone Radius, MITOOL=1,2
+!   L=0          3            5           10          14
+  -0.23448    18.66015     1.54707     8.39022     8.35138
+   7.09089    -7.99954     5.67484     6.66378     6.46609
+  77.39870   -44.59672    84.80368    89.54646    86.59865
+  -0.09613    -0.17614    -0.07059    -0.07982    -0.08104
+  -0.01353    -0.39447     0.00381     0.08054     0.08184
+  -0.04899     0.04669     0.05600     0.08244     0.08191
+  -2.60648    -4.27326    -3.07182    -3.39970    -3.55606
+  13.47089     6.63470     8.94771     7.65257     7.55491
+!
+! 0.7 Cone Radius, MITOOL=1,2
+!   L=0          3            5           10          14
+   0.24507    18.76574     1.18426     7.12421     7.14476
+   7.33026    -7.60209     6.11148     5.03167     4.98648
+  76.60065   -44.42327    81.33028    90.13506    90.33872
+  -0.10098    -0.16708    -0.07966    -0.06031    -0.06025
+  -0.00874    -0.39635    -0.00212     0.06550     0.06476
+  -0.05343     0.04372     0.05997     0.07901     0.07210
+  -2.48549    -4.09274    -3.03747    -2.34732    -3.82359
+  13.71971     6.97948     8.98312     9.55724     7.19001
+!
+! 1.0 Cone Radius, MITOOL=1,2
+!   L=0          3            5           10          14
+   0.66495    18.94910     1.76048     5.64462     8.86628
+   7.53613    -7.21062     6.43908     7.45753     6.75382
+  76.09792   -44.18932    80.17730    90.03245    86.10218
+  -0.10505    -0.15851    -0.08563    -0.08918    -0.08642
+  -0.00455    -0.40109     0.00342     0.04597     0.08400
+  -0.05940    -0.01545     0.06530     0.09382     0.10577
+  -2.40307   -10.26791    -3.02919    -3.39726    -3.54317
+  13.87629   -12.46883     8.96106     7.72100     7.65341
+\END
+!----------------------------------------------------------------------
+! ZSP densities for MITOOL>2
+!----------------------------------------------------------------------
+\ARRAY ZSP_LUM_MI3
+!
+! 0.3 Cone Radius, MITOOL>2
+!   L=0          3            5           10          14
+  -1.15300    19.37670     13.47660    12.24173     1.26768   !a1
+   6.88137    -9.61306     -7.37657    -6.48087    -6.30593
+  78.17002   -44.03419    -43.01804   -42.50207   -60.78699
+  -0.09174    -0.21657     -0.16886    -0.14811    -0.10236
+  -0.02372    -0.40528     -0.27647    -0.24716     0.00780
+  -0.04689     0.12113      0.10258     0.12494     0.11371
+  -2.68687    -4.27651     -3.70540    -3.59960    -3.55805
+  13.35141     6.88259      7.75731     7.73935     8.03352   !a8
+!
+! 0.5 Cone Radius, MITOOL>2
+!   L=0          3            5           10          14
+  -0.23448    19.79287    12.46136    10.51405     1.42778
+   7.09089    -9.51795    -6.09274    -5.50659    -6.24982
+  77.39870   -44.16159   -41.30397   -41.60935   -60.41017
+  -0.09613    -0.21262    -0.14174    -0.12591    -0.10077
+  -0.01353    -0.41054    -0.25564    -0.20526     0.00934
+  -0.04899     0.11597     0.11002     0.12511     0.11809
+  -2.60648    -4.20506    -3.46570    -3.51928    -3.58614
+  13.47089     7.02968     8.23786     7.95384     8.03783
+!
+! 0.7 Cone Radius, MITOOL>2
+!   L=0          3            5           10          14
+   0.24507    20.04940    12.46136     8.75515     2.30918
+   7.33026    -9.38558    -6.09274    -4.50085    -5.64723
+  76.60065   -43.74444   -41.30397   -41.38894   -61.78050
+  -0.10098    -0.21073    -0.14174    -0.10074    -0.08678
+  -0.00874    -0.41802    -0.25564    -0.15934    -0.00091
+  -0.05343     0.11329     0.11002     0.12944     0.13083
+  -2.48549    -4.15195    -3.46570    -3.45107    -3.53657
+  13.71971     7.12768     8.23786     8.11361     8.06674
+!
+! 1.0 Cone Radius, MITOOL>2
+!   L=0          3            5           10          14
+   0.66495    20.50844    13.19751     6.98348     2.91968
+   7.53613    -9.28241    -5.77094    -3.08343    -5.24823
+  76.09792   -43.81514   -41.74722   -40.41919   -62.75111
+  -0.10505    -0.20718    -0.13146    -0.06668    -0.07778
+  -0.00455    -0.42567    -0.26775    -0.11510    -0.00725
+  -0.05940     0.11163     0.11579     0.13910     0.14640
+  -2.40307    -4.06687    -3.41043    -3.39778    -3.49924
+  13.87629     7.26865     8.34160     8.23965     8.11713
+\end
+!----------------------------------------------------------------------
+! error estimate for noise/addevt offset  (percent of nominal value)
+!----------------------------------------------------------------------
+ZSP_DENS_ERROR  0.094           ! Gian's 8% stat and 5% fit errors
+ZSP_DENS_SYS    0.25            ! 0.25 GeV error in occupancy correction
+!----------------------------------------------------------------------
+! Physics underlying event  !** From HERWIG dijets events
+!----------------------------------------------------------------------
+\ARRAY PUE_ET_DENSITY  ! 20 bins ieta 1->37
+  0.4           0.4           0.4           0.4           0.4
+  0.4           0.4           0.4           0.4           0.4
+  0.4           0.4           0.4           0.4           0.4
+  0.4           0.4           0.4           0.4           0.4
+\END
+!----------------------------------------------------------------------
+! error estimate for PUE offset  (percent of nominal value)
+!----------------------------------------------------------------------
+PUE_DENS_ERROR  0.2     ! small statistical error only
+!----------------------------------------------------------------------
+! OLD CAFIX V4.2  Underlying event and noise densities
+! used to convert offest energy words to jet area for reco 12.20(1) data
+!----------------------------------------------------------------------
+UNDER_DENSITY_V_4_2            .60              ! Gev/radian/unit eta
+UNDER_ICD_DENSITY_V_4_2        .44              ! "   " extra in ICR region
 !-------------------------------------------------------------------
 !
 ! HV SCALE:
@@ -98,27 +296,27 @@ NUM_PER_LUM         .1715           ! =1.715 interactions at 10E30
 ! version cannot be determined (QCD MDST), RECO_DEFAULT is used.
 !
 !-----------------------------------------------------------------
-HVSCALE_CCEM        1.0        ! from csf_hv.rcp
-HVSCALE_ECEM        1.0
-HVSCALE_CCHAD       1.0
-HVSCALE_ECHAD       1.0
+HVSCALE_CCEM        1.015      ! from csf_hv.rcp
+HVSCALE_ECEM        1.016
+HVSCALE_CCHAD       1.023
+HVSCALE_ECHAD       1.019
 !-----------------------------------------------------------------
 !
 ! Sampling fraction changes for reco v11 to v12
 !
 !-----------------------------------------------------------------
-CCEM_SAMPLE         1.0
-ECEM_SAMPLE         1.0
-CCFH_SAMPLE         1.0
-ECFH_SAMPLE         1.0
-CCCH_SAMPLE         1.0
-ECCH_SAMPLE         1.0
-CCEM_SAMPLE_ERR     0.0
-ECEM_SAMPLE_ERR     0.0
-CCFH_SAMPLE_ERR     0.0
-ECFH_SAMPLE_ERR     0.0
-CCCH_SAMPLE_ERR     0.0
-ECCH_SAMPLE_ERR     0.0
+CCEM_SAMPLE         0.995
+ECEM_SAMPLE         0.990
+CCFH_SAMPLE         1.051
+ECFH_SAMPLE         0.980
+CCCH_SAMPLE         1.051
+ECCH_SAMPLE         0.987
+CCEM_SAMPLE_ERR     0.005
+ECEM_SAMPLE_ERR     0.002
+CCFH_SAMPLE_ERR     0.001
+ECFH_SAMPLE_ERR     0.005
+CCCH_SAMPLE_ERR     0.001
+ECCH_SAMPLE_ERR     0.001
 !--------------------------------------------------------------------
 !
 ! ICD SCALE
@@ -140,19 +338,109 @@ ECCH_SAMPLE_ERR     0.0
     15.5    28.5    52.0    88.6    122.6
     13.6    23.4    46.1    81.4    115.8
 \END
-icd_sys           0.0           ! sys. error on ICD corr. in region 1.0<eta<1.5
+icd_sys           0.02          ! sys. error on ICD corr. in region 1.0<eta<1.5
 !--------------------------------------------------------------------------
 !
 !   cryostat scale corrections
 !
 !--------------------------------------------------------------------------
-cc_boost          1.0           ! raw CC scale for D0 data
+cc_boost          1.00          ! raw CC scale for D0 data
 !
-cryo_sys          0.0           ! systematic error in EC
-ecn_factor        1.0           ! ECN scale relative to CC
-ecn_error         0.0
-ecs_factor        1.0           ! ECS scale relative to CC
-ecs_error         0.0
+cryo_sys          0.02236       ! systematic error in EC
+ecn_factor        1.037         ! ECN scale relative to CC
+ecn_error         0.004
+ecs_factor        1.037         ! ECS scale relative to CC
+ecs_error         0.004
+!--------------------------------------------------------------------------
+!
+!  Correct for eta dependence (see routine eta_dependence.for)
+!  Eta dependence is fit in bins of 0.1 in eta from 0 to 2.0
+!  correction factor =m*et+b for each conesize
+!  i.e. pb3   b for positive eta conesize=0.3
+!       nm7   m for negative eta conesize=0.7
+!
+!--------------------------------------------------------------------------
+\ARRAY ETA_ERR_BINS
+0.0  0.5  1.0  2.5  3.0  4.0
+\END
+\ARRAY ETA_CORR_ERR             ! eta-dep error: extrap. from 0-1% for eta=.5-1
+0.00 0.00 0.01 0.01 0.03 0.03   ! extrap. from 1%-3% from eta=2.5-3.0
+\END
+!
+! positive eta
+\ARRAY PB3
+    1.0    1.0   1.0   1.0   1.0   1.005   1.009  1.028  1.03   1.039
+    1.029  .92   .98   .99   .98   1.006   1.034  1.019  1.032  1.017
+\END
+\ARRAY PM3
+       0   0   0   0   0    0       0      -.00005   0      0
+     -.00007   .00014 -.00006  0   .00011   .00006 -.00011
+       0      -.00015  .00007
+\END
+\ARRAY PB5
+    1.0    1.0   1.0   1.0   1.0   1.005   1.009  1.028  1.03   1.039
+    1.029  .92   .98   .99   .98   1.006   1.034  1.019  1.032  1.017
+\END
+\ARRAY PM5
+       0   0   0   0   0    0       0      -.00005   0      0
+     -.00007   .00014 -.00006  0   .00011   .00006 -.00011
+       0      -.00015  .00007
+\END
+\ARRAY PB7
+    1.0    1.0   1.0   1.0   1.0   1.005   1.009  1.028  1.03   1.039
+    1.029  .92   .98   .99   .98   1.006   1.034  1.019  1.032  1.017
+\END
+\ARRAY PM7
+       0   0   0   0   0    0       0      -.00005   0      0
+     -.00007   .00014 -.00006  0   .00011   .00006 -.00011
+       0      -.00015  .00007
+\END
+\ARRAY PB10
+    1.0    1.0   1.0   1.0   1.0   1.005   1.009  1.028  1.03   1.039
+    1.029  .92   .98   .99   .98   1.006   1.034  1.019  1.032  1.017
+\END
+\ARRAY PM10
+       0   0   0   0   0    0       0      -.00005   0      0
+     -.00007   .00014 -.00006  0   .00011   .00006 -.00011
+       0      -.00015  .00007
+\END
+! negative eta
+\ARRAY NB3
+    1.0    1.0   1.0   1.0    1.0   1.016    .99   1.02   1.02   1.027
+    1.005   .96   .95   .98   1.008 1.014   1.017  1.015  1.014   .98
+\END
+\ARRAY NM3
+       0   0   0   0   0  -.00005   .00007  0       .00005   0
+      .00008   .00006   .00015  .00015  -.00016  0  .0002
+      .00009 -.00005  .00036
+\END
+\ARRAY NB5
+    1.0    1.0   1.0   1.0    1.0   1.016    .99   1.02   1.02   1.027
+    1.005   .96   .95   .98   1.008 1.014   1.017  1.015  1.014   .98
+\END
+\ARRAY NM5
+       0   0   0   0   0  -.00005   .00007  0       .00005   0
+      .00008   .00006   .00015  .00015  -.00016  0  .0002
+      .00009 -.00005  .00036
+\END
+\ARRAY NB7
+    1.0    1.0   1.0   1.0    1.0   1.016    .99   1.02   1.02   1.027
+    1.005   .96   .95   .98   1.008 1.014   1.017  1.015  1.014   .98
+\END
+\ARRAY NM7
+       0   0   0   0   0  -.00005   .00007  0       .00005   0
+      .00008   .00006   .00015  .00015  -.00016  0  .0002
+      .00009 -.00005  .00036
+\END
+\ARRAY NB10
+    1.0    1.0   1.0   1.0    1.0   1.016    .99   1.02   1.02   1.027
+    1.005   .96   .95   .98   1.008 1.014   1.017  1.015  1.014   .98
+\END
+\ARRAY NM10
+       0   0   0   0   0  -.00005   .00007  0       .00005   0
+      .00008   .00006   .00015  .00015  -.00016  0  .0002
+      .00009 -.00005  .00036
+\END
 !--------------------------------------------------------------------------
 !
 !   Jet Width Correction
@@ -179,50 +467,139 @@ ETA_SEC2    1.6                             ! Start of forward bin
 \END
 \ARRAY WIDTH_A2
     1.07   2.34   1.94   2.35   2.31
-    1.05    1.61   1.77  -.025  -.025
+    1.05   1.61   1.77  -.025  -.025
 \END
 !--------------------------------------------------------------------------
 !
 !   MPF absolute hadronic scale corrections
-!
+!   R = a + b * ln(E) + c * ln(E)**2
 !--------------------------------------------------------------------------
 min_jet_energy      5.0        ! jet energy at which correction flattens
 !
-\ARRAY MPF_E_SYS               ! systematic error in jet energy bins
-    0.0229  0.0150   0.0119   0.0000     0.0000     0.0088  0.0143
+PHY_BCK_ERROR      0.00        ! physics background error
+!
+\ARRAY MPF_ERR_BIN             ! ten bins for error band interpolation
+  10.0  20.0  35.0  50.0  75.0  100.0  150.0  200.0  300.0  400.0
 \END
-\ARRAY MPF_E_BIN
-    10.0     15.0     20.0     30.0       80.0       150.0   400.0
+\ARRAY RESIDUAL_BIAS_ERROR   ! errors for global biases in escale determination
+                             ! includes topo cuts, photon definition
+                             ! parametrized in terms of corrected E
+  .005  .005  .005  .005  .005  .005   .005   .005   .005   .005   .005
+\END
+\ARRAY CAL_LEAK_ERROR ! added CC error for possible leakage effects
+                      ! flat in eta of (0.0,0.7) decrease to 0 by eta=2.0
+                      ! parametrized in terms of corrected E
+  .000  .000  .000  .000  .000  .000   .000   .000   .000   .000   .000
+\END
+\ARRAY KT_ERROR    ! parametrized in terms of corrected ET
+  .005  .005  .0025 .000  .000  .000   .000   .000   .000   .000   .000
+\END
+!----------------------------------------------------------------------
+! Mc topo correction E -> E*(1-(A1+A2*exp(A3*(A4+A5*E))))
+!----------------------------------------------------------------------
+\ARRAY MC_TOPO_PAR
+   -.00139   .01697   -.01092   22.0   1.0    !0.3 cone
+   -.00139   .01697   -.01092   11.0   1.0    !0.5 cone
+   -.00139   .01697   -.01092    6.0   0.98   !0.7 cone
+   0.0      0.0       0.0        0.0   0.0    !nn alg unsupported
+   -.00139   .01697   -.01092    6.0   0.98   !1.0 cone n/a
+\END
+!------------------ RECO V1x.xx  or MC response in these arrays
+\ARRAY MPF_RES
+    0.84110 0.55071E-02  0.62537E-03    !0.3 cone
+    0.76459 0.36000E-01 -0.24181E-02    !0.5 cone
+    0.73756 0.45654E-01 -0.32919E-02    !0.7 cone
+    0.0000  0.0000   0.0000             !nn alg unsupported
+    0.73756 0.45654E-01 -0.32919E-02    !1.0 cone n/a
 \END
 !
-\ARRAY MPF_RHI7
-    0.7359      0.03068
+\ARRAY MPF_RES_LOW
+0.8434 0.8563 0.8650 0.8697 0.8744 0.8777 0.8828 0.8863 0.8905 0.8927  !0.3
+0.8200 0.8431 0.8580 0.8657 0.8730 0.8773 0.8826 0.8860 0.8893 0.8902  !0.5
+0.8100 0.8367 0.8540 0.8629 0.8713 0.8762 0.8820 0.8855 0.8891 0.8900  !0.7
+0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0     !nn  n/a
+0.8100 0.8367 0.8540 0.8629 0.8713 0.8762 0.8820 0.8855 0.8891 0.8900  !1.0 n/a
 \END
-\ARRAY MPF_RHI5
-    0.7373      0.03068
+!
+\ARRAY MPF_RES_HIGH
+0.8708 0.8702 0.8722 0.8747 0.8787 0.8818 0.8860 0.8894 0.8952 0.9004  !0.3
+0.8493 0.8584 0.8660 0.8711 0.8769 0.8809 0.8859 0.8889 0.8933 0.8967  !0.5
+0.8403 0.8528 0.8625 0.8686 0.8753 0.8798 0.8854 0.8885 0.8927 0.8959  !0.7
+0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0     !nn  n/a
+0.8403 0.8528 0.8625 0.8686 0.8753 0.8798 0.8854 0.8885 0.8927 0.8959  !1.0 n/a
 \END
-\ARRAY MPF_RHI3
-    0.7413      0.03036
+!-----------------------------------------------------------------------------
+!
+! Out-of-cone parameters:
+! for MC the closure plots show no showering loss, errors
+! are calculated given the deviation of the MC closure plots
+! from the data calculated showering corrections.
+!
+!-----------------------------------------------------------------------------
+\ARRAY OFUN
+    2   2   2   2   2   2   2
+    2   2   2   2   2   2   1
+    2   2   2   2   2   2   1
+    2   2   2   2   1   1   1
 \END
-\ARRAY MPF_RHINN
-    0.7373      0.03068
+\ARRAY OA0
+    1.      1.      1.      1.      1.      1.      1.
+    1.      1.      0.995   0.9963  0.986   0.995  0.973
+    0.991   0.988   0.986   0.987   0.978   0.968  0.958
+    0.975   0.964   0.966   0.964   0.85    0.817  0.80
 \END
-\ARRAY MPF_RHI10
-    0.7359      0.03039
+\ARRAY OA1
+    0.        0.       0.       0.      0.      0.      0.
+    0.        0.       0.       0.      0.      0.      0.
+    0.        0.       0.       0.      0.      0.      0.
+    0.        0.       0.       0.      0.0166  0.0229  0.0223
 \END
-\ARRAY MPF_ERRHI7
-    0.006250    0.001523
+\ARRAY OA2
+    1.      1.      1.      1.      1.      1.      1.
+    1.      1.      0.995   0.9963  0.986   0.995  0.973
+    0.991   0.988   0.986   0.987   0.978   0.968  0.958
+    0.975   0.964   0.966   0.964   0.944   0.95   0.927
 \END
-\ARRAY MPF_ERRHI5
-    0.006172    0.001520
+\ARRAY ER0P
+    0.  0.  0.  0.  0.  0.  0.
+    1.  1.  1.  1.  1.  1.  4.
+    1.5 1.5 1.5 2.  2.  2.5 6.
+    2.  2.  2.5 2.5 3.  4.  7.
 \END
-\ARRAY MPF_ERRHI3
-    0.006027    0.001518
+\ARRAY ER0M
+    0.  0.  0.  0.  0.  0.  0.
+    1.  1.  1.  1.5 2.  2.5 5.
+    1.5 1.5 1.5 2.  2.  2.5 6.
+    2.  2.  2.5 2.5 3.  4. 10.
 \END
-\ARRAY MPF_ERRHINN
-    0.006172    0.001520
+\ARRAY ER1P
+    0.  0.  0.  0.  0.  0.  0.
+    1.  1.  1.  1.  1.  1.  2.
+    1.5 1.5 1.5 2.  2.  2.5 3.
+    2.  2.  2.5 2.5 3.  4.  7.
 \END
-\ARRAY MPF_ERRHI10
-    0.006374    0.001538
+\ARRAY ER1M
+    0.  0.  0.  0.  0.  0.  0.
+    1.  1.  1.  1.  1.  1.  3.
+    1.5 1.5 1.5 2.  2.  2.5 3.
+    2.  2.  2.5 2.5 3.  4.  4.
+\END
+\ARRAY ER2P
+    0.  0.  0.  0.  0.  0.  0.
+    1.  1.  1.  1.  1.  1.  2.
+    1.5 1.5 1.5 2.  2.  2.5 3.
+    2.  2.  2.5 2.5 3.  3.  4.
+\END
+\ARRAY ER2M
+    0.  0.  0.  0.  0.  0.  0.
+    1.  1.  1.  1.  1.  1.  3.
+    1.5 1.5 1.5 2.  2.  2.5 3.
+    2.  2.  2.5 2.5 3.  3.  4.
+\END
+\ARRAY E0
+    10. 12. 15. 20. 30. 45. 100.
+\END
+\ARRAY E1
+   450. 450. 550. 650. 750. 800. 300.
 \END
 \STOP    !   QCD_JET_CORRECTION_RCP

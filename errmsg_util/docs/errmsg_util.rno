@@ -1,0 +1,315 @@
+.right; James T. Linnemann
+.right; Serban D. Protopopescu
+.right; Andrew Milder
+.right; April 16 1992
+.center; Error Message Utility
+.center; Version 1.4
+.lit
+
+The goal of the message handler is to accept messages, count their
+occurrences, and display them on request.
+Messages are identified by the part of the message text which does not vary
+from instance to instance, the IDSTRG.
+
+The subroutine calls of the package are:
+
+   CALL ERRMSG(IDSTRG,SUBRID,VARSTR,SEVRTY)
+    (in this documents, arguments marked by ARG* are output arguements;
+    unmarked arguments are input only)
+
+        IDSTRG is a character string of maximum length 32.  It identifies
+                the message for accounting purposes.
+
+        SUBRID is a character string of maximum length 32.  It identifies
+                the routine in which the error is detected, i.e. the routine
+                which is calling ERRMSG.
+
+        VARSTR is a character string of maximum length 132.  It
+                provides additional information about the particular message
+                occurence, such as the value of some variable.  It will be
+                displayed on a second line if it is too long.
+
+        SEVRTY is a character string of length 1.  It can have the
+                following values:
+                'I'             Informational--Log only
+                'S'             Informational--Screen (Warning device) only
+                'W'             Warning
+                'E'             Error
+                'F'             Fatal
+                anything else acts as 'W'
+
+Action of the routine:
+
+        The action of the rouine depends on the severity code, and choices made
+in the call to ERRINI and ERRMAX (described below).
+
+    If SEVRTY = 'S', the message is written to the screen.  No counts are kept.
+
+    For any other value of SEVRTY:
+
+        If this is the first call for this error message, it will enter it
+ into a list of known messages, and set its count to 1.  If a message with
+ the same IDSTRG has already been received, its count will be incremented
+ by 1.  The count is not kept separately for issuing the same message with
+ different severity levels, or from different calling routines, i.e. the
+ severity and calling routine are not part of the message identifier, but
+ purely informational.
+
+        Then, other actions may be taken, depending on the various settings:
+    SEVRTY:
+       'S'       write message to warning device, if any, but do not count.
+
+       'I' or '' write message to logging device, if any, and keep count
+       'W'       in addition, write message to warning device, if any
+       'E'       in addition, call the Error Recovery Routine, if any
+       'F'      instead of the Error Recovery Routine, call the Fatal
+                 Error Processing Routine.
+
+    Comments on usage:
+
+   It may be useful to introduce structure into VARSTR, for example by making
+the PACKAGE name the first part of the variable string.
+
+   CAHITS R.O. parity error
+   VERTEX R.O. parity error
+   ZTRAKS TRACK points buffer overflow
+
+
+   The variable string can be used to give additional information, as in
+        CHARACTER*132 VARMSG
+
+        WRITE(VARMSG,100)ICRATE,IWORD
+100     FORMAT('crate ',I3,' controller word',Z10)
+        CALL ERRMSG('CAHITS R.O. controller error','MYSUB',VARMSG,'W')
+  will produce a message of the form:
+
+        MYSUB-W Run XXX Event YYY:CAHITS R.O. controller error
+        crate 3 controller word 0A23BFED43
+
+    Use of 'S' severity code:
+
+    'S' messages are meant to be a structured substitute for WRITE or TYPE
+statements that you might put into your code for reasons such as seeing if it is
+still alive (much the same purpose can be accomplished in D0USER by checking on
+the number of events processed).  One advantage is that 'S' messages are more
+easily turned off than WRITE statements.
+    'S' messages are ONLY sent to the warning device, which by default is the
+screen.   They are not counted and summarized.  If you want the message
+to be counted and summarized, you may either use 'I', and make the log messages
+go to the screen (default), or use 'W', which sends the message to both the
+screen and the logging device (or 2 copies to the screen if they are the same!).
+    'S' messages may be supressed if desired by calling ERRSOF, and re-enabled
+by calling ERRSON, both described below.  However, setting WARN=.FALSE. with
+ERRINI, described below, supresses both 'S' and 'W' messages.  The 'W'
+messages can be turned off without affecting 'S' messages by use of ERRMAX,
+described below.
+
+OPTIONAL ROUTINES: (None of these NEED be called by the user)
+
+   CALL ERRSUM(LUSUMM)
+
+        Produce a summary of the number of times a given message was issued.
+        Alphabetized by the IDSTRG of the messages. Statistics are printed
+        as a list of IDSTRGs and number of occurrences, one line per message.
+        'S' messages are neither counted nor summarized.
+
+        LUSUMM is logical unit number on which to produce the summary.
+
+   CALL ERRINI(LULOG,WARN)
+
+        LULOG  logical unit for logging all messages
+                  0 = messages not logged, but only counted
+                  default is unit = 6
+        WARN
+                whether the warning device is enabled:
+                  .FALSE. = count, and sent to logging unit if any W, E, and F
+                        messages ; S messages are completely supressed
+                  .TRUE. =  send via EWRNWR (eg to screen for interactive jobs)
+                  default is .TRUE.
+   CALL ERRSON
+                Allow S messages to appear, provided the warning device is
+                enabled; default is that S messages are enabled
+   CALL ERRSOF
+                Disable S messages, independent of status of warning device
+
+   CALL ERRSGT(SCRN)
+
+        SCRN    whether S messages are currently enabled or disabled; value is
+                controlled by ERRSON/ERRSOF; default is .TRUE.
+
+   CALL ERRCLR(IDSTRG)
+        remove the message from the list of currently known messages
+             this, of course, zeros the count as well
+        IDSTRG identifies the message to be forgotten
+                  = '' removes all messages
+
+   CALL ERRMAX(IDSTRG,MAXLOG,MAXWRN)
+        set the maximum number of times the identified message(s) will be
+        sent to the logging and warning devices; the count is still kept
+
+        IDSTRG gives the message whose outputting is to be limited.
+                if the message is currently unknown, the message is made
+                known with a count of 0; if the message is cleared, the
+                message-specific limit is forgotten and only the general
+                defaults apply
+                = '' means the maximum counts apply to all messages, whether
+                defined presently or in the future.
+        MAXLOG gives the maximum number of times the message(s) will be
+               sent to the logging device.
+               default is infinite, denoted by any negative value
+        MAXWRN gives the maximum number of times the message(s) will
+               be sent to the warning device.
+               default is infinite, denoted by any negative value
+
+   CALL ERRMAX_RCP
+        searches for an external file containing a list of messages and counts.
+        If the file exists, it calls ERRMAX for each message.  The file has the
+        form
+        \ARRAY Messages
+        'specific message' COUNT
+            ....
+        \END
+        On VMS, the file is given a logical name ERRMSG_RCP.  A sample exists in
+        d0$errmsg_util$source:errmsg.rcp
+
+   CALL ERRGET(IDSTRG,NTIMES)
+        return the current number of calls of the specified message
+        IDSTRG identifies the message
+        NTIMES is the current count of calls with that message
+
+
+ZEBRA LOGGING OF ERROR MESSAGES
+        by default, no logging of messages to zebra is done.
+    CALL ERRZON turns such logging on
+    CALL ERRZOF goes back to the default
+    CALL ERRZGT(ZEBON) returns the present status: ZEBON = .TRUE. means logging
+        is currently enabled
+    CALL ERRZDP attempts to log any pending errmsgs
+
+    The zebra logging is implemented by attaching any messages to a HSTR bank.
+    If there is HEAD bank in ZEBCOM at the time of the ERRMSG call, the errmsg
+    is saved in an internal buffer and sent out the next time an errmsg is
+    called when a HEAD bank is present.
+
+Implementation notes:
+
+LIMIT ON NUMBER OF MESSAGES RECORDED
+
+    The current version of the program uses common blocks for storage.  As a
+result, a maximum number of distinct messages exists, presently set to 200.
+If more than that number of messages occur, a message appears in the log file,
+on the screen, and in the summary.  After overflow, a count of the number of
+messages not in the recognized list is kept, but they are not sent to the screen
+or the log file.
+
+EXTERNAL ROUTINES CALLED:
+
+        SWORDS, UPCASE from D0$offline_util
+        EWRNWR default version calls INTMSG from COMPACK
+        ERRFAT default version calls D0_ABORT from D0$GENERAL
+        ERRMZB calls Zebra routines
+        ERRDSP calls EVTMSG from d0$event_util
+
+LOGGING AND WARNING MESSAGE I/O
+
+    The writing to the logging device and the warning device are
+ implemented by separate routines; versions of these routines will be selected
+ at link time for the appropriate environment:
+
+   CALL ELOGWR(LUN,STRING)
+   CALL EWRNWR(STRING)
+
+The string is of maximum length 78 characters, with the first being used for
+carriage control.  These routines are called from ERRLOG and ERRWRN,
+respectively.  Standard versions of these routines are supplied in the error
+message library:
+
+file ELOGWR contains a version which simply writes to a file
+
+file EWRNWR contains a version which passes the string through to INTMSG
+
+Nonstandard versions of these could instead pass the messages along to the
+online alarm system, or to a processing farm message server, for example.
+
+ERROR and FATAL ERROR HANDLING ROUTINES
+
+
+        CALL ERRHAN_E(IDSTRG,SUBRID,VARSTR)
+   Error Recovery Routine. Routine to call if a severe (E-level)
+          error is encountered. It does nothing in the default version.
+
+        CALL ERRFAT(IDSTRG,SUBRID,VARSTR)
+   Fatal Error Processing Routine. Routine to call if a FATAL (F-level)
+        error is encountered. The default version writes a message to the log
+        unit, or unit 6, and causes an abnormal termination.
+
+
+In an online environment, E and F messages might go to the alarm system.
+
+NONSTANDARD ENVIRONMENTS
+
+    Six routines might be candidates for replacement:
+ERLOGWR, ERWRNWR, ERRHAN_E, ERRFAT and ERRDSP, and EVTMSG. The standard versions
+behave as described above.  However, one could produce modified versions
+starting from the standard ones which would behave better for an online
+environment, for example, and simply link the modified versions instead of
+getting the standard versions from the library.   One might prefer a different
+handling of fatal errors say, or to have the WARNING device be a task-to-task
+link to the alarm system, rather than the INTMSG half-screen of the owning
+process.  ERRDSP controls the format of the error message, and uses routine
+EVTMSG to return a 48-character, blank filled string with an event identifier.
+
+    In the ELN version, the alarm system is treated as a logging device, and the
+warning device does not exist.  The handlers are planned to do only event
+capture, as all messages are passed to the alarm system.  The node name is
+encoded as part of the message in the ELN version of ERRMSG; the meaning of the
+run and event number is shifted to be more appropriate for online.
+The following routines exist in standard and ELN versions:
+
+    ERRDSP ERRFAT ERRHAN_E ERRLOG ERRWRN  EVTMSG
+
+Appendix:  List of routines
+
+USER ROUTINES:
+
+routine: called routines
+-------  ----------------------
+ERRCLR   ERRINT  UPCASE  ERRFND
+ERRGET   ERRINT  UPCASE  ERRFND
+ERRINI   ERRINT
+ERRMAX   ERRINT  UPCASE  ERRFND  ERRINS
+ERRMAX_RCP       CFILL   INRCP   SWORDS  EZPICK  EZGET_VALUE_TYPE ERRMAX EZDROP
+ERRMSG   ERRINT  UPCASE  ERRFND  ERRINS  ERRSCR ERRLOG  ERRWRN  ERRHAN_E ERRFAT
+         ERRMZB
+ERRSON
+ERRSOF
+ERRSGT
+ERRSUM   ERRINT
+ERRZDP   ERMGFL
+ERRZGT
+ERRZON
+ERRZOF
+
+INTERNAL ROUTINES:
+
+routine: called routines
+-------  ----------------------
+BKERMG   BKHSTR  GZHSTR
+ELOGWR   SWORDS
+ERMGFL   UCTOH   BKERMG UCOPY
+ERRDSP   SWORDS  EVTMSG
+ERRFAT   D0_ABORT
+ERRFND
+ERRHAN_E
+ERRINS
+ERRINT
+ERRLOG   ELOGWR  ERRDSP
+ERRMZB   ERRDSP  UCOPY  UHTOC ERMGFL  GZERMG
+ERRSCR   EWRNWR  ERRDSP
+ERRWRN   EWRNWR  ERRDSP
+EVNTID
+EVTMSG   SWORDS  EVNTID
+EWRNWR   SWORDS  INTMSG
+PRERMG   GZERMG  UCOPY  UHTOC   !user print routine
+.end lit
+

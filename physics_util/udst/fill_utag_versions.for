@@ -10,6 +10,12 @@ C-
 C-   Created  26-MAY-1994   Ian Adam
 C-   Updated  14-NOV-1995   Ian Adam  Update for v5
 C-   Updated  11-DEC-1996   Ulrich Heintz  add DTSTAT to version 5 
+C-   Updated   4-JUN-1998   R. J. Genik II  Fix bugs in version 5
+C-                          unpacking:
+C-                          - cone 0.7 jets px, py, pz now correct (instead
+C-                            of all equal)
+C-                          - JNEP banks, jet link in wrong place prevented
+C-                            unpacking.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -2510,8 +2516,6 @@ C UTAG_VERSION =   5
       XTAGSV(  5,  4, 68) = 'VCOGP   '
       XTAGSV(  5,  4, 69) = 'LZTRKP  '
       XTAGSV(  5,  5,  1) = 'PTJ7    '
-      XTAGSV(  5,  5,  1) = 'PYJ7    '
-      XTAGSV(  5,  5,  1) = 'PZJ7    '
       XTAGSV(  5,  5,  2) = 'EJ7     '
       XTAGSV(  5,  5,  3) = 'ETJ7    '
       XTAGSV(  5,  5,  4) = 'PHIJ7   '
@@ -2780,9 +2784,9 @@ C UTAG_VERSION =   5
       XTAGSV(  5, 11,  6) = 'RMEJN7  '
       XTAGSV(  5, 11,  7) = 'RMPJN7  '
       XTAGSV(  5, 11,  8) = 'FEMJN7  '
-      XTAGSV(  5, 11,  9) = 'LJETJN7 '
-      XTAGSV(  5, 11, 10) = 'PYJN7   '
-      XTAGSV(  5, 11, 11) = 'PZJN7   '
+      XTAGSV(  5, 11,  9) = 'PYJN7   '
+      XTAGSV(  5, 11, 10) = 'PZJN7   '
+      XTAGSV(  5, 11, 11) = 'LJETJN7 '
       XTAGSV(  5, 12,  1) = 'PTJN5   '
       XTAGSV(  5, 12,  2) = 'EJN5    '
       XTAGSV(  5, 12,  3) = 'ETJN5   '
@@ -2791,9 +2795,9 @@ C UTAG_VERSION =   5
       XTAGSV(  5, 12,  6) = 'RMEJN5  '
       XTAGSV(  5, 12,  7) = 'RMPJN5  '
       XTAGSV(  5, 12,  8) = 'FEMJN5  '
-      XTAGSV(  5, 12,  9) = 'LJETJN5 '
-      XTAGSV(  5, 12, 10) = 'PYJN5   '
-      XTAGSV(  5, 12, 11) = 'PZJN5   '
+      XTAGSV(  5, 12,  9) = 'PYJN5   '
+      XTAGSV(  5, 12, 10) = 'PZJN5   '
+      XTAGSV(  5, 12, 11) = 'LJETJN5 '
       XTAGSV(  5, 13,  1) = 'PTJN3   '
       XTAGSV(  5, 13,  2) = 'EJN3    '
       XTAGSV(  5, 13,  3) = 'ETJN3   '
@@ -2802,9 +2806,9 @@ C UTAG_VERSION =   5
       XTAGSV(  5, 13,  6) = 'RMEJN3  '
       XTAGSV(  5, 13,  7) = 'RMPJN3  '
       XTAGSV(  5, 13,  8) = 'FEMJN3  '
-      XTAGSV(  5, 13,  9) = 'LJETJN3 '
-      XTAGSV(  5, 13, 10) = 'PYJN3   '
-      XTAGSV(  5, 13, 11) = 'PZJN3   '
+      XTAGSV(  5, 13,  9) = 'PYJN3   '
+      XTAGSV(  5, 13, 10) = 'PZJN3   '
+      XTAGSV(  5, 13, 11) = 'LJETJN3 '
       XTAGSV(  5, 14,  1) = 'LJETST  '
       XTAGSV(  5, 14,  2) = 'RMSTAU  '
       XTAGSV(  5, 14,  3) = 'TWR1ET  '

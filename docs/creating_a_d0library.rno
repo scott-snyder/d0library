@@ -1,0 +1,394 @@
+.!   Created by Alan M. Jonckheere on 25-JUL-1990
+.!
+.PAGE SIZE  59,80     .LEFT MARGIN  5    .RIGHT MARGIN  75
+.LAYOUT  3,2
+.RIGHT ;Alan M. Jonckheere
+.RIGHT ;#######25-JUL-1990
+.right ;Mod:   12-OCT-1994
+.BLANK 3     !--- underlined title on next line
+.CENTER ; ^& Creating a D0Library \&
+.BLANK 2
+.!------------ main text start here.
+
+^& Introduction \&
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+The D0 software is maintained on each of the collaborating institutions
+computer systems in a USER account named D0LIBRARY. In addition to
+providing a common location to store files, D0Library also provides a
+uniform computing environment for all users in the D0 collaboration.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+The "master" D0Library is currently on D0GSLB, a satellite of the FNALD0
+cluster at FNAL.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+There are a large number of D0 software "products" stored in D0Library. In 
+order to allow the products to run without modification on each of the D0
+systems, and to make the software environment as uniform as possible and as
+easy as possible for the users on those systems, the D0Library software
+products are accessed via logicals.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+Each D0 software "Product" is stored in a set of subdirectories in
+D0Library: 
+.literal
+
+        D0$DISK:[D0LIBRARY.product_name...].
+
+.end literal
+
+For each product a set of logicals are defined:
+
+.literal
+
+        D0$product_name$ROOT    == D0$DISK:[D0LIBRARY.product_name.].
+        D0$product_name         == D0$product_name$ROOT:[000000]
+        D0$product_name$sub_dir == D0$product_name$ROOT:[sub_dir]
+
+.end literal
+
+The major files associated with a product are in D0$product_name. These
+include OLBs, EXEs, link files etc, plus the documentation for the product.
+The subdirectories contain the source files.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+All of the logicals above are defined automatically by the D0Library
+software system. The form of these logicals was chosen to allow us to
+"test" release software products. For products under TEST release, a
+further set of subdirectories exist. These are D0$DISK:[D0LIBRARY.TEST.
+product_name...]. When a user wishes to use the TEST version of a product, 
+s/he issues the command: 
+
+.literal
+
+        LIBTEST product_name
+
+.end literal
+
+This command redefines D0$product_name$ROOT as a search list:
+
+.literal
+
+     D0$DISK:[D0LIBRARY.TEST.product_name.],D0$DISK:[D0LIBRARY.product_name.]
+
+.end literal
+
+Thus when a user asks for a file: D0$product_name:file_name, s/he will
+access the one in the TEST area if it exists, or in the OFFICIAL area
+otherwise. 
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+Most of these files are created and maintained by the D0Librarians at FNAL 
+(D0$LIBRARIAN). However, since each cluster has it's own requirements, disk
+organizations etc, there are a few files that must be tailored to each
+particular site. In particular the logical definition D0$DISK must be
+defined, either at system level, or for each user process.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+This document discusses how to set up the D0Library on a new system, the
+files required, what they must do, and gives explicite examples for a
+simple system, one where the D0 users have full control and need not be
+overly concerned with system security.
+
+.BLANK 2
+
+^& System BOOT file \&
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+The system of logicals mentioned above number several hundred for systems
+that maintain the full compliment of D0 software. Although it is possible
+to define all of these logicals for each user at login, this takes a fair
+amount of time, and is very wasteful of system resources. So for most of
+the D0 clusters, we define a Logical Name Table: LNM$D0 which is filled
+with the current set of logicals at BOOT time. Therefore in one of your
+system startup files you should have the following lines:
+
+.literal
+
+$ SET UIC D0LIBRARY]        ! Make D0Library the "owner" of the LNM$D0 
+$ CREATE/NAME_TABLE/EXECUTIVE_MODE LNM$D0 -     ! create table
+                /PARENT=LNM$SYSTEM_DIRECTORY -
+                /PROTECTION=(S:RWED,O:RWED,G:RE,W:RE)
+$!
+$! define D0$DISK such that D0$DISK:[D0LIBRARY] is the library's root
+$ DEFINE/SYSTEM/TRAN=(CONC) D0$DISK disk_name:[directory.]
+$!
+$ @D0$DISK:[D0LIBRARY]D0STARTUP         ! fill LNM$D0 - NOTE below
+$!
+$ SET UIC SYSTEM            ! Set user back to system to continue
+.end literal
+
+.Note D0Startup is time consuming
+
+Since running the procedure D0STARTUP takes a fair amount of time, some
+systems run it as a batch job under the D0Library user account. Others run
+a detached process, again under the D0Library account. Either of these will
+run with only the privileges of the D0Library. Since D0Library owns LNM$D0,
+it can fill it. 
+
+.END NOTE
+
+.NOTE
+
+In any case, D0STARTUP need only be run under the D0Library UIC, so it runs
+with D0Library privileges. These are usually only those of a normal user.
+Since D0Library owns the LNM$D0 logical name table, it can fill it.
+
+.END NOTE
+
+.BLANK 2
+
+^& D0STARTUP.COM and GLOBAL_D0STARTUP.COM \&
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+There are two procedures that fill the table LNM$D0, and also allow the 
+D0Librarian to update it when necessary. These are D0STARTUP.COM and
+GLOBAL_D0STARTUP.COM. D0STARTUP.COM is run on each node at startup time and
+when the table needs updating. Both of these files should reside in 
+D0$DISK:[D0LIBRARY].
+
+D0STARTUP.COM defines are few of the main logicals, then calls D0PROLOG.COM
+(created and maintained by D0$LIBRAIAN) to define the rest. A sample
+follows: 
+
+.literal
+
+$!------------------------------------------------
+$!
+$! Name      : D0STARTUP
+$!
+$! Purpose   : D0 command file executed at boot time
+$!
+$! Arguments : 
+$!
+$! Created  20-DEC-1988   D0Library
+$!
+$!------------------------------------------------
+$   ON CONTROL_Y Then Goto EXIT
+$   ON ERROR     Then Goto Non_Privileged_User
+$   set noon
+$!
+$   WRITE SYS$OUTPUT "*****************************************************"
+$   node = f$getsyi("NODENAME")   ! only gets a "cluster" nodename
+$   Write Sys$Output "           Working on ''node'"
+$   Show Logical Sys$Node			! gets DECnet nodename
+$   WRITE SYS$OUTPUT "*****************************************************"
+$!
+$   define := define/table=lnm$d0/nolog
+$!
+$! we assume D0$DISK has been define in the system table
+$   d0_disk = f$trnlnm("d0$disk","lnm$system_table")    
+$   define/trans=(conc) d0$disk 'd0_disk'
+$!
+$   define/trans=(conc) d0$prod 'd0_disk'
+$!
+$   d0_root = "''d0_disk'" - "]" + "D0LIBRARY.]"
+$   define/trans=(conc) d0$root 'd0_root'
+$!
+$! Assumes USR$SCRATCH is the user's scratch disk.
+$   d0_scratch = f$trnlnm("usr$scratch") - "]"
+$   Define/nolog/trans=conc D0$Scratch 'd0_scratch'd0library.]
+$!
+$! The following two symbols define the directories which one does not
+$! want to include in the D0 logical name table.
+$!
+$   UNWANTED_DIRS         := /MAIL/TEST/TEST_LOCAL/ADMIN_UTIL/PRODUCTION/
+$   UNWANTED_SUB_DIRS     := /ADMIN_UTIL/
+$!
+$   @'d0_disk'[d0library]d0prolog.com
+$!
+$   pu/log/keep=6 'd0_disk'[d0library]d0startup.log
+$!
+$EXIT:
+$   EXIT
+$!
+$Non_Privileged_User:
+$ write sys$output ""
+$ write sys$output "You do not have the privileges to update the D0 table."
+$ write sys$output "Please contact the local D0 librarian"
+$ write sys$output ""
+$ exit 3
+
+.end literal
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+GLOBAL_D0STARTUP.COM runs D0STARTUP.COM on each of the cluster's nodes to update
+LNM$D0. There are many ways to do this. The easiest is to run it via SYSMAN on
+each node. However, this takes a long time, since it is done sequentially on
+each node. Also, D0Library must have SYSNAM privilege, which your system manager
+must be willing to grant. A sample is:
+
+.literal
+
+$!------------------------------------------------
+$!
+$! Name      : GLOBAL_D0STARTUP
+$!
+$! Purpose   : Update the LNM$D0 table
+$!
+$! Arguments : 
+$!
+$! Created  20-DEC-1988   D0Library
+$!
+$!------------------------------------------------
+$   ON ERROR     Then Goto EXIT
+$   ON CONTROL_Y Then Goto EXIT
+$ set process/priv=(oper,sysnam)
+$ mcr sysman
+set environment/cluster
+do @[d0library]d0startup.com
+exit
+$EXIT:
+$   EXIT
+
+.end literal
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+Another way is to run it in BATCH on a batch queue on each machine. This,
+of course requires that your system allows users to submit directly to
+specific queues. This method also requires that GLOBAL_D0STARTUP.COM be
+edited whenever machines are added or subtracted from the cluster, or a
+queue name changes. A particular example follows:
+
+.literal
+
+$!------------------------------------------------
+$!
+$! Name      : GLOBAL_D0STARTUP
+$!
+$! Purpose   : Update the LNM$D0 table on all D0SFt nodes
+$!
+$! Arguments : 
+$!
+$! Created  20-DEC-1988   D0Library
+$!
+$!------------------------------------------------
+$   ON ERROR     Then Goto EXIT
+$   ON CONTROL_Y Then Goto EXIT
+$   submit/noprint/notify -
+        /queue=d0sf01_batch -
+        usr$root:[d0library]d0startup
+$   submit/noprint/notify -
+        /queue=d0sf02_batch -
+        usr$root:[d0library]d0startup
+$   submit/noprint/notify -
+        /queue=d0sf03_batch -
+        usr$root:[d0library]d0startup
+
+                .       .       .
+
+$EXIT:
+$   EXIT
+
+.end literal
+
+.BLANK 2
+
+^& D0LOCAL.COM \&
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+When a D0 user logs into his account, s/he will normally invoke a command
+file: D0$DISK:[D0LIBRARY]D0LOCAL.COM. This file contains *most* of the site
+specific setups for the Library. In particular, it attaches LNM$D0 to the
+user's process. It also defines (via D0PROSYMCOM.COM) D0 specific symbols
+and commands. Any site specific initialization can also be done by this
+procedure. A sample follows: 
+
+.literal
+
+$!------------------------------------------------
+$!
+$! Name      : D0LOCAL
+$!
+$! Purpose   : Setup D0 computing environment on local site
+$!
+$! Arguments :
+$!
+$! Created  20-DEC-1988   D0Library
+$!
+$!------------------------------------------------
+$   ON ERROR     Then Goto EXIT
+$   ON CONTROL_Y Then Goto EXIT
+$!
+$     SAVE_VERIFY_IMAGE = F$ENVIRONMENT("VERIFY_IMAGE")
+$     SAVE_VERIFY_PROCEDURE = F$VERIFY(0)
+$!
+$! Attach to LNM$D0 logical name table
+$   @d0$disk:[d0library]add_lnm$d0
+$!
+$ if (f$trnlnm("D0$DISK","LNM$D0") .eqs. "")
+$ then
+$    if (f$user() .nes. "[group_name,D0LIBRARY]")
+$    then
+$       goto non_privileged_user
+$    else
+$       @d0$disk:[D0Library]D0Startup.com
+$    endif
+$ endif
+$ write sys$output ""
+$ write sys$output -
+"         >>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+$ write sys$output -
+"         >>>>>>>>>> D0 logicals are now in LNM$D0 table <<<<<<<<<<<<<"
+$ write sys$output -
+"         >>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+$!
+$        @d0$disk:[D0LIBRARY]D0PROSYMCOM        ! define D0 symbols
+$!
+$ if f$mode() .eqs. "NETWORK" then goto exit
+$!
+$! put site specific initializations here
+$!
+$ exit:
+$   SAVE_VERIFY_PROCEDURE = F$VERIFY(SAVE_VERIFY_PROCEDURE,SAVE_VERIFY_IMAGE)
+$       Exit
+$!
+$Non_Privileged_User:
+$ write sys$output ""
+$ write sys$output "The D0 logicals are not defined in the D0 table"
+$ write sys$output "Please contact the local D0 librarian..."
+$ write sys$output "Sorry for the inconvenience !"
+$ write sys$output ""
+$ exit 3
+
+.end literal
+
+.BLANK 2
+
+^& D0Library Updates \&
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+In order to have your D0Library updated automatically, you must be on
+DECNET with reasonably reliable connections to the Master site. Then you
+must arrange to have PROXY logins enabled from the BNL D0Library (contact
+D0$LIBRARIAN for a list of BNL nodes that should be granted PROXY logins to
+your nodes). Appoint someone at your site to be the local D0Librarian. This
+person will be the one that the master D0Librarian contacts if (when) there
+are problems at your node, such as disk quota problems.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+Then just inform D0$LIBRARIAN what products you wish to receive. PLEASE to
+*not* sign up for *all* products, unless you really need them. 
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+There are a number of other, more technical issues that *should* be
+addressed. For example, you should install D0_NEWS to receive collaboration
+wide notes. However, this, and similar issues, can be addressed with the
+D0$LIBRARIAN once you have your D0Library set up in it's minimal form as
+outlined here. 

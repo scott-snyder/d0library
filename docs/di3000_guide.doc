@@ -1,0 +1,391 @@
+                                                     S. Hagopian
+                                                     October 1, 1991
+                                                     D0$DOCS:DI3000_GUIDE.DOC
+
+                  GUIDE to DI3000 
+                                                            
+
+
+
+
+
+
+
+                   OUTLINE
+
+
+
+              I. General Features
+
+             II. DI3000 Logicals
+
+            III. DI3000 DEVICE DRIVERS
+
+             IV. DI3000 CONFIGURATION FILES
+
+              V. Hints for Using DI3000 on Various Devices
+
+             VI. Linking with DI3000
+
+            VII. DI3000 Emulators
+
+           VIII. References
+
+
+
+ I. General Features
+
+        DI-3000 is a commercial graphics system, which is designed
+  
+    to be device independent and supports 3-dimensional graphics.
+
+    It has a library of Fortran-callable subroutines which are LINKed
+  
+    into the application using a special LINK procedure. It supports
+
+    a variety of device drivers, which are ordered separately, depending
+
+    on the hardware used at the local site. Dummy device drivers are 
+
+    linked into the program. The user chooses appropriate devices drivers
+
+    before executing the program, saving relinking for each different
+
+    device. DI3000 is available from the Precision Visuals Co. of 
+
+    Boulder, Co. A DI3000 Users Guide and a DI-3000 Quick Reference
+
+    Guide are also available.
+
+
+      DI-3000 is the graphics standard adopted by D0. All graphics code
+
+   is written using DI-3000 calls. DI-3000 is supported by the Graphics
+
+   Group of the Fermilab Computer Division.
+
+
+
+II. DI3000 Logicals
+
+   
+       To use the DI3000 version of PAW, the DI3000 LOGICALS must be defined.
+
+   This happens automatically on most D0 nodes. (There should be a 
+
+   message on your screen at LOGIN time. ) If not try:
+
+                $SETUP DI3000 (Fermilab)
+
+   If this fails, see your SYSTEM manager.
+
+   You must also get the shareable high precision version of DI3000.
+
+   If this does not happen automatically on your LAC, (message will appear)do:
+
+        $DISETSHR EXT HI           
+
+   If you do not have this version of DI3000, you will get the following
+
+      error message: " DI-3000 System error"
+
+                   "you are calling a a DI3000 subroutine that is not available"
+
+
+III. DI3000 DEVICE DRIVERS
+
+ 
+   A. Introduction
+
+      After the DI3000 logicals are defined, you must set the driver
+
+      for your CRT device 1 (required) and hardcopy device 2 (optional).
+
+      The form of the command is:
+
+             $SETDRV device code 1   device code 2
+
+      Some common device codes are:
+
+               GPV - VAX VMS workstation with UIS (without DECWINDOWS)
+
+               XDW - VAX VMS workstation with DECWINDOWS
+
+               240 - VT240
+
+               T10 - TEKTRONIX 4010 emulator
+
+               HDS - Human Devices Systems (Fermilab)
+               
+            Hardcopy printers:
+
+               TLL - TALARIS laser printer, LANDSCAPE MODE      
+
+               TLP - TALARIS laser printer, PORTRAIT MODE      
+
+               LN3 - DEC LN03 laser printer
+         
+               PST - Postscript printer
+
+
+            To find out what devices are available on your VAX cluster, 
+            
+             $DIR DRV_LINK:DRV*.EXE
+
+            The Fermilab clusters have all the standard drivers. If the
+
+            driver you need is not available, send a message to the
+
+            SYSTEM MANAGER.
+
+
+ IV. DI3000 CONFIGURATION FILES
+             
+          A DI3000 configuration files is available for 
+
+          each device driver. These files are ASCII (can be edited)
+
+          and allow the user to set options. For some of the simpler
+
+          devices, such as Tektronics 4010 (T10), this file is a dummy
+
+          Read the comments in the files or the Device user guides for 
+
+          more options and information.
+
+
+
+   B. How to Find and Modify these files
+
+          To use your own modified configuration file, instead of the 
+      
+          default file:
+
+                 1. Copy the default configuration file from
+
+                    DI3_DATA:DRV___.CFG to your own area.
+
+                 2. Modify it according to the options described in the comments
+
+                 3. Reassign the DI3000 logical by:
+
+
+             $DEFINE PVI_CFG [],SYS$LOGIN,DRV_DATA
+
+                   or
+
+             $SETDRV []DRV___.CFG/C
+
+       If you are using two device drivers, either copy both configuration
+
+       files to your area, or set up a search list for the logical:
+
+             $DEFINE PVI_CFG [],SYS$LOGIN,DRV_DATA
+
+     NOTE: On some clusters, the appropriate logical may be DRV_DATA not PVI_CFG
+
+             $DEFINE DRV_DATA [],SYS$LOGIN,disk:[PVI.USER.DATA]
+
+           where "disk" is the appropriate disk for your cluster.
+
+
+   C. Most Useful Configuration file Options
+
+  
+      1. VAXSTATION with GPV driver (non-XWINDOWS) 
+
+             The main option for the GPV is for
+
+             a black/white screen whether the display background is 
+
+             black or white. 
+      
+      2. VAXSTATION with XDW (XWINDOWS) driver
+
+             The mode of "Window repair"   
+
+             (how to recover when a window overlaps your graphics
+
+             window), is very important. It should be set to 4, unless
+
+             the window damage job is not available on your LAC
+
+             or unless this slows your node down too much. 
+  
+
+       3. POSTSCRIPT printer (PST driver)
+
+
+            The postscript printer can have its color map set for
+
+            COLOR, GREY or BI (black/white). Depending on what kind
+
+            of printer you are going to use, set this parameter accordingly.
+
+
+       4. VT240 (240 DRIVER)
+
+            The VT240 configuration file can be set up for color. This
+
+            is not only useful if you have a actual color VT240, but also
+
+            if you are using the REGIS window of a UIS VAXSTATION.
+
+
+ V. Hints for Using DI3000 on Various Devices
+
+
+    A. VAXSTATIONS with UIS (non-XWINDOWS)
+
+       
+        1. If you are directly logged into the node:
+
+           a. If it is back/white, check the SETUP MENU to be sure GREYSHADES
+              is selected, if it is available.
+
+           b. If it is color, set the color table map before running
+
+              your program. If you change it in the middle, you will get
+
+              strange results.
+
+      2. If you use $SET HOST and want to do graphics on a remote node
+
+          a.  LOGIN to a TEK4010 window and use $SETDRV T10 on the
+
+              remote node
+
+          b. LOGIN to a  REGIS window and use $SETDRV 240 on the
+
+              remote node.
+ 
+    !!!!! Warning if you do SETDRV GPV after doing SET HOST, you will
+
+          get an error message when the program tries to open a graphics
+
+          window: "ERROR IN PVINIT -  can not open window"
+   !!!!!!
+
+
+ B. VAXSTATION with XWINDOWS
+
+          1. If you are logged into the node directly, use $SETDRV XDW
+
+          2. If you use $SET HOST, you can create a remote DECWINDOW
+             back on your original, (if the ACCESS AUTHORIZATION has been
+             setup)
+
+             $SET DISPLAY/CREATE/NODE=original host
+
+          3. If you are using a LAT terminal (in D0 HALL):
+
+              a. Create a LAT-X window
+
+              b. Do $SET DISPLAY/CREATE/NODE=original host/TRANS=LAT     
+        
+
+  C. Tektronics 4010 Emulators
+
+         1. General 4010 emulators - use $SET T10 or $SET T14
+
+         2. CODONICS at Fermilab - use $SETDRV COD (slightly modified 
+                                   T10 driver)  
+
+         3. Human Device Systems at Fermilab - use $SETDRV HDS, unless
+               it is a special XWINDOWS terminal, then use $SETDRV XDW
+
+         4. Macintosh - use VERSA TERM PRO and create a TEK4105 window.
+                        Use $SETDRV T10
+
+                  Note: If you are at Fermilab, there is a separate MAC
+                        driver, which allows separate graphics and command
+                        windows. See the PAW on a Macintosh section of the
+                        PAW AT FERMILAB manual, SP0027A.
+
+ VI. Linking with DI3000
+
+        For most large application, the user links with DI3000 by using the
+
+     special command procedure DI3LOAD and has the option SHARE at the
+
+     end. This allows the device driver to be set just before execution.
+
+     This procedure is built into the standard D0 link files, either
+
+     directly, for EXAMINE2, the online program, or as an option,
+
+     for D0USER, do @task_D0USER.LNK DI3000.
+
+        For small programs the user can either use the command procedure by:
+
+        $DI3LOAD test SHARE  
+
+     to be able to set the driver. If the word "SHARE" is omitted, the
+
+     procedure will ask you for the driver code and if you enter it,
+
+     the EXE will only be able to be used on that device. The DI3000
+
+     library and drivers can also be linked directly. See the appropriate
+
+     device user guide for more information. (This is very difficult
+
+     for the XWINDOW driver).
+
+
+ VII. DI3000 Emulators
+
+      To speed up D0 graphics, two DI3000 emulators have been written
+
+      by D0. These do not replace the need to buy a DI3000 license.
+
+      Linking with one of these emulators is an option for the
+
+      D0USER link file. For other applications look at the .OPT
+
+      files below as an example of how to link in the emulator 
+
+      libraraies.
+
+
+     1. DI3000 emulator for the Evans and Sutherland
+      
+
+        To link with D0USER, do @task_D0USER.LNK EASDI3
+
+        To link with other applications, see D0$UITL:EASDI3_UTIL4.OPT
+       
+
+        Contact Shariar Abachi, D0SF11::ABACHI for further information.
+
+     2. DI3000 emulator for the UIS VAXSTATION
+
+
+        To link with D0USER, do @task_D0USER.LNK UISDI3
+
+        To link with other applications, see D0$UITL:UISDI3_UTIL4.OPT
+
+        For information about hardcopy with the UIS emulator see
+
+        D0$GRAPHICS_UTIL:UISDI3_USER_NOTES.DOC
+
+        Contact Mike Shupe, UAZHEP::SHUPE, for further information.
+
+
+VIII. References
+
+     1. DI3000 USERS GUIDE and QUICK REFERENCE GUIDES, available from
+
+        Precision Visuals, Inc. 6260 Lookout Road, Boulder Colorado 80301
+
+
+     2. DI3000 DEVICE DRIVER USERS GUIDES. These should be available at
+
+        each local area cluster. Copies are in binders in the Fermilab
+
+        Computing Library, on the REFERENCE shelves.
+
+
+    3. FERMILAB DI-3000 USER'S GUIDE, Comp. Div. ref. number SP0018
+
+

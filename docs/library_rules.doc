@@ -1,0 +1,213 @@
+
+                                                 John Featherly
+                                                 Kamal Hoummetiene
+                                                 Serban Protopopescu
+                                                 Nov 14,1988
+                                                 Version 2.1
+
+                      QUICK TOUR OF LIBRARY RULES
+                      ===========================
+
+
+      This document briefly summarizes a number of rules that programmers
+contributing to the D0LIBRARY must be familiar with:
+
+ 1) All sources of code, all documentation or references for other types of
+    documentation  and all command  files must reside  in some directory in
+    D0CMS at BNL  (a Library  Section). You  must contact  the czar of of a
+    given library to get  authorization to insert  files into that library.
+    The name  and  address of the  czar for  library  XXXX is  given by the
+    logical symbol D0$XXXX$CZAR.
+
+    Starting with DEC/CMS V3.0, non ASCII text files may reside in a
+    D0 CMS library.
+
+    Consult D0$DOCS:CMS_USER.DOC to learn how to use the  D0 CMS library
+    at BNL. 
+
+ 2) The preferred languages for online code are FORTRAN 77, PASCAL 
+    (including their Vax extensions) and EPASCAL. C and VAX assembler are
+    allowed. For offline code only FORTRAN 77 is allowed.
+   
+ 3) Any valid VAX/VMS file type is allowed but only some of them will 
+    result in a processing:
+
+       +===============+=======================================+==============+
+       !   File Type   !   Description                         !  Result      ! 
+       +===============+=======================================+==============+
+       !      .FOR     !   Fortran Sources                     !  .OBJ        !
+       !      .PAS     !   Pascal Sources                      !  .OBJ        !
+       !      .C       !   "C" Sources                         !  .OBJ        !
+       !      .RFO     !   Rdb Fortran PreCompiler Sources     !  .FOR/.OBJ   !
+       !      .RPA     !   Rdb Pascal  PreCompiler Sources     !  .PAS/.OBJ   !
+       !      .MAR     !   Vax Assembler Sources               !  .OBJ        !
+       !      .CLD     !   Sources for Building DCL Commands   !  [.OBJ]      !
+       !      .MSG     !   Message Utility Sources             !              !
+       !      .RNO     !   Runoff Sources                      !  .MEM        !
+       !      .SET     !   Compack Menu Input Files            !  .MENU       !
+       !      .STR     !   Structure Charts (RUNOFF compatible)!  .STRUC      !
+       !      .STD     !   State Transition Diagrams Sources   !  .STDIA      !
+       !      .TPU     !   Vax/Tpu Sources                     !  .TPU$SECTION!
+       !      .HLP     !   Help Librarian Sources.             !  put in .HLB !
+       +===============+=======================================+==============+
+
+    All link files should have extension .LNK.
+
+ 4) Structure charts for a given program should be runoff files with
+    extension .STR and reside in group STRUC of the appropriate 
+    subdirectory. State transition diagrams reside in the same group
+    with extension .STD. See D0$DOCS:STRUCTURE_CHARTS.DOC for details.
+
+ 5) The sources for COMPACK menu files must have extension .SET.
+    The actual menu files read by the program appear with extension
+    .MENU in the corresponding D0LIBRARY subdirectory.
+    It is not required that the .SET files reside in group MENU in the
+    corresponding library section but the resultant file will be created
+    in the subdirectory MENU of the library section.
+
+ 6) There must be only one subroutine per module in FORTRAN 77 sources.
+    VAX/VMS PASCAL "module" extension (more than one procedure or function
+    in one source file) is allowed as long as the module name and the file
+    name match.
+
+    In general file name and module name must be the same. Exceptions are
+    tolerated for library sections which have multiple object libraries.
+    The corresponding rule is:
+
+        if a file name start with any of the following prefixes
+
+                "CATEST_","CAL_","GEN_","MU_","2000CH_","ADCS_",
+                "BEAM_","CCFH_","DIFF_","ECMH_","FDC_","MUON_",
+                "PULS_","TSTBM_","DUMMY_"
+
+        and if the file name is  "AAAA_BBBBBBB" than the module name
+        must be "BBBBBBB" and will be inserted in the "AAAA" object
+        library section.
+
+ 7) All  FORTRAN   subroutines  must  have a   header, an  IMPLICIT NONE
+    statement  and have all  variables  declared. Use  the D0 EVE editor
+    when  creating  a new  FORTRAN   subroutine, it  will  automatically
+    generate a  header.  Code  written in  FORTRAN  expected to run only
+    online should be  FORTRAN 77 with  all VAX  extensions allowed. Code
+    expected  to  run  offline  should  be  only  FORTRAN  77 with a few
+    extensions allowed, see D0$DOCS:OFFLINE_STANDARDS.DOC for details. 
+
+ 8) To check that a  subroutine satisfies the  offline standards run the
+    procedure ASP, i.e. ASP [file  name]. ASP removes all VAX extensions
+    allowed,   converts  to  strict  FORTRAN  77 and  then  compile with
+    FOR/STANDARDS=ALL.  If a  subroutine fails ASP it  is not acceptable
+    for offline code. For machine  dependent code D0FLAVOR must be used,
+    see D0$UTIL:D0FLAVOR.DOC. 
+
+ 9) All common blocks must reside in  [D0CMS.INC] and inserted into code
+    with the statement INCLUDE  'D0$INC:XXXX.INC' where XXXX is the name
+    of the common block.  ".INC" file type  should be used only for that
+    purpose.   There  can  be  only one   common  block  per module with
+    extension   .INC.  The CMS   library   (D0$INC$CMS)  contains groups
+    corresponding to  each library  section of the D0  library Each .INC
+    file  must be  inserted  into all  the  groups  corresponding to the
+    library section which contain  modules using that common block. Note
+    that   there  are  some   .INC,   notably    ZEBCOM.INC, that are in
+    practically all  groups. This  procedure will be  managed by the new
+    release of the update system software. 
+
+10) A file  containing parameters  only must have  extension .PARAMS and
+    reside in  [D0CMS.PARAMS]  if it is  used in more  than one library,
+    otherwise it may  reside in its  CMS library  section area. The same
+    rules apply as for .INC files. 
+
+11) There is a subdirectory [D0CMS.XXXX] associated with a given program
+    or utility library (a Library Section). All sources files, link files,
+    command files, documents, etc associated with that program or library
+    must in appropriate CMS groups in that CMS library.
+
+    Below is the list OF D0 Library Sections as of May 1988: 
+
+    Online code:
+    CALIB, COOR, D0DAQ, D0RUN, D0USER, DAQFIL, DUMMY, ELNCON, EVTMON,
+    ITC, LOGBOOK, LOGGER, ONLINE_UTIL, PRE_DUMMY, SUPCON, ZBDUMP
+
+    Offline code:
+    COMPACK, CALOR_UTIL, D0GEANT, D0HPLT, ISAZEB, MUON_UTIL, PIXIE,
+    OFFLINE_UTIL, TRACKING_UTIL, ZEBRA_UTIL
+
+
+    General utility subroutines should be in the appropriate _UTIL directory.
+   
+    Others [D0CMS.XXXX] subdirectories include :
+
+    DOCS, ZEB for documentation,
+    INC, LINKS, PARAMS for include files,
+    CYBER205, MICROVAX and VAX780 for machine dependent code.
+
+12) Every subroutine in libraries designated as offline must have unique
+    names     and     satisfy   the      standards    given  in D0$DOCS:
+    OFFLINE_STANDARDS.DOC. Any  exceptions must be in group NONSTANDARD,
+    all others will be checked at release time and cannot be released if
+    they don't satisfy this rule. 
+
+13) The command file allocating  menus for a given program must have the
+    form XXXXX_MENUS.COM. 
+
+14) Documentation of a general  nature (not associated with a particular
+    program) should  be kept in  [D0CMS.DOCS]. Runoff  files should have
+    extension .RNO, others extension .DOC. 
+
+    Starting with  the next release  of the update  system software, the
+    .MEM and .DOC files of any library section will not be copied to the
+    D0$DOCS: area. 
+
+15) All documents must be listed in INDEX.DOC, which is kept in
+    [D0CMS.DOCS]. When creating a new document INDEX.DOC should be
+    updated, that is the responsibility of the person inserting
+    the new document in the library.
+
+16) When a source file (or group of  source files) is to be removed from
+    a subsequent  release of a  library section it  should be put in the
+    OBSOLETE group of the corresponding CMS library and removed from any
+    other groups  it belongs  to. The  update system  software moves the
+    obsolete file(s) to a  group called TRASH  after deleting the source
+    file(s) and any resultant object(s). 
+
+17) Any file in a given library that has no well defined group according
+    to the above rules should go in group MISC.
+
+    This means that each element must belong to at least one group.
+
+18) The library section coordinator may if he/she wishes create his/her
+    own CMS release class.
+
+    If he/she delegates the CMS release class making to the D0 librarian,
+    the following rules apply:
+
+        - If a RELEASE group exists, its content minus the content of the
+          OBSOLETE group is inserted into the new class.
+
+        - If RELEASE group does not exist, all groups except OBSOLETE
+          (and TRASH) are inserted into the new class.
+
+
+
+    In addition to  the above there  are a number of  rules for handling
+Zebra which  are  described in  detail in   D0$DOCS:ZEBRA_RULES.MEM. The
+rules are summarized below: 
+
+19) For every bank name  XXXX there must be a  parameter IZXXXX residing
+    in a module  IZXXXX.LINK.  This  parameter  indicates the structural
+    link from which the  bank (or linear  structure of banks) hangs. All
+    .LINK files are in [D0CMS.LINKS]. 
+
+20) Every  bank XXXX  must be  documented, the  documents  must be named
+    XXXX.ZEB  and   reside in   [D0CMS.ZEB].  There  are  groups in that
+    subdirectory to provide some  logical grouping. Every group contains
+    a file group_TREE.ZEB  which provides a  diagram of how the banks in
+    that group are linked. All .ZEB files must have the same format, use
+    an existing one as a  template or let the  EVE editor create one for
+    you. 
+
+21) Zebra utility  subroutines- i.e. for  printing, fetching pointers or
+    information, etc. - must be  either in a detector_UTIL library or in
+    [D0CMS.ZEBRA_UTIL]. These  subroutines must follow the rules spelled
+    out in ZEBRA_RULES.MEM. 
+
+22) When naming Zebra banks consult ZEBRA_RULES.MEM for naming conventions. 

@@ -1,0 +1,156 @@
+
+         
+                            MU_SMEAR PACKAGE
+
+                      Tom Diehl    March 11, 1993
+			
+		updated Paul Quintas April 8, 1994
+
+
+  ABSTRACT
+  --------
+     This package has the purpose of doing further smearing to GEANT
+  data in order to mimic the real detector resolution and to account 
+  for the  sorts of inefficiencies  which  cannot  and should not be 
+  applied in the Monte Carlo generation.
+
+
+  INTRODUCTION
+  ------------
+     The GEANT has been generated assuming that the MUON detector is
+  operating at the design resolution  dP/P = 20 %. The resolution we 
+  have actually achieved is not as good but has improved  during the 
+  course of the run. At this time dP/P = 20 % for low momenta but is
+  closer to 50 % for momenta of 40-50 GeV. (See D0Note 1985.)  It is 
+  impractical to generate different GEANT samples at various resolu-
+  tions because of limitations in resources of all kinds. 
+
+     Furthermore, GEANT could not have predicted certain inefficien-
+  cies such as those incurred when, for  example, the AC fuse on the
+  low-voltage power supply for one PDT fails for a few  days, or one
+  chamber's gas leak causes it to be inefficient for an entire run.
+
+     A single GEANT sample can be made applicable to both run 1A and
+  run 1B by using different MU_SMEAR jobs to account for time-dependant 
+  effects such as the changing resolution and efficiencies. MU_SMEAR 
+  was written with this purpose in mind. 
+
+
+  WHAT MU_SMEAR DOES
+  ------------------
+     The MU_SMEAR package does three things. First, it smears the raw
+  muon data bank (MUD1) to worsen the time and delta time electronics
+  resolutions. GEANT-only Monte Carlo has a drift time position resolu-
+  tion of 200 microns and a time-division resolution of 12 cm. These
+  are significantly better than what was achieved in practice. During
+  Run 1A the time resolutions peaked at 70 microns and 20 cm was a typi-
+  cal value for the delta times resolutions.
+
+     Second, the package throws away hits from MUD1 in order to mimic
+  the chamber inefficiencies (beyond the geometric ones modelled in
+  GEANT). During Run 1A most chambers were about 90% efficient but the
+  EF B and C chambers had dramatically lower efficiencies (near 50%).
+
+     Third, the package misadjusts the geometry file in order to repro-
+  duce the observed momentum resolution. At the start of reconstruction
+  MU_SMEAR changes the position (in the drift direction only) of each
+  chamber. It was found that a typical value of 3 mm was needed to
+  degrade the Monte Carlo W->mu nu and Z->mu mu distributions to make
+  them match RECO version 11 data.
+
+
+  PROCEDURE
+  ---------
+     MU_SMEAR is intended to be run in between GEANT and any trigger
+  simulation or reconstruction job. It can either be run as a stand-
+  alone package, followed by RECO or TRIGSIM, or it can be linked into
+  those packages. (It must be included as a package in front of TRIGSIM
+  or MURECO or whatever when performing the PBD.) One RCP file is 
+  required (logical MU_SMEAR_RCP) and the outputs are the smeared raw
+  Monte Carlo data file and the changed geometry file. 
+
+     If a reconstruction or trigger simulation program is built with 
+  MU_SMEAR, the smearing of MUD1 and the geometry is done automatically 
+  according to the parameters in MU_SMEAR_RCP. However, if MU_SMEAR is
+  run as a stand-alone package, and the standard packages (e.g. RECO or
+  TRIG_SIM) are run in subsequent jobs, one extra change must be made
+  in order to get the "smeared" geometry. When the reconstruction or 
+  trigger simulator is run on the output file from MU_SMEAR (i.e. the 
+  raw smeared MC data), the MU_SMEAR_RCP is no longer needed since the 
+  MUD1 bank has already been changed. However, the original Monte Carlo 
+  geometry will be used unless MURECO_RCP is changed. In order to change 
+  MURECO_RCP to use the "smeared" geometry file, set the following:
+	(1) USE_DBL = 0
+	(2) SMUO_FILE is 'your smeared geometry file'
+  The SMUO_FILE to be used for all Monte Carlo generated with the
+  default geometry, D0$STP:MUO_STPFILE_SRV_2.DAT, and 3 mm smearing 
+  is MUO_STP_SRV_2_3MM.DAT
+	(3) if it exists in your version of MURECO_RCP, the variable
+  USE_STP_LIST should be set to .FALSE.
+    
+
+  MU_SMEAR_RCP FILES
+  ------------------
+     The resolution and efficiencies are contained PDT - by - PDT in
+  RCP files. The following information is listed for each PDT:
+
+      Name  Typical Value   Comment
+      ----  -------------   -------
+  1) ON/OFF      1.00       Example of use: LVPS fuse blown. 
+  2) PL EFF      0.90       Pad Latch efficiency.
+  3) T EFF       0.97       Drift-Time efficiency.
+  4) T SMEAR     0.07       Drift Resolution in cm.
+  5) DT EFF      0.91       Delta-Time efficiency.
+  6) DT SMEAR    20.0       Delta-Time Resolution in cm.
+  7) DT DBL      0.05       Delta-Time refired (not implemented).
+  8) UNALIGN     0.30       Extra Position Smearing in cm.
+
+     Two example .RCP files are in the library. One is the trivial set:
+  MU_NO_SMEAR.RCP which contains parameters set up to do no further smearing.
+  The other, MU_SMEAR_1A_V11.RCP, contains the best guess (as of 1-Apr-94)
+  for the values of the parameters for run 1A global data taking
+  reconstructed with D0RECO version 11. (V12 has better resolution.)
+  For this second file, the chamber resolutions (T SMEAR and DT SMEAR) are 
+  the actual resolutions for TIMES and DELTA TIMES for post-shutdown data.
+  (Pre-shutdown resolutions are different but similar. See D0Note 2103.)
+  The chamber efficiency numbers (PL EFF, T EFF, DT EFF) were also taken
+  from data. These values were measured in two different ways (D.Hedin and
+  K.Bazizi) which agree within errors. The values selected (those from 
+  D.Hedin) vary PL EFF chamber by chamber but use overall averages for 
+  T EFF and DT EFF. The extra position smearing term, by contrast, is not
+  taken directly from a data measurement. Rather some additional smearing
+  is necessary to make the momentum resolution of the smeared MC agree 
+  with that observed in the W and Z mass spectra (see D0Note 1985).
+  This term is a random offset (a Gaussian with width of 3 mm) to the 
+  alignment in the drift coordinate direction for each PDT.
+
+
+  HOW IT WORKS
+  ------------
+     MU_SMEAR copies MUD1 to the USER link (18) off the header bank.
+  Then it deletes the original MUD1. It then steps  through the copy 
+  and rewrites the  WAMUS data with the smearing determined from the 
+  RCP file MU_SMEAR_RCP into MUD1's nominal location.  SAMUS data is 
+  left unsmeared. There is protection against smearing real data. 
+
+     The alignment effect is accomplished by checking the  MGEH bank
+  once per event and offsetting the PDT in the drift view by the 
+  amount determined  in the RCP file. Protection insures that the PDT 
+  positions are changed once and only once.
+
+
+  SOURCE CODE LOCATION
+  --------------------
+     The source code and the .RCP files are located in D0$MUON_RECO.
+
+
+  KNOWN IDIOSYNCRACIES
+  ---------------------
+     At present there is nothing to prevent a user from smearing and
+  resmearing and resmearing the same data, each time degrading the
+  resolution. There is no flag which tells if the data is smeared.
+
+     The 5 word crate trailer has a word which contains the number
+  of words in the crate. MU_SMEAR does not change this word even in
+  the case that some hits are removed. This doesn't cause any damage
+  in present muon code. It could be used to tell if any hits are dropped.

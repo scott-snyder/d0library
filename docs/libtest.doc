@@ -1,0 +1,231 @@
+
+
+                        Using the LIBTEST command
+    Created on or before December, 1989 by unknown author
+    Updated 1-JUL-1993 by Roy Thatcher to include some qualifiers
+    used with LIBTEST in various procedures.
+
+    -- Abstract.
+    The following document explains the use of the LIBTEST command.
+
+    -- Introduction.
+
+    (Note, The following text is a tutorial, At the end of this text
+    is a terse set of text which explains the functionality of the
+    LIBTEST command.)
+
+        The environment of the D0library is such that it allows for
+    the user to work under a constantly changing set of software. The
+    D0 library environment is an umbrella under which reside many
+    separate and related libraries. These libraries are continuously
+    being updated and changed. In order to be able to provide this
+    flexible yet stable environment, the D0 library has been split up
+    into two different areas. One is the official area where thoroughly
+    test software is to be found and the other is the Test area where
+    new version of existing libraries reside.
+
+        The official directory of the d0library is where all the
+    official releases of the libraries are located. This directory is:
+
+                D0$DISK:[D0LIBRARY]
+
+    Any library then resides as a subdirectory to d0$disk:[d0library].
+    For example, the official release of the library D0USER is located
+    in the directory; D0$DISK:[D0LIBRARY.D0USER]. The test release
+    area of the D0library lies in the directory
+
+                D0$DISK:[D0LIBRARY.TEST]
+
+    All libraries which have test releases will resided in subdirectories
+    of D0$DISK:[D0LIBRARY.TEST]. Example; the
+    test release of the D0USER library resides in the directory
+    D0$DISK:[D0LIBRARY.TEST.D0USER].
+
+
+    In order to be able to interface with the official or both the
+    test and official area a series of logical names have been developed.
+
+    -- D0 logical names
+
+        When one references any library file which resides in the D0
+    library environment, the appropriate logical name should be used.
+    The form of these 'D0 logical names' is as follows:
+
+        D0$'library name' = d0$disk:[d0library.'library name']
+
+                        - and -
+
+        D0$'library name'$'sub-directory' = 
+               d0$disk:[d0library.'library name'.'sub-directory']
+
+    For example, there is a library by the name of D0USER. Within this
+    library there is a subdirectory by the name of FRAME. Thus there
+    exists a logical by the name of D0$D0USER which references the
+    D0USER library directory. Also there is the D0$D0USER$FRAME
+    logical name which references the FRAME subdirectory of the D0USER
+    library.
+
+        If one wants to reference the test area of the D0library then
+    one should use the same logical names as is done to reference the
+    official area except that the LIBTEST command must be executed
+    first. This command chains the test and official area together.
+
+
+    -- The LIBTEST command
+
+        The libtest command modifies the D0 logical name such that
+    they become search lists. The search lists work in a way such that
+    first the test area is reference and then the official area is
+    referenced. For example, D0USER has an official release who's
+    version is v1.00. A new test release of D0USER has been made who's
+    version is v1.01_01. If one wants to reference the test area then
+    one executes the libtest command using the library name as the
+    parameter. For example:
+
+        $ LIBTEST D0USER
+
+    The above command places the library D0USER into test mode. 
+    What this means is that all the logical D0USER logical names have
+    been altered. Now if one does a directory of D0$D0USER, one will
+    first gets a listing of the files in the test area and then
+    listing of the files in the official area. The same applies for
+    taking a directory of D0$D0USER$FRAME.
+
+    If you want to undo what the LIBTEST command has done, then use
+    the NOLIBTEST command. Example;
+
+        $ NOLIBTEST D0USER
+
+    The above command resets the logical name D0$D0USER and all
+    D0$D0USER$'sub-directory name' logical names so as to reference
+    only the official area.
+
+    If one want to know the current state of any library, be it in
+    test mode or not, then use can be made of the SHOWLIBTEST command.
+    Example;
+
+        $ LIBTEST D0USER
+        $ SHOWLIBTEST
+
+                -- TEST mode directories --
+        The items which are in reverse video are currently active
+
+
+          BETA_UTIL   d0user  GENERAL ZEBRA_UTIL
+
+
+    In the above example, there are 4 libraries which have test
+    releases. Since the LIBTEST D0USER command was executed, then the
+    D0USER is shown in reverse video to indicate that the logical
+    names which reference the D0USER library will chain together the
+    test and official release. (Since I cannot type in reverse video, I
+    typed in D0USER in small letters simulating reverse video.)
+
+
+    -- Referencing a GAMMA release --
+
+        A new form of a release has just become available. To
+    complement the official and test releases of any D0 library, there
+    is now the GAMMA release. A gamma release is identical to a test
+    release except that it resides in ones own personal directory. If
+    one is currently working on modifying some routines for D0USER,
+    and these routines need to be tested by yourself, then you do a
+    gamma release to an area which you have defined which resides
+    somewhere in your own directory. For example, Mr. Smith has just done a
+    GAMMA release of D0USER to the directory USER1:[SMITH.GAMMA] where
+    he has ownership of the directory tree
+    USER1:[SMITH...]. The GAMMA release of D0USER will then reside
+    in the directory of USER1:[SMITH.GAMMA.D0USER]. Now if Mr. Smith
+    wants to reference the gamma release of D0USER via the D0 logical
+    names (in our case D0$D0USER: ) then he must execute the LIBTEST
+    command with the /gamma qualifier. Example;
+
+        $ LIBTEST/GAMMA=USER1:[SMITH.GAMMA] D0USER
+
+    The D0USER logical names will now reference first the gamma
+    release files of the D0USER library and then the official release
+    files of the same library.
+
+    You can undo what was done by the  LIBTEST/GAMMA command by using
+    the NOLIBTEST command. Even though the D0USER logical names have
+    been placed into 'gamma mode', the NOLIBTEST command will undo
+    what the LIBTEST/GAMMA command has done.
+
+    If one wants to see which libraries are in gamma mode, then one
+    can use the SHOWLIBTEST/GAMMA command, example;
+
+        $ SHOWLIBTEST/GAMMA=USER1:[SMITH.GAMMA] D0USER
+
+           -- GAMMA mode directories --
+
+        The items which are underlined are currently active
+
+        d0user
+
+    Since Mr. Smith has only done a gamma release of D0USER, then only
+    this one item is shown and is underlined. (I cannot type in
+    underline mode so that I type in small letters to simulate
+    underlining.)
+
+c=====================================================================
+
+
+    command LIBTEST library_name1[,library_name2,...]
+
+        -- or --
+
+    LIBTEST ALL
+
+    The LIBTEST command places the specified library list in test mode.
+
+    Parameters
+
+        The parameter is a list of the libraries to be placed in
+    test mode. If the ALL parameter is used, then all libraries which
+    have current test releases are placed in test mode.
+
+    qualifiers
+
+        /gamma[= gamma release directory]
+
+        The gamma qualifier specifies the library, list of libraries or
+        ALL gamma release libraries to be placed in gamma mode.
+
+        /override
+    
+        The override qualifier force the generation of the logical
+        names even if the flag file for the test version is missing.
+        This is necessary when first releasing the library.  -RCT
+      
+        /nochain
+
+        The nochain qualifier inhibits the "chaining" of the
+        official area to the test area.  A bug seems to exist that
+        keeps /nochain from working if the test area flag file is
+        missing and /override is not specified.  However, /nochain
+        works correctly in such a case if /override is specified. -RCT
+
+    command NOLIBTEST [library_name1[,library_name2,...]]
+
+
+    The NOLIBTEST command places the listed libraries into official
+    mode. If no parameter is given, then all libraries are placed in
+    official mode.
+
+    command SHOWLIBTEST
+
+
+    The SHOWLIBTEST command prints out a list of all the libraries
+    which have current test releases. Libraries which are currently
+    under test mode are shown in reverse video.
+
+    qualifiers
+
+        /gamma[= gamma release directory]
+
+        The gamma qualifier specifies that a list of all gamma
+    released libraries, be made. The libraries which are shown in
+    reverse video are currently under gamma mode.
+
+
+

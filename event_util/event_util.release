@@ -1,0 +1,50 @@
+! EVENT_UTIL release instructions
+
+begin
+/group=dump
+/srcdir=d0$event_util$dump:
+/intdir=d0$scratch:[event_util]
+/trgdir=d0$event_util:
+
+olb=event_util.olb/element=(*.for)
+
+! Need to create temporary GENERAL.OLB for any linking
+
+post/cmd="d0$library_util:make_temp_general EVENT_UTIL NODEB"
+
+post/dcl="DEFINE D0$GENERAL D0$RELEASE:[EVENT_UTIL]
+
+post/copy/element=(*.doc)
+/from=d0$release:[event_util.dump]
+
+post/copy/element=(*.RCP)
+/from=d0$release:[event_util.dump]
+
+end
+
+begin
+/group=event_io
+/srcdir=d0$event_util$event_io:
+/intdir=d0$scratch:[event_util]
+/trgdir=d0$event_util
+
+olb=event_util.olb/element=(*.for,*.c)
+
+misc/element=(*.rno)
+
+post/copy/element=(*.doc)
+/from=d0$release:[event_util.event_io]
+
+post/copy/element=(*.RCP)
+/from=d0$release:[event_util.event_io]
+
+post/copy/element=(*.LNK)
+/from=d0$release:[event_util.event_io]
+
+post/cmd=d0$event_util$event_io:ev_merge_lists.lnk
+
+! Delete the temporary GENERAL.OLB
+
+post/cmd="d0$library_util:make_temp_general DELETE"
+
+end

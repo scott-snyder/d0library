@@ -1,0 +1,143 @@
+.LEFT MARGIN 10
+.RIGHT MARGIN 70
+.LITERAL
+                                    D0 Note#325
+                                    SDP January 6,1985
+                                        Rev. July 16,1986
+
+
+                D0LIBRARY PROTOCOL
+                ==================
+
+
+      This note describes agreed upon procedures for the sofware
+library maintenance, upgrading and access. The central library resides
+in only one location, the BNL VAX cluster. There are basically three
+types of libraries: CMS libraries, object libraries (.OLB), and SOURCE
+libraries. The first resides in subdirectories with root [D0CMS], the
+last two in subdirectories with root [D0LIBRARY]. In addition
+[D0LIBRARY] contains some special utility subdirectories such
+as [.EXE] with .LNK files to create the executable files that can be
+used as examples to get started with. Other such subdirectories are
+[.PATCHY] with all .PAM files from CERN and [.DOCS] with documents
+relevant to the library. 
+
+
+CMS LIBRARIES
+
+      All CMS files are in a special area [D0CMS] with corresponding
+subdirectories. No copies of the [D0CMS] CMS library will exist on
+other Vax's in the collaboration. Programmers developing code can and
+are encouraged to create their own private CMS libraries for keeping
+track of their work; they must start, however, by reserving the
+modules they are working on from the central library. Anybody who
+needs to reserve and replace CMS files from [D0CMS] will be given
+a user area under their name on the BNL VAX cluster and 1000 blocks
+on the D0 disk. If more working space is needed one can create a
+subdirectory by first SET DEF $2$DJA13:[SCRATCH] and then create/dir
+[.blahblah]. Note that space on the scratch disk unused for more than
+four days automatically disappears (including subdirectories). 
+      The procedure for changing a file in the CMS library is to
+login on the BNL VAX cluster under your name, use a cms reserve 
+command (this automatically enters your name as the person reserving 
+the file and copies the file to your area) and then copy the file
+to your VAX to work on. When you are done and believe you have a
+working and improved version of the file you should replace it in
+the central library by again loging in under your name and using a
+cms replace command. Before replacing a file in the CMS library
+one should make sure that the file satisfies the D0 programming 
+standards (to get a copy of the programming standards fetch
+[D0LIBRARY.DOCS]STANDARDS.DOC ) and that it is free of bugs; remember,
+your name is recorded for all times so any user of the library will
+know who it is that messed up what used to be a fine subroutine.
+All common blocks reside in one area [D0CMS.INC]. It is strongly
+recommended that common blocks be changed very infrequently, if
+possible never and also to keep them from proliferating.
+
+
+OBJECT LIBRARIES
+
+      Object libraries corresponding to a given CMS library 
+reside in a D0LIBRARY subdirectory ,i.e. [D0CMS.XXX] has
+the corresponding .OLB files in [D0LIBRARY.XXX]. There are always
+three .OLB files available: PROD_XXX.OLB, XXX.OLB and DEB_XXX.OLB.
+In addition to OLB files the MMS command files needed to create them
+reside in the same subdirectory. PROD_XXX.OLB is the latest official
+released version for production, it belongs to the last defined class.
+To get a previous release an MMS command file exists asking for
+the wished class. The libraries XXX.OLB and DEB_XXX.OLB correspond
+to the latest working versions, the second one contains modules 
+compiled with the debug flag on. These are the ones used by those
+developing code and will be updated regularly. All Vax's in the
+D0 collaboration used for developing code should have a D0LIBRARY
+area and keep copies of the .OLB they are using in directories
+with the same name as at BNL. To keep consistency accross VAX's
+users should assign the same logical device names to local [D0LIBRARY]
+subdirectories as the names in BNL. The logical names have the form
+D0$XXX: for [D0LIBRARY.XXX] and D0$XXX$YYY: for [D0LIBRARY.XXX.YYY].
+These assignments should be part of the login file of every user,
+of course nothing prevents the user from defining shorter names in
+addition if he/she finds it cumbersome to type long names. A
+D0PROLOG.COM file exists in [D0LIBRARY] (originally setup by W.
+Koellner) which can be executed as part of the LOGIN.COM of each user.
+This file will be maintained at BNL and any modifications one wishes
+to introduce in it should be coordinated with Featherly. 
+
+
+SOURCE LIBRARIES
+
+      With every directory [D0LIBRARY.XXX] containing object libraries
+comes a subdirectory [D0LIBRARY.XXX.SOURCE] with the .FOR files
+corresponding to what is in DEB_XXX.OLB. These are needed for
+debugging purposes because the VAX debugger accesses them when one
+wishes to see the code in a given module. To keep a strict link
+between the source and the object library the MMS commands are setup
+so that from the apropriate CMS files first the .FOR files in
+[..SOURCE] are replaced and then the library is updated. To create
+libraries for computers other than VAX's their will be an MMS command
+file that will make  strict FORTRAN77 code starting from the .FOR
+files and merging them into a .TXT library that will be the equivalent
+of the .OLB library. The .TXT files will not normally be stored in
+[D0LIBRARY], they will be created when the need arises. 
+
+
+LOCAL LIBRARIES
+
+      Every VAX used for D0 software development should have a
+[D0LIBRARY] area which keeps the .OLB files and corresponding .FOR 
+files with the same tree structure as the BNL library. An MMS
+procedure will exist at BNL so that when a new version of the library
+is generated the approrpiate .FOR files will be replaced in
+the local [D0LIBRARY.XXX.SOURCE] and then compiled and inserted
+into the local XXX.OLB and DEB_XXX.OLB. The procedure will first 
+create a new cycle of XXX.OLB and DEB_XXX.OLB so that the old
+version will still be available locally until deleted. It is the
+responsibility of the local librarian to delete old cycles in a
+timely manner to avoid filling up the disk. Before updating any
+library a mail message will be send to all users warning that a
+particular library will be updated on a given date. If there are any
+objections they should be mailed to BNLD01::FEATHERLY before the
+specified date. Updating the PROD_XXX.OLB will occur infrequently and
+only after a consensus has been reached that it is time to release a
+new version. Each PROD_XXX.OLB will correspond to a version N.0 while
+the XXX.OLB and DEB_XXX.OLB will be refered as versions N.n . If no
+official release exists yet there will be no PROD_XXX.OLB in the
+library and the versions will be called 0.n . 
+
+
+DOCUMENTATION
+
+      General software documentation is maintained in [D0CMS.DOCS].
+Whenever a new document is added the document INDEX.DOC must also be
+updated, it contains a list of all documents in alphabetical order
+with a short description. Documents that are specific to a particular
+XXX.OLB are maintained in [D0CMS.XXX], a copy will appear both in
+[D0LIBRARY.XXX] and [D0LIBRARY.DOCS]. If a file is a .RNO file,
+[D0LIBRARY.DOCS] will contain the corresponding .MEM file.
+Documentation for Zebra banks is handled by special procedures: the
+individual banks are maintained in [D0CMS.ZEB] in separate groups, the
+files from each group are then combined together to make a .MEM file
+which appears in [D0LIBRARY.DOCS]. For more detailed information see
+the documentation section in ZEBRA_RULES.MEM. 
+
+.END LITERAL

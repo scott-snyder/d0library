@@ -19,6 +19,10 @@ C-   Updated  15-OCT-1993   Marc Paterno  Added CORRECT_MET_SET_REPEAT
 C-   Updated   9-MAY-1995   R. Astur      New soft correction, add MRFN
 C-                                        to VCOR's considered, new noise
 C-                                        routine.
+C-   Updated  13-AUG-1996   Bob Hirosky -- update for cafix51
+C-                                      make template choose unique 0.7
+C-                                      cone jet algoritm for d0fix
+C-   Updated   7-AUG-1997   Bob Hirosky -- drop SOFT correction
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:PI.DEF'
@@ -60,8 +64,8 @@ C: ELECTRON/PHOTON
 C: JETS
       INTEGER LBANK, LJETS, NJETS, ISYS
       SAVE    ISYS
-      REAL EJ(7), TEMPLATE(3), UNDER_E, UNDER_ET, ZSP_E, ZSP_ET
-      DATA TEMPLATE / 1., 6., .7 /
+      REAL EJ(7), TEMPLATE(9), UNDER_E, UNDER_ET, ZSP_E, ZSP_ET
+      DATA TEMPLATE / 4., 6., .7, 10., 1.0, 11., 1.0, 12., 1.0 /
       SAVE TEMPLATE
       LOGICAL MET_CORRECT
       LOGICAL DO_ZSP, DO_UNDER, DO_OUT_OF_CONE    ! For jet correction
@@ -98,8 +102,8 @@ C----------------------------------------------------------------------
         ELSE
           CALL EZPICK ('CAFIX_RCP')
           ERRSUM = 0
-          CALL EZGET ('DO_SOFT_CORRECTION', WANT_SOFT_CORRECTION, IER)
-          ERRSUM = ERRSUM + ABS(IER)
+c          CALL EZGET ('DO_SOFT_CORRECTION', WANT_SOFT_CORRECTION, IER)
+c          ERRSUM = ERRSUM + ABS(IER)
           CALL EZGET ('REPEAT_CORRECTION', REPEAT_CORRECTION, IER)
           ERRSUM = ERRSUM + ABS(IER)
 C
@@ -335,67 +339,67 @@ C
           CALL MZDROP(IXMAIN,LVCOR,' ')
         ENDIF
       ENDDO
-
+c
 C
 C **** Calculate and correct soft recoil vector
 C
-      IF (WANT_SOFT_CORRECTION) THEN
-        IF ( ETX*ETY .EQ. 0.0 ) THEN
-          RECOIL_PHI = 0.
-        ELSE
-          RECOIL_PHI= ATAN2( ETY, ETX )
-        ENDIF
-        IF ( RECOIL_PHI .LT. 0.0 ) RECOIL_PHI = RECOIL_PHI + 2*SNGL(PI)
-        OLD_SOFT_ETX = ETX
-        OLD_SOFT_ETY = ETY
-
+c      IF (WANT_SOFT_CORRECTION) THEN
+c        IF ( ETX*ETY .EQ. 0.0 ) THEN
+c          RECOIL_PHI = 0.
+c        ELSE
+c          RECOIL_PHI= ATAN2( ETY, ETX )
+c        ENDIF
+c        IF ( RECOIL_PHI .LT. 0.0 ) RECOIL_PHI = RECOIL_PHI + 2*SNGL(PI)
+c        OLD_SOFT_ETX = ETX
+c        OLD_SOFT_ETY = ETY
+c
 C:  Try to find a jet which matches to this
 C
-        SOFT_MATCH    = 0
-        LJETS  = GZJETS()
-        DO WHILE ( LJETS .GT. 0 )
-          LBANK = LQ( LJETS - IZJNEP )
-          IF ( LBANK .LE. 0 ) LBANK = LJETS
+c        SOFT_MATCH    = 0
+c        LJETS  = GZJETS()
+c        DO WHILE ( LJETS .GT. 0 )
+c          LBANK = LQ( LJETS - IZJNEP )
+c          IF ( LBANK .LE. 0 ) LBANK = LJETS
 C
-          DPHI  = MIN( ABS(Q(LBANK+8)-RECOIL_PHI), ABS( SNGL(TWOPI)
-     &      -ABS(Q(LBANK+8)-RECOIL_PHI)) )
-          IF ( (DPHI .LT. DPHIMIN .OR. SOFT_MATCH .EQ. 0 )  .AND. DPHI .
-     &      LT. .7 ) THEN
-            DPHIMIN     = DPHI
-            SOFT_MATCH  = 1
-            DRETA = Q( LBANK + 9 )
-            DRMIN = SQRT( Q(LBANK+12)**2 + Q(LBANK+13)**2 )
-            DREMF = Q( LBANK + 14 )
-          ENDIF
-          LJETS = LQ( LJETS )
-        ENDDO
+c          DPHI  = MIN( ABS(Q(LBANK+8)-RECOIL_PHI), ABS( SNGL(TWOPI)
+c     &      -ABS(Q(LBANK+8)-RECOIL_PHI)) )
+c          IF ( (DPHI .LT. DPHIMIN .OR. SOFT_MATCH .EQ. 0 )  .AND. DPHI .
+c     &      LT. .7 ) THEN
+c            DPHIMIN     = DPHI
+c            SOFT_MATCH  = 1
+c            DRETA = Q( LBANK + 9 )
+c            DRMIN = SQRT( Q(LBANK+12)**2 + Q(LBANK+13)**2 )
+c            DREMF = Q( LBANK + 14 )
+c          ENDIF
+c          LJETS = LQ( LJETS )
+c        ENDDO
 C
 C: Make soft correction
 C
-        WIDTH_FACTOR  = 1.0
-        RECOIL_ET     = SQRT( ETX**2 + ETY**2 )
-        OLD_RECOIL_ET = RECOIL_ET
-        IF ( SOFT_MATCH .EQ. 1 ) THEN
-          CALL CORRECT_JETS_WIDTH( .7, RECOIL_ET, DRETA, DRMIN, DREMF,
-     &      WIDTH_FACTOR)
-        ENDIF
-        RECOIL_ET = RECOIL_ET*WIDTH_FACTOR
-        ETX = RECOIL_ET * COS(RECOIL_PHI)
-        ETY = RECOIL_ET * SIN(RECOIL_PHI)
+c        WIDTH_FACTOR  = 1.0
+c        RECOIL_ET     = SQRT( ETX**2 + ETY**2 )
+c        OLD_RECOIL_ET = RECOIL_ET
+c        IF ( SOFT_MATCH .EQ. 1 ) THEN
+c          CALL CORRECT_JETS_WIDTH( .7, RECOIL_ET, DRETA, DRMIN, DREMF,
+c     &      WIDTH_FACTOR)
+c        ENDIF
+c        RECOIL_ET = RECOIL_ET*WIDTH_FACTOR
+c        ETX = RECOIL_ET * COS(RECOIL_PHI)
+c        ETY = RECOIL_ET * SIN(RECOIL_PHI)
 C
 C **** Book and fill a VCOR for this SOFT correction
 C
-        CALL BKVCOR( LVCOR )
-        IF ( LVCOR .GT. 0 ) THEN
-          IQ( LVCOR + 2 ) = 4HSOFT
-          Q ( LVCOR + 3 ) = ETX - OLD_SOFT_ETX
-          Q ( LVCOR + 4 ) = ETY - OLD_SOFT_ETY
-        ELSE
-          CALL ERRMSG('Book failure','CORRECT_MET',
-     &      'Failed to book VCOR','F')
-          GOTO 900
-        ENDIF
-      ENDIF
+c        CALL BKVCOR( LVCOR )
+c        IF ( LVCOR .GT. 0 ) THEN
+c          IQ( LVCOR + 2 ) = 4HSOFT
+c          Q ( LVCOR + 3 ) = ETX - OLD_SOFT_ETX
+c          Q ( LVCOR + 4 ) = ETY - OLD_SOFT_ETY
+c        ELSE
+c          CALL ERRMSG('Book failure','CORRECT_MET',
+c     &      'Failed to book VCOR','F')
+c          GOTO 900
+c        ENDIF
+c      ENDIF
 C
 C ****   Correct jets with special MET flag set. This tells CORRECT_JETS to
 C ****   first remove ISOLATED PELC/PPHOs from JETS. Then correct what is

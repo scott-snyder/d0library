@@ -1,0 +1,351 @@
+
+
+                        CLIST LIBRARY
+
+    Introduction:
+
+        This library contains a set of routines which will maintian a dynamic
+    list of elements. Any number of lists can be created, the size of
+    the list is defined by the number of items placed in the list and the
+    item type for each list is optional.
+
+        One can perform the following set of operations on the
+    dynamic list.
+
+        Create a list.
+        Delete a list.
+        Write elements to a list.
+        Read elements from a list, and advance the list pointer.
+        Read elements from a list, without advancing the list pointer.
+        Read the next element in the list, without advancing the list pointer.
+        Read the previous element in the list, without advancing the list
+          pointer.
+        Modify elements in a list.
+        Find elements in a list. (Done via an ID search.)
+        Erease elements from a list.
+        Restore erased elements in a list.
+        Purge erased elements from a list (Purged elements cannot be
+          restored).
+        Dump elements in a list to a terminal output (provided as a debuging
+          tool.)
+        Reset list pointer to BOL (Begining Of List).
+        Print error or information message pertaining to last operation done
+          to a list.
+
+    The number of elements in a list and the number of lists one can have
+    is determined by the amount of dynamic memory the system can provide.
+
+    The library routines have been written in C and are designed to be
+    called by FORTRAN source code.
+
+
+----------
+
+    integer*4 function lcreate(ELEMENT_TYPE,IDENT_STRING[,STRUCTURE_SYNTAX])
+
+    Arguments: integer*4 ELEMENT_TYPE      ! Coded value
+               character*(*) IDENT_STRING  ! Identification string which is
+                                           ! attached to the list.
+               character*(*) STRUCTURE_SYNTAX ! If the list elements are
+                                              ! of type STRUCUTRE, this
+                                              ! string defines the
+                                              ! syntax of the structure.
+
+    Purpose: Creates a null list.
+
+    Return value: Returns an integer value which identifies the list.
+    This value will be defined as the LIST DESCRIPTOR.
+
+    Note: The codes for the ELEMENT_TYPE arguemt are the following:
+
+      INTEGER*4 STRING_TYPE
+      PARAMETER ( STRING_TYPE = 1 )
+      INTEGER*4 BYTE_TYPE
+      PARAMETER ( BYTE_TYPE = 2 )
+      INTEGER*4 WORD_TYPE
+      PARAMETER ( WORD_TYPE = 3 )
+      INTEGER*4 LONG_TYPE
+      PARAMETER ( LONG_TYPE = 4 )
+      INTEGER*4 REAL_TYPE
+      PARAMETER ( REAL_TYPE = 5 )
+      INTEGER*4 DOUBLE_TYPE
+      PARAMETER ( DOUBLE_TYPE = 6 )
+      INTEGER*4 STRUCTURE_TYPE
+      PARAMETER ( STRUCTURE_TYPE = 7 )
+
+    The above set of definitions is provided in an include file name
+    D0$UTIL:CLIST.INC. Thus one can use the parameter defintion directly in the
+    function call.
+
+    NOTE: USING STRUCTURE ELEMENTS.
+
+        When one is creating a structure element list, one *must* specify the
+    syntax of the structure used. The purpose of this is two fold. The first,
+    and most important is that the LCREATE routine calculates the size of the
+    structure element so that it can allocate the correct amount of dynamic
+    memory needed to hold the contents of the structure. The second and less
+    important is that the LDUMP routine uses the syntax string as a 'format'
+    descriptor for the list element so as to be able to print out the values
+    of the structure elements correctly.
+
+        The STRUCTURE SYNTAX string has the following format:
+
+        '[M]C*N[,[M]C*N[,...]]'
+
+        Where M is the array size of the structure item, C is a single
+    character which stands for the type of item, and N is the size of the
+    structure item. The following is a list of currently allowed item types.
+
+                item type     |  C  |  item size
+               ______________________________________
+                byte          |  i  |   1
+                integer*2     |  i  |   2
+                integer*4     |  i  |   4
+                real*4        |  r  |   4
+                real*8        |  r  |   8
+                complex*8     |  c  |   8
+                complex*16    |  c  |   16
+                logical*1     |  l  |   1
+                logical*2     |  l  |   2
+                logical*4     |  l  |   4
+                character*(*) |  s  |   (*) <- any number
+
+          - NOTE: M can be any number, if omitted M = 1 is assumed -
+
+    Example:
+
+        string_list = lcreate(STRING_TYPE,'This is a string list')
+        real_list = lcreate(REAL_TYPE,'This is a list of real numbers')
+        long_list = lcreate(LONG_TYPE,'This is a list of integer*4 numbers')
+
+    In the above example, three null lists were created. string_list is the
+    list descriptor for the string type list, real_list and long_list are
+    the list descriptors for the real type list and long word type list
+    respectivly.
+
+    STRUCTURE_TYPE item list example:
+
+        integer*4 lstd
+        character*(*) syntax
+        parameter (syntax = '3i*4,l*1,2s*40')
+
+        structure /struct/
+          integer*4 integer_item(3)
+          logical*1 logical_item
+          character*40 string_item(2)
+        end structure
+        record /struct/ list_item
+
+        include 'd0$inc:clist.inc'
+
+        lstd = lcreate(STRUCTURE_TYPE,'Structure item list',syntax)
+
+        list_item.integer_item(1) = 1
+        list_item.integer_item(2) = 2
+        list_item.integer_item(3) = 3
+        list_item.logical_item = .true.
+        list_item.string_item(1) = 'This is string item 1'
+        list_item.string_item(2) = 'This is string item 2'
+
+        if (lwrite(lstd,list_item).eq.-1) call ldump(lstd)
+
+    The above example, the syntax of the structure is defined in the character
+    string SYTNAX. The structure is then defined right below it. The example
+    then creates the null STRUCTURE_TYPE list using SYNTAX to describe the
+    structure item. It then packs one record (record LIST_ITEM) and writes it
+    to the STRUCTURE_TYPE list.
+
+----------
+
+    integer*4 function ldelete(lstd)
+
+    Arguments: integer*4 lstd ! The list descriptor return by lcreate().
+
+    Purpose: To delete the list and all its contents.
+
+    Return value: 0 if successful, -1 if an error occured.
+
+----------
+
+    integer*4 function lread(lstd,element[,string_length])
+
+    Arguments: integer*4 lstd ! The list descriptor return by lcreate().
+               * element      ! The element type depends on what type
+                              ! of list one is reading. The element type
+                              ! must correspond to the list type.
+               integer*2 string_length  ! Optional, should only be used
+                                        ! when list type is STRING.
+
+
+    Purpose: Used to read an element in the list. The contents of the
+    element pointed to by the list poiter in the list 
+    described by the list descriptor (lstd) is placed in element
+    argument. A subsequent call by this function will return the next
+    element value in the list.
+
+    Return value: Element ID if successful, -1 if the end of the list (EOL)
+    has been reached.
+
+----------
+
+    integer*4 function lrcur(lstd,element[,string_length])
+
+    Arguments: integer*4 lstd ! The list descriptor return by lcreate().
+               * element      ! The element type depends on what type
+                              ! of list one is reading. The element type
+                              ! must correspond to the list type.
+               integer*2 string_length  ! Optional, should only be used
+                                        ! when list type is STRING.
+
+    Purpose: Used to read an element of a list without advancing the list
+    pointer. Thus if you call lrcur many times, the same element value will be
+    returned into the element variable.
+
+    Return value: Current element ID if successful, -1 if the end of the list
+    (EOL) has been reached.
+
+----------
+
+    integer*4 function lrnext(lstd,element[,string_length])
+
+    Arguments: integer*4 lstd ! The list descriptor return by lcreate().
+               * element      ! The element type depends on what type
+                              ! of list one is reading. The element type
+                              ! must correspond to the list type.
+               integer*2 string_length  ! Optional, should only be used
+                                        ! when list type is STRING.
+
+    Purpose: Used to read the next item in the list without advancing the list
+    pointer.
+
+    Return value: Next element ID if successful, -1 if the end of the list
+    (EOL) has been detected.
+
+----------
+
+    integer*4 function lrprev(lstd,element[,string_length])
+
+    Arguments: integer*4 lstd ! The list descriptor return by lcreate().
+               * element      ! The element type depends on what type
+                              ! of list one is reading. The element type
+                              ! must correspond to the list type.
+               integer*2 string_length  ! Optional, should only be used
+                                        ! when list type is STRING.
+
+    Purpose: Used to read the previous list item without advancing the list
+    pointer.
+
+    Return value: Previous element ID if successful, -1 if the begining of list
+    (BOL) has been detected.
+
+----------
+
+    integer*4 function lwrite(lstd,element)
+
+    Arguments: integer*4 lstd
+               * element
+
+    Purpose: To create a new element entry at the end of the list. The
+    contents of this new element entry will be taken from the passed
+    argument element.
+
+    return value: Element ID if successful, -1 if failed.
+
+----------
+
+    integer*4 function lerase(lstd)
+
+    Arguments: integer*4 lstd
+
+    Purpose: Deletes the current element entry in the list referenced by the
+    list descriptor.
+
+    Return value: Element ID of erased element if successful, -1 if failed.
+
+----------
+
+    integer*4 lreset(lstd)
+
+    Arguments: integer*4 lstd
+
+    Purpose: Resests the list pointer to the first string entry in the
+    list. Thus upon the next call to lread, the first string entry in the  
+    list will be returned.
+
+    Return value: 0 if successful, -1 if failed.
+
+------------
+
+    integer*4 lmodify(lstd,element)
+
+    Arguments: integer*4 lstd
+               * element
+
+    Purpose: To change the value of the element, pointed to by the list
+             pointer, to what ever is specificed by the element argument.
+
+    Return value: ID number of the modified element if sucsessfull, -1 if
+    failed
+
+    Note: The element argument must be of the same type as the list type.
+
+------------
+
+    integer*4 lfind(lstd,element_id)
+
+    Arguments: integer*4 lstd
+               integer*4 element_id
+
+    Purpose: To position the list pointer so as to reference the element
+    who's ID is the same as the element_id argument.
+
+    Return value: Element ID number if succeeded, -1 if failed.
+
+------------
+
+    integer*4 lreset(lstd)
+
+    Arguments: integer*4 lstd
+
+    Purpose: Retores all erased element in the list.
+
+    Return value: 0 if succeeded, -1 if failed
+
+
+------------
+
+    integer*4 lpurge(lstd)
+
+    Arguments: integer*4 lstd
+
+    Purpose: Physically deletes all erased elements. A list which has been
+    purged can no longer be restored. This is because the memory which was
+    allocated for the erased elements has been returned to the operating system.
+
+    Return value: 0 if successful, -1 if failed
+
+------------
+
+    subroutine ldump(lstd)
+
+    Arguments: integer*4 lstd
+
+    Purpose: Dumps the list to sys$output. This function is provided as a
+    debuging tool.
+
+    Return value: none.
+
+------------
+
+    Subroutine lerror(lstd)
+
+    Arguments: integer*4 lstd
+
+    Purpose: Prints an error or information message to sys$output. This message
+    pertains to the last operation done to the list indicated by 'lstd'.
+
+    Return value: none.
+
+
+
+

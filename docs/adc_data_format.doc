@@ -1,0 +1,284 @@
+                                                   D0 Note #880
+                                                   R. Dean Schamberger
+                                                   November 1, 1989
+
+                               ADC DATA FORMAT
+
+                                 (REVISION 5)
+
+
+     This is the fifth and hopefully the final version of the Calorimeter ADC
+
+data format.  Since the fourth version of the ADC format (D0 note 678), some
+
+minor changes have been made.  In particular, additional error conditions will
+
+be sensed and reported with each event.  One point to note is that the
+
+checksum word will in fact be generated.  And it will be made in each crate.
+
+At the end of a data cable transmittion, a final trailing total wordcount will
+
+be included.  The format of the header and both trailer blocks has changed
+
+since last time.  A fourth word has been added to the crate controller header
+
+which is to be written by the host and will be at the same location in ALL
+
+readout crates.  The crate   definition has changed to accomodate all readout
+
+systems and is described later.  It is to be used to indicate the
+
+software/hardware version appropriate for the data being taken.  The crate
+
+trailer, which used to consist of two longword has been expanded to four word
+
+and the two word that are nominally the same have changed slightly in
+
+definition.  This format is defined in the VME buffer/driver specifications
+
+but is repeated here for completeness.  Finally, an end of transfer trailer
+
+will be made, which will include a total wordcount, information about the
+
+trigger being processed, and other possible information.  Its length and
+
+format have not yet been specified.
+
+                                                                        Page 2
+
+
+     The digital processor that resides in each ADC crate is still in the
+
+design stage.  In fact, whether there exists one, or if a more general
+
+purposed array processor is included in each farm node is still under
+
+discussion.  If it exists it is envisioned to utilize the z vertex information
+
+from level 0 to perform the E-t and P-t calculation in hardware, to assist the
+
+Level-2 microprocessors handle the online filtering.
+
+                              ADC READOUT FORMAT
+
+        repeated for each crate:
+                header length == 4
+                SYNC WORD
+                CONTROLLER WORD
+                STATUS/VERTEX
+                SOFTWARE VERSION NUMBER
+
+          repeated for each card in crate:
+                length=N
+                DATA/ADDR
+                .
+                .  repeated N times
+                .
+
+        trailer which occurs at the end of each crate
+                TOTAL word count (including the four word trailer)
+                EVENT NUMBER/CRATE NUMBER (unique within all of D0)
+                TOKEN VALUE
+                CHECKSUM (Complement of the sum of all preceeding 32 bit words
+                          in this crate ignoring sign and overflow,
+                          not including itself)
+
+        trailer which occurs only once at end of transmition
+                (NOT DEFINED YET)
+                trigger info
+                TOTAL word count
+
+
+where each entry is 32 bits as follows:
+  
+
+                                                                        Page 3
+
+
+        SYNC WORD:
+                16 bits - (most significant) identification code provided
+                          by the level 1 trigger system, strobed by start
+                          digitization.
+  
+                16 bits - (least significant) all bits on.  This word can
+                          be used to check for loss of synchronization since
+                          no ADC address can have this value.
+  
+        CONTROLLER WORD:
+                16 bits - (most significant) Crate identification
+                          (readonly, set by switches)
+                          subdivided into 2 8 bit bytes as follows:
+  
+                         8 bits - (most significant) crate number
+                                  Encoded as CRATE * 10 + Bank
+                                        where crate goes from 0 to 5
+                                        and bank is zebra bank  
+                                            (almost == data cable-1)
+                                           bank 7 = North half of Calorimeter
+                                                   (found in CAD1 zebra bank)
+                                           bank 8 = South half of Calorimeter
+                                                   (found in CAD2 zebra bank)
+                                        there are 6 crates per bank, 2 for
+                                        CC, 4 for one EC.
+                         8 bits - (least significant) number of ADC cards - 1
+                                  in this crate.  legal values are 0 to 15
+                16 bits - (least significant) Crate specific control data.
+                          further subdivided into two 8 bit bytes.
+  
+                     8 bits - (most significant) BLS mode control
+                          (MSB) 4 bits - spare
+                                1 bit  - single buffer only, sends BUSY to
+                                         trigger system upon recieving each 
+                                         trigger. Also disables baseline/
+                                         paek switching during digitization.
+                                1 bit  - dual readout, causes each channel
+                                         to be digitized and readout twice.
+                                         One=dual readout
+                                1 bit  - comparator override, used to force
+                                         a particular state for the X1/X8 
+                                         amplifier in single readout mode.
+                                         One=override.  In dual readout mode
+                                         forces both X1/X8 or X1 twice 
+                                         depending on value of LSB.
+                          (LSB) 1 bit  - value for X1/X8 amplifier, used in
+                                         override mode. Zero=X8,One=X1
+                                         Also used in dual readout. In
+                                         non-override mode it controls where
+                                         the signal is held. Zero=hold buffer,
+                                         One=hold on frontend.  In override
+                                         mode zero=both X1/X8, one=force X1.
+
+                                                                        Page 4
+
+
+                Therefore: 00=normal
+                           01=invalid (uses 00)
+                           02=Force x1
+                           03=Force x8
+                           04=digitize data twice using output buffer
+                              (NOTE: all 16 time slices are digitized before
+                                channels repeat)
+                           05=digitize data twice using baseline/peak buffers
+                           06=digitize x8 and then x1
+                              (NOTE: each time slice is digitized twice
+                                 before next time slice appears)
+                           07=Special case of dual readout, uses baseline/
+                              peak buffers to hold signal but forces X1.
+                        if in single buffer mode then add 8 to above
+                          (ie. 08-0F for those who count in HEX)
+                     8 bits - (least significant) ADC mode control
+                          (MSB) 1 bit  - DSP enable, when sets means extra
+                                         data block has been built (not yet 
+                                         implimented). One=enable DSP.
+                                2 bits - spare
+                                1 bit  - external zero suppression
+                                         override.  When set allows
+                                         external override of suppression
+                                         for a particular trigger.
+                                1 bit  - pedestal subtracted, when set
+                                         means data has had pedestals
+                                         subtracted.
+                                1 bit  - zero suppressed, when set means
+                                         data has been compared with limit
+                                         and suppressed if appropriate.
+                                1 bit  - sign suppression, when set means
+                                         that the signed value has been used
+                                         in the comparision.  Ignored unless
+                                         zero supress is set.
+                          (LSB) 1 bit  - data mode, when set means that data
+                                         is used.  When cleared, means that
+                                         pedestal data is used (for testing)
+                                         Pedestal subtract is then ignored.
+                Therefore: 00=pedestal memory readout as data
+                           01=unsuppressed data
+                           02=same as 00
+                           03=same as 01
+                           04=zero suppressed pedestal as data
+                           05=zero suppressed (not pedestal subtracted) data
+                           06=sign suppressed pedestal as data
+                           07=sign suppressed (not pedestal subtracted) data
+                           08=same as 00
+                           09=pedestal subtracted data
+                           0A=same as 00
+                           0B=same as 09
+                           0C=same as 04
+                           0D=zero suppressed pedestal subtracted data
+
+                                                                        Page 5
+
+
+                           0E=same as 06
+                           0F=sign suppressed pedestal subtracted data
+                        if external override is enabled then add "10" hex
+                                to above.  On the specific trigger where
+                                the external input turns off suppression,
+                                the 2**2 bit is turned of to indicate that
+                                no zero suppression has been applied.
+                        if DSP is enabled then add "80" HEX to above.
+  
+        STATUS/VERTEX:
+                16 bits - (most significant) STATUS information
+                          (MSB) 1 bit - ERROR, some error has occurred if 1
+                                1 bit - if set - lost beam synchronization
+                                1 bit - if set - digital strobe timeout
+                                1 bit - if set - buffer hold timeout
+                                1 bit - if set - peak/base hold timeout
+                                1 bit - if set - ADC busy timeout
+                                1 bit - if set - ADC not busy during
+                                                 digitization
+                                1 bit - if set - digitize timeout
+                                1 bit - if set - ADC error
+                                5 bits - status (spare)
+                                1 bit - if set - zero suppression has
+                                        been overridden
+                          (LSB) 1 bit - if set - this was a "second" trigger
+                16 bits - (least significant) vertex info
+                          (MSB) 8 bits - spare
+                                8 bits - vertex position from level 0
+                                         (signed byte)
+        SOFTWARE VERSION  :
+                32 bits - read/write word which is downloaded to
+                indicate which version of the software should be
+                used to analyse this data.  Used to indicate both
+                hardware configurations, running modes, and any other
+                information necessary to the proper analysis of the
+                data.
+        N:
+                16 bits - (most significant) spare - set to zero
+                16 bits - (least significant) number of data/addr words
+                          transferred from this card.  May be zero if
+                          all channels suppressed.
+                          NOTE: equal to number of words to follow---
+                                does not include itself.
+        DATA/ADDR:
+                16 bits - (least significant) pulse height information
+                          12 bit accuracy, signed integer
+                            shifted up 3 bits for low sensitivity scale
+                            Not used for Muon Mode
+                16 bits - (most significant) channel address
+                          breakdown for ULA calor. as follows:
+                          (LSB) 1 bit  for negative limit
+                                          indicates that even in suppressed
+
+                                                                        Page 6
+
+
+                                          mode this channel always reads out
+                                1 bit  for scale
+                                4 bits for layer (0-11)
+                                1 bit  for first/second tower
+                                4 bits for the time slice
+                          (MSB) 5 bits for the card number
+                          breakdown for muon system as follows:
+                                2 bits for subwire id
+                                3 bits for module (0,1,2,4,5,6)
+                                7 bits for the time slice
+                                       (i.e. channel number)
+                                4 bits for ADC card number
+                          the order is such that all words are read
+                            out in increasing order (except when
+                            Calorimeter is forced to read out both
+                            low and high gain)
+                          these values would be identical for
+                            each crate

@@ -1,0 +1,1212 @@
+<HTML>
+<HEAD>
+<TITLE> D0 Czar Manual </TITLE>
+</HEAD>
+<BODY>
+<CENTER><B> D0 Czar Manual </B></CENTER>
+<p>
+<CENTER> Version 1.0 </CENTER>
+<p>
+<CENTER> Alan M. Jonckheere </CENTER>
+<p>
+<CENTER> Harrison B. Prosper </CENTER>
+<p>
+<CENTER> Roy Thatcher </CENTER>
+<p>
+<CENTER> Fermi National Accelerator Laboratory </CENTER>
+<p>
+<CENTER> P.O. Box 500, Batavia, IL 60510 </CENTER>
+<p>
+<CENTER> 2-SEP-1994 </CENTER>
+<P>
+<center>revised and converted to HTML</center>
+<BR>
+<center>28-Mar-1996, AMJ</center>
+<p>
+
+<HR>
+<H1>Index</H1>
+<UL>
+<LI> <A HREF="#intro">Introduction</A>
+<UL>
+<LI> <A HREF="#prgdev">Program Development</A>
+<LI> <A HREF="#divlab">Division of Code and Labor</A>
+<LI> <A HREF="#stages">Stages of Code Development</A>
+<LI> <A HREF="#localcms">Structure of Local CMS (BETA Stage)</A>
+<LI> <A HREF="#d0lib">Structure of D0Library</A>
+<LI> <A HREF="#classes">Building CMS Release Classes</A>
+</UL>
+<LI> <A HREF="#spec">Release Specification</A>
+<UL>
+<LI> <A HREF="#disk">D0Library Disk Structure</A>
+<LI> <A HREF="#steer">Steering the Release Processing</A>
+<UL>
+<LI> <A HREF="#file">The Release File</A>
+<LI> <A HREF="#cmds">Release Commands</A>
+<UL>
+<LI> <A HREF="#pre">Processing Commands: PRE/INTER/POST</A>
+<LI> <A HREF="#targ">Target Specification Commands</A>
+<UL>
+<LI> <A HREF="#HLB">HLB</A>
+<LI> <A HREF="#MISC">MISC</A>
+<LI> <A HREF="#MMS">MMS</A>
+<LI> <A HREF="#OBJ">OBJ</A>
+<LI> <A HREF="#OLB">OLB</A>
+<LI> <A HREF="#TLB">TLB</A>
+</UL>
+</UL>
+</UL>
+</UL>
+<LI> <A HREF="#tutor">Tutorial Example </A>
+<UL>
+<LI> <A HREF="#tintro">Introduction</A>
+<LI> <A HREF="#tfile">The release file</A>
+</UL>
+</UL>
+
+<HR>
+<A NAME="intro"><H1> Introduction </H1></A>
+
+<A NAME="#prjdev"><H2> Program Development </H2></A>
+
+<P> When a group of people are contributing to a large software project, it
+simplifies communication within the group, and from one group to other
+groups, if everyone adopts a uniform approach to code development. To that
+end the D0 Collaboration has adopted the use of the DEC software products
+CMS (Code Management System) and MMS (Module Management System). MMS is
+basically DEC's version of the Unix utility MAKE. We have built a library
+release procedure to automate the building of new versions of the object
+libraries and executables in the various D0 libraries which is based on CMS
+and MMS.
+
+<DL>
+<DT> CMS
+<DD> CMS keeps all versions of a particular routine so that one can backup
+to a prior version of any library. It keeps a history of all changes to
+every element including who did them and when.
+
+<DT> MMS
+<DD> MMS is used to build object libraries and executables in an efficient
+manner so that, for example, only those source modules which have changed
+since the last compilation are recompiled. It does this by comparing the
+modification date of a source file with that of the corresponding object
+module in the object library (.OLB). If the source file is newer it is
+re-compiled and its object module is re-loaded into the object library.
+
+</DL>
+
+<A NAME="divlab"><H3> Division Of Code and Labor </H3></A>
+
+The entire D0library is much too big to be handled as a single unit. It is
+split into sections each of which is managed as a separate CMS library and
+which (with a few exceptions) has its own separate object libraries and
+executables. The primary responsibility for each of these libraries is held
+by a Czar or Czarina who coordinates the work of all the other members of
+the group who are know as "helpers". Each Czar holds special CMS
+privileges. Helpers are given nearly all the privileges of a Czar. However,
+anyone in D0 gets the general privilege needed to examine or make his/her
+own copy of any element (routine or program) in any library; but without
+Czar or helper privileges one cannot change any routines in the CMS
+library.
+
+<A NAME="stages"><H3> Stages of Code Development </H3></A>
+
+There are several stages in the development of code for a library. See the
+document D0$DOCS:LOCAL_CMS.MEM for a more complete description of these
+stages and the mechanics of code development at each stage. There is a
+recurring cycle in which a routine that is updated many times will pass
+through all stages repeatedly. At D0 we can these stages:
+
+<DL>
+<DT> ALPHA
+<DD> This is code development by a single person in his or her private
+area. D0 supplies some tools to help at this stage and the next. The tools
+make it easy to use local (BETA) CMS Libraries to keep track of their
+changes. See the section below on the Structure of Local CMS.
+
+<DT> BETA
+<DD> This is the stage of preliminary group effort. Code in the BETA stage
+is stored in the BETA or "local" CMS library. Code is shared and subjected
+to peer and czar review at this point. D0 supplies tools to help at this
+stage too, and many groups make heavy use of these tools. Some make no use
+of them.
+<P>
+A BETA "release" of a library usually means that development code is
+extracted from a local CMS library to the appropriate BETA directory and
+the object libraries and executables are created. People writing new
+routines or modifying existing ones, whether in this BETA library or
+another can link to the BETA object libraries to test them.
+
+<P>
+Once a library has reached a level at which the czar deems it stable enough
+and working well enough to share with the whole collaboration, it is moved
+out of the BETA stage and on to the TEST stage. That is the code is moved
+to the main D0 CMS libraries. Once a successful TEST release has been made
+and confirmed to be correct, all elements are removed from the BETA CMS
+library and the corresponding ASCII files are deleted from the BETA area to
+prepare for the next cycle of library enhancement.
+
+<DT> GAMMA
+<DD> At the GAMMA stage and for all stages beyond, the central or D0 CMS
+library is used.
+<P> The GAMMA stage is usually used as a part of the development of new
+TEST versions. It is purely a release type. It uses <I>exactly</I> the same
+procedures as does the library release. The only difference is the
+destination disk area. A GAMMA release can go into any disk area, even to
+remote VMS sites. It creates exactly the same files, in the same order etc
+that a real TEST or OFFICIAL release would. It just goes to a different
+disk area, one that the person doing the release has write access to.
+Anyone with read access to the CMS libraries, which means anyone in D0 can
+do a GAMMA release. 
+<P>
+Gamma releases are used for two purposes:
+<UL>
+<LI> To make a release of any pre-defined class or all the latest code to a
+private area for testing or to roll back to an older release.
+<LI> To check that the next TEST release will actually work. This step is
+<I>strongly</I> encouraged before before requesting a TEST release. (See
+below.)
+</UL>
+
+<DT> TEST
+<DD> During a TEST release the object libraries and executables
+are created in the library's D0LIBRARY TEST directory along with other
+files such as the ASCII forms of sources files and special files describing
+the release "version". However, before requesting a TEST release, the CZAR
+is required to check that the new version will release correctly by
+performing a GAMMA release. This creates the object libraries, executables
+etc. in a directory specified by the czar (usually in his or her own
+private area). Test releases are normally incremental. That is they are
+releases of only that code that is new or newer than the corresponding code
+in the last OFFICIAL release. OLB's are updated with the new code, and
+obsolete code is removed.
+
+<DT> OFFICIAL
+<DD> When a test version reaches a level of quality and stability that the
+czar considers good enough for use in production or in the development of
+related libraries which make use of it, s/he requests an OFFICIAL release
+of the library. However, the very first release of a library is always an
+OFFICIAL one so that the library is accessible to anyone who does a
+"NOLIBTEST" command.
+<P>
+An OFFICIAL RELEASE fetches all elements of the release class and rebuilds
+all targets (OLBs etc). But the Official <I>class</I> is always an exact
+duplicate of the last TEST release, thus promoting TEST to OFFICIAL.
+</DL>
+<P>
+The czar and helpers continue with code development until they are ready to
+try creating a yet newer version of the object libraries in a new TEST
+release. As indicated above, the czar checks that the code is ready by
+doing a GAMMA release then requesting that the Central Librarian do a new
+TEST release of the library.
+
+<A NAME="localcms"><H3> Structure of LOCAL CMS (BETA Stage) </H3></A>
+
+Below is diagram of the local CMS environment. 
+
+<BLOCKQUOTE>
+Note: the CMS libraries are merely sub-directories, CMS.DIR, within BETA
+areas. You can, of necessity read and write to them. However,
+<STRONG>never</STRONG> edit the files there directly. They are ASCII, but
+have special CMS commands embedded in them. These are very easy to mess up.
+<STRONG>Always</STRONG> use CMS commands to manipulate the files/elements.
+(see HELP CMS). 
+<P>
+The BETA areas themselves, on the other hand, are just normal directories
+with nothing special about them. They can be accessed using the usual VMS
+directory commands. 
+</BLOCKQUOTE>
+
+To get a copy of a file from CMS, you would:
+
+<PRE>
+        $ CMS SET LIBRARY D0$BETA:[CALOR_OFF.CMS]
+        $ CMS FETCH/NOHISTORY CRUNCH.FOR ""
+</PRE>
+To get a copy of the same file from the BETA area you need do:
+<PRE>
+        $ COPY D0$BETA:[CALOR_OFF]CRUNCH.FOR []/LOG
+</PRE>
+
+In the first case CMS commands are used to make an ASCII copy of the CMS
+element CRUNCH.FOR in the default directory. In the second case a VMS
+command is used to make a copy of the last released version of the file
+CRUNCH.FOR in your default directory. The files stored in the default
+directory in the two cases will be different unless no change has been made
+to that CMS element since the last BETA release.
+
+<PRE>
+        Project area            BETA areas      CMS libraries
+
+          D0$BETA: -----+
+                        |
+                        +-------[BETA_UTIL]-----[CMS]
+                        |
+                        +-------[CALOR_OFF]-----[CMS]
+                        |
+                        +-------[CALOR_UTIL]----[CMS]
+                        |
+                        +-------[CDAQ]----------[CMS]
+                        |
+                        +-------[D0GEANT]-------[CMS]
+                        |
+                        :       :               :
+
+    Here is a diagram of the structure of the projects disk on the
+    D0SFT cluster.
+</PRE>
+
+The local CMS library is used to accumulate changes to files. It is
+important to update the local CMS library FREQUENTLY to keep the elements
+current, and to fetch periodically to get the latest versions.
+<P>
+When a stable state has been reached a release of files to the beta area,
+from the CMS library, is performed. This is called a BETA-RELEASE.
+
+<A NAME="d0lib"><H3> Structure of D0LIBRARY </H3></A>
+
+D0library contains a sub-directory for each official D-ZERO CMS library.
+These sub-directories, for example, [D0LIBRARY.D0GEANT] are called OFFICIAL
+areas. Each official area has a corresponding TEST area; the latter reside
+in the sub-directory [D0LIBRARY.TEST].
+
+<PRE>
+ D0$CMS:[D0LIBRARY]-----+
+                        |
+                        +-------[BETA_UTIL]
+                        |
+                        +-------[CALOR_OFF]
+                        |
+                        +-------[CALOR_UTIL]
+                        |
+                        +-------[CDAQ]
+                        |
+                        +-------[D0GEANT]
+                        |
+                        :       :
+                        |
+                        +-------[TEST]----------+
+                        |                       |
+                        :       :               +-------[BETA_UTIL]
+                                                |
+                                                +-------[CALOR_OFF]
+                                                :       :       :
+
+                                Figure 1
+</PRE>
+
+<PRE>
+        alpha1                  alpha2                  alpha3
+
+    [HARRY.CALOR_OFF]       [RAJA.CALOR_OFF]        [STEWART.CALOR_OFF]
+            |                      |                       |
+            |                      |                       |
+            +----------------------+-----------------------+
+                                  /|\
+                                   |
+                                   |    Use CMSUPDATE & CMSFETCH
+                                  \|/
+                       D0$BETA:[CALOR_OFF.CMS] Local CMS library
+                                   |
+                                   |    Beta-release
+                                  \|/
+                         D0$BETA:[CALOR_OFF]     Beta area
+                                   |
+                                   |
+                                  \|/
+                         D-ZERO-CMS-LIBRARIES
+                                (FNALD0)
+
+    Figure 2 shows the relationship between ALPHA areas,
+    LOCAL CMS, BETA areas and the D-ZERO CMS libraries.
+    Three alpha areas are shown.
+</PRE>
+
+<A NAME="classes"><H3> Building CMS Release Classes </H3></A>
+
+<OL>
+<LI> GAMMA Release classes can have any name that does not begin with
+<B>"V"</B>. Any Czar or Czar Helper can create a CMS class.
+
+<LI> TEST and OFFICIAL Release Classes can be created by the Czar of the
+library although normally a Czar will leave this to the D0 Librarians. The
+release class names should be of the form:
+
+<PRE>
+           Vn.mm        for official releases  (e.g. V5.03)
+           Vn.mm_tt     for test releases      (e.g. V5.03_02)
+</PRE>
+The natural cycle of class names typically goes like this:
+<UL>
+<LI> First official release: V0.01
+<LI> Followed by V0.01_01, V0.01_02 ...
+<LI> Second official release: V0.02
+<LI> etc.
+</UL>
+</OL>
+
+The first digit in the release name must be changed when the test release
+V0.99_99 is reached but normally czars change this digit to indicate a
+really major change.
+<P>
+In summary, the way an official class is derived from the last test class
+can be represented symbolically by
+<PRE>
+                Vn.mm_tt -> Vn.(mm+1) or V(n+1).00
+</PRE>
+
+It is important to follow the convention for naming releases classes
+so that classes will be displayed in the proper time order. Not
+following the convention can cause the Librarian to release the
+wrong class with serious consequences.
+<P>
+It is possible for a czar to create a class manually. This would only need
+to be done if s/he wishes the class to be contain other than the latest
+versions of all elements. This is rarely done except in the Beta libraries.
+<P>
+To create a class manually containing the latest versions of particular
+elements use the following commands:
+
+<PRE>
+          $ CMS CREATE CLASS class_name "comment"
+          $ CMS INSERT GEN element_name class_name "comment"
+</PRE>
+
+where standard VMS wild cards, * and % can be used in the element name.
+Element_name can also be a GROUP name in which case all elements in the
+group or any subgroup would be inserted. In particular, using the
+group_name RELEASE will insert all releaseable elements into the class.
+<P>
+To specify a particular generation (version) of an element you'd
+substitute: GEN/GEN=generation_tag, where generation_tag is either a
+generation number (an integer) or a previously defined class name.
+<P>
+The Release procedure will "lock" these classes at the time of release. So
+once a new release has been requested no changes or modifications to that
+class will be allowed. A new class must be created to contain any further
+changes.
+<P>
+If the CZAR does not create his/her own release class, the D0Librarians
+will insert the LATEST generation of ALL elements in the group RELEASE into
+the new class. NOTE: The Librarians cannot and will not do any checking
+that the class so created is valid.
+
+<LI> ANYONE can make GAMMA, i.e. "private", releases from *any*
+CMS library to any disk area where she/he has write access.
+<P>
+A GAMMA release of a library, or libraries, is required to check for
+problems before requesting a test release. The aim is to reduce the burden
+on the D0librarians. The GAMMA release procedure is the same as the
+procedure that is used in making TEST releases. So, if your private release
+works, you can be reasonably sure that the TEST or Official release will
+work also.
+<P>
+The only caveat is that for a subsequent link to work correctly at your
+home node the TEST and OFFICIAL versions of that library <I>must</I> be the
+same as the versions in the D0Libraries on central library node (D0GSLB).
+One can easily check the version numbers of the current TEST and OFFICIAL
+releases by doing:
+
+<PRE>
+                $ LIBT lib_name
+                $ DIR D0$lib_name:000*
+</PRE>
+This will list files having names of the form:
+<PRE>
+                000_libname_Version;1
+</PRE>
+
+The reason for locking the release classes, upon release, is just to
+guarantee that the version numbers specify EXACTLY what is in a particular
+Object Library (OLB).
+<P>
+Usually the D0librarians will do a "SELECTIVE FETCH" when a test release of
+a library is requested by its czar. "Selective Fetch" means the release
+procedures fetch from CMS and compile only those elements which are new or
+newer than the corresponding elements in the official version of the object
+library. They build onto what is in the current OFFICIAL release at the
+site where the release is being made. Therefore it is important that the
+Official versions of the library being released is the same.
+<P>
+Normally GAMMA releases just contain all the latest elements in the group
+RELEASE and its subgroups. (This is the same as in a TEST or OFFICIAL
+release). However a GAMMA release can be any set of CMS elements in the
+library and not necessarily all of the latest generation.
+
+<BLOCKQUOTE>
+NOTE: the name of the class for a gamma release may NOT begin with V since
+these class names are reserved for TEST and OFFICIAL release classes.
+</BLOCKQUOTE>
+
+<OL>
+<LI> A number of logicals are defined for each library. In the logicals
+listed below xxx stands for the library name (e.g CALOR_OFF) and yyy stands
+for a subdirectory in that library (e.g SOURCE). The logicals associated
+with each library are:
+
+<UL>
+<LI> D0$xxx$ROOT == D0$DISK:[D0LIBRARY.xxx.] a "rooted" directory
+<LI> D0$xxx      == D0$xxx$ROOT:[000000]
+<LI> D0$xxx$yyy  == D0$xxx$ROOT:[yyy]
+<LI> D0$xxx$CMS  == D0$CMS:[xxx]
+<LI> D0$xxx$CZAR == username on FNALD0 of czar
+</UL>
+<LI>LIBTEST xxx defines D0$xxx$ROOT to be a VMS search list of the TEST
+library directory followed by the the OFFICIAL library directory.
+<UL>
+<LI> LIBTEST ALL defines *all* D0$xxx$ROOTs.
+<LI> LIBTEST/GAMMA=disk_area xxx will put the "gamma/private" release area
+as the first directory in the search list, followed by the TEST library
+directory and then the OFFICIAL library directory. If the parameter
+"disk_area" is omitted, the logical D0$GAMMA is used. This logical may be
+defined by you, or it might be defined in D0Local on your machine to a
+common area. In either case it should point to the disk directory which
+into which you wish to place your xxx.dir
+</UL>
+</OL>
+
+<HR>
+<A NAME="spec"><H1> Release Specification </H1></A>
+
+<A NAME="disk"><H2> D0Library Disk Structure </H2></A>
+
+To each CMS library there is a corrresponding subdirectory in the D0Library
+directory. These subdirectories are called Library Areas, and can be
+refered to either as
+
+<PRE>
+           D0$lib_name
+</PRE>
+
+E.g. for CMS library located in D0$CMS:[VTX_UTIL...], there corresponds a
+subdirectory with full specification, D0$DISK:[D0LIBRARY.VTX_UTIL]
+containing the official version and which can be referred to by logical
+names D0$VTX_UTIL or D0$DISK:[D0LIBRARY.VTX_UTIL]. If the library is in
+TEST mode, then there is an additional subdirectory
+D0$DISK:[D0LIBRARY.TEST.VTX_UTIL] containing elements from the test
+release.
+<P>
+If the last test release used "select fetch mode", this test directory will
+contain only those elements newer than the corresponding elements in the
+official library. But any OLBs will be the sum two, with any obsolete
+elements removed. If the last test release was a "total fetch", then the
+test directory has ALL the elements in the library.
+<P>
+The directory structure of each library area is determined by the content
+of the special CMS group RELEASE. Therefore, every CMS library must contain
+a RELEASE group. The RELEASE group contains other groups plus at least one
+individual element. For each of the groups in RELEASE a subdirectory will
+be automatically created in the appropriate library area in D0Library.
+Each element (individual file) in each of the subgroups will be fetched
+into the corresponding subdirectory in the library area. The element that
+is required to be in the RELEASE group is the release file which controls
+all the details of the library release. Each library area can have only a
+single level of subdirectories below it.
+<P>
+Therefore, to create a new subdirectory the CZAR need only create a group
+in her/his CMS library and put that <I>group</I> (CMS INSERT GROUP) into
+the group RELEASE. A subdirectory with the same name will be created in
+her/his D0Library area the next time that library is released.
+<P>
+The library area itself, the library's "root" directory, by default,
+contains only the release file. Any other files must be placed there
+explicitely during the release. The usual practice is that any files that
+users would always need to see would be placed in the top directory. These
+include all OLBs, EXEs, setup files etc. Some czars put the DOC and data
+files there, but this is a taste, and the number of such files. The source
+code is <I>never</I> placed there. The idea is that the top directory
+should be easy to browse and therefore should only contain the most
+important files.
+<P>
+As an example, consider the library area D0$PHYSICS_UTIL (which is itself a
+subdirectory of D0LIBRARY). It contains the subdirectory
+D0$DISK:[D0LIBRARY.PHYSICS_UTIL.SOURCE]. The latter corresponds to the
+CMS group SOURCE which is a member of the group RELEASE. Note that the
+subdirectory SOURCE cannot have any subdirectories. But the GROUP SOURCE
+<I>can</I> contain other groups which can be used for accounting purposes
+within CMS.
+<P>
+Each subdirectory can be refered to by a logical name of the form:
+
+<PRE>
+    D0$lib_name$group_name.
+</PRE>
+
+<P>
+<BLOCKQUOTE>
+It is <I>not</I> necessary to place elements into the group RELEASE. As
+long as they are in one of the groups that are in RELEASE they will be
+treated as if they are directly in group RELEASE.
+</BLOCKQUOTE>
+
+<P>
+To delete a subdirectory move the corresponding <B>group</B> from the group
+RELEASE into the group OBSOLETE. The next time the library is released the
+subdirectory and its contents will be deleted. To delete only an *element*
+move the element from its current group into the group OBSOLETE.
+
+<A NAME="steer"><H2> Steering the Release Processing </H2></A>
+<A NAME="file"><H3> The Release File </H3></A>
+<P>
+The processing of the elements within the second level groups (that is,
+those which are members of the group RELEASE) is specified by a release
+specification file which is an element within the group RELEASE named:
+
+<PRE>
+                     lib_name.RELEASE
+</PRE>
+
+This element contains commands (here called release commands) which tell
+the Release Procedures what to do to the elements within each of the second
+level groups (subdirectories). The file specifies how to convert SOURCES
+(e.g. *.FOR, *.RNO) into TARGETS (e.g. *.OLB, *.MEM). (Here we adopt DEC's
+jargon). The commands are of two types:
+<UL>
+<LI> processing (PRE, INTER and POST) commands and,
+<LI> TARGET building commands
+</UL>
+
+The processing commands PRE, INTER and POST are invoked at specific phases
+of the release process:
+<UL>
+<LI> PRE commands are invoked after the sources have been fetched from CMS
+but <i>before</I> any targets have been built. This occurs in the
+pre-processing phase of a release.
+<LI> INTER commands are invoked <I>after</I> the non-debug targets are
+created, but <I>before</I> the debug targets.
+<LI> POST commands are invoked <I>after</I> the targets are created.
+</UL>
+
+The TARGET building commands specify the targets to be built: OLBs, OBJs,
+MEMs etc. For compiled targets both non-debug and debug versions are
+created.
+<P>
+The format of the release file is reasonably free; however, please note the
+following rules:
+<UL>
+<LI> All commands must be delimited by at least ONE blank line.
+<LI> ALL text after an exclamation mark will be ignored (comments).
+<LI> Commands can span up to 16 lines. However, NO continuation marks are
+needed, and should NOT be used.
+<LI> Commands must be within the block corresponding to the group or
+subdirectory on which they will act. The order within the block is
+significant, as is the order of the blocks. But because the commands are
+actually invoked in five phases, the order of the commands corresponding to
+different phases has no effect. Effectively, the file is read five times,
+all PRE commands are completed, in the order give, then the non-debug
+targets, then INTER, then debug targets, then POST.
+</UL>
+The .Release files are used to generate the Module Management System (MMS)
+description file which is used to build the targets. MMS is DEC's version
+of the Unix tool make. The MMS file is created with the USERLIB facility.
+
+<PRE>
+    $ USERLIB/RELEASE/GROUP=(group-name[,..]) CMS-library-file-spec.
+</PRE>
+
+<BLOCKQUOTE>
+IMPORTANT: The current version of USERLIB assumes that the name of the
+routine, program or module within a source file is the same as that of the
+file. If a file is called, for example, FRAME_OPERATIONS.PAS the module
+name is assumed to be FRAME_OPERATIONS. If a file contains multiple
+routines etc. then its name <B>must</B> be the same as one of the routines
+within the file. Files which do not satisfy this rule, for example,
+program-builder hooks must be released as object modules, not as object
+module libraries.
+</BLOCKQUOTE>
+
+The release commands follow the syntax of DCL and are parsed using
+DEC's Command Language Interpreter (CLI) software. Perhaps the best way to
+introduce the structure of the release file is to use a simple example
+which is a portion of the release for the library CALOR_OFF.
+
+<PRE>
+begin
+/group=command_proc
+/srcdir=d0$calor_off$command_proc:
+/intdir=d0$scratch:[calor_off]
+/trgdir=d0$calor_off:
+
+pre/copy/element=(*.*)
+/from=d0$release:[calor_off.command_proc]
+/to=d0$release:[calor_off]
+
+end
+
+begin
+/group=source
+/srcdir=d0$calor_off$source:
+/intdir=d0$scratch:[calor_off]
+/trgdir=d0$calor_off:
+
+olb=calor_off.olb/element=(*.for)
+
+post/copy/element=(*.com,*.pbd,*.rcp,*.doc,HMATRIX*.DAT)
+/from=d0$release:[calor_off.source]
+/to=d0$release:[calor_off]
+
+end
+</PRE>
+
+This contains instructions for processing the elements of the groups
+COMMAND_PROC and SOURCE. These are the conventional names for groups
+containing DCL command procedures (COMMAND_PROC) and Fortran source files
+(SOURCE). Instructions for a single group are delimited by "begin" and
+"end" commands. The begin command has four qualifiers:
+
+<UL>
+<LI> /group - specifies the group to be processed
+<LI> /srcdir - specifies the logical of the directory corresponding to the
+group
+<LI> /intdir - specifies an intermediate (scratch) directory to be used in
+building targets.
+<LI> /trgdir - specifies the target directory
+</UL>
+
+<BLOCKQUOTE>
+NOTE: In general when working in the release directories, it is best to
+specify the disk name, where needed as D0$RELEASE. The release is actually
+done in a temporary directory, not it's final location. Only after it
+completes without detectable (by the release procedures) errors is it
+copied to it's final home. This is done so as not to replace the previous
+release with one containing major, detectable errors. In addition, for TEST
+(incremental) releases, the only files in D0$RELEASE:[...] are those that
+have changed, whereas D0$CDAQ, for example, is a search list including
+D0$RELEASE and the OFFICIAL area. Thus copying from D0$CDAQ$SOURCE would
+get old and new files, whereas copying from D0$RELEASE:[CDAQ.SOURCE] will
+get only new or modified files.
+/BLOCKQUOTE>
+
+The elements to be processed are specified with the
+
+<PRE>
+        /ELEMENT=(element-name[,...])
+</PRE>
+
+qualifier. The element names can be any valid DCL file names including file
+type. It must not be a file spec. That is, device names directory names and
+version numbers are not allowed. But element names can contain the VMS
+wildcard constructions * and %. Files can be excluded from the set
+specified by the /ELEMENT qualifier on using the qualifier
+
+<PRE>
+        /EXCLUDE=(element-name[,...])
+</PRE>
+
+For example, OLB=TEST/ELEMENT=*.FOR/EXCLUDE=xxx.FOR will compile all .FOR
+files into TEST.OLB, *except* xxx.FOR.
+
+<P>
+The /ELEMENT qualifier may be omitted, in which case a default list of
+files will be assumed. This list will vary according to the command. Note
+also that the /ELEMENT and /EXCLUDE may be used independently. For example,
+OLB=TEST/EXCLUDE=xxx.FOR will compile all the files in the default list
+into TEST.OLB, *except* xxx.FOR.
+
+<A NAME="cmds"><H3> Release Commands </H3></A>
+
+<A NAME="pre"><H4> Processing Commands: PRE/INTER/POST </H4></A>
+
+PRE commands are invoked <I>before</I> any targets are created. INTER are
+invoked <I>between</I> non-debug and debug target creation and POST are
+invoked <I>after</I> target creation. Typical uses for PRE might be to copy
+files from the subdirectories to the root or to do special setups needed
+later. If D0FLAVOR must be run on some source files, it would be done at
+this phase. INTER is mostly used to cleanup files created during non-debug
+target creation to keep from confusing the debug target creation. This is
+rarely used. POST is the most often used of these three. It is common, for
+example to call a command procedure to link executables using this command.
+<P>
+Each command specifies a specific post-processing task to be performed, for
+example, building an EXE file. The commands will be invoked in the order in
+which they appear in the .RELEASE file.
+
+<PRE>
+     Format:
+
+       PRE or INTER or POST/qualifier[/qualifier[...]]
+
+    Command_qualifiers
+
+   /DCL
+
+         /DCL=("..."[,...])
+
+         Specify one or more DCL commands to be invoked.
+
+   /CMD
+
+         /CMD=command_file
+
+         Specify a command procedure to be invoked.
+
+   /PBD
+
+         /PBD="PBD-command-line"
+
+         Use this command to specify a program builder command
+         line.
+
+   /COPY
+
+         Use this command to specify files which are to be copied
+         from the default directory to the area designated by the
+         logical name ROOT_DIRECTORY.
+
+        Command_qualifiers
+        /ELEMENT=(element-name[,..])     /EXCLUDE=(element-name[,..])
+
+         /ELEMENT=(*.DOC,*.MEM,*.PEN,*.PBD,*.RCP,*.LNK,*SETUP*.COM) (D)
+
+   /DELETE
+
+         Use this command to delete files from the default directory.
+
+        Command_qualifiers
+        /ELEMENT=(element-name[,..])     /EXCLUDE=(element-name[,..])
+
+         /ELEMENT=(*.BRN,*.RNT,*.RNX,*.MEM,*.LIS,*.OBJ) (D)
+
+   /D0FLAVOR
+
+         /D0FLAVOR=(switch[,...])
+
+         Give a list of the D0FLAVOR switches which specify how the
+         sources are to be processed.
+
+        Command_qualifiers
+        /ELEMENT=(element-name[,..])     /EXCLUDE=(element-name[,..])
+         /ELEMENT=*.FOR (D)
+
+    Example
+
+        PRE/D0FLAVOR=(VAXVMS,DI3000)
+
+        Pre-process all *.FOR files within the current CMS group
+        using the command D0FLAVOR/VAXVMS/DI3000.
+
+        POST/COPY/ELE=*.MEM
+
+        POST/DELETE/EXCLUDE=*.OBJ
+
+        All files with extension .MEM are to be copied to
+        the area designated by the logical name ROOT_DIRECTORY.
+        Next the default directory is to be cleaned up using
+        the default list of files to be deleted but excluding
+        all .OBJ files.
+</PRE>
+
+<A NAME="targ"><H4>Target Specification Commands </H4></A>
+
+The following commands specify what is to be produced by the
+CMS/MMS systems and what the target files should be called.
+
+<A NAME="HLB"><H5> HLB </H5></A>
+Create a HELP module library from the specified
+source files. If no library name is given then the
+name of the HLB file defaults to that of the CMS
+library.
+
+<PRE>
+     Format:
+
+       HLB[=library-name]
+
+    Command_qualifiers
+
+     /ELEMENT=(element-name[,..])
+
+      /ELEMENT=*.HLP (Default)
+
+         Specify the list of help files from the current CMS group
+         which are to loaded into the HLB. If the /ELEMENT qualifier
+         is omitted then ALL .HLP files will be loaded into the HLB.
+
+     /EXCLUDE=(element-name[,..])
+
+         See description for OLB /EXCLUDE.
+
+    Example
+
+        HLB=HELPLIB
+
+        All .HLP files are to be loaded into HELPLIB.HLB.
+</PRE>
+
+<A NAME="MISC"></A><H5> MISC </H5>
+       For each source create the corresponding target. This
+       command should be used to process RNO, SET files etc..
+       That is, files whose targets do not get loaded into libraries.
+
+<PRE>
+     Format:
+
+       MISC
+
+    Command_qualifiers
+
+     /ELEMENT=(element-name[,..])
+     /ELEMENT=(*.RNO,*.SET) (D)
+
+         Specify the sources to be processed.
+
+     /EXCLUDE=(element-name[,..])
+
+         See description for OLB /EXCLUDE.
+
+    Example
+
+        MISC/ELEMENT=USERMANUAL.RNO
+
+        The file USERMANUAL.RNO is to be processed with the
+        appropriate RUNOFF commands to produce the file
+        USERMANUAL.MEM.
+</PRE>
+
+<A NAME="MMS"><H5> MMS </H5></A>
+       Specify an MMS description file to be used instead of
+       the one built by the release procedure.
+
+<PRE>
+     Format:
+
+       MMS=description-file
+
+    Example
+
+        MMS=CDAQBLD.MMS
+
+        The file CDAQBLD.MMS is to be used to release the CDAQ
+        code instead of the MMS file built by the system.
+</PRE>
+
+<A NAME="OBJ"><H5> OBJ </H5></A>
+       Create an OBJECT module which is the concatenation
+       of other object modules. If no library name is given
+       then the name of the OBJ file defaults to that of the
+       CMS library.
+
+<PRE>
+     Format:
+
+       OBJ[=module-name]
+
+    Command_qualifiers
+
+     /ELEMENT=(element-name[,..])
+
+      /ELEMENT=(*.FOR,*.PAS,*.C,*.RC,*.CLD,*.MSG,*.MAR) (D)
+
+         Specify the sources from the current CMS group which
+         are to compiled, and whose object modules are to be
+         concatenated into a single object module.
+
+     /EXCLUDE=(element-name[,..])
+
+         See description for OLB /EXCLUDE.
+
+    Example
+
+        OBJ=HBOOK4/ELEMENT=(HPLOT5.FOR,HBOOK4.FOR)
+
+        The object modules resulting from the compilation of
+        the sources HPLOT5.FOR and HBOOK4.FOR are to be
+        concatenated into the object module HBOOK4.OBJ.
+</PRE>
+
+<A NAME="OLB"><H5> OLB </H5></A>
+       Create an OBJECT module library from the specified
+       source files. If no library name is given then the
+       name of the OLB file defaults to that of the CMS
+       library.
+
+<PRE>
+     Format:
+
+       OLB[=library-name]
+
+    Command_qualifiers
+
+     /ELEMENT=(element-name[,..])
+
+      /ELEMENT=(*.FOR,*.PAS,*.C,*.RC,*.CLD,*.MSG,*.MAR) (D)
+
+         Specify the sources from the current CMS group which
+         are to be compiled and loaded into the OLB. If the
+         /ELEMENT qualifier is omitted then the default source
+         list will be assumed.
+
+     /EXCLUDE=(element-name[,..])
+
+         Specify the sources from the current CMS group which
+         are to be excluded from the list given with the
+         /ELEMENT qualifier.
+
+         NOTE:       /EXCLUDE can be used independently
+                     of the /ELEMENT qualifier.
+
+     /OMIT=(element-name[,..])
+
+         Specify the sources from the current CMS group whose
+         object modules are NOT to be loaded into the OLB.
+
+
+    Example
+
+        OLB=CDAQ/ELE=*.PAS/EXCLUDE=(OLD*DEFS.PAS,
+                                    RSTATE*.PAS)
+
+        All PASCAL sources in the current group are to be compiled
+        and loaded into CDAQ.OLB excluding the specified sources.
+        Note the absence of continuation marks "-".
+</PRE>
+
+<A NAME="TLB"><H5> TLB </H5></A>
+       Create a TEXT module library from the specified
+       source files. If no library name is given then the
+       name of the TLB file defaults to that of the CMS
+       library.
+
+<PRE>
+     Format:
+
+       TLB[=library-name]
+
+    Command_qualifiers
+
+     /ELEMENT=(element-name[,..])
+
+      /ELEMENT=*.TXT (D)
+
+         Specify the text files which are to loaded into the TLB.
+         If the /ELEMENT qualifier is omitted then ALL .TXT files
+         will be loaded into the library.
+
+     /EXCLUDE=(element-name[,..])
+
+         See description for OLB /EXCLUDE.
+
+    Example
+
+        TLB/ELE=(CDAQDEFS.DEF,RSTATE*.PAS,OLB*DEFS.PAS)
+
+        The specified definition files are to be loaded into
+        a text library. The name of the text library will, by
+        default, be that of the CMS library, that is, it will
+        be called CDAQ.TLB.
+</PRE>
+
+<P>
+The CMS group RELEASE will always be the LAST group to be processed.
+Therefore, any processing which requires the other groups to have been
+processed first can be steered by placing the appropriate commands into the
+file/element RELEASE.RELEASE, which is placed into the group RELEASE. The
+most common use for this file would be to specify how to create an .EXE
+file or a shareable image file (using, for example, the command
+POST/CMD=command_file).
+
+<HR>
+<A NAME="tutor"><H1> Tutorial Example </H1></A>
+<A NAME="tintro"><H2> Introduction </H2></A>
+For our tutorial we shall use the Control Data AQuisition (CDAQ) CMS
+library. This library is chosen because its release file covers the full
+range of commands which one might choose to use in releasing a library. The
+CDAQ library D0$CMS:[CDAQ] contains in the group RELEASE the single group
+SOURCE. The group SOURCE contains the following elements:
+
+<UL>
+<LI> CDAQ.OPT
+<LI> CDAQBLD.OPT
+<LI> CDAQDEFS.PAS
+<LI> CDAQSHR.COM
+<LI> CDAQSHR.OPT
+<LI> CLEANUP.COM
+<LI> COMMAND_BLOCK.PAS
+<LI> DATAOPS.PAS
+<LI> DATA_BLOCK.PAS
+<LI> DEB_CDAQ.OPT
+<LI> DEB_CDAQBLD.OPT
+<LI> DEB_CDAQSHR.COM
+<LI> DEB_CDAQSHR.OPT
+<LI> FORMAT_BLOCK.PAS
+<LI> FRAME_OPERATIONS.PAS
+<LI> HDBUTIL.PAS
+<LI> IDENT_BLOCK.PAS
+<LI> MAKE_USERMANUAL.COM
+<LI> NETUTIL.PAS
+<LI> NETWORK.PAS
+<LI> PARAM_BLOCK.PAS
+<LI> PERIOD_BLOCK.PAS
+<LI> REQSTATE.PAS
+<LI> REQUTIL.PAS
+<LI> SETUP_CDAQ.COM
+<LI> STRUCT.PAS
+<LI> TRANSFER.MAR
+<LI> TRANSFORM.PAS
+<LI> TRANSTAT.PAS
+<LI> USERMANUAL.RNO
+<LI> USERPROC.PAS
+</UL>
+
+We shall require the elements to be processed as follows:
+<UL>
+<LI> The elements
+<UL>
+<LI> CDAQDEFS.PAS
+<LI> STRUCT.PAS
+</UL>
+are to be processed into PASCAL environment files before any other elements
+are processed.
+<LI> The elements
+<UL>
+<LI> COMMAND_BLOCK.PAS
+<LI> DATAOPS.PAS
+<LI> DATA_BLOCK.PAS
+<LI> DUMP_UTIL.PAS
+<LI> FORMAT_BLOCK.PAS
+<LI> FRAME_OPERATIONS.PAS
+<LI> GLOBAL_UTIL.PAS
+<LI> HDBUTIL.PAS
+<LI> IDENT_BLOCK.PAS
+<LI> NETUTIL.PAS
+<LI> NETWORK.PAS
+<LI> PARAM_BLOCK.PAS
+<LI> PERIOD_BLOCK.PAS
+<LI> REQSTATE.PAS
+<LI> REQUTIL.PAS
+<LI> TRANSFORM.PAS
+<LI> TRANSTAT.PAS
+<LI> USERPROC.PAS
+<LI> CDAQ_TEST.PAS
+</UL>
+are to be compiled with the PASCAL compiler and loaded into the object
+library CDAQ.OLB. However, before any processing can proceed the logical
+names
+<UL>
+<LI> D0$CDAQ$OBJ
+<LI> D0$CDAQ$SRC
+</UL>
+must be appropriately defined.
+<LI> The element
+<UL>
+<LI> USERMANUAL.RNO
+</UL>
+needs to be processed with RUNOFF.
+<LI> The file
+<UL>
+<LI> CDAQHELP.HLP
+</UL>
+should go into the help library HELPLIB.HLB.
+<LI> The files
+<UL>
+<LI> SETUP_CDAQ.COM
+<LI> CDAQDEFS.DEF
+<LI> CDAQ.OPT
+<LI> DEB_CDAQ.OPT
+</UL>
+must be copied to the root directory, D0$CDAQ.
+<LI> The shareable images CDAQSHR.EXE and DEB_CDAQSHR.EXE must be created,
+along with the test program CDAQ_TEST.EXE.
+<LI> All .OBJ, BRN and RNT files should be deleted from
+the default directory. However, the PEN files should be kept.
+</UL>
+
+Most D0 libraries can be released with rather straightforward processing;
+this example is intended to illustrate the ease with which the processing
+can be specified, even when the processing specification is relatively
+complicated. (For a simple, and more typical, example of a release file
+look at D0$ISAJET:ISAJET.RELEASE.) In our example the release commands are
+specified in the element CDAQ.RELEASE, to which we now turn. (Note that
+this element becomes a file D0$CDAQ:CDAQ.RELEASE in D0LIBRARY.)
+
+<A NAME="tfile"><H2> The release file </H2></A>
+<P>
+Below is a listing of the the file D0$CDAQ:CDAQ.RELEASE, the numbers in
+"()" are for later reference. They are not part of the listing.
+<PRE>
+     BEGIN
+     /GROUP=SOURCE
+     /SRCDIR=D0$CDAQ$SOURCE:
+     /INTDIR=D0$SCRATCH:[CDAQ]
+     /TRGDIR=D0$CDAQ$OBJ:
+
+(1)  PRE/DCL=("DEFINE D0$CDAQ$OBJ D0$RELEASE:[CDAQ]",
+         "DEFINE D0$CDAQ$SRC D0$RELEASE:[CDAQ.SOURCE]",
+         "USERPAS :== /NOWARNING")
+
+(2a) PRE/DCL=("PASCAL/NOOBJECT/NOWARNING/NOLIST -",
+         "/ENV=D0$RELEASE:[CDAQ]CDAQDEFS.PEN D0$CDAQ$SOURCE:CDAQDEFS.PAS")
+
+(2b) PRE/DCL=("PASCAL/NOOBJECT/NOWARNING/NOLIST -",
+         "/ENV=D0$RELEASE:[CDAQ]STRUCT.PEN D0$CDAQ$SOURCE:STRUCT.PAS")
+
+(3)  PRE/CMD=D0$CDAQ$SOURCE:MAKE_USERMANUAL
+
+(4a) OLB=CDAQ.OLB/ELEMENT=(COMMAND_BLOCK.PAS,DATAOPS.PAS,DATA_BLOCK.PAS)
+
+(4b) OLB=CDAQ.OLB/ELEMENT=(DUMP_UTIL.PAS,FORMAT_BLOCK.PAS,FRAME_OPERATIONS.PAS)
+
+(4c) OLB=CDAQ.OLB/ELEMENT=(GLOBAL_UTIL.PAS,HDBUTIL.PAS,IDENT_BLOCK.PAS)
+
+(4d) OLB=CDAQ.OLB/ELEMENT=(NETUTIL.PAS,NETWORK.PAS,PARAM_BLOCK.PAS)
+
+(4e) OLB=CDAQ.OLB/ELEMENT=(PERIOD_BLOCK.PAS,REQSTATE.PAS,REQUTIL.PAS)
+
+(4f) OLB=CDAQ.OLB/ELEMENT=(TRANSFORM.PAS,TRANSTAT.PAS,USERPROC.PAS,TRANSFER.MAR)
+
+(4g) OLB=CDAQ.OLB/ELEMENT=(CDAQ_TEST.PAS)
+
+(5)  HLB=HELPLIB.HLB/ELEMENT=CDAQHELP.HLP
+
+(6)  POST/COPY/ELEMENT=(SETUP_CDAQ.COM,CDAQDEFS.DEF,CDAQ.OPT,DEB_CDAQ.OPT)
+          /FROM=D0$RELEASE:[CDAQ.SOURCE]
+          /TO=D0$RELEASE:[CDAQ]
+
+(7a) POST/CMD=D0$CDAQ$SOURCE:CDAQSHR
+
+(7b) POST/CMD=D0$CDAQ$SOURCE:DEB_CDAQSHR
+
+(8)  POST/CMD=D0$CDAQ$SOURCE:CDAQ_TEST
+
+(9)  POST/CMD=D0$CDAQ$SOURCE:CLEANUP
+
+     END
+</PRE>
+
+The commands in the release file can be grouped into nine sets of commands
+which, for convenience of discussion, have been labeled (1)--(9). Please
+refer to these labels in the following discussion in which we describe the 
+consequence of applying the processing specification.
+
+<OL>
+<LI> The logicals D0$CDAQ$OBJ and D0$CDAQ$SRC are defined in the pre-processing
+phase of the release. These logical names are used by the CDAQ procedures.
+<LI> PASCAL provides a mechanism to use a compiled form of an include file
+called an environment file, or PEN file for short. These files (CDAQDEFS.PEN
+and STRUCT.PEN) must be created before any other PASCAL source files are
+compiled since the latter need the PEN files for the compilation to be
+successful. The PASCAL source files are said to "inherit" the PEN files.
+<LI> During the pre-processing phase the DCL command procedure
+D0$CDAQ$SOURCE:MAKE_USERMANUAL.COM will be invoked to create the CDAQ User's
+Manual.
+<LI> All the specified PASCAL sources will be compiled and their object modules
+will be loaded into the object library CDAQ.OLB.
+<LI> CDAQHELP.HLP will be loaded into the help library HELPLIB.HLP.
+<LI> The files SETUP_CDAQ.COM, CDAQDEFS.DEF, CDAQ.OPT and DEB_CDAQ.OPT will be
+copied from the area indicated by the /FROM qualifier to the area designated by
+the qualifier /TO.
+<LI> The DCL command procedures D0$CDAQ$SOURCE:CDAQSHR.COM and the
+corresponding one for the debug version of the CDAQ shareable images are
+invoked after the CDAQ object libraries have been built; that is, they are
+invoked during the post-processing phase of the release.
+<LI> The DCL command procedure D0$CDAQ$SOURCE:CDAQ_TEST.COM is used to create
+the CDAQ test program which can be used to test the integrity of the CDAQ
+system.
+<LI> All un-needed files (for example, BRN and RNT files) will be deleted from
+the default directory by invoking a customized cleanup procedure.
+</OL>
+The release file is used, by the release procedures, to create automatically
+the MMS file CDAQ.MMS from which DCL command procedures can be created, which
+when invoked, actually effect the release.
+</BODY>
+</HTML>

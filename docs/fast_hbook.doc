@@ -1,0 +1,133 @@
+   The HBOOK problem          R.Raja 22-Sep-87
+   -----------------
+
+
+The problem with booking histograms in HBOOK has been solved.
+The solution is based on the principle of 'Minimal Intrusion'
+whereby the format of the resulting histograms and scatter plots 
+are completely Hbook compatible. Also an Ultra Fast Histogram
+Filling technique has been introduced which can be used with
+the existing HBOOK filling routines HFILL, HF1 and HFF1. It is
+also possible to run in the old mode with the new system.
+The routines that have been changed are
+
+1)HINLIB    !This solves the Booking problem
+2)HSEARC    !This gets rid of the Binary search for ID's while filling.
+
+
+     Statement of the Booking Problem
+    ----------------------------------
+
+Hbook Stores its data in Blank common as follows. Each Histogram has
+a 'Library block' and a 'Data Block'. The library block is akin to 
+the link area of Zebra. The way Histograms are stored is
+
+LIBRAY1|LIBRARY2|LIBRARY3...|LIBRARY N|DATA1|DATA2|...DATA N|
+
+When the 1st Histogram is booked, blank Common looks like,
+
+|LIBRARY1|Data1|
+
+When the 2nd Histogram is booked, the 1st data block is moved over 
+to make room for the Library2. For the 3rd histogram booking, the 1st 
+2 histograms are moved over. So when N histograms are booked, it follows
+by simple arithmetic that (N)(N-1)/2 data blocks are moved. For a 100 Bin
+histogram with titles, each data block is 117 words. For CALIB over 3000
+histograms are booked. This implies copying 5.26E+8 words!
+
+         The Solution
+         -------------
+
+We declare ahead of time the maximum number of histograms we will book.
+HBOOK then is made to reserve the Library space for so many histograms ahead
+of time. As Histograms are booked, Library blocks go into the Library
+area and the Data blocks go into the data area. No moving of
+data is done while booking. It takes 1.5 seconds under the new scheme to
+book 2500 Histograms on the cluster. I run out of CPU time
+on the cluster interactive mode under the old scheme! It is of the
+order of 10 Minutes or more.
+
+       Fast Booking.
+       -------------
+
+This is called killing 2 birds with one stone. While booking histograms,
+Hbook also orders the Library Blocks in increasing order of ID number.
+Then, during filling time, it finds the address of theID it needs
+by a binary search.
+This technique is used since Histograms may in general be booked
+in any order. Also ID's may not be monotonically increasing.
+e.g One may book 5 Histograms with ID 3000 -3004. Hence the
+need for the search. However, if one is willing to restrict the ID numbers
+between some well defined values (IDMIN to IDMAX),then during Booking, 
+we can save the address of the ID's in an array IHADD(IDMIN:IDMAX) 
+so that we can quickly get the address by the statement
+
+        ID_address = IHADD(ID-IDMIN+1).
+
+This is hardly a restriction on HBOOK.
+
+       The Implementation
+       ------------------
+ 
+After the call to HLIMIT, we immediately make a call to a NEW routine HFAST
+which I have written. THAT IS ALL ONE HAS TO DO. During Linking, we
+need to include the object modules HFAST.OBJ,HINLIB.OBJ,HSEARC.OBJ before
+linking to the conventional HBOOK. These modules are in the CMS library
+OFFLINE_UTIL.
+
+ CALL HFAST(NUMHST,IFFILL,IDMIN,IDMAX)
+
+Where NUMHST = a number greater than the Maximum number of Histograms
+and (Scatter plots ) one intends to book. This reserves NUMHST*5 words
+in blank common for Library usage. If NUMHST=0, old HBOOK1 booking
+will result.
+
+IFFILL=0 Histogram Filling is as before. I.e. Binary Search for each new ID.
+IFFILL=1. It will reserve IDMAX-IDMIN+1 words in blank common for storing the
+ID's of the histograms for fast filling by HFILL, HF1 and HFF1. The Search
+routine HSEARC has been modified not to use the Binary Search if IFFILL is set
+to 1.
+
+IDMIN is the lowest value for ID. IDMAX is the largest ID.
+e.g. ID may run from 320000 to 321000. In this case NUMHST
+has to be smaller than 1001 . IDMIN and IDMAX are only used 
+if IFFILL is non-zero.
+
+The 1st 4 words of Blank common are now, NUMHST , IFFILL ,IDMIN and IDMAX
+HBOOK storage in Blank common will start from the variable NX0 which
+will be set to a reasonable value.
+                
+                  Deleting Histograms
+                  -------------------
+
+After filling Histograms with IFFILL=1, it is possible to delete
+histograms using HDELET as usual. However, do not use FAST FILL
+again, since these addresses are not renormalized. We can still use
+conventional Hbook filling and booking at this point by setting IB(1)=0
+in Blank Common//IB(NH). IB(1)=NUMHST
+
+                 Ultra Fast Filling
+                 ------------------
+
+I have since written a routine HFFF1(ID,X,WT) which uses fast fill (IFFILL=1)
+I have timed this routine versus conventional HFF1 (which uses binary search)
+and HFF1 using Fast fill. The timings were done on FNALC for 4000 histograms
+(pedestals) and 1000 events.
+
+                               FNALC CPU TIMES
+
+HFF1     Binary search        5Mins 49.14 secs
+
+HFF1     Fast Fill(IFFILL=1)  2Mins 20.15 secs
+
+HFFF1    Fast Fill            1Min. 34.26sec
+
+HFFF1 still uses floating point numbers and Bin widths. This can be speeded up
+still further if need be for integer pedestals. For the time being I 
+recommend we use HFFF1. Note it only has 3 arguments. I suggest we all use HFFF1
+for the time being.
+
+The above problem with HBOOK has beeen there since inception (20 Years?).
+The new version HBOOK4, which uses Zebra may avoid these pitfalls. It is
+still in the pre-release stage. In the mean time, I suggest, we implement
+my version.

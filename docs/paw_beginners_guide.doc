@@ -1,0 +1,301 @@
+
+                                                               S. Hagopian
+                                                               Version 1.0
+                                                               January 27, 1991
+
+
+                  
+                     BEGINNERS GUIDE TO PAW_DI3000
+
+
+     I. INTRODUCTION
+
+        This guide allows the beginning user to read in a histogram file
+
+        and display plots. For more detailed documentation see:
+
+               PAW USERS GUIDE, CERN Long Write-up Q121
+                               (Fermilab Comp. Div. number  SP0027,
+                                obtained from the Fermilab stockroom
+                                as item 1307-0100)
+
+               PAW at FERMILAB (Fermilab Comp. Div. number  SP0027 A)
+     
+         For online HELP do:
+
+               $HELP PAW (from VMS level on the FNAL cluster)
+
+         For help inside PAW do :
+
+               PAW> HELP   to obtain list of groups of commands. Then enter
+                           command number to get further details.
+
+               PAW> HELP command (to get information about a specific command
+                                  or group of commands. Use / to separate 
+                                  commands in path down command tree.)
+
+               PAW> USAGE command (to get command syntax)
+
+
+     II. SETUP
+
+        A. DI3000 LOGICALS
+
+          To use the DI3000 version of PAW, the DI3000 LOGICALS must be defined.
+
+          This happens automatically on most D0 nodes. (There should be a 
+
+          message on your screen at LOGIN time. ) If not try:
+
+                $SETUP DI3000
+
+                      or 
+
+                $SETUP PVI (FNAL cluster)
+
+          If this fails, see your SYSTEM manager.
+
+      B. DI3000 DEVICE DRIVERS
+
+          After the DI3000 logicals are defined, you must set the driver
+
+          for your CRT device 1 (required) and hardcopy device 2 (optional).
+
+          The form of the command is:
+
+                 $SETDRV device code 1   device code 2
+
+          Some common device codes are:
+
+               GPV - VAX VMS workstation without DECWINDOWS
+
+               XDW - VAX VMS workstation with DECWINDOWS
+
+               T10 - TEKTRONIX 4010 emulator
+
+               TLL - TALARIS laser printer
+
+               LN3 - DEC LN03 laser printer
+
+
+          C. DI3000 CONFIGURATION FILES
+             
+             DI3000 configuration files are available for the VAXSTATION
+
+             with GPV or XDW drives. The only option for the GPV is: for
+
+             a black/white screen whether the display background is 
+
+             black or white. But for the XDW, the mode of "Window repair"
+
+             (how to recover when a window overlaps your graphics
+
+             window), is very important. If you are having trouble with
+
+             this, use the template configuration file,
+
+              GRAPHICS_UTIL$COMMAND_PROC:DRVXDW.CFG, 
+   
+              by defining the appropriate directory:         
+
+                   $DEFINE PVI_CFG D0$GRAPHICS_UTIL$COMMAND_PROC
+
+
+     III. GETTING PAW INTO EXECUTION
+         
+          PAW should be available as an executable in the CERNLIB area of
+
+          D0LIBRARY or in it's subdirectory SRC. If it is not available,
+
+          request it from the D0 Librarian of you Local Area Cluster.
+
+          It is currently in the TEST area of some D0 nodes. So do:
+
+               $LIBTEST CERNLIB 
+
+          before starting execution. You may also want to move your 
+
+          text window on a VAXSTATION to the bottom 1/3 of the screen
+
+          to decrease the overlap between the text and graphics 
+
+          windows. Then do:
+
+               $RUN D0$CERNLIB:PAW_DI3OOO
+                     or
+               $RUN D0$CERNLIB$SRC:PAW_DI3OOO               
+
+         Answer the question: "DI3000 Device name" with a Carriage return"
+
+         You will get a non-fatal warning:
+
+          "NO default PAWLOGON file defined" You can just ignore this.
+
+         Or you can put a file PAWLOGON.KUMAC in your default area with
+
+          one line: MESSAGE 'LOGON File'
+
+         After a long initialization phase, the program should give a 
+
+         prompt: PAW>
+
+         On a VAXSTATION, after the graphics window has appeared, pop
+
+         the command text window back on top to enter commands.
+
+         A few basic commands are given in sections IV. - VIII.              
+
+
+      IV. READING IN A FILE
+
+          A. For HBOOK3 (old, non-ZEBRA type) file:
+
+             HIST/HIO/HFETCH 0 filename
+
+
+          B. FOR HBOOK4 (ZEBRA) file: 
+ 
+             HIST/FILE 1  filename
+
+             HRIN 0 (read in all histograms)
+
+          C. CLOSE 1 - close histogram file
+                      (HIST/DEL 0  - to delete all the histograms from the file)
+
+
+     V. DIRECTORIES and LISTS
+
+         
+         A. To see the current directory:
+
+              LDIR - Lists current directory and its histograms and the
+                     names of its subdirectories
+
+         B. To list information about histograms in current directory
+
+             HIST/LIST  - list histograms IDs, titles and their dimensionality
+                          (1), (2) or (N)
+
+         C. To change the default directory (the one that you are displaying)
+
+             1. to go to a subdirectory 1 level down:             
+
+               CDIR subdirectory name
+
+
+             2. To go to a subdirectory of the histogram file read in:
+
+               CDIR //LUN1/subdirectory name (if unit 1 is the logical unit 
+                                          of a histogram file read in)
+
+             3. To go to the main PAW directory in memeory where any newly
+                created histograms are stored:
+ 
+               CDIR //PAWC     (PAWC is usually the top directory in memory)
+                                           
+
+
+    VI. MAKING HISTOGRAM DISPLAYS
+
+         A. To set the command root:
+
+              PAW> SET/ROOT HISTOGRAM (so don't have to type HIST at the
+                                        beginning of each histogram command)
+
+
+         B. DISPLAYING 1-D HISTOGRAMS
+  
+            PLOT ID# (plots histogram with ID# specified)
+
+            ZONE NX NY (sets up NX zones in the horizontal direction and
+                              NY zones in the vertical direction, so that 
+                              multiple histograms can be displayed on the
+                              screen.) 
+
+         C. DISPLAYING 2-D HISTOGRAMS 
+
+
+            1. PLOT ID# (plots a 2-d scatterplot with ID# specified)
+
+            2. LEGO ID# THETA PHI makes a LEGO plot of
+                               histogram ID#; (THETA and PHI are optional
+                               parameters specifying the viewing angle in deg.
+                               See HELP LEGO) 
+
+            3. SURF ID# (plots a 2-d surface plot)
+
+            4. Make a projection of a 2-d histogram
+
+               HIST/CREATE/PROX id# (create X projection in main dir. //PAWC)
+
+               HIST/PROJECT ID#  (fills projections previously defined
+                                   for histogram number ID#)
+
+               HIST/PLOT ID#.PROX (displays x projection of ID#)
+
+
+    VII. USING N-TUPLES
+
+         A. Plotting a single dimension of an NTUPLE:
+ 
+            NTUPLE/PL ID#.X - make a 1-D histogram of the first 
+                              variable in the NTUPLE
+
+
+         B. USING CUTS WITH NTUPLES:
+
+            NT/CUT 1 1<X     -   Cut 1 	is defined as X.GT.1
+
+            NT/PL ID#.X 1  - plot 1st variable of NTUPLE ID# using cut 1
+
+
+        C. Creating a projection of an NTUPLE:
+
+            HIST/CRE/1DHIST ID2 'TITLE' NX XMIN XMAX - create a new
+                 1-D histogram with new ID number ID2 with title TITLE
+                       NX bins, and minimum and maximum limits XMIN, XMAX
+
+            NTUPLE/PROJ ID2 ID1 Y  - projects the second variable of the
+                                     NTUPLE with ID1 into histogram ID2
+
+
+    VIII. MAKING A LASER HARDCOPY
+ 
+         A. SETUP
+
+          Before running PAW you must have set a second driver for the printer.
+
+          For example:
+
+           $SETDRV GPV TLL  (for UIS Vaxstation and TALARIS in line mode)
+
+               or
+
+            $SETDRV XDW LN3  (for DECWINDOWS VMS Vaxstation and LN03 printer)
+
+        B. Inside PAW before making a plot:
+
+            PAW> META 1 2 (turns on unit 2 as specified in SETDRV)
+
+            PAW> (make plots, ex. HIS/PLO 1)
+
+            META 0 2  (turns off device 2)
+
+        C. After exiting PAW 
+
+             PRINT TALARIS.DAT  (if had TLL device driver)
+
+                 or 
+  
+             PRINT/FORM=______ LN03P.DAT   (if had LN3 device driver)
+
+           NOTES:
+
+           1. If the default print form for your laser printer is not 
+              setup for graphics, you should check with the SYSTEM manager
+              as to what form should be used. This is always needed
+              for a LN03, but not always for a TALARIS printer.
+ 
+           2. If you have a file PAW.METAFILE  (specifed META 0 0 ), do not 
+              print it. You must use DI3000 program to read it.
+

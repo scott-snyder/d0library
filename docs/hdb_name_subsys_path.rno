@@ -1,0 +1,540 @@
+.!   Created by A.M.Jonckheere on 20-MAR-1989
+.!
+.PAGE SIZE  60,80     .LEFT MARGIN  5    .RIGHT MARGIN  75
+.LAYOUT  3,2
+.right ;D0Note 1098A##
+.RIGHT ;A.M.Jonckheere
+.RIGHT ;S.Krzywdzinski
+.RIGHT ;25-FEB-1991###
+.RIGHT ; Rev 25-NOV-1991###
+.RIGHT ; Rev 26-Oct-1993###
+.BLANK 3     !--- underlined title on next line
+.CENTER ; ^& Hardware Database\&
+.center ; ^& Device Names, Subsystems and Hierarchical Path Designations \&
+.BLANK 2
+.!------------ main text start here.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+This note is meant to summarize the conventions agreed upon in naming and
+specifying the user parameters used to access a specific device, or group
+of devices on the hardware control CDAQ side of the D0 detector.
+
+.BLANK
+
+.center; ^& Introduction \&
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+Most of the information (all that a user needs) to specify devices in the
+D0 Control Data Acquistion system (CDAQ) is maintained in the D0 Hardware
+Database (D0HDB). There are four main objects in D0HDB:
+
+.BLANK
+
+.LIST
+.LIST ELEMENT ; DEVICE: a logical device, such as a power supply with all
+of it's control registers, readbacks etc.
+.LIST ELEMENT ; MODULE: a single physical piece of hardware, a VME card for
+example with it's serial number.
+.LIST ELEMENT ; CELL: a physics readout cell; a Calorimeter readout cell, a
+CD wire etc.
+.LIST ELEMENT ; CLASS: an arbitrary grouping of any of the other objects.
+.END LIST
+
+.BLANK
+
+Each of these objects is specified by an identifier, a name. For
+simplicity, it has been decided that the names should be case insensitive.
+The primary way to specify a device is by it's ^&name\& or
+^&name_.attribute\&.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+In addition to the CLASS there are two parameters associated with each
+DEVICE that can and will be used to specify GROUPS of devices. These are
+the SUBSYSTEM and HIERACHICAL PATH designations. These are numeric codes
+that specify GROUPS of devices. These two parameters are ^&properties\& of
+a device, while a device is ^&in\& a class.
+
+.PARAGRAPH      3       ! arg = horizontal indentation
+
+The subsystem is just what it sounds like. It's a subsystem breakdown of
+the detector; High Voltage, Cryogenics etc. In the software system as it
+currently exists, there can be 32 subsystems and a device can be assigned
+to MANY subsystems. Thus a low voltage power supply might be in both the
+Low Voltage subsystem AND in the Trigger subsystem. This is implemented by
+having the subsystem specified as a bit encoded long word with each bit
+corresponding to a subsystem.
+
+.PARAGRAPH      3       ! arg = horizontal indentation
+
+The Path descriptor encodes a hierarchical description of the detector.
+Each device in the system is assigned to one and only one "NODE" of the
+tree. It's position in the hierarchy describes its influence on other
+devices. Any device at a given node ^&might\& influence the operation of
+any device at the same or lower node on the same branch. Its position does
+^&not\& imply that it influences ^&all\& devices at the same or lower
+nodes. It ^&does\& imply that it influences some device on the same node,
+or more than one of the lower nodes.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+There are two main uses for the SUBSYSTEM and PATH descriptors. The first
+is to ^&filter\& alarm or significant event messages pertaining to the
+devices. One may wish to see only messages pertaining to only the
+Cryogenics subsystem for example. Or one may wish to see only messages
+pertaining to devices that reside at, or below a particular node in the
+hierarchy. You can also filter on the AND or the OR of the subsystem/path,
+e.g. All Low Voltage supplies (subsystem) in the Calorimeter (Path).
+
+.PARAGRAPH      3       ! arg = horizontal indentation
+
+The second use is in the D0 protection scheme. In order to control (change
+setting of) a device, you will have to ask for and receive "ownership" of
+that device via the Subsystem/Path. Since both of these refer to groups of
+devices, you will also, gain "ownership" of all other devices that satisfy
+the same requested criteria, ie) all devices at or below the path node
+requested. If you have asked for exclusive ownership, then no one else will
+be able to change any of those devices until you relinquish ownership. This
+will guarantee that device setting that are critical for the run or the
+test that you are performing do not change until you are done. Because you
+will be granted "ownership" of groups of devices, it is important that
+devices be placed as low in the hierarchy as possible. This will allow as
+many users as possible to work simultaneously without interference.
+Ideally, an application (Pedestal calibration for example) would require
+ownership of only ONE node, and the hierarchy below that node.
+
+.page
+
+.center; ^& DEVICE NAMES \&
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+A DEVICE is any monitoring and/or control logical element. Its name, up
+to 12 characters long, must be unique. A DEVICE has one or more
+ATTRIBUTES, named by up to 4 characters. It is the DEVICE.ATTRIBUTE that
+corresponds to a particular register, data value, memory address, memory
+array etc. The ATTRIBUTES relation in HDB contains all the necessary
+addressing information for CDAQ to be able to access the DEVICE.ATTRIBUTE,
+e.g. read and/or write the appropriate data.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+To simplify communication, a few conventions as to the way DEVICEs are to
+be named have been agreed upon. The general form of a device name is:
+
+.literal
+
+                        DETM_DEVM000
+    where:
+        DETM  is a mneumonic for the detector a device is associated with;
+              a string of up to 4 characters; some of the accepted
+              mneumonics are: CAL, LV0, CDC, TRD, VTX, FDC, MUO, SAM
+        DEVM  is a mneumonic for a device type (ie ADC, PLS, LVB); a string
+              of up to 4 characters
+        000   is a number which specifies a device further; a numeric
+              string of up to a length making the full name not greater
+              than 12 characters
+.end literal
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+There is a delimiting character (underscore) between DETM and DEVM; no
+such character is needed between DEVM and the numeric string, provided DEVM
+is non-numeric. Leading or embedded blanks are not allowed.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+For example, for the calorimeter, the first part of the name has been
+chosen to be:
+
+.literal
+
+        DETM := CAL     calorimeter in general
+                CALC    calorimeter central
+                CALN    calorimeter end cap north
+                CALS    calorimeter end cap south
+.end literal
+
+.BLANK
+
+Use of more than one mneumonic for the detector serves to indicate the
+physical location of a device/module, wherever it is appropriate.
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+The second part of the name, DEVM, describes what a device/module actually
+is, or/and what it does. So we have:
+
+.literal
+
+        DEVM := ADC     Analog to Digital Converter
+                PLS     PuLSer
+                BLS     Base Line Subtractor
+                BCC     BLS Crate Controller
+                CAB     CABle driver (analogue)
+                PA      PreAmplifier
+                LVB     Low Voltage power supply for BLS cards
+.end literal
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+The last, numeric, part of the name is more hardware oriented than the 2
+preceding ones and is composed of the crate ID, 3 numbers, and the card
+number in HEX where appropriate.
+
+.BLANK
+.center ; Example Attributes
+
+.literal
+
+    VOLT        Voltage ADC read back
+    VSET        Voltage setting
+    VLIM        Voltage limit (+- about nominal setting)
+    CURR        Current read back
+    CLIM        Current limit (+- about nominal setting)
+    OVRV        Over voltage (Trip state)
+    OVRC        Over Current (Trip state)
+    RST         Reset - Clear Trip conditions
+    ON          Turn ON
+    OFF         Turn OFF
+    LOC         Go to Local mode, set to 0 first
+    REM         Go to Remote mode
+    RAMP        Start Ramp to set voltage/current
+    TEMP        Temperature read back
+    FLOW        Flow read back
+    STAT        Status readback
+.end literal
+
+.page
+
+.center; ^& SUBSYSTEM \&
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+The Subsystem designation is a BIT encoded 32 bit integer. Thus a
+particular device.attribute can be in up to 32 different subsystems. The
+current D0 subsystems and their bit assignments are:
+
+.BLANK 
+
+.CENTER ; ^&Current D0 Subsystem Assignments\&
+
+.literal
+
+               Bit      Subsystem description
+               ---      ---------------------
+    Software    0       Host - Software (COOR/Data Logger/Alarms etc)
+                1       Goodwin (M680xx) front end
+                2       Briegel (IBM PC) front end (CD Gas Systems etc)
+                3-7     Spare
+    Data        8       Clock/SFM
+                9       Pulser
+               10       Trigger
+               11       Readout
+               12       Detector Monitoring
+               13       Control Tables (ie LV0 lookup tables)
+               14       Accelerator
+    Spare      15-22    Spare
+               23       CD Gas Systems
+    Utilities  24       Cryogenics
+               25       Magnet
+               26       AC Power
+               27       Low Voltage Power
+               28       High Voltage Power
+               29       Cooling Water - Temp, Flow, Pres etc
+               30       Cooling Air   - Temp, Flow, etc
+               31       Smoke Alarms
+.end literal
+
+.page
+
+.center; ^& HIERARCHICAL PATH \&
+
+.PARAGRAPH      3       ! arg = horizontal indentation
+
+The D0 Path descriptor is nibble encoded. Within the 32 bit long word
+this leaves the possibility for 8 levels with up to 15 nodes/level. In
+addition a zero (0) path descriptor implies that the device is
+^&unprotected\& since you can not request ownership of node 0. Any number
+of users may control/change that device at the same time. 
+
+.PARAGRAPH      3       ! arg = horizontal indentation
+
+The hierarchical path decomposition of the D0 hardware, as it now exists is
+given below. It tries to maintain some location information as well as
+subdetector information. It was felt that most SETTING of devices would be
+done on the basis of subdetectors. So the second level is basically
+organized by detector. However, MONITORING of devices (read only operations
+like rack temperatures) would be more usefully organized by location. So
+there is a MONITOR node at the second level with location nodes depending
+from it. This node will (obviously) be used more for alarm filtering than
+for control protection.
+
+.BLANK
+
+.CENTER ; ^&Hierarchical Path Assignments for D0\&
+
+.literal
+
+  HEX VALUE     NAME            Description
+  ---------     ----            -----------
+  00000000      none            unprotected - default
+  2xxxxxxx      TB              Test Beam devices, breakdown of assignments
+                                is the same as for the main detector below.
+
+  10000000      D0              The D0 Detector
+  1n000000      see below       (Detector Elements)
+    1n100000      Readout         Readout elements (ADCs, Preamps etc)
+                                    see below for specific detector assingments
+    1n200000      Clock           Clock lines
+    1n300000      Control         Control Elements (HV etc)
+                                    see below for specific detector assingments
+    1n400000      Calibration     Calibration Elements (Pulsers etc)
+                                    see below for specific detector assingments
+  1A000000      TRIG            Trigger System
+    1A100000    LV1               Level 1 Trigger Framework
+    1A200000    LV1.5             Level 1.5 Trigger
+    1A300000    LV2               Level 2 Trigger
+  1B000000      ACCELERATOR     Accelerator devices
+  1C000000      CLOCK/SFM       Clock/Selector Fanout system
+    1Cn00000      Detector        Detector specific parts of the CLOCK/SFM
+   D-E                          (Spare)
+  1F000000      MONITOR         Environmental Monitoring System - READ ONLY
+    1F100000      CNT_HSE         Fixed Counting House
+      1F110000      Cnt_Hse_1       Counting House - 1st Floor
+        1F11n000      see below       (Detector Elements)
+      1F120000      Cnt_Hse_2       Counting House - 2nd Floor
+        1F12n000      see below       (Detector Elements)
+      1F130000      Cnt_Hse_3       Counting House - 3rd Floor
+        1F13n000      see below       (Detector Elements)
+      1F140000      Cnt_Hse_4       Counting House - 4th Floor
+        1F14n000      see below       (Detector Elements)
+    1F200000      Mov_Cnt_Hse     Moving Counting House
+      1F210000      Mov_Cnt_Hse_1   Moving Counting House - 1st Floor
+        1F21n000      see below       (Detector Elements)
+      1F220000      Mov_Cnt_Hse_2   Moving Counting House - 2nd Floor
+        1F22n000      see below       (Detector Elements)
+      1F230000      Mov_Cnt_Hse_3   Moving Counting House - 3rd Floor
+        1F23n000      see below       (Detector Elements)
+      1F240000      Mov_Cnt_Hse_4   Moving Counting House - 4th Floor
+        1F24n000      see below       (Detector Elements)
+    1F300000      Platform        Detector Platform
+      1F310000      PLT_NE          Platform - North East    Sector
+        1F31n000      see below       (Detector Elements)
+      1F320000      PLT__E          Platform -       East    Sector
+        1F32n000      see below       (Detector Elements)
+      1F330000      PLT_SE          Platform - South East    Sector
+        1F33n000      see below       (Detector Elements)
+      1F340000      PLT_NC          Platform - North Central Sector
+        1F34n000      see below       (Detector Elements)
+      1F350000      PLT__C          Platform -       Central Sector
+        1F35n000      see below       (Detector Elements)
+      1F360000      PLT_SC          Platform - South Central Sector
+        1F36n000      see below       (Detector Elements)
+      1F370000      PLT_NW          Platform - North West    Sector
+        1F37n000      see below       (Detector Elements)
+      1F380000      PLT__W          Platform -       West    Sector
+        1F38n000      see below       (Detector Elements)
+      1F390000      PLT_SW          Platform - South West    Sector
+        1F39n000      see below       (Detector Elements)
+    1F400000      DET             Top of Detector Platform
+      1F4n0000      see below       (Detector Elements)
+    1F500000      Cryogenics      Cryogenics and Gas Systems
+      1F5n0000      see below       (Detector Elements)
+
+    The following are included below several of the nodes above. They are
+indicated by an "n" in one of the HEX fields.
+
+    "n"         Detector        description
+
+     1          LV0             LeVel 0 Detector
+     2          MUON            MUON detector
+     3          VTX             VerTeX detector
+     4          CDC             Central Drift Chamber
+     5          FDC             Forward Drift Chamber
+     6          TRD             Transition Radiation Detector
+     7          CAL             CALorimeter
+     8          SAMUS           Small Angle MUon Spectometer
+.end literal
+.page
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+Specific, detailed detector readout element assignments:
+
+.literal
+
+    VTX readout elements
+      13110000         VTX FADC Crates
+        13111000         VTX FADC Rack 202, Crate 0
+        13112000         VTX FADC Rack 202, Crate 1
+        13113000         VTX FADC Rack 203, Crate 0
+        13114000         VTX FADC Rack 203, Crate 1
+        13115000         VTX FADC Rack 204, Crate 0
+        13116000         VTX FADC Rack 204, Crate 1
+        13117000         VTX FADC Rack 205, Crate 0
+        13118000         VTX FADC Rack 205, Crate 1
+        13119000         VTX FADC Rack 223, Crate 0
+        1311A000         VTX FADC Rack 223, Crate 1
+      131(2-F)0000     VTX Readout Spare
+    CDC readout elements
+      14110000         CDC FADC Crates
+        14111000         CDC FADC Rack 206, Crate 0
+        14112000         CDC FADC Rack 206, Crate 1
+        14113000         CDC FADC Rack 207, Crate 0
+        14114000         CDC FADC Rack 207, Crate 1
+        14115000         CDC FADC Rack 208, Crate 0
+        14116000         CDC FADC Rack 208, Crate 1
+      141(2-F)0000     CDC Readout Spare
+    FDC readout elements
+      15110000         FDC FADC Crates
+        15111000         FDC FADC Rack 210, Crate 0
+        15112000         FDC FADC Rack 210, Crate 1
+        15113000         FDC FADC Rack 211, Crate 0
+        15114000         FDC FADC Rack 211, Crate 1
+        15115000         FDC FADC Rack 212, Crate 0
+        15116000         FDC FADC Rack 212, Crate 1
+        15117000         FDC FADC Rack 215, Crate 0
+        15111000         FDC FADC Rack 215, Crate 1
+        15112000         FDC FADC Rack 216, Crate 0
+        15113000         FDC FADC Rack 216, Crate 1
+        15114000         FDC FADC Rack 217, Crate 0
+        15118000         FDC FADC Rack 217, Crate 1
+      151(2-F)0000     FDC Readout Spare
+    TRD readout elements
+      16110000         TRD FADC Crates
+        16111000         TRD FADC Rack 219, Crate 0
+        16112000         TRD FADC Rack 219, Crate 1
+        16113000         TRD FADC Rack 220, Crate 0
+        16114000         TRD FADC Rack 220, Crate 1
+        16115000         TRD FADC Rack 221, Crate 0
+        16116000         TRD FADC Rack 221, Crate 1
+        16117000         TRD FADC Rack 222, Crate 0
+        16118000         TRD FADC Rack 222, Crate 1
+      161(2-F)0000     TRD Readout Spare
+
+    CAL and MUON readout elements have not been further specified.
+.end literal
+.page
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+Specific, detailed detector control element assignments:
+
+.literal
+
+    VTX control elements
+      13310000         VTX High Voltage
+        13311000         VTX High Voltage (Movable Counting House)
+      13320000         VTX Low Voltage
+        13321000         VTX Shaper Power Supplies
+          13321100         VTX Shaper Power Supply Rack PC 11, Crate 1
+          13321200         VTX Shaper Power Supply Rack PC 11, Crate 2
+          13321300         VTX Shaper Power Supply Rack PC 12, Crate 0
+          13321400         VTX Shaper Power Supply Rack PC 12, Crate 1
+          13321500         VTX Shaper Power Supply Rack PC 12, Crate 2
+        13322000         VTX  FADC  Power Supplies
+          13322100         VTX FADC Power Supply Rack 202
+          13322200         VTX FADC Power Supply Rack 203
+          13322300         VTX FADC Power Supply Rack 204
+          13322400         VTX FADC Power Supply Rack 205
+          13322500         VTX FADC Power Supply Rack 223
+      133(3-F)0000     VTX Control Spare
+    CDC control elements
+      14310000         CDC High Voltage
+        14311000         CDC High Voltage (Movable Counting House)
+        14312000         CDC High Voltage (East Platform)
+      14320000         CDC Low Voltage
+        14321000         CDC Shaper Power Supplies
+          14321100         CDC Shaper Power Supply Rack PC 10, Crate 0
+          14321200         CDC Shaper Power Supply Rack PC 11, Crate 0
+          14321300         CDC Shaper Power Supply Rack PC 13, Crate 0
+        14322000         CDC  FADC  Power Supplies
+          14322100         CDC FADC Power Supply Rack 206
+          14322200         CDC FADC Power Supply Rack 207
+          14322300         CDC FADC Power Supply Rack 208
+      143(3-F)0000     CDC Control Spare
+    FDC control elements
+      15310000         FDC High Voltage
+        15311000         FDC High Voltage (Movable Counting House)
+      15320000         FDC Low Voltage
+        15321000         FDC Shaper Power Supplies
+          15321100         FDC Shaper Power Supply Rack PC 08, Crate 0
+          15321200         FDC Shaper Power Supply Rack PC 08, Crate 1
+          15321300         FDC Shaper Power Supply Rack PC 08, Crate 2
+          15321400         FDC Shaper Power Supply Rack PC 08, Crate 0
+          15321500         FDC Shaper Power Supply Rack PC 08, Crate 1
+          15321600         FDC Shaper Power Supply Rack PC 08, Crate 2
+        15322000         FDC  FADC  Power Supplies
+          15322100         FDC FADC Power Supply Rack 210
+          15322200         FDC FADC Power Supply Rack 211
+          15322300         FDC FADC Power Supply Rack 212
+          15322400         FDC FADC Power Supply Rack 215
+          15322500         FDC FADC Power Supply Rack 216
+          15322100         FDC FADC Power Supply Rack 217
+      153(3-F)0000     FDC Control Spare
+.end literal
+.page.
+.literal
+
+    TRD control elements
+      16310000         TRD High Voltage
+        16311000         TRD High Voltage (Movable Counting House)
+      16320000         TRD Low Voltage
+        16321000         TRD Shaper Power Supplies
+          16321100         TRD Shaper Power Supply Rack PC 10, Crate 1
+          16321200         TRD Shaper Power Supply Rack PC 10, Crate 2
+          16321300         TRD Shaper Power Supply Rack PC 10, Crate 1
+          16321400         TRD Shaper Power Supply Rack PC 10, Crate 2
+        16322000         TRD  FADC  Power Supplies
+          16322100         TRD FADC Power Supply Rack 219
+          16322200         TRD FADC Power Supply Rack 220
+          16322300         TRD FADC Power Supply Rack 221
+          16322400         TRD FADC Power Supply Rack 222
+      163(3-F)0000     TRD Control Spare
+
+    CAL and MUON control elements have not been further specified.
+.end literal
+.page
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+Specific, detailed detector calibration element assignments:
+
+.literal
+
+    VTX calibration elements
+      13410000       VTX Pulsers
+        13411000       VTX Pulser Control Rack PC 11, Crate 1
+        13412000       VTX Pulser Control Rack PC 11, Crate 2
+        13413000       VTX Pulser Control Rack PC 12, Crate 0
+        13414000       VTX Pulser Control Rack PC 12, Crate 1
+        13415000       VTX Pulser Control Rack PC 12, Crate 2
+      134(2-F)0000   VTX Calibration Spare
+    CDC calibration elements
+      14410000       CDC Pulsers
+        14411000       CDC Pulser Control Rack PC 10, Crate 0
+        14412000       CDC Pulser Control Rack PC 11, Crate 0
+        14413000       CDC Pulser Control Rack PC 13, Crate 0
+      144(2-F)0000   CDC Calibration Spare
+    FDC calibration elements
+      15410000       FDC Pulsers
+        15411000       FDC Pulser Control Rack PC 08, Crate 0
+        15412000       FDC Pulser Control Rack PC 08, Crate 1
+        15413000       FDC Pulser Control Rack PC 08, Crate 2
+        15414000       FDC Pulser Control Rack PC 15, Crate 0
+        15415000       FDC Pulser Control Rack PC 15, Crate 1
+        15416000       FDC Pulser Control Rack PC 15, Crate 2
+      154(2-F)0000   FDC Calibration Spare
+    TRD calibration elements
+      16410000       TRD Pulsers
+        15411000       TRD Pulser Control Rack PC 10, Crate 1
+        15412000       TRD Pulser Control Rack PC 10, Crate 2
+        15413000       TRD Pulser Control Rack PC 13, Crate 1
+        15414000       TRD Pulser Control Rack PC 13, Crate 2
+      164(2-F)0000   TRD Calibration Spare
+
+    CAL and MUON calibration elements have not been further specified.
+.end literal

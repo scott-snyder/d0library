@@ -50,7 +50,6 @@ C-                                      WORD)
 C-   Updated  23-OCT-1993   Rich Astur    Make and fill VCOR banks
 C-                                        & use MZPUSH to match version 5 or
 C-                                        higher.
-C-
 C-   Updated  13-DEC-1993   Rich Astur    Fill JETS correction words/
 C-                                        implement formal energy correction
 C-                                        procedure
@@ -69,8 +68,21 @@ C-                                        scale, and errors into JETS/JETX bank
 C-   Updated  Oct-18-1995   Bob Kehoe --  fix bug in writing em_fraction
 C-   Updated  Oct-25-1995   Bob Kehoe --  replace get_uncorrect_jets_bank with
 C-                                        get_uncorrect_jets_bank_2
-C-   Updated  30-OCT-1995   Dhiman Chakraborty   
+C-   Updated  30-OCT-1995   Dhiman Chakraborty
 C-                          Replaced the direct call to MZPUSH by BKJETS_UPDATE
+C-   Updated   7-FEB-1997   Bob Hirosky  -- update for CAFIX51
+C-                                       fix offset->MET bug
+C-                                       pass jet# and MET_CORRECT to
+C-                                                   qcd_jet_correction
+C-                                       fix imaginary jet 'mass' feature
+C-                                       skip unsupported NN algorithm
+C-   Updated  27-MAY-1997   Bob Hirosky  -- fix bug in errors for jets w/ em
+C-                                       objects
+C-   Updated  18-JUL-1997   Bob Hirosky  -- fill JQAN BANKs after correction
+C-   Updated  19-SEP-1997   Bob Hirosky  -- bug fix for all em jets
+C-   Updated   9-FEB-1998   Bob Hirosky  -- unswap hi/low errs in JETS Bank
+C-   Updated  22-MAY-1998   Bob Hirosky  -- add option for turning off separate
+C-                                          EM object correction in jets
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE  'D0$INC:ZEBCOM.INC'
@@ -78,13 +90,15 @@ C----------------------------------------------------------------------
       INCLUDE  'D0$LINKS:IZJETS.LINK'
       INCLUDE  'D0$PARAMS:CAPH.DEF'
       LOGICAL  DO_ZSP_CORR, DO_UNDEVT_CORR, DO_OUTOFCONE_CORR, OK
-      LOGICAL  MET_CORRECT, EM_REMOVED
+      LOGICAL  MET_CORRECT, EM_REMOVED, KEEP_BIASED
       LOGICAL  RET_COND
       SAVE     RET_COND
-      INTEGER  ISYS
+      INTEGER  ISYS, IJET
 C----------------------------------------------------------------------
-      LOGICAL  DO_JET_CORRECTION, CORRECT_EM_JETS
-      SAVE     DO_JET_CORRECTION, CORRECT_EM_JETS
+      LOGICAL  DO_JET_CORRECTION, CORRECT_EM_JETS, MET_USE_JETBIAS
+      SAVE     DO_JET_CORRECTION, CORRECT_EM_JETS, MET_USE_JETBIAS
+      LOGICAL  SPLIT_EMJET_CORRECTION
+      SAVE     SPLIT_EMJET_CORRECTION
       LOGICAL  REPEAT_CORRECTION
       SAVE     REPEAT_CORRECTION
       LOGICAL  FIRST, YES, REMOVE
@@ -102,13 +116,14 @@ C----------------------------------------------------------------------
       INTEGER  GZPNUT
       EXTERNAL GZPNUT
       EXTERNAL GZJETS, GZPROC, GZCAPH
-      REAL     NOISE(8), NOISE_ET
+      REAL     NOISE(8), NOISE_E, NOISE_ET
       REAL     NEW_ETA, OLD_E(5), NEW_E(5), PTOT, z_vertex
-      REAL new_e_fract(3),jet_quans(50),error(2,2)
+      REAL new_e_fract(3),jet_quans(50),error(2,2),scale
       REAL     VINFO(3,VWANTED)
       CHARACTER*4 PATH
       DATA     FIRST /.TRUE./
       SAVE     FIRST
+      LOGICAL MAKE_VCOR, CORR_DONE
 C---------------------------------------------------------------------
 C ****  An evil COMMON block is required by ZEBRA to make a link area.
       INTEGER  NLINKS_TO_SAVE
@@ -139,8 +154,18 @@ C----------------------------------------------------------------------
           ERRSUM = 0
           CALL EZGET ('DO_JET_CORRECTION', DO_JET_CORRECTION, IER)
           ERRSUM = ERRSUM + ABS(IER)
+          CALL EZGET ('SPLIT_EMJET_CORRECTION',SPLIT_EMJET_CORRECTION,
+     &      IER)
+          ERRSUM = ERRSUM + ABS(IER)
           CALL EZGET ('REPEAT_CORRECTION', REPEAT_CORRECTION, IER)
           ERRSUM = ERRSUM + ABS(IER)
+          CALL EZGET ('MET_USE_JETBIAS', MET_USE_JETBIAS, IER)
+          IF (IER.NE.0) THEN
+            CALL errmsg('RCP missing value, MET_USE_JETBIAS',
+     &        'CORRECT_JETS',
+     &        'use default value [F] ','W')
+            MET_USE_JETBIAS = .FALSE.
+          ENDIF
           CALL EZGET ('CORRECT_EM_JETS', CORRECT_EM_JETS, IER)
           ERRSUM = ERRSUM + ABS(IER)
           CALL EZRSET
@@ -250,12 +275,18 @@ C ****  Make sure we have JETS banks of version 4 or higher, so that they
 C ****  contain the ENERGY CORRECTION STATUS word.
 C
           LJETS = LQ( LCAPH - IZJETS )
+          IJET = 0
+C
+C ****  want to skip unsupproted NN algorithm
+C
+          IF (ALGORITHM .EQ. 3) LJETS = 0
           DO WHILE (LJETS .GT. 0)
+            IJET = IJET + 1
             LJETS_NEXT = LQ(LJETS)
             CALL BKJETS_UPDATE(LJETS,IVER,DNLINKS,DNDATA,IERR)
 C
 C ****  Loop over dependent JETS, figure out corrected values,
-C ****  and overwrite the bank.  If bank has already been corrected, 
+C ****  and overwrite the bank.  If bank has already been corrected,
 C ****  issue error message and uncorrect it and do again
 C
 C: Was it corrected?
@@ -265,7 +296,7 @@ C
               CALL ERRMSG('ALREADY CORRECTED','CORRECT_JETS',
      &          'Will recorrect','W')
               CALL UNCORRECT_JETS_BANK( LJETS, .TRUE., IER )
-            else
+            ELSE
             ENDIF
 C
 C: Hold old numbers
@@ -279,8 +310,11 @@ C
 C
 C: Remove Isolated PELC/PPHO's first
 C
-            REMOVE = .TRUE.
-            CALL CORRECT_JETS_EM_REMOVE( LJETS, REMOVE, ISOLATION_MASK )
+            IF (MET_CORRECT .OR. SPLIT_EMJET_CORRECTION) THEN
+              REMOVE = .TRUE.
+              CALL CORRECT_JETS_EM_REMOVE( LJETS, REMOVE, ISOLATION_MASK
+     &          )
+            ENDIF
 C
 C: Store the old values and set the new values equal to old values.
 C: The VCOR we make will be the difference between them when
@@ -296,6 +330,7 @@ C: (with ET above some threshold) or it has an electron subtracted from it.
 C: In some cases this subtraction does not work perfectly and the remainder of
 C: the jet is negative. We refuse to correct the jet if this occurs.
 C
+            CORR_DONE = .FALSE.
             IF ( Q(LJETS+6) .GT. 0.0 .AND. Q(LJETS+5) .GT. 0.0 ) THEN
 C
 C: Now correct what is left. No correction will be made if the JET
@@ -310,11 +345,15 @@ C
               CALL CORRECT_JETS_EM_REMOVED( EM_REMOVED )
               IF ( DO_JET_CORRECTION .AND. .NOT. ( MET_CORRECT .AND.
      &          EM_REMOVED .AND. .NOT. CORRECT_EM_JETS)) THEN
+                keep_biased = .TRUE.
+                IF (MET_USE_JETBIAS .OR. .NOT. MET_CORRECT) THEN
+                  keep_biased = .FALSE.
+                ENDIF
                 CALL QCD_JET_CORRECTION (LJETS, DO_ZSP_CORR,
-     &                                 DO_UNDEVT_CORR,
-     &                                 DO_OUTOFCONE_CORR,
-     &                                 Z_VERTEX, ISYS, NEW_E(4),
-     &                                 NEW_E(5), NEW_ETA, IER)
+     &                                DO_UNDEVT_CORR,
+     &                                DO_OUTOFCONE_CORR,
+     &                                Z_VERTEX, ISYS, IJET, keep_biased,
+     &                                NEW_E(4), NEW_E(5), NEW_ETA, IER)
                 IF (IER .NE. 0) THEN
                   CALL ERRMSG ('CORRECT_JETS', 'CORRECT_JETS',
      &              'QCD_JET_CORRECTION returned error condition', 'W')
@@ -324,10 +363,11 @@ C
                   NEW_E(4) = OLD_E(4)
                   NEW_ETA  = Q( LJETS + 9 )
                 ELSE
+                  CORR_DONE = .TRUE.
 C
 C: obtain energy fractions, energy_scale and errors computed
 C
-                  call qcd_jet_correction_quans(jet_quans)
+                  CALL qcd_jet_correction_quans(jet_quans)
                   new_e_fract(1) = jet_quans(1)
                   new_e_fract(2) = jet_quans(2)
                   new_e_fract(3) = jet_quans(3)
@@ -341,42 +381,63 @@ C: exclude noise
 C
                   CALL QCD_JET_CORRECTION_GET_UNDZSP( NOISE )
                   NOISE_ET = NOISE(3) + NOISE(7)
+                  NOISE_E  = NOISE(1) + NOISE(5)
                   OLD_E(1) = OLD_E(1) - NOISE_ET*COS(
      &              Q(LJETS+8 ) )
                   OLD_E(2) = OLD_E(2) - NOISE_ET*SIN(
      &              Q(LJETS+8 ) )
                   OLD_E(3) = OLD_E(3) - NOISE_ET*COS( Q(LJETS+7) )/SIN(
      &              Q(LJETS+7))
-                  OLD_E(4) = OLD_E(4) - NOISE_ET/SIN(Q(LJETS+7))
+                  OLD_E(4) = OLD_E(4) - NOISE_E
                   OLD_E(5) = OLD_E(5) - NOISE_ET
 C
 C: At this point, it is possible for either the energy or the transverse
 C: energy of the jet to go negative. If so, it was due to the noise
 C: subtraction. If the energy is negative, we set it to 0.0.  If the
 C: transverse energy is negative, we set it to E*sin(theta)
+C: Do not allow these jets affect MET
 C
+                  MAKE_VCOR = .TRUE.
                   IF ( NEW_E(4) .LT. 0. ) THEN
+                    MAKE_VCOR = .FALSE.  ! No VCOR contribution
                     NEW_E(4)  = 0.0
                     NEW_E(5)  = 0.0
                     OLD_E(4)  = 0.0
                     OLD_E(5)  = 0.0
                   ELSEIF ( NEW_E(5) .LT. 0. ) THEN
+                    MAKE_VCOR = .FALSE.
                     NEW_E(5)  = NEW_E(4)*SIN( Q(LJETS+7) )
-                    OLD_E(5)  = NEW_E(5)  ! No VCOR contribution
+                    OLD_E(5)  = NEW_E(5)
+                  ENDIF
+                  IF (OLD_E(4).LT.0) THEN
+                    MAKE_VCOR = .FALSE.
+                    OLD_E(4)  = 0.0
+                    OLD_E(5)  = 0.0
+                  ELSEIF ( OLD_E(5) .LT. 0. ) THEN
+                    MAKE_VCOR = .FALSE.
+                    OLD_E(5)  = OLD_E(4)*SIN( Q(LJETS+7) )
                   ENDIF
 C
-C: If Mass of jet is negative, rescale the momentum to the energy
+C: If Mass^2 of jet is negative, rescale the momentum to the energy
 C: of the jet. The end result is that the corrected momentum is
 C: scaled to the corrected energy.
 C
                   PTOT = SQRT( OLD_E(1)**2 + OLD_E(2)**2 + OLD_E(3)**2 )
-                  IF ( PTOT .GT. ABS(OLD_E(4)) ) THEN
-                    PTOT  = ABS( OLD_E(4) )
-                    CALL CORRECT_JETS_BANK( LJETS, 'P  ',PTOT, IER )
+C
+                  IF (OLD_E(4).EQ.0.0) THEN
+                    PTOT = 0.0
                   ELSE
-                    PTOT  =   PTOT * NEW_E(4)/OLD_E(4)
-                    CALL CORRECT_JETS_BANK( LJETS, 'P  ', PTOT, IER )
+                    PTOT  =  PTOT * NEW_E(4)/OLD_E(4)
                   ENDIF
+c
+c BUT, let jet 'mass' go imaginary in MET CORRECTION pass
+c this prevents offset from affecting MET
+c
+                  IF (.NOT. MET_CORRECT) THEN
+                    IF ( ptot .GT. abs(new_e(4)) ) ptot = abs(new_e(4))
+                  ENDIF
+C
+                  CALL CORRECT_JETS_BANK( LJETS, 'P  ', PTOT, IER )
 C
 C: Update the JETS bank. There is no PHI correction here.
 C
@@ -388,10 +449,10 @@ C
                   CALL CORRECT_JETS_BANK(LJETS,'EMF',NEW_E_FRACT(1),IER)
                   CALL CORRECT_JETS_BANK(LJETS,'ICF',NEW_E_FRACT(2),IER)
                   CALL CORRECT_JETS_BANK(LJETS,'CHF',NEW_E_FRACT(3),IER)
-                  CALL CORRECT_JETS_BANK(LJETS,'STH',error(1,1),IER)
-                  CALL CORRECT_JETS_BANK(LJETS,'STL',error(2,1),IER)
-                  CALL CORRECT_JETS_BANK(LJETS,'SYH',error(1,2),IER)
-                  CALL CORRECT_JETS_BANK(LJETS,'SYL',error(2,2),IER)
+                  CALL CORRECT_JETS_BANK(LJETS,'STL',error(1,1),IER)
+                  CALL CORRECT_JETS_BANK(LJETS,'STH',error(2,1),IER)
+                  CALL CORRECT_JETS_BANK(LJETS,'SYL',error(1,2),IER)
+                  CALL CORRECT_JETS_BANK(LJETS,'SYH',error(2,2),IER)
 C
 C: Update NEW_E
 C
@@ -409,26 +470,40 @@ C
 
                   IF ( DO_OUTOFCONE_CORR ) CALL SET_JETS_BANK_CORRECTED(
      &              LJETS, 'OOC', IER )
+C
+C : Fill JQAN bank with correction factor quantities
+C
+                  CALL FLJQAN(LJETS)
+                ENDIF ! (QCD_JET_CORRECTION successful)
 
-                ENDIF
+              ENDIF !(DO_JET_CORRECTION)
 
-              ENDIF
-
-            ENDIF
+            ENDIF !(if JET-EM_CLUSTRER.GT.0)
 C
 C: Now add corrected PELC/PPHO back in, if there are any, BUT
 C: Dont do this if this is for MET correction
 C
-            IF ( .NOT. MET_CORRECT ) THEN
+            IF ( .NOT. MET_CORRECT .AND. EM_REMOVED ) THEN
               REMOVE = .FALSE.
               CALL CORRECT_JETS_EM_REMOVE( LJETS, REMOVE,
      &            ISOLATION_MASK)
+C
+C ****  now fix escale error for corrected jets
+C
+              IF (CORR_DONE) THEN
+                SCALE = NEW_E(5)/Q(LJETS + 6)   ! jet w/o em_obj / full jet
+                CALL CORRECT_JETS_BANK(LJETS,'STH',error(1,1)*scale,IER)
+                CALL CORRECT_JETS_BANK(LJETS,'STL',error(2,1)*scale,IER)
+                CALL CORRECT_JETS_BANK(LJETS,'SYH',error(1,2)*scale,IER)
+                CALL CORRECT_JETS_BANK(LJETS,'SYL',error(2,2)*scale,IER)
+                CALL JQUAN_EMFIX(LJETS,SCALE)
+              ENDIF
             ENDIF
 C
 C: If we are correcting for MET. Then we should Book and Fill VCOR and
 C: uncorrect the JETS bank when we are done
 C
-            IF ( MET_CORRECT ) THEN
+            IF ( MET_CORRECT .AND. MAKE_VCOR) THEN
               CALL BKVCOR( LVCOR )
               CALL CATALOGUE_JET_CORR( LJETS, LVCOR, OLD_E, NEW_E )
             ENDIF
@@ -436,7 +511,7 @@ C
 C: Debug, verify uncorrection routine
 C
             CALL UNCORRECT_JETS_BANK( LJETS, .FALSE., IER )
-            call get_uncorrect_jets_bank_2(dume)
+            CALL get_uncorrect_jets_bank_2(dume)
             DUMFIRST=.TRUE.
             DO I = 1, 11
               IF ( ABS( DUME(I)-DUMMY(I) ) .GT. DUMDIF(I) ) THEN

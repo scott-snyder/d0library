@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VEVENT_UTIL()
+      VEVENT_UTIL = ' EVENT_UTIL'//
+     X                   '  OFFICIAL V1.22'//
+     X                   ' 11-JUL-1997 11:59:56.39'
+      Return
+      End

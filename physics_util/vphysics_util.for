@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VPHYSICS_UTIL()
       VPHYSICS_UTIL = ' PHYSICS_UTIL'//
-     X                   '  OFFICIAL V0.06'//
-     X                   ' 14-JUL-1997 16:57:35.38'
+     X                   '  TEST V0.06_03'//
+     X                   ' 10-JUN-1998 11:10:01.12'
       Return
       End

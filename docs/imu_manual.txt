@@ -1,0 +1,116 @@
+                                IMU_MANUAL
+
+        IMU (Identifier Management Utility) is a utility taken from DECUS
+    that allows specified non-privileged users to modify the VAX UAF (User
+    Authorization File). These, semi-privileged users are then able to
+    GRANT, REVOKE, LIST and SHOW the particular RIGHTS IDs that they
+    control. It is possible for more than one user to be semi-privileged
+    for a particular RIGHTS ID.
+
+        RIGHTS IDs are used to control access to various VMS objects that
+    are are ACL (Access Control List) protected. In D0 ACLs are used to
+    control access, and types of access to the OFFICIAL CMS libraries, to
+    various Project and University batch queues and to Project and
+    University disks. For each Rights ID, a manager is appointed and s/he
+    is granted control, via IMU, of that ID. 
+
+    USING IMU
+    ---------
+
+        Using IMU is easy.
+
+            ! Define IMU logicals/symbols etc
+        $ SETUP IMU
+            ! Show list of all holders of the ID to your terminal.
+        $ IMU SHOW id_name
+            ! Write list of all holders of the ID to file IDENTIFIER.LIS.
+        $ IMU LIST id_name
+            ! Grant the Rights ID to a user 
+            ! {NOTE: For ID's that control WRITE access to Disks (PRJ or
+            !        TMP), you *must* use the /ATTRIBUTE=RESOURCE qualifier
+            !        to charge disk usage to the ID's quota rather than the
+            !        user. For CMS and QUEUE ID's this attribute is not
+            !        necessary, but won't interfer with normal usage.}
+        $ IMU GRANT/ID/ATTRIBUTE=RESOURCE id_name usr_name
+            ! Revoke write access from user
+        $ IMU REVOKE/ID id_name usr_name
+
+        It can be hard to remember the exact form of the rights ID. If you
+    are a CMS library czar, a queue manager or a disk manager and need to
+    use IMU, you can use the following trick to see the rights ID that you
+    control:
+
+        $ SETUP IMU
+        $ DIRECTORY/SECURITY IMU_DIR:
+
+    This will show *all* IMU managed ACL's, but it will only show details
+    about yours.
+
+        For the special case of CMS library czars:
+
+        $ DIRECTORY/SECURITY IMU_DIR:*lib_name*
+
+    restricts the display to the Czar and Helper rights identifiers of your
+    library.
+    
+    Consider as a specific example the library VTX_UTIL:
+               
+        $ DIRECTORY/SECURITY IMU_DIR:*VTX_UTIL*
+
+        Directory STA101:[PRD1.IMU_PRD.IMU_DATA]
+
+        D0_VTX_UTIL.ACL;1    IMU_PRD               (,RWED,,)
+            (IDENTIFIER=IMU_PRD,ACCESS=READ+WRITE+EXECUTE+DELETE+CONTROL)
+            (IDENTIFIER=D0_LIBRARIAN,ACCESS=READ+WRITE)
+            (IDENTIFIER=D0_VTX_UTIL_CZAR,ACCESS=READ+WRITE)
+            (IDENTIFIER=D0_VTX_UTIL,ACCESS=READ)
+        D0_VTX_UTIL_CZAR.ACL;1
+                        IMU_PRD               (,RWED,,)
+            (IDENTIFIER=IMU_PRD,ACCESS=READ+WRITE+EXECUTE+DELETE+CONTROL)
+            (IDENTIFIER=D0_LIBRARIAN,ACCESS=READ+WRITE)
+            (IDENTIFIER=D0_VTX_UTIL_CZAR,ACCESS=READ)
+
+        The rights identifier is just the file name part of the file 
+    specification (the part to the left of the "dot").  They are
+    as follows.
+        Czar:   D0_VTX_UTIL_CZAR
+        Helper: D0_VTX_UTIL
+
+    PRIVILEGES GRANTED VIA RIGHTS IDs
+    ---------------------------------
+
+        For CMS library IDs, only Czars and Helpers may create, update, or
+    otherwise modify the library.
+
+        For Queue IDs, only holders of the ID can submit jobs to queues
+    requiring that Characteristic.
+
+        For Disk access IDs, once a user has been granted access, s/he can
+    treat the disk area as his/her own and can write, delete, modify etc
+    files at will. HOWEVER, this is a *shared* area, usually. One has to be
+    aware of that fact. 
+
+    OBLIGATIONS OF RIGHTS ID MANAGERS
+    ---------------------------------
+
+        The Rights ID manager for CMS libraries and queues only obligation
+    is to decide who should have write access to the CMS library or queue.
+
+        The Rights ID manager for a disk ID is also the disk manager. They
+    will have been given a certain amount of space (usually *not* via a
+    disk quota). It is their responsiblity to use that space wisely. They 
+    should decide what goes there and for how long.
+
+
+    HINT: To delete *directories* on an ACL protected disk, it is often
+          necessary to "SET ACL/DEFAULT file.DIR" where you would normally 
+          do "SET FILE/PROT=O:RWED file.DIR". In fact you can do both under
+          almost all conditions with no ill effect.
+
+    --------------------------------------------------------------
+    23-MAR-1993 Roy Thatcher
+    Document changed to include the SHOW command and a discussion of how 
+    to find out the form of a rights identifier using the DIR/SEC command.
+
+    31-MAR-1993 Alan Jonckheere
+    Generalized to include all three types of Rights IDs

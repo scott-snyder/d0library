@@ -1,0 +1,217 @@
+                                                       D0 Note#766
+                                                          Software 
+                                            Serban D. Protopopescu 
+                                                     Oliver Callot 
+                                                     August 14,1990
+                                                      v. 2.1
+                                               (This note replaces 
+                                                         Note#188) 
+
+                                               Revised  Mar 3, 1992
+                                               Herbert B. Greenlee
+
+                     D0 OFFLINE FORTRAN STANDARDS
+
+      The standards  described in this note are  the results of numerous
+discussions, and most people who participated in this discussions agreed
+that they  are valuable  and should  be  enforced. They are  intended to
+facilitate  conversion of  code from the  VAX to other  computers and to
+make it easier for users to understand and debug software not written by
+themselves. Offline code uses the CERN Zebra data management package for
+data  organization  (consult   D0$DOCS:ZEBRA_RULES.MEM) and  the COMPACK
+package as a  command interpreter  (see  D0$COMPACK:COMPACK_MANUAL.MEM).
+Programmers are allowed to use any  utilities from the CERN libraries in
+D0$CERNLIB  (PACKLIB, GENLIB and  KERNLIB). Before  any software package
+can become part of a library used in offline programs distributed by the
+D0 library (and thus available to  all collaborators), it must adhere to
+the standards  given below. To  check that a given  module satisfies the
+standards users should compile  using D0FLAVOR/CHECK. The standards have
+been relaxed from those described in previous versions of this document.
+
+    Rules for offline code:
+
+1) All code must be in ANSI standard  FORTRAN 77. The only extensions to
+   ANSI standard  allowed are those  given in this  document. There is a
+   tool provided by the D0 library  (D0FLAVOR, see D0$UTIL:D0FLAVOR.DOC)
+   that can be used  to check if  code in a given  module satisfies this
+   rule. Rules  for handling  machine  dependent code  will be described
+   later in this document.
+   
+    The following extensions to FORTRAN 77 are allowed:
+
+a) Use of DO, ENDDO construction.
+
+b) Use of DO WHILE. 
+
+c) Name of  subroutines,  variables  and common  blocks may  be up to 31
+   characters long and may use underscore ("_"). 
+
+d) Use of ! for inserting comments  on the same line is allowed. However
+   it cannot be used in  format statements or  text as the line will get
+   split by D0FLAVOR when converting code for machines other than VAX's. 
+
+e) The non-standard types BYTE and INTEGER*2 are allowed. 
+
+f) MIL-STD-1753 bit manipulation functions (IAND, IOR, IEOR, NOT, ISHFT,
+   ISHFTC,  IBITS,  IBSET,  IBCLR and  BTEST) may  be used as  intrinsic
+   functions.    Intrinsic   functions  do  not have  type  or  external
+   declarations. The subroutine MVBITS is part of this group as well and
+   is  available as a  system  subroutine on all   platforms. All of the
+   above bit  manipulation routines  should be called  only with INTEGER
+   arguments (not BYTE or INTEGER*2).
+
+g) The use of O (octal) and Z (hexadecimal) format descriptors is allowd.
+
+
+   The next 6 rules are covered by (1) but spelled out because they 
+refer to fairly common usage in VAX code:
+
+2) The  following list  of  characters can  only be used  in comments or
+   text: angle brackets  (<>), percentage (%),  ampersand (&), quotation
+   mark ("),  ASCII TAB  character.  Do not  use blank  lines. C& at the
+   beginning of a line is used for  handling machine dependent code, the
+   combination     should  not  be  used  for  any  other   purpose. The
+   non-standard character  ! is permitted for  inserting comments on the
+   same  line  but  cannot  be  used  in  text.     
+
+3) There can be only one executable statement per line.
+
+4) All COMMON block names should be different from subroutine names. 
+
+5) Subroutine names and entry points should be unique in all D0 offline
+   software. The only exception are user hooks which are built by the
+   PROGRAM_BUILDER (see D0$PROGRAM_BUILDER:USERS_MANUAL.DOC), these are
+   not kept in the D0CMS library.
+
+6) Do not use abreviations for .TRUE. or .FALSE.
+
+7) Function declaration should have parenthesis even with no arguments.
+
+
+      The next rule is the only extension to FORTRAN 77 that is actually
+required:
+
+8) All common blocks  must be kept in separate  .INC files with the same
+   name as the common  block. There should be  one and only common block
+   per  .INC  file.  Insertion  of  common  blocks  is  done via INCLUDE
+   statements. This  implies that  variables in  common blocks must have
+   distinctive names;  avoid one letter  variables and names like POINT,
+   CELL, etc. Every  common block must contain  comments describing each
+   variable.  The  only  exception to  this  rule is  blank common which
+   should used only in conjunction with HBOOK. 
+            
+
+     The next  set of rules  are some  restrictions  that go beyond ANSI
+standard  FORTRAN  77 and are  meant to   facilitate  debugging by other
+programmers and acommodate idiosyncracies from other machines:
+
+9) DATA  statements for  variables  in COMMON  blocks  are not allowed.
+   Common blocks must be initialized by executable statements.
+
+10) All  variables  must be   declared either   INTEGER, REAL,  LOGICAL,
+    CHARACTER,  BYTE  or INTEGER*2.  Except  in ZEBRA  banks  the use of
+    Hollerith variables is not allowed. Note that this rule implies that
+    character variables cannot be kept in the same common block as other
+    variables. It is recommended that you use IMPLICIT NONE although you
+    can   accomplish  the  same  goal  by   compiling  on  the  VAX with
+    FOR/WARNINGS=ALL.  It  is also  recommended  that  integer variables
+    start with I,J,K,L,M or N and  real variables with the other letters
+    even though it is not necessary  when the variables are declared. To
+    handle conversions between hollerith and character variables use the
+    CERN    library    subroutines   UCTOH  and   UHTOC,   i.e. do  CALL
+    UCTOH('JUNK',V,4,4) not V=4HJUNK. CALL UHTOC(V,4,CHAR,4) not CHAR=V.
+
+11) It is  illegal to  call VMS  run-time  library  routines, VMS system
+    services and c  run-time library  routines.  All externals should be
+    able to be  satisfied from  d0library, cernlib and  standard fortran
+    system libraries.
+
+12) Dimensions that are likely to  change in a common block should be in
+    a parameter list  preceding the common  block as part of the include
+    file. If the  parameter list is  used in more than  one common block
+    then  they should  be in a  file in   D0$PARAMS area  with extension
+    .PARAMS.
+
+13) All parameters in include files should be in a file with extension
+    .PARAMS and reside in D0$PARAMS.
+
+14) Alternate return arguments are not allowed.
+
+15) There  must be one RETURN  statement per  entry point. 
+
+16) All subroutines must use the  header created with the EVE editor and
+    the fields requested must be filled.
+
+17) Machine  dependent code  is exempt from  following  rule 1) but must
+    follow  the rules  described  in   D0$UTIL:D0FLAVOR.DOC.  The VAXVMS
+    version is the one stored in the CMS library so that releases to VAX
+    VMS machines need not be run through D0FLAVOR.  
+
+19) Do not  use  OPEN  statements,  call  D0OPEN  instead.  This way all
+    machine dependent OPEN will be handled in one subroutine only.
+
+
+     In addition to the above rules there is a set of recommended 
+practices which everybody is strongly encouraged to follow:
+
+1) Insert helpful comments  throughout a subroutine. Subroutines without
+   comments will be sent back to the author. 
+
+2) Make the statement  numbers in a subroutine  monotonically increasing
+   or at least follow some logical order.
+
+3) Use   equivalences  sparingly. Be  aware  of byte  order  issues when
+   equivalencing   different size  variables  (e.g. INTEGER  and BYTE or
+   INTEGER*2, see D0$PARAMS:BYTE_ORDER.PARAMS). Byte and word packing of
+   zebra banks can  be accomplished  in a machine  independent manner by
+   using MIL-STD-1753 bit manipulation routines (see 1f above).
+  
+4) Avoid  machine blocks  whenever  possible. If you must  use a machine
+   block,  do not leave out alternate flavors.
+
+5) Indent code  inside IF  THEN...ELSE...END IF by  using the TAB key in
+   EVE. You  can also  get all code  in a  subroutine  indented by using
+   commands ALIGN or CLEAN in EVE.
+
+6) Minimize  the  use of  GOTO   statements, use  IF THEN  instead. If a
+   section of code needs  to be used more than  once it probably belongs
+   in a separate subroutine. 
+     
+7) Minimize the use of entry points. They should be used mainly for
+   initialization or resetting of local variables.
+ 
+8) Do not change values of arguments in FUNCTION subroutines.
+
+9) The arguments in a SUBROUTINE should be ordered: input,output,
+     control. 
+
+10) Do not use the DIMENSION statement, use type declaration instead,
+     i.,e.: REAL A(10)
+
+11) Use WRITE rather than PRINT for non terminal I/O.
+
+12) Keep program modules short.
+
+13) Use  mnemonic names  as much as  possible,  with 31  characters that
+    should not be difficult. Much  code however was generated before the
+    6 character  limit was  lifted so this   recommendation could not be
+    followed in the past. Detector  specific utilities should start with
+    the letter assigned  to that detector. They  are the same letters as
+    the ones assigned to Zebra banks (see D0$DOCS:ZEBRA_RULES.MEM).
+
+14) Apart  from ZEBRA  common  blocks for  links  avoid  creating common
+    blocks. Once you have created a  common block avoid changing it. The
+    repercussions of common block changes on the library maintenance are
+    usually    non-trivial. If it   proves  impossible  to live  without
+    changing  a common  block  add all  new  variables to the  end, this
+    avoids the problems generated by  linking with a subroutine that has
+    not been recompiled when the common block changed.
+     
+
+**** WARNING *****
+
+    There   cannot be  any  duplicate  names  in  the  libraries used to
+generate offline programs, there  will be soon a facility in the library
+for  checking  this.  Libraries  used in  Offline  programs  may contain
+subroutines not  satisfying the above rules but  they must be in the CMS
+group NONSTANDARD, otherwise they will not be released. 

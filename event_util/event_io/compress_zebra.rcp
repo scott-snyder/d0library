@@ -1,0 +1,73 @@
+\START   COMPRESS_ZEBRA_RCP
+\SIZE         81        81
+!------------------------------------------------------------------------------
+!   Name:       COMPRESS_ZEBRA_RCP
+!   Purpose:    Control file for COMPRESS_ZEBRA package
+!   Created:    26-Sep-1994  H. Greenlee
+!------------------------------------------------------------------------------
+
+DO_COMPRESS_ZEBRA    .TRUE.      ! Package flag
+
+!------------------------------------------------------------------------------
+! Compression parameters
+!------------------------------------------------------------------------------
+
+COMP_ALG           3   ! Compresssion algoritm
+                       !   0 = none
+                       !   1 = LZSS
+                       !   2 = LZW
+                       !   3 = ZIP
+RANDOM        .TRUE.   ! If .TRUE. throw away dictionary between events to
+                       !   to allow random access to events.  If .FALSE. the
+                       !   dictionary is kept between events, giving greater
+                       !   compression, but events must be read in order.
+                       ! The ZIP algorithm is always RANDOM.
+STA_MODE     .FALSE.   ! If .TRUE. compress during main event processing hook.
+DST_MODE     .TRUE.    ! If .TRUE. compress during DROP_EVENT_DST hook.
+ROUND_FLOATING .FALSE. ! Round floating point numbers?
+FLOATING_BITS     16   ! Keep at least this many significant floating point
+                       ! bits.  Regardless of the FLOATING parameters, bits
+                       ! to the left of the binary point are never rounded.
+KEEP_HSTR    .FALSE.   ! Do not compress the most recent HSTR bank (i.e. the
+                       !   one at the head of the HSTR chain) if .TRUE.
+                       !   Use only in d0reco frame.
+RECYCLE_ZDST .FALSE.   ! If .TRUE. during STA_MODE compression, attempt to
+                       !   re-use the previously read ZDST.  DST_MODE
+                       !   compression always regenerates ZDST bank.
+                       !   Intended for OMNI_FILTER.
+
+!------------------------------------------------------------------------------
+! Algorithm parameters.
+!------------------------------------------------------------------------------
+
+LZSS_INDEX_BITS       12
+LZSS_LENGTH_BITS       4
+LZW_DICTIONARY_BITS   18
+ZIP_PACK_LEVEL         5   ! 1 = fastest, 9 = most compression.
+!------------------------------------------------------------------------------
+! Recommendations:
+!
+! The ZIP algorithm is recommended because it is both fastest and has the
+! best compression, and give reasonable results for all data types without
+! fine-tuning of the parameters.  Expect a compression ratio of 70% or better.
+! The parameter ZIP_PACK_LEVEL affects the compression time more that the
+! compression ratio.  I don't recommend going above ZIP_PACK_LEVEL of 5.
+!
+! Herb Greenlee
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+! Memory and buffer sizes
+!------------------------------------------------------------------------------
+
+RECORD_SIZE         900    ! Physical record size for memory exchange mode
+                           ! buffer.  Used in FZFILE call (machine words).
+MIN_BUFFER_SIZE       0    ! Minimum (initial) size of compression buffer.
+MAX_BUFFER_SIZE 3000000    ! Maximum size to which compression buffer can grow.
+
+!------------------------------------------------------------------------------
+! UDST specific parameters.
+!------------------------------------------------------------------------------
+UDST_DROP_RECO    .TRUE.   ! Drop RECO bank when compressing a UDST.  (Empty
+                           !   RECO tree header structure may have been booked
+                           !   by frame).
+\STOP

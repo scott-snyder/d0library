@@ -1,0 +1,125 @@
+                       Disk Usage Recommendations
+                           D0 Offline Clusters
+
+        On the two Offline Vax clusters in D0, there are 5 types of disks:
+    System, USER, SCRATCH, PROJECT and UNIVERSITY (or TEMP). These disk
+    types differ in the way they are managed, whether or not they are
+    backed up and the types of usage that they are intended to support.
+
+        1) System disks are for SYSTEM use only. These are critical to the
+           operation of the machines and the cluster, and/or are
+           repositories of commonly used software (D0$DISK). These disks
+           are essentially read only as far as you are concerned. They are
+           backed up every night.
+
+        2) USER disks (USR$ROOTn) contain your login directories and are
+           "USER OWNED". These disks are backed up every night.
+
+           They should be used for *critical* files; private files (MAIL
+           etc), source code, command procedures, etc. These are files that
+           *must* be secure and can not be easily recreated (need backup).
+           EXEs, OBJs etc should *not* be kept here. Data files should
+           *not* be kept here. We have limited ability to backup disks. So
+           we can't have too many of these disks, nor can any individual
+           have too large an allocation on any one.
+
+           These disks are quota controlled. We keep the allowed quotas to
+           less than 110% of the total disk size (100% when we can). A new
+           user is given only 5k blocks by default. Up to a limit, we'll
+           increase this at request. Above that limit, you need a good
+           argument for further increases. Almost always one or more disks
+           of the following types can and should be used instead of
+           increasing use of the user disks.
+
+        3) SCRATCH disks: are disks that are automatically cleaned up each
+           night. On all disks, each night a PURGE/KEEP=2 is done. In
+           addition files older than a retention period are deleted.
+           Directories on these disks are "user owned", ie) only you can
+           create and/or delete files on them, with the exception of the
+           automatic cleanup. There are no quotas on these disks.
+
+           These disks should be used for EXEs, OBJs, LOG files etc that
+           you need for a few days, but can more or less easily recreate
+           and/or don't need for long periods.
+
+           On D0SFT, there is *one* scratch disk: USR$SCRATCH:[user_name]
+           with a four (4) day retention period.
+
+           On FNALD0, there are *three* scratch disks:
+                SCRATCH:[SCRATCH.user_name]             4 day retention
+                SCRATCH04:[SCRATCH.user_name]           7 day retention
+                SCRATCH05:[SCRATCH.user_name]          10 day retention
+
+        4) PROJECT disks (PRJ$ROOTnnn) are disks "managed" by a designated
+           member of a project group. A project group can be any group,
+           often a physics group. The disk manager is responsible for
+           determining what goes on a disk and how long it stays. They also
+           GRANT and REVOKE the privilege of users to write to the disk(s) 
+           for which they are responsible.
+
+           Most of these disks do *not* have quotas. Quotas are only used
+           when more than one project (or a project and a university) share
+           a disk. They are normally not backed up automatically. The disk
+           manager would normally back them up when needed. 
+
+           These disks should contain the large data sets, "stable" EXEs,
+           shared command files etc. needed to do a group's analysis. They
+           are shared by the members of a group. Conflicts are resolved by
+           the disk manager, who *should* know what the members of his/her
+           group are doing. Since *each* member of the group (who have the
+           RIGHTS ID that grants access to a disk) "own" all the files on
+           the disk, cleanup and usage of the disk is controlled by good
+           will under the direction of the disk manager, not by a "system
+           manager" dictating usage. 
+
+           To see what project areas exist, their precise directory names,
+           what physical disk they are on, what machine that disk is
+           mounted on, who the disk manager is, and what the size of the
+           disk is, do: 
+
+            $ DIR PRJ$ROOT:[000000]
+                . . .
+
+            Directory PRJ$ROOT248:[000000]
+            000_D0UR03$DKA100.4000K;1               
+            001_QCD_4000K_NOBACK.MILDER;1
+            QCD_6.DIR;1
+            Total of 3 files.
+                . . .
+
+           The 000* file name tells you the NODE, Physical disk name and
+           size in kilo blocks. The 001* file name (can be more than one)
+           tells you the Project, blocks allocated, whether it's backed up
+           (normally not) and the username of the disk manager for that
+           project. The .DIR file is name of the directory you'd use in an
+           ACCESS command, and in any PRJ$ROOTnnn: access. ALL subdirectory
+           names must be unique for ACCESS to work correctly.
+
+           If you know the project name, you can find where they are by:
+
+            $ DIR PRJ$ROOT:[000000]*QCD* for example.
+
+           These disks can be accessed several ways. PRJ$ROOT:[prj_dir] is
+           OK for reading files. But since PRJ$ROOT is a *huge* search
+           list, don't SET DEFAULT to it. PRJ$ROOTnnn:[prj_dir] is better.
+           "ACCESS/PRJ prj_dir" sets up three (3) logicals: prj_dir$HOME,
+           prj_dir$HROOT and prj_dir$ROOT (see D0$DOCS:ACCESS_MANUAL.TXT
+           for details) that make command procedures independent of
+           physical disk moves etc.
+
+        5) University disks (TMP$ROOTnnn) are identical to PROJECT disks.
+           The "project" is University based rather than physics project
+           based. They have a manager and operate under the same rules as a
+           Physics Project. The only difference is that they are members of
+           the TMP$ROOT search list, and the ACCESS command is ACCESS/TMP.
+
+        It is expected that *every* D0 collaborator will have access to at
+    *least* disk types 2-4. Many, if not most will also have access to one
+    or more University disks. You'll be given access to a USR$ROOT disk and
+    the SCRATCH disks when your account is opened. If you don't have access
+    to a PROJECT disk, determine (DIR PRJ$ROOT:[000000]) which projects
+    exist, the ones that you feel you should have write access to, and who
+    the manager is. Ask them to grant you the RIGHTS ID to their disk(s).
+    You should do the same for the University disks. If you are a member of
+    a University who has supplied computing resources, you should have one
+    or more disks available.

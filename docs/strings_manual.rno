@@ -1,0 +1,730 @@
+.PAGE SIZE 58     
+.LEFT MARGIN  10
+.RIGHT MARGIN  80
+.FLAGS BOLD
+
+.BLANK 3
+
+.CENTER ; ^&^*WORD, UPCASE and other goodies: The Manual\*\&
+.BLANK
+
+.CENTER ; Version 1.1
+.BLANK
+
+.CENTER ; Harrison B. Prosper
+.BLANK
+
+.CENTER ; Fermi National Accelerator Laboratory
+.CENTER ; P.O. Box 500, Batavia, Illinois 60510
+.BLANK
+
+.CENTER ; 9-FEB-1989
+
+.BLANK 5
+.CENTER; ^&Introduction\&
+.BLANK 1
+
+.PARAGRAPH
+Any application with a user interface presumably requires the decoding
+of strings; this is certainly the case for command parsers. FORTRAN 77
+has really only five useful string procedures: //, ICHAR, CHAR, LEN
+and INDEX. There is no procedure for converting to upper case, or for
+returning the value of a number embedded within a string nor for chopping a
+string up into words, all of which is basic to command parsing. Of course,
+on most user-oriented machines, for example a VAX, there is usually a vast
+array of wonderful string manipulation routines. Alas they are also
+non-transportable! This manual describes a few routines which you may
+find helpful in messing about with character strings. The routines
+are:
+.BLANK
+.LIST "o"
+.LIST ELEMENT;  ADDSTR
+.LIST ELEMENT;  CDTIME
+.LIST ELEMENT;  CHOP
+.LIST ELEMENT;  INTSTR
+.LIST ELEMENT;  STRINT
+.LIST ELEMENT;  LOCSTR
+.LIST ELEMENT;  SPLTCH
+.LIST ELEMENT;  SRTCHR (See also SRTFLT and SRTINT)
+.LIST ELEMENT;  SWORDS
+.LIST ELEMENT;  UPCASE
+.LIST ELEMENT;  VALUE
+.LIST ELEMENT;  VALUES
+.LIST ELEMENT;  VALUEX
+.LIST ELEMENT;  VALUSX
+.LIST ELEMENT;  VNUMI 
+.LIST ELEMENT;  VNUMR 
+.LIST ELEMENT;  WORD.
+.LIST ELEMENT;  WORD_BOUNDED_BY.
+.END LIST
+
+The routines are written in standard Government issue FORTRAN 77.
+The source code is in OFFLINE__UTIL and
+the object modules are in D0$GENERAL:GENERAL.OLB.
+
+.PAGE
+.BLANK 2
+.CENTER;    ^&Short writeups\&
+
+
+.TEST PAGE 20
+.HEADER LEVEL 1 ADDSTR
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Rajendran Raja
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Removes trailing blanks from
+                        character STRNG1 and concatenates
+                        STRNG2 to it. 
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : STRNG1,STRNG2
+
+   Outputs : STRNG3 = concatenation of STRNG1,STRNG2
+             LEN3 = Length of STRNG3
+
+   Controls: None
+
+   Created   5-OCT-1988
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 CDTIME
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Return a Creation Date and Time stamp IN a
+                         20-character string.
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : None
+
+   Outputs : TIMEST      Time stamp in format:
+                         dd-mmm-yy   hh:mm:ss
+   Controls: 
+
+   Created   9-JAN-1989
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 CHOP
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Chop a character string into words and
+                         return an array of sub-strings and their
+                         lengths.
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : STRING      String to be chopped up
+
+   Outputs : OUTSTR(*)   Array of sub-strings
+             LENSTR(*)   Array giving lengths of sub-strings
+             NSTR        Number of sub-strings
+
+   Controls: None
+
+   Created  22-NOV-1988
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 INTSTR
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+
+   Create a string out of integer I and string
+                         SUBSTR.  
+.END NOTE
+.LITERAL
+  
+   Inputs  : I           Integer to be presented as a string
+             SUBSTR      Sub-string to be concatenated with integer
+             
+   Outputs : STRING      STRING = I//SUBSTR
+             N           Length of STRING
+             
+   Example :
+
+        CALL INTSTR (1,'-JUL-1988',STRING,N)
+
+        The returned variables would be assigned the following 
+        values:
+
+                string --> "1-JUL-1988"
+                N      --> 10
+.END LITERAL
+
+.TEST PAGE 20
+.HEADER LEVEL 1 STRINT
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+
+                Create a string out of string SUBSTR and
+                         integer I.
+.END NOTE
+.LITERAL
+
+   Inputs  : SUBSTR      Sub-string to be concatenated with integer
+             I           Integer to be presented as a string
+
+   Outputs : STRING      STRING = SUBSTR//I
+             N           Length of STRING
+             
+
+   Example :
+
+        CALL STRINT ('RUN_',3505,STRING,N)
+
+        The returned variables would be assigned the following 
+        values:
+
+                STRING --> "RUN_3505"
+                N      --> 8
+.END LITERAL
+
+.TEST PAGE 20
+.HEADER LEVEL 1 LOCSTR
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Perform a binary search for string NAME in
+                         ordered list of strings LIST. Strings should
+                         have a maximum length of 80 characters.
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : NAME        Name of string to be searched for.
+             LIST(*)     List of strings to be searched.
+             NUMBER      Number of strings in list.
+
+   Outputs : FOUND       TRUE if NAME found in LIST; FALSE otherwise.
+             ID          Location of NAME in LIST; zero if not found.
+             
+   Controls: None
+
+   Created   9-JUL-1988
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 SPLTCH
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+           Split a string INSTR into holleriths, that is
+                         4-character sub-strings enclosed within
+                         single quotes, and return the result as a
+                         concantenation of these sub-strings delimited
+                         by spaces.
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : INSTR      Input string containing characters to be split
+
+   Outputs : OUTSTR     Output string
+             NN         Length of output string
+
+   Controls: NONE
+
+   Created   8-NOV-1988
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 SRTCHR
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Rajendran Raja
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Sorts a character array into an alphabetical
+                         Sequence. The array IMAP contains the
+                         ordered list of pointers
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : CHAR - Character array
+             NCH  - Number of elements in CHAR
+
+   Outputs : IMAP - pointer to ordered list in CHAR
+
+   Controls: None
+
+   Created   3-OCT-1988
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 SWORDS
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Finds position of first and last non-blank
+                         characters in specified string. Useful for
+                         removing trailing and leading blanks.
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : STRING      String to be searched
+
+   Outputs : I           Position of first non-blank character
+             J           Position of last non-blank character
+             N           Length of trimmed string ( N=I-J+1)
+
+   Created   9-MAR-1988
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 UPCASE
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Conversion to uppercase. Uses KERNLIB routine
+                         CLTOU.
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : INSTR       Input string.
+
+   Outputs : OUTSTR      Output string
+
+   Controls: None
+
+   Created  19-JUN-1988
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 VALUE
+.LITERAL
+ 
+   Type      : FUNCTION
+ 
+   Author(s) : Harrison B. Prosper
+               Rajendran Raja
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Return the REAL representation of 1st number
+                         (or Boolean) embedded in a character string.
+                         Valid types are:
+
+                         INTEGER, REAL, REAL in E-Format, BOOLEAN
+                         (i.e., TRUE, FALSE), LOGICAL (.TRUE., .FALSE.)
+                         and Hollerith string of 4 characters maximum.
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : STRING   String containing number or boolean value or
+                      Character string of 4 characters delimited by
+                      single or double quotes.
+
+   Outputs : VALUE    Value of first number or boolean encountered.
+             II       Start of first number or boolean in string
+             JJ       End of first number or boolean in string
+             TYPE      1:     INTEGER
+                       2:     REAL
+                       3:     REAL in E-format
+                       4:     BOOLEAN 
+                             (Note: usually FALSE is represented
+                                    by INTEGER 0 and TRUE by the
+                                    complement, namely INTEGER -1 )
+                              or LOGICAL.
+                       5:     Hollerith of maximum 4 characters
+
+                      -1:     Invalid type.
+                       0:     No numbers or booleans present in 
+                              string.
+   Examples:
+
+    1:
+        string = "To be or not74.7e01to be.."
+        X = VALUE (string,I,J,TYPE)
+
+        The variable X would be assigned the value 747.0 and the 
+        substring string(I:J) would be equal to "74.7e01". 
+        The TYPE code would be 3.
+
+    2:
+        string = "Yours truely"
+        X = VALUE (string,I,J,TYPE)
+
+        If the variable X were equivalenced with a LOGICAL variable 
+        Y the latter would have the truth value .TRUE., and the 
+        substring string(I:J) would be equal to "true". 
+        The TYPE code would be 4.
+
+   Created  19-FEB-1988
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 VALUES
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Extract all valid numbers from a string and 
+                         return values in an array together with 
+                         number type for each element of the array.
+                         Valid numbers are of type:
+
+                         INTEGER, REAL, REAL in E-format, BOOLEAN
+                         (or LOGICAL) and HOLLERITH.      
+
+                         Declarations of the form N_*xx are allowed.
+
+                         For example 3_*10.45
+.END NOTE
+.LITERAL
+
+   Inputs:   STR         String from which numbers are to be extracted
+
+   Outputs : NUMBER(*)   Array of values (given as REAL)
+             TYPE(*)     Array giving value type:
+                             1 INTEGER
+                             2 REAL
+                             3 REAL in exponential format
+                             4 BOOLEAN (or LOGICAL)
+                             5 HOLLERITH
+                            -1 INVALID number representation
+             NUMS        Number of values returned
+
+   Example :
+
+        string = "12.56, RUN985 hello there 1.0E2 'Zero' true"
+        CALL VALUES (string,NUMS,NUMBER,TYPE)
+
+        The returned variables would be assigned the following 
+        values:
+
+                NUMS   --> 5
+                NUMBER --> 12.56, 985.0, 100.0, 'Zero', .TRUE.
+                TYPE   --> 2,1,3,5,4
+
+   Note : Uses the function VALUE.
+
+   Created  14-MAR-1988
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 VALUEX
+.LITERAL
+ 
+   Type      : FUNCTION
+ 
+   Author(s) : Harrison B. Prosper
+               Rajendran Raja
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Return the REAL representation of 1st number
+                         (or Boolean) embedded in a character string.
+                         Unlike VALUE this function operates only on the
+                         FIRST sub-string within the string.
+
+                         Valid types are:
+
+                         INTEGER, REAL, REAL in E-Format, BOOLEAN
+                         (i.e., TRUE, FALSE), LOGICAL (.TRUE., .FALSE.)
+                         and Hollerith string of 4 characters maximum.
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : STRING   String containing number or boolean value or
+                      Character string of 4 characters delimited by
+                      single or double quotes.
+
+   Outputs : II       Start of first number or boolean in string
+             JJ       End of first number or boolean in string
+             TYPE      1:     INTEGER
+                       2:     REAL
+                       3:     REAL in E-format
+                       4:     BOOLEAN 
+                              or LOGICAL
+                       5:     Hollerith of maximum 4 characters
+
+                      -1:     Invalid type.
+                       0:     No numbers or booleans present in 
+                              string.
+
+   Created   1-DEC-1988
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 VALUSX
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Extract all valid numbers from a string and 
+                         return values in an array together with 
+                         number type for each element of the array.
+                         This routine is like VALUES, but faster.
+                         However, it will only work correctly on numbers
+                         delimited by BLANKS.
+
+                         Valid numbers are of type:
+
+                         INTEGER, REAL, REAL in E-format, BOOLEAN
+                         (or LOGICAL) and HOLLERITH.      
+
+                         Declarations of the form N_*xx are allowed.
+
+                         For example 3_*10.45
+.END NOTE
+.LITERAL
+
+   Inputs:   STR         String from which numbers are to be 
+                         extracted
+
+   Outputs : NUMBER(*)   Array of values (given as REAL)
+             TYPE(*)     Array giving value type:
+                             1 INTEGER
+                             2 REAL
+                             3 REAL in exponential format
+                             4 BOOLEAN (or LOGICAL)
+                             5 HOLLERITH
+                            -1 INVALID number representation
+             NUMS        Number of values returned
+
+   Note : Uses the function VALUEX.
+
+   Created  5-JAN-1989
+  
+.END LITERAL
+  
+.TEST PAGE 20
+.HEADER LEVEL 1 VNUMI
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+
+                         Create a string which is a vector of numbers
+                         bounded by strings RIGHT and LEFT and
+                         delimited with string D
+.END NOTE
+.LITERAL
+ 
+   Inputs:   NA          Number of Integers
+             NUMBER      Array of integers
+             RIGHT       Right boundary symbol
+             D           Delimiter symbol
+             LEFT        Left boundary symbol
+
+   Outputs : STRING      String of numbers
+             N           Length of string
+
+   Example
+
+        NUMBER(1) = 22
+        NUMBER(2) = 33
+        NUMBER(3) = 11
+        CALL VNUMI (3,NUMBER,'(',',',')',STRING,N)
+
+        The returned variables would be assigned the following 
+        values:
+
+                string --> "(22,33,11)"
+                N      --> 10
+.END LITERAL
+
+.TEST PAGE 20
+.HEADER LEVEL 1 VNUMR
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+ 
+                        Create a string which is a vector of numbers
+                         bounded by strings RIGHT and LEFT and 
+                         delimited with string D.
+.END NOTE
+.LITERAL
+
+   Inputs :  NA          Number of Reals
+             NUMBER      Array of Reals
+             RIGHT       Right boundary symbol
+             D           Delimeter symbol
+             LEFT        Left boundary symbol
+
+   Outputs:  STRING      String of numbers
+             N           Length of string
+
+   Example:
+
+        NUMBER(1) = 2.0
+        NUMBER(2) = 3.6
+        NUMBER(3) = 11.35
+        CALL VNUMR (3,NUMBER,'[','..','>',STRING,N)
+
+        The returned variables would be assigned the following 
+        values:
+
+                string --> "[2.0..3.6..11.4>"
+                N      --> 16
+
+        VNUMR automatically selects a ``reasonable'' format for 
+        the numbers.
+
+.END LITERAL
+
+.TEST PAGE 20
+.HEADER LEVEL 1 WORD
+.LITERAL
+ 
+   Type      : SUBROUTINE
+ 
+   Author(s) : Harrison B. Prosper
+
+.END LITERAL
+.NOTE Purpose and Methods
+  
+                         Finds first sub-string bounded by blanks from
+                         specified string, and returns start and end
+                         position of the sub-string. Useful for 
+                         splitting a string into WORDS.
+
+.END NOTE
+.LITERAL
+  
+   Inputs  : STRING      String to be searched
+
+   Outputs : I           Start of sub-string (word)
+             J           End of sub-string
+             N           Length of sub-string
+
+   Created   9-MAR-1988
+  
+.END LITERAL
+.TEST PAGE 20 !MODULE=WORD_BOUNDED_BY
+.HEADER LEVEL 1 WORD_BOUNDED_BY
+.LITERAL
+   
+   SUBROUTINE WORD_BOUNDED_BY (STRING,DELIMITER,I,J,N)
+   
+   Author(s) : James T. Linnemann    from WORD (H. Prosper)
+.END LITERAL
+.LITERAL
+   
+ 
+.END LITERAL
+   
+.NOTE Purpose and Methods
+   
+                         Find first sub-string bounded by the delimiter
+                         or blanks or tabs
+                         from the specified string, and return
+                         the start and end position of the sub-string.
+                         This routine is useful for splitting a string
+                         into "words". See also SWORDS.
+ 
+   
+.END NOTE
+.LITERAL
+   Inputs  : STRING      String to be searched
+             DELIMITER   character to delimit string other than blank or tab
+ 
+   Outputs : I           Start of "word"
+             J           End of "word"
+             N           Length of "word"
+ 
+   Created  18-JAN-1994
+.END LITERAL
+   

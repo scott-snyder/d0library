@@ -1,0 +1,432 @@
+
+
+
+                        A Short Guide to the Micro DST
+
+                               Andrew J. Milder
+                            University of Arizona
+
+
+                                 Introduction
+
+        The Micro DST format is a smaller version of the standard DST,
+    containing only the following Zebra bank information:
+      i)  CAPH: algorithms and cuts used to generate JETS and JTSH banks.
+     ii)  JETS: jet information.
+    iii)  JTSH: more jet information. (Contained in JETS bank version > 1)
+     iv)  PMUO: muon information.
+      v)  PNUT: nuetrino info.
+     vi)  PELC: electron info.
+    vii)  PTAU: tauon info.
+   viii)  PPHO: photon info.
+
+        In an effort to save space, there are only 3 zebra banks present per
+    event, including HEAD where all the event data is stored in the MDST bank.
+    It has the following structure:
+
+            +------+
+            |      |
+            | HEAD |
+            |      |
+            +------+
+               |
+               |
+               |
+            +-------+
+            | ANLS  |
+            | -11   |
+            |       |
+            +-------+
+                |
+         +------+--+---+
+         |      |  |   |
+     +------+
+     | MDST |
+     |  -1  |      (Note: 3 links are available for future micro DST's)
+     |      |
+     +------+
+
+    See Appendix II for the MDST bank description.
+
+
+    I.  Using Micro DST files.
+
+        Using Micro DST files is straightforward. Adding the line:
+
+        CALL PATHST('MDST')
+
+    to your analysis code before any analysis is done, setting the input file
+    to a Micro DST file, and using the GTXXXX routines is all that is required.
+    Note that one may replace the 'MDST' with a variable -- say PATH-- then
+    query the user at runtime as to whether the path is to be MDST, RECO, GEAN
+    or whatever. In this way, you can conduct your analysis on different types
+    of files without having to recompile. An effort was made to ensure
+    compatibility with the standard DST format, and as long as the user
+    retrieves the bank information using only the GTXXXX routines (where XXXX
+    can be JETS, JTSH, PMUO, PNUT, PELC, PTAU, and PPHO) there are no
+    differences. Also, the use of SET_CAPH and SHOW_CAPH is the same.
+        A list of the GTXXXX routines and their arguments is given in
+    Appendix I.
+
+
+    II.  Making Micro DST files.
+
+         Pick a framework and make the user hooks for the routines MDST_INIT
+    (beginning of run), MDST_MAKE (event analysis), and MDST_END (end of run.)
+    These routines are found in CALOR_UTIL. This has been tested with the
+    frameworks EXAMINE2, CALOR_OFF and D0USER. For EXAMINE2 the routines do
+    not require any modifications but if you are using the D0USER or CALOR_OFF
+    framework, you must delete the line:
+       CALL EVTWOS
+    from the end of MDST_MAKE.FOR
+
+         After linking with the framework, just run the executable and select
+    the input file making sure that the input file already has been
+    reconstructed and has all the required zebra banks-- CAPH,JETS,JTSH,PELC,
+    PMUO,PNUT,PPHO,PTAU. It may be possible to just do one-pass; to generate
+    the MDST bank at the same time as the other banks in CALOR_OFF, but I
+    haven't tried it.
+
+        You will be prompted during runtime as to the name of the MDST output
+    file.
+
+
+                                  Appendix I
+
+                        How to use the GTXXXX routines.
+
+    1) GTJETS (IJETS,IVERS,E,THETA,PHI,ETA,IER)
+   Inputs  : IJETS    [I]     JETS bank number in linear chain (begins at 1.)
+   Outputs : IVERS    [I]     Bank version,
+             E(7)     [R]     Ex,Ey,Ez,E,Et,sig**2(Ex),sig**2(Ey)
+                              Ex,Ey,Ez,E,Et,sigma, EMfrac for IVERS > 1
+             THETA    [R]     Theta of jet centre
+             PHI      [R]     Phi of jet centre
+             ETA      [R]     Eta of jet centre
+             IER      [I]     Error code;
+                               0 --- OK
+                              -4 --- No JETS bank.
+                              -5 --- IJETS jet bank nonexistent
+    2) GTJETS_TOTAL (NJETS,IER)
+   Inputs  : None
+   Outputs : NJETS    [I]     Number of JETS banks in linear chain
+             IER      [I]     Error code;
+                               0 --- OK
+                              -4 --- No JETS banks (also returns NJETS = 0.)
+
+    3) GTJTSH (IJETS,PHI_WID,ETA_WID,ETFRAC,ISHARE,IER)
+   Inputs  :  IJETS    [I]     JETS bank number in linear chain
+                               (begins at 1).
+   Outputs :  PHI_WID  [R]     Phi width
+              ETA_WID  [R]     Eta width
+              ETFRAC   [R]     Fraction of total Et in EM
+              ISHARE   [I]     Energy shared? ( 0 = No )
+              IER      [I]     Error code;
+                               0 = ok, -4 = no JETS bank, -5= no JTSH bank
+
+****  For the previous 3 routines, you must first call SET_CAPH to pick ****
+****  which CAPH bank ( algoritm type, cone size, etc.) will be used.   ****
+
+    4) GTPELC (IELC,E,ET,SIG,THETA,ETA,PHI,CONE_NRG,DIST,NUM_TRCKS,IER)
+   Inputs  :  IELC     [I]     Which electron candidate you want
+   Outputs :  E(4)     [R]     Px, Py, Pz, Etot
+              ET       [R]     Transverse energy
+              SIG(3)   [R]     PXSIG**2, PYSIG**2, PTSIG
+              THETA    [R]     theta of electron
+              ETA      [R]     eta of electron
+              PHI      [R]     phi of electron
+            CONE_NRG(5)[R]     1 -- EM energy outside central tower
+                               2 -- total energy in core cone
+                               3 -- total energy in isolation cone
+                               4 -- EM energy in core cone
+                               5 -- EM energy in isolation cone
+              DIST     [R]     distance of closest approach of central track
+              NUM_TRCKS[R]     number of central tracks in cluster road
+
+    5) GTPELC_TOTAL (NUM_ELC,IER)
+   Inputs  :  None
+   Outputs :  NUM_ELC  [I]     Total number of electrons in this event
+              IER      [I]     Error code; 0 -- OK, -4 -- no PELC banks
+
+    6) GTPMUO (IMUO,E,ET,SIG,SIGET,THETA,ETA,PHI,CHISQ,CHISQ_PROB,XYZ,
+               R_ISOLATION,XPCTD_E_LOSS,CAL_E_LOSS,ANGLE,CHARGE,NDF,METHOD,
+               IFLAG,IER)
+   Inputs  :  IMUO     [I]     Number of muon desired
+   Outputs :  E(4)     [R]    (PX,PY,PZ,ENERGY)
+              ET       [R]
+              SIG(4)   [R]     error on the Ith E(I)
+              SIGET    [R]
+              THETA    [R]     theta of muon
+              ETA      [R]     eta of muon
+              PHI      [R]     phi of muon
+              CHISQ    [R]     chi**2 of muon track fit
+            CHISQ_PROB [R]     probability of CHISQ
+              XYZ      [R]     X, Y AND Z WHERE TRACK DEFINED
+         R_ISOLATION(J)[R]     various isolation values:
+                             J=1 isolation parameter (based on cells hit only)
+                             J=2 isolation parameter (based on cells
+                             J=3 isolation parameter (based on cone size 0.2)
+                             J=4 isolation parameter (based on cone size 0.4)
+                             J=5 isolation parameter (based on cone size 0.6)
+          XPCTD_E_LOSS [R]     expected energy lost in the calorimeter
+            CAL_E_LOSS [R]     actual calorimeter energy associated with muon
+              ANGLE    [R]     ANGLE BETWEEN MUON AND NEAREST CD TRACK
+              CHARGE   [I]     charge of muon
+              NDF      [I]     number of degrees of freedom of muon fit
+              METHOD   [I]     i2*100 + i1*10 +i0
+                            where
+                               i0: 1= vertex point is used in fitting
+                               i1: 1= central track is used
+                               i2: 1= E loss in CAL is corrected.
+              IFLAG    [I]   where track vector is defined.
+                               1= vertex point
+                               2= in the muon system.
+                               3= other place
+
+    7) GTPMUO_TOTAL (NUM_MUO,IER)
+   Inputs  :  None
+   Outputs :  NUM_MUO  [I]     Total number of muons in this event
+              IER      [I]     Error code; 0 -- OK, -4 -- no PMUO banks
+
+    8) GTPNUT (INUT,ENUT,ET,TH,ETA,PHI,SIG,IER)
+   Inputs  :  INUT     [I]      particle number
+   Outputs :  ENUT(4)  [R]      energy 4-vector
+              ET       [R]      transverse energy
+              TH       [R]      theta
+              ETA      [R]      eta (pseudo-rapidity)
+              PHI      [R]      phi
+              SIG(3)   [R] (sigEx)**2, (sigEy)**2, sigEt
+
+    9) GTPNUT_TOTAL (NUM_NUT,IER)
+   Inputs  :  None
+   Outputs :  NUM_NUT  [I]     Total number of nuetrinos in this event
+              IER      [I]     Error code; 0 -- OK, -4 -- no PNUT banks
+
+    10) GTPPHO (IPHO,E,ET,SIG,THETA,ETA,PHI,CONE_NRG,IER)
+   Inputs  :  IPHO     [I]     which photon candidate you want
+   Outputs :  E(4)     [R]     Px, Py, Pz, Etot
+              ET       [R]
+              SIG(3)   [R]     PXSIG**2, PYSIG**2,PTSIG
+              THETA    [R]     theta of photon
+              ETA      [R]     eta of photon
+              PHI      [R]     phi of photon
+           CONE_NRG(5) [R]     1 -- EM energy outside central tower
+                               2 -- total energy in core cone
+                               3 -- total energy in isolation cone
+                               4 -- EM energy in core cone
+                               5 -- EM energy in isolation cone
+
+    11) GTPPHO_TOTAL (NUM_PHO,IER)
+   Inputs  :  None
+   Outputs :  NUM_PHO  [I]     Total number of photons in this event
+              IER      [I]     Error code; 0 -- OK, -4 -- no PPHO banks
+
+    12) GTPTAU (ITAU,E,ET,THETA,ETA,PHI,RMS_WIDTH,IER)
+   Inputs  :  ITAU     [I]     number of tau selected
+   Outputs :  E(4)     [R]     the Tau's 4-vector  E(1)=Px,...,E(4)=energy )
+              ET       [R]     TRANSVERSE ENERGY
+              THETA    [R]     theta
+              ETA      [R]     eta
+              PHI      [R]     phi
+             RMS_WIDTH [R]     width of the tau jets calorimeter hits
+
+    13) GTPTAU_TOTAL (NUM_TAU,IER)
+   Inputs  :  None
+   Outputs :  NUM_PHO  [I]     Total number of taus in this event
+              IER      [I]     Error code; 0 -- OK, -4 -- no PTAU banks
+
+
+                                  Appendix II
+
+C=======================================================================
+C
+C  Bank Name : MDST
+C  Author    : Geoff Forden
+C  Date      : 23-APR-1991
+C  Tree description :
+C
+C  Bank description :
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to
+C     +1          Up     link to
+C     +2          Origin link to
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'MDST'
+C             -3         NL =
+C             -2         NS =
+C             -1         ND =
+C              0         Status
+C             +1        I        BANK VERSION NUMBER
+C             +2        I        CAPH REPETITION NUMBER
+C             +3        I        NUMBER OF CAPH BANKS
+C             +4        I        START OF CAPH INFO
+C             +5        I        MUON REPETION NUMBER
+C             +6        I       # OF MUONS
+C             +7        I       START OF MUON INFO
+C             +8        I       PNUT REPETITION NUMBER
+C             +9        I       NUMBER OF PNUT BANKS
+C             +10       I       START OF PNUT INFO
+C             +11       I       ELECTRON REP. NUMBER
+C             +12       I       NUMBER OF ELECTRONS
+C             +13       I       START OF ELECTRON INFO
+C             +14       I       TAU REP. NUMBER
+C             +15       I       NUMBER OF TAUS
+C             +16       I       START OF TAU INFO
+C             +17       I       PHOTON REP. NUMBER
+C             +18       I       NUMBER OF PHOTONS
+C             +19       I       START OF PHOTON INFO
+C             +20       R       Z VERTEX
+C             +21       R       ERROR ON Z VERTEX
+C CAPH INFO, REPEATED NUM_CAPH TIMES
+C          IOFF+1       I       JET REPETITION NUMBER
+C                       I       START OF JET INFO (FOR THIS CAPH)
+C                       I       NUMBER OF JETS
+C                       I       ALGORITHM NUMBER
+C              +5       I       ALGORITHM VERSION
+C    Algorithm type:            CONE_JET                 NN_JET
+C                               _______________          ________________
+C              +6       R       RADIUS OF CONE           NEIGHBOR ENERGY SCALE
+C                       R       MIN JET ET               ETA_NEIGHBOR LIMIT
+C                       R       ET SPLIT FRACTION        PHI NEIGHBOR LIMIT
+C                       R       MIN CLUSTER SEPARATION   MINIMUM TOWER ET
+C                       R       SEED MIN ET              CLUSTER ENERGY THRESH
+C                       R       CANDIDATE MIN ET         CLUSTER ET THRESHOLD
+C                       R       PRECLUSTER MIN ET        CLUS EM RATIO THRESH
+C                       R       NOT USED                 JET ET THRESHOLD
+C                       R       NOT USED                 POWER FOR SHOWR CENTER
+C                       R       NOT USED                 MAXIMUM CAL CLUSTERS
+C             +16       R       SPARE                    SPARE
+C  JET INFO, NEXT JET_REP #S REPEATED NUM_JET TIMES
+C          IOFF+1       R        EX 1
+C                       R        EY 2
+C                       R        EZ 3
+C                       R        ETOT 4
+C              +5       R        ET 5
+C                       R        EXSIG**2 6
+C                       R        EYSIG**2 7
+C                       R        EZSIG**2---AS YET UNKNOWN 8
+C                       R        ETOTSIG**2---AS YET UNKNOWN 9
+C              +10      R        JET THETA 10
+C                       R        JET ETA 11
+C                       R        JET PHI 12
+C                       I        JET ALGORITHM 13
+C                       R        JET WIDTH IN ETA 14
+C              +15      R        JET WIDTH IN PHI 15
+C                       R        FRACTION OF JET ENERGY IN EM 16
+C                       I        IF SHARES ENERGY, 0  17
+C                       I        VERSION 18
+C                       R        SPARE 19
+C              +20      R        SPARE 20
+C  MUON INFO, NEXT MU_REP #S REPEATED NUM_MU TIMES
+C              +1       R        PX
+C                       R        PY
+C                       R        PZ
+C                       R        ETOT
+C              +5       R        ET
+C                       R        PXSIG**2
+C                       R        PYSIG**2
+C                       R        PZSIG**2
+C                       R        PTOTSIG**2
+C              +10      R        PTSIG**2
+C                       R        THETA
+C                       R        ETA
+C                       R        PHI
+C                       R        CHI SQUARED
+C              +15      R        CHI SQUARED PROBABILITY
+C                       R        X COORD. OF TRACK VECTOR
+C                       R        Y COORD. OF TRACK VECTOR
+C                       R        Z COORD. OF TRACK VECTOR
+C                       R        ISOLATION PARAM (CELLS HIT ONLY)
+C              +20      R        " " ( CELLS HIT + NEIGHBORS )
+C                       R        " " ( CONE SIZE 0.2 )
+C                       R        " " ( CONE SIZE 0.4)
+C                       R        " " ( CONE SIZE 0.6)
+C                       R        E LOSS EXPECTED IN CAL
+C              +25      R        E OBSERVED, CONE=0.2
+C                       R        E " CONE=0.4
+C                       R        " CONE=0.6
+C                       R        ANGLE BETWEEN MUON AND NEAREST CD TRACK
+C                       I        MUON ID (+14-->MU-, -14-->MU+)
+C              +30      I        NUM DEG. FREEDOM
+C                       I        METHOD OF CALCULATION
+C                       I        FLAG
+C                                SPARE
+C  PNUT INFO, NEXT PNUT_REP #S REPEATED NUM_PNUT TIMES
+C              +1       R        EX
+C                                EY
+C                                EZ
+C                                ETOT
+C              +5                PXSIG**2
+C                                PYSIG**2
+C                                PTSIG
+C                                ET
+C                                THETA
+C              +10               ETA
+C                                PHI
+C                                SCALER ET SUM
+C                                SPARE
+C  ELECTRON INFO, NEXT ELC_REP #S REPEATED NUM_ELC TIMES
+C              +1                PX
+C                                PY
+C                                PZ
+C                                ETOT
+C              +5                ET
+C                                PXSIG**2
+C                                PYSIG**2
+C                                PTSIG
+C                                THETA
+C              +10               ETA
+C                                PHI
+C                                EM energy outside central tower
+C                                total energy in core cone
+C                                total energy in isolation cone
+C              +15               EM energy in core cone
+C                                EM energy in isolation cone
+C                                number of central tracks in cluster road
+C                                distance of closest approach of central track
+C                                SPARE
+C              +20               SPARE
+C                                SPARE
+C  Tau infor, NEXT TAU_REP NUMS. REPEATED NUM_TAU TIMES
+C              +1                PX
+C                                PY
+C                                PZ
+C                                ETOT
+C              +5                ET
+C                                THETA
+C                                ETA
+C                                PHI
+C                                R rms=sqrt(phi_rms**2+eta_rms**2)
+C              +10               SPARE
+C                                SPARE
+C                                SPARE
+C                                SPARE
+C                                SPARE
+C  PHOTON INFO, NEXT PHOT_REP NUMS. REPEATED NUM_PHOT TIMES
+C              +1                PX
+C                                PY
+C                                PZ
+C                                ETOT
+C              +5                ET
+C                                PXSIG**2
+C                                PYSIG**2
+C                                PZSIG**2
+C                                ETSIG**2
+C              +10               THETA
+C                                ETA
+C                                PHI
+C                                EM energy outside central tower
+C                                total energy in core cone
+C              +15               total energy in isolation cone
+C                                EM energy in core cone
+C                                EM energy in isolation cone
+C                                SPARE
+C                                SPARE
+C              +20               SPARE
+C                                SPARE
+C=======================================================================
+
+

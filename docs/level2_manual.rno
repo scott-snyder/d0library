@@ -1,0 +1,2127 @@
+.ap
+.PAGE SIZE 58,80
+.p 2 1 2
+.style headers 3,0,6,3,7,4,2,18,3
+.layout 1,3
+.no headers
+##
+.b 2
+.right;D0 Note _# 909
+.b 6
+.lm 8
+.rm 72
+.c
+Level-2 System,
+.b 1
+.C
+Programmer and User Manual. 
+.b 2
+.c
+J. S. Hoftun
+.c
+Brown University
+.c
+Revised, J. T. Linnemann
+.c
+Michigan State University
+.c ;26 August 1992
+.noflags substitute
+.noflags accept
+.no number
+.enable toc
+.b 5
+ ##Introduction.
+    This manual describes the design and implementation of particular parts of
+the system for running high-level filter code in the Level-2 "farm" of
+MicroVAX computers. The current copy of the manual may be found in D0$L2CONTROL:
+LEVEL2_MANUAL.MEM.  The various chapters detail the interfaces to this
+system both from the point of programming TOOLs for inclusion in the
+filter-code and from the point of writing VMS programs to perform control
+and/or monitoring of this system. A lot of detailed descriptions about how
+this system works are omitted. 
+ It is separated into several chapters, each of which may have been released
+before as separate notes. The information in this manual supercedes ALL such
+previous notes. 
+.page
+.SAVE
+.NO FLAGS ALL
+.FLAGS COMMENT !
+.! DSRTOC version V3.2-01
+.! RUNOFF/CONT LEVEL2_MANUAL.BRN 
+.NO FLAGS BREAK		.NO FLAGS CAPITALIZE	.NO FLAGS ENDFOOTNOTE
+.NO FLAGS HYPHENATE	.NO FLAGS INDEX		.NO FLAGS PERIOD
+.NO FLAGS SPACE		.NO FLAGS SUBSTITUTE
+.FLAGS ACCEPT _		.FLAGS BOLD *
+.FLAGS LOWERCASE \	.FLAGS OVERSTRIKE %	.FLAGS UNDERLINE &
+.FLAGS UPPERCASE ^
+.FLAGS ALL
+.NO FILL		.NO JUSTIFY
+.LEFT MARGIN 8		.RIGHT MARGIN 70	.PAGE SIZE , 70
+.CENTER;CONTENTS
+.BLANK
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 1       INCLUDING CODE IN THE LEVEL-2 FILTER SYSTEM_.
+.BLANK
+1_.1     Programmer's Overview Of The Level 2 System  . . . 1-3
+1_.1_.1     References . . . . . . . . . . . . . . . . . . . 1-4
+1_.2     What You Need To Define A Tool . . . . . . . . . . 1-4
+1_.3     Rules For FORTRAN Programs_.  . . . . . . . . . . . 1-5
+.TEST PAGE 2
+1_.4     The Loading of 'Calibration-type' Constants 
+        (tool__INIT)_. . . . . . . . . . . . . . . . . . . . 1-6
+1_.4_.1     Rules For RCP Banks In Xxxx__INIT . . . . . . . . 1-7
+.TEST PAGE 2
+1_.5     Passing of 'Run-time' Parameters 
+        ('tool__name'__PARAMETERS) . . . . . . . . . . . . . 1-8
+1_.5_.1     Allowed Data Types Of Parameters . . . . . . . . 1-8
+1_.5_.2     Suggested Conventions For Parameters . . . . . . 1-9
+1_.5_.3     How The Parameters Are Downloaded  . . . . . . . 1-9
+1_.6     Writing Subroutines Used By TOOLS  . . . . . . .  1-10
+.TEST PAGE 2
+1_.6_.1     SPECIAL WARNING ON USING UTIL Routines From 
+          Offline In Level 2 . . . . . . . . . . . . . .  1-11
+1_.7     Reporting Detected Error Conditions  . . . . . .  1-12
+1_.7_.1     When To Use E And F Error Messages . . . . . .  1-12
+1_.7_.2     Handling Of Bad Data In Level 2  . . . . . . .  1-13
+.TEST PAGE 2
+1_.7_.3     Practical Hints For Writing Efficient Level 2 
+          Code . . . . . . . . . . . . . . . . . . . . .  1-14
+1_.7_.4     Avoiding Recomputation Of Results  . . . . . .  1-14
+1_.7_.5     RCP Banks  . . . . . . . . . . . . . . . . . .  1-15
+1_.7_.6     Some Useful Code Fragments . . . . . . . . . .  1-15
+1_.8     The Zebra Environment In Level 2 . . . . . . . .  1-16
+1_.8_.1     Temporary Zebra Banks In Level 2 . . . . . . .  1-17
+1_.8_.2     Recording of Permanent Results from each TOOL_.  1-17
+1_.9     Testing Tools  . . . . . . . . . . . . . . . . .  1-18
+1_.10    Performance Monitoring of TOOLS_. . . . . . . . .  1-19
+1_.11    Histogramming of Quantities from TOOLs_.  . . . .  1-19
+1_.12    Timing of a TOOL_.  . . . . . . . . . . . . . . .  1-20
+1_.13    L2SETUP: Affecting Operation Of Level 2  . . . .  1-21
+1_.14    How The TOOLs Are Called_.  . . . . . . . . . . .  1-25
+1_.15    Defining And Using TOOLs_.  . . . . . . . . . . .  1-26
+1_.16    Definitions and Uniqueness of TOOLs_. . . . . . .  1-27
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 2       TESTING TOOLS UNDER VAX/VMS_.
+.BLANK
+.TEST PAGE 2
+2_.1     How to Include Your Own (or Library) Routines in 
+        the Link_.  . . . . . . . . . . . . . . . . . . . . 2-2
+2_.2     The Procedure To Make VMS__FILTER__D0USER_. . . . . . 2-2
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 3       LINKING MAIN PROGRAM FOR LEVEL-2_.
+.BLANK
+.TEST PAGE 2
+3_.1     How to Include Your Own (or Library) Routines in 
+        the Link_.  . . . . . . . . . . . . . . . . . . . . 3-1
+3_.2     The Link Procedure Itself_. . . . . . . . . . . . . 3-1
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 4       USING THE PLAYBACK SYSTEM FOR TESTING FILTERS_.
+.BLANK
+4_.1     Controlling a Playback Run . . . . . . . . . . . . 4-2
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 5       RUN-TIME ERROR HANDLING IN LEVEL-2 PROGRAMS_.
+.BLANK
+5_.1     L2ERR__READER Program_.  . . . . . . . . . . . . . . 5-2
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 6       INTERFACE FOR CONTROL (COOR)_.
+.BLANK
+6_.1     The Loading of 'Calibration-type' Constants_. . . . 6-2
+6_.2     Passing of 'Run-time' Parameters_.  . . . . . . . . 6-2
+6_.3     Calling Sequence of Routines . . . . . . . . . . . 6-3
+6_.3_.1     ATTACH__LEVEL2: . . . . . . . . . . . . . . . . . 6-3
+6_.3_.2     DETACH__LEVEL2: . . . . . . . . . . . . . . . . . 6-3
+6_.3_.3     READ__NAMES:  . . . . . . . . . . . . . . . . . . 6-4
+6_.3_.4     GET__RUNNUMBER: . . . . . . . . . . . . . . . . . 6-4
+6_.3_.5     BEGIN__LEVEL2:  . . . . . . . . . . . . . . . . . 6-4
+6_.3_.6     END__LEVEL2:  . . . . . . . . . . . . . . . . . . 6-6
+6_.3_.7     PAUSE__LEVEL2:  . . . . . . . . . . . . . . . . . 6-6
+6_.3_.8     CONTINUE__LEVEL2: . . . . . . . . . . . . . . . . 6-7
+6_.3_.9     CHECK__LEVEL2:  . . . . . . . . . . . . . . . . . 6-7
+6_.3_.10    CHECK__RUN: . . . . . . . . . . . . . . . . . . . 6-8
+6_.3_.11    GET__L2TYPE__INFO: . . . . . . . . . . . . . . . . 6-8
+6_.3_.12    GET__L2TOOL__INFO: . . . . . . . . . . . . . . . . 6-8
+6_.3_.13    REPORT__FAILURE:  . . . . . . . . . . . . . . . . 6-9
+6_.4     Routines Supplied by COOR_. . . . . . . . . . . . . 6-9
+6_.4_.1     REQUEST__LEVEL2:  . . . . . . . . . . . . . . . . 6-9
+6_.4_.2     DEMAND__LEVEL2: . . . . . . . . . . . . . . . .  6-10
+6_.4_.3     RETURN__LEVEL2: . . . . . . . . . . . . . . . .  6-10
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 7       LEVEL-2 DISPLAY/MONITORING INTERFACE
+.BLANK
+7_.1     L2__SNAPSHOT: . . . . . . . . . . . . . . . . . . . 7-1
+7_.2     L2__INFO__SUPER: . . . . . . . . . . . . . . . . . . 7-2
+7_.3     L2__INFO__NODES: . . . . . . . . . . . . . . . . . . 7-2
+7_.4     GET__TYPES: . . . . . . . . . . . . . . . . . . . . 7-3
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 8       INTERNAL DETAILS OF ELN I/O
+.BLANK
+8_.1     EOPEN: . . . . . . . . . . . . . . . . . . . . . . 8-2
+8_.2     EREAD: . . . . . . . . . . . . . . . . . . . . . . 8-2
+8_.3     EWRITE:  . . . . . . . . . . . . . . . . . . . . . 8-2
+8_.4     ECLOSE:  . . . . . . . . . . . . . . . . . . . . . 8-3
+8_.5     GET__NODE__NAME: . . . . . . . . . . . . . . . . . . 8-3
+.TEST PAGE 5
+.SK2
+.I-8
+CHAPTER 9       EXAMPLES
+.BLANK
+9_.1     Sample TOOL_. . . . . . . . . . . . . . . . . . . . 9-1
+9_.2     L2STATE Program  . . . . . . . . . . . . . . . . . 9-4
+.RESTORE
+.noflags accept
+.enable bar
+.CH Including code in the Level-2 filter System.
+.number page
+.lm 8
+.rm 72
+  This chapter describes the design of the interface between the framework  
+which controls all the filters running in each Level-2 node and the
+individual TOOLs which make up the filters. Such a TOOL is seen as a
+"subroutine" which goes through ONE particular algorithm and makes a
+decision on whether the event should be passed or not. It may of course call
+as many other routines as needed internally. A TOOL should be developed and
+tested in the offline environment before being used in the Level-2 filter. 
+.lm 0
+.rm 80
+.page size 58,80
+.page
+.lit
+
+    Level 2 related files and programs on the Host node
+                        (For more detail see D0 note 582)
+
+-----  underlines a data file (or what may be a data file 
+                                in COOR_SIM,L1SIM, L2SIM)
+
+                  ---------
+                  |L2STATE|
+            ----->|       |<--
+            |     ---------  |
+            |                |
+            V                V
+(tool  L2TOOL.DAT      L2TYPE.DAT (tools in a given node type)
+defs)  __________      ----------
+            |            |    
+            |            |
+            |            V
+            |    |---------|---->trigger.info,mu_trigger.info-->L1,L1.5 Triggers
+            ---->|         |     ------------ ---------
+                 |         |     
+resource.ctl---->|         |     stream.info----->data logger
+-----------      |         |     -----------     
+(hdwe defs)      | COOR    | (stream definitions)
+                 |         |
+                 |         |---->RCP_xxxx.ZDAT-----> downloaded to L2 tools
+requests.cfg---->|         |     ------------       (read by tool_PARAMETERS)
+------------     |_________|     (cuts for filters)
+(L1,L2, logger        |  |
+                      |  ------TRIG_FILT_RUN.INFO ---> EXAMINE, monitoring
+                      |        ------------------
+                      |       (names of L1 and L2 bits)
+                      |
+                      -------->RUN_FILTER.DAT----> downloaded to L2 frame
+                               --------------
+                                (filter scripts)
+              
+                  --------
+                  |STP_  |
+  l2user_files--->| INIT |--->nodetype.STP----> downloaded to L2 STP 
+                  --------                      area by L2 framework
+
+
+
+                                Figure 1
+.end lit
+.page
+.lm 8
+.rm 72
+.PAGE SIZE , 70
+.hl Programmer's Overview of the Level 2 System
+    Triggering in D0 has 3 levels.  Level 1 is a fast hardware decision, with
+deadtime of only 1 beam-crossing.  Level 1.5 is a slower
+hardware decision which is attempted only if particular level 1 trigger bits
+fire.  The deadtime here is about 20-100 microsec.  If a level 1 and/or level 
+1.5 trigger fire, then the detector is read out.  This incurs a deadtime of
+order 1msec.  (The system has both analog and digital buffers to alleviate the
+effect of these deadtimes).  A set of 32 bits mark which hardware trigger(s)
+have fired, and information about why the particular triggers fired is recorded
+along with the event, usually in the trigger data block.
+    The setup of the level 1 and level 2 triggers, and the data logger,
+are described in a trigger
+definition file, referred to usually as a "configuration request", handled by
+the COOR program, which COORdinates various configuration requests.  Coor
+assigns hardware resources, such as specific level 1 and level 2 bits, to
+specific requests.    Figure 1 shows an overview of the online system from a
+level 2 programmer's point of view. 
+    After readout, the event appears in the memory of a level 2 node for 
+software filtering.  The filtering proceeds on the basis of which level 1 bits
+fired: for each level 1 bit, one or more filtering "scripts" are prescribed.
+A filtering script is a series of calls to filtering "tools", with their
+associated cuts (usually referred to in this document as "parameters").  
+(These, too, are defined in the trigger definition).  If any
+filtering tool fails, then the level 2 bit associated with the script is set
+false.  A total of 128 level 2 bits are available.
+    Finally, the data logger decides on which output stream(s) to write an event
+according to which level 2 bits are on.
+    Figure 1 shows the flow of information to accomplish this.  The L2STATE
+program manipulates the L2TOOL.DAT file, which contains information about what
+filter tools are known, the number of parameters they take, and their data 
+types.  The L2TYPE.DAT defines classes of nodes (node "TYPES"). Nodes of a given
+type all have the same (sub)set of tools downloaded in them.
+    Coor reads the configuration files, assigns resources defined in the
+resource file, and produces information to configure the level 1, level 1.5, and
+level 2 triggers and the data logger.  
+The scripts (sets of what level 1 bits drive which level 2
+bits, and the sequence of {tool #, parameter set #} for each of these bits, is 
+one of its outputs.  Depending on the configuration file and the bits set at
+level 1, a filter tool might be called more than once per event, perhaps with
+different parameters.  The parameters for all the tools are placed in an RCP
+file with a separate bank for each filter tool.  Thus, each parameter belonging
+to a tool is actually sent as an array, and the parameter set number defines the
+array index to be used for a given call of the tool.  The level 2 frame actually
+handles downloading of these parameters, but each tool has an entry point,
+tool_PARAMETERS, which handles any preprocessing of the downloaded parameters.
+    Finally, there is a class of constants for filter tools which does not
+change from call to call, nor, very much, from run to run.  This set is built
+into a large zebra file by a program STP_INIT which consists of calls to an
+entry point tool_INIT for each tool.  The constants which are to be downloaded
+must be shunted to a special location in the STP data structure to ensure
+downloading. The level 2 framework downloads this large zebra structure when the
+nodes are initialized.  
+    Some minor details of this picture change in the simulation version of this
+system: there is no L2TYPE.DAT for the VMS_FILTER L2SIM, and a special,
+non-online copy of L2TOOL.DAT is manipulated by FILTER_MAKER instead of L2STATE.
+Conversely, in the real online system, several of the objects produced by COOR 
+are not files, but exist only as communications between tasks.
+.hl2 References
+    For more detail, see D0 note 582, D0$LEVEL1:COOR_SIM.DOC, 
+D0$LEVEL1:L1SIM.DOC, D0$COOR:COOR_CONFIGURATIONS.MEM, and D0$LEVEL2:L2SIM.DOC.
+.hl1 What you need to define a tool
+    A filtering tool has three entry points.  An example of a simple, but
+nontrivial tool is given in the last chapter on the "sample tool."  The details
+of these entries are given below.
+.list 1
+.le;tool
+    This is the entry point or subroutine where the actual filtering is
+performed. This code will be downloaded into the level 2 node. "tool" is the
+name of your filtering tool.  It is given information about which parameter set
+to use.
+.le;tool_PARAMETERS
+    This entry point is called each time a new set of parameters is downloaded. 
+It may do some preprocessing of the parameters for use in the tool routine.  Any
+initialization routines required should be called from here, preferably
+protected by a IF (FIRST) structure inside that routine.  This code will be
+downloaded in the level 2 node.  "tool" is again the name of your filtering
+tool.  If your tool is called L2ETMISS, this entry will be called
+L2ETMISS_PARAMETERS.
+.le;tool_INIT
+    This entry prepares constants for downloading into the level 2 nodes, but
+the code itself is not downloaded.  It will run on the DAQ host.  Thus, it is
+exempt from the restrictions on I/O applied to downloaded code; it should obey
+normal offline coding rules.
+.els
+.hl Rules for FORTRAN programs.
+ While a lot has been said about the ease of transporting programs from the 
+VAX/VMS environment to the VAXELN Level-2 environment, there are certain limits 
+to this 'direct' transportability.  One limitation is that there is no virtual
+memory, and a total of 6-7MB for programs, constants, and the result banks.
+Another limitation is that program speed translates into
+either deadtime or limits on data rate.  Since much offline code has been
+optimized for clarity and reliability, rather than space or time, some
+modifications may be necessary.  Working with a network of computers 
+instead of with one integrated CPU requires communication of one sort or
+another. Control of the running in the Level-2 is done via 
+separate programs on the host VMS machine, and this is the only mechanism for
+passing parameters to the running program. This translates into the requirement
+that programs write only zebra banks and perhaps call ERRMSG, and that all
+reading is channeled into the two downloading paths mentioned above.
+    The following describes the rules which should be followed when writing any
+part of a FORTRAN program which may be used for running under VAXELN in a 'farm'
+of MicroVAXes (the downloaded entries tool and tool_PARAMETERS). 
+ In general all FORTRAN-77 code will run under VAXELN without conversion. Code
+should follow the general offline rules if possible. But  when doing I/O and
+calling system services one has to be careful.  
+ Here are the specific rules:
+.list 1 
+.le;NO system services (SYS$, LIB$, SMG$ etc.) may be used. 
+.le;Do NOT assume infinite amount of memory, the program HAS to fit in the
+available physical memory space.
+.le;Do NOT assume that any library used under VAX/VMS may be used in
+VAXELN, in particular GENERAL and OFFLINE_UTIL. Each time such a
+routine is used, it must first be tested in the VAXELN environment. A list of
+"approved" routines will be kept.
+.le;Code for downloading (tool, tool_PARAMETERS entries) should
+NOT CONTAIN any I/O, that is  READ, OPEN, CLOSE, D0OPEN, D0CLOSE, EOPEN, ECLOSE,
+WRITE(except internal writes), TYPE, ACCEPT, EZIN, INRCP, or other I/O 
+statements.  
+.begin bar
+They also should not need EZNAME calls.
+.end bar
+Such code IS allowed in the initialization code (tool_INIT entry).
+However, EZPICK and EZRSET are allowed in all code, downloaded or not.
+.le;Do not assume the existence of framework facilities such as USUNIT,SSUNIT,
+EVNTID.  Do not include calls to ANY Dumping routines in your downloaded code.
+.le;Error messages must be passed through calls to ERRMSG.
+.begin bar
+.le;If you use RCP files, see the rules mentioned below under tool_INIT.
+.end bar
+.le;Last but not least, code written SPECIFICALLY for level 2 should have L2
+somewhere in its name.
+.end list
+.hl The loading \of 'Calibration-type' constants (tool_INIT).
+ These constants are thought to consist of a slowly changing set of numbers
+gotten from calibration runs, surveys of the detector etc. Since the amount
+of data is probably going to be very large, it would be unwise to reload
+them at every Begin-run if they don't change. Therefore COOR is able to
+tell the Level-2 system when to load new constants.
+ The basic method for including constants in this system is to use the
+'tool'_INIT routine described below. This routine should set up banks in
+under SL2H in the STPH structure via reading files etc. as appropriate. All the
+'tool'_INIT routines for a given node type are linked together into a program
+which will call all of them and then write a ZEBRA file with all the
+information. This file will be downloaded to the nodes when the program
+there first starts up and then again whenever deemed neccessary.
+ The calling sequence of the 'tool'_INIT  routine is:
+ CALL#'tool_name'_INIT
+ A first version of this routine may be made by any of the programs used to
+define a new TOOL.
+    IMPORTANT!!  Each bank or tree of banks must appear on a
+link under the SL2H bank.  If your banks are not shunted to one of these links,
+they will NOT be downloaded.  These links must be reserved; the czar of these
+Links is Rich Astur, who will assign the next available link and update 
+D0$ZEB$STPH:SL2H.ZEB accordingly.  If possible, put them in D0$LINKS also.
+.begin bar
+.hl2 Rules for RCP banks in xxxx_INIT
+    If you download RCP banks, there are a few rules you must follow:
+.list
+.le;
+The names of RCP banks which are downloaded must include L2 in their name.
+This is meant to avoid sharing RCP banks with offline, in particular to
+guarantee that testing in VMS_FILTER works from downloaded files 
+(in VMS_FILTER.STP), produces the same results as a real download.  Future
+versions of the EZ routines may require that bank names be unique.  In any case,
+EZPICK would take the first version it runs across.
+.le;    Your tool_PARAMETERS code should not shunt downloaded RCP banks, and 
+should not call EZNAME or EZBOOK, as the names of all downloaded RCP banks will
+be made  known to the EZ routines automatically by the level 2 framework by EZIN
+and EZINIT calls.
+.els
+.end bar    
+.hl1 Passing \of 'Run-time' Parameters ('tool_name'_PARAMETERS)
+ These constants, called "parameters" are thought to consists of cuts, weights
+etc. which may well change from run to run and from one invocation of a tool to
+another.  These parameters are sent by COOR in the form of a RCP bank with name
+'tool_name'.
+Each TOOL has to provide an entry-point (or
+separate subroutine) which is called at BEGIN-RUN time to do the
+loading of these parameters into a common block or ZEBRA-structure. The
+calling sequence for this entry point is: 
+ CALL#'tool_name'_PARAMETERS(NEWPAR)
+.begin bar
+where NEWPAR is a BYTE variable giving the number of sets of parameters
+downloaded for this run.  If NEWPAR = 0, no reinitialization should be done for
+this run. 
+    This entry point WILL be called even if the tool is not mentioned in any
+script.  In this case, the RCP bank with the name 'tool_name' (your tool) will
+not be found.  The code in tool_PARAMETERS should allow for this.  See the
+example at the end of this document.  A tool may have a maximum of 20
+parameters.
+.end bar
+ A first version of this routine may be made by any of the programs used to
+define a new TOOL.
+.begin bar
+.hl2 Allowed data types of parameters
+    Real, Integer, Logical, and Character data types are allowed.
+    The NAME of a parameter is 16 characters or less.
+The corresponding codes to be used when
+defining the tool (see below) are R, I, L, and C.  Character data and logical
+variables are used in a filter script by:
+.lit
+    log_var     TRUE    or FALSE    (no .'s)
+    char_var    'your text'         (22 characters max between quotes)
+.end lit
+    WARNING: to use a CHARACTER variable in RCP, you must use EZGETS, not EZGET.
+These routines also have a different number of arguements.  See
+d0$filter_util$source:filter_timing_setup.for for an example.     
+.hl2 Suggested conventions for parameters
+    We don't have many at this point, but suggest that
+.list
+.le;each tool have a "minimum count" parameter of some type indicating how many
+instances of the object are required, with a name like NUM_xxx.  Look at the
+parameters of other filters before choosing your names.
+.le;if we have a multiple-choice option, try to be consistent with the level 1
+trigger setups in giving the options names. For example, a matching test between
+two types of tracks might be 'REQUIRE' 'VETO' or 'IGNORE'.
+.els
+.end bar
+.hl2 How the parameters are downloaded
+ The actual parameters will be available to this routine in the SRCP
+structure. The filter framework will read in a file RCPxxx.ZDAT at BEGIN RUN
+which contains all these parameters. Each TOOL will have a bank in this
+structure labelled by the TOOL name, and it should use EZPICK/EZRSET to select
+is own RCP bank.  Note that if you keep internal copies of the parameters, or
+quantities derived from them, they must be recomputed EVERY time tool_PARAMETERS
+is called.
+    One nontrivial form of parameter processing is to scan the downloaded sets
+of parameters in order to recognize distinct parameter sets.  This may be
+interesting because:
+    1) COOR downloads a separate set of parameters for EACH time the tool is
+mentioned in the configuration file, even if each instance comes from the same
+include file, so that the sets of parameters downloaded may include repetitions.
+    2) This may be important to your processing speed if your code's treatment
+of candidates (eg jet candidates in trigger towers) depends on which set of
+parameters downloaded (eg jet size to use).  If you wish to know whether you
+have processed this candidate before, you may need to sort through your
+downloaded parameter sets to recognize which are distinct, or you may wish
+instead to keep information with the processed candidates about the relevant
+parameters with which it was processed.  
+    The speed penalties from not recognizing previous processing of an event
+depend very much on trigger setup: how many candidates are present per event,
+and how much many scripts are liable to be tried on a given event.  The time
+penalties are likely to be worst for low thresholds and complex triggered
+events.
+.end bar
+.hl1 Writing Subroutines used by TOOLS
+    If you are implementing code for level 2 in the form of subroutine packages
+used by higher level tools, you still need to observe the rules above.  Your
+code should be separated into downloaded routines (those called by
+tool_PARAMETERS and tool), and non-downloaded routines (called by TOOL_INIT).
+You should also look at the next section, on writing efficient level 2 code.
+One model is to have 3 entry points to your subroutine package:
+.list
+.le;L2_XXX_INIT 
+    To be called by any tool_INIT routine which uses your subroutines.  Prepares
+to download any constants required, just as tool_INIT does.  You should 
+protect your routine internally with an IF (FIRST) in case more than one tool
+calls you.
+.le;L2_XXX_PARAMETERS
+    To be called by any tool_PARAMETERS routine which uses your subroutines.
+If this contains internal initialization, you may want an IF (FIRST) protecting
+this part.  At this point, you would use EZPICK/EZRSET to get your hands on any
+sets of variable quantities.   Quantities which do not vary from
+call to call should be handled by the INIT entry.
+.le;L2_XXX 
+    Called by the tool itself.  You may need to access your constants, be passed
+information known by the tool about level 1 bits to find relevant candidates, or
+even be passed a parameter set number to choose which set of cuts to use.
+In addition, you may wish to keep track of previous
+processing of an event as a tool does.    
+.els
+    The subroutine package CL2_xxx, the level 2 Calorimeter unpacking is a
+nontrivial example of these ideas.  CL2_INI is called by the tool_PARAMETERS
+entry, CL2_MAKE_TABLES is called by the tool_INIT entry, and several CL2_xxx
+entries are called by the tool entry point.
+.begin bar
+.hl2 SPECIAL WARNING ON USING UTIL routines from offline in Level 2
+    A peculiar difficulty awaits us if offline utility routines are used in
+level 2 code, and the utility routines use information derived from the STP
+banks.  It is important that we be able to test level 2 code in VMS_FILTER.  The
+usual way of testing is (see below) to run VMS_FILTER as a package, and compare
+results with offline analysis package event by event.  To be sure that the SAME
+results are found when running in VMS_FILTER as in a real download, EXTREME
+CAUTION is required if a routine is to be called both by offline and level 2.
+    It must be absolutely guaranteed that the SAME constants are used by the
+downloaded version as a VMS_FILTER version.  This is far from trivial.  If
+constants from a bank in STP are used, the level 2 call should access ONLY
+constants under the SL2H header.  It is dangerous to shunt banks under SL2H back
+to the standard position in the STP tree, because this will cover up the
+circumstance in which the downloaded STP constants for level 2 differ from the
+offline constants, either by accident or by design.  
+    It is even worse for utility routines internally grab constants from zebra
+and compute common banks.  This has two bad effects:  in normal analysis, the
+routine must be very careful to detect whether a new set of constants has been
+read in for a new run.  Even if this is accomplished, the constants that it
+captures do not switch between the downloaded set and the offline set!!! 
+    At this time, we see the following possibilities:
+    a) no sharing of code (ugh...).  Level 2 versions use their own zebra access
+files, or at least no sharing of constants (internal flag to guide which
+constants to get)
+    b) forbid storing of constants in common blocks, and set up a PATH mechanism
+in STP so that the same code (with the same calls to GZ routines) can operate
+successfully.  NOTE: THIS MEANS USING GZ every time, or being VERY sure the link
+is set every call.
+    c) give up on this problem, and say that to test level 2 code, you must run
+a L2SIM and write out results, then read back and run offline packages and
+compare with the stored results.  This enforces the separation of constants and
+guarantees the use of only downloaded constants.
+.end bar
+.hl1 Reporting detected error conditions
+    For error reporting, a utility routine which reports such
+errors to a central monitoring task as well as possibly the SORT_ALARM task,
+will be available. The calling sequence for this routine is the same as
+outlined in the manual for the ERRMSG_UTIL library (part of GENERAL)  and is: 
+ CALL#ERRMSG(IDSTRNG,SUBRID,VARSTR,SEVERITY)
+ where IDSTRNG is an identifier for the TOOL (name), SUBRID is
+an identifier for the subroutine (name) calling ERRMSG, VARSTR is additional
+text comments on the error and SEVERITY is a CHARACTER*1 code for
+identifying the severity of the error and thereby where to record the error.
+Messages of severity 'F' and perhaps 'E' will invoke the event handling facility
+mentioned in a chapter 5, so that the causes can be examined; in addition, a
+connection to the alarm system is envisioned.  
+.hl2 When to use E and F error messages
+.lit
+During the filter_PARAMETERS entry, E and F messages will produce the 
+behavior described below for F messages.  During event filtering, E and F
+messages have different effects.
+
+What an F level message will do:
+
+    - Send the error message to the alarm system
+    - Reject this event, even if some other filter passed it (scrambles the
+      statistics for this run)
+    - Cause a crash in the node
+    - Do NOT dump the event to disk (unless you explicitly ask for it with
+        ZBDUMP while debugging)
+    - The call stack will not be unwound: saying "GO" in the debugger would only
+        force you to the next statement.
+    - We will advise the DAQ expert that the only recovery from this kind of
+        error is to retrigger the node.  
+
+Use an F level message if you are willing to accept the consequences above, any 
+of the following apply:
+
+    - missing or mangled constants 
+    - asked to use any parameters you do not have (constants or cuts)
+    - any problem which will now happen every event of this run
+    - the only way to do anything useful is to get a fresh copy of constants
+
+What an E level message will do:
+
+    - Send the error message to the alarm system
+    - Reject this event, even if some other filter passed it (scrambles the
+      statistics for this run)
+    - Cause a crash in the node
+    - The call stack will be unwound, so the "next" statement would leave you
+        ready to take another event.
+    - either
+        Dump the event to disk  (probably will become our default mode)
+     or Allow the DAQ expert to say "GO" in the debugger and continue
+
+Use an E level message if you are willing to accept the consequences above, have
+reason to believe that a new event can be correctly handled, and any of the
+following apply:
+
+    - This event is so messed up you can't continue from here, even by just
+      refusing to do conversions so the event is rejected for lack of candidates
+    - This event is so bizarre that you need to study it offline 
+.end lit
+.hl2 Handling of bad data in level 2
+.lit
+Bad data in level 2 will be handled as follows:
+
+    Online error logging into two files:
+        a "full" log which records all level 2 error messages
+        a "condensed" log, which records only W level and higher messages,
+        intended to concentrate on more important error messages.
+
+    End or run summary of all error messages.  These will be classified by the
+        error ID, so be sure you give a reasonable amount of information in 
+        the error ID field.
+
+    Limit the number of error messages of a given type (currently 
+        10/type/node/run). If that limit is met, a special error message is 
+        generated to say the limit has been reached. It will be sent at W 
+        level, and thus will appear in the condensed log and in the DAQ 
+        expert's alarm display.
+
+    Entry points in the filter framework record the fact that bad data has been
+        encountered which will kill the event.  This will be counted and can be
+        used to correct the effective luminosity. If the level 2 frame sees 
+        that a given detector is "frequently" (to be defined) generating bad 
+        data, a separate, W-level message will be sent.
+
+Implementation in level 2 filter code:
+
+Data format errors which will probably result in rejection of an event should be
+handled by
+
+    a) set a flag that the event has bad data (so the level 2 frame can record
+    this).  These are done (for technical reasons) by function references:
+        logvar = SET_BAD_CAL_FLAG()
+    or           SET_BAD_CD_FLAG()
+    or           SET_BAD_MU_FLAG()
+    Such errors are usually detected by low level unpacking routines.
+
+    b) send (as now) an error message
+        -if this is a relatively rare condition, leave it as a W message
+            (or possibly E message if it is a serious problem)
+        -if it is relatively common, demote the severity to I
+            online, this means it will go to a "full" error log, but not to the
+                condensed trigger shift log, nor to the DAQ expert error display
+            offline, this means it will get counted, but not displayed
+    
+    c) the filter code should try to avoid duplicating error messages about
+    problems found at the unpacking level.  For example, if no CAEP bank is
+    produced, the EM or JET filter should simply fail the event, rather than
+    producing yet another error message.  To make the logic safer, there are
+    also entries to check the status of the bad-data flags, so that no extra
+    messages are generated:
+        IF (no CAEP bank found.and.(.NOT.BAD_CAL_FLAG())) THEN
+            really a strange error--produce message
+        endif
+    Entries BAD_CAL_FLAG, BAD_MU_FLAG, and BAD_CD_FLAG exist to report the
+        status of the bad data flags for the current event.
+.end lit
+.hl Practical hints for writing Efficient Level 2 code
+.hl2 avoiding recomputation of results
+    If your code saves results from previous computations, you should try to
+avoid recomputing results, provided your current results are valid.  Your
+current results are valid if:
+    1) they come from the same events and the same list of candidates
+    2) they were evaluated with the same cuts/parameters
+ If what you save is independent of the parameters, this is straightforward. If
+you  keep results in a temporary ZEBRA bank, simply check if it is still there:
+ZEBCOM is effectively wiped every event in LEVEL2.  If for some reason you keep
+your results in a common block, you will have to be more careful, and keep as
+part of the common block the event number for which it is valid.  See the code
+fragment CURRENT.FORT describe below. 
+.hl2 RCP banks 
+    You may find the code fragment PICK.FORT below useful.
+    If you download constants via RCP in tool_INIT, you should be aware that the
+default size of a RCP bank is 6KB.  The size includes not only your constants,
+but also every character of comments in the file.  However, you can easily
+shrink this down to the minimum (but still including the comments), by simply
+editing the file with EVEDT, which resets the SIZE line.  You may need to 
+break the file into individual banks to accomplish this.
+    If you require parameter values deep in a loop, it may be worthwhile to
+extract copies of the arrays of the parameters from the RCP banks into local or
+common arrays in the tool_PARAMETERS entries.  However, be careful to reload
+these parameters and all values derived from them each time tool_PARAMETERS is
+called.
+.hl2 Some useful code fragments
+The following code fragments are found in D0$LEVEL2$SOURCE.  They are
+conveniently accessed by executing the
+logicals definition file D0$LEVEL2:@SETUP_L2_CODE_FRAGMENTS.COM, and in the
+editor doing
+PF1-I and responding with the appropriate logical name for the code fragment you
+wish to use.  
+.lm 0
+.rm 80
+.PAGE SIZE , 70
+.lit
+=================================================================
+FIRST      should be used to protect once-only initialization code
+==================================================================
+      LOGICAL FIRST
+      SAVE FIRST
+      DATA FIRST/.TRUE./
+C------------------------------------------------------------------
+C
+      IF (FIRST) THEN
+
+        FIRST = .FALSE.
+      ENDIF
+.end lit
+.lit
+=================================================================
+PICK code for picking constants from a RCP bank (or see L2ETMISS example on 
+how to handle arrays of parameters)
+=================================================================
+      LOGICAL EZERROR,OK
+      INTEGER IER
+C------------------------------------------------------------------------
+        CALL EZPICK(''bank_RCP')       ! Select bank
+        OK = .NOT.EZERROR(IER)
+        IF (IER .EQ. 0) CALL EZGET('xyz',xyz,IER)       !get each constant
+        IF (OK) CALL EZRSET     !Reset if PICK was OK
+        IF (IER .NE. 0) THEN   !Error reading RCP: define defaults if desired
+
+          CALL ERRMSG(
+        ENDIF
+.end lit
+.lit
+=================================================================
+CURRENT     check if data valid for current event
+=================================================================
+      INTEGER CURRENT_EVENT             ! the event for which CAEP is valid
+      SAVE CURRENT_EVENT
+      DATA CURRENT_EVENT/-987654/
+C----------------------------------------------------------------------
+C
+C...check if information is valid for current event
+      IF (CURRENT_EVENT.NE.IQ(LHEAD+7)) THEN
+
+        CURRENT_EVENT = IQ(LHEAD+7)
+      ENDIF
+.end lit
+.lit
+=================================================================
+PATH        (should NOT be used in L2 code, but useful in testing code)
+=================================================================
+      CHARACTER*4 OLD_PATH
+
+      CALL PATHGT(OLD_PATH)     !save original path
+
+      CALL PATHST('FILT')
+
+  999 CONTINUE
+      CALL PATHST(OLD_PATH)     !Go back when you're done--IMPORTANT!
+.end lit
+.lm 8
+.rm 72
+.PAGE SIZE , 70
+.begin bar
+.hl1 The Zebra Environment in Level 2
+    A ZEBRA PATH under the bank FILT has been constructed before tools are
+called: The HITS, PROC, and HSTR banks are already created under the FILT bank,
+just as in offline code they are created under the PROC bank/path. Thus, there
+is no need to book them in level 2 code.  In addition, the PATH is set to FILT,
+and should not be changed by level 2 code.  Finally, a FRES bank has been
+created to hang level 2 results from.
+.hl2 Temporary Zebra Banks in Level 2
+    Level 2 code is discouraged from using working banks, as the zebra structure
+in level 2 is organized differently than in offline.  At this time, the raw data
+is in division 1, and there are no plans to switch to division 2 (like offline).
+Since working banks live in division 1, unless someone finds a way of resetting
+the working bank division, there is no mechanism for having working banks in
+level 2.  There are two alternatives for making banks which are not intended to
+be written out, but are useful for internal work in level 2.  One is to create
+these banks as standalone banks, so that the do not hang from the event header,
+and thus will not be written out with the event.  However, it is then difficult
+to get these written out, even if you want to.  The other alternative is the
+"marked bank" mechanism mentioned below.
+.hl2 Recording \of Permanent Results \from \each TOOL.
+ The filter framework books the main FILT bank and puts in a
+copy of the 128-bit filter word, and other 128-bit words describing which
+filters were actually tried, and other information.  Beneath the FILT bank, the
+standard top banks which appear below the RECO path are built, and the PATH is
+set to FILT.  In addition, a bank FRES is booked.  Filters wishing to record
+permanent results which are to be written out with the event record are invited
+.end bar
+to reserve links (the czar is Rich Astur); D0$ZEB$FILT:FRES.ZEB should be
+updated accordingly and the access should be via a link in D0$LINKS.  This
+should be done with some sensitivity to the fact that the event size is expected
+to be 1/3 MB, and we would not prefer to substantially enlarge it by adding
+filtering information as a normal operating mode.
+    
+    In this bank the TOOL should put information about how far into the code it
+went before making its decision etc. This information is important for
+monitoring purposes where the data will be looked at offline (possibly online in
+spy mode) to look for long term effects of particular parts of the algorithm. 
+.begin bar
+    One bank related to level 2 which hangs from HEAD is ESUM, which is the
+summary bank for level 2 tools.  The ESUM bank is a linear chain of banks which
+records the various objects found during event processing.  Each member of the
+linear chain represents a different level of analysis: 'TRGR' , 'FILT', 'RECO',
+and 'ISAE'.  The 'FILT' version reports objects found  by level 2 tools.  
+Each  tool, as it finds (new) candidates, should call ESUMFL to report. 
+This will enable building of topology tools based on results of various objects
+found by various tools, and help in monitoring level 2 results.
+ALL CANDIDATES WHICH PASS CUTS SHOULD GO INTO ESUM.  That means if you have 4
+which pass, and only 2 are asked for, all 4 should be processed and made known
+to ESUM.  Otherwise, a topology tool might be missing a candidate it should have
+to work with. 
+The example
+tool at the end shows how this is done in a simple case. See
+D0$OFFLINE_UTIL$GENERAL:ESUM.DOC for details.
+.end bar
+    We are currently experimenting with a method of "marking" banks hung from
+FRES so they will be available for internal use during event processing, but not
+written out if the event passes.  This mechanism is suggested instead of using
+working banks.   It has the advantage that, under control of a switch in
+L2SETUP, it is possible to turn on/off the writing of these banks without
+altering level 2 filter code.  
+
+    For limited numbers of banks, L2SETUP provides a mechanism of dropping
+specific result banks made in level 2 which aren't worth keeping on the event.
+
+    We automatically record, script by script, the number of the tool
+which failed the script, and its parameter set number (see FRES.ZEB) .
+.hl1 Testing tools
+    The normal mechanism for testing tools is to run them in VMS_FILTER (L2SIM);
+see below, and D0$LEVEL2:L2SIM.DOC.  In this context, there is the problem of
+how to obtain results beyond the pass rates and timing reported in the summary.
+    One method is to record results in banks on the filt path, and then in a
+separate package running after the VMS_FILTER package, do a comparison with the
+offline package banks.  This is most easily done by switching the PATH back and
+forth between FILT and RECO, as indicated by the PATH code fragment mentioned
+above.
+    Another issue is how to obtain information about which bits fired from
+inside such a package.  This can be done with the logical function 
+.begin bar
+.lit
+    L2BIT_PASSED(I) where I ranges from 0 to 127
+.end lit
+    Similar routines are available to tell whether L2BIT_TRIED, L2BIT_ON 
+(which means that the script either passed or was never tried), L2BIT_SET 
+(which means that the level 1 bit which this script requires was set) and 
+eventually L2BIT_UNBIASED which tells if this event is was one of an unbiased 
+sample passed along for filter efficincy measurements.  If you just need to 
+know whether the event as a whole passed, you can use L2_PASSED().
+    Note that efficiency can be measured either by UNBIASED events, or by 
+events in which a DIFFERENT L2BIT_PASSED is true (which provides a different 
+unbiasedsample): 
+.lit
+    IF (L2BIT_PASSED(J)) THEN
+        IF (L2BIT_TRIED(I)) THEN
+            IF (L2BIT_PASSED(I)) THEN
+                yes(i)
+            ELSE
+                no(i)
+            ENDIF
+        ENDIF
+    ENDIF
+.end lit
+    Currently, L2BIT_UNBIASED detects only unbiased events TRIED 
+and .NOT.PASSED.  
+However, this is not a serious limitation, because the efficiency of TRIED
+and PASSED events is easily measured.
+.end bar
+.hl Performance Monitoring \of TOOLS.
+ Each TOOL has to be monitored closely as a run progresses. 
+    The framework keeps track of how many times it calls a given TOOL and
+how often it passes an event. Further monitoring is possible via the
+recording of results in the FILT structure by looking at the data with an
+online (or offline) process. 
+.hl Histogramming \of Quantities \from TOOLs.
+ The filter framework will use a set of utility routines to book
+histograms and fill them with information about the running of the filters
+and individual TOOLs. These histograms will be available as special event
+records at END_RUN. The routines used in the running system may be a
+modified version of the HBOOK set to gain speed. 
+ A special version of the Level-2 program will be set up where
+the routines are actually the HBOOK ones such that the histograms may easily
+be looked at online etc. This program may or may not be running in a subset
+of the available Level-2 nodes at any given time. 
+.hl Timing \of \a TOOL.
+ Most of the detailed timing of a TOOL should take place
+off-line, but some nodes will be set up with an accurate real-time clock and
+an interface routine which returns the timing information. The offline L2SIM
+will provide timing information at the event, script, and tool level, depending
+on the settings of L2SETUP (see the next section).  The timing routines
+used are those described in D0$ONLINE_UTIL:TIMESERV.MEM.  The basic calls
+are
+.begin bar
+.lit
+C
+C...WARNING!!! CREATE_TIMER chooses the ID, not you!  Save it!
+    ICPU = 1    !1 for CPU timing; 0 for real time
+    CALL CREATE_TIMER(ID(I),ICPU,ICODE)   !ICODE = 1 is a success 
+        CALL START_TIMER(ID(I),ICODE)
+                your code here
+        CALL STOP_TIMER(ID(I),DELTA_T,ICODE)
+    CALL COMPUTE_TIMER(ID(I),NCALLS,AVG,RMS,ICODE) 
+        
+    where time values are in seconds
+
+.end lit
+.end bar
+ This function will have versions for VMS and VAXELN
+which use the standard time functions in the two cases. Under VMS this is 
+actual CPU time used while in VAXELN as well as with the real-time clock it
+returns actual elapsed time since the function was last called. The number
+of ticks are always in units of seconds, although for both VMS and ELN
+the actual resolution of the clock is fixed at 10 milliseconds.  If enough calls
+are made, the intrinsic resolution of 10msec/sqrt(12) becomes small, and you
+will get a reasonably accurate number, although you are cautioned that the
+timing may well depend on what else is running on the machine.
+To time a
+section of code, one has to call the function before and after the section
+and use the result of the last call as the actual time spent in the
+section. One will have to worry about the extra overhead of calling the
+timing function, especially if there are many of these timing calls in
+the code. The technique described in the FORTRAN manual for turning off/on
+code via "D-type lines" is recommended for including these calls to the timers.
+.begin bar
+.hl L2SETUP: Affecting operation of level 2
+    A pseudo-tool L2SETUP has been defined.  Its only purpose is to allow a set
+of parameters to be downloaded on a run-to-run basis which affect operations of
+the level 2 system.  These parameters will change from time to time, but are
+expected to cover things such as how often events are checksummed, how much
+timing is done, treatment of faults (generation of error messages,
+connection with the alarm system) etc.  The current parameters are:
+.lit
+    TIME_SCRIPT     TRUE
+    TIME_TOOL       TRUE
+    HISTO_SCRIPT    FALSE
+    HISTO_TOOL      FALSE
+    ICPU            'CLOCK'   !or 'CPU' for CPU-only timing
+    TMINSCRIPT      10.     !histo limits
+    TMAXSCRIPT      5010.
+    TMINTOOL        10.
+    TMAXTOOL        1010.
+    RAW_TO_DROP     ' '
+    BANKS_TO_DROP   ' '
+    BANKS_TO_DROP_2 ' '
+    L2_HITFIND      FALSE
+.end lit
+    These can be affected by defining a script in which l2setup is called as a
+tool.  The tool immediately returns, claiming that its event has passed.  If it
+is desired to drop part of the raw data (despite having digitized it), for
+example set BANKS_TO_DROP   'CAD1_CAD2'.  By eliminating the delimiting _ you 
+can drop up to 5 banks (BANKS_TO_DROP 'CAEHCATE' would drop any CAEH or CATE 
+banks found).  The BANKS_TO_DROP_2 parameter allows you to expand beyond the 
+5 bank limit forced by COOR's 22-character limit on strings.  Since
+BANKS_TO_DROP and BANKS_TO_DROP_2 are actually concatenated in the routine that
+reads them, by splitting a bank name between the two, you can utilize the full 
+44 characerts and drop a total of 11 banks.
+
+Normally, if L2SETUP appears in the configuration file more than once, the
+parameters from first instance are used.  For online tests, the value IL2SETUP
+can be altered by EDEBUG in MAIN_FILTER_BEGIN to allow, for example, a
+FILT_SHADOW node to run with different L2SETUP parameters than the main nodes,
+which would normally have the first instance of L2SETUP.
+See L2SETUP.DOC in d0$LEVEL2$docs for more details on the parameters.
+.end bar
+.lm 0
+.rm 80
+.page size 58,80
+.page
+.lit
+
+Call tree of filtering in VMS_FILTER (L2SIM)
+
+VMS frame hooks:                             (routines under L2_MAIN in ELN]
+!FILTER_EVENT!     Process event        (USREVT) [ZBFILL in ELN]
+!FILTER_INITIALIZ! Job Initialization   (USRINI) [L2_MAIN directly in ELN]
+!FILTER_SETUP!     User Dialog          (USDIAL) no such in ELN
+!FILTER_RUN!       Read parameters      (USRPAR) [L2_TALK in ELN]
+!FILTER_SUMMARY!   Standard Summary     (USRSSM) [FILTER_REPORT in ELN]
+
+X means that this routine is EXACTLY the same as in real ELN level 2
+* routine built by FILTER_MAKER based on tools defined in L2TOOL.DAT
+
+    (WARNING--the order is alphabetical, not order calls actually made)
+
++---FILTER_INITIALIZ  job initialization                            [L2_MAIN]
+|    +---FILTER_INIT * X           (build jump table with %LOC)
+|    |    +---L2_EM             ( for all tools defined for this node type)
+|    |    +---L2ETMISS
+|    |    +---L2JETS
+|    |    +---MUON_L2           
+|    +---FILTER_STP_IN X     read in VMS_FILTER.STP
+|    +---(VMS_)READ_RUN_FILTER  read in scripts; analogous routine online
+|    +---WRITE_FILTER_VERSION   to screen
+|    +---FLGBK,FLGSET,TSUM_RUNPAR  read the file to get trigger/filter names
+ 
+
++---FILTER_RUN  begin run initialization                            [L2_TALK]
+     +---MAIN_FILTER_BEGIN X
+          +---ERRCLR,ERRMAX,ERRZON      !supression of some messages
+          +---FILTER_PARAMETERS * X     (ezpick RUN_000001.ZDAT with RCP cuts)
+          |    +---L2_EM_PARAMETERS
+          |    +---L2ETMISS_PARAMETERS
+          |    +---L2JETS_PARAMETERS
+          |    +---MUON_L2_PARAMETERS
+          +---FILTER_RUN_RCP            read RUN_000001.ZDAT (EVERY run)
+          +---FILTER_TIMING_SETUP,FILTER_COMPUTE_TIMING
+          +---GET_L2TYPE_NAME,GET_NODE_NAME,GET_NODE_NUMBER
+
++---FILTER_EVENT        once per event                              [ZBFILL]
+|    +---HARDWARE_TRIGGER X
+|    +---MAIN_FILTER X
+|    |         +---FILTER_BOOK_BANKS        where results will go
+|    |         |    +---PATHGT,PATHST,MKPATH  build FILT path and set to it
+|    |         |    +---BKFILT,BKFRES 
+|    |         |    +---HSTRFL              stamp version on event
+|    |         +---FILTER_FILL_BANKS        some final results
+|    |         |    +---BKTSUM              make blank TSUM bank
+|    |         |    +---L1ESUM_EVT          fill L1 TSUM bank
+|    |         |    +---ESUM_PUSH           shrink ESUM to min size
+|    |--contains entries BAD_XXX_FLAG, and SET_BAD_XXX_FLAG
+|    |         +---TOOL_DISPATCH  ( REALLY calls the tools )
+.............................................................................
+               |    +---L2_EM            ( TOOL_DISPATCH is NOT rebuilt,
+               |    +---L2ETMISS         because it only implicitly contains
+               |    +---L2JETS           these calls via the jump table built
+               |    +---MUON_L2          in FILTER_INIT)
+.............................................................................
+|    +---TSUM_FILL (VMS)                !write TSUM names (in LOGGER online)
+                                Figure 2
+.end lit
+.lm 0
+.rm 80
+.page size 58,80
+.page
+.lit
+                Processes and Jobs on Level 2 Nodes 
+                      (A debugger's crib sheet)
+                   -----------------------------
+
+ Job 8, program L2_MAIN         the filter framework and code
+
+        process name    main routine/call tree
+        ------------    ------------
+*    Process 1, MAIN:     L2_MAIN
+                            +--FILTER_INIT      !initialize jump table
+                            +--ZBFILL           !make ZEBRA headers for raw data
+                                   +--MAIN_FILTER  !call filters via jump table
+                                         
+        -launches other tasks and maintains synchronization between them
+        -initializes, makes data look like zebra, and calls real filtering
+        -since filter calling is via a jump table, you will never find a
+            statement in any program of the form CALL toolname.  The closest you
+            get is CALL TOOL_DISPATCH(%VAL(TOOL_TABLE(tool_number))
+
+        ( FILTER_INIT is called from FILTER_INITIALIZ in VMS_FILTER;
+            ZBFILL is like FILTER_EVENT in VMS_FILTER)
+
+*    Process 3, L2_TALKER: L2_TALK
+                                +--MAIN_FILTER_BEGIN
+                                    +--FILTER_PARAMETERS
+                                        +--xxx_PARAMETERS
+            
+        -read RCP file from COOR; call xxx_PARAMETERS
+ 
+        (like FILTER_RUN in VMS_FILTER)
+
+*    Process 17, STP-LOAD: GET_STP_FILE
+                                +--FILTER_STP_IN !read new STP file    
+
+        -waits until there is a NEW stp file to be read, then does it
+        (no analog in VMS; done there in FILTER_INITIALIZ, but only once)    
+
+NOTES:
+------
+    FILTER_INIT and FILTER_PARAMETERS are program-generated to include calls
+        to all known filters.
+
+    The process names are assigned in L2_MAIN for the most part, during calls to
+        ELN system utilities.  The process names are INDEPENDENT of the names of
+        the routines which implement the processes.  The Process Numbers are
+        assigned by the system. The NAMES are stable indicators of what is being
+        done; there is some possibility of the NUMBERS changing.
+        
+    JOBS correspond to .EXE files; PROCESSes correspond to pieces of code headed
+        by PROCESS_BLOCK headers.
+.end lit
+.page
+.lit
+        Auxiliary processes which normally aren't needed for user debugging
+            ------------------------------------------------------------
+    Process 2, SUICIDE
+    Process 4, EVENT_SENDER     send event to host
+    Process 5, ZBDUMP           communicate with host ZBDUMP program
+    Process 6, M(D)PM-INTERFACE     (most of PLAYBACK mods are here)
+    Process 7, LEVEL-2 LOGIC ANALYZER       for l2 monitoring
+    Process 8, M(D)PM ERROR HANDLER     
+    Process 9, INTERFACE TO CHANNEL 0   drivers for mpm(datacable) # 0
+    Process 10, INTERFACE TO CHANNEL 1          "                    1
+    Process 11, INTERFACE TO CHANNEL 2
+    Process 12, INTERFACE TO CHANNEL 3
+    Process 13, INTERFACE TO CHANNEL 4
+    Process 14, INTERFACE TO CHANNEL 5
+    Process 15, INTERFACE TO CHANNEL 6
+    Process 16, INTERFACE TO CHANNEL 7
+    Process 18, STP-NAME REPORT        find which STP file should be loaded now
+    Process 19, EVENT-RESULT REPORT         for l2 monitoring
+    Process 20, FILTER-COUNT REPORT                 "
+    Process 21, FILTER-SETUP REPORT                 "
+    Process 23, FILTER_TIME REPORT                  "
+    Process 24, CABLE REPORT                        "
+    Process 25, STATE REPORT                        "
+    Process 22, TOGGLE ERROR/DEBUG     set/reset error trapping to debugger/dump
+    Process 26, ZBD-KILL
+
+
+    Other jobs, not really relevant to filters
+        ----------------------------------
+
+ Job 2, program ESDRIVER    \   system level drivers: ethernet etc   
+ Job 3, program DZSDRIVER   /
+ Job 4, program EDEBUGREM       the debugger
+ Job 6, program LEVEL2_LOAD     download real level 2 on demand
+        (when you boot the node, there is no level 2 code there)
+ Job 7, program MPDRVR4000      the driver to make mpm look like vax memory
+
+
+                                Figure 3
+
+
+.end lit
+.lm 8
+.rm 72
+.PAGE SIZE , 70
+.page
+.hl How the TOOLs are Called.
+    The basic call tree is shown in Figure 2.  More detail is seen in figure 3,
+which includes information about the task structure in an  actual level 2 node.
+ Each TOOL has a very specific calling sequence in order to
+enable a simple 'dispatch' list of calls to build up filters and the whole
+Level-2 structure. Each TOOL must make a single decision on whether to pass the
+event or not. The structure takes care of setting the particular
+filter-bit to zero and abort the specific filter if the tool returns .FALSE..
+The input arguments needed by the TOOL are the parameter-set-number as
+described above and a 32-bit word specifying which hardware trigger-bit
+actually set up the call to this filter. The hardware bit number is needed
+in case the TOOL wants to look at selective information from the Level-1
+trigger block etc. The declaration of such a TOOL subroutine is: 
+ SUBROUTINE#'tool_name'(PARAM_SET_NUMB,HARDWARE_BIT,
+#*############RETURN_FLAG,EXTRA_FLAG)
+ where PARAM_SET_NUMB is the number of the parameter set to use,
+HARDWARE_BIT is a 32-bit mask with the bit set for the Level-1 trigger which
+caused the filter to be activated, RETURN_FLAG is the actual result for the
+tool (.TRUE. if event passed the TOOL and should be handed to the next TOOL
+or filter) and EXTRA_FLAG is an unimplemented flag which should always be
+set to .FALSE.. 
+.begin bar
+    The next section gives further detail on how the tools are used.  In the
+figure are shown the "hook" routines in L2SIM under VMS; their rough equivalents
+are also shown for ELN under L2_MAIN.
+.end bar
+ A first version of the TOOL routine may be made by any of the programs used to
+define a new TOOL.
+.hl Defining and using TOOLs.
+ As you begin developing your tool, you will start work in the level 2
+simulation L2SIM.  See D0$LEVEL2:L2SIM.DOC.  At this stage, you will use
+FILTER_MAKER instead of L2STATE; it operates in much the same fashion, and is
+invoked by @D0$VMS_FILTER:FILTER_MAKER.
+ An 'editor' which adds a new TOOL call to the dispatch structure in the
+framework has been made. It is part of the L2STATE program which is used to
+manipulate specific Level-2 node information, Level-2 TYPE information in
+addition to the TOOLs as described here. For the TOOL definitions it uses a
+definition file which contains all the defined TOOLs. This same file is used
+by COOR (and the stand-alone program SUPCON) to set up the index for each
+TOOL as described above. L2STATE is able to add, delete and modify the
+information given for each one. It also edits the file of Level-2 TYPE
+definitions which uses the TOOL definitions to include specific TOOLs in
+each TYPE. Under the Level-2 Type Menu it has a command to produce two
+FORTRAN routines and possibly compile them, link the TYPE-specific Level-2
+program and download the new program to the appropriate nodes. 
+ The first routine made up by L2STATE is called by the framework once
+(and only once) at the start of the program and only makes up a table of
+addresses for each of the TOOLs included for the specific TYPE. It has
+the declaration: 
+ SUBROUTINE#FILTER_INIT
+ The second routine made up by L2STATE is called by the framework once
+at the beginning of a new run to call all the parameter routines. It has
+the declaration: 
+ SUBROUTINE#FILTER_PARAMETERS(RUN_NUMBER,NEWPAR)
+ where RUN_NUMBER is the number of the run being started and
+NEWPAR is the array (1 entry for each possible TOOL) of parameter sets to
+read. 
+ The actual dispatching is done via a routine with the following
+declaration: 
+ SUBROUTINE#TOOL_DISPATCH(TOOL_ADDR,PARAM_SET_NUMB,
+#*###########HARDWARE_BIT,RETURN_FLAG,EXTRA_FLAG)
+ where TOOL_ADDR is the address of the TOOL as found in the
+table set up by FILTER_INIT and the rest of the arguments as described
+above under "Calling sequence of a TOOL". The TOOL structure has to work
+with such an indexed list of TOOLs because it is very inefficient to use a
+search through a list via an IF-ELSEIF-ENDIF  structure. COOR takes care of
+assigning the index of each TOOL in the definition of a filter-script.
+ The structure has a set of "filter-scripts" defined by name. Each
+script is a list of TOOLs in the order they should be activated together
+with a parameter-set-number for each TOOL. COOR keeps track of these set
+numbers to make sure the number of sets read via 'tool_name'_PARAMETERS
+correspond to the set numbers used in activating a TOOL.
+
+.hl Definitions \and Uniqueness \of TOOLs.
+ The way to make sure the TOOLs are uniquely defined, correlated  
+with the information in the L2TYPE definitions and then included in the
+possible Level-2 system files is as follows: 
+.list 1
+.le;Each possible TOOL is defined via the "TOOL Definitions"
+submenu in the L2STATE program. The parameter information for each one is
+also entered there. This information is stored in the L2TOOL.DAT file. A
+unique numbering of the TOOLs is set up this way, and these numbers are then
+used when building filters and must also be used when setting up the
+NEW_PARAMS argument to BEGIN_LEVEL2. 
+.le;Individual Level-2 TYPEs are defined via a set of definitions
+stored in a file L2TYPE.DAT which is written and manipulated with the
+"Level-2 Type Definitions" submenu in the L2STATE program. The numbers of
+the TOOLs as described above are used to set up the call to
+'tool_name'_PARAMETERS etc. as described in the Framework--TOOL interface
+chapter. The menu item "Make Filter Routines" makes two subroutines which are
+used when linking the L2_MAIN program for each TYPE. 
+.end list
+.ch Testing TOOLs under VAX/VMS.
+.lm 8
+.rm 72
+ This chapter describes the method for testing the TOOLs written according
+to the above specifications. The VAX/VMS test-bed is using the
+standard D0USER framework, and the user should be familiar with its
+operation. Documentation may be found in the file: 
+D0$D0USER:D0USER_GUIDE.MEM. The PROGRAM_BUILDER is used to put the
+VMS_FILTER into the D0USER framework as described in the above manual and
+as described in D0$PROGRAM_BUILDER:USER_GUIDE.MEM. To make a standard
+VMS_FILTER version of D0USER, the user does NOT have to know how to run the
+PROGRAM_BUILDER. 
+ The TOOL definitions is stored in a file as described
+above. For the test version this may be a different file than the standard
+Level-2 definitions (which are in D0DAQ$:L2TOOL.DAT). Normally each version
+of VMS_FILTER will have its own version of L2TOOL.DAT. A possible way to
+share such a file via the logical name L2TOOL is also possible. There is a
+submenu in the USER DIALOG 
+part of the VMS_FILTER_D0USER program which may manipulate the
+information in this file. If you do
+NOT have a file L2TOOL.DAT in the directory you are working from, the item
+WRITE TOOL INFORMATION in the above submenu will make a new one for you.
+After the TOOL information has been changed, the command MAKE INIT ROUTINES
+must be issued to make up the two routines FILTER_INIT and
+FILTER_PARAMETERS using the current set of TOOL definitions. These routines
+are compiled by the procedure described below to make a new version of the
+VMS_FILTER_D0USER program. 
+ Similarly, a file is used to store all the filter-script definitions as
+well as the mapping 
+between hardware trigger bits which may be present in the data to a set of
+filter-bits. This file is usually RUN_FILTER.DAT and kept in the directory
+where VMS_FILTER_D0USER is being run from. A logical name MAY be used to
+share such a file as stated above for L2TOOL.DAT. 
+The USER DIALOG submenu in D0USER manipulates all the information
+which is stored in RUN_FILTER. Notice that it is ONLY written out when the
+MAKE RUN_FILTER FILE command is issued. But if you make changes before
+starting to process data, those changes WILL be used in the subsequent
+processing of data. This is a way to test out changes before permanently
+recording them in the RUN_FILTER file. 
+The easiest way to find out which trigger bits are present is
+to run the program on a few events and look at the histogram TRIGGER BITS
+SET. 
+.hl How \to include your own (or library) routines \in \the link.
+ The link procedure (described below) looks for a standard
+option file, D0_FILTER.OPT (or DEB_D0_FILTER.OPT for a DEBUG version), in
+the directory being used for the link. In that file you should put the
+names of special .OBJ files and/or library specifications needed to
+complete the link. 
+.hl The procedure to make VMS_FILTER_D0USER.
+ A command file (D0$VMS_FILTER:FILTER_MAKER) is used to make a new version
+of the program. It will first ask you if it should run the PROGRAM_BUILDER
+to make all the interface files needed. This should ONLY be neccessary
+ONCE. It will then check if the routines FILTER_INIT and FILTER_PARAMETERS
+are present, and if not, make new ones according to the file pointed to by
+L2TOOL. If no file is found for L2TOOL, an empty one will be created. No
+TOOLs will be included in the version of VMS_FILTER_D0USER linked after this.
+The procedure will also check for the OPT files described above and make
+empty ones if needed. It then finally links the program and runs the setup
+file such that the command D0USER (or DEB_D0USER) will start the program. 
+.ch Linking main Program for Level-2.
+.lm 8
+.rm 72
+ This chapter describes the method for linking a new version of
+the main program for the Level-2 nodes. The EXE is tied to the TYPE of nodes
+as defined in the L2STATE program. (See separate chapter about the use of this
+program.) This program has to be used to make three FORTRAN files for the
+selected TYPE. The link procedures compile these files (to make sure
+they are available in the directory being used for the link). 
+.hl How \to include your own (or library) routines \in \the link.
+As for the VMS case, the link procedure (described below) looks for a
+standard option file, D0_FILTER.OPT, in the directory being used for the
+link. In that file you should put the names of special .OBJ files and/or
+library specifications needed to complete the link. 
+.hl The link procedure itself.
+ The command file used to do the link is: D0$D0DAQ:L2_MAIN.LNK.
+The TYPE may be specified as either the first or the second parameter and a
+debug version may be made by specifying DEBUG as either the first or the
+second parameter. I.e. to make the standard EXE with debug one would type: 
+ @D0$D0DAQ:L2_MAIN.LNK#REGULAR#DEBUG
+ If the TYPE is left off, it will be prompted for.
+ To download a newly linked program to the appropriate Level-2
+nodes, you may either change the load program for a TYPE in the L2STATE
+program or, if it is already set to the correct one, use the "Force Load
+Flag" command in the same program. The actual load takes place either when
+the "Write Changes" command is executed or before exiting the program. 
+.ch Using the Playback System for Testing Filters.
+.lm 8
+.rm 72
+ A system has been set up to have a single Level-2
+node read in events from a specified file on a host disk and use those events
+as input to the filter framework. The changes to the Level-2 program are as
+minimal as possible to make this environment as much the same as for the
+"real" Level-2 as possible. Only the part which normally interacts with the
+external data sources (Dualports or Multiports) has been replaced by a piece
+which opens the input data file and reads the events into the appropriate
+ZEBRA banks. 
+ The link procedure L2_MAIN.LNK described before is still used to link the
+executable for this case as well. The switch is done by looking at the TYPE
+name as given as input to the procedure. If the type name contains the string
+L2PLAY in any way, a playback mode file will be linked. To run such a file,
+the selected node HAS to be booted with a special SYS file. Experts should be
+consulted for this. All the information given above for including your own
+code in such an executable is valid for the playback case as well. The
+downloading of the executable may be handled in the same way as described
+above (via the L2STATE program), but also via the PLAYCON program described
+below. 
+.hl Controlling \a Playback Run
+ A special VMS program, PLAYCON, has been set up to handle the actual control
+of the running in Playback nodes. The filter script setups, bit assignments
+etc. are all handled by this program, making it totally independent from the
+normal running in the Level-2 system. PLAYCON will at startup search for
+the first available Playback node (any node of a type with a name containing
+the string L2PLAY) and make that the default node. If that is NOT the node you
+have been assigned, you will have to change the name via the appropriate menu
+item. If the node you choose is already being controlled by another process
+running PLAYCON, you will be told so and only be able to do status displays
+etc. and no real control of the running.
+ The main menu in PLAYCON looks like:
+.literal
+
+
+        1: Change Playback Node          2: Name of ZEBRA File
+        3: Begin a Run                   4: End a Run
+        5: Pause a Run                   6: Continue a Run
+        7: Status Report                 8: Timed Display
+        9: Supervisor Display           10: Report of L2 Final sta
+       11: Filter Menu                  12: Load parameters
+       13: Toggle Error/Debug Mod       14: Open Dump File
+       15: Close Dump File              16: Display Mode Setup
+       17: Run Command File             18: Set up Command File
+       19: Start Logging to File        20: Stop Logging to File
+       21: Add Menu Item                22: Control of Menu
+
+
+.end literal
+ The important items here are:
+.lm 14
+.b 1
+.i-4
+1:##Changes the name of the node to control as described above.
+.b 1
+.i-4
+2:##Asks for the name of the file to be used as input. 
+.b 1
+.i-4
+3:##Actually starts a run in the node. The run will be going until an END. 
+.b 1
+.i-4
+4:##Ends the run. 
+.b 1
+.i-4
+7:##Gets a display which shows the status of the events as read into the node. 
+.b 1
+.i-4
+10:#Reports how EACH event was handled by the node. An EOF will actually
+appear as an ERROR IN TRANSFER OF FIRST BANK.
+.b 1
+.i-4
+11:#Goes to the submenu which manipulates the filter script information to
+be sent to the node at the next BEGIN RUN.
+.b 1
+.i-4
+12:#Gets the current set of special run parameters from the Level-2 node
+for possible changes. These parameters include ones that sets the rate of
+checksumming the data, and whether the events are to be sent back up to the
+host when they pass the filter amongst others. 
+.b 1
+.i-4
+14:#Opens a file which will receive the same output as the screen for all
+display type commands.
+.lm 8
+ Notes: The ZEBRA file is opened whenever one is not already open. This means 
+that
+if the run is ended before all the events are read in, the next run will start
+with the next event in the file. If End-of-File is reached before an END run
+is issued, the Level-2 program will act as if the run has ended. At this
+point, PLAYCON will not sense this and an END RUN command will still have to
+be issued before a new BEGIN is possible.
+ The Filter submenu:
+.literal 
+
+        1: Change a Filter Bit           2: Clear a Filter Bit
+        3: Display Filter Masks          4: Get Filter Report
+        5: Level-2 Type Display          6: Check Loaded Programs
+        7: Load Level-2 Nodes            8: Make RUN_FILTER File
+        9: Run Command File             10: Start Logging to File
+       11: Stop Logging to File         12: Top Level Menu
+
+
+.end literal
+ The important items here are:
+.lm 14
+.b 1
+.i-4
+1:##Changes the script for a given bit. The bit number will be prompted
+for and if the bit currently has no associated information, you
+will be asked to confirm the addition of such information.
+.b 1
+.i-4
+2:##Clears out ALL the information for a given bit. The bit number will be
+prompted for.
+.b 1
+.i-4
+3:##Displays the information for ALL filter bits currently defined.
+.b 1
+.i-4
+4:##Gets the information about the running of the filter from the Playback
+node. This information includes how each filter bit has been treated in the
+node so far during the current or most recent run.
+.b 1
+.i-4
+6:##Gets a report from the Playback node about which executable file is
+currently being used and when this file was last loaded.
+.b 1
+.i-4
+7:##Performs the download of a new version of the executable to the node.
+.ch Run-Time Error handling in Level-2 programs.
+.lm 8
+.rm 72
+ There are two distinct ways of handling run-time errors in the filter code
+under VAXELN. The 'normal' way is to trap the error with the VAXELN
+debugger. The debugger (EDEBUG) does NOT have to be connected to the node
+at the time of the error for this trap to work. When connected with EDEBUG,
+you will see where the error occurred and what the error was. You may also
+examine variables etc. at that point. (This assumes that the source code was
+linked in DEBUG mode and that the program was linked with DEBUG.) For more
+information on EDEBUG see the VAXELN documentation.
+ The other way to trap the run-time errors is with the ERR_HANDLER module,
+which, when included in an ELN program,
+allows the programmer to have some control over the system's response
+to a run-time error. This is especially useful with well debugged code when
+running in real life, where events may do unexpected things or probe little
+used areas of the code. Using this module, an event which produces
+an error can be ignored, and processing can skip to the next event.
+The ERR_HANDLER is a module which enables user defined action on the
+occurrance of a run-time error in a VAXELN program.  If an error occurs, the
+ERR_HANDLER makes the program jump back to the next statement after the top
+level routine in the chain where the error occurred. The main program tests
+for this condition and reports the error if one is found. 
+ This report is currently ONLY written to a 'data-base' file on the host
+VAX. The information in the report is translated as to which routine caused
+the error, and the time-stamp, run number, event number, node type, node
+name and program running in the node are also included. This translation
+uses a file ('l2type'_L2_MAIN.CODE which is produced from the MAP file when
+a Level-2 program is linked using the L2_MAIN.LNK command file. It is VERY
+important that that file is kept with the EXE as pointed to by the entry in
+L2TYPE.DAT. If the EXE is linked in one directory and subsequently moved,
+the CODE file MUST be moved as well. Otherwise the translated information
+will be WRONG. A special interface program has been written to do searches
+in this data-base as described below. 
+.hl L2ERR_READER program.
+ The program accessed via the command L2ERR_READER interfaces to the
+data-base of recorded errors in the Level-2 system as described above.
+ The program first presents a menu of possible ways of searching the       
+data-base. Each time you have performed a search, it will ask you if you
+want to perform a further search on the already selected entries.
+ The search items are:
+.list
+.le;TIME of error
+ The actual time when the error occurred is recorded and the search will
+let you choose the START and END time of the search.
+.le;Find error in ROUTINE
+ You may also see if a particular routine caused any errors. The program
+will ask for the name of the routine to look for
+.le;Find error in NODE_TYPE
+ The nodes are separated into TYPES as described before. This search will
+let you enter the TYPE to look for in the data-base.
+.le;Specific NODE_NAME
+ If you suspect errors in a specific node (for some unknown reason), this
+will let you search the data-base for a specific node-name.
+.le;RUN_NUMBER sequence
+ If you only want to look at errors in a particular set of runs, this will
+allow such a search.
+.end list
+ See the EXAMPLES at the end of this manual for the actual screen displays
+from this program.
+.ch Interface for control (COOR).
+.lm 8
+.rm 72
+ This chapter describes the design of the part of the Level-2 system used to
+interface between the framework which controls all the filters running in
+each Level-2 node and the host program COOR which coordinates all the data
+taking. The information COOR uses to set up the Level-2 system resides in
+several parameter files on the host disk. These "database" files are
+written to by a special interface "editor" program, L2STATE. This program
+may only write new information to these files when it is able to gain
+run-control. Normally the program COOR will have this control and will have
+to be asked to give it up before information can be written. The OPEN of
+the run-control file is recorded in a special file such that the program
+which needs control can be told who last opened it. See the routines
+RECORD_FILE, GET_FILE and REPORT_FAILURE described below. The method for
+asking COOR to give up control of these files is implemented as described
+below under REQUEST_LEVEL2, DEMAND_LEVEL2 and RETURN_LEVEL2. 
+ COOR must in particular control the following aspects of the running in the
+Level-2 system:  
+.hl The Loading \of 'Calibration-type' Constants.
+ COOR has to decide when new sets of calibration and/or geometry 
+constants are needed in the Level-2 nodes. This is of course only
+possible to download between runs. A routine will be provided to download
+these parameters to each Level-2 node (specific TYPEs or all nodes).
+.hl Passing \of 'Run-time' Parameters.
+ This is COOR's main task as far as the Level-2 is concerned.
+COOR must read the filter definition files, assign filter-bits to each
+individual filter, check that the assigned Level-2 TYPE has the TOOLs needed
+for the filter, set up the mapping of hardware bits into filter-bits and set
+up the filter-scripts which tells the Level-2 framework which TOOLs to call and
+which parameter set to use for each TOOL. The filter-bit mapping is 
+passed via the FILTER_BIT_SET argument to BEGIN_LEVEL2 and the filter-scripts is
+passed via the TOOL_SCRIPT argument. For each of the filter-bits COOR
+also has to indicate whether it is to be run in 'force' mode or not.
+Force mode means that if the particular filter-bit is set, that filter
+always has to be run, even though another filter may already have passed the
+event. The indication of force mode is done via the FILTER_FORCE argument to
+BEGIN_LEVEL2. There is always a desire to be able to pass a certain fraction
+of the events unfiltered to have a sample to check out the efficiencies of
+the filters with. This is like a prescaling of the unfiltered events. The
+particular filter is run as normal on these events, but then a given fraction
+will be passed to the host anyway. This fraction is specified via the
+UN_FILTER_RATE argument to BEGIN_LEVEL2. The loading of parameters is likely
+to cause some amount of overhead, it is therefore useful to be able to only
+read in parameters where they actually have changed. This is done via the
+NEW_PARAMS argument to BEGIN_LEVEL2. It is an array where the number tells
+how many sets the TOOL should expect to read. 
+.hl Calling sequence \of routines
+ There are several routines written to interface with the Level-2
+system from a host control program. They are used by COOR as well as by
+SUPCON, a standalone program for testing the Level-2 control. The routines
+described in this chapter all are found in the D0$L2CONTROL library area.
+The calling sequence for these routines are: 
+.hl +1 ATTACH_LEVEL2:
+ This routine is the initialization routine for the Level-2
+interface which gets control over the run in the Level-2 system. It reads in
+the node information from the file L2STATE.DAT, Level-2 TYPE information
+from L2TYPE.DAT, hardware information from L2SUPER.DAT, as well as run
+information from RUNOLD.DAT and RUNNUM.DAT. 
+ CALL#ATTACH_LEVEL2(TOT_NUM,NAM_ARR,TYP_ARR,ATTOK)
+ where TOT_NUM is the total number of Level-2 nodes currently
+available (using 50 as max.), NAM_ARR is a CHARACTER*8 array of names for
+each one of the Level-2 nodes. TYP_ARR is a CHARACTER*16 array of TYPEs for
+each one of the nodes and ATTOK is a LOGICAL flag set to TRUE when
+successful. See GET_L2TYPE_INFO below for description on how to interpret
+the TYPEs. This information must be used when setting up the L2_MASK
+argument to BEGIN_LEVEL2. 
+.hl DETACH_LEVEL2:
+ This routine is used to release the Level-2 system when run
+control is no longer needed and may have been requested by another program
+(COOR provides the routines REQUEST_LEVEL2, DEMAND_LEVEL2 and
+RETURN_LEVEL2 to communicate the desire to take over run control.) 
+ CALL DETACH_LEVEL2
+.hl READ_NAMES:
+ This routine is used to get the name of the Supervisor in case 
+run control is not needed. It reads in the node information from the file
+L2STATE.DAT. 
+ CALL READ_NAMES(SUPER_NAME)
+ where SUPER_NAME is a CHARACTER*6 variable which
+receives the name of the current Supervisor as defined in L2STATE.DAT (via
+the L2STATE interface program). 
+.hl GET_RUNNUMBER:
+ This routine is used to get the next run-number in a unique
+series. It should be called before any run setup is done. The run-number is
+recorded in a file, RUNNUM.DAT (with exclusive write-access by one program;
+this is the way run-control is assigned). In this file is also recorded all
+the information about the last run, like trigger bit assignment,
+filter-scripts etc. This makes it possible to start up a run with the same
+conditions as the previous one without using COOR. Even if the run is never
+actually started (if BEGIN_LEVEL2 is not called or a failure occurs in
+trying to start the run), this run-number will never occur again.
+GET_RUNNUM also records the old runnmuber together with its comment in the
+file RUNOLD.DAT.
+ CALL GET_RUNNUMBER(RUNNUM)
+ where RUNNUM is an integer return argument which receives the
+new run-number. 
+.hl BEGIN_LEVEL2:
+ This routine is the actual setup and communication with the
+Level-2 system at begin-run. It has several arguments which are mentioned
+above for setting up the actual filtering in each Level-2 node. 
+ CALL#BEGIN_LEVEL2(RUNNUM,COMNEW,L2_MASK,DP_MASK,
+#*#####DUMMY_LOAD,FILTER_BIT_SET,TOOL_SCRIPT,FILTER_FORCE,
+#*#####UN_FILTER_RATE,NEW_PARAMS,FILTER_ORDER,FILTER_MAX,
+#*#####OK_FLAGS,ERROR)
+ where RUNNUM is the run-number returned from GET_RUNNUMBER (used
+to check that GET_RUNNUMBER was actually called before the call to
+BEGIN_LEVEL2), COMNEW is a comment (CHARACTER*64) for the run to be included
+in the run-number file, L2_MASK are masks of trigger bits by node (one
+32-bit word per available Level-2 node, for a maximum of 50 currently; also
+used to mask out which nodes should actually take part in the run),
+DP_MASK are masks of dual-port channels by triggers (one 8-bit BYTE per
+trigger, 32 in all, TRGR always included if more than one channel in use),
+DUMMY_LOAD is a LOGICAL*1 array which is NOT used anymore, FILTER_BIT_SET
+is a 4X32 integer array which forms 
+the 128-bit filter-bit mask for each hardware trigger bit, TOOL_SCRIPT is a
+2#X#MAXTOOL#X#128 integer array (MAXTOOL as set in L2_TYPE.DEF, currently 20)
+which gives the order of TOOLs and parameter-sets for each of the TOOLs for
+each filter-bit, FILTER_FORCE is a 128 LOGICAL*1 array where the entry is .
+TRUE. for each filter-bit which is to be run in force mode, UN_FILTER_RATE
+is a 128 integer array which gives the fraction (1:fraction) of events
+which is to be passed on to the host regardless of the result of the filter
+(0 means pass all events unfiltered), NEW_PARAMS is an MAXTOOL array of
+BYTEs which tells each TOOL how many parameter sets to read (0 means no new
+parameters to read, the order of the TOOLs in this array MUST be as set up
+in the file L2TOOL.DAT), FILTER_ORDER is a 128 BYTE array giving the actual
+order the filter_scripts should be tried, FILTER_MAX is an INTEGER*4 number
+giving the maximum number of entries used in the FILTER_ORDER array,
+OK_FLAGS is a LOGICAL*1 array with one entry for each available (using 50
+as max.) Level-2 node where a .TRUE. is returned when the node successfully
+received the new run information (use NAM_ARR returned from ATTACH_LEVEL2
+to turn these flags into actual node names) and ERROR is an integer error
+code (0 means everything OK, anything else is an error). 
+ The current set of defined errors are: 2: Error in connecting or
+sending/receiving messages to/from Supervisor, 3: Run already in progress,
+4: Run control not ON, 6: Bad match in Runnumber between this routine and
+GET_RUNNUMBER, 8: Asked for bank without matching datacable, 10: ALL nodes 
+reported bad, run NOT started.
+.hl END_LEVEL2:
+ This routine is called when a run is to be ended. It sends a
+message to the Supervisor which in turn tell all the nodes to end and report
+back whether they are "flushed" (done with the current event) or not. This
+routine may be called more than once to make sure the run really ended and
+that all the nodes are flushed (see CHECK_LEVEL2).
+ CALL#END_LEVEL2(FLUSH_FLAGS,ERROR)
+ where FLUSH_FLAGS is a LOGICAL*1 array with one entry for each
+available (using 50 as max.) Level-2 node indicating their flush status (use
+NAM_ARR returned from ATTACH_LEVEL2 to turn these flags into actual node
+names; only nodes which had a non-zero L2_MASK in the last call to
+BEGIN_LEVEL2 will possibly have a return of .FALSE.) and ERROR is an
+integer error code (0 means everything OK, anything 
+else is an error. The currently defined errors are: 2: Error in connecting
+or sending/receiving messages to/from Supervisor, 4: Run control not ON). 
+.hl PAUSE_LEVEL2:
+ This routine is called when a pause in the data-taking is needed
+for some reason, but may be resumed later with the same parameters.
+ CALL#PAUSE_LEVEL2(FLUSH_FLAGS,ERROR)
+ where FLUSH_FLAGS is a LOGICAL*1 array with one entry for each
+available (using 50 as max.) Level-2 node indicating their flush status
+(use NAM_ARR returned from ATTACH_LEVEL2 to turn these flags into actual node
+names; only nodes which had a non-zero L2_MASK in the last call to
+BEGIN_LEVEL2 will possibly have a return of .FALSE.) and ERROR is an
+integer error code (0 means everything OK, anything 
+else is an error. The currently defined errors are: 2: Error in connecting
+or sending/receiving messages to/from Supervisor, 4: Run control not ON). 
+.hl CONTINUE_LEVEL2:
+ This routine is called when the data-taking which was paused via
+a call to PAUSE_LEVEL2 is to be resumed again.
+ CALL#CONTINUE_LEVEL2(OK_FLAGS,ERROR)
+ where OK_FLAGS is a LOGICAL*1 array with one entry for each
+available (using 50 as max.) Level-2 node where a .TRUE. is returned when
+the node successfully received the continue command (use NAM_ARR returned
+from ATTACH_LEVEL2 to turn these flags into actual node names; only nodes
+which had a non-zero L2_MASK in the last call to 
+BEGIN_LEVEL2 will possibly have a return of .FALSE.) and ERROR is
+an integer error code (0 means everything OK, anything else is an error. The
+currently defined errors are: 2: Error in connecting or sending/receiving
+messages to/from Supervisor, 4: Run control not ON). 
+.hl CHECK_LEVEL2:
+ This routine is called when the flush status of each node is
+needed outside of a call to END_LEVEL2 (or PAUSE_LEVEL2). This may happen
+when some of the nodes are to be switched to a different mode etc. 
+ CALL CHECK_LEVEL2(FLUSH_FLAGS,ERROR)
+ where FLUSH_FLAGS is a LOGICAL*1 array with one entry for each
+available (using 50 as max.) Level-2 node indicating their flush status (use
+NAM_ARR returned from ATTACH_LEVEL2 to turn these flags into actual node
+names; only nodes which had a non-zero L2_MASK in the last call to
+BEGIN_LEVEL2 will possibly have a return of .FALSE.) and ERROR is an
+integer error code (0 means everything OK, anything 
+else is an error. The currently defined errors are: 2: Error in connecting
+or sending/receiving messages to/from Supervisor, 4: Run control not ON). 
+.hl CHECK_RUN:
+ This function is used to check if a run is in progress or not.
+The first time it is called it actually asks the Supervisor for the run
+status, on any subsequent calls it uses a flag kept in a common block (and
+set/reset by BEGIN_LEVEL2, END_LEVEL2) to determine the status. 
+ LOG_VAR=CHECK_RUN()
+.hl GET_L2TYPE_INFO:
+ This routine is used to get the information about a certain
+TYPE of Level-2 node. The TYPE definitions are stored in the file L2TYPE.DAT. 
+ CALL#GET_L2TYPE_INFO(TYPE_STR,NUMBER_TOOLS,TOOL_NUMBERS)
+ where TYPE_STR is an up to CHARACTER*16 string with the name of
+the TYPE to return information for, NUMBER_TOOLS is the number of tools
+loaded for this TYPE, TOOL_NUMBERS is an integer array of the number of the
+TOOLs as stored in L2TOOL.DAT. 
+.hl GET_L2TOOL_INFO:
+ This routine is used to get the information about a certain
+TOOL in the Level-2 system. The TOOL definitions are stored in the file
+L2TOOL.DAT. 
+ CALL#GET_L2TOOL_INFO(NUMBER,TOOL_NAME,PARAM_COUNTS,
+#*#####PARAM_NAMES,PARAM_TYPES)
+ where NUMBER is the number of the TOOL to get information for
+(as returned by GET_L2TYPE_INFO), TOOL_NAME is CHARACTER*32 string receiving
+the name of the TOOL, PARAM_COUNTS is the number of parameters needed for
+this TOOL, PARAM_NAMES is a CHARACTER*16 array of parameter names and
+PARAM_TYPES is a CHARACTER*1 array of parameter types (Currently R,I, and C;
+eventually to allow L as well). 
+.hl REPORT_FAILURE:
+ This routine is used to report the failure in the OPEN on a file. If the
+file is actually locked by the run-control system, the message will tell
+who locked it, otherwise the FORTRAN error will be spelled out. 
+ CALL REPORT_FAILURE(FILE_NAME)
+where FILE_NAME is a CHARACTER string indicating which file to report the
+failure of (same as used in OPEN statement).
+.hl-1 Routines Supplied \by COOR.
+ To be able to gain control over the running of the
+Level-2 system even when COOR is actively running, a set of routines is 
+supplied in the D0$ONLINE__UTIL library to request and/or demand the
+release of the Level-2 system (i.e. the files as described above) and to
+return control back to COOR. 
+.hl+1 REQUEST_LEVEL2:
+This routine is used to request the release of the Level-2
+system, the request is approved or denied according to the current
+state of the run. 
+ CALL#REQUEST_LEVEL2(BROADC_STR,RESPONSE)
+ where BROADC_STR is a string to broadcast to all TAKERS and
+RESPONSE is a LOGICAL*1 flag which is TRUE when permission was given, FALSE
+when request was denied (or COOR not found). 
+.hl DEMAND_LEVEL2:
+ This routine is used to demand the release of the Level-2
+system. This is always granted, but the routine does NOT return until
+COOR has shut things down properly and given up control. 
+ CALL#DEMAND_LEVEL2(BROADC_STR,RESPONSE)
+ where BROADC_STR is a string to broadcast to all TAKERS and
+RESPONSE is a LOGICAL*1 flag which is TRUE when the demand was successful,
+FALSE when demand failed (could NOT find COOR etc.). 
+.hl RETURN_LEVEL2:
+ This routine is used to return control to COOR when done with the Level-2
+system. 
+ CALL#RETURN_LEVEL2(RESPONSE)
+ where RESPONSE is a LOGICAL*1 flag which is TRUE when successful in
+returning the Level-2, FALSE usually means that COOR is not available.
+.ch Level-2 Display/Monitoring Interface
+.lm 8
+.rm 72
+ This chapter describes a set of routines which a "user" may call
+in a program which needs to display event-flow and/or wants to monitor
+actual throughput in the system. Other sub-systems, like Level-1 and COOR
+will provide similar routines. The routines
+described in this chapter all are found in the D0$L2CONTROL library area.
+.hl L2_SNAPSHOT:
+ For monitoring purposes, the actual exact count of various
+entities might be important (to look for "conservation of events").
+Therefore a routine which gathers ALL the information as close to
+simultaneously as possible is provided. Its calling sequence is: 
+ CALL#L2_SNAPSHOT
+ After one call to L2_SNAPSHOT, the routines described below
+may be called as many times as needed, the information does NOT change
+between calls (unless L2_SNAPSHOT is called in the meantime). All counts are
+reset at begin-run time (when the GLOBAL run-number changes). If the user
+does NOT call L2_SNAPSHOT, it is called from the first routine in the
+set below, and then again everytime one of the routines is called. 
+.hl L2_INFO_SUPER:
+ To get a report of the counters kept in the Supervisor, use the follwing
+call:
+ CALL#L2_INFO_SUPER(TOT_EVENTS,TRIG_COUNT)
+ where TOT_EVENTS is the total number of events seen by the
+Level-2 Supervisor and TRIG_COUNT is an integer array (32 entries) which
+gives the count for the individual hardware trigger bits. 
+.hl L2_INFO_NODES:
+ To get a report of the counters kept in in each node (by TYPE), use the
+follwing call:
+ CALL#L2_INFO_NODES(TYPE,FILTER_COUNT,TOTAL_COUNT)
+ where TYPE is an input integer with the index of the Level-2
+TYPE the information should be returned for (the TYPE is defined in the
+L2STATE program and the routine GET_TYPES should be used to access this
+information, a zero means return infor for ALL TYPEs), FILTER_COUNT is an
+integer array (3X128) entries which returns the total number of times a bit
+was set in an event, the total number of times its filter-script was
+actually activated and the number of times the event passed that
+filter-script, and TOTAL_COUNT is an integer array (3 entries) giving
+overall number of evnts IN to the Level-2 nodes of that TYPE, number of
+events OUT and total number of ERRORS detected (IN+ERRORS should for all
+TYPEs should equal the total number of events seen by the Supervisor, except
+when an event is sent to two different nodes at the same time). 
+.hl GET_TYPES:
+ To get the current set of defined TYPEs, use the follwing call:
+ CALL#GET_TYPES(NUM_TYPES,TYPE_NAMES)
+ where NUM_TYPES is the number of TYPEs currently defined and
+TYPE_NAMES is an array of CHARACTER*16 (at least NUM_TYPES entries) which
+returns the names of each individual TYPE. 
+.ch Internal details of ELN I/O
+.list
+.le;Implicit file opens (just a WRITE(n,*) without an OPEN(n) will NOT work). 
+.le;File opens with logical name assignments for file-names will NOT work.
+.le;Keyed access files may NOT be used.
+.els
+ To facilitate the inclusion of special code for the VAXELN case (use of
+the routines EOPEN, ECLOSE, EREAD and EWRITE for I/O etc.), the programmer 
+should plan ALL the use of files and put the OPEN statements together in ONE 
+place.
+ The routines EOPEN, EREAD and ECLOSE should be used to do ANY special I/O
+from the filter-related BEGIN_RUN code. This set of special routines is
+provided to do I/O in the Level-2 programs mainly to facilitate the
+possible use of servers and/or the fast 
+multi-port channels for I/O in the future. It turns out to be impossible to
+make a connection to a server look like a standard file OPEN in FORTRAN. The
+four routines have the following calling sequences: 
+.hl1 EOPEN:
+ CALL#EOPEN(FILE_NAME,READ_WRITE,FORM,IRECL,IUNIT,ERROR) 
+ where FILE_NAME is a character name for the file (logical name under VMS,
+and made into a 'real' file name in VAXELN), READ_WRITE is a flag
+indicating if the file is to be read or written (CHARACTER*1), FORM is file
+format ('U' for unformatted, 'F' for formatted), IRECL is the record length
+(if 0, parameter is ignored), IUNIT is a returned unit number to be used
+(saved in table and used by EREAD or EWRITE to check for opened
+files), and ERROR is a logical error flag (.TRUE. if an error occurred). 
+.hl EREAD:
+ CALL#EREAD(IUNIT,OUTSTRING,ERROR)
+ where IUNIT is unit number returned by a previous call to EOPEN, OUTSTRING
+is the bytes (returned as CHARACTER) actually read (an internal read or
+equivalences may be used to actually convert this to the appropriate form),
+and ERROR is a logical error flag.
+.hl EWRITE:
+ CALL#EWRITE(IUNIT,OUTSTRING,ERROR)
+ where IUNIT is unit number returned by a previous call to EOPEN, OUTSTRING
+is the bytes (passed as CHARACTER) to write (an internal write or
+equivalences may be used to convert this from other types of variables
+before calling this routine), and ERROR is a logical error flag. 
+.hl ECLOSE:
+ CALL#ECLOSE(IUNIT,ERROR)
+ where IUNIT is unit number returned by a previous call to EOPEN and ERROR
+is a logical error flag. 
+.hl GET_NODE_NAME:
+ To get the name of the node the Level-2 program is running on, use the
+following call: 
+ CALL#GET_NODE_NAME(NODE_NAME)
+ where NODE_NAME is a CHARACTER*6 variable which receives the
+name of the node the program is being run on. 
+
+.ch EXAMPLES
+.hl Sample TOOL.
+ Here is a a sample TOOL and its associated PARAMETERS and INIT routines.
+.lm 0
+.rm 80
+.literal
+
+      SUBROUTINE L2ETMISS_INIT
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : prepare download for missing Et filter
+C-
+C-   Inputs  : 
+C-   Outputs : 
+C-   Controls: 
+C-
+C-   Created  29-JUN-1991   James T. Linnemann
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C----------------------------------------------------------------------
+      CALL CL2_MAKE_TABLES
+  999 RETURN
+      END
+.end literal
+.lit
+      SUBROUTINE L2ETMISS_PARAMETERS(NEWPAR)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : initialization of downloaded parameters
+C-      for Missing ET level 2 filter
+C-      Always forget previously stored parameters
+C-
+C-   Inputs  : NEWPAR : [BYTE] if it's equal to zero, ignore
+C-      this run begin--nothing downloaded for this tool.
+C-      If it's nonzero, then look for new parameters, but DO NOT cause
+C-      cause errors if none are there.  To be sure a node reloaded during a run
+C-      gets caught up, ALL its tools get told to look for their parameters.
+C-   Outputs : this loads parameters into a common block
+C-        For an example which doesn't use common, see 
+C-        D0$LEVEL2$SOURCE:L2_GENERIC.FOR
+C-   Controls:
+C-
+C-   Created  29-JUN-1991   James T. Linnemann
+C-   Modified 13-Jul-1992   Ulrich Heintz: add missing Et significance cut
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:L2ETMISS_CUTS.INC'
+C&IF VAXVMS,VAXELN
+      BYTE NEWPAR
+C&ELSE
+C&      INTEGER NEWPAR
+C&ENDIF
+      INTEGER NPARIN
+      CHARACTER*80 MSG
+      LOGICAL OK
+      INTEGER IER,IER1,I
+C----------------------------------------------------------------------
+      IF(NEWPAR.GT.0) THEN      ! got a new download this run
+        CALL EZPICK_NOMSG('L2ETMISS',IER) ! downloaded parameters for tool
+        OK = IER.EQ.0
+        IF (OK) THEN  ! did have a download
+C
+C...find out how many parameter sets downloaded
+          NPAR = 0    !forget previous downloads
+          IF (IER .EQ. 0) CALL EZGETA('ETMISS_MIN',0,0,0,NPARIN,IER)
+          IF (IER .NE. 0) CALL ERRMSG('L2ETMISS','L2ETMISS_PARAMETERS',
+     &          'Couldn''t find number of PARAMETER sets','F')
+          IF (NPARIN.GT.NPAR_MAX) CALL ERRMSG('L2ETMISS',
+     &      'L2ETMISS_PARAMETERS',
+     &      'Too many parameter sets: some lost','F')
+          NPAR = NPARIN
+          IF (IER .EQ. 0) CALL EZGET('ETMISS_MIN',ETMISS_MIN,IER)
+          IF (IER .EQ. 0) CALL EZGET('ETMISS_SIG_MIN',ETMISS_SIG_MIN,
+     &      IER1)
+          IF (IER .NE. 0) THEN      ! Error reading RCP
+            CALL ERRMSG('L2ETMISS','L2ETMISS_PARAMETERS',
+     &          'Couldn''t find parameter','F')
+          ELSE
+            IF(IER1.NE.0)THEN ! optional parameters
+              DO I=1,NPAR_MAX
+                ETMISS_SIG_MIN(I)=0.
+              ENDDO
+              CALL ERRMSG('L2ETMISS','L2ETMISS_PARAMETERS',
+     &          'parameter ETMISS_SIG_MIN not found - set to 0','W')
+            ENDIF
+            CALL EZRSET
+          ENDIF
+        ENDIF
+      ENDIF
+C
+C...now for fast unpacking init
+      CALL CL2_INI      ! protected by IF(FIRST)
+  999 RETURN
+      END
+.end literal
+.pg
+.literal
+      SUBROUTINE L2ETMISS( PARAM_SET_NUMBER,HARDWARE,RESULT_FLAG,
+     &  EXTRA_FLAG)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : TOOL MET : filter on missing ET
+C-
+C-   Inputs  : NOW_SET : # of parameter set to use
+C-             HARDWARE: mask of set bits for LV1 trigger which started
+C-                       this filter.
+C-   Outputs : RESULT_FLAG : Flag set to TRUE when we want to pass tool
+C-                           under this PARAM_SET_NUMBER
+C-             EXTRA_FLAG  : Set to TRUE when we want to pass event and
+C-                           do no further filtering.
+C-   Controls:
+C-
+C-   Created  29-JUN-1991   James T. Linnemann
+C-   Modified 13-Jul-1992   Ulrich Heintz: add missing Et significance cut
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INTEGER PARAM_SET_NUMBER,HARDWARE,IER
+      LOGICAL EXTRA_FLAG,RESULT_FLAG
+      INCLUDE 'D0$INC:ZEBCOM.INC'               ! zebra main store
+      INCLUDE 'D0$INC:L2ETMISS_CUTS.INC'
+      INCLUDE 'D0$INC:CL2_LINK.INC'
+      INCLUDE 'D0$PARAMS:ESUM.PARAMS'
+      CHARACTER*80 MSG
+      REAL    SLOPE/0.029/,OFFSET/0.9/
+      LOGICAL OK,EZERROR                  
+C----------------------------------------------------------------------
+      EXTRA_FLAG = .FALSE.
+      RESULT_FLAG = .FALSE.
+      OK = .TRUE.
+      IF ((PARAM_SET_NUMBER.LE.0).OR.(PARAM_SET_NUMBER.GT.NPAR)) THEN
+        WRITE(MSG,'(A,I5,A,I5)')' parameter set requested = ',
+     &      PARAM_SET_NUMBER, ' but only had ',NPAR
+        CALL ERRMSG('L2ETMISS','L2ETMISS',MSG,'E')
+      ELSE
+        IF (L2PNUT.EQ.0) CALL CL2_CAEPFL(OK)      ! if needed
+        IF (OK.AND.(L2PNUT.GT.0)) THEN
+          RESULT_FLAG = (Q(L2PNUT+7).GT.ETMISS_MIN(PARAM_SET_NUMBER))
+          IF(ETMISS_SIG_MIN(PARAM_SET_NUMBER).GT.0)THEN
+            IF (Q(L2PNUT+14).LE.0) THEN
+              RESULT_FLAG = .FALSE.   ! we will fail any neg-ET event
+            ELSE
+C...divide can only fail on - Et provided consts are +
+            RESULT_FLAG = RESULT_FLAG .AND.
+     &        (Q(L2PNUT+7)/(OFFSET+SLOPE*Q(L2PNUT+14)) .GT.
+     &        ETMISS_SIG_MIN(PARAM_SET_NUMBER))
+            ENDIF
+          ENDIF
+          CALL ESUMFL('FILT',ID_ETMISS,Q(L2PNUT+7),Q(L2PNUT+9),
+     &      Q(L2PNUT+9), Q(L2PNUT+10),0.)
+          CALL ESUMFL('FILT',ID_ETSUM,Q(L2PNUT+14),Q(L2PNUT+9),
+     &      Q(L2PNUT+9), Q(L2PNUT+10),0.)
+        ENDIF
+      ENDIF
+  999 RETURN
+      END
+.end lit
+.lm 8
+.rm 72
+.hl L2STATE program
+ Main menu
+.literal
+
+
+        1: Change State of Nodes         2: Hardware Setup
+        3: Show Hardware Setup           4: Add a Node
+        5: Delete a Node                 6: Force Load Flag
+        7: Display Node List             8: Level_2 Type Definitio
+        9: TOOL Definitions             10: Write Changes to Files
+       11: Run Command File             12: Set up Command File
+       13: Menu Control
+
+
+.end literal
+ The important items here as far as the normal running of the system goes are:
+.lm 14
+.b 1
+.i-4
+1:##Modifies all the information for a node as far as what kind of a node
+it is. This includes setting up which node is the Supervisor, which nodes
+are currently turned off and which nodes are level-2 nodes. For each
+Level-2 node the TYPE will also be asked for.
+6:##Sets flags such that particular (or ALL) nodes will be loaded with a
+new version of the appropriate EXE file at the time the WRITE CHANGES
+command is issued.
+7:##Displays the list of currently defined nodes, the types for each
+Level-2 node and the state of the doenload flag as set by the above
+command.
+8:##Goes to the submenu which manipulates the Level-2 TYPE information.
+9:##Goes to the submenu which manipulates the indvidual TOOL information.
+.lm 8
+ NOTE: Item 2 sets up VERY important information for the hardeware
+interactions between the Supervisor and the rest of the world, and changes
+to this setup SHOULD BE LEFT TO EXPERTS!
+ Level-2 Type Manipulation submenu
+.literal
+
+        1: List Types                    2: Display Type Details
+        3: Define New Type               4: Copy a TYPE Entry
+        5: Remove Level-2 Type           6: Modify Type Info
+        7: Make FILTER Routines          8: Run Command File
+        9: Set up Command File          10: Menu Control
+
+.end literal
+ The important items here as far as working with the TYPE definitons are:
+.lm 14
+.b 1
+.i-4
+2:##Gives a display of all the details of a definitions for a given TYPE.
+.b 1
+.i-4
+3:##Sets up a complete definitions for a NEW TYPE.
+.b 1
+.i-4
+4:##Sets up the definitons for a new TYPE as identical to an already
+existing one. This information may the be changed via Item 6.
+.b 1
+.i-4
+5:##Completely remove all information for a TYPE. (BE CAREFUL!)
+.b 1
+.i-4
+6:##Changes the information for a given TYPE.
+.b 1
+.i-4
+7:##Makes a set of routines needed to link an executable for a given TYPE.
+You will also be asked if the executable is to be linked.
+.lm 8
+ TOOL Manipulation submenu
+.literal
+
+
+        1: Display TOOL Definitio        2: Define New TOOL
+        3: Remove Level-2 TOOL           4: Copy a TOOL Definition
+        5: Modify TOOL Informatio        6: Run Command File
+        7: Set up Command File           8: Menu Control
+
+
+.end literal
+ The important items here as far as working with the TOOL definitons are:
+.lm 14
+.b 1
+.i-4
+1:##Displays the current set of defined TOOLs.
+.b 1
+.i-4
+2:##Sets up the information for a new TOOL.
+.b 1
+.i-4
+3:##Completely erases all the information for a TOOL (BE CAREFUL!).
+.b 1
+.i-4
+4:##Sets up the definitons for a new TOOL as identical to an already
+existing one. This information may the be changed via Item 5.
+.b 1
+.i-4
+5:##Changes the information for a given TOOL.
+.lm 8

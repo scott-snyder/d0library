@@ -20,22 +20,28 @@ C                                -2= bank isnt corrected
 C-   Controls:
 C-
 C-   Created  13-DEC-1993   Richard V. Astur
-C-   Updated  Oct-12-1995   Bob Kehoe   --  add calculation of ICD and CH 
-C-                                          energy fractions independent of 
+C-   Updated  Oct-12-1995   Bob Kehoe   --  add calculation of ICD and CH
+C-                                          energy fractions independent of
 C-                                          EM fraction, write into JETS bank
-C-   Updated  13-OCT-1995   Bob Hirosky - add AREA_BIT to correction word 
+C-   Updated  13-OCT-1995   Bob Hirosky - add AREA_BIT to correction word
 C-   Updated  25-Oct-1995   Bob Kehoe   --  implement JETX storage, make more
-C-                                          flexible entry point called 
-C-                                          get_uncorrect_jets_bank_2 
-C-   Updated  30-OCT-1995   Dhiman Chakraborty   
+C-                                          flexible entry point called
+C-                                          get_uncorrect_jets_bank_2
+C-   Updated  30-OCT-1995   Dhiman Chakraborty
 C-                          Replace JETX storage by extended JETS bank
+C-   Updated   7-OCT-1996   Bob Hirosky   now keep a copy of uncor jet's bank
+C-                                        for cleaner recovery
+C-   Updated  18-JUL-1997   Bob Hirosky   dump JQAN on uncorrect
+C-   Updated  28-OCT-1997   BOB HIROSKY   JQAN(5) == JETS(29)
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:PI.DEF'
+      INCLUDE 'D0$LINKS:IZUJET.LINK'
+      INCLUDE 'D0$LINKS:IZJQAN.LINK'
+      INCLUDE 'D0$INC:ZEBCOM.INC'
       REAL PIE, SMALL
       PARAMETER( SMALL = .01 )
       PARAMETER( PIE = 1.0*PI )
-      INCLUDE 'D0$INC:ZEBCOM.INC'
       INTEGER CORRECTED_BIT, OUT_OF_CONE_BIT, NOISE_BIT, UNDER_EVT_BIT
       INTEGER AREA_BIT
       PARAMETER( CORRECTED_BIT = 0 )    ! Was correction done
@@ -52,8 +58,9 @@ C----------------------------------------------------------------------
       REAL ZSP_ET, UND_ET, DEMF, DPHI,dchf,dicdf
       REAL UET, UE, UEX, UEY, UEZ, UETA, UPHI, UEMF, UTHETA
       SAVE UET, UE, UEX, UEY, UEZ, UETA, UPHI, UEMF, UTHETA
-      real uchf,uicdf,farray(12)
-      save uchf,uicdf
+      REAL uchf,uicdf,farray(12)
+      SAVE uchf,uicdf
+      INTEGER VERSION, LUJET, LJQAN, NDATA
       REAL AE(5), APHI, ATHETA, AETA, AEMF
       REAL MAXABS, X1
 C----------------------------------------------------------------------
@@ -63,22 +70,52 @@ C:                      return small (with the sign of x1)
 C
       MAXABS( X1 ) = MAX( SMALL, ABS((X1)) ) * SIGN( 1., (X1) )
 C----------------------------------------------------------------------
-        IER = -1
-        UEX             = -999.
-        UEY             = -999.
-        UEZ             = -999.
-        UE              = -999.
-        UET             = -999.
-        UEMF            = -999.
-        uchf = -999.
-        uicdf = -999.
-        UETA            = -999.
-        UPHI            = -999.
-        UTHETA          = -999.
+      VERSION = IQ(LJETS+1)
+      IF (VERSION.GE.10) THEN
+        LUJET = LQ( LJETS - IZUJET )
+        IF (LUJET.GT.0) THEN   !old jet is hanging off of new one
+          UEX       = Q( LUJET + 2 )
+          UEY       = Q( LUJET + 3 )
+          UEZ       = Q( LUJET + 4 )
+          UE        = Q( LUJET + 5 )
+          UET       = Q( LUJET + 6 )
+          UPHI      = Q( LUJET + 8 )
+          UTHETA    = Q( LUJET + 7 )
+          UETA      = Q( LUJET + 9 )
+          UEMF      = Q( LUJET + 14)
+          UICDF     = Q(LUJET+17)
+          UCHF      = Q(LUJET+18)
+          IF (OVERWRITE) THEN   ! get info from hanging bank
+            NDATA = IQ(LJETS-1)
+            DO i = 1,NDATA
+              Q(LJETS+i) = Q(LUJET+i)
+            ENDDO
+            CALL mzdrop(IXMAIN,LUJET,'L')
+            LQ( LJETS - IZUJET ) = 0
+            LJQAN = LQ( LJETS - IZJQAN )
+            CALL mzdrop(IXMAIN,LJQAN,'L')
+            LQ( LJETS - IZJQAN ) = 0
+          ENDIF
+        ENDIF
+        RETURN
+      ENDIF
+
+      IER = -1
+      UEX             = -999.
+      UEY             = -999.
+      UEZ             = -999.
+      UE              = -999.
+      UET             = -999.
+      UEMF            = -999.
+      uchf = -999.
+      uicdf = -999.
+      UETA            = -999.
+      UPHI            = -999.
+      UTHETA          = -999.
       IF ( LJETS .LE. 0 ) RETURN
       IER = -2
       IF ( IQ( LJETS - 1) .LT. 35 .OR. (.NOT. BTEST( IQ(LJETS+26),
-     &  CORRECTED_BIT ) ) ) THEN
+     &      CORRECTED_BIT ) ) ) THEN
         UEX             = Q( LJETS + 2 )
         UEY             = Q( LJETS + 3 )
         UEZ             = Q( LJETS + 4 )
@@ -198,6 +235,11 @@ C: If this bank hasnt been corrected before, setup for this and future
 C: corrections
 C
       IF ( .NOT. BTEST( IQ( LJETS+26), CORRECTED_BIT ) ) THEN
+        VERSION = IQ(LJETS+1)
+        IF (VERSION.GE.10) THEN ! copy old jet for later recovery
+          CALL MZCOPY(IXMAIN,LJETS,IXMAIN,LUJET,2,'S')
+          LQ(LJETS-IZUJET) = LUJET
+        ENDIF
         IQ( LJETS + 26 ) = IBSET( IQ( LJETS + 26), CORRECTED_BIT )
         Q( LJETS + 28 ) = 1.0            ! Muliplicative scales
         Q( LJETS + 29 ) = 1.0
@@ -212,6 +254,8 @@ C
       IF ( FLAG .EQ. 'ET ') THEN
         ET_SCALE_FACTOR = MAXABS(NEW_VALUE)/MAXABS(Q(LJETS+6))
         Q( LJETS + 29 ) = Q( LJETS + 29) * ET_SCALE_FACTOR
+        LJQAN = LQ( LJETS - IZJQAN ) 
+        Q( LJQAN + 5 ) = Q( LJETS + 29 )  ! keep JQAN cor. factor current
         Q( LJETS + 6  ) = MAXABS( NEW_VALUE )
 C
       ELSEIF ( FLAG .EQ. 'E  ') THEN
@@ -221,7 +265,7 @@ C
 C
       ELSEIF ( FLAG .EQ. 'P  ') THEN
         PTOT            = SQRT( Q(LJETS+2)**2 + Q(LJETS+3)**2 + Q(
-     &    LJETS+4)**2)
+     &        LJETS+4)**2)
         THETA           = Q( LJETS + 7 )
         PHI             = Q( LJETS + 8 )
         P_SCALE_FACTOR  = MAXABS( NEW_VALUE )/MAXABS( PTOT )
@@ -241,7 +285,7 @@ C
         THETA           = MOD( THETA +4*PIE, PIE )
         Q( LJETS + 7)   = THETA
         PTOT  = SQRT( Q( LJETS + 2)**2 + Q( LJETS + 3)**2 + Q( LJETS +4)
-     &    **2 )
+     &        **2 )
         PT    = SQRT( Q( LJETS +2)**2 + Q( LJETS +3)**2 )
         Q( LJETS + 4 )  = PTOT * COS( THETA )
         Q( LJETS + 2 )  = Q( LJETS + 2) * PTOT*SIN( THETA )/PT
@@ -287,7 +331,7 @@ C
       ELSE
         IER = -2
         CALL ERRMSG('INVALID FLAG','CORRECT_JETS_BANK',
-     &    'INVALID FLAG PASSED', 'W')
+     &        'INVALID FLAG PASSED', 'W')
         RETURN
       ENDIF
 

@@ -1,0 +1,365 @@
+        PROGRAM_BUILDER (V2.2): QUICK GUIDE 
+        ===================================
+
+                                                Serban D. Protopopescu
+                                                Steve Adler
+                                                Created 16-May-1990
+                                                Harrison B. Prosper
+                                                Revised 15-Mar-1991
+                                                Hyon-Joo Kehayias
+                                                Revised 07-Nov-1991
+
+    This   guide  is  meant  to   provide  a  quick    introduction  to the
+PROGRAM_BUILDER.   Many  more  details  are  given in   D0$PROGRAM_BUILDER:
+REFERENCE_GUIDE.DOC. 
+
+    The requirements for using it are:
+
+    1) A Framework description file ('Framework_Name'_FRAME.PBD)
+    2) Library and/or user packages (XXXXX.PBD,..)
+    3) a link file template ('Framework_Name'.LNK)
+    4) a setup command file for the framework ( SETUP_'Framework_Name'.COM )
+
+    The framework description files reside in the PBD library D0$PBD.
+The package files could be either in user area or in D0$PBD. The link and setup
+command files must exist in framework library. 
+
+    All of the above items are available in the libraries:
+        
+            D0USER              (General Offline Analysis Framework)
+            D0RECO              (Offline Reconstruction Framework)
+            EXAMINE2            (General Online Analysis Framework)
+            CALOR_OFF           (Calorimeter Code Development Framework)
+            D0GEANT             (GEANT Montecarlo Framework)
+
+To generate an existing application program that uses, say, the D0USER 
+framework one writes simply:
+
+$ PBD/FRAME=D0USER/PACKAGE=XXXX  (XXXX=package name)
+
+    where XXXX is a  library (or user) package  name. For it to work a file
+called XXXX.PBD must  exist in either D0$PBD or in the area from which one is
+running the PROGRAM_BUILDER (PBD).
+
+    The above DCL command  generates the files:
+  
+        XXXX_D0USER.FOR
+        XXXX_D0USER.LNK 
+        XXXX_D0USER.OPT 
+        DEB_XXXX_D0USER.OPT 
+        XXXX_D0USER.COM 
+        DEB_XXXX_D0USER.OBJ 
+        XXXX_D0USER.OBJ
+
+The .FOR file contains all framework hooks (correctly filled with calls to
+user interface routines), a PBD initialization subroutine and subroutines to 
+handle  run-time switches (i.e.  packages can be turned on or off during 
+setup; the default is on), as well as the routines INZCOM, INZSTP etc. to
+define the sizes of the standard D0-Common-Blocks.
+
+
+                                        
+                                          program_builder: page 2
+
+The .LNK file includes all OBJ and OPT files needed  for the application.
+
+The .OPT file includes all OLB files needed by the .LNK file when the 
+executables are generated.  This file can be edited to add user objects.
+
+The .COM file properly assigns all RCP files used by the package and
+executes the framework setup command file.
+
+
+    NOTE: The .LNK, .OPT and .COM files will be complete only if the information
+          specified in the .PBD files is complete.
+
+To generate an .EXE one writes simply:
+
+$ @XXXX_D0USER.LNK [DEBUG]
+
+which generates: [DEB_]XXXX_D0USER.EXE
+
+Before running the .EXE one must
+
+$ @XXXX_D0USER
+
+One starts execution by
+
+$ D0USER 
+
+To run the debug version do
+
+$ DEB_D0USER[/NOSMG]  [ for frame using COMPACK ]
+
+unless you are using a workstation which opens a separate window for the
+debugger.
+
+
+                                        
+                                          program_builder: page 3
+      RUNNING PROGRAM_BUILDER
+      -----------------------
+
+You can start PROGRAM_BUILDER by:
+    
+$ PBD/FRAME=myframe/PACKAGE=XXXX
+
+For it to work a framework file called myframe_FRAME.PBD must exist in D0$PBD
+and a package file called XXXX.PBD either in D0$PBD or in user area. 
+
+See D0$PBD:D0USER_FRAME.PBD as an example of framework file and 
+D0$PBD:DUMMY.PBD for a package file.
+
+This command automatically generates:
+XXXX_myframe.FOR and XXXX_myframe.LNK, XXXX_myframe.OBJ, DEB_XXXX_myframe.OBJ,
+XXXX_myframe.COM, XXXX_myframe.OPT and DEB_XXXX_myframe.OPT. A template for the 
+.LNK file must exist in the area D0$myframe.
+
+$ @XXXX_myframe.LNK
+
+generates XXXX_myframe.EXE
+
+To combine packages:
+
+$ PBD/FRAME=myframe/NAME=COMB/PACKAGE=(XXXX1,XXXX2)
+
+which generates automatically:
+COMB_myframe.FOR, COMB_myframe.LNK, COMB_myframe.COM, COMB_myframe.OBJ, 
+DEB_COMB_myframe.OBJ, COMB_myframe.OPT, and DEB_COMB_myframe.OPT,
+where COMB is a name that you give to the combined packages. 
+
+To combine packages and combined packages do:
+
+$ PBD/FRAME=myframe/NAME=COMB/PACKAGE=(XXXX1,XXXX2%,XXXX3,XXXX4%)
+
+where XXXX2%( or %XXXX2 ) and XXXX4% ( or %XXXX4)  denote combined package 
+files - XXXX2_COMBINED.PBD and XXXX4_COMBINED.PBD. You must use a % to denote
+a combined package. The program builder will exclude duplicate package names
+so one need not worry that two combined packages contain identical packages.
+
+Once the combined package exists it can be regenerated by simply:
+
+$ PBD/FRAME=myframe/NAME=COMB
+
+To add a specified area to the search list for the package files:
+ 
+$ PBD/FRAME=myframe/PACKAGE=XXXX/DIRECTORY=mydisk:[myname.pbdfiles]
+
+The Program Builder searches mydisk:[myname.pbdfiles] directory for the package
+file XXXX.PBD in addition to the default user area and D0$PBD. 
+
+If you do not wish to generate the .OBJ files do:
+
+$ PBD/FRAME=myframe/PACKAGE=XXXX/NOCOMPILE
+
+This command generates:
+XXXX_myframe.FOR and XXXX_myframe.LNK, XXXX_myframe.COM, XXXX_myframe.OPT and
+DEB_XXXX_myframe.OPT. 
+
+
+                                        
+                                          program_builder: page 4
+
+    In general  you only  need to run  PBD the  first time you  try a given
+application, after that all  modifications are normally done to subroutines
+called by the particular  application and there  is no reason to regenerate
+the user hooks.
+
+    One can also generate a log of the PROGRAM_BUILDER operations by
+using the qualifier /LOG, i.e.
+
+$ PBD/FRAME=myframe/NAME=COMB/LOG/PACKAGE=(XXXX1,XXXX2)
+
+generates in addition to all the above files PBD.LOG in user area.  
+The log file describes the detailed operations of the PROGRAM_BUILDER
+during the run. 
+
+Additional optional qualifiers are:
+/ZEBCOM=400000   will set ZEBCOM common to 400000 (default is 200000)
+/ZEBSTP=20000     "    "  ZEBSTP   "     "  20000 (default is 100000)
+/ZEBWRK=20000     "    "  ZEBWRK   "     "  20000 (default is 40000)
+/PAWC=40000       "    "  PAWC     "     "  40000 (default is 20000)
+/GCBANK=30000     "    "  GCBANK   "     "  30000 (default is 10000)
+
+Examples:
+
+$ PBD/FRAME=D0USER/ZEBSTP=200000/PACKAGE=DST
+    generates  all files  needed for a   DST_D0USER program  with 200000
+allocated as memory for ZEBSTP common.
+
+$ PBD/FRAME=D0USER/ZEBCOM=500000/ZEBSTP=200000/NAME=VTXCAL
+$_/PACKAGE=(VERTEX,CALOR,CAHITS)
+    generates all files needed for a combined package VTXCAL_D0USER running
+the VERTEX finding and CAHITS. Once  VTXCAL_COMBINED.PBD exists it
+is sufficient to
+
+$ PBD/FRAME=D0USER/NAME=VTXCAL
+to regenerate the same files. Thus commonly used combined packages
+could be stored in the PBD library.
+
+$ PBD/FRAME=D0USER/PAWC=40000/NAME=VTXCAL
+will run generate the combined package files and overwrite the default
+size for PAWC.
+
+
+                                          program_builder: page 5
+                 PBD FILES
+                 ---------
+
+    PROGRAM_BUILDER works from files  with extension .PBD, either from user
+area or PBD library (D0$PBD).  See D0$PBD:PBD_FILES.DOC for details.
+
+Files in the PBD library:
+
+
+MASTER_HOOK.PBD
+    list of standard hook names
+
+'Framework_Name'_FRAME.PBD
+    framework description ( list of user hooks, actions and alias hook names)
+
+'Combined_Package_Name'_COMBINED.PBD
+    description of combined package:
+    combined package name
+    list of packages
+    list of common sizes
+
+'Package_Name'.PBD
+    description of application package:
+    list of frames with which the package can be used
+    list of interfaces called by user hooks
+    list of applications OLB's or OBJ's
+    list of RCP files
+    list of Zebra banks (input, output, dropped)
+    Zebra list is used only for consistency check.
+
+The MASTER_HOOK.PBD and 'Framework_Name'_FRAME.PBD files reside in the PBD 
+library.  
+
+The combined packages and package files can be in either user area,
+in the PBD library(D0$PBD) or in any other area when used with the /DIRECTORY 
+qualifier.  The order of search is: 1) User area from which one is running 
+the Program Builder  2) Directory given by /DIRECTORY qualifier  
+3) PBD library (D0$PBD).  The Program Builder selects the first package file 
+found.  
+  
+
+
+                                          program_builder: page 6
+
+      Example of a link file - SIMPLE_MYFRAME.LNK 
+
+   tacked on by PROGRAM_BUILDER:
+
+$ TASK = "SIMPLE"
+$pgbd_sources_object = "'DEB'SIMPLE_MYFRAME.OBJ,"
+$user_libraries = -
+"'DEB'SIMPLE_MYFRAME.OPT/OPT,"
+
+      Template: ( named MYFRAME.LNK )
+
+$ !    select options                                                           
+$ gosub link_flags                                                              
+$ !                                                                             
+$ LINK'SWIT'/NOMAP/EXE='TASK'_'DEB'MYFRAME -
+'pgbd_sources_object'-        
+'user_libraries'-             
+D0$MYFRAME:'DEB'FRAME/INCLUDE=(MYMAIN)/L,-  
+D0$UTIL:'DEB'UTIL/OPT                                                           
+$ EXIT                                                                          
+$ !                                                                             
+$ !     sublevel to select options                                              
+$Link_Flags:                                                                    
+$ DEB = ""                                                                      
+$ SWIT = ""                                                                     
+$ IF P1 .EQS. "DEBUG" 
+  DEB = "DEB_"                                                                  
+  SWIT = "/DEBUG"                                                              
+$ RETURN                                                                        
+
+
+
+    See D0$D0USER:D0USER.LNK as an example of a more complex link file
+template.
+
+
+                                        
+                                          program_builder: page 7
+
+                 PROGRAM BUILDER COMMAND QUALIFIERS
+                 ----------------------------------
+
+    /FRAME=Framework_Name     
+     Specifies the name of the framework.  The framework file 
+     'Framework_Name'_FRAME.PBD must exist in D0$PBD.  This qualifier is 
+     required.
+
+    /PACKAGES=(Package1[,Package2,...])       
+    Specifies the list of packages.  Required unless NAME qualifier is 
+    provided.  The package files 'Package'.PBD should be either in 
+    user area or in D0$PBD.
+
+    /NAME=Combined_Packge_Name   
+    Specifies the name of the combined package.  Required if more than one 
+    package name is entered.  When used without /PACKAGES qualifier, the
+    combined package file 'Combined_Package_Name'_COMBINED.PBD must exist 
+    either in the user area or in D0$PBD.
+
+    /LOG
+    /NOLOG (default)
+    Controls whether the log file PBD.LOG is generated.
+
+    /COMPILE (default) 
+    /NOCOMPILE 
+    Controls whether the FORTRAN code being generated should be compiled or not.
+
+    /DIRECTORY=Directory_Spec        
+    Specifies the direcotry name to search for the package files.
+    The Program Builder will search the given directory in addition to the user 
+    area and D0$PBD.  The parameter Directory_Spec should be a valid VAX/VMS 
+    directory specification or logical name.
+
+    /ZEBCOM=Common_Size
+    Modifies the D0 common block ZEBCOM size. The default ZEBCOM size is 
+    200000. The parameter Common_Size should be a positive integer less than
+    10000000.
+
+    /ZEBSTP=Common_Size 
+    Modifies the D0 common block ZEBSTP size. The default ZEBSTP size is 
+    100000. 
+
+    /ZEBWRK=Common_Size 
+    Modifies the D0 common block ZEBWRK size. The default ZEBWRK size is 40000. 
+
+    /PAWC=Common_Size 
+    Modifies the D0 common block PAWC size. The default PAWC size is 20000. 
+
+    /GCBANK=Common_Size 
+    Modifies the D0 common block GCBANK size. The default GCBANK size is 10000. 
+
+    /HISTORY_BANK 
+    /NOHISTORY_BANK  (default)
+     Controls whether the history bank FORTRAN code should be generated.
+     Qualifiers PRODID, VERSION and PASS are required for HISTORY_BANK.
+
+    /HSTRFL 
+     Bypasses normal processing and generates only the history bank FORTRAN 
+     code.  Qualifiers PRODID, VERSION and PASS should be present for HSTRFL.
+
+    /PRODID=Production_Id        
+     Specifies the identifier for the production packages.  Required if 
+     HISTORY_BANK or HSTRFL provided.  The parameter Production_Id 
+     must be an integer number.
+
+    /VERSION=Version_Number      
+     Specifies the version number of the production packages.  Required if 
+     HISTORY_BANK or HSTRFL provided. The parameter Version_Number must be an
+     integer number.
+
+    /PASS=Pass_Number            
+     Specifies the pass number of the production packages.  Required if
+     HISTORY_BANK or HSTRFL provided.  The parameter Pass_Number must be an
+     integer number.
+
+     The qualifiers /HISTORY_BANK, /HSTRFL, /PRODID, /VERSION, and /PASS are 
+     used only for the production packages.  

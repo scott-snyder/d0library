@@ -1,0 +1,241 @@
+
+                                                          10-July-87
+                                                          S. G. Eng
+
+                          A S P I R I N
+                          - - - - - - - 
+
+A utility to convert code and/or notify programmers of FORTRAN features
+used which violate the 'code of ethics' for writting code set by the 
+D0 Programming Standards.
+
+Invoke the following command from within the [D0LIBRARY] domain to
+execute ASPIRIN, if a filename.FOR is not given, ASP will prompt you:
+
+               $ ASP filename
+       or
+               $ @D0$ASPIRIN:ORIG_ASP filename
+               (original ASPIRIN => ORIG_ASP.EXE - see description below)
+
+If the process is successfully completed, ASP will create filename.LIS 
+which contains a listing of your source code along with the non-standard 
+statements not corrected by ASPIRIN which have been caught by the 
+FORTRAN-77 compiler.
+
+Access the HELP file with the following:
+
+               $ HELP/LIBRARY=D0$ASPIRIN:ASPIRIN
+
+
+
+         I. ASPIRIN 'ERROR', 'WARNING' & 'INFORMATIONAL' Messages
+            -----------------------------------------------------
+ 
+'ERROR' messages
+ 
+INVQUAL    <Invalid qualifier !AS>/FAO_COUNT=1
+QUALINC    <Invalid combination of qualifiers>
+NOINPUT    <Error opening input file>
+NOOUTPUT   <Error opening output file>
+OUTDEL     <Error messages issued, output deleted>
+ 
+TOOLONG    <Routine too long> - >> 3000 lines
+SYNTAX     <Syntax error>
+READERR    <Error reading input file>
+WRITEERR   <Error writing output file>
+SNSTOOL    <Generated statement number too large> - exceeds word size
+TOOMYSNS   <Too many statement numbers in one routine> - >> 500 nos.
+UNDEFSNS   <Undefined statement label>
+SNSSPAN    <Statement label spans continuation line>
+INCNEST    <Inconsistent nesting of DO loops>
+TOODEEP    <DO loops too deeply nested> - >> 20 loops
+OCTHEX     <Syntax error in octal or hexadecimal constant>
+INCLUDE    <Error opening or reading include file>
+COMMON     <Common blk must be defined in .INC file with identical name>
+ROOT       <Include file root name invalid>
+LINKS      <Zebra PARAMETER name must be identical to its .LINK filename>
+ 
+'WARNING' messages
+ 
+LINEGT72   <Line generated with more than 72 characters>
+NOEND      <End statement missing - END assumed>
+
+'INFORMATIONAL' messages
+ 
+OKOK       <Processing completed, routine !AS>/FAO_COUNT=1
+ROUTINE    <Error occured in routine !AS>/FAO_COUNT=1
+LINE       <At line !AS>/FAO_COUNT=1
+INCNAM     <In .INCLUDE file !AS>/FAO_COUNT=1
+LNKNAM     <In .LINK file !AS>/FAO_COUNT=1
+ 
+
+                       II. Miscellaneous Notes
+                           -------------------
+
+The following is a list of all the non-standard FORTRAN-77 specifications
+     not corrected by ASPIRIN and does not flag as a warning when the code
+     is compiled with the /STANDARD=ALL/WARNING=ALL qualifier turned on:
+
+     1. COMMON block and subroutine with the same name
+     2. use of .AND. or .OR. with integer variables
+     3. use of the PRINT statement
+     4. mixture of character and numeric data in COMMON blocks
+
+(NOTE: For a complete list of non-standard FORTRAN-77 specifications not
+corrected by ASPIRIN refer to the ASPIRIN HELP file under 'Problems'.)
+
+ASPIRIN will not create any files if an error is encountered.  Executing 
+as a compiler, messages will be printed as they occur and continue to the 
+end of the routine.  (This inevitably results in the propagation of more
+errors.)  The only messages which indicate a successful completion is 
+'OKOK' and 'NOEND' whereby the .LIS file is created.
+
+ASP can handle a file which contain several routines.  If the 'END'
+statement is missing from a routine, that routine is considered a part
+of the next routine until an 'END' statement is found or the end-of-file 
+is reached.
+
+
+           III. Handling of features not listed in HELP file
+                --------------------------------------------
+
+Tab characters
+     - Tabs are replaced by the appropriate no of spaces when found in
+       the first 6 spaces per line
+     - additional tabs found after column 6 is offset 1 column to the
+       right
+     - labels and continuation marks (col. 6) are accounted for
+
+Logical Roots
+     - all external user-generated files must be defined with a 
+       logical root name 
+     - at this time, the only acceptable logical roots are the
+       following: "D0$INC:", "D0$MCH:", "D0$LINKS:"
+
+INCLUDE .INC files
+     - all named COMMON block statements which are not defined in 
+       their own INCLUDE file will generate an error message indicat-
+       ing its COMMON block name and where it presently resides
+     - only blank COMMON is allowed in the main source code
+     - COMMON block labels must be identical to its .INC filename ...
+       therefore, only one COMMON block definition per INCLUDE file
+     - INCLUDE files, however, may contain an unlimited amount of
+       nested INCLUDE files
+
+INCLUDE .LINK files 
+     - all INCLUDE .LINK filenames must be identical to its
+       defined PARAMETER name ... therefore, only one PARAMETER
+       definition per .LINK file
+     - any deviation from the above will generate an error message
+       indicating the PARAMETER name and file involved
+
+UNDERSCORE's
+     - the ASPIRIN HELP file notes that underscore's are replaced by
+       blanks...PLEASE NOTE that this has been eliminated.
+     - underscore's (_) are left in the code to be picked up as Fortran
+       errors!
+
+OPEN stmt - READONLY
+     - the non-standard READONLY parameter and its preceding comma in OPEN 
+       statements are replaced by blanks.
+
+
+
+              IV. Description of files in [D0CMS.ASPIRIN]
+                  ---------------------------------------
+
+     Files indicated by an asterick (*) are stored in the [D0LIBRARY.ASPIRIN]
+     area at every D0 node.  Those indicated by a tilde (~) are sent to indi-
+     vidual nodes when requested.
+
+   * ASPIRIN.CLD - defines the VAX command to invoke ASPIRIN
+     ASPIRIN.COM - compiles and links all ASPIRIN related source code
+     ASPIRIN_F77.COM - same as ASPIRIN.COM but subst ASPMAIN_F77.FOR
+   * ASPIRIN.DOC - miscellaneous information not included in HELP file
+   * ASPIRIN.EXE - ASPIRIN executable code created by ASPIRIN.COM
+     ASPIRIN_F77.EXE - code created by ASPIRIN_F77.COM used to build
+                       .F77 files by [.ADMIN_UTIL]F77_BUILD.COM
+   * ASPIRIN.HLB - actual file used when the HELP file is invoked
+     ASPIRIN.HLP - editable text file of ASPIRIN.HLB
+     ASPIRIN.IBM - IBM version of ASPIRIN
+     ASPMAIN.IBM - IBM version of ASPMAIN
+     FASP_F77.CLD - defines command to invoke FASP_F77 running ASPIRIN_F77.EXE
+   ~ ORIG_ASP.COM- runs a given file thru ORIG_ASP & the FORTRAN stand-
+                   ard compiler producing a .LIS file of non-standard
+                   statements not corrected by ORIG_ASP
+   ~ ORIG_ASP.CLD- defines the VAX command to invoke ORIG_ASP
+   ~ ORIG_ASP.EXE- the original version of ASPIRIN (before the introduction
+                   of D0 Programming Standards, ie. common block rules)
+   ~ SETUP_ORIG_ASP.COM - invokes the creation of the VAX command ORIG_ASP
+
+
+     ASPIRIN package source code:
+
+        ASPMAIN.FOR - main routine of ASPIRIN, interrogates CLI interpreter
+                      to decide what options have been selected.
+        ASPMAIN_F77.FOR - variation of ASPMAIN.FOR to create .F77 files
+        ASPIRIN.FOR - processes one routine at a time from the input file
+                      thru its editing routines (contain 8 subr., 8 fcns
+                      and a BLOCKDATA area)
+        ERRMESS.FOR - routine to handle errors and their messages
+        ASPIRIN.MSG - contain ASPIRIN error and warning messages
+        ASSSUB.MAR  - macro code which sets up an error matrix
+        LBRDATA.MAR - macro included in the LINK process in ASPIRIN.COM to
+                      define LBRDATA common block
+        ASPIRIN.OLB - object library of ASPIRIN.MSG, ASSSUB.MAR & LBRDATA.MAR
+        BUFFER.FOR  - |
+        INCLUDE.FOR - |
+        LBRDAT.FOR  - |-------> INCLUDE files for the source above
+        SNS.FOR     - |
+        STACK.FOR   - |
+        STFUNC.FOR  - |
+
+
+
+                   V. Using ASPIRIN to build IBM files
+                      --------------------------------
+
+To convert all the source code of a given D0 library to the FORTRAN-77
+standard suitable for IBM compilers, execute ASPIRIN interactively via the 
+F77_BUILD.COM file as follows:
+
+                          $ F77 libsectioname
+or in batch mode:
+
+                          $ BATCHF77 libsectioname
+                                 or
+                          $ BAT libsectioname
+
+      (NOTE: This will execute your job on the AMDCL1_BATCH queue, create
+             the F77_BUILD.LOG file in your root directory and notify
+             you at your terminal when the job has completed.)
+
+This process can only be invoked in the BNL VAXCluster environment since it
+utilizes the VAX scratch disk area and the DEC/MMS package.
+
+ - all resultant files created will be saved on the scratch disk under the
+   sub-directory name of $2$DUA15:[SCRATCH.D0_F77].
+
+ - this designated scratch area will contain one sub-directory created for
+   each D0 library requested (ie. $2$DUA15:[SCRATCH.D0_F77.D0USER]).
+
+ - this D0 library sub-directory will contain one composite source file
+   designated by its library name and the extension .F77 (ie. D0USER.F77)
+                                - OR -
+   for those D0 libraries which store source code in distinct groups, 
+   several .F77 composite source files will be created for each group
+   designated by its group name and the extension .F77 (ie. MUON.F77, etc.
+   created in $2$DUA15:[SCRATCH.D0_F77.CALIB] for D0 library CALIB).
+
+ - also created is one .LIS file per .F77 file of the same name revealing 
+   all the non-standard FORTRAN-77 statements not corrected by ASPIRIN.
+
+ - this procedure is geared specifically for source files within the
+   [D0LIBRARY.libname] structure, the prefix, D0LIBRARY, has been incorporated
+   into the procedure.
+
+ - IMPORTANT: Only those source files which have gone through ASPIRIN 
+   successfully (via ASP filename) are acceptable to this procedure...if a 
+   source file is found to fail ASPIRIN during the execution of this 
+   procedure, the process will choke and exit immediately.
+

@@ -1,0 +1,2842 @@
+
+
+
+                                                          D0 Note 774
+                                                         J. Linnemann
+                                                          14 May 1998
+                        ___________ __________                        Calorimeter addressing
+                             _______ _____                             Version 2.02 
+
+
+
+1  REVISION HISTORY:
+
+Version 2.02:  defines Calorimeter Format  3;  adds  Offline  eta,phi
+contents  of  crates; correct Appendix B on contents of last BLS; add
+new bit map  and  definitions  of  D0VSN,  CALVSN,  and  SFTVSN  bits
+(Appendix I); PARAMETERS for current versions in Appendix D
+
+
+
+2  PURPOSE OF THIS DOCUMENT
+
+This is intended to  define  the  scheme  for  addressing  individual
+readout elements of the calorimeter, and to show which ones do and do
+not exist.  Several addressing schemes are used.  Their purposes  and
+their  interrelations  are  outlined.  A copy of this document can be
+found in D0$DOCS.  Be sure that you use a  current  one,  as  updates
+occur from time to time.
+
+
+
+3  DEFINITIONS
+
+     The term "cell" is used throughout this  document  to  mean  the
+smallest  piece of the calorimeter which has its own readout channel.
+The term "channel" is a synonym.  The term "tower" always  refers  to
+the  set  of  cells  which together make up a pseudoprojective tower.
+"Readout tower" is a synonym for tower.  A tower is in  most  regions
+of  the calorimeter 2pi/64 in phi (about .1) and .1 in pseudorapidity
+eta.  Pseudoprojective means that the cells which  make  up  a  tower
+would  all be intersected by a ray from the origin of coordinates (at
+x = y = z = 0, the center of the interaction region), even though the
+sides  of  the  cells  do  not necessarily form a pyramid-like object
+whose sides would point back to the origin.
+
+     The coordinate system used in this document in the  D0  standard
+coordinate system, with +y up, +z (and + eta) in the proton direction
+(South), and +x forming a right-handed triplet, that  is  +x  in  the
+East  direction.  Phi starts with phi = 0 at the +x axis and proceeds
+towards the +y axis, counterclockwise when viewed from the South  end
+of the apparatus.
+
+     The term "readout towers"  is  used  to  distinguish  them  from
+trigger  towers,  which are collections of towers of about .2 x .2 in
+eta, phi, summed on the BLS cards for use in the trigger system.
+
+
+                                - 1 -
+                                                                Page 2
+
+
+     The term "pad" is undefined in these addressing  schemes,  since
+it  represents  a  signal from a single physical interleave, which is
+generally not separately addressable by the readout as it is  locally
+ganged to form a cell.
+
+     In  sections  defining  the  various  addressing  schemes,   the
+quantities in capital letters are either recommended FORTRAN variable
+names for the  indices,  or  PARAMETERs  defined  for  use  with  the
+schemes.   The  PARAMETER  definition  files are given in Appendix D.
+The ranges of indices are given as [min,max] and PARAMETER values are
+given by (PARAM = value).
+
+
+
+4  FORMAT VERSIONS
+
+     There are multiple format versions  for  the  calorimeter  data.
+The  main  text  describes  the most recent version.  For differences
+among different formats, see Appendix H.  For the bits which identify
+the data types and formats, see Appendix I.
+
+
+
+5  CALORIMETER OFFLINE ADDRESSING SCHEME
+
+5.1  Definitions
+
+    The Calorimeter Offline coordinate system is:
+
+IETAC: an eta-like index [-NETAL,NETAL] (NETAL = 37), 0 excluded,
+      which numbers the readout towers in the eta direction.  
+      For IETAC -32 to 32, the index also coincides with the nominal eta of 
+      the outer eta edge (largest abs eta) of the tower divided by 0.1 . 
+      - eta and - z are in the north half of the apparatus.  
+      Protons travel in the + z direction (N to S).
+
+IPHIC: a phi index [1,NPHIL], (NPHIL = 64), labelling readout 
+      towers in the direction of increasing phi, starting at the first tower 
+      at positive phi, that is just above the horizontal on the +x side of 
+      the calorimeter.  Note that there are missing towers in IPHIC in the 
+      forward part of the endcap: beyond IETAC = 32, only odd IPHIC exist.
+
+LAYERC: a radial index [1,NLYRL], (NLYRL = 17) indicating the cell type, 
+      in order of depth in the calorimeter.
+
+
+
+
+
+
+
+
+
+
+                                - 2 -
+                                                                Page 3
+
+
+
+    The convention is as follows:
+    1   EM1                     (MNLYEM = 1)
+    2   EM2
+    3   EM3a
+    4   EM3b
+    5   EM3c
+    6   EM3d
+    7   EM4                     (MXLYEM = 7)
+    8   CC Massless gap         (MNLYMG = 8)
+    9   ICD
+    10  EC Massless gap         (MXLYMG = 10)
+    11  FH1 (Fine Hadronic)     (MNLYFH = 11)
+    12  FH2
+    13  FH3
+    14  FH4                     (MXLYFH = 14)
+    15  CH1 (Coarse Hadronic)   (MNLYCH = 15)
+    16  CH2
+    17  CH3                     (MXLYCH = 17)
+
+        The definition of the EM3 sublayer order is:
+                
+                ^
+                | EM3b | EM3d
+                |  4   |  6        i.e. EM3d is LAYERC = 6
+    increasing  | ----------- 
+       phi      | EM3a | EM3c
+                |  3   |  5
+                --------------->
+                  increasing z (increasing eta) 
+
+                That is, the SAME orientation is used in all parts of the
+            calorimeter, with respect to the phi and +z directions.  
+            The EM3 layer is indexed effectively with sub-indices in the
+            phi and eta directions, with phi running fastest.
+
+     Not every tower  has  all  17  of  these  signals.   Appendix  A
+summarizes which cells exist as function of IETAC.
+
+     An auxiliary system  is  also  sometimes  used,  substituting  a
+different coordinate, FLOOR, for the depth dimension, and summing all
+the EM3 signals into a single floor.  That is
+
+        FLOOR   LAYERC
+        1       1       EM1
+        2       2       EM2
+        3       3,4,5,6 EM3
+        4       7       EM4
+        5       8-14    FH + MG + ICD
+        6       15-17   CH
+
+
+
+
+                                - 3 -
+                                                                Page 4
+
+
+5.2  Usage
+
+     The Offline system will be used wherever feasible.  It  will  be
+used   in  the  definition  of  many  utility  programs,  online  for
+requesting and defining histograms, in trigger  definition  files  to
+specify geometrical regions for triggering, and in offline software.
+
+
+
+6  CALORIMETER TRIGGER TOWER ADDRESSING SCHEME
+
+    The Calorimeter Trigger Tower system is:
+
+L1ETAC: an eta-like index [-NETAL1,NETAL1] (NETAL1 = 20), 0 excluded,
+      which numbers the triggertowers in the eta direction.  
+      For L1ETAC -16 to 16, the index also coincides with the nominal eta of 
+      the outer eta edge (largest abs eta) of the tower divided by 0.2 . 
+      - eta and - z are in the north half of the apparatus.  
+      Protons travel in the + z direction (N to S).
+
+L1PHIC: a phi index [1,NPHIL1], (NPHIL1 = 32), labelling trigger
+      towers in the direction of increasing phi, starting at the first tower 
+      at positive phi, that is just above the horizontal on the +x side of 
+      the calorimeter. 
+
+
+     The Trigger Tower addressing  scheme  is  intended  for  use  in
+routines  related  to  the  level  1 hardware trigger.  Basically, it
+mimics the Calorimeter Offline  addressing  scheme,  with  a  coarser
+granularity  of .2 x .2 in eta and phi.  At present, only eta and phi
+dimensions are defined in this system, although in fact the EM  cells
+are summed separately from the hadronic cells for each trigger tower.
+Since the offline eta index IETAC represents towers of differing  eta
+width,  while the trigger towers are more nearly uniform in their eta
+width, the L1ETAC coordinate has more than NETAL/2 elements:
+
+    absolute values:
+
+     L1ETAC    IETAC             L1ETAC     IETAC        
+        1       1,2                 11      21,22       
+        2       3,4                 12      23,24       
+        3       5,6                 13      25,26       
+        4       7,8                 14      27,28       
+        5       9,10                15      29,30       
+        6       11,12               16      31,32       
+        7       13,14               17      33          
+        8       15,16               18      34          
+        9       17,18               19      35          
+        10      19,20               20      36          
+
+
+
+
+
+                                - 4 -
+                                                                Page 5
+
+
+     Three types of signals are never added into  the  trigger  tower
+signals:   massless  gaps, ICD's, and Coarse Hadronic signals.  These
+omission  are  based  on  the  small  sampling  fraction  for   these
+detectors,  which  would  worsen  the  signal  to  noise ratio in the
+trigger sums if they were included.
+
+     Notice that IETAC 37 is NOT represented in the  trigger  system.
+At  this  time  it  is not decided what will happen to the IETAC = 37
+signals in the trigger.  What IS clear is that no hardware  is  being
+built for L1ETAC = 21.
+
+     There is another set of coordinates needed for interpreting data
+in  the  trigger  data  block is the level 1 data block index system,
+which gives the location  of  the  FADC's  for  trigger  tower  data.
+Details can be found in D0 Note   967, First Level Trigger Data Block
+Description.   Useful  routines  for  converting  among  trigger  and
+offline coordinate systems can be found in the library CALORUTIL; see
+L2CONV.DOC in that library.
+
+     More detail of the mapping of other coordinate systems onto  the
+Trigger  Tower  coordinates,  and  the precise contents signals which
+trigger towers contain, can be found in Appendix G.
+
+
+
+7  HARDWARE READOUT ORGANIZATION OF THE CALORIMETER
+
+7.1  Data Cable And Crate Organization
+
+     The calorimeter readout is split across two data cables.  In the
+raw data, these data cables appear in two ZEBRA banks, CAD1 and CAD2.
+Each data cable contains data  from  6  ADC  crates,  each  of  which
+contain 12 ADC cards.  Each ADC card reads data from 8 BLS (Base Line
+Subtractor) cards, or 1/2 of a BLS crate.  In general, each BLS  card
+provides  signals  for  1 trigger tower, by summing over signals from
+the 4 readout towers serviced by each BLS card.   The  input  signals
+for  the BLS cards come from Preamp cards which are mounted in Preamp
+Boxes.  There are four Preamp boxes per cryostat (one for each signal
+port), for a total of 12.
+
+     The numbering of the data cables is as follows:
+
+Software        Datacable/
+Bank#           Dualport #      Contents
+ 1  TRG1        0               Trigger,level 0
+ 2  MUD1        1               Muon
+ 3  CDD1        2               VTX
+ 4  CDD2        3               CDC 
+ 5  CDD3        4               FDC
+ 6  CDD4        5               TRD
+ 7  CAD1        6               North Calorimeter
+ 8  CAD2        7               South Calorimeter
+
+
+                                - 5 -
+                                                                Page 6
+
+
+     Calorimeter ADC crates numbers are defined by giving  an  offset
+which  is 10 times the crate number + an offset from 1-8 for the bank
+number (or 1 + the data cable number if you prefer).   Unfortunately,
+this  nice  scheme  does  not  work for all data cables, and thus the
+crate numbers are not unique over the  entire  system,  but  only  on
+their  own  data  cable.   The  numbers  are  assigned  so  that  the
+symmetries in the way in which hardware  addresses  are  assigned  to
+crates  are  respected.   However,  due to the way that crate data is
+moved to the data cable, there is no guarantee that  the  ADC  crates
+appear  in  any particular order on their cable.  The organization is
+given in figure 1.
+
+
+
+8  HARDWARE-ORIENTED ADDRESSING SCHEMES
+
+We now discuss several ways of addressing the calorimeter  which  are
+closer to the actual hardware than the calorimeter offline system.
+
+
+
+8.1  Hex (Raw Bits)
+
+     This system is the actual address words tied to  individual  ADC
+values.   For more details see the D0 Note by Dean Schamberger on ADC
+Data Format, number 678.
+
+     The  raw  calorimeter  data  can  be  viewed  in  the  following
+hierarchy:
+
+2 data cables (6,7), each with        [4 bits in crate number]
+    6 ADC crates (0-5), each with     [4 bits in crate number]
+        12 ADC cards (0-11), each with  [4 bits in address]
+                8 BLS cards (0-7), each with  [3 bits in address]
+                        4 Readout Towers (0-3), each with  [2 bits in address]
+                                12 Depths (0-11)       [4 bits in address]
+
+     This arrangement is represented with a hardware  address,  which
+comes in two parts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 6 -
+                                                                Page 7
+
+
+ HEX System :CRATE,IADDR
+
+    The valid ranges of parameters are given in square brackets.
+        CRATE = ADC crate number (7,17,27,37,47,57) or (8,18,28,38,48,58)
+                        (ADCR00 = 7, ADCR01 = 8, NADCRC = 6)
+
+                The ADC crate number tells which data cable and ADC
+                crate the data came from.  This is EXACTLY the same as the 
+                CRATE in the ADC system described below.
+
+        IADDR = 16 bit word
+                The second part is a 16-bit address word which contains
+                the ADC card number, the BLS card number, the Readout Tower 
+                number, and the Depth number packed into 13 bits of this word.
+                These fields, when pulled out of the IADDR word, form the
+                other coordinates of the ADC described below. The precise 
+                format of the IADDR word is given in figure 2, along with 
+                the mapping of the bits into several addressing schemes.
+
+
+     The Hex scheme is needed by  decoding  routines  and  raw  event
+dumps.   Parameters  useful  for  decoding  this  scheme are given in
+Appendix D.
+
+
+
+8.2  ADC Scheme (CABRD)
+
+     This is an addressing scheme which is simply  an  interpretation
+of  the  bit  fields  of  the  HEX  address.   It is used in hardware
+debugging.  Its coordinates are printed on the PC boards of  the  ADC
+and BLS systems.
+
+ ADC System :CRATE,ADC,BLS,ROTOW,DEPTH
+
+    The valid ranges of parameters are given in square brackets.
+  
+        CRATE = ADC crate number (7,17,27,37,47,57) or (8,18,28,38,48,58)
+                        (ADCR00 = 7, ADCR01 = 8, NADCRC = 6)
+        ADC   = ADC card  [O,NADCC-1] (NADCC = 12)
+        ROTOW = readout tower on the BLS card  [0,NEFC-1]  (NEFC = 4)
+                each BLS card handles up to four readout towers, which are 
+                for abs(IETAC) <= 32 are summed to one trigger tower
+        DEPTH = depth     [0,NDEPTC-1]  (NDEPTC = 12)
+                this a serial number of cells in the readout tower.  Any
+                massless gaps or ICD channels are NOT in the usual sequence.
+                This is EXACTLY the same as the depth number described below
+                with the CAble system.
+
+
+
+
+
+
+                                - 7 -
+                                                                Page 8
+
+
+8.3  Cable (HSEFD)
+
+     This coordinate system is the basis of the cable  names  at  the
+feedthrough  port on into the ADC system.  As such, it is well suited
+to describing the mapping of  the  detector  channels  into  the  ADC
+coordinate  system.   HOWEVER, WE WILL NOT USE IT AT ALL OUTSIDE THIS
+DOCUMENT, as the offline system, while not as directly  tied  to  the
+physical  layout  of  the  apparatus,  does  accurately  specify what
+readout channel (cell) is being  discussed,  and  does  unambiguously
+translate  into the two more hardware-debugging-oriented systems, the
+ADC and PREAMP systems.
+The Cable system is explained in figure 3.
+
+        H     = Half of detector [0,NHCABL-1] (NHCABL = 2)
+            0 is the south half of the detector, that is + Z's and etas
+            1 is the north half of the detector, that is - Z's and etas
+        S     = Sector    [0,NSCABL-1] (NSCABL = 32)
+                The sector is an index in a phi direction which changes by
+                one for every 2pi/32 change in phi.  
+                     S is not quite a phi coordinate, because,
+                as shown in the figure, it sweeps in opposite directions in 
+                the two halves of the detector.  The rule is that S starts at
+                0 just left of the top of the apparatus and increases counter
+                clockwise for an observer stationed at the nominal vertex 
+                (0,0,0).
+                     For towers with abs(IETAC) <= 32, S changes by one every
+                two readout towers.  This corresponds to a physical module in
+                CCEM.   Note that a single physical CCEM module, which 
+                crosses the boundary between halves, has two different 
+                S numbers.
+        E     = "Eta"       [0,MECABL] (MECABL = 44) 
+                        (33,35,36,38,39,40,42,43 are invalid values)
+                An eta coordinate formed by taking the boundary of the
+                pseudoprojective tower with the smallest abs(eta) and 
+                dividing by 0.1 .  Appendix B shows what signals exist as a 
+                function of the E coordinate.  The actual cable labels are 
+                slightly more complex than simple E labels, as is discussed 
+                in Appendix C.  Appendices E and F have further details.
+
+            each physical CCEM module has 24 towers in eta x 2 in phi;
+            each Sector is 1/2 that, so contains only 12 towers in eta x 2
+                in phi
+
+        F = "Phi"   [0,NFCABL-1]  (NFCABL = 2)
+                this just tells which of the two towers at a given E,S is
+                being referred to.  It is a phi-like coordinate which runs in
+                the direction of increasing S.  
+            
+        D = Depth     [0,NDEPTC-1] (NDEPTC = 12)
+
+
+
+
+
+                                - 8 -
+                                                                Page 9
+
+
+            Depth means which of the successive samples of the tower:
+    D                       D
+    0   EM1                 7   H1 (Fine Hadronic)
+    1   EM2                 8   H2
+    2   EM3q                9   H3
+    3   EM3r                10  H4
+    4   EM3s                11  H5 (Coarse Hadronic)
+    5   EM3t             
+    6   EM4 
+
+     The above order is the "nominal" one; in E=12,13 there  are  too
+many hadronic signals to follow this scheme, and the hadronic signals
+start one D earlier.  If EM signals are missing, their usual slot  is
+usually left empty; if FH signals are missing, CH signals are usually
+pushed forward to fill their place.  That is, the boundary between EM
+and   Hadronic  signals  is  preserved  as  much  as  possible.   See
+Appendices B, E, F.
+ 
+        The definition of the EM3 sublayer order is:
+                
+                ^
+                | EM3r | EM3t
+                |  3   |  5        i.e. EM3t is D = 5
+    increasing  | ----------- 
+      FI or S   | EM3q | EM3s
+                |  2   |  4
+                --------------->
+                  increasing E (increasing abs(eta)) 
+
+                That is, unlike in the offline system, the orientation
+            of the numbering changes depending which Half of the
+            calorimeter, with respect to the phi and +z  (eta) directions.  
+            The orientation is fixed with respect to the S and E (abs eta)
+            directions.  The EM3 layer is indexed effectively with 
+            sub-indices in the S and E directions, with S running fastest.
+
+
+     The order of readout in terms of the  cable  system  is  defined
+below  in  the  section on mapping of the apparatus onto the hardware
+oriented addressing schemes.
+
+
+
+8.4  Preamp System (BOX,BOARD,ROTOWP,DEPTHP)
+
+     The purpose of the PREAMP scheme is  to  unambiguously  trace  a
+signal  to  its  origin  in  a preamplifier box.  The need for such a
+system, distinct from the ADC system, is illustrated in figure 4  and
+figure  5.  Figure 6 gives a more detailed view of what happens along
+the signal path.  In essence,  the  need  to  form  trigger  sums  of
+semiprojective towers forces merging of signals from EC and CC.  This
+results in signals from one preamp board going to different  ADC/BLS,
+and  signals  to one ADC/BLS coming from different preamp boxes.  The
+
+                                - 9 -
+                                                               Page 10
+
+
+pulser system is organized by preamp  box,  so  CALIB  must  in  some
+measure  understand the mapping between the preamp system and the ADC
+system.  Otherwise, the preamp system will be used only for  hardware
+debugging  involving preamps and/or merge cards, and may be used only
+in printouts giving the location of troublesome channels.
+
+    BOX  = preamp box [0,NPRBOX-1] (NPRBOX = 12)
+    BOARD = preamp board [0,NPRBRD-1] (NPRBRD = 96)
+
+The 48 channels per BOARD are defined as follows:
+
+        ROTOWP = readout tower on the BLS card  [0,NEFC-1]  (NEFC = 4)
+                each BLS card handles up to four readout towers, which 
+                are for abs(IETAC) <= 32 are summed to one trigger tower
+                This is the same coordinate as ROTOW in the ADC system, 
+                except in special cases such as massless gaps.
+        DEPTHP = depth     [0,NDEPTC-1]  (NDEPTC = 12)
+                this a serial number of cells in the readout tower.
+                Signals in the merge region (E 7 to 12)are NOT in the same
+                DEPTHP as DEPTH (the equivalent coordinate in the ADC and 
+                CAble systems).
+
+
+
+9  MAPPING OF APPARATUS ONTO HARDWARE ORIENTED ADDRESSING SCHEMES
+
+     The most concise way to describe the order in which channels are
+read  out  is  to  say that the order in which channels appear in the
+readout stream is strictly increasing in the  HEX  address,  provided
+that the two lowest-order "address" bits are ignored.  There are gaps
+in the address space because the D index counts 0-11 instead of 0-15,
+and  there  are  only 12 ADC cards per crate, while bits are provided
+for 16.  With these provisos, one could generate the readout sequence
+by thinking of the address as a series of loops in
+
+     ADC Crate,ADC Card, BLS card, Readout Tower, Depth with the last
+moving fastest.
+
+     The mapping of the physical calorimeter onto the ADC  crates  is
+given below:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 10 -
+                                                               Page 11
+
+
+
+ADC Crate            Cable Number                       Offline Number
+                 H         S      E                     IETAC      IPHIC
+       7         1       0-15    0-11                   [-1,-12]   [17,48]
+      17         1       16-31   0-11                   [-1,-12]   [1,16;49,64]
+      27         1       0-7     12-44, MG, ICD         [-13,-37]  [17,32]
+      37         1       8-15    12-44, MG, ICD         [-13,-37]  [33,48]      
+      47         1       16-23   12-44, MG, ICD         [-13,-37]  [49,64]
+      57         1       24-31   12-44, MG, ICD         [-13,-37]  [1,16]
+                 H         S      E     
+       8         0       0-15    0-11                   [1,12]     [1,16;49,64]
+      18         0       16-31   0-11                   [1,12]     [17,48]
+      28         0       0-7     12-44, MG, ICD         [13,37]    [1,16]
+      38         0       8-15    12-44, MG, ICD         [13,37]    [49,64]
+      48         0       16-23   12-44, MG, ICD         [13,37]    [33,48]
+      58         0       24-31   12-44, MG, ICD         [13,37]    [17,32]
+
+     The calorimeter cells are read out into each  ADC  crate  in  an
+order which can be thought of as a series of loops
+
+     S,E,F,D with the last index varying most quickly.
+
+     Again, the correspondence between D in the ADC  system  and  the
+CAble  system is exact, and counts only up to 12.  It is worth noting
+that this results in the order in which readout towers  appear  on  a
+BLS card is with FI varying more quickly than the E coordinate, i.e.
+
+    ROTOW  FI   E
+    0      0    m
+    1      1    m 
+    2      0    m+1   
+    3      1    m+1
+
+     The arrangement of the  signals  of  the  BLS's  containing  the
+coarse-segmentation readout towers beyond IETAC=32 is as follows (see
+also Appendices B, E, and F):
+
+    ROTOW  FI E  contents
+    0      0  32 
+    1      0  34
+    2      0  37
+    3      0  41
+--------------------BLS boundary------------------
+    0      0  44
+    1     0-1 7-11   odd E (even IETAC) MG's
+    2     0-1 8-13   ICD's
+    3     0-1 8-12   even E (odd IETAC) MG's 
+
+
+
+
+
+
+
+                                - 11 -
+                                                               Page 12
+
+
+
+where the contents of the last 3 ROTOW's is:
+
+           odd E MG      ICD          even E MG 
+    D       FI   E       FI   E         FI   E 
+    0       0   7CC      0    8         0   8CC 
+    1       0   7EC      1    8         0   8EC 
+    2       1   7CC      0    9         1   8CC 
+    3       1   7EC      1    9         1   8EC 
+    4       0   9CC      0    10        0   10CC  
+    5       0   9EC      1    10        0   10EC  
+    6       1   9CC      0    11        1   10CC  
+    7       1   9EC      1    11        1   10EC  
+    8       0   11CC     0    12        0   12EC  
+    9       0   11EC     1    12        1   12EC  
+    10      1   11CC     0    13        empty
+    11      1   11EC     1    13        empty
+
+
+     Another way of stating the same thing is that the readout  order
+can be seen as a parallel set of loops in the ADC and CAble systems
+
+ADC system              CAble system
+----------              ------------
+data cable = 6,7        H = 1,0  !yes, backwards
+ crate in cable 0-5       S = 0-31  !start CC crates
+  ADC = 0-11                E = 0-11 
+   BLS = 0-7                  F = 0,1
+    ROTOW = 0-3                D = 0-11
+     DEPTH = 0-11         !end CC
+                          S = 0-31   !EC crates now
+                            E = 12-44,even MG, odd MG, ICD
+                              F = 0,1 (but only 0 if 32 <= E <= 44)
+                               D = 0-11
+                             (E,F,D for MG, ICD are special cases)   
+
+
+
+10  ACKNOWLEGEMENTS
+
+     This document is only compiled by me.  I had LOTS of  help  from
+many  people,  including Al Jonckheere, Jim Christenson, Dusan Nesic,
+John Sculli, Jimmy Kourlas, Dean Schamberger,  Rajendran  Raja,  Andy
+White, Phillipe Laurens, and several others.
+
+     PLEASE, if you find errors in this  document,  send  me  a  mail
+message.
+
+
+
+
+
+
+
+                                - 12 -
+                                                               Page 13
+
+
+                       D0 CALORIMETERS - CUT ALONG BOTTOM SEAM
+                                AND UNFOLDED
+
+                         .      
+                         .       - Z    (Protons travel from - Z to + Z;
+                         .              from north to south.)
+                         .               
+ 
+                 -----------------
+        ^        |   |   |   |   |           EC North:  
+        |        |37 |27 |57 |47 |  <-- Adc crate #'s 
+        |        |25Z|1BZ|39Z|2FZ|
+   CAD1 |        |   |   |   |   |
+        |        -----------------
+    Data Cable 6  (crates  7-57)      
+      Bank 7       -------------
+        |          |  7  | 17  |           CC:      
+        V          |  7Z | 11Z |  <-- Adc crate #'s 
+.................. -------------.........................................
+        ^          | 18  |  8  |
+        |          | 12Z |  8Z |
+        |          -------------
+    Data Cable 7  (crates 8-58)
+      Bank 8     -----------------
+   CAD2 |        |   |   |   |   |           EC South:  
+        |        |48 |58 |28 |38 |  <-- Adc crate #'s 
+        |        |30Z|3AZ|1CZ|26Z|
+        V        |   |   |   |   |  
+                 -----------------
+                         .
+                         . + Z axis (centerline at top of apparatus
+                         .  is the dotted line)
+                         V
+
+The upper number is in decimal; the lower in HEXadecimal (as the Z implies)
+
+Implication: IPHIC = 1 starts at the midplane of the detector; in the CABLE
+scheme, S = 0 starts at the top of the detector.
+ i.e. phi = 0 between crates 47,57 and 28,38 (in the middle of crates
+    17 and 8) and runs counterclockwise (to the left in this view)
+Sector numbering (cable system) starts between crates 27/57,  7/17, 8/18,
+and 58/28 and runs in direction of increasing crate number.
+
+
+                              Figure 1
+
+
+
+
+
+
+
+
+
+                                - 13 -
+                                                               Page 14
+
+
+
+
+       TABLE  OF HARDWARE ADDRESS BITS IN VARIOUS SCHEMES
+
+BIT                              CONTENTS
+___________________________________________________________________
+15(MSB) always 0
+___________________________________________________________________
+14      |                            |
+13      |ADC card  (ADC) (0-11 only) |
+12      |                            | here S and E of CAble system
+11______|____________________________|  are varying, but not in a
+10      |                            |  simple correspondence to
+ 9      | BLS card (ADC)             |  the hardware address bits
+ 8______|____________________________|  (see section 6 of text)
+ 7      | Readout tower (0-3)        |______________________________
+ 6      |    (ADC or PReamp system)  | F (CAble system)        
+ _______|____________________________|______________________________
+ 5      |
+ 4      | Depth (ADC CAble, or PReamp system)
+ 3      |
+ 2      |
+--------------------------------------------------------------------
+ 1      1 if x1 gain; 0 if x8 gain
+ 0(LSB) 1 if limit test overridden (for coherent noise monitor); 0 otherwise
+
+  If you prefer horizontal layout, ADC numbering:
+
+        Bit fields in ADR (high order 16 bits of raw data word):
+                                                        (CERNLIB M421: LSB 1)
+   16  15  14  13  12  11  10   9   8   7   6   5   4   3   2   1  SBIT/SBYT
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+  |        ADC        |    BLS    | ROTOW |     DEPTH     |SCL|NEG|
+  |                   |           |       |               |   |LIM|
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---| 
+   15  14  13  12  11  10   9   8   7   6   5   4   3   2   1   0  IBITS/MVBITS
+                                                  (VAX and CERNLIB M441: LSB 0)
+                              Figure 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 14 -
+                                                               Page 15
+
+
+                      Figure 3 from D0 note 774
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 15 -
+                                                               Page 16
+
+
+                      Calorimeter Signal Paths
+                                                ----> to trigger
+                                                |
+        _______________                    _____|______          __________
+        |             |                    |          |          |        |
+        |  PREAMP's   |____________________|  BLS's   |          |        |
+        |  CC signals |                    | (CC etas)|__________|  ADC's |
+        |_____________|------              |          |          |  (CC)  |
+                            |  _________   |__________|          |________|
+                         CC |__|       |    |
+                         MG'S  |MERGE  |____|EC overlap
+                            ___|BOARD  |     hadronic
+                            |  |_______|----- 
+               EC overlaps  |               |CC MG's
+                            |               |
+        _______________     |              _|___________        ___________
+        |             |_____|              |           |        |         |
+        |  PREAMP's   |                    |  BLS's    |        |  ADC's  |
+        |  EC signals |____________________| (EC etas) |________|  (EC)   |
+        |_____________|                    |           |        |         |
+                                           |___________|        |_________|
+                                               |                          
+                                               |-----> to trigger
+
+                              Figure 4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 16 -
+                                                               Page 17
+
+
+          RELATION OF PREAMP BOXES (PULSERS) TO ADC CRATES
+
+    There are only 4 disconnected regions with boundaries which pulser
+signals do not cross.  The lines separating these regions are shown.
+
+    In the drawing below, Pn represents Preamp box number n.  Each preamp
+box has a pulser attached to it, also numbered n.
+    The ADC crates, marked ADCm, for crate m, receives signals from one
+or more of the ports.
+
+From a top view of the apparatus:
+
+                              north
+                                |
+       NW     ..................|....................       NE
+              .              P00| P11               .
+              .ADC37  ADC27  P01| P10 ADC57  ADC47  . ECN
+              ..................|....................
+                     .ADC 7  P02| P09 ADC17 .  CC
+           -----------------------------------------------
+                     .ADC18  P03| P08 ADC 8.  CC
+             ...................|....................
+             .ADC48   ADC58  P04| P07 ADC28   ADC38 . ECS 
+             .               P05| P06               .
+       SW    ...................|....................       SE
+                                |
+                                |
+                              south
+
+The connections of the pulser (ports/preamp boxes) to ADC crates
+in detail for the SE quarter of the calorimeter:
+
+     pulser  ADC
+
+CC    P08 ADC8    signals from P08 go to ADC8(CC) and 
+                        ADC28 and ADC38 (CC massless gap signals)
+
+EC    P07 ADC28   signals from P07 go to ADC8 (crossover) and ADC28 (EC)
+
+      P06 ADC38   signals from P06 go to ADC8 (crossover) and ADC38 (EC)
+                        (EC mg signals are not moved across crate boundaries)
+
+
+                              Figure 5
+
+
+
+
+
+
+
+
+
+
+                                - 17 -
+                                                               Page 18
+
+
+            Calorimeter Signal Flow
+
+        One quadrant of the detector has:
+
+---------------     ---------------     ---------------
+| L         R |     | L         R |     | L         R |
+---   EC    ---     ---   EC    ---     ---   CC    ---   FEEDTHROUGHS
+   |       |           |       |           |       |   
+   ---------           ---------           ---------   
+   |      |            |      |            |      |        CABLES
+   V      V            V      V            V      V          
+---------------     ---------------     ---------------
+|     EC      |     |     EC      |     |     CC      |
+|      |      |     |      |      |     |      |      |   PREAMP BOXES
+|  X      Y   |     |  X      Y   |     |  Z1     Z2  |   with 96 preamp boards
+|      |      |     |      |      |     |      |      |   in each.
+---------------     ---------------     ---------------
+   |      |            |      |            |      |        CABLES
+   V      V            V      V            V      V          
+
+X represents any group of 6 preamp boards on the left side of an EC preamp box.
+  The first board has:  1) eta7-11 signals that will go to a CC ADC crate 
+  2) the remaining signals on this board are massless gap channels that will 
+  go to the 12th EC BLS card in a group of 12 cards. (12 EC BLS cards handle 
+  6 EC preamp boards from the left with 6 EC preamp boards from the right).
+Y represents any group of 6 preamp boards on the right side of an EC preamp box.
+  The last board has eta44 channels that will go to the 12th EC BLS card.
+Z represents any group of 6 preamp boards in a CC preamp box. The last 3 preamp
+  boards of each six has massless gap channels that will go to the 12th EC BLS
+  card of the appropriate sector. Z1 has MG channels that will go to one 
+  EC ADC crate while Z2 has MG channels that will go to the other.
+Otherwise, signals are reorangized in increasing sector order and continue to
+their associated BLS/ADC crates as follows: 
+
+   |      |            |      |            |      |        CABLES
+   V      V            V      V            V      V          
+---------------     ---------------     ---------------
+|             |     |             |     |             |    BLS CRATES
+---------------     ---------------     ---------------
+   |      |            |      |            |      |        CABLES
+   V      V            V      V            V      V          
+---------------     ---------------     ---------------
+|             |     |             |     |             |    ADC CRATES
+---------------     ---------------     ---------------
+   |      |            |      |            |      |        DATA
+   V      V            V      V            V      V        CABLE
+---------------     ---------------     ---------------
+|             |     |             |     |             |   L2 MULTIPORT
+---------------     ---------------     ---------------   MEMORIES
+  
+                              Figure 6
+
+
+
+                                - 18 -
+                                                               Page 19
+
+
+                             Appendix A
+
+               Contents of Offline Calorimeter Towers
+
+      The following scheme follows a calorimeter slice in eta.  The entries
+in the tables show, for the ranges of IETAC, which values of LAYERC 
+correspond to signals which actually exist. 
+
+    The calorimeter is symmetric in phi except for the main ring beam pipe,
+which removes portions of CH signals at IPHIC = 17, 18 and 19.
+
+    The layers in each eta bin in the OFFLINE system are listed below:
+
+
+ eta      IETAC           Layers included
+ range
+                     E             C I E F       C
+                     M             C C C H       H
+                                   M D M          
+                                   G   G          
+                                       1 1 1 1 1 1 1 1
+                     1-2-3-4-5-6-7-8-9-0-1-2-3-4-5-6-7
+                                             <-CC | EC->      
+  0   .1     1       x x x x x x x       x x x   x|
+ .1   .2     2       x x x x x x x       x x x   x|
+ .2   .3     3       x x x x x x x       x x x   x|
+ .3   .4     4       x x x x x x x       x x x   x|
+ .4   .5     5       x x x x x x x       x x x   x|
+ .5   .6     6       x x x x x x x       x x x   x|
+ .6   .7     7       x x x x x x x  _____x x x  __|  
+ .7   .8     8       x x x x x x x x| |x|x x x  |x
+ .8   .9     9       x x x x x x x x|x|x|x x    |x x
+ .9   1.0    10   ^  x x x x x x x x|x|x|x______|x x
+ 1.0  1.1    11   |  x x x x x x x x|x|x/x\_     x x x  <- ECOH
+ 1.1  1.2   +12*  C  x x x x       x|x/x|x x\    x x x
+-1.1 -1.2   -12*  C  x x     x x   x|x|x|x x \__ x x x
+ 1.2  1.3    13   _  _______________|x|x|x x x x\_ x x
+ 1.3  1.4   +14*             x x x  |x| |x x x x x\  x
+-1.3 -1.4   -14*  E      x x     x  |x| |x x x x x \ x                      
+ 1.4  1.5    15   C  x x x x x x x  |_|\|x x x x x =\g  OCH3 ganged /w MCH 
+ 1.5  1.6    16   |  x x x x x x x      \x x x x x   \__
+ 1.6  1.7    17   v  x x x x x x x       x\x x x x
+ 1.7  1.8    18      x x x x x x x       x x\_ x x      <- ECMH 
+ 1.8  1.9    19      x x x x x x x       x x x\_ x
+ 1.9  2.0    20      x x x x x x x       x x x x\x
+ 2.0  2.1    21      x x x x x x x       x x x x x\_____
+ 2.1  2.2    22      x x x x x x x       x x x x x
+ 2.2  2.3    23      x x x x x x x       x x x x x
+ 2.3  2.4    24      x x x x x x x       x x x x x
+ 2.4  2.5    25      x x x x x x x       x x x x x
+ 2.5  2.6    26      x x x x x x x       x x x x x      <- ECIH 
+ 2.6  2.7    27      x x x       x       x x x x x
+ 2.7  2.8    28      x x x       x       x x x x x
+
+                                - 19 -
+                                                               Page 20
+
+
+ 2.8  2.9    29      x x x       x       x x x x x
+ 2.9  3.0    30      x x x       x       x x x x x
+ 3.0  3.1    31      x x x       x       x x x x x
+ 3.1  3.2    32      x x x       x       x x x x x
+ 3.2  3.42   33      x x x       x       x x x x x
+ 3.42 3.7    34      x x x       x       x x x x x
+ 3.7  4.1    35      x x x       x       x x x x x
+ 4.1  4.45   36                          x x x x x
+ 4.45 **     37                              x x x
+               
+    * NOTE: These 2 IETAC bins are shown separately for +-Z (+-eta).  All 
+        other bins are the same for +Z and -Z.
+    ** varies from 4.5 to 5.2 with depth
+
+    From IETAC = 27 to 35, EM3 is not subdivided, thus only LAYERC = 3 exists.
+    From IETAC = 33 onwards, only odd values of IPHIC exist.
+
+    For IETAC = 22, LAYERC = 15 (CH), there are irregularities in ganging: see
+Appendix B for details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 20 -
+                                                               Page 21
+
+
+                             Appendix B
+
+                     Contents of Hardware Towers
+
+The following scheme follows a calorimeter slice in eta, in the order in 
+which BLS's are assigned.  For those interested in gory detail, Appendices
+E and F are advised reading.  How much of what CC signals exist is shown in
+figure 6.
+             (D values) 
+              (depths)
+IETAC E  EM     HAD      notes
+---------------------BLS boundary--------------------------------------------
+1    0  0-6     7-10    CCFH1-3,CCCH are the Hadronic signals
+2    1  0-6     7-10         "
+---------------------BLS boundary--------------------------------------------
+.
+.
+---------------------BLS boundary--------------------------------------------
+7    6  0-6     7-9     CCFH1-3; end of region with only CC signals
+8    7  0-6     7-10    CCFH1-3;ECOCH1;       MG's sent to EC crate
+---------------------BLS boundary--------------------------------------------
+9    8  0-6     7-10    CCFH1-2,ECOCH1-2;                  "
+10   9  0-6     7-9     CCFH1,ECOCH1-2;                    "
+---------------------BLS boundary--------------------------------------------
+11  10  0-6     7-10    ECMFH1,OCH1-3;                   "
+12  11  0-3     4-8     missing EM4, 1/2 EM3;ECMFH1-2,OCH1-3; MG's to EC (1)
+................CC/EC Crate Boundary.........................................
+---------------------BLS boundary--------------------------------------------
+13  12  none    6-11    MFH1-4,OCH2-3; note early start of hadronic (1)
+14  13  3-5     6-11    MFH1-4,MCH,OCH3;(1); missing EM1-2, 1/2 of 3 (2)
+---------------------BLS boundary--------------------------------------------
+15  14  0-6     7-11    MFH1-4,OCH3 and MCH ganged (both coarse hadronic)
+16  15  0-6     7-11    MFH1-4,MCH; normality again reigns
+---------------------BLS boundary--------------------------------------------
+17  16  0-6     7-11    IFH1,MFH2-4,MCH
+18  17  0-6   7-8,10-11 IFH1-2,MFH4,MCH (note blank at 9)
+---------------------BLS boundary--------------------------------------------
+19  18  0-6    7-9,11   IFH1-3,MCH      (note blank at 10)
+20  19  0-6     7-11    IFH1-4,MCH
+---------------------BLS boundary--------------------------------------------
+21  20  0-6     7-11    IFH1-4,ICH  (the same 5 HAD signals from now on)
+22  21  0-6     7-11    IFH1-4,ICH  (5)
+.                          "    "
+.
+26  25  0-6     7-11       "    "
+---------------------BLS boundary--------------------------------------------
+27  26  0-2,6   7-11     no more "normality": EM3 granularity changed (2)
+28  27  0-2,6   7-11     (2)
+---------------------BLS boundary--------------------------------------------
+
+
+
+
+
+                                - 21 -
+                                                               Page 22
+
+
+.
+.
+32  31  0-2,6   7-11    as from 2.6 onwards
+---------------------BLS boundary--------------------------------------------
+33  32  0-3     7-11    coarsen tower resolution (3)
+34  34  0-3     7-11
+35  37  0-3     7-11
+36  41  none    7-11    
+---------------------BLS boundary--------------------------------------------
+37  44  none    9-11
+                0-11    CC,EC massless gaps from odd E's (4)
+                0-11    ICD                              (4)
+                0-9     CC,EC massles gaps from even E's (4)
+---------------------BLS boundary--------------------------------------------
+
+notes:
+(1) these three towers are the only ones where the EM/hadronic boundary 
+is at a nonstandard place; it starts 1 slot early in IETAC=13,14; all depths are
+labelled by one (1) depth lower than normal to accomodate this.  In IETAC=12, an
+error in the merge board resulted in misplacement of the hadronic signals.
+
+(2) Note that a blank is left for EM signals which do not exist; exceptions
+in (1) above and (3) below.
+
+(3) since the eta resolution (and phi resolution) coarsens by 2 in each
+dimension here, this is a special BLS, which puts out 4 trigger tower signals
+from 4 different eta's instead of summing the usual 2 eta's and 2 FI's which 
+make up a normal trigger tower. In addition, no blank was left for EM signals
+which do not exist.
+
+(4) The last BLS is again special; it has one last trigger tower
+signal.  The other three towers are available for massless gap signals,
+and ICD signals if that were desirable.  Details of the assignment are found 
+in section 6 of the main text.
+
+(5) For IETAC = 22, LAYERC = 15 (CH), there are irregularities in ganging: 
+        Each cell in the CH contains 12 gaps.  For some IPHIC, for two 
+    adjacent cells, the back 8 signals of the "small" cell is ganged to
+    the signals from the "large" cell, while the front 4 gaps remain
+    independent:
+               front gap -> back
+    small cell     ssssLLLLLLLL         all s signals read out together
+    large cell     LLLLLLLLLLLL         all L signals read out together
+                                                                      
+    "small" cell  "large" cell            "small" cell  "large" cell  
+        ______________horizontal              ______________horizontal
+IPHIC = 2          1                  IPHIC = 34         33           
+        15         16                         47         48           
+        ______________vertical                ______________vertical  
+        18         17                         50         49           
+        31         32                         63         64           
+        ______________horizontal              ______________horizontal
+
+
+                                - 22 -
+                                                               Page 23
+
+
+
+The depths in each eta bin in the ADC and CABLE systems are shown 
+pictorially below:
+
+ eta                    Depths included
+ range
+            E     0  1  2   3   4   5   6  7  8  9 10 11
+
+  0  .1     0    e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 c1
+ .1  .2     1    e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 c1
+ .2  .3     2    e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 c1
+ .3  .4     3    e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 c1
+ .4  .5     4    e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 c1
+ .5  .6     5    e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 c1
+ .6  .7     6    e1 e2 e3q e3r e3s e3t e4 f1 f2 f3
+ .7  .8     7    e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 c1
+ .8  .9     8    e1 e2 e3q e3r e3s e3t e4 f1 f2 c1 c2
+ .9  1.0    9    e1 e2 e3q e3r e3s e3t e4 f1 c1 c2
+ 1.0 1.1    10   e1 e2 e3q e3r e3s e3t e4 f1 c1 c2 c3
+ 1.1 1.2    11***e1 e2 e3q e3r  f1 f2  c1 c2 c3
+ 1.2 1.3    12*                        f1 f2 f3 f4 c2 c3
+ 1.3 1.4    13*            e3s e3t e4  f1 f2 f3 f4 c1 c3
+ 1.4 1.5    14   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+ 1.5 1.6    15   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+ 1.6 1.7    16   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+ 1.7 1.8    17   e1 e2 e3q e3r e3s e3t e4 f1 f2    f4 c1
+ 1.8 1.9    18   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3    c1
+ 1.9 2.0    19   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+ 2.0 2.1    20   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+ 2.1 2.2    21   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1****
+ 2.2 2.3    22   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+ 2.3 2.4    23   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+ 2.4 2.5    24   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+ 2.5 2.6    25   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+ 2.6 2.7    26   e1 e2 e3              e4 f1 f2 f3 f4 c1
+ 2.7 2.8    27   e1 e2 e3              e4 f1 f2 f3 f4 c1
+ 2.8 2.9    28   e1 e2 e3              e4 f1 f2 f3 f4 c1
+ 2.9 3.0    29   e1 e2 e3              e4 f1 f2 f3 f4 c1
+ 3.0 3.1    30   e1 e2 e3              e4 f1 f2 f3 f4 c1
+ 3.1 3.2    31   e1 e2 e3              e4 f1 f2 f3 f4 c1
+ 3.2 3.42   32   e1 e2 e3  e4             f1 f2 f3 f4 c1
+ 3.42 3.7   34   e1 e2 e3  e4             f1 f2 f3 f4 c1
+ 3.7 4.1    37   e1 e2 e3  e4             f1 f2 f3 f4 c1
+ 4.1 4.45   41                            f1 f2 f3 f4 c1
+ 4.45 **    44                                  f3 f4 c1
+               
+    * NOTE: E = 12 and 13 have depths labeled one (1) LESS than normal
+    ** varies from 4.5 to 5.2 with depth
+    *** NOTE: E 11 has hadronic depths shifted forwards
+    **** NOTE: this depth's ganging is irregular: see appendix B above
+    From E = 26 onwards, EM3 is not subdivided, thus only Depth = 3 exists.
+    From E = 32 onwards, only odd values of IPHIC exist.
+
+
+                                - 23 -
+                                                               Page 24
+
+
+                             Appendix C
+
+        Cable labels and the E coordinate in the Cable system
+    
+E       CC label EC label (label from signal port to preamp)
+0 - 6   E0 - E6  none
+7       E7       E7_9_11 (crossover signals)
+8       E8       E8_10          "
+9       E9       E7_9_11        "
+10      E10      E8_10          "
+11      E11      E7_9_11        "
+12 - 31 none     E12 - E31
+32      none     E32_34
+33      does not exist
+34      none     E32_34
+35      does not exist
+36      does not exist
+37      none     E37_41_44
+38      does not exist
+39      does not exist
+40      does not exist
+41      none     E37_41_44
+42      does not exist
+43      does not exist
+44      none     E37_41_44
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 24 -
+                                                                         Page 25
+
+
+                                   Appendix D
+
+                     Parameter files for Numbering Schemes
+
+!File: CAL_OFFLINE.PARAMS  - Calorimeter offline parameters
+!  File:  CALOFFLINE.PARAMS - Calorimeter offline parameters
+   INTEGER NETAL, NPHIL, NLYRL
+   INTEGER MNLYEM, MXLYEM, MNLYMG, MXLYMG
+   INTEGER MNLYFH, MXLYFH, MNLYCH, MXLYCH
+   INTEGER LYEM3A, LYEM3B, LYEM3C, LYEM3D, LYICD
+   INTEGER MNETAMG, MXETAMG
+   INTEGER MNETAICD, MXETAICD
+   INTEGER MNETAMGICD, MXETAMGICD
+   INTEGER D0SFTVSN, D0MCSFTVSN, NWASFTVSN, NWAMCSFTVSN
+   INTEGER AIDALISTLENGTH
+   REAL HOTSUP
+   PARAMETER (NETAL = 37) !  Num.  of eta indices for 1/2 of cal.  (begin at 1)
+   PARAMETER (NPHIL = 64) !  Number of phi indices (begin at 1)
+   PARAMETER (NLYRL = 17) !  Number of active layers (begin at 1)
+   PARAMETER (MNLYEM = 1) !  First EM layer
+   PARAMETER (MXLYEM = 7) !  Last EM layer
+   PARAMETER (MNLYMG = 8) !  First Massless gap layer
+   PARAMETER (MXLYMG = 10) !  Last Massless gap layer
+   PARAMETER (MNETAMG = 8) !  First Massless gap eta
+   PARAMETER (MXETAMG = 13)!  Last Massless gap eta
+   PARAMETER (MNETAICD = 9) !  First ICD eta
+   PARAMETER (MXETAICD = 14)!  Last ICD eta
+   PARAMETER (MNETAMGICD = 8) !  First Massless gap OR ICD eta
+   PARAMETER (MXETAMGICD = 14)!  Last Massless gap OR ICD eta
+   PARAMETER (MNLYFH = 11) !  FIRST FINE HADRONIC LAYER
+   PARAMETER (MXLYFH = 14) !  Last fine hadronic layer
+   PARAMETER (MNLYCH = 15) !  First coarse hadronic layer
+   PARAMETER (MXLYCH = 17) !  Last coarse hadronic layer
+   PARAMETER (LYEM3A = 3) !  EM3 sublayer order
+   PARAMETER (LYEM3B = 4)
+   PARAMETER (LYEM3C = 5)
+   PARAMETER (LYEM3D = 6)
+   PARAMETER (LYICD = 9) !  ICD layer
+   PARAMETER (D0SFTVSN = 2) !  Current D0 Data SFTVSN
+   PARAMETER (D0MCSFTVSN = 4) !  Current D0 MC SFTVSN
+   PARAMETER (NWASFTVSN = 1) !  Current NWA Data SFTVSN
+   PARAMETER (NWAMCSFTVSN = 3) !  Current NWA MC SFTVSN
+   PARAMETER (HOTSUP = 1.0E-9) !  Suppress "hot channel" hits by this factor
+   PARAMETER (AIDALISTLENGTH = 100) !  max.  num.  of cells for AIDA
+
+!File L1PHP.PARAMS
+C- Created by Dale Ross, MSU C- C- Parameters of the Level 1 trigger system *
+   INTEGER NROTTT !  Number of ReadOut Towers per Trigger-Tower
+   PARAMETER (NROTTT = 2)
+   INTEGER NETAL1 !  Number of ETA indices in L-1
+   INTEGER NPHIL1 !  Number of PHI indices in L-1
+
+
+
+                                     - 25 -
+                                                                         Page 26
+
+
+   PARAMETER (NETAL1 = 20)
+   PARAMETER (NPHIL1 = 32)
+   INTEGER MNCTTE !  MiNimum Coarse Trigger Tower Eta, in IETAL1 units.
+   PARAMETER (MNCTTE = 17)
+   INTEGER NETAL11 !  Number of ETA Trigger Towers (including last one,
+   !which is not wired up
+   PARAMETER (NETAL11 = (NETAL1 + 1) ) * C C--- Add  some  parameters  of  large
+tiles C
+   INTEGER NETALT !  Number of eta large tiles in one half of detector
+   INTEGER NPHILT !  Number of azimuthal large tiles
+   PARAMETER( NETALT = 5 )
+   PARAMETER( NPHILT = 4 )
+   INTEGER NTTLTETA !  Number of trigger towers with different eta indices  C  !
+in one large tile
+   INTEGER NTTLTPHI !  Number of trigger towers with different phi indices  C  !
+in one large tile
+   PARAMETER( NTTLTETA = 4 )
+   PARAMETER( NTTLTPHI = 8 )
+
+!File CAL_ADC_NO.PARAMS - Calorimeter ADC numbering scheme parameters
+   INTEGER ADCR00,ADCR01,NADCRC,NADCC,NBLSC,NEFC,NDEPTC,NTRAILER
+   PARAMETER (ADCR00 = 7) !first cal adc crate of CAD1
+   PARAMETER (ADCR01 = 8) !first cal adc crate of CAD2
+   PARAMETER (NADCRC = 6) !number of adc crates per data cable
+   PARAMETER (NADCC = 12) !adc cards per adc crate
+   PARAMETER (NBLSC = 8) !bls cards per adc card
+   PARAMETER (NEFC = 4) !number of readout towers per bls card
+   PARAMETER (NDEPTC = 12) !number of depths per readout tower
+   PARAMETER (NTRAILER = 16) !number of words in CAD trailer
+
+!File CAL_HEX_NO.PARAMS - Calorimeter HEX numbering scheme parameters
+C...  Calorimeter HEX numbering scheme parameters
+   INTEGER ILIMTB,LIMOVR,IGAINB,GAINX1,IDEPTB,NDEPTB,IRTOWB,NRTOWB
+   INTEGER IBLSB,NBLSB,IADCB,NADCB C C Parameters for decoding the IADDR word of
+HEX  system.  C For CRATE word, see the ADC system parameters in CALADCNO.PARAMS
+C C The bit positions are given counting from 0 as LSB in a 16 bit word C Add 16
+to  these  pointers  if  decoding  from a 32 bit IADDR/PH word C The Initial bit
+number parameter starts with I C The Number of bits in the field starts with N C
+all  the  parameters  counting  or  pointing  to bits end with B for Bit C These
+parameters are chosen to make use of the bit handling facilities C described  in
+the  VAX  Fortran  Language Summary, page D36,D42.  NOTE!!  C These bit routines
+are accepted as a Mil Std, and are supported in the CERN C LIBRARY.  This is NOT
+the  same  bit counting convention as in the SBIT1 etc C routines, which is also
+in the CERN Library
+   PARAMETER (ILIMTB = 0) !limit test override bit
+   PARAMETER (LIMOVR = 1) !value if limit test overridden
+   PARAMETER (IGAINB = 1) !gain setting bit
+   PARAMETER (GAINX1 = 1) !value if gain is x1 instead of x8
+   PARAMETER (IDEPTB = 2) !lowest bit of DEPTH field
+   PARAMETER (NDEPTB = 4) !no.  of bits in DEPTH field
+   PARAMETER (IRTOWB = 6) !lowest bit of ROTOW field
+
+
+
+                                     - 26 -
+                                                                         Page 27
+
+
+   PARAMETER (NRTOWB = 2) !no.  of bits in ROTOW field
+   PARAMETER (IBLSB = 8) !lowest bit of BLS field
+   PARAMETER (NBLSB = 3) !no.  of bits in BLS field
+   PARAMETER (IADCB = 11) !lowest bit of ADC field
+   PARAMETER (NADCB = 4) !no.  of bits in ADC field
+
+!File CAL_CABLE_NO.PARAMS - Calorimeter Cable numbering scheme parameters
+C...  Calorimeter Cable numbering scheme parameters
+   INTEGER NHCABL,NSCABL,MECABL,NFCABL,NBADE
+   INTEGER IBADE1,IBADE2,IBADE3,IBADE4,IBADE5,IBADE6,IBADE7,IBADE8
+   PARAMETER (NHCABL = 2) !no.  of detector halves in cal cable numbers
+   PARAMETER (NSCABL = 32) !no.  of sectors in cal cable numbers
+   PARAMETER (MECABL = 44) !max E coord in cal cable numbers
+   PARAMETER (NFCABL = 2) !number of FI's in cal cable numbers
+   PARAMETER (NBADE = 8) !number of invalid E coordinates
+   PARAMETER (IBADE1 = 33) !invalid E coordinate
+   PARAMETER (IBADE2 = 35) !invalid E coordinate
+   PARAMETER (IBADE3 = 36) !invalid E coordinate
+   PARAMETER (IBADE4 = 38) !invalid E coordinate
+   PARAMETER (IBADE5 = 39) !invalid E coordinate
+   PARAMETER (IBADE6 = 40) !invalid E coordinate
+   PARAMETER (IBADE7 = 42) !invalid E coordinate
+   PARAMETER (IBADE8 = 43) !invalid E coordinate
+
+!File CAL_PREAMP_NO.PARAMS - Calorimeter Preamp numbering scheme parameters
+   C...  Calorimeter Preamp numbering scheme parameters
+   INTEGER NPRBOX,NPRBRD
+   PARAMETER (NPRBOX = 12) !no.  of preamp boxes
+   PARAMETER (NPRBRD = 96) !no.  of preamp boards per box
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 27 -
+                                                                         Page 28
+
+
+                                   Appendix E
+
+                             Details of CC Mapping
+
+CC MAPPING:
+
+CC cables are labelled by azimuthal and eta variables.  The azimuth is divided
+into 32 delta_phi=.2 sectors labelled 0-31.  The sector variable increases
+counterclockwise when viewed from the intersection region.  Sector zero is at
+the top of the detector with its right edge, as viewed from the intersection
+region, coincident with a vertical line passing through the center of the
+detector.  CC covers the region in pseudorapidity, eta, between eta=0 and
+eta = 1.2.  This region is divided into 12 delta_eta=.1 bins labelled 0-11.
+The integer label is equal to ten times the lower limit of the eta bin.
+
+        Each cable carries the signals from a single phi sector, separated into
+two delta_phi = .1 regions labelled F0 and F1, and a single delta_eta=.1
+interval labelled E0-E11.  Various depths in the detector are labelled
+as follows:
+
+                EM1                     Electromagnetic layer 1
+                EM2                            "          "   2
+                EM3                            "          "   3
+                EM4                            "          "   4
+
+                FH1                     Fine Hadronic   layer 1
+                FH2                     Fine Hadronic   layer 2
+                FH3                     Fine Hadronic   layer 3
+
+                CH                      Course Hadronic
+
+                MG                      Massless Gap
+
+
+        In addition, the EM3 layer is more finely divided in both phi and eta.
+Each delta_phi=.1 interval is divided into two delta_phi=.05 intervals labelled
+FL and FH for the lower and higher delta_phi pieces.  Likewise, the two
+delta_eta=.05 pieces of the delta_eta=.1 bin are labeled EL and EH.
+
+        There are 32 feedthrough boards which transmit signals from inside the
+detector to the preamplifiers located just outside.  Twenty-four cables are
+connected to each feedthrough board from the detector inside the cryostat and
+twenty four cables leave the feedthrough board carrying signals to the
+preamplifiers.  Each feedthrough board transmits the signals from all twelve
+eta bins and from an even and an odd phi-sector (0,1),(2,3), etc.  The cables
+are 50 conductor flat cables, twenty-five twisted pairs.  The middle pair is
+never used.
+
+
+
+
+
+
+
+                                     - 28 -
+                                                                         Page 29
+
+
+
+        When the feedthrough board is viewed from the connector side it looks
+like
+           ____________________________________________________________
+          |                           outputs                          |
+          |   >| | | | | | | | | | | |     >| | | | | | | | | | | |    |
+          |    | | | | | | | | | | | |      | | | | | | | | | | | |    |
+          |    | | | | | | | | | | | |      | | | | | | | | | | | |    |
+          |  E11----------------------E0  E11----------------------E0  |
+          |        even sector                   odd sector            |
+          |______________                               _______________|
+                        |            inputs             |
+                        |                               |
+                        |  _________    MG    ________  |
+                        |  _________    CH    ________  |
+                        |  _________    FH3   ________  |
+                        |  _________    FH2   ________  |
+                        |  _________    FH1   ________  |
+                        |  _________    EM4   ________  |
+                        |  _________  EM3,#4  ________  |
+                        |  _________  EM3,#3  ________  |
+                        |  _________  EM3,#2  ________  |
+                        |  _________  EM3,#1  ________  |
+                        |  _________    EM2   ________  |
+                        |  _________    EM1   ________  |
+                        |  ^ even             ^  odd    |
+                        |_______________________________|
+
+
+        INPUT CONNECTORS - EVEN SECTOR (LEFT BANK)
+On input, connectors are labeled by the layer label,
+as to remind us from which module signals are read out.
+
+      EM1    EM2       EM3,#1       EM3,#2       EM3,#3       EM3,#4
+PIN
+1   F1-E11   F1-E11    F1H-E11.0    F1L-E11.0       X            X
+2     -E10     -E10       -E10.0       -E10.0    F1H-E10.5    F1L-E10.5
+3     -E9      -E9        -E9.0        -E9.0        -E9.5        -E9.5
+4     -E8      -E8        -E8.0        -E8.0        -E8.5        -E8.5
+5     -E7      -E7        -E7.0        -E7.0        -E7.5        -E7.5
+6     -E6      -E6        -E6.0        -E6.0        -E6.5        -E6.5
+7     -E5      -E5        -E5.0        -E5.0        -E5.5        -E5.5
+8     -E4      -E4        -E4.0        -E4.0        -E4.5        -E4.5
+9     -E3      -E3        -E3.0        -E3.0        -E3.5        -E3.5
+10    -E2      -E2        -E2.0        -E2.0        -E2.5        -E2.5
+11    -E1      -E1        -E1.0        -E1.0        -E1.5        -E1.5
+12  F1-E0    F1-E0     F1H-E0.0     F1L-E0.0     F1H-E0.5     F1L-E0.5
+13    X        X          X            X            X            X
+14  F0-E0    F0-E0     F0L-E0.0     F0H-E0.0     F0L-E0.5     F0H-E0.5
+15    -E1      -E1        -E1.0        -E1.0        -E1.5        -E1.5
+16    -E2      -E2        -E2.0        -E2.0        -E2.5        -E2.5
+17    -E3      -E3        -E3.0        -E3.0        -E3.5        -E3.5
+18    -E4      -E4        -E4.0        -E4.0        -E4.5        -E4.5
+
+                                     - 29 -
+                                                                         Page 30
+
+
+19    -E5      -E5        -E5.0        -E5.0        -E5.5        -E5.5
+20    -E6      -E6        -E6.0        -E6.0        -E6.6        -E6.5
+21    -E7      -E7        -E7.0        -E7.0        -E7.5        -E7.5
+22    -E8      -E8        -E8.0        -E8.0        -E8.5        -E8.5
+23    -E9      -E9        -E9.0        -E9.0        -E9.5        -E9.5
+24    -E10     -E10       -E10.0       -E10.0    F0L-E10.5    F0H-E10.5
+25  F0-E11   F0-E11    F0L-E11.0    F0H-E11.0       X            X
+
+      EM4    FH1       FH2       FH3        CH       MG
+PIN
+1     X        X         X          X         X        X
+2   F1-E10     X         X          X       F1-E0      X
+3     -E9    F1-E9       X          X         -E1      X
+4     -E8      -E8     F1-E8        X         -E2      X
+5     -E7      -E7       -E7      F1-E7       -E3      X
+6     -E6      -E6       -E6        -E6       -E4      X
+7     -E5      -E5       -E5        -E5     F1-E5      X
+8     -E4      -E4       -E4        -E4       X      F0-E11
+9     -E3      -E3       -E3        -E3       X      F1-E11
+10    -E2      -E2       -E2        -E2       X      F1-E10
+11    -E1      -E1       -E1        -E1       X      F0-E10
+12  F1-E0    F1-E0     F1-E0      F1-E0       X      F0-E9
+13    X        X         X          X         X        X
+14  F0-E0      X         X          X         X      F1-E9
+15    -E1    F0-E0     F0-E0      F0-E0       X      F1-E8
+16    -E2      -E1       -E1        -E1       X      F0-E8
+17    -E3      -E2       -E2        -E2       X      F1-E7
+18    -E4      -E3       -E3        -E3       X      F0-E7
+19    -E5      -E4       -E4        -E4       X        X
+20    -E6      -E5       -E5        -E5     F0-E5      X
+21    -E7      -E6       -E6        -E6       -E4      X
+22    -E8      -E7       -E7      F0-E7       -E3      X
+23    -E9      -E8     F0-E8        X         -E2      X
+24  F0-E10   F0-E9       X          X         -E1      X
+25    X        X         X          X       F0-E0      X
+
+        INPUT CONNECTORS - ODD SECTOR (RIGHT BANK).
+
+      EM1    EM2       EM3,#1       EM3,#2       EM3,#3       EM3,#4
+PIN
+1   F1-E11   F1-E11    F1H-E11.0    F1L-E11.0       X            X
+2     -E10     -E10       -E10.0       -E10.0    F1H-E10.5    F1L-E10.5
+3     -E9      -E9        -E9.0        -E9.0        -E9.5        -E9.5
+4     -E8      -E8        -E8.0        -E8.0        -E8.5        -E8.5
+5     -E7      -E7        -E7.0        -E7.0        -E7.5        -E7.5
+6     -E6      -E6        -E6.0        -E6.0        -E6.5        -E6.5
+7     -E5      -E5        -E5.0        -E5.0        -E5.5        -E5.5
+8     -E4      -E4        -E4.0        -E4.0        -E4.5        -E4.5
+9     -E3      -E3        -E3.0        -E3.0        -E3.5        -E3.5
+10    -E2      -E2        -E2.0        -E2.0        -E2.5        -E2.5
+11    -E1      -E1        -E1.0        -E1.0        -E1.5        -E1.5
+12  F1-E0    F1-E0     F1H-E0.0     F1L-E0.0     F1H-E0.5     F1L-E0.5
+13    X        X          X            X            X            X
+
+                                     - 30 -
+                                                                         Page 31
+
+
+14  F0-E0    F0-E0     F0L-E0.0     F0H-E0.0     F0L-E0.5     F0H-E0.5
+15    -E1      -E1        -E1.0        -E1.0        -E1.5        -E1.5
+16    -E2      -E2        -E2.0        -E2.0        -E2.5        -E2.5
+17    -E3      -E3        -E3.0        -E3.0        -E3.5        -E3.5
+18    -E4      -E4        -E4.0        -E4.0        -E4.5        -E4.5
+19    -E5      -E5        -E5.0        -E5.0        -E5.5        -E5.5
+20    -E6      -E6        -E6.0        -E6.0        -E6.6        -E6.5
+21    -E7      -E7        -E7.0        -E7.0        -E7.5        -E7.5
+22    -E8      -E8        -E8.0        -E8.0        -E8.5        -E8.5
+23    -E9      -E9        -E9.0        -E9.0        -E9.5        -E9.5
+24    -E10     -E10       -E10.0       -E10.0    F0L-E10.5    F0H-E10.5
+25  F0-E11   F0-E11    F0L-E11.0    F0H-E11.0       X            X
+
+      EM4    FH1       FH2       FH3        CH       MG
+PIN
+1     X        X         X          X         X        X
+2   F1-E10   F1-E0     F1-E0      F1-E0       X        X
+3     -E9      -E1       -E1        -E1       X        X
+4     -E8      -E2       -E2        -E2       X        X
+5     -E7      -E3       -E3        -E3       X        X
+6     -E6      -E4       -E4        -E4       X        X
+7     -E5      -E5       -E5        -E5     F1-E5      X
+8     -E4      -E6       -E6        -E6       -E4    F1-E7
+9     -E3      -E7       -E7      F1-E7       -E3    F0-E7
+10    -E2      -E8     F1-E8        X         -E2    F1-E8
+11    -E1    F1-E9       X          X         -E1    F0-E8
+12  F1-E0      X         X          X       F1-E0    F0-E9
+13    X        X         X          X         X        X
+14  F0-E0      X         X          X         X      F1-E9
+15    -E1      X         X          X       F0-E0    F1-E10
+16    -E2    F0-E9       X          X         -E1    F0-E10
+17    -E3      -E8     F0-E8        X         -E2    F0-E11
+18    -E4      -E7       -E7      F0-E7       -E3    F1-E11
+19    -E5      -E6       -E6        -E6       -E4      X
+20    -E6      -E5       -E5        -E5     F0-E5      X
+21    -E7      -E4       -E4        -E4       X        X
+22    -E8      -E3       -E3        -E3       X        X
+23    -E9      -E2       -E2        -E2       X        X
+24  F0-E10     -E1       -E1        -E1       X        X
+25    X      F0-E0     F0-E0      F0-E0       X        X
+
+OUTPUT CONNECTORS:
+
+The even or odd sector output connectors E0-E11 contain signals as described
+below.  An X stands for an unused pair.  Pairs are ordered from left to right
+1-25.
+
+PIN    E0             E1             E2             E3             E4
+
+1   EM1:F0         EM1:F0         EM1:F0         EM1:F0         EM1:F0
+2   EM2:           EM2:           EM2:           EM2:           EM2:
+3   EM3:F0L-E0.0   EM3:F0L-E1.0   EM3:F0L-E2.0   EM3:F0L-E3.0   EM3:F0L-E4.0
+4   EM3:F0H-E0.0   EM3:F0H-E1.0   EM3:F0H-E2.0   EM3:F0H-E3.0   EM3:F0H-E4.0
+
+                                     - 31 -
+                                                                         Page 32
+
+
+5   EM3:F0L-E0.5   EM3:F0L-E1.5   EM3:F0L-E2.5   EM3:F0L-E3.5   EM3:F0L-E4.5
+6   EM3:F0H-E0.5   EM3:F0H-E1.5   EM3:F0H-E2.5   EM3:F0H-E3.5   EM3:F0H-E4.5
+7   EM4:           EM4:           EM4:           EM4:           EM4:
+8   FH1:           FH1:           FH1:           FH1:           FH1:
+9   FH2:           FH2:           FH2:           FH2:           FH2:
+10  FH3:           FH3:           FH3:           FH3:           FH3:
+11  CH:F0          CH:F0          CH:F0          CH:F0          CH:F0
+12     X              X              X              X              X
+13     X              X              X              X              X
+14  EM1:F1         EM1:F1         EM1:F1         EM1:F1         EM1:F1
+15  EM2:           EM2:           EM2:           EM2:           EM2:
+16  EM3:F1L-E0.0   EM3:F1L-E1.0   EM3:F1L-E2.0   EM3:F1L-E3.0   EM3:F1L-E4.0
+17  EM3:F1H-E0.0   EM3:F1H-E1.0   EM3:F1H-E2.0   EM3:F1H-E3.0   EM3:F1H-E4.0
+18  EM3:F1L-E0.5   EM3:F1L-E1.5   EM3:F1L-E2.5   EM3:F1L-E3.5   EM3:F1L-E4.5
+19  EM3:F1H-E0.5   EM3:F1H-E1.5   EM3:F1H-E2.5   EM3:F1H-E3.5   EM3:F1H-E4.5
+20  EM4:           EM4:           EM4:           EM4:           EM4:
+21  FH1:           FH1:           FH1:           FH1:           FH1:
+22  FH2:           FH2:           FH2:           FH2:           FH2:
+23  FH3:           FH3:           FH3:           FH3:           FH3:
+24   CH:            CH:            CH:            CH:            CH:
+25     X              X              X              X              X
+
+PIN    E5             E6             E7             E8             E9
+
+1   EM1:F0         EM1:F0         EM1:F0         EM1:F0         EM1:F0
+2   EM2:           EM2:           EM2:           EM2:           EM2:
+3   EM3:F0L-E5.0   EM3:F0L-E6.0   EM3:F0L-E7.0   EM3:F0L-E8.0   EM3:F0L-E9.0
+4   EM3:F0H-E5.0   EM3:F0H-E6.0   EM3:F0H-E7.0   EM3:F0H-E8.0   EM3:F0H-E9.0
+5   EM3:F0L-E5.5   EM3:F0L-E6.5   EM3:F0L-E7.5   EM3:F0L-E8.5   EM3:F0L-E9.5
+6   EM3:F0H-E5.5   EM3:F0H-E6.5   EM3:F0H-E7.5   EM3:F0H-E8.5   EM3:F0H-E9.5
+7   EM4:           EM4:           EM4:           EM4:           EM4:
+8   FH1:           FH1:           FH1:           FH1:           FH1:
+9   FH2:           FH2:           FH2:           FH2:            MG:
+10  FH3:           FH3:           FH3:            MG:              X
+11   CH:F0            X            MG:              X              X
+12     X              X              X              X              X
+13     X              X              X              X              X
+14  EM1:F1         EM1:F1         EM1:F1         EM1:F1         EM1:F1
+15  EM2:           EM2:           EM2:           EM2:           EM2:
+16  EM3:F1L-E5.0   EM3:F1L-E6.0   EM3:F1L-E7.0   EM3:F1L-E8.0   EM3:F1L-E9.0
+17  EM3:F1H-E5.0   EM3:F1H-E6.0   EM3:F1H-E7.0   EM3:F1H-E8.0   EM3:F1H-E9.0
+18  EM3:F1L-E5.5   EM3:F1L-E6.5   EM3:F1L-E7.5   EM3:F1L-E8.5   EM3:F1L-E9.5
+19  EM3:F1H-E5.5   EM3:F1H-E6.5   EM3:F1H-E7.5   EM3:F1H-E8.5   EM3:F1H-E9.5
+20  EM4:           EM4:           EM4:           EM4:           EM4:
+21  FH1:           FH1:           FH1:           FH1:           FH1:
+22  FH2:           FH2:           FH2:           FH2:            MG:
+23  FH3:           FH3:           FH3:            MG:              X
+24   CH:              X            MG:              X              X
+25     X              X              X              X              X
+
+PIN    E10             E11
+
+1   EM1:F0          EM1:F0
+
+                                     - 32 -
+                                                                         Page 33
+
+
+2   EM2:            EM2:
+3   EM3:F0L-E10.0   EM3:F0L-E11.0
+4   EM3:F0H-E10.0   EM3:F0H-E11.0
+5   EM3:F0L-E10.5    MG:
+6   EM3:F0H-E10.5      X
+7   EM4:               X
+8    MG:               X
+9      X               X
+10     X               X
+11     X               X
+12     X               X
+13     X               X
+14  EM1:F1          EM1:F1
+15  EM2:            EM2:
+16  EM3:F1L-E10.0   EM3:F1L-E11.0
+17  EM3:F1H-E10.0   EM3:F1H-E11.0
+18  EM3:F1L-E10.5    MG:
+19  EM3:F1H-E10.5      X
+20  EM4:               X
+21   MG:               X
+22     X               X
+23     X               X
+24     X               X
+25     X               X
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 33 -
+                                                                         Page 34
+
+
+                                   Appendix F
+
+                             Details of EC Mapping
+
+EC MAPPING:
+
+EC cables are labelled by azimuthal and eta variables.  The azimuth is divided
+into 32 delta_phi=.2 sectors labelled 0-31.  The sector variable increases
+counterclockwise when viewed from the intersection region.  Sector zero is at
+the top of the detector with its right edge, as viewed from the intersection
+region, coincident with a vertical line passing through the center of the
+detector.  EC covers the region in pseudorapidity, eta, between eta=.7 and
+eta = 4.6.  This region is divided into delta_eta bins labelled by an
+integer which is equal to ten times the lower limit of the eta bin.  For etas
+less than 3.2, the eta bin size is .1; the remaining eta bins are 3.2-3.4,
+3.4-3.7, 3.7-4.1, 4.1-4.4, 4.4-4.6.
+        Each cable leaving the feedthrough carries the signals from a single
+phi sector, separated into two delta_phi = .1 regions labelled F0 and F1, and
+one or more delta_eta intervals.  There are 24 such cables labelled
+E7_9_11, E8_10, E12, E13, E14..., E31, E32_34, E37_41_44.  All but four of the
+cables, the first two and the last two listed above, contain signals from a
+single eta bin.  Massless gaps, here referred to as OH0 and MH0, are on the
+first two cables, those carrying signals in the region of overlap between CC
+and EC.
+        Various regions of the detector are labelled as follows:
+
+                EM1                     Electromagnetic layer 1
+                EM2                            "          "   2
+                EM3                            "          "   3
+                EM4                            "          "   4
+
+                OH0                     Outer hadronic  layer 0 (Massless gap)
+                OH1                     Outer hadronic  layer 1
+                OH2                     Outer hadronic  layer 2
+                OH3                     Outer hadronic  layer 3
+
+                MH0                     Mid hadronic    layer 0 (Massless gap)
+                MH1                     Mid hadronic    layer 1
+                MH2                     Mid hadronic    layer 2
+                MH3                     Mid hadronic    layer 3
+                MH4                     Mid hadronic    layer 4
+                MCH                     Mid course hadronic
+
+                IH1                     Inner hadronic  layer 1
+                IH2                     Inner hadronic  layer 2
+                IH3                     Inner hadronic  layer 3
+                IH4                     Inner hadronic  layer 4
+                ICH                     Inner course hadronic
+
+        In addition, the EM3 layer, for eta <=2.6, is more finely divided
+in both phi and eta. Each delta_phi=.1 interval is divided into two
+delta_phi=.05 intervals labelled L and H for the lower and higher delta_phi
+pieces.  The two delta_eta=.05 pieces of the delta_eta=.1 bin are
+
+                                     - 34 -
+                                                                         Page 35
+
+
+identified by a decimal fraction, e.g., the eta interval between 2.0 and 2.05
+and that between 2.05 and 2.1 are designated 20.0 and 20.5 respectively.
+        There are 32 feedthrough boards which transmit signals from inside each
+cryostat to the preamplifiers located just outside.  Twenty-three cables are
+connected to each feedthrough board from the detector inside the cryostat and
+twenty four cables leave the feedthrough board carrying signals to the
+preamplifiers.  Each feedthrough board transmits the signals from all
+eta bins and a single phi sector.  The cables carrying the signals from the
+feedthrough board are 50 conductor flat cables, twenty-five twisted pairs.  The
+middle pair is never used.
+
+
+        When the feedthrough board is viewed from the connector side it looks
+like
+          ____________________________________________________________
+          |                        Outputs                           |
+          |   >| | | | | | | | | | |     >| | | | | | | | | | | | |  |
+          |    | | | | | | | | | | |      | | | | | | | | | | | | |  |
+          |    | | | | | | | | | | |      | | | | | | | | | | | | |  |
+          |    E7-----------------E20    E21----------------------E37|
+          |    E9                                                 E44|
+          |____E11___                                   __________E41|
+                    |                                   |
+                    |              Inputs               |
+                    |OH0,OH1  _________    ________ IH1 |
+                    |OH2,OH3  _________    ________ IH2 |
+                    |MH1,MH0  _________    ________ IH3 |
+                    |MH3,MH2  _________    ________ IH4 |
+                    |MCH,MH4  _________    ________ ICH |
+                    |                      ________ EM4 |
+                    |IH1-ICH  ---------    ________ EM3 |
+                    |  EM4    _________    ________ EM3 |
+                    |  EM3    _________    ________ EM3 |
+                    |  EM3    _________    ________ EM3 |
+                    |  EM2    _________    ________ EM2 |
+                    |  EM1    _________    ________ EM1 |
+                    |         ^            ^            |
+                    |        E < 2.1        E > 2.1     |
+                    |___________________________________|
+
+The input and output connectors contain signals as described below.
+An X stands for an unused pair. Note that input connectors do not
+have the same number of pins. The number in parenthesis after the connector
+label refers to the number of pin pairs on that connector.
+
+
+INPUT CONNECTORS E < 2.1 (LEFT INPUT BANK); EVEN SECTOR
+
+PIN  EM1-0(15)   EM2-1(15)  EM3-4(30)    EM3-1(30)    EM4-0(17)  IH1-4,ICH(30)
+
+1       F0-E20    F0-E20    F1L-E20.5     F0L-E20.5    F0-E20    IH1:F1-E16
+2         -E19      -E19       -E20.0        -E20.0      -E19          -E17
+3         -E18      -E18       -E19.5        -E19.5      -E18          -E18
+
+                                     - 35 -
+                                                                         Page 36
+
+
+4         -E17      -E17       -E19.0        -E19.0      -E17          -E19
+5         -E16      -E16       -E18.5        -E18.5      -E16        F1-E20
+6         -E15      -E15       -E18.0        -E18.0      -E15        F0-E20
+7       F0-E14    F0-E14       -E17.5        -E17.5      -E14          -E19
+8       F1-E14    F1-E14       -E17.0        -E17.0    F0-E13          -E18
+9         -E15      -E15       -E16.5        -E16.5    F1-E13          -E17
+10        -E16      -E16       -E16.0        -E16.0      -E14    IH1:F0-E16
+11        -E17      -E17       -E15.5        -E15.5      -E15    IH2:F1-E17
+12        -E18      -E18       -E15.0        -E15.0      -E16          -E18
+13        -E19      -E19       -E14.5        -E14.5      -E17          -E19
+14        -E20    F1-E20       -E14.0        -E14.0      -E18        F1-E20
+15        X         X       F1L-E13.5     F0L-E13.5      -E19        F0-E20
+16                          F1H-E13.5     F0H-E13.5    F1-E20          -E19
+17                             -E14.0        -E14.0     X              -E18
+18                             -E14.5        -E14.5              IH2:F0-E17
+19                             -E15.0        -E15.0              IH3:F1-E18
+20                             -E15.5        -E15.5                    -E19
+21                             -E16.0        -E16.0                  F1-E20
+22                             -E16.5        -E16.5                  F0-E20
+23                             -E17.0        -E17.0                    -E19
+24                             -E17.5        -E17.5              IH3:F0-E18
+25                             -E18.0        -E18.0              IH4:F1-E19
+26                             -E18.5        -E18.5                  F1-E20
+27                             -E19.0        -E19.0                  F0-E20
+28                             -E19.5        -E19.5              IH4:F0-E19
+29                             -E20.0        -E20.0              ICH:F1-E20
+30                          F1H-E20.5     F0H-E20.5              ICH:F0-E20
+
+INPUT CONNECTORS E < 2.1 (LEFT INPUT BANK); EVEN SECTOR
+
+PIN  MCH,MH4(30) MH3,MH2(25)   MH1,MH0(20)   OH2,OH3(25)  OH0,OH1(20)
+
+1    MCH:F1-E13  MH3:F0-E12    MH1:F1-E10    OH2:F0-E12    SPARE:0   
+2        F0-E13      F1-E12        F0-E10        F1-E12    SPARE:1   
+3        F1-E14      F1-E13        F0-E11        F0-E11    OH0:F1-E9
+4        F0-E14      F0-E13        F1-E11        F1-E11        F0-E9
+5        F0-E15      F0-E14        F1-E12        F1-E10        F0-E8
+6        F1-E15      F1-E14        F0-E12        F0-E10        F1-E8
+7        F1-E16      F1-E15        F0-E13        F0-E9         F1-E7
+8        F0-E16      F0-E15        F1-E13        F1-E9     OH0:F0-E7
+9        F0-E17      F0-E16        F1-E14        F1-E8     OH1:F0-E11
+10       F1-E17  MH3:F1-E16        F0-E14    OH2:F0-E8         F1-E11
+11       F1-E18  MH2:F1-E11        F0-E15    OH3:F0-E14        F0-E10
+12       F0-E18      F0-E11    MH1:F1-E15        F1-E14        F1-E10
+13       F0-E19      F0-E12        X             F0-E13        F1-E9
+14   MCH:F1-E19      F1-E12        X             F1-E13        F0-E9
+15   MH4:F1-E12      F1-E13    MH0:F1-E10**      F1-E12        F0-E8
+16       F0-E12      F0-E13    MH0:F0-E10        F0-E12        F1-E8
+17       F0-E13      F0-E14    MH0:F1-E11        F0-E11        F1-E7
+18       F1-E13      F1-E14        F0-E11        F1-E11    OH1:F0-E7
+19       F1-E14      F1-E15        F0-E12        F1-E10        X
+20       F0-E14      F0-E15    MH0:F1-E12    OH3:F0-E10        X
+21       F0-E15      F0-E16                      X
+
+                                     - 36 -
+                                                                         Page 37
+
+
+22       F1-E15  MH2:F1-E16                      X
+23       F1-E16      X                           X
+24       F0-E16      X                           X
+25       F0-E17      X                           X
+26   MH4:F1-E17
+27       X
+28       X
+29       X
+30       X
+
+INPUT CONNECTORS E > 2.1 (RIGHT INPUT BANK); EVEN SECTOR
+
+PIN   EM1-1(25)    EM2-0(25) EM3-0(10)   EM3-2(20)  EM3-3(20)     EM3-5(10)
+1       F0-E21      F0-E21   F0L-E25.5   F0H-E21.0   F0,F1-E37      F1H-E21.0
+2         -E22        -E22      -E25.0      -E21.5   F0,F1-E34         -E21.5
+3         -E23        -E23      -E24.5      -E22.0      F1-E31         -E22.0
+4         -E24        -E24      -E24.0      -E22.5        -E30         -E22.5
+5         -E25        -E25      -E23.5      -E23.0        -E29         -E23.0
+6         -E26        -E26      -E23.0      -E23.5        -E28         -E23.5
+7         -E27        -E27      -E22.5      -E24.0        -E27         -E24.0
+8         -E28        -E28      -E22.0      -E24.5      F1-E26         -E24.5
+9         -E29        -E29      -E21.5      -E25.0     F1L-E25.5       -E25.0
+10        -E30        -E30   F0L-E21.0   F0H-E25.5        -E25.0    F1H-E25.5
+11      F0-E31      F0-E31                F0-E26          -E24.5
+12   F0,F1-E32   F0,F1-E32                  -E27          -E24.0
+13   F0,F1-E37   F0,F1-E37                  -E28          -E23.5
+14   F0,F1-E34   F0,F1-E34                  -E29          -E23.0
+15      F1-E31      F1-E31                  -E30          -E22.5
+16        -E30        -E30                F0-E31          -E22.0
+17        -E29        -E29             F0,F1-E32          -E21.5
+18        -E28        -E28                   X         F1L-E21.0
+19        -E27        -E27                   X            X
+20        -E26        -E26                   X            X
+21        -E25        -E25
+22        -E24        -E24
+23        -E23        -E23
+24        -E22        -E22
+25      F1-E21      F1-E21
+
+PIN  EM4-1(25)    ICH(30)     IH4(30)     IH3(30)     IH2(30)     IH1(30)
+1      F0-E21      F1-E21      F1-E21      F1-E21      F1-E21      F1-E21
+2        -E22        -E22        -E22        -E22        -E22        -E22
+3        -E23        -E23        -E23        -E23        -E23        -E23
+4        -E24        -E24        -E24        -E24        -E24        -E24
+5        -E25        -E25        -E25        -E25        -E25        -E25
+6        -E26        -E26        -E26        -E26        -E26        -E26
+7        -E27        -E27        -E27        -E27        -E27        -E27
+8        -E28        -E28        -E28        -E28        -E28        -E28
+9        -E29        -E29        -E29        -E29        -E29        -E29
+10       -E30        -E30        -E30        -E30        -E30        -E30
+11     F0-E31      F1-E31      F1-E31      F1-E31      F1-E31      F1-E31
+12  F0,F1-E32   F0,F1-E32   F0,F1-E32   F0,F1-E32   F0,F1-E32   F0,F1-E32
+13  F0,F1-E37   F0,F1-E34   F0,F1-E34   F0,F1-E34   F0,F1-E34   F0,F1-E34
+
+                                     - 37 -
+                                                                         Page 38
+
+
+14  F0,F1-E34   F0,F1-E37   F0,F1-E37   F0,F1-E37   F0,F1-E37   F0,F1-E37
+15     F1-E31   F0,F1-E41   F0,F1-E41   F0,F1-E41   F0,F1-E41   F0,F1-E41
+16       -E30   F0,F1-E44   F0,F1-E44   F0,F1-E44   F0,F1-E44   F0,F1-E44
+17       -E29      F0-E31      F0-E31      F0-E31      F0-E31      F0-E31
+18       -E28        -E30        -E30        -E30        -E30        -E30
+19       -E27        -E29        -E29        -E29        -E29        -E29
+20       -E26        -E28        -E28        -E28        -E28        -E28
+21       -E25        -E27        -E27        -E27        -E27        -E27
+22       -E24        -E26        -E26        -E26        -E26        -E26
+23       -E23        -E25        -E25        -E25        -E25        -E25
+24       -E22        -E24        -E24        -E24        -E24        -E24
+25     F1-E21        -E23        -E23        -E23        -E23        -E23
+26                   -E22        -E22        -E22        -E22        -E22
+27                 F0-E21      F0-E21      F0-E21      F0-E21      F0-E21
+28                    X           X           X           X           X
+29                    X           X           X           X           X
+30                    X           X           X           X           X
+
+INPUT CONNECTORS E < 2.1 (LEFT INPUT BANK); ODD SECTOR
+
+PIN   EM1-1(15)   EM2-0(15) EM3-4(30)    EM3-1(30)    EM4-1(17)  IH1-4,ICH(30)
+
+1       F0-E20    F0-E20    F1L-E20.5     F0L-E20.5     X        IH1:F1-E16
+2         -E19      -E19       -E20.0        -E20.0    F0-E20          -E17
+3         -E18      -E18       -E19.5        -E19.5      -E19          -E18
+4         -E17      -E17       -E19.0        -E19.0      -E18          -E19
+5         -E16      -E16       -E18.5        -E18.5      -E17        F1-E20
+6         -E15      -E15       -E18.0        -E18.0      -E16        F0-E20
+7       F0-E14    F0-E14       -E17.5        -E17.5      -E15          -E19
+8       F1-E14    F1-E14       -E17.0        -E17.0      -E14          -E18
+9         -E15      -E15       -E16.5        -E16.5    F0-E13          -E17
+10        -E16      -E16       -E16.0        -E16.0    F1-E13    IH1:F0-E16
+11        -E17      -E17       -E15.5        -E15.5      -E14    IH2:F1-E17
+12        -E18      -E18       -E15.0        -E15.0      -E15          -E18
+13        -E19      -E19       -E14.5        -E14.5      -E16          -E19
+14      F1-E20    F1-E20       -E14.0        -E14.0      -E17        F1-E20
+15      X         X         F1L-E13.5     F0L-E13.5      -E18        F0-E20
+16                          F1H-E13.5     F0H-E13.5      -E19          -E19
+17                             -E14.0        -E14.0    F1-E20          -E18
+18                             -E14.5        -E14.5              IH2:F0-E17
+19                             -E15.0        -E15.0              IH3:F1-E18
+20                             -E15.5        -E15.5                    -E19
+21                             -E16.0        -E16.0                  F1-E20
+22                             -E16.5        -E16.5                  F0-E20
+23                             -E17.0        -E17.0                    -E19
+24                             -E17.5        -E17.5              IH3:F0-E18
+25                             -E18.0        -E18.0              IH4:F1-E19
+26                             -E18.5        -E18.5                  F1-E20
+27                             -E19.0        -E19.0                  F0-E20
+28                             -E19.5        -E19.5              IH4:F0-E19
+29                             -E20.0        -E20.0              ICH:F1-E20
+30                          F1H-E20.5     F0H-E20.5              ICH:F0-E20
+
+
+                                     - 38 -
+                                                                         Page 39
+
+
+INPUT CONNECTORS E < 2.1 (LEFT INPUT BANK); ODD SECTOR
+
+PIN  MH4,MCH(30) MH2,MH3(25)   MH0,MH1(20)   OH3,OH2(25)  OH1,OH0(20)
+
+1    MH4:F0-E17  MH2:F0-E16    MH0:F0-E12    OH3:F1-E10    OH1:F1-E7
+2        F1-E17      F1-E16        F1-E12        F0-E10        F0-E7
+3        F1-E16      F1-E15        F1-E11        F0-E11        F0-E8
+4        F0-E16      F0-E15    MH0:F0-E11        F1-E11        F1-E8
+5        F0-E15      F0-E14    MH0:F1-E10        F1-E12        F1-E9
+6        F1-E15      F1-E14    MH0:F0-E10        F0-E12        F0-E9
+7        F1-E14      F1-E13          X           F0-E13        F0-E10
+8        F0-E14      F0-E13          X           F1-E13        F1-E10
+9        F0-E13      F0-E12    MH1:F0-E15        F0-E14        F0-E11
+10       F1-E13      F1-E12        F1-E15    OH3:F1-E14    OH1:F1-E11
+11       F1-E12      F1-E11        F1-E14    OH2:F1-E8     OH0:F1-E7
+12   MH4:F0-E12  MH2:F0-E11        F0-E14        F0-E8         F0-E7
+13   MCH:F0-E19  MH3:F0-E16        F0-E13        F0-E9         F0-E8
+14       F1-E19      F1-E16        F1-E13        F1-E9         F1-E8
+15       F1-E18      F1-E15        F1-E12        F1-E10        F1-E9
+16       F0-E18      F0-E15        F0-E12        F0-E10    OH0:F0-E9
+17       F0-E17      F0-E14        F0-E11        F0-E11    SPARE:0 **
+18       F1-E17      F1-E14        F1-E11        F1-E11    SPARE:1 **
+19       F1-E16      F1-E13        F1-E10        F0-E12        X
+20       F0-E16      F0-E13    MH1:F0-E10    OH2:F1-E12        X
+21       F0-E15      F0-E12                      X
+22       F1-E15  MH3:F1-E12                      X
+23       F1-E14      X                           X
+24       F0-E14      X                           X
+25       F1-E13      X                           X
+26   MCH:F0-E13
+27       X
+28       X
+29       X
+30       X
+
+INPUT CONNECTORS E > 2.1 (RIGHT INPUT BANK); ODD SECTOR
+
+PIN   EM1-0(25)    EM2-1(25)   EM3-0(10)   EM3-2(20)      EM3-3(20)  EM3-5(10)
+1       F0-E21      F0-E21     F0L-E25.5        X            X       F1H-E21.0
+2         -E22        -E22        -E25.0        X            X          -E21.5
+3         -E23        -E23        -E24.5     F0H-E21.0       X          -E22.0
+4         -E24        -E24        -E24.0        -E21.5  F0,F1-E32       -E22.5
+5         -E25        -E25        -E23.5        -E22.0     F1-E31       -E23.0
+6         -E26        -E26        -E23.0        -E22.5       -E30       -E23.5
+7         -E27        -E27        -E22.5        -E23.0       -E29       -E24.0
+8         -E28        -E28        -E22.0        -E23.5       -E28       -E24.5
+9         -E29        -E29        -E21.5        -E24.0       -E27       -E25.0
+10        -E30        -E30     F0L-E21.0        -E24.5     F1-E26    F1H-E25.5
+11      F0-E31      F0-E31                      -E25.0    F1L-E25.5
+12   F0,F1-E34   F0,F1-E34                   F0H-E25.5       -E25.0
+13   F0,F1-E37   F0,F1-E37                    F0-E26         -E24.5
+14   F0,F1-E32   F0,F1-E32                      -E27         -E24.0
+15      F1-E31      F1-E31                      -E28         -E23.5
+
+                                     - 39 -
+                                                                         Page 40
+
+
+16        -E30        -E30                      -E29         -E23.0
+17        -E29        -E29                      -E30         -E22.5
+18        -E28        -E28                    F0-E31         -E22.0
+19        -E27        -E27                 F0,F1-E34         -E21.5
+20        -E26        -E26                 F0,F1-E37      F1L-E21.0
+21        -E25        -E25
+22        -E24        -E24
+23        -E23        -E23
+24        -E22        -E22
+25      F1-E21      F1-E21
+
+PIN   EM4-0(25)     ICH(30)     IH4(30)     IH3(30)     IH2(30)     IH1(30)
+1      F0-E21      F1-E21      F1-E21      F1-E21      F1-E21      F1-E21
+2        -E22        -E22        -E22        -E22        -E22        -E22
+3        -E23        -E23        -E23        -E23        -E23        -E23
+4        -E24        -E24        -E24        -E24        -E24        -E24
+5        -E25        -E25        -E25        -E25        -E25        -E25
+6        -E26        -E26        -E26        -E26        -E26        -E26
+7        -E27        -E27        -E27        -E27        -E27        -E27
+8        -E28        -E28        -E28        -E28        -E28        -E28
+9        -E29        -E29        -E29        -E29        -E29        -E29
+10       -E30        -E30        -E30        -E30        -E30        -E30
+11     F0-E31      F1-E31      F1-E31      F1-E31      F1-E31      F1-E31
+12  F0,F1-E34   F0,F1-E32   F0,F1-E32   F0,F1-E32   F0,F1-E32   F0,F1-E32
+13  F0,F1-E37   F0,F1-E34   F0,F1-E34   F0,F1-E34   F0,F1-E34   F0,F1-E34
+14  F0,F1-E32   F0,F1-E37   F0,F1-E37   F0,F1-E37   F0,F1-E37   F0,F1-E37
+15     F1-E31   F0,F1-E41   F0,F1-E41   F0,F1-E41   F0,F1-E41   F0,F1-E41
+16       -E30   F0,F1-E44   F0,F1-E44   F0,F1-E44   F0,F1-E44   F0,F1-E44
+17       -E29      F0-E31      F0-E31      F0-E31      F0-E31      F0-E31
+18       -E28        -E30        -E30        -E30        -E30        -E30
+19       -E27        -E29        -E29        -E29        -E29        -E29
+20       -E26        -E28        -E28        -E28        -E28        -E28
+21       -E25        -E27        -E27        -E27        -E27        -E27
+22       -E24        -E26        -E26        -E26        -E26        -E26
+23       -E23        -E25        -E25        -E25        -E25        -E25
+24       -E22        -E24        -E24        -E24        -E24        -E24
+25     F1-E21        -E23        -E23        -E23        -E23        -E23
+26                   -E22        -E22        -E22        -E22        -E22
+27                 F0-E21      F0-E21      F0-E21      F0-E21      F0-E21
+28                    X           X           X           X           X
+29                    X           X           X           X           X
+30                    X           X           X           X           X
+
+OUTPUT CONNECTORS  E < 2.1 (LEFT BANK) FOR EVEN AND ODD SECTOR
+
+    E7_E9_E11     E8_10         E12       E13              E14
+PIN
+1   OH0:F0-E7    OH0:F0-E8       X         X             EM1:F0
+2   OH1:F0-E7    OH1:F0-E8       X         X             EM2:F0
+3   OH0:F1-E7    OH2:F0-E8       X         X             EM3:F0L-E14.0
+4   OH1:F1-E7    OH0:F1-E8       X      EM3:F0L-E13.5    EM3:F0H-E14.0
+5   OH0:F0-E9    OH1:F1-E8       X      EM3:F0H-E13.5    EM3:F0L-E14.5
+6   OH1:F0-E9    OH2:F1-E8       X      EM4:F0           EM3:F0H-E14.5
+
+                                     - 40 -
+                                                                         Page 41
+
+
+7   OH2:F0-E9       X         MH1:F0    MH1:F0           EM4:F0
+8   OH0:F1-E9       X         MH2:F0    MH2:             MH1:
+9   OH1:F1-E9       X         MH3:F0    MH3:             MH2:
+10  OH2:F1-E9       X         MH4:F0    MH4:             MH3:
+11     X         SPARE:0      OH2:F0    MCH:             MH4:
+12     X         SPARE:1      OH3:F0    OH3:F0           OH3,MCH:F0
+13     X            X            X         X                X
+14  MH0:F0-E11   MH1:F0-E10      X         X             EM1:F1
+15  MH1:F0-E11   OH0:F0-E10      X         X             EM2:F1
+16  MH2:F0-E11   OH1:F0-E10      X         X             EM3:F1L-E14.0
+17  OH1:F0-E11   0H2:F0-E10      X      EM3:F1L-E13.5    EM3:F1H-E14.0
+18  OH2:F0-E11   OH3:F0-E10      X      EM3:F1H-E13.5    EM3:F1L-E14.5
+19  OH3:F0-E11   MH1:F1-E10      X      EM4:F1           EM3:F1H-E14.5
+20  MH0:F1-E11   OH0:F1-E10   MH1:F1    MH1:F1           EM4:F1
+21  MH1:F1-E11   OH1:F1-E10   MH2:F1    MH2:             MH1:
+22  MH2:F1-E11   OH2:F1-E10   MH3:F1    MH3:             MH2:
+23  OH1:F1-E11   OH3:F1-E10   MH4:F1    MH4:             MH3:
+24  OH2:F1-E11   MH0:F0-E12   OH2:F1    MCH:             MH4:
+25  OH3:F1-E11   MH0:F1-E12   OH3:F1    OH3:F1       OH3,MCH:F1
+
+    E15             E16             E17             E18
+PIN
+1   EM1:F0          EM1:F0          EM1:F0          EM1:F0
+2   EM2:            EM2:            EM2:            EM2:
+3   EM3:F0L-E15.0   EM3:F0L-E16.0   EM3:F0L-E17.0   EM3:F0L-E18.0
+4   EM3:F0H-E15.0   EM3:F0H-E16.0   EM3:F0H-E17.0   EM3:F0H-E18.0
+5   EM3:F0L-E15.5   EM3:F0L-E16.5   EM3:F0L-E17.5   EM3:F0L-E18.5
+6   EM3:F0H-E15.5   EM3:F0H-E16.5   EM3:F0H-E17.5   EM3:F0H-E18.5
+7   EM4:F0          EM4:F0          EM4:F0          EM4:F0
+8   MH1:            IH1:            IH1:            IH1:
+9   MH2:            MH2:            IH2:            IH2:
+10  MH3:            MH3:               X            IH3:
+11  MH4:            MH4:            MH4:               X
+12  MCH:F0          MCH:F0          MCH:F0          MCH:F0
+13     X               X               X               X
+14  EM1:F1          EM1:F1          EM1:F1          EM1:F1
+15  EM2:            EM2:            EM2:            EM2:
+16  EM3:F1L-E15.0   EM3:F1L-E16.0   EM3:F1L-E17.0   EM3:F1L-E18.0
+17  EM3:F1H-E15.0   EM3:F1H-E16.0   EM3:F1H-E17.0   EM3:F1H-E18.0
+18  EM3:F1L-E15.5   EM3:F1L-E16.5   EM3:F1L-E17.5   EM3:F1L-E18.5
+19  EM3:F1H-E15.5   EM3:F1H-E16.5   EM3:F1H-E17.5   EM3:F1H-E18.5
+20  EM4:F1          EM4:F1          EM4:F1          EM4:F1
+21  MH1:            IH1:            IH1:            IH1:
+22  MH2:            MH2:            IH2:            IH2:
+23  MH3:            MH3:               X            IH3:
+24  MH4:            MH4:            MH4:               X
+25  MCH:F1          MCH:F1          MCH:F1          MCH:F1
+
+    E19             E20
+PIN
+1   EM1:F0          EM1:F0
+2   EM2:            EM2:
+3   EM3:F0L-E19.0   EM3:F0L-E20.0
+
+                                     - 41 -
+                                                                         Page 42
+
+
+4   EM3:F0H-E19.0   EM3:F0H-E20.0
+5   EM3:F0L-E19.5   EM3:F0L-E20.5
+6   EM3:F0H-E19.5   EM3:F0H-E20.5
+7   EM4:F0          EM4:F0
+8   IH1:            IH1:
+9   IH2:            IH2:
+10  IH3:            IH3:
+11  IH4:            IH4:
+12  MCH:F0          ICH:F0
+13     X               X
+14  EM1:F1          EM1:F1
+15  EM2:            EM2:
+16  EM3:F1L-E19.0   EM3:F1L-E20.0
+17  EM3:F1H-E19.0   EM3:F1H-E20.0
+18  EM3:F1L-E19.5   EM3:F1L-E20.5
+19  EM3:F1H-E19.5   EM3:F1H-E20.5
+20  EM4:F1          EM4:F1
+21  IH1:            IH1:
+22  IH2:            IH2:
+23  IH3:            IH3:
+24  IH4:            IH4:
+25  MCH:F1          ICH:F1
+
+OUTPUT CONNECTORS  E > 2.1 (RIGHT BANK)
+
+    E21             E22             E23             E24
+PIN
+1   EM1:F0          EM1:F0          EM1:F0          EM1:F0
+2   EM2:            EM2:            EM2:            EM2:
+3   EM3:F0L-E21.0   EM3:F0L-E22.0   EM3:F0L-E23.0   EM3:F0L-E24.0
+4   EM3:F0H-E21.0   EM3:F0H-E22.0   EM3:F0H-E23.0   EM3:F0H-E24.0
+5   EM3:F0L-E21.5   EM3:F0L-E22.5   EM3:F0L-E23.5   EM3:F0L-E24.5
+6   EM3:F0H-E21.5   EM3:F0H-E22.5   EM3:F0H-E23.5   EM3:F0H-E24.5
+7   EM4:F0          EM4:F0          EM4:F0          EM4:F0
+8   IH1:            IH1:            IH1:            IH1:
+9   IH2:            IH2:            IH2:            IH2:
+10  IH3:            IH3:            IH3:            IH3:
+11  IH4:            IH4:            IH4:            IH4:
+12  ICH:F0          ICH:F0          ICH:F0          ICH:F0
+13     X               X               X               X
+14  EM1:F1          EM1:F1          EM1:F1          EM1:F1
+15  EM2:            EM2:            EM2:            EM2:
+16  EM3:F1L-E21.0   EM3:F1L-E22.0   EM3:F1L-E23.0   EM3:F1L-E24.0
+17  EM3:F1H-E21.0   EM3:F1H-E22.0   EM3:F1H-E23.0   EM3:F1H-E24.0
+18  EM3:F1L-E21.5   EM3:F1L-E22.5   EM3:F1L-E23.5   EM3:F1L-E24.5
+19  EM3:F1H-E21.5   EM3:F1H-E22.5   EM3:F1H-E23.5   EM3:F1H-E24.5
+20  EM4:F1          EM4:F1          EM4:F1          EM4:F1
+21  IH1:            IH1:            IH1:            IH1:
+22  IH2:            IH2:            IH2:            IH2:
+23  IH3:            IH3:            IH3:            IH3:
+24  IH4:            IH4:            IH4:            IH4:
+25  ICH:F1          ICH:F1          ICH:F1          ICH:F1
+
+
+                                     - 42 -
+                                                                         Page 43
+
+
+    E25             E26         E27         E28          E29
+PIN
+1   EM1:F0          EM1:F0      EM1:F0      EM1:F0       EM1:F0
+2   EM2:            EM2:        EM2:        EM2:         EM2:
+3   EM3:F0L-E25.0   EM3:        EM3:        EM3:         EM3:
+4   EM3:F0H-E25.0      X           X           X            X
+5   EM3:F0L-E25.5      X           X           X            X
+6   EM3:F0H-E25.5      X           X           X            X
+7   EM4:            EM4:        EM4:        EM4:         EM4:
+8   IH1:            IH1:        IH1:        IH1:         IH1:
+9   IH2:            IH2:        IH2:        IH2:         IH2:
+10  IH3:            IH3:        IH3:        IH3:         IH3:
+11  IH4:            IH4:        IH4:        IH4:         IH4:
+12  ICH:F0          ICH:F0      ICH:F0      ICH:F0       ICH:F0
+13     X               X           X           X            X
+14  EM1:F1          EM1:F1      EM1:F1      EM1:F1       EM1:F1
+15  EM2:            EM2:        EM2:        EM2:         EM2:
+16  EM3:F1L-E25.0   EM3:        EM3:        EM3:         EM3:
+17  EM3:F1H-E25.0      X           X           X            X
+18  EM3:F1L-E25.5      X           X           X            X
+19  EM3:F1H-E25.5      X           X           X            X
+20  EM4:            EM4:        EM4:        EM4:         EM4:
+21  IH1:            IH1:        IH1:        IH1:         IH1:
+22  IH2:            IH2:        IH2:        IH2:         IH2:
+23  IH3:            IH3:        IH3:        IH3:         IH3:
+24  IH4:            IH4:        IH4:        IH4:         IH4:
+25  ICH:F1          ICH:F1      ICH:F1      ICH:F1       ICH:F1
+
+    E30        E31        E32_E34            E37_41_44
+PIN
+1   EM1:F0     EM1:F0     EM1:F0,F1-E32      EM1:F0,F1-E37
+2   EM2:       EM2:       EM2:F0,F1-E32      EM2:F0,F1-E37
+3   EM3:       EM3:       EM3:F0,F1-E32      EM3:F0,F1-E37
+4      X          X       EM4:F0,F1-E32      EM4:F0,F1-E37
+5      X          X          X                  X
+6      X          X          X                  X
+7   EM4:       EM4:          X                  X
+8   IH1:       IH1:       IH1:F0,F1-E32      IH1:F0,F1-E37
+9   IH2:       IH2:       IH2:F0,F1-E32      IH2:F0,F1-E37
+10  IH3:       IH3:       IH3:F0,F1-E32      IH3:F0,F1-E37
+11  IH4:       IH4:       IH4:F0,F1-E32      IH4:F0,F1-E37
+12  ICH:F0     ICH:F0     ICH:F0,F1-E32      ICH:F0,F1-E37
+13     X          X          X                  X
+14  EM1:F1     EM1:F1     EM1:F0,F1-E34      IH1:F0,F1-E44*
+15  EM2:       EM2:       EM2:F0,F1-E34      IH2:F0,F1-E44*
+16  EM3:       EM3:       EM3:F0,F1-E34      IH3:F0,F1-E44
+17     X          X       EM4:F0,F1-E34      IH4:F0,F1-E44
+18     X          X          X               ICH:F0,F1-E44
+19     X          X          X                  X
+20  EM4:       EM4:          X                  X
+21  IH1:       IH1:       IH1:F0,F1-E34      IH1:F0,F1-E41
+22  IH2:       IH2:       IH2:F0,F1-E34      IH2:F0,F1-E41
+23  IH3:       IH3:       IH3:F0,F1-E34      IH3:F0,F1-E41
+
+                                     - 43 -
+                                                                         Page 44
+
+
+24  IH4:       IH4:       IH4:F0,F1-E34      IH4:F0,F1-E41
+25  ICH:F1     ICH:F1     ICH:F0,F1-E34      ICH:F0,F1-E41
+
+
+
+* These pads have been eliminated from inner hadronic end calorimeter.
+NOTE: LABELS MH0:F0-E10 AND MH0:F1-E10 DESCRIBE THE SAME SIGNALS AS
+OH0:F0-E10 AND OH0:F1-E10 RESPECTIVELY.
+
+                MH0:F0-E10 = OH0:F0-E10
+                MH0:F1-E10 = OH0:F1-E10
+
+THE MERGE BOARDS AND  SPECIAL BLS WILL NOT BE CHANGED AND WILL CARRY THE
+OH0 LABEL.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 44 -
+                                                                         Page 45
+
+
+                                   Appendix G
+
+                     Signals in the Trigger Towers
+
+ L1ETAC      IETAC (E)        EM  Trigger Tower      HD Trigger Tower
+----------   -----------     -------------------     ---------------
+       /             /       CC EM1 CC EM2,          CC FH1,  CC FH2,
+   1   |     1 (E0)  |       CC EM3 all 4 parts,     CC FH3
+       \     2 (E1)  \       CC EM4
+
+       /             /       CC EM1, CC EM2,         CC FH1,  CC FH2,
+   2   |     3 (E2)  |       CC EM3 all 4 parts,     CC FH3
+       \     4 (E3)  \       CC EM4
+
+       /             /       CC EM1, CC EM2,         CC FH1,  CC FH2,
+   3   |     5 (E4)  |       CC EM3 all 4 parts,     CC FH3
+       \     6 (E5)  \       CC EM4
+
+       /             /       CC EM1, CC EM2,         CC FH1,  CC FH2,
+   4   |     7 (E6)  |       CC EM3 all 4 parts,     CC FH3
+       \     8 (E7)  \       CC EM4
+
+       /             /       CC EM1, CC EM2,         CC FH1,  CC FH2,
+       |     9  (E8) |       CC EM3 all 4 parts,
+   5   |             \       CC EM4
+       |             /       CC EM1, CC EM2,         CC FH1
+       |    10  (E9) |       CC EM3 all 4 parts,
+       \             \       CC EM4
+
+       /             /       CC EM1, CC EM2,         EC MFH1
+       |    11 (E10) |       CC EM3 all 4 parts,
+   6   |             \       CC EM4
+       |             /       CC EM1, CC EM2,         EC MFH1, EC MFH2
+       |    12 (E11) |       CC EM3  only 2 parts
+       \             \               ------------
+       /             /                               EC MFH1, EC MFH2,
+       |    13 (E12) |                               EC MFH3, EC MFH4
+   7   |             \
+       |             /                               EC MFH1, EC MFH2,
+       |    14 (E13) |       EC EM3  only 2 parts,   EC MFH3, EC MFH4
+       \             \       EC EM4  ------------
+
+       /             /       EC EM1, EC EM2,         EC MFH1, EC MFH2,
+   8   |    15 (E14) |       EC EM3 all 4 PARTS,     EC MFH3, EC MFH4
+       \    16 (E15) \       EC EM4
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC MFH2,
+       |    17 (E16) |       EC EM3 all 4 PARTS,     EC MFH3, EC MFH4
+   9   |             \       EC EM4
+       |             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+       |    18 (E17) |       EC EM3 all 4 parts,              EC MFH4
+       \             \       EC EM4
+
+
+                                     - 45 -
+                                                                         Page 46
+
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+       |    19 (E18) |       EC EM3 all 4 PARTS,     EC IFH3
+   10  |             \       EC EM4
+       |             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+       |    20 (E19) |       EC EM3 all 4 parts,     EC IFH3, EC IFH4
+       \             \       EC EM4
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+  11   |    21 (E20) |       EC EM3 all 4 PARTS,     EC IFH3, EC IFH4
+       \    22 (E21) \       EC EM4
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+  12   |    23 (E22) |       EC EM3 all 4 PARTS,     EC IFH3, EC IFH4
+       \    24 (E23) \       EC EM4
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+  13   |    25 (E24) |       EC EM3 all 4 PARTS,     EC IFH3, EC IFH4
+       \    26 (E25) \       EC EM4
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+  14   |    27 (E26) |       EC EM3  only 1 part,    EC IFH3, EC IFH4
+       \    28 (E27) \       EC EM4  -----------
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+  15   |    29 (E28) |       EC EM3  only 1 part,    EC IFH3, EC IFH4
+       \    30 (E29) \       EC EM4  -----------
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+  16   |    31 (E30) |       EC EM3  only 1 part,    EC IFH3, EC IFH4
+       \    32 (E31) \       EC EM4  -----------
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+  17   |    33 (E32) |       EC EM3  only 1 part,    EC IFH3, EC IFH4
+       \             \       EC EM4  -----------
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+  18   |    34 (E34) |       EC EM3  only 1 part,    EC IFH3, EC IFH4
+       \             \       EC EM4  -----------
+
+       /             /       EC EM1, EC EM2,         EC IFH1, EC IFH2,
+  19   |    35 (E37) |       EC EM3  only 1 part,    EC IFH3, EC IFH4
+       \             \       EC EM4  -----------
+       /             /                               EC IFH1, EC IFH2,
+  20   |    36 (E41) |                               EC IFH3, EC IFH4
+       \             \
+The "tower" below is NOT MAPPED into the trigger system !!!!!!!!!!
+       /             /
+ (21)  |    37 (E44) |                               EC IFH3, EC IFH4
+       \             \
+
+
+
+
+
+                                     - 46 -
+                                                                         Page 47
+
+
+                                   Appendix H
+                DIFFERENCES AMONG CALORIMETER DATA FORMATS
+        
+    The current format version (see CALDAT.ZEB) is version 3.  This is the
+version described throughout this document.  Format version 3 reflects current
+information as to how the calorimeter and signal boards were actually built.
+Older versions correspond to various MC data formats.
+
+===================== Format Version 3 =====================================
+********************************************************************************
+    Format Version 3 introduces the fact that no gap was left between the
+missing EM signals and in the coarse-eta towers, and that extra gaps were left 
+between some hadronic signals.
+********************************************************************************
+                        
+                        APPENDIX B changes:
+
+===================== Format Version 3 ======================================
+IETAC E   EM D   HAD D  
+  18  17  0-6   7-8,10-11 IFH1-2,MFH4,MCH (note blank at 9)
+  19  18  0-6    7-9,11   IFH1-3,MCH      (note blank at 10)
+ 
+  33  32  0-3     7-11    coarsen tower resolution (3)
+  34  34  0-3     7-11
+  35  37  0-3     7-11
+
+                  0-11    CC,EC massless gaps from odd E's (4)
+                  0-11    ICD                              (4)
+                  0-9     CC,EC massles gaps from even E's (4)
+
+===================== Format Version 2 ======================================
+  18  17  0-6     7-10    IFH1-2,MFH4,MCH
+  19  18  0-6     7-10    IFH1-3,MCH
+
+  33  32  0-2,6   7-11    coarsen tower resolution (3)
+  34  34  0-2,6   7-11
+  35  37  0-2,6   7-11
+
+                   0-9     CC,EC massles gaps from even E's (4)
+                   0-11    CC,EC massless gaps from odd E's (4)
+                   0-11    ICD if desirable 
+
+
+===================== Format Version 3 =====================================
+    1.7 1.8    17   e1 e2 e3q e3r e3s e3t e4 f1 f2    f4 c1
+    1.8 1.9    18   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3    c1
+    1.9 2.0    19   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+
+    3.2 3.42   32   e1 e2 e3  e4             f1 f2 f3 f4 c1
+    3.42 3.7   34   e1 e2 e3  e4             f1 f2 f3 f4 c1
+    3.7 4.1    37   e1 e2 e3  e4             f1 f2 f3 f4 c1
+
+===================== Format Version 2 =====================================
+
+                                     - 47 -
+                                                                         Page 48
+
+
+    1.7 1.8    17   e1 e2 e3q e3r e3s e3t e4 f1 f2 f4 c1
+    1.8 1.9    18   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 c1
+    1.9 2.0    19   e1 e2 e3q e3r e3s e3t e4 f1 f2 f3 f4 c1
+
+    3.2 3.42   32   e1 e2 e3              e4 f1 f2 f3 f4 c1
+    3.42 3.7   34   e1 e2 e3              e4 f1 f2 f3 f4 c1
+    3.7 4.1    37   e1 e2 e3              e4 f1 f2 f3 f4 c1
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+===================== Format Version 2 =====================================
+*******************************************************************************
+Format version 2 better reflects the calorimeter as actually built than version
+1 did.
+*******************************************************************************
+                APPENDIX B
+
+IETAC E   EM D   HAD D  
+  12  11  0-3     4-8     missing EM4, 1/2 EM3;ECMFH1-2,OCH1-3; MG's to EC
+                note that these Hadron signals appear in nominally EM slots
+
+and in the Table Of Depths Included,
+
+eta range
+1.1 1.2    11***e1 e2 e3q e3r  f1 f2  c1 c2 c3
+
+*****************************************************************************
+Format 2 introduces the imperfect placement of IETAC = 12 signals, and includes
+the irregular PHI ganging of IETAC=22, LAYERC=15 mentioned in Appendix B.
+*****************************************************************************
+===================== Format Version 1 ======================================
+
+                APPENDIX B
+
+IETAC E   EM D   HAD D  
+  12  11  0-3     7-11    missing EM4, 1/2 EM3;ECMFH1-2,OCH1-3; MG's to EC
+        
+and in the table of Depths included,
+
+eta range
+1.1 1.2    11   e1 e2 e3q e3r            f1 f2 c1 c2 c3
+                
+*****************************************************************************
+Format 1 is an idealized format. In it, the above hadron channels appear at
+their "correct" slots.   Also, the phi ganging irregularities at IETAC=22,
+LAYERC=15 described in Appendix B are IGNORED.
+*****************************************************************************
+===============================================================================
+
+
+
+
+
+
+
+                                     - 48 -
+                                                                         Page 49
+
+
+                                   Appendix I
+                        Version Numbers in Data.
+
+This is adapted from D0$DOCS:D0_DATA_FORMAT.DOC
+
+    Version Number Definition (32 bit word)             (Calorimeter software
+    ---------------------------------------              name of bit field)
+                                                          |
+                                                          V
+        System Bits (Common to all detectors) 24 - 31   D0VSN
+        User Bits   (Detector dependent)      16 - 23   CALVSN
+        Software Version Number (Integer)      0 - 15   SFTVSN
+
+ This word is downloaded at the time of defining triggers, and appears in the
+fourth 32 bit word of the crate headers of all raw data.
+
+    System Bits are defined as follows. (D0VSN)
+
+                     Bit  31 (MSB)      = Sign Bit = 0
+                     Bit  30            = 0 For D0
+                                        = 1 For NWA 
+                     Bit  29            = 0 For Data
+                                        = 1 For MonteCarlo
+                     Bit 24-28          = Spare
+
+
+ Calorimeter User Bits:    (CALVSN)
+
+           At D0:
+                1       Quadrant test
+                2       5000 channel test
+                3       CC Cosmic ray commissioning run 1       (one CAD cable)
+                4       Cosmic Ray Commissioning run 2  (two CAD cables)
+
+           At NWA:
+                1       Test beam load 1        (1990)
+                2       Test beam load 2        (1991)
+
+ Software Version Number: (SFTVSN)
+
+    For D0 data:
+                1,2     are equivalent versions, whose format (we believe)
+                        correspond to Version 3 as described in Appendix H.
+    For MC data:
+                1       Version 1 in Appendix H: MC data version M and older
+                2       Version 2 in Appendix H: MC data version N
+                3       Version 3 in Appendix H: MC data after version N
+
+
+
+
+
+
+
+                                     - 49 -

@@ -1,0 +1,263 @@
+
+
+		 zzip: Compression for Zebra FZ files
+                 ------------------------------------
+
+                                                               scott snyder
+                                                               Nov 29, 1994
+
+
+What is zzip?
+-------------
+
+Zzip is a facility for representing Zebra FZ files in a compressed
+format.  The compression and decompression software works at a lower
+level than Zebra, so that to the user, reading a zzip file works just
+like reading any other Zebra file.  The compressed files are designed
+to be portable between different machines, and random access is
+supported (through the Zebra FZINXT routine), though at some loss in
+efficiency.
+
+The compression algorithms used in zzip are based on the standard gzip
+compression program, and in particular on the deflate and inflate
+codes by Jean-loup Gailly and Mark Adler, respectively.  This code is
+redistributable under the GNU General Public License.
+
+Typical compression ratios for D0 data range from ~1.5 - 2.
+See the `Performance' section below for specific numbers.
+
+
+Basic usage
+-----------
+
+The best way to think of zzip files is as an additional Zebra format
+mode, on the same footing as the FZ `native' and `exchange' modes.
+This was the model used in implementing the higher-level support for
+zzip.
+
+The standard D0 routines for opening files, D0OPEN and EVOPIN, have
+been extended to automatically recognize zzip files.  Thus, after
+relinking with the new version of the GENERAL library, any existing
+program which uses EVOPIN for opening input FZ files should be able
+read compressed files with no additional effort.  Two caveats should
+be mentioned here.  First, if the program is going to be opening a
+large number of FZ files, one should be sure that they are closed
+using the D0CLOSE routine instead of the Fortran CLOSE statement (see
+`Programming Considerations' below for more information).  Second,
+this will not work if you try to open the file in `trusted' or `tape'
+mode, since you are then telling D0OPEN specifically not to try to
+guess the file format.  In such a case, you must explicitly specify
+that you want to open a zzip file (this is described below).
+
+In order to directly write compressed files, you need to use a
+framework which recognizes the zzip option.  As of this writing, this
+has been implemented only for D0USER, but should be easy to do for any
+frame.  In the D0USER output file dialog, when it asks you for the
+file mode, simply respond with `Z' (for zzip) instead of `X' or `N'.
+The file will then be written in compressed mode.  You can also read
+compressed files in trusted mode by specifying zzip mode in the D0USER
+input file dialog.
+
+When writing compressed files, zzip takes an integer parameter in the
+range 1-9 to specify how hard it should work to compress the data.
+`1' specifies that the fastest compression method should be used, and
+`9' specifies that the best (but most time-consuming) method should be
+used.  The default value is `6', but you can change it by setting the
+logical `ZZIP_PACKLEVEL' to the desired value.  (On Unix systems, this
+is an environment variable.)  Empirically, however, there does not
+seem to be much improvement in raising this beyond 6.
+
+On VMS systems, the compressed files are created with `Stream-LF'
+record format.  They can be transferred between different operating
+systems using FTP - just be sure to set binary mode before starting
+the transfer.  Note that if you transfer a file from Unix to VMS in
+this manner, the resulting file will have fixed-length 512-byte
+records.  Zzip can read these files correctly in sequential mode, but
+you may experience problems if you try to use random access with such
+a file.  In such a case, you should change the record format back to
+Stream-LF with a utility like `file'.  (On fnald0, you should be able
+to do `setup freeware' followed by `file/type=lfstream <file>'.)
+
+There is no supplied program solely for compressing and uncompressing
+files, but you can achieve this effect by building the D0USER frame
+with the DUMMY package.
+
+
+Programming considerations
+--------------------------
+
+This section discusses how to properly use zzip when writing software,
+and describes the changes to standard d0library routines which were
+made to support zzip.  We'll start at the highest layer of routines,
+and work our way down.
+
+The highest-level general routines for opening Zebra FZ files are
+EVOPIN for input and EVOPWO and EVOP_MULT for output.  All of these
+routines have been extended to take a `Z' option in addition to the
+normal `X' and `G' options to request that a file be opened in
+compressed mode.  The only other action which is needed for correct
+operation is to ensure that the files which were opened are closed
+using D0CLOSE rather than a Fortran CLOSE statement.  The output
+routines contain entry points to close the files; these have been
+modified to properly use D0CLOSE.  For input files, however, you must
+do the close yourself.  If you fail to use D0CLOSE to close an input
+file, some memory will be lost, as zzip will never free the resources
+which it allocated.  However, if you fail to use D0CLOSE for an output
+file, not only will the file not actually be closed, but some data
+will likely be lost at the end of the file, since zzip will never
+flush the final contents of its buffers to the file.
+
+Once the file is open, all the usual event input/output routines
+should work normally.
+
+The next layer down is using D0OPEN to open the file.  D0OPEN has been
+extended to recognize the `Z' option as requesting compressed mode.
+The routine XCHKER has also been extended to recognize zzip files in
+addition to Zebra exchange mode files.  Note that zzip calls FZFILE
+itself when opening the file, so there is no need to call FZFILE after
+D0OPEN for a zzip file.  However, in order to be compatible with the
+standard sequence for opening Zebra files, XZRECL will return
+a negative value for RECL and `P' for XCHOPT after a zzip file has been
+opened.  If FZFILE is called with those parameters, it should safely
+do nothing.  Thus, a Zebra FZ file of any type may be opened with the
+sequence
+
+      call d0open (lun, filename, chopt, ok)
+      call xzrecl (recl, xchopt)
+      call fzfile (inunit, recl, xchopt)
+
+As before, you should take care to use D0CLOSE to close any files
+which may be in compressed mode.
+
+Below the level of D0OPEN, there are four zzip-specific routines which
+are used to open and close zzip files.  ZZIP_OPEN opens a file for
+writing compressed output and connects it to a Zebra logical unit,
+while ZZIP_CLOSE flushes buffers and closes the file.  There is an
+analogous pair of routines, ZUNZIP_OPEN and ZUNZIP_CLOSE, for reading
+compressed files.  For details of the usage of these routines, see the
+comments in the file `d0$event_util$event_io:zzip_interface.c'.
+
+Finally, there is another layer of routines which can read and write
+arbitrary blocks of data from and to a compressed file.  These
+routines, which can only be easily called from C, are described in the file
+`d0$event_util$event_io:zzip.c'.
+
+
+Performance
+-----------
+
+Here are the results of some tests of the compressor on several
+different types of files.  For comparison, i also show the results for
+the compress_zebra package on the same files (with the default RCP
+settings).  The tests were run on a moderately loaded vax 4000/90;
+timings are given in seconds both for consumed CPU time and elapsed
+wall clock time.
+
+
+1. Top MC DST file (not udst).  Original size = 51892 blocks.
+
+                     zzip       compress_zebra
+                     -----      -----
+Compressed size      23891      28793
+Compression ratio      2.2        1.8
+
+Time to compress:
+  CPU time             340       1190
+  Clock time           908       1438
+
+Time to decompress:
+  CPU time              84        161
+  Clock time           273        427
+
+
+2. Data UDST file from TEJ stream.  Original size = 11902 blocks.
+
+                     zzip       compress_zebra
+                     -----      -----
+Compressed size       7302       9726
+Compression ratio      1.6        1.2
+
+Time to compress:
+  CPU time              95        214
+  Clock time           278        260
+
+Time to decompress:
+  CPU time              21         41
+  Clock time            56         93
+
+
+3. Data STA events (1a top candidates).  Original size = 15229 blocks.
+
+                     zzip       compress_zebra
+                     -----      -----
+Compressed size       9865      12158
+Compression ratio      1.5        1.3
+
+Time to compress:
+  CPU time             117        345
+  Clock time           345        408
+
+Time to decompress:
+  CPU time              22         47
+  Clock time            60        107
+
+
+
+File format
+-----------
+
+This is a description of the format of the compressed files written by
+zzip.
+
+The first four byte of the file contain the string `zzip', in order to
+identify compressed mode files.
+
+The next four bytes contains the Zebra physical record length with
+which the file was written.  This number is written in little-endian
+format.
+
+Following this 8-byte header is the actual compressed data.  This data
+is generated by taking the physical records output by Zebra, logically
+concatenating them, and feeding the resulting stream through the
+`deflate' compressor.  The compressed stream is then written to the
+output file.  See the deflate and inflate sources for information on
+the format of the actual compressed data.
+
+Zebra is set to use exchange mode when constructing physical records
+to be output to the compressed file.  This ensures that the data will
+be readable on foreign architectures.  Zzip intercepts the physical
+records shipped out by Zebra by using the `channel' option in FZFILE.
+
+The compression is performed in multiple independent blocks, with each
+block of uncompressed data giving a block of compressed data.  The
+compression dictionary is discarded between blocks, so that
+decompression can be restarted at any block boundary.  Note that the
+compressed data should be regarded as a bit stream rather than a
+character stream, and that block boundaries will not necessarily lie
+on byte boundaries.
+
+In order to be able to seek to an arbitrary position in the
+uncompressed stream, we need to know the correspondence between blocks
+in both streams.  This is done by writing a table to the end of the
+compressed file giving this correspondence.
+
+The table starts at the first byte boundary following the end of the
+compressed data.  First there are the four bytes `ztag', which allows
+the decompression software to verify that the table is where is it
+expected to be.  Following the tag is a four-byte field containing a
+count of the number of blocks in the table (this, like all the
+following integers, is written in little-endian format).  Following
+the count is the block table itself.  Each entry consists of two
+four-byte integers.  The first integer in each entry is the byte
+offset in the uncompressed stream of the beginning of the block.  The
+second integer is the _bit_ offset in the compressed file of the
+beginning of the block.  (Note that this offset includes the header at
+the start of the file.)  The table entries must be sorted in ascending
+order.  Note that this implies that for random access to work, the
+compressed file must be no more than about 500MB in length.  It is
+hoped that this limitation will not prove too restrictive.
+
+The last four bytes of the file (which should immediately follow the
+block table) contain the byte offset of the table tag.  This allows
+the decompression program to rapidly find the start of the table.
+

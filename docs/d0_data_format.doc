@@ -1,0 +1,819 @@
+
+
+
+                          Raw Data Structure for D0
+
+                                  12/21/89
+                            Last Updated 6/28/91
+
+
+
+                   Dave Cutts, Dan Edmunds, Mike Fortner,
+                 Bruce Gibbard, Jan Guida, Herman Haggerty,
+               Jan Hoftun, Marvin Johnson, Philippe Laurens,
+              Srini Rajagopalan, Dean Schaumberger, Ray Zeller
+
+
+
+
+    The following pages describe the D-Zero raw data structure for various
+detector groups.  The highest level unit of raw data described here is the 
+raw data of a single Data Cable.  This raw data is inserted, without
+alteration, by a level 2 filter node into a Zebra structure, one Data 
+Cable's data into one Zebra bank for up to 8 such banks in a single event.  
+Additional banks which might be added to the raw data during level 2 filter 
+processing are not described here.  
+
+    This document supersedes D0 Note # 968.
+
+
+
+
+1.  Format of data on datacable ............................ page 2
+
+2.  Crate Header block          ............................ page 3
+      Crate ID convention       ............................ page 4
+      Controller word           ............................ page 5
+      Version number            ............................ page 6
+      Additional header words   ............................ page 7
+
+3.  Crate data block            ............................ page 8
+      TRGR crate structure      ............................ page 9
+      CDDn crate structure      ............................ page 11
+      CADn crate structure      ............................ page 13
+      MUD1 crate structure      ............................ page 14
+
+4.  Crate trailer block         ............................ page 16
+
+5.  Event trailer block         ............................ page 17
+
+
+
+                          Raw Data Structure for D0              - page 2  
+
+
+
+    Format of data on a DATA CABLE:
+
+
+
+
+
+                        ==============================
+                       |  Crate Header For 1st Crate  |
+                       |------------------------------|
+                       |                              |
+                       |   Data Block For 1st Crate   |
+                       |                              |
+                       |------------------------------|
+                       |  Crate Trailer For 1st Crate |
+                        ==============================
+                       |  Crate Header For 2nd Crate  |
+                       |------------------------------|
+                       |                              |
+                       |  Data Block For 2nd Crate    |
+                       |                              |
+                       |------------------------------|
+                       |  Crate Trailer For 2nd Crate |
+                        ==============================
+                                      .
+                                      .
+                                      .
+                        ==============================
+                       |  Crate Header For Nth Crate  |
+                       |------------------------------|
+                       |                              |
+                       |  Data Block For Nth Crate    |
+                       |                              |
+                       |------------------------------|
+                       |  Crate Trailer For Nth Crate |
+                        ==============================
+                                      .
+                                      .
+                                      .
+                        ==============================
+                       |  Crate Header For Last Crate |
+                       |------------------------------|
+                       |                              |
+                       |  Data Block For Last Crate   |
+                       |                              |
+                       |------------------------------|
+                       |  Crate Trailer For Last Crate|
+                        ==============================
+                       |      Data Cable Trailer      |
+                        ==============================
+
+
+
+
+
+
+
+
+
+
+                          Raw Data Structure for D0              - page 3
+
+
+   Format of CRATE HEADER:
+
+                       MSB                       LSB
+                        ---------------------------
+   Longword-1           |   Header Length Count   |
+                        ---------------------------
+   Longword-2           |       SYNC Word         |
+                        ---------------------------
+   Longword-3           |     Controller Word     |
+                        ---------------------------
+   Longword-4           |      Version Number     |
+                        ---------------------------
+   Longword-5           |    Detector Dependent   |
+                                    .     |
+                                    .     |
+                                    .     v
+ Description :
+
+* Longword - 1                                                 
+                                                               
+    Header Length Count is the total Number of Header Longwords and does
+    not include itself. 
+
+* Longword - 2
+
+    SYNC Word.  The Most Significant 16 bits is the Trig Number passed by the
+    Level-1 Framework. The Lower 16 bits are all 'FFFF'.
+
+* Longword - 3
+
+    Controller Word.  These are split as follows:
+
+    Most significant 8 bits (24-31) :  Crate ID 
+
+    Least Significant 24 bits       :  Detector Dependent
+                
+
+* Longword-4 
+
+    Version Number.  
+           
+        System Bits (Common to all detectors) 24 - 31
+        User Bits   (Detector dependent)      16 - 23
+        Software Version Number (Integer)      0 - 15
+
+    System Bits are defined as follows.
+
+                     Bit  31 (MSB)      = Sign Bit = 0
+                     Bit  30            = 0 For D0
+                                        = 1 For NWA 
+                     Bit  29            = 0 For Data
+                                        = 1 For MonteCarlo
+                     Bit 24-28          = Spare
+
+    For most systems this Word is Downloaded at the time of defining triggers. 
+
+* Longword - 5 and beyond : Detector Dependent
+
+                        Raw Data Structure for D0              - page 4
+
+
+   CRATE ID Format:
+
+
+    The Crate-ID is defined as 
+
+        Crate_ID = 10*Crate_Number + Bank_Number
+
+    where Crate_Number   ==> 0 - n  ( n (maximum) = 24)
+          Bank Number    ==> 1 - 8 
+
+
+        The Bank number and Crate ID assignments under this scheme are 
+    therefore as follows:
+
+
+      Group               Bank_Number     Max_Crate       Crate_ID's
+  ------------------------------------------------------------------------
+      LEVEL0  (TRGR)           1              1            1
+      LEVEL1  (TRGR)           1              1            11
+     *MUON    (TRGR)           1              5            21,31,...61
+    **MUON    (MUD1)           2             24            2,12,...232
+      VTX     (CDD1)           3             10            3,13,...93
+      CDC     (CDD2)           4              6            4,14,...54
+      FDC     (CDD3)           5             12            5,15,...115
+      TRD     (CDD4)           6              8            6,16....76
+      CAL-N   (CAD1)           7              6            7,17,...57
+      CAL-S   (CAD2)           8              6            8,18,...58
+  --------------------------------------------------------------------------
+      * = Refers to Muon trigger crates
+     ** = Refers to Muon WAMUS and SAMUS crates
+
+
+
+
+  Note-1 The bank number is the link number under the HEAD bank in /ZEBCOM/.
+         It does not relate to the data cable number.  
+
+  Note-2 The Crate ID is hardwired in the backplane of the VME crate in
+         short I/O space C0xx.
+
+  Note-3 All reference to VME crates in HDB and by other data acquisition
+         processes are made using the above Crate-ID convention.
+
+
+                        Raw Data Structure for D0              - page 5
+
+
+    Format of Controller Word:
+
+
+
+        The third word in the crate header is the controller word.  
+    These are defined as follows:
+
+    Most significant 8 bits (24-31) :  Crate ID   (see page 4)
+
+    Least Significant 24 bits       :  Detector Dependent
+
+
+
+
+    Detector Dependent piece:
+
+        Level 1: 
+
+                Not used at the present.
+
+        Muon:
+
+             Muon Trigger:
+		Bits 16-23           Number of OTC cards
+		Bits 0-15	     68020 mode/module select
+
+             Muon Data:
+		Bits 16-23           Number of MAC cards
+		Bits 0-15            68020 mode/module select
+
+
+        Calorimeter:
+                
+                Bits 16-23           Number of ADC cards - 1
+                Bits 8-15            BLS mode control
+                Bits 0-7             ADC mode control
+
+
+        Central Tracking:
+
+                Bits 16-23           Number of FADC cards
+                Bits 5-15            Spare
+                Bit 4                zero suppression (On/Off)
+                Bits 0-3             Data type
+
+
+
+
+    For more detailed information, refer to the zeb files in d0$zeb.
+
+
+                        Raw Data Structure for D0              - page 6
+
+    Format of Version Number Word:
+           
+The fourth word in the crate header is the version number, defined as follows:
+
+        System Bits (Common to all detectors) 24 - 31
+        User Bits   (Detector dependent)      16 - 23
+        Software Version Number (Integer)      0 - 15
+
+    For most systems this Word is Downloaded at the time of defining triggers. 
+
+
+      System Bits are defined as follows.
+
+                Bit  31 (MSB)      Sign Bit = 0
+                Bit  30            0 For D0 / 1 For NWA 
+                Bit  29            0 For Data / 1 For MonteCarlo
+                Bit 24-28          Spare
+
+
+      Detector Dependent User Bits:
+
+        Level 1 and Central Tracking:
+
+                Not used at the present.
+
+        Calorimeter:
+
+           At D0:
+                1       Quadrant test
+                2       5000 channel test
+                3       CC Cosmic ray commissioning run
+                4       CC Cosmic ray commissioning run 2  (2 data cables)
+                5       Cosmic ray commissioning (all three cryostats)
+
+           At NWA:
+                1       Test beam load 1
+                2       Test beam load 2
+
+        Muon:
+
+           Bit 23       1 for basement test
+	   Bits 20-22	spare
+	   Bits 16-19	0 for beam triggers
+			1 scintillator trigger timing
+			2 global sequencer timing
+			3 local sequencer timing
+
+
+      Software Version Number for the data format described in 
+        this document:
+
+        Level 1 Trigger at D0:  4
+        Central Tracking:       4
+        Calorimeter:            2
+        Muon:                   
+             version number is the date of the version, encoded
+	     yyyy|mmmm|dddd|dddd, where y=0 for 1990, and the day is binary 
+	     coded decimal.  eg. 0104 hex is jan-4-1990.
+
+                        Raw Data Structure for D0              - page 7
+
+
+        Additional Header Words
+
+        Level 1 at D0:
+                Longword-5              Revision Number (cf. D0 note 967)
+                  Bits 24-31            VME CPU Program Revision Number  
+                  Bits 16-23            COMINT PROMs Revision Number     
+                  Bits  8-15            Lookup System Revision Number    
+                  Bits  0- 7            Trigger Hardware Revision Number 
+	        Longword-6	        Specific Trigger Fired Pattern.
+                  Bit #n (0..31) is set high if Specific Trigger #n fired.
+
+        Central Tracking:
+
+                No additional words are present in the Header block.
+
+
+        Calorimeter:
+
+                Longword-5              Status/Vertex Word
+                  Bits 16-31            Status information
+                  Bits  0-15            Vertex information
+
+
+        Muon:
+
+            Muon Trigger:
+	        Longword-5              Download file information
+	        Longword-6	        Coarse centroid trigger information
+        	Longword-7      	OTC ID number | OTC status
+                    .
+	            .
+	            .
+	        Longword-6+#OTCs        OTC ID number | OTC status
+	        Longword-7+#OTCs	0
+
+            Muon Data:
+                Longword-5		Pulser information
+                Longword-6		Pulser information
+                Longword-7		MAC ID number | MAC word count
+                    .
+                    .
+                    .
+                Longword-6+#MACs	MAC ID number | MAC word count
+                Longword-7+#MACs	Total word count
+
+	In the basement there are two extra words before the total word count:
+                Longword-7+#MACs	WWVB data
+                Longword-8+#MACs	WWVB data
+                Longword-9+#MACs	Total word count
+
+
+
+                        Raw Data Structure for D0              - page 8
+
+
+    Format of CRATE DATA BLOCK: There are three possible formats
+
+
+    CRATE DATA BLOCK format 1.  (Calorimeter)
+
+                    ---------------------------------------
+                   |          Card 0 Longword Count        |
+                   |---------------------------------------|
+                   |                                       |
+                   |       Card 0 Longword Data Block      |
+                   |                                       |
+                   |---------------------------------------|
+                   |          Card 1 Longword Count        |
+                   |---------------------------------------|
+                   |                                       |
+                   |       Card 1 Longword Data Block      |
+                   |                                       |
+                   |---------------------------------------|
+                                     .
+                                     .
+                                     .
+
+    CRATE DATA BLOCK format 2.  
+
+                    ---------------------------------------
+                   |                                       |
+                   |         Card 0 Byte Data Block        |
+                   |                                       |
+                   |---------------------------------------|
+                   |                                       |
+                   |         Card 1 Byte Data Block        |
+                   |                                       |
+                   |---------------------------------------|
+                                     .
+                                     .
+                                     .
+
+    CRATE DATA BLOCK format 3.
+                                                             
+                    ---------------------------------------  
+                   |                                       | 
+                   |       Card 0 Longword Data Block      | 
+                   |                                       | 
+                   |---------------------------------------| 
+                   |                                       | 
+                   |       Card 1 Longword Data Block      | 
+                   |                                       | 
+                   |---------------------------------------| 
+                                     .                       
+                                     .                       
+                                     .                       
+
+                
+                        
+                         Raw Data Structure for D0              - page 9
+
+    Level 1 Trigger Data Block Structure at D0 in Bank TRGR:
+    Uses Format 1 described in page 8. For more details, see D0 note #967
+
+		---------------------------------------------
+                |            Longword Count = $10A          |
+		---------------------------------------------
+                |      Current Framework, Cal Trig Final    |
+                |       Sums, L0 Vertex, and L1.5  data     |
+		---------------------------------------------
+                |            Longword Count = $280          |
+		---------------------------------------------
+                |      Current Cal Trig EM Et and HD Et     |
+		---------------------------------------------
+                |            Longword Count = $10A          |
+		---------------------------------------------
+                |     Previous Framework, Cal Trig Final    |
+                |       Sums, L0 Vertex, and L1.5  data     |
+		---------------------------------------------
+                |            Longword Count = $280          |
+		---------------------------------------------
+                |      Previous Cal Trig EM Et and HD Et    |
+		---------------------------------------------
+                |            Longword Count = $41           |
+		---------------------------------------------
+                |               EM Et Jet List              |
+		---------------------------------------------
+                |            Longword Count = $41           |
+		---------------------------------------------
+                |              Total Et Jet List            |
+		---------------------------------------------
+                |            Longword Count = $140          |
+		---------------------------------------------
+                |      Mask of Jet Patterns  "Jet Mask"     |
+		---------------------------------------------
+                |            Longword Count = $A0           |
+		---------------------------------------------
+                |       TRD Hot Tower Table Information     |
+		---------------------------------------------
+                |            Longword Count = $19           |
+		---------------------------------------------
+                |  Specific Trigger Programming Information |
+		---------------------------------------------
+		---------------------------------------------
+                |            Longword Count = $80           |
+		---------------------------------------------
+                |      Pulser Programming Data, 2 groups    |
+                |      of 64 longwords each, transported    |
+                |      by but not part of the L1 Trigger    |
+                |         Data Block.  CD then Calo.        |
+		---------------------------------------------
+                |             Longword Count = $?           |
+		---------------------------------------------
+                |       CAMAC Data about less than 100      |
+                |     longwords.  Transported by but not    |
+                |     part of the L1 Trigger Data Block.    |
+		---------------------------------------------
+                        
+                         Raw Data Structure for D0              - page 10
+
+    Muon Trigger Structure in bank TRGR:
+
+
+	Bit	31	   23	      15	 7
+		---------------------------------------------
+  First Good	| OTC#-600 | Module A | Module B | Module C | 
+		---------------------------------------------
+		|  Kinematic table or Pair finder output    |
+		---------------------------------------------
+				      :
+				      :
+		---------------------------------------------
+  Last Good	| OTC#-600 | Module A | Module B | Module C | 
+		---------------------------------------------
+		|  Kinematic table or Pair finder output    |
+		---------------------------------------------
+		|  		      0			    |
+		---------------------------------------------
+
+
+
+                        
+                         Raw Data Structure for D0              - page 11
+
+    CDDn Data Structure for D0:
+                       
+    Format of CRATE DATA BLOCK: Uses Format 2 described in page 8
+
+
+
+                       MSB                             LSB 
+                        ---------------------------------       
+                        |  i-4  |  i-3  |  i-2  |  i-1  |       
+                        ---------------------------------       
+                        |   i   |  i+1  |  i+2  |  i+3  |       
+       First Cluster    ---------------------------------       
+        in channel      |  ...  |  ...  |  ...  |  i+n  |       
+                        ---------------------------------       
+                        |  time slice   |  pulse width  |       
+                        ---------------------------------       
+                                        :
+                                        :
+                        Repeat for all clusters in channel
+                                        :
+                                        :
+                        ---------------------------------       
+                        |  i-3  |  i-2  |  i-1  |   i   |       
+                        ---------------------------------       
+                        |  i+1  |  ...  |  ...  |  i+n  |       
+        Last Cluster    ---------------------------------       
+         in channel     |   time slice  |  pulse width  |        
+                        ---------------------------------         
+                        | channel number| channel length|         
+                        ---------------------------------        
+                                        :
+                                        :
+                                        :
+                       Repeat for all channels in the Crate
+
+
+     where 
+     "time slice"     is time slice of i+n,
+     "Pulse Width"    is number of data bytes plus address, 
+                      It includes itself, but NOT the Longwords following 
+                      this, i.e. channel #/Length
+     "channel Number" is the Logical ID for that channel
+     "channel length" is total byte count for channel, It includes itself.
+
+ 
+                        
+                         Raw Data Structure for D0              - page 12
+
+    CDDn data structure:  special cases
+
+
+    1)   VTX, CDC and FDC:
+         Channels with no hits still have ONE long word: (4 bytes)
+
+                        ---------------------------------         
+                        | channel number| channel length|         
+                        ---------------------------------        
+ 
+    where "channel length"=4 (i.e. 4 bytes including itself) in the new format 
+    and   "channel Number" is the Logical ID of the channel.
+
+    2)   TRD:
+         Channels with no hits still have TWO long word: (8 bytes)
+
+                        ---------------------------------         
+                        |   time slice  |  pulse width  |         
+                        ---------------------------------         
+                        | channel number| channel length|         
+                        ---------------------------------        
+ 
+    where "channel length"=8 (i.e. 8 bytes including itself) in the new format 
+    time slice, pulse width and channel number as defined on the previous page.
+
+                
+                        
+                         Raw Data Structure for D0              - page 13
+
+    CADn Data Structure:
+
+    Format of CRATE DATA BLOCK: Uses Format 1 described in page 8
+
+
+                          --------------------------
+                          | ADC Card 0  word count |
+                          --------------------------    
+           Channel  i     |  Address  |    Data    |
+                          --------------------------   
+           Channel  j     |  Address  |    Data    |    
+                          --------------------------
+                                      :
+                            Repeat for all channels 
+                              readout in card 0
+                                      :
+                                      :
+                          --------------------------
+                          | ADC Card 1  word count |
+                          --------------------------    
+           Channel i      |  Address  |    Data    |
+                          --------------------------   
+           Channel j      |  Address  |    Data    |    
+                          --------------------------
+                                      :
+                            Repeat for all channels 
+                              readout in card 1
+
+                                      :
+                                      :
+                            Repeat for all ADC cards
+                                      :
+                                      :
+
+
+             Where the address/data word is
+                Bit 16-31     Address word subdivided as follows:
+                  Bit 31      Unused
+                  Bit 27-30   ADC Card
+                  Bit 24-26   BLS Card
+                  Bit 22-23   Tower
+                  Bit 18-31   Depth
+                  Bit 17      x1/x8 Scale
+                  Bit 16      Negative Limit
+                Bit  0-15     Data Word
+
+
+
+                        
+                         Raw Data Structure for D0              - page 14
+
+    MUD1 Data Structure:
+
+    Format of CRATE DATA BLOCK: Uses Format 3 described in page 8
+
+
+
+                                WAMUS Data Format
+
+                         -----------------------------   
+                         |         Address           |
+                         -----------------------------  
+                         |      Drift time 1         |    
+                         -----------------------------
+                         |      Drift time 2         |    
+                         -----------------------------
+                         | Pad pulse height B - even |    
+                         -----------------------------
+                         | Pad pulse height A - even |    
+                         -----------------------------
+                         |      Delta time 2         |    
+                         -----------------------------
+                         |      Delta time 1         |    
+                         -----------------------------
+                         |  Pad pulse height B - odd |    
+                         -----------------------------
+                         |  Pad pulse height A - odd |    
+                         -----------------------------
+                                      :
+                                      :
+                                      :
+                          Repeat for all hits in crate
+                                      :
+                                      :
+                         ------------------------------
+                         |Zero longword at end of data|
+                         ------------------------------
+
+
+
+
+         bit 31         odd pad latch        
+         bit 30         even pad latch
+         bit 29         adjacent cell
+         bit 28         user read (pulser)
+         bit 27         disable odd
+         bit 26         disable even
+         bit 25         disable adjacent
+         bit 24         disable pulser
+         bits 0-17      ADDRESS OF WIRE(MODULE,PLANE,WIRE) even wire of pair
+
+
+
+                         Raw Data Structure for D0              - page 15
+
+    MUD1 Data Structure:
+
+
+                                SAMUS Data Format
+
+                         -----------------------------   
+                         |         Address           |
+                         -----------------------------  
+                         |   Drift time even cell    |    
+                         -----------------------------
+                         |    Drift time odd cell    |    
+                         -----------------------------
+                                      :
+                                      :
+                                      :
+                          Repeat for all hits in crate
+                                      :
+                                      :
+                         ------------------------------
+                         |Zero longword at end of data|
+                         ------------------------------
+
+
+
+
+         bit 30         latch
+         bit 29         adjacent cell
+         bit 28         user read (pulser)
+         bit 26         disable latch
+         bit 25         disable adjacent
+         bit 24         disable pulser
+         bits 0-17      ADDRESS OF WIRE(MODULE,WIRE) even wire of pair
+
+                        
+                         Raw Data Structure for D0              - page 16
+
+
+  Format of CRATE TRAILER:
+
+                      MSB                      LSB
+                        -------------------------
+                        |    Total WordCount    |
+                        -------------------------
+                        | Trig Numb |  Crate ID |
+                        -------------------------
+                        |    Token Pass Status  |
+                        -------------------------
+                        |        Checksum       |
+                        -------------------------
+
+* Total WordCount is the Number of Longwords in the Crate. It includes all
+  Longwords in the Crate Data and the Header, including the Longwords 
+  associated with the Trailer block.
+
+* Trig Numb as seen by VBD, Crate ID as seen by VBD.
+
+* Token Pass status: Indicates the status of readout at the time when the above
+  crate is readout. 
+
+* Checksum: Total Checksum for the Crate.
+
+-------------------------------------------------------------------------------
+
+ Note-1
+
+    The "Token Pass Status" will be meaningful only to the Level-2 hardware.
+Prior to the existence of the VBD, it is recommended that 68K software
+emulating the VBD format insert a longword with all bits set, FFFFFFFF in hex,
+into this next to last longword of the crate trailer.
+
+
+ Note-2
+
+    The Crate-ID read and inserted in the trailer by the VBD  will be
+hardwired in the VME backplane. The same word will be available in the 
+Header block. The Crate-ID will be defined as
+
+                Crate_ID = 10*Crate_Number + Bank_Number
+
+where Crate_Number ranges from (0-n) where n is the maximum number of Crates
+read by a single Data Cable. Bank_Number is a unique number between 1 and 8
+assigned to each bank read out. See description of Crate-ID for more details.
+
+        
+ Note-3
+        
+    The above overall structure is repeated for each Crate.  The crate order
+on a data cable is arbitrary.
+-------------------------------------------------------------------------------
+
+                          Raw Data Structure for D0              - page 17
+
+
+    Format of DATA CABLE TRAILER:
+
+                After the last crate trailer on a data cable, there will be
+                a Data Cable Trailer.   While the internal detail of the Data
+                Cable Trailer has not yet been defined it will consist of 16
+                longwords and is intended soly for diagnostic use by the Level
+                2 system.  This internal detail will be defined at some point
+                in the future by the builders of the sequencer (Brown/ZRL).
+
+    

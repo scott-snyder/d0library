@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VERRMSG_UTIL()
+      VERRMSG_UTIL = ' ERRMSG_UTIL'//
+     X                   '  OFFICIAL V1.29'//
+     X                   ' 11-JUL-1997 11:21:12.98'
+      Return
+      End

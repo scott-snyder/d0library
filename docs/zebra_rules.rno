@@ -1,0 +1,376 @@
+.left margin 3
+.literal
+                                                    D0 NOTE#354
+                                               Serban D. Protopopescu
+                                                       Olivier Callot
+                                                    March 4,1986
+                                                    Rev. Oct. 1,1986
+                                                    Rev. Oct.20,1988
+
+
+          RULES FOR ZEBRA BANKS
+          =====================
+
+
+
+    [1]  Introduction
+
+
+    [2]  Zebra common blocks
+
+
+    [3]  Header bank
+
+
+    [4]  Other banks
+
+   
+    [5]  Link files
+
+
+    [6]  Booking banks
+
+
+    [7]  Documentation 
+
+
+    [8]  General link area
+.end literal
+.page
+.literal
+
+[1]  Introduction
+     ============
+
+      The  CERN  data  and  memory    management  system  ZEBRA  adopted
+officially  for D0 software  allows for a  great deal  of flexibility in
+defining and handling  data structures. If used  freely this flexibility
+can  also  make the  data   structures    incomprehensible to  those not
+intimately connected to the making of those structures. It can also make
+it impossible to  read files if one  doesn't know  exactly how they were
+written out in the first place. In  order to avoid future problems it is
+felt   necessary  to  impose  some  rules  on  the   structure  and bank
+nomenclature of input  and output data related  to an event.This data is
+expected to reside in  one common block,  /ZEBCOM/, and connected to the
+header bank  HEAD by  preassigned links.  The use of a  unique head bank
+insures that there is a  unique way to read any  event data file without
+any need to know  what its precise  contents are.  Whether specific data
+exists in a  given file can  be found  immediately by  checking that the
+apropriate link is not zero. The HEAD bank is described in section [3].
+
+      To  minimize  the   possibility  of  having  banks  with different
+contents and same name  some rules have to be  followed by each detector
+group. These rules have  also been chosen so  that when banks are listed
+in alphabetical order all banks from a given group will appear together.
+When a bank is created a number of utilities must be created at the same
+time:  a   parameter  link  file,   a   documentation   file, a  dumping
+subroutine, a  booking  subroutine and a  pointer  function, see section
+[4].
+
+
+      The rules for the parameter link file are given in section [5] and
+for documentation in section [7].  The dumping subroutine should produce
+a printout of the  contents of a bank readable  by human beings. It must
+follow the conventions given in  D0$DOCS:PRXXXX_EXAMPLE.DOC. To minimize
+the need to create common blocks for Zebra link areas users are urged to
+use pointer  functions(see section  [4]), or the  general link area, see
+section [8].
+
+.end literal
+.page
+.literal
+
+[2] Zebra common blocks
+    ===================
+
+      The main common block for input and output data (event related) is
+/ZEBCOM/. Zebra always creates a minimun of 2 divisions, data structures
+should not be kept in division 1 because it is used as working space not
+only  by  the  users  but  also by  Zebra  so  their   integrity  is not
+guaranteed.  The  first  10000  locations in   /ZEBCOM/ are  assigned to
+division 1 offline so  they can be used for  temporary work areas with a
+call to  MZWORK. This  allows the user to  overwrite  any reserved area.
+Input and  output data must  be in the  same structure  as the HEAD bank
+(see next section). This data is overwritten with every event. The begin
+run record  information  also hangs  from a  HEAD bank but  is kept in a
+separate division, it gets overwritten with each new run. A common block
+/ZLINKA/ has  been provided  as a general  link area  for structural and
+reference links to banks in /ZEBCOM/, see section [8] on how to use it.
+
+*** WARNING  *** In  the  microvax's  division  1 is  used for main data
+    because  of   technical   reasons  so  /ZEBCOM/   cannot be used for
+    temporary space in any code for level 2 or data acquisition. 
+
+    A  common  block  /ZEBSTP/  has  been  defined  to  handle the Zebra
+structures for detector  constants (such as  pedestals, geometry, etc.).
+Parameters that are part of program  initialization and could be written
+out to a file to read back and  speed up subsequent initializations must
+be part of the same structure as  STPH, see documents in D0$ZEB$STPH. In
+particular, program control parameters must be under the SRCP header and
+use the GTSRCP facility (see D0$DOCS: GTSRCP_MANUAL.MEM).
+
+
+    A third  common  block  /ZEBWRK/  exists  for  setting up long lived
+working banks which are  purely internal to specific tasks  and not part
+of any structure written out to files.
+
+    Each zebra common block has an initialization subroutine:
+
+INZCOM(I) for /ZEBCOM/
+INZSTP    for /ZEBSTP/
+INZWRK    for /ZEBWRK/
+INZLNK    for /ZLINKA/
+
+    The /ZEBCOM/ initialization subroutine has an integer argument which
+must be set to 1 if division 1 is used for the event data, for any other
+value  INZCOM assumes  division 2  is used.  Users must  recompile these
+subroutines if  they want to change  the default  sizes for these banks.
+These subroutines should be called  at job initialization time. They can
+be called any number of times, they are automatically disabled after the
+first call.
+
+.end literal
+.page
+.literal
+
+[3] Header bank
+    ===========
+
+      All input and output event data must hang from the HEAD bank, this
+includes not only event  records but also  beginning and end of runs and
+any other records which  are intended to be  written on the same file as
+the event records. The  record type is then  identified in the HEAD bank
+and only one  call to FZOUT  (FZIN) is  needed to write  (read) a record
+from that file.  The HEAD bank has  18 structural  links which have been
+pre-assigned,     see   D0$ZEB:      EVENT_HEAD_ZEBANKS.MEM  and D0$ZEB:
+RUN_HEAD_ZEBANKS.MEM.    The  banks  described  in  these files  must be
+constructed  by the  programs ( if they  don't already  exist) for every
+event before any event  related task can  proceed. The only exception is
+the USER bank,  this one is free  for anything users  may wish to do. It
+must, however, be understood by the  users that the integrity of what is
+in USER cannot be guaranteed as soon disparate tasks are combined, so it
+should only be used in private code.
+
+    Note that under  GEAN and RECO  we hang  structures with same names.
+This keeps the Montecarlo generated  banks distinct from banks generated
+by a reconstruction program although they contain the same information.
+
+
+.end literal
+.page
+.literal
+
+[4] Other banks
+    ===========
+
+      Since  ZEBRA bank  names have  only 4  letters it is  essential to
+assign names before banks are  clearly defined to avoid stepping on each
+others  toes. Each  detector has  been assigned 1 letter:
+
+Cxxx  for calorimeter banks 
+Dxxx  for central drift chamber banks
+Fxxx  for forward  "       "      "
+Mxxx  for muon     "       "      "
+Txxx  for TRD banks
+Vxxx  for vertex chamber banks
+Lxxx  for level 0 data
+Zxxx  for central detector
+
+additional letters that have been assigned are:
+
+Ixxx  for ISAJET banks
+Gxxx  for GEANT  banks
+Sxxx  for STatic Parameter banks
+
+Although it is not forbidden to have banks that do not belong to any of
+the categories defined above start with one of those letters one should
+try to avoid doing so.
+
+
+    The contents of a bank depend on  its purpose but certain rules have
+to be followed to help maintenance and portability:
+
+1) The structure of the  data has to be  described to ZEBRA by a call to
+   MZFORM,  this  means that  you are  able to  describe  this format to
+   ZEBRA. This prohibits using an unknown data type ( variable number of
+   integer/floating  ), and in fact  restricts the  structure to a fixed
+   part plus many repetitions of another fixed part ( one of these parts
+   may be absent ). See ZEBRA documentation for more details. 
+
+2) If some day the structure of the  bank changes, it should be possible
+   to track this change and to know, from the bank, what is the content.
+   To facilitate that task it is recommended that the first 4 words 
+   in a bank be (if relevant):
+         1 [I] = Version number. 
+         2 [I] = Length of fixed part.
+         3 [I] = Length of repeated part
+         4 [I] = Number of time we repeat the last part
+   A version number should be in all banks.
+
+3) Every  processing program  that  generates new event  banks must also
+   generate a history  bank. See  D0$ZEB$EVENT_HEAD:HSTR.ZEB. Banks that
+   are always  generated  together by a  given process  must hang from a
+   header bank, the first reference  link of that bank must point to the
+   HSTR bank. If a bank generated in  a given program does not hang from
+   a header  generated  in the same  program,  it must  also reserve the
+   first reference link to point to the HSTR bank.
+
+
+
+    For every bank xxxx created the following must exist:
+
+1) A documentation file xxxx.ZEB (see [7])
+
+2) A link file IZxxxx.LINK (see [5])
+
+3) A printing subroutine PRxxxx.FOR, the file D0$DOCS:PRXXXX_EXAMPLE.DOC
+   should be used as a template. The following calling sequence must
+   produce a full printout of all banks with name xxxx to UNIT:
+   CALL PRXXXX(UNIT,0,0,'ALL',1)
+
+4) A booking  subroutine BKxxxx.FOR. see section [6] for rules applying
+   to this subroutine.
+
+5) An integer function GZxxxx  returning the Zebra pointer to xxxx. Only
+   banks hanging  immediately below  the HEAD bank  are exempt from this
+   rule.  If it  is a  unique  bank  or a  unique  linear  structure the
+   function  has  no  arguments  and  returns the  pointer  to the first
+   element  in  that   linear   structure.  If  xxxx  banks can be found
+   following   separate  branches  the  function  may need  arguments to
+   specify  the  branch  and  thus  the  number of   arguments will vary
+   depending   on    circumstances.  The  GZxxxx   subroutine  should be
+   documented with inexperienced  users in mind. When speed is essential
+   (inside track  reconstruction algorithms,  cluster finding,etc.) link
+   area common blocks should be used but otherwise the use of the GZxxxx
+   functions or the general link area is encouraged. This is to avoid an
+   explosive  growth in the  number of  common blocks  throughout the D0
+   software.
+
+.end literal
+.page
+.literal
+
+[5] Link Files
+    ==========
+
+    For  every  bank xxxx  that is   created a  file must  be created in
+D0$CMS:[LINKS] named  IZxxxx.LINK, which  contains a parameter providing
+the  structural  link number  from the   supporting  bank.This number is
+always  positive. For  example, bank FLTR  is connected   via structural
+link -9 to HEAD, thus  there is a file  IZFLTR.LINK with contents: 
+         INTEGER IZFLTR
+         PARAMETER (IZFLTR=9)
+( EVE will create this for you when editing IZxxxx.LINK ) 
+
+    To get that parameter in a subroutine one needs the line (PF1 Z in EVE) 
+
+         INCLUDE 'D0$LINKS:IZFLTR.LINK'
+
+    It is the responsibility of the  people creating banks to check that
+after following the given rules no  duplication of names occurs. The CMS
+library will not accept duplicate names.
+
+*** WARNING   ***  Note  that  banks  with  same  name  under  different
+    structures must hang  from the same  structural link number. If this
+    is not possible  different names must be  used for the banks even if
+    they contain identical information. 
+
+*** WARNING *** It  is the  responsibility of each  user to warranty the
+    integrity of the links they are  using or creating. The general link
+    area should be used for preserving the integrity of local links, see
+    section  [8]. For  links  used  across many   subroutines use GZxxxx
+    subroutines, use link area common blocks only if speed is essential.
+
+
+[6] Booking banks
+    =============
+
+    To avoid   duplication of code  in booking  banks all  banks must be
+booked by using a  subroutine  BKxxxx, this  subroutine must satisfy the
+following requirements:
+
+1) Book only one xxxx per call
+
+2) Call MZFORM (if all data items are not of same type) the first time
+   BKxxxx is called and never again.
+
+2) Return the pointer to the created bank as an output argument
+
+3) When  the number  of  channels in a  bank is  not fixed  it should be
+   passed as an input argument. 
+
+These items and no others should be filled in BKxxxx:
+1) version number
+2) repetition number (if appropriate)
+3) number of channels (if appropriate, given as an input argument)
+4) reference link to history (if appropriate)
+
+
+    The  data for a  given  bank  should NOT be   inserted in the BKxxxx
+subroutine. Whenever possible this should be done by a xxxxFL subroutine
+that calls  BKxxxx,  however, it is  recognized that  this is not always
+possible so an xxxxFL subroutine need not exist. 
+
+
+
+[7] Documentation       
+    ============= 
+      
+    Every   bank  xxxx  must  have a    documentation  file  xxxx.ZEB in
+[D0CMS.ZEB].  The   xxxx.ZEB files  must be  created  with  EVE, it will
+generate the frame to  be filled with the  relevant information. If more
+than one version of a  given bank exists all  versions should be kept in
+one xxxx.ZEB  file with the  last version  first. The  only exception to
+this rule is the HEAD bank, all  version numbers are in one file but the
+event  HEAD  banks are  in   EVENT_HEAD.ZEB and  the  run HEAD  banks in
+RUN_HEAD.ZEB. The files should be  inserted into a CMS group. Each group
+YYY must contain  one (and only  one) file  YYY_TREE.ZEB which describes
+the links between all  the Zebra banks in the  group, up to the top bank
+of the tree ( HEAD for  data banks ). Whenever  a new group YYY needs to
+be created it  should be  cleared first  with the ZEB  library czar, and
+subject to review. 
+.end literal
+.page
+.literal
+
+
+[8] General link area
+    =================
+
+
+    Users must remember  that whenever a  subroutine is called  anywhere
+that  creates or  moves Zebra  banks  the links  may  change, thus it is
+unwise to  assume that a  pointer is  still pointing to  the right place
+after a  subroutine  call. To  avoid  nasty  surprises  users should use
+either  the GZxxxx  functions  or the  general  link area  /ZLINKA/. The
+general link  area is meant  only for  local use, its  usefulness across
+more than one subroutine is limited. ZLINKA has 2 arrays:
+
+
+C              general Zebra link area
+C   use with utility subroutines GSLINK,GRLINK,RSLINK and RRLINK
+      INTEGER NSLINK,NRLINK,LSLINK,LRLINK
+      PARAMETER (NSLINK=100)
+      PARAMETER (NRLINK=100)
+      COMMON/ZLINKA/LSLINK(NSLINK),LRLINK(NRLINK)
+
+LSLINK is for stuctural links and LRLINK for reference links. A user
+reserves a structural link by:
+     CALL GSLINK(NAME,NUMBER)
+where NAME is a character string (up to 8 letters), it is recommended
+that the first 6 letters be the name of the calling subroutine. NUMBER
+returns the assigned location in LSLINK. When the user no longer needs
+the link he should return it to the pool by:
+      CALL RSLINK(NAME,NUMBER)
+the  link  will  not  be released if the NAME does not correspond to the
+one used with the  GSLINK call.  Note that the  assignments of links are
+never cleared unless there is a user request so they can be reserved for
+the  duration of a job.  It is  recommended, however, that users release
+their links before exiting and book them each time (particularly if they
+are using many links). For reference links the corresponding subroutines
+are GRLINK and RRLINK.
+
+*** WARNING *** Users must remember not to call GSLINK (GRLINK) again
+for a given link without having called RSLINK (RRLINK).
+
+.end literal

@@ -1,0 +1,142 @@
+.literal
+
+                                                 Feb. 9,1989
+                                                 D0 Note#751
+                                                   v1.2
+
+
+                     PRODUCTION PASS DEFINITION
+
+                                                  J. T. Linnemann
+                                                  S. D. Protopopescu  
+
+
+    A production pass consists of a  well defined (i.e. fixed) production
+program (.EXE) and a unique set of  parameters (which may be distributed
+across many files). By  a unique set of  parameters we do not mean that
+identical parameters are used on every event processed in the production
+pass (i.e. a  production pass may be  used for many  data taking runs) but
+that the same event must generate  an identical output if processed at a
+different  time with the  same production  pass  (excepting perhaps for a
+processing time stamp). A production pass has a unique ID to be stamped
+in the history bank generated during the production pass.
+
+    The production program should  be built by requesting the production
+option  in  the    PROGRAM_BUILDER.  When  this   option is   chosen the
+PROGRAM_BUILDER will  also make entries into a  data base to deduce at a
+latter time the state  of the libraries and the  constants used during a
+production pass.  This option will  NOT work in  unauthorized areas. The
+following functions and procedures are required to accomplish the above: 
+
+
+1. OFFTIM function (Offline Time):
+   This function should return Smithsonian Standard Time in seconds 
+   since Jan. 1,1988 as a 32-bit integer.  This should hold us for the next
+   68 years of D0 data.  A routine to convert this to a printable date is
+   also required, as is a routine to change a human-readable date into this
+   format.
+
+
+2. Library version database:
+   Each library release must make an entry into this data base. Either
+   local versions of this database will be made as part of the update procedure,
+   or a document listing entries to the data base will be regularly
+   distributed.  The entries should have the form
+
+   Library name     Status tag       version#     time of release (OFFTIM)
+   1-16 characters  PROD,TEST,or STD   nnn.nn      9 digits (seconds)
+
+   The purpose is to be able to find the latest version for a given
+   time. Libraries used for production have PROD as a production tag.
+
+
+3. Production pass definition database:
+   The PROGRAM_BUILDER should make an entry to this database for each
+   production pass definition. Entries should have the form
+
+   ID     Prod. program name    version#    pass#   time of definition
+ integer     character          integer    integer    integer
+
+    ID= a unique number for this entry, incremented by 1, strictly
+        increasing with time. This ID will be stored in history
+        banks (HSTR). Given by integer function PRODID.
+
+    Prod. program name= 16 character production program name
+
+    version# = integer incremented each time any production library
+        has changed. This should be done automatically by interrogating 
+        the library release data base.
+
+    pass# = if version # has changed it is set to 1. If version# is
+        unchanged it is incremented by 1, i.e. incremented whenever
+        parameters change but not the code.
+
+    time of definition = time given by OFFTIM at the time the production
+         pass is defined. This time is given in production programs by
+         the integer function PROTIM (which gets it out of the HSTR bank).
+
+   The PROGRAM_BUILDER needs to interrogate the production pass definition
+   data base to find the latest version# and pass#.
+
+
+4. Production flag:
+   Every production program must have a logical function PRODUC which
+   returns true if it is setup for a production pass and is false otherwise.
+   The PROGRAM_BUILDER should generate PRODUC returning true.
+
+
+5. History bank:
+   A bank HSTR should be  generated at the start of each run and added
+   at the front of a linear chain dangling from the run HEAD bank.
+   The program builder will generate a subroutine HSTRFL which creates
+   and fills this bank. The entries in this bank are identical to
+   those in the production pass definition data base and in addition
+   will have an entry for time of processing, i.e.
+   location     entry
+     1          bank version#
+     2          production pass ID 
+     3-6        prod. name
+     7          version#
+     8          pass#
+     9          time of definition (PROTIM)
+     10          time of processing (OFFTIM)
+     11-12      program generation SITE (8 characters)
+     13-14      data processing SITE
+
+
+6. History reference link:
+   Every header bank for hits or processed data must use the first
+   reference link to point to the history bank.
+
+7. Parameter Database Retrieval
+   If production flag is true the subroutines reading parameter file
+   information must check the time of definition against time of creation
+   of the parameter information. Only those created before time of 
+   definition should be used. This implies that OFFTIM must be used
+   to give a time of creation which must be stamped on every set 
+   of parameters created for use in a production program. It also
+   implies that if a set of parameters is created after the time of
+   definition a new production pass must be defined.
+
+
+8. CALIB database
+   Should use ID and time of insertion (given by OFFTIM) as keys.
+
+
+9. Non-production versions of program
+   Will have ID=0, version#=0 and pass#=0; other items in bank HSTR will
+   be filled as in production version. "Production" name and time of 
+   definition will only exist if program was linked using the program builder.
+   This, in conjunction with the library version database, will allow
+   reconstruction of the library source files used in the program.
+   This means that a default version of HSTRFL must exist in the libraries
+   which will fill this bank.  In addition, the program builder must ask
+   the user for the name of the program.
+
+
+10.A backup of libraries and parameters used in a production pass will 
+   be made automatically at the time of a production pass definition. 
+   This procedure should be triggered by the PROGRAM_BUILDER after the
+   program is linked.
+
+.end literal

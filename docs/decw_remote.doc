@@ -1,0 +1,162 @@
+
+                        *** DECW REMOTE ***
+
+    Intro.
+
+        Decw Remote is a procedure developed to get the most out of your
+    Workstation running DecWindows. This utility is particularly useful if you
+    are using a VaxStation 2000 with about 6 meg of memory. The idea is to turn
+    your station into strictly a DecWindow server, serving Xwindow commands
+    which are being sent to your workstation over the network.
+
+        Using Decw Remote you can executing all the neet Decwindow applications
+    (i.e. Decw$Mail, Decw$Calendar, DECterm etc.) on a host which has the
+    memory and
+    cpu power to handle the job. When you startup the remote decwindow
+    application, you redirect the output of this application to your station
+    thus turning your workstation into an Xwindow server. If you manage to
+    setup all your applications on remote hosts, this frees up about 1 to 1.5
+    meg of memory on your station and the improvement in the response time of
+    DecWindows as a hole on your station is astounding.
+
+        The only limitations is that both the remote and local nodes must be
+    running VMS v5.3 or above and both nodes must have the DECW REMOTE
+    software install.
+
+---**    How to use DECW Remote.   **---
+
+        Decw Remote is made up of one DCL command procedure found in the
+    directory D0$DECW:. It has the following form:
+
+$@D0$DECW:REMOTE application remote_node [username password] -
+                 [network transport[=return node]] [decterm qualifiers]
+
+There are five possible parameters which one can give to d0$decw:remote.com as
+show above, the following is a descrition of these parameters.
+
+---
+
+    P1 = application  (Required Parameter)
+
+    The first parameter is the application you wish to run on the remote node,
+    this is a required parameter and the following are the only options you
+    may specify
+
+DECTERM
+BOOKREADER
+CDA VIEWER
+CALCULATOR
+CALENDAR
+CARDFILER
+CLOCK
+EVE
+FILEVIEW
+MAIL
+NOTEPAD
+PAINT
+PUZZLE
+NOTES <-- Notes must be installed on the remote node.
+CMS   <-- Cms must be installed on the remote node.
+
+---
+
+    P2 = Remote node (Require parameter)
+
+    The second parameter is required and specifies the DECNET remote node
+address on which you wish to execute the applciation specified in P1.
+
+---
+
+    P3 = Username password (Optional parameter)
+
+    This parameter alows you to run the application under the account you
+specify with "username password". If omitted, d0$decw:remote expects you to
+have a valid DECNET proxy account on the remote node. To check to see if you do
+have a valid proxy account on the remote node, do a DIR REMOTE_NODE::, and see
+if you get an error or a directory of your default login directory on the
+remote node.
+
+----
+
+    P4 = Network transport [= return node]  (optional)
+
+    This parameter allows you to specify which network transport you wish to
+use for the remote application. Currently you have two options, DECNET and
+TCPIP. Also if you wish to have the output of the Decwindow application routed
+to another node besides your station, then you can use specify it by appending
+a =RETURN_NODE to the network transport string. For example if I wish to route
+the Xwindow commands from the remote node over TCPIP is the just specify
+
+    TCPIP
+
+for P4. If I wish to route the Xwindow commands from the remote application to
+node D0HSA over DECNET then I would specify
+
+    DECNET=D0HSA
+
+for P4. More examples will follow. In most cases you will just leave this
+parameter blank which defaults to directing the remote node Xwindow commands to
+your station over DECNET.
+
+----
+
+    P5 = Decterm qualifiers  (optional)
+
+    If the application you wish to invoke is DECTERM then you can specify
+further qualifiers such as what the title of your window and Icon will be etc,
+if you want to use big or little fonts. For example if you specify
+
+    "/big_font/window_attri=(title=""Adler on D0hsa"",initial_state=icon)"
+
+Then this string gets appended to the command CREATE/TERMINAL=DECTERM/DETACH.
+For more information on what qualifiers you may use, do a HELP CREATE/TERM.
+
+!-----
+
+Further things to take note of:
+
+--Defining your own applications in the Decwindow session manager--
+
+    This command procedure (D0$DECW:REMOTE.COM) is to be issued by the session
+manager by clicking on a user define applciation found in the applications
+menu. This means that you need to go
+into the customize menu, click on the APPLICATIONS DEFINITIONS... and define an
+application which calls @D0$DECW:REMOTE with its various parameters described
+above.
+
+--Making sure you have setup your session manager security properly--
+
+    Also, make sure you setup the network security properly in your session
+manager. For both DECNET and TCPIP inbound Xwindow requests, you need to
+specify which nodes and users can open windows on your station.
+
+
+!-----
+
+    Examples
+
+@d0$decw:remote bnlcl6 decterm
+
+I have defined the application CL6Adler in my session manager to execute the
+above string. This will open a decterm on BNLCL6 under my proxy account on
+BNLCL6::
+
+@d0$decw:remote mail bnlcl6 "d0library password"
+
+I have defined the application D0library_Mail in my session manager to execute
+the above string. It will run decw$mail on bnlcl6 under the d0library account
+and have the output show up on my station. (Please note that I used the string
+password in P3 instead of the real password.)
+
+@d0$decw:remote calendar bnlcl6 "" tcpip=d04.phy.bnl.gov
+
+I have defined the application CL6Calendar in my session manager to execute the
+above string. It will direct run decw$calander on bnlcl6 under my proxy account
+and route the Xwindow commands over TCPIP to internet node D04.PHY.BNL.GOV.
+
+
+--Further question or misunderstanings--
+
+    If you have any questions please direct them to BNLD0::ADLER.
+
+

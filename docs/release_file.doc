@@ -1,0 +1,516 @@
+
+                       Writting a .RELEASE file
+
+
+    Abstract.
+
+        This document will explain how to write a .RELEASE file.
+
+    Introduction.
+
+        There has been a revamping of the D0 Library release procedures. In the
+    past it was somewhat cumbersome to guide the release procedures so that
+    they would perform tasks which were unique to a particular library and were
+    necessary in order to be able to construct the library correctly. There was
+    a pre and post processing facility which would take care of such
+    special processing but it turned out to be inadequate. Thus a program has
+    been developed which can generate an mms file which will build the library
+    from a set of instructions written in an ascii text file in conjunction with
+    the contents of the CMS library to be released. This document explains in
+    detail how to put together this ascii text file which will 'guide' the
+    release procedure.
+
+    The .RELEASE file.
+
+       -- File naming convention --
+
+        The file which guides the release procedure will be refered to as
+    the .RELEASE file. The default file name for this file will be:
+
+                'library_name'.RELEASE
+
+    For example, the default .RELEASE file for the D0GEANT library will be
+    D0GEANT.RELEASE .
+    For most libraries there will be one release file which should
+    have the default file name as stated above. For some libraries it will be
+    anticipated that there will be more than just one way to perform the
+    release. Thus multiple .RELEASE files will be supported. (Multiple
+    release files is a feature soon to be implemented.) To stick with
+    convention, the extension of these .RELEASE file should be .RELEASE.
+
+
+      -- .RELEASE file structure --
+
+        The structure of the .RELEASE file is simply a set of DCL type commands.
+    These release commands fall under three categories. The first set of
+    commands
+    specify which group in the cms library will be operated on and what
+    directories will be used to located the source code.
+    The second set of commands specify what pre and post processing action
+    is to be taken on the elements specified by the first
+    set commands. The third set of commands specify which files are to be built
+    from the CMS elements and what elements are to go into these 'target'
+    libraries. These 'target' files are object, help and text 
+    library files, .MEM files or any other file processed with the DEC Runoff
+    facility and any other file which goes through some type of processing.
+
+    Here is a sample .RELEASE file which will guide the sample library
+    SPL_LIB through its release.
+
+begin
+/group=sample1
+/srcdir=d0$spl_lib$sample1:
+/trgdir=d0$spl_lib:
+/intdir=d0$scratch:[spl_lib]
+
+pre/echo="This is a pre process for sample1"
+
+pre/dcl="define boohiss junkbunk"
+
+pre/copy/element=*.for/from=d0$spl_lib$sample1:/to=nl:
+
+pre/cmd=funny_stuff
+
+olb=sample1.olb/element=(spl1_*.for)
+
+post/copy/element=*.obj/from=d0$scratch:/to=nl:/nocmslist
+
+post/del/element=*.obj/from=d0$scratch:/nocmslist
+
+post/echo="This is the end of post processing for sample1"
+
+post/cmd=buffy_bunny
+
+end
+
+begin
+/group=sample2
+/srcdir=d0$spl_lib$sample2:
+/trgdir=d0$spl_lib:
+/intdir=d0$scratch:[spl_lib]
+
+olb=sample2.olb/element=(spl2_*.for)
+
+pre/echo="This is a pre process for sample2"
+
+pre/dcl="define boohiss junkbunk2"
+
+pre/copy/element=*.for/from=d0$spl_lib$sample2:/to=nl:
+
+post/copy/element=*.obj/from=d0$scratch:/to=nl:/nocmslist
+
+post/del/element=*.obj/from=d0$scratch:/nocmslist
+
+post/echo="This is the end of post processing for sample2"
+
+end
+
+begin
+/group=sample3
+/srcdir=d0$spl_lib$sample3:
+/trgdir=d0$spl_lib:
+/intdir=d0$scratch:[spl_lib]
+
+pre/echo="Go away sample3 pre"
+
+post/echo="Go amuck sample3 post"
+
+post/del/element=(*.obj)/from=d0$scratch:/nocmslist
+
+obj=sample3.obj/element=(spl3_*.for)
+
+end
+
+begin
+/group=docs
+/srcdir=d0$spl_lib$docs:
+/trgdir=d0$spl_lib:
+
+hlb=helplib.hlb/element=*.hlp
+
+post/copy/element=(*.*)/exclude=(*.rno)/to=nl:/nocmslist
+
+post/delete/element=(*.obj)/from=d0$scratch:/nocmslist
+
+post/delete/element=(*.rtn)/from=[]/nocmslist
+
+misc/element=*.rno
+
+end
+
+begin
+/group=text
+/srcdir=d0$spl_lib$text:
+/trgdir=d0$spl_lib:
+
+tlb=text.tlb/element=*.txt
+
+end
+
+
+    Now that you have had a look at what a .RELEASE file looks like, let me
+    go over it with you.
+
+    -- RELEASE COMMAND STRUCTURE.
+
+    First of all, the structure of a release command is as follows.
+
+RELEASE_COMMAND[=TARGET_FILE][/QUALIFIERS[/SUBQUALIFIERS]]
+
+    Where RELEASE_COMMAND specifies a set of release commands which will
+    be descried shortly. TARGET_FILE indicates a library file which is to be
+    built. /QUALIFIERS is a set of qualifiers. A subset of qualifiers is
+    common to most RELEASE commands. These will be described only once.
+    /SUBQUALIFIERS is a set of qualifiers which can only be used with a
+    particular /QUALIFIER.
+
+    If you want to specify the release command on several lines of text,
+    you do so by placing the second part of the command on the second line.
+    There is no continuation marker on the first or second line. (As in DCL
+    or FORTRAN respectively). Two commands are separated by an empty line.
+    For example we write two multiple line commands as follows:
+
+begin
+/group=sample1
+/srcdir=d0$spl_lib$sample1:
+/trgdir=d0$spl_lib:
+/intdir=d0$scratch:[spl_lib]
+
+olb=sample1.olb
+/element=(spl1_*.for)
+
+
+    -- GENERAL .RELEASE FILE STRUCTURE
+
+    The .RELEASE file is broken down into groups of
+    commands surrounded by the BEGIN and END release command. The rule of
+    thumb is, for every CMS group in your library, you should have a
+    set of BEGIN and END commands. The BEGIN command has 4 qualifiers
+    which are:
+
+        /group='CMS group name'
+        /srcdir='Source directory for elements in CMS group'
+        /trgdir='Target directory for "target" files'
+        /intdir='Intermediate directory intermediate files'
+
+    Every other release command which follows the BEGIN command will use, as
+    defaults, the values of the BEGIN command qualifiers. In the sample
+    library I want to build 2 .OLB libraries, SAMPLE1.OLB and
+    SAMPLE2.OLB. SAMPLE1.OLB and SAMPLE2.OLB are my "target" files. 
+    The BEGIN command for the SAMPLE1.OBL target is then:
+
+begin
+/group=sample1
+/srcdir=d0$spl_lib$sample1:
+/trgdir=d0$spl_lib:
+/intdir=d0$scratch:[spl_lib]
+
+    For the library SAMPLE1.OBL, I want the program which builds the final
+    .mms file to search for the code in the group specified by the /GROUP
+    qualifier in the BEGIN command. In this case SAMPLE1.OLB will be built
+    out of all the elements found in group SAMPLE1. I want this program to
+    locate the files
+    in the directory specified by the /SRCDIR. In our example the source
+    directory will be D0$SPL_LIB$SAMPLE1:. The program should tell MMS
+    to send the intermediate files to the directory specified by the
+    /INTDIR (i.e. d0$scratch:[spl_lib]). Finally I want the MMS to build
+    the "target" file SAMPLE1.OBL in the directory specified by /TRGDIR
+    (i.e. d0$spl_lib:.)
+
+
+    -- MORE ABOUT RELEASE COMMANDS
+
+    Now that I have told the program where to find the source code in the
+    CMS library as well as in what VMS directory, I can then give it some
+    more specific information about what the library name is and what exact
+    elements I want to place in the library. The library I want to build is
+    named SAMPLE1.OBL. I want all the elements found in group SAMPLE1 to be
+    compiled and loaded into the SAMPLE1.OLB library. This is done with the
+    OLB release command.
+
+    OLB release command
+
+        Syntax
+
+        OLB='library_filename'
+
+    The OLB has, among other qualifier, 4 main qualifiers. These are:
+
+        /ELEMENT=('element_list')
+        /EXCLUDE=('element_list')
+        /INCLUDE=('element_list')
+        /OMIT=('element_list')
+
+    /ELEMENT qualifier:
+
+        The element qualifier specifies all the elements which will be
+    compiled. (not placed in the library, just compiled and stored in the
+    intermediate directory.) This is a listed value qualifier, thus the
+    following syntax is allowed:
+
+        /ELEMENT=(*.FOR,TR*.PAS,ABC.C)
+
+    /EXCLUDE qualifier:
+
+        The exclude qualifier has the same syntax as the /ELEMENT qualifier
+    and is used to exclude any elements which are found in the list of
+    elements specified by the /ELEMENT qualifier. Thus if I want the file
+    FX123.FOR to be left alone, (not compiled) then I would place it in the
+    /EXCLUDE qualifier element list.
+
+    /INCLUDE qualifier:
+
+        The /INCLUDE qualifier specifies all the elements, specified by the
+    /ELEMENT and /EXCLUDE qualifiers which will be placed into the library.
+    By default it is set equal to *.* so that all the elements specified by
+    the /ELEMENT and /EXCLUDE qualifiers are placed into the library.
+
+    /OMIT qualifier:
+
+        The /OMIT qualifier will omit any element from being placed into
+    the library. The element will be compiled, but not placed in the
+    library.
+
+    NOTES: The /ELEMENT,/EXCLUDE,/INCLUDE,/OMIT qualifiers are used
+    together. First an element list is generated by 'expanding' the list
+    specified by the /ELEMENT qualifier and using the list of elements
+    found in the CMS group as a reference set. Next an exclude list is
+    generated by expanding the element list specified in the
+    /EXCLUDE qualifier. All the elements which are found in the /EXCLUDE
+    qualifier are then removed from the original element list. The
+    resulting 'cleaned' element list will be refered to as the 'cleaned'
+    list. All the elements which are contained in the 'cleaned' list will
+    be compiled and the resulting .obj file will be found in the
+    intermediate directory specified by the /INTDIR of the BEGIN release
+    command. A list of element is then generated by expanding the list of
+    elements found in the /INCLUDE qualifier using the 'cleaned' list as a
+    reference. This new list is then compared to the element list specified
+    by the /OMIT qualifier. Any matching elements are removed. This second
+    list, (we will refer to it as the 'include' list) is the list of
+    elements which will be placed into the target library. Do not confuse
+    the use of /ELEMENT and /INCLUDE. If you want to include all the
+    elements into the library, you should use the /ELEMENT qualifier to
+    list all the elements you want to compile and insert into the library.
+    The default for the /INCLUDE qualifier is *.* so that every element
+    found in the 'cleaned' list is by default inserted into the library. If
+    you use the /INCLUDE qualifier and not the /ELEMENT qualifier, you will
+    get no elements placed into the library since the 'cleaned' list will
+    be empty.
+
+    -- MORE RELEASE COMMANDS (a partial document)
+
+    To build help libraries, one should use the HLB release command.
+
+    HLB=help_library_filename
+
+        Qualifiers
+
+        /ELEMENT        /EXCLUDE
+
+    To build Text libraries, one should use the TLB release command.
+
+    TLB=text_library_filename
+
+        Qualifiers
+
+        /ELEMENT        /EXCLUDE
+
+    To build concatenated .OBJ files, one should use the OBJ release
+    command.
+
+    OBJ=concatenated_obj_filename
+
+        Qualifiers
+
+        /ELEMENT        /EXCLUDE
+
+    To build miscalainous files, one should use the MISC release command.
+
+    MISC
+
+        Qualifiers
+
+        /ELEMENT        /EXCLUDE
+
+    Note on the miscalaious command: For all files which are not going to
+    be placed in a library, one should use this command. Typical uses of
+    the MISC release command will be to build .rno to .mem files. It can
+    also be used to compile files which are not going to be placed in a
+    library.
+
+    -- PRE and POST processing release commands.
+
+    There is a set of pre and post processing release commands which one
+    can specify. This is done in the following manner. There is a release
+    command called PRE. It has several qualifiers and subqualifiers. This
+    same set of qualifiers and sub qualifiers apply to the release command
+    called POST. Some of the qualifiers for the PRE and POST release
+    commands are /COPY, /DEL, /DCL etc.
+
+    The syntax of the PRE and POST release commands:
+
+    The PRE release command
+
+    PRE
+
+        QUALIFIERS
+
+        /DCL    /ECHO   /CMD   /DELETE   /COPY
+
+    Examples
+
+PRE/DCL="define d0$junk user1:[bunkers]"
+
+PRE/CMD="D0GEANT.LNK"
+
+PRE/DELETE/ELEMENT=(*.OBJ)
+
+    The POST release command
+
+    POST
+
+        QUALIFIERS
+
+        /DCL    /ECHO   /CMD    /PBD    /DELETE   /COPY
+
+    Examples
+
+POST/ECHO="Post processing executing"
+
+POST/COPY=spl1_1.pen/from=d0$scratch:[spl_lib]/to=d0$release:[spl_lib]
+
+    The following text describes the subqualifiers which work in
+    conjunction with the PRE and POST release command qualifiers.
+
+    /DCL="dcl command"
+
+        This qualifier specifies that the "dcl command" is to be executed.
+
+    /ECHO="Texted to be written written to terminal"
+
+        The /ECHO qualifier specifies a string which is to be written to
+    the terminal screen.
+
+    /CMD=command_filename
+
+        The /CMD qualifiers specifies a dcl command file which is to be
+    executed.
+
+    /PBD="PBD command line"
+
+        The /PBD qualifier specifies that the program builder should be
+    executed with the "PBD command line". NOTE, do not include the dcl PBD
+    command in the "PBD command line". The "PBD command line" should only
+    contain the qualifiers used to execute the program builder.
+
+    /DELETE
+
+        The /DELETE qualifier is used to specify which files to be deleted.
+
+        SUBQUALIFIERS
+
+        /ELEMENT="Delete element list"
+
+                The /ELEMENT qualifier specifies which elements are to be
+            deleted. The element list is generated using the CMS group list
+            specified by the /GROUP qualifier of the BEGIN release command.
+
+        /EXCLUDE="Exclude element list"
+
+                The /EXCLUDE specifies a list of elements which are to be
+            excluded from the delete list.
+
+        /FROM=source_directory
+
+                The /FROM directory specifies which directory the files are
+            to be found. The value of this qualifier overrides the /SRCDIR
+            qualifier in the BEGIN release command.
+
+        /[NO]CMSLIST
+
+                The /[NO]CMSLIST qualifier is used to either generate a
+            list of elements or just use the string specified in the
+            /ELEMENT qualifier. IF the /CMSLIST is specified, (the default)
+            then the list of elements specified by /ELEMENT will be
+            expanded using the CMS GROUP as a reference. IF the /NOCMSLIST
+            qualifier is used, then the /ELEMENT qualifier list is not
+            expanded.
+
+        Example:
+
+        POST/DELETE/ELEMENT=(*.FOR)/CMSLIST
+
+        This post processing command indicates that all the *.for
+        files, which are in the group specified by the /GROUP qualifier
+        in the BEGIN release command, are to be deleted from the
+        directory specified by the /SRCDIR.
+
+        POST/DELETE/ELEMENT=(*.OBJ)/FROM=D0$SCRATCH:[SPL_LIB]/NOCMSLIST
+
+        This post processing command indicates that all the *.obj files
+        will be deleted from the directory d0$scratch:[spl_lib]. The
+        filename specification in the deletion process will be
+        d0$scratch:[spl_lib]*.obj. The element list *.obj will not be
+        expanded.
+
+    /COPY
+
+        The /COPY qualifier is used to specify which files are to be
+    copied.
+
+        SUBQUALIFIERS
+
+        /ELEMENT="Copy element list"
+
+                The /ELEMENT qualifier specifies which elements are to be
+            copied. The element list is generated using the CMS group list
+            specified by the /GROUP qualifier of the BEGIN release command.
+
+        /EXCLUDE="Exclude element list"
+
+                The /EXCLUDE specifies a list of elements which are to be
+            excluded from the copy list.
+
+        /FROM=source_directory
+
+                The /FROM directory specifies which directory the files are
+            to be found. The value of this qualifier overrides the /SRCDIR
+            qualifier in the BEGIN release command.
+
+        /TO=target_directory
+
+                The /TO qualifier specifies where the files are to be
+            copied to. This qualifier overrides the value of the /TRGDIR
+            specified by the BEGIN release command.
+
+        /[NO]CMSLIST
+
+                The /[NO]CMSLIST qualifier is used to either generate a
+            list of elements or just use the string specified in the
+            /ELEMENT qualifier. IF the /CMSLIST is specified, (the default)
+            then the list of elements specified by /ELEMENT will be
+            expanded using the CMS GROUP as a reference. IF the /NOCMSLIST
+            qualifier is used, then the /ELEMENT qualifier list is not
+            expanded.
+
+        Examples:
+
+        POST/COPY/ELEMENT=(*.RCP)
+
+        This post processing command specifies that all the *.RCP files
+        found in the group specified by the /GROUP qualifier will be copied
+        from the source directory specified by the /SRCDIR to the target
+        directory specified by the /TRGDIR.
+
+        POST/COPY/ELEMENT=(STRUCT.PEN)/FROM=D0$SCRATCH:[CDAQ]/TO=D0$CDAQ:
+        /NOCMSLIST
+
+        This post processing command indicates that the file struct.pen
+        should be copied from the directory d0$scratch:[cdaq] to the
+        directory d0$cdaq:. The element list should not be expanded in
+        terms of the elements found in the CMS group specified by the
+        /GROUP qualifier.
+
+
+
+

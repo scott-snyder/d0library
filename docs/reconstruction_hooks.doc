@@ -1,0 +1,221 @@
+
+
+                USER HOOKS FOR RECONSTRUCTION
+                -----------------------------
+                                                 Serban D. Protopopescu    
+                                                 Nov. 21,1988
+
+ INTRODUCTION
+ ------------
+
+    To  ensure that  the  final D0   reconstruction  program can be made
+smoothly out of  independent tasks it is  necessary to agree before hand
+what are the allowed user hooks for  any task. By a task I mean a set of
+operations  that  need  some event  Zebra  banks as  input and  generate
+another set of event  Zebra banks as output (or  some subset of that set
+of operations). A  task can  communicate to another  task only via Zebra
+banks (or calls to subroutines that fetch information from Zebra banks).
+As a starting point I describe  below the user hooks available in D0USER
+which should  considered as  the test bed  for the  tasks and not as the
+final reconstruction program  itself. There are probably more hooks than
+will ever be needed by any one  package but if anybody feels there is an
+essential  hook  missing  we will  consider  adding  it to the  list and
+implementing it in D0USER. Whenever  the "hook" name does not start with
+US it means that the  hook is not called  directly by D0USER but by some
+other   facility.  The user  hook  names  are  only of   interest to the
+PROGRAM_BUILDER, users need not concern themselves with them.
+
+    The user hooks are constructed by the PROGRAM_BUILDER and should not
+be coded by the users. They consist  of a series of calls to interfaces,
+one per  individual task.  Tasks need not  supply an  interface for each
+hook, if none is supplied a dummy  user hook will exist. For rules about
+the   interfaces  see       D0$DOCS:BUILDER_INTERFACES.DOC.  For a quick
+introduction to  the  PROGRAM_BUILDER see D0$DOCS:  PROGRAM_BUILDER.DOC,
+and   for  more    detailed     information   see    D0$PROGRAM_BUILDER:
+USER_GUIDE.DOC.
+
+    Except where  specifically stated, it  is not  allowed to read input
+parameters using COMPACK utilities inside the interface subroutines. The
+default  parameters for a run  should be handled via  the SRCP facility,
+COMPACK can be  used only in hooks  designed to  handle run-time options
+that will not be part of a production pass.
+
+                                       reconstruction_hooks: page 2
+
+ FRAMEWORK DESCRIPTION
+ ---------------------
+
+
+FrameWork Name : D0USER
+Located in : D0$D0USER:
+
+
+         FrameWork Stage               "Hook" Name
+         ---------------               -----------
+
+         Process Event...................USREVT
+
+         Job Initialization..............USRINI
+
+         Setup Dialog....................USDIAL
+
+         End of Run......................USENDR
+
+         Read Parameters.................USRPAR
+
+         Report Status...................USRPST
+
+         Set Standard Summary............USETSS
+
+         Set User Summary................USETUS
+
+         Standard Summary................USRSSM
+
+         User Summary....................USRUSM
+
+         Write Records...................USRWRT
+
+         Reset Event.....................USRZEV
+
+         Reset Summaries.................USZERO
+
+         Exit Cleanup....................UQUIT
+
+         Define Dump.....................DMPUDF
+
+         Dump Request....................DMPUSR
+
+         Event Display...................PXEXEC
+
+                                       reconstruction_hooks: page 3
+
+
+ USER HOOKS DESCRIPTION
+ ----------------------
+
+Process Event:
+
+    Do  event   processing.  Called  after a  new  event  is read in. If
+interface subroutine returns false  the rest of event processing will be
+skipped. 
+
+
+Job Initialization:
+
+    Any task that must  occur before any setup dialog, no runtime inter-
+action  can occur  at this  stage.  Called before  any  menus appear. If
+interface subroutine returns false program will abort.
+
+
+Setup Dialog:
+
+    COMPACK  input commands  are allowed.  Provide  user dialog or menus
+during job  setup. This  stage can  be used for  optional  variations at
+setup  such as   changing  limits on   histograms,  changing  values for
+cuts,etc. Task must be able to proceed without a call to Setup Dialog.
+
+
+End of Run:
+
+    Do any  work  needed  at end  of a  run.  Called when  an end-of-run
+record has been read or  when the number of  events requested  have been
+processed or when an EOF is encountered. 
+
+
+Read Parameters:
+
+    Called at the  beginning of each run. It is  called when a begin-of-run
+record is encountered so it is the apropriate hook to use immediately after
+that kind of  record is read in.  Note that 'Process  event' is only called
+after  reading an  event  record.  The users  are of  course  free to chose
+reading  new   parameters  when  checking  that  the  event  run number has
+changed.Do any  work needed  at end of a  run. If the  interface subroutine
+returns false the whole run will be skipped.
+
+
+Report Status:
+
+    Called whenever there is a  request to report status. It may be used
+to supply a brief  message (1-2 lines) about  number of events processed
+by the given task. Note that the main program will automatically provide
+the run and event id of last event processed.
+
+                                       reconstruction_hooks: page 4
+
+Set Standard Summary:
+
+    COMPACK input commands  are   allowed.     Called  to set options on
+contributions  to the  Standard  Summary. The  standard  summary file is
+usually opened only when the job has finished normally or there has been
+a specific request to print the standard summary.
+
+
+Set User Summary:
+
+    COMPACK   input  commands  are  allowed.   Called to  set options on
+contributions   to the  user  summary.  The  user  summary is  opened on
+request, either  asking internally  for the user  summary unit number or
+externally through a menu request.
+
+
+Standard Summary:
+
+    Contributions to standard summary (summary produced at end of job).
+Histogram printouts are part of standard summary.
+
+
+User Summary:
+
+    Contributions to user summary.  This summary only occurs on request,
+should not be part of a production pass.
+
+
+Write Records:
+
+    Called   just   before  a  record  is   written  out  (begin-of-run,
+event,etc.). Last chance for user to add or subtract from the Zebra tree
+that will be written out. 
+
+
+Reset Event:
+
+    Called just  before next event  is read in. Can  be used to clean up
+arrays that may need resetting just before the next event is read in and
+the information from the previous event is wiped out.
+
+
+Reset Summaries:
+
+    Called any time  one wishes to  zero summary  arrays. Histograms are
+automatically zeroed by the frame program if there is a request to reset
+summaries.
+
+                                       reconstruction_hooks: page 5
+
+Exit Cleanup:
+
+    Called  before program  exits  (whether normal or  abort). Should be
+used to  cleanup (i.e.  deleting  temporary  files). UQUIT  is called by
+ABORT and should be called by the  frame whenever any other program exit
+may occur.
+
+
+Define Dump:
+
+    COMPACK input commands are allowed. Called to provide options for
+contributions to the formatted event dump. The subroutine that should
+be called by a frame is not the user hook but DMPDEF. See D0$EVENT_UTIL:
+DUMP_EVENT.DOC.
+
+
+Dump Request:
+
+    Called whenever  there is a  request to generate  an event dump. The
+subroutine  that should be  called by a  frame is not  the user hook but
+DMPPRO. See D0$EVENT_UTIL:DUMP_EVENT.DOC.
+
+Event Display:
+
+    Called    whenever  there is  a  request  to   display an event. The
+subroutine  that should be  called by a  frame is not  the user hook but
+PXMAIN. See D0$PIXIE:EVENT_DISPLAY.DOC. 

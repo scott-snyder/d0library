@@ -1,0 +1,109 @@
+
+               GUIDE to EVENT DUMP FACILITY
+               =============================
+
+                                               Serban D. Protopopescu
+                                               May 19,1989
+                                               version 1.04
+
+    The event dump facility is a package of subroutines that can be used by
+any program frame to  define and generate dumps  of events interactively at
+any stage  of the  program. It is  meant to be  used with  the COMPACK menu
+package and the D0 FLAGS facility. A version which allows the use of an RCP
+file instead of COMPACK will be available soon. All subroutines in the dump
+facility start with DMP.
+
+    There are 2 user hooks to which users can supply their dumping
+subroutines, one for defining dumps and the other for doing the dump:
+
+o DMPDUF  user hook to add user options to event dump definition.
+
+o DMPUSR  user hook to contribute to the processed event dump.
+
+    Programs   using  the    PROGRAM_BUILDER  can  use  them  as  hooks and
+programmers should then supply interfaces to them as part of their package.
+To  facilitate  the  writing of   interfaces  for  dumping  Zebra banks the
+following utilities are available:
+
+o DMPBNK(xxxx,VALUE) can be used for event dump definition
+         xxxx = bank name (character*4)
+         VALUE= .TRUE. bank will be part of printout during next dump request
+                .FALSE.  "   "   NOT     "             "
+
+o DMPANY(xxxx,PRxxxx) should be used at processed event dump if DMPBNK
+                was used for event dump definition.
+        xxxx   = bank name (character*4)
+        PRxxxx = must be declared external and subroutine PRxxxx must exist 
+                 conforming to the standards described in ZEBRA_RULES. 
+        
+
+    To use  the  event  dump  facility a  program  needs  to be  aware of 8
+subroutines and the flag DMPU_REQ:
+
+o DMPINI  to be called at program initialization to book the needed flags
+          and set defaults. It is an entry point in DMPDEF.
+
+o DMPDEF  should be called when option 'Define Dumps' is chosen in a menu.
+          Presents user with standard options for defining event dumps
+          and then calls a user hook DMPUDF to allow users to set up 
+          their own options. Among available options are:
+          1)raw, processed or user dumps.
+          2)preselecting number of events to dump
+          3)dumping events to screen.
+
+o DMPREQ  sets up  appropriate flags  when there  is a  request for a dump.
+          Should be called when option 'Dump Event' is chosen in a menu. 
+ 
+o DMPPRO  does the processed event dump, i.e. it checks if an event dump is
+          called for, if yes it calls PRHEAD for dumping HEAD bank and 
+          then calls DMPDOF which in turn calls the user hook DMPUSR.
+
+o DMPRAW  does the raw event dump, i.e. checks for requests and calls
+          a subroutine (DMPDOH) for  hexadecimal dumps.
+
+o DMPUNI integer function, gives value of unit used for EVENT.DUMP
+
+o DMPDUF  user hook to add user options to event dump definition.
+
+o DMPUSR  user hook to contribute to the processed event dump.
+
+
+    DMPINI  should be  called at  initialization.  DMPRAW  should be called
+immediately after an event has been read in, i.e. after EVTIN, this is done
+if one  uses EVTRD  instead  of EVTIN  in a given  frame.  DMPPRO should be
+called  after event has  been  processed but  before they  are written to a
+stream. 
+
+    There are 3 kinds of dumps:
+
+1) Raw event dump: hexadecimal dump of data from data cables
+
+2) Processed event dump: formatted dump of user chosen Zebra banks.
+   The HEAD bank is automatically dumped, it is up to the user
+   to provide interface subroutines to be called by DMPPRO for any
+   additional dumps and interface subroutines to be called by DMPDUF
+   if he wishes to have options when defining an event dump.
+
+3) User dump: The option USER (which appears when a request for 'Define
+   Dumps' is made) simply allows flag DMPU_REQ to be set to true
+   whenever there is a request for an event dump (it will be false if 
+   there is no event dump request). DMPU_REQ remains true until the
+   next event is read.
+ 
+
+The event dump is written to a file EVENT.DUMP, one file per event.
+If one choses to have the dump on the screen a subroutine DMPSCR is
+called which basically calls EVEDT and opens EVENT.DUMP (after EVENT.DUMP
+has been generated).
+
+All flags used internally by this package start with prefix DUMP.
+Flags presently used are:
+
+     &  'DUMP_NONE_F','DUMP_PROCES','DUMP_USER','DUMP_ALL_F',
+     &  'DUMP_NONE_H','DUMP_ALL_H','DUMP_TRGR','DUMP_MUD1',
+     &  'DUMP_CDD1','DUMP_CDD2','DUMP_CDD3','DUMP_CDD4',
+     &  'DUMP_CAD1','DUMP_CAD2','DUMP_SCREEN',
+     &  'DUMPF_REQ','DUMPH_REQ','DUMPU_REQ'/
+
+Every call to DMPBNK(xxxx,VALUE) generates a flag DMPUSR_xxxx set to VALUE.
+A new flag is created only if it does not already exist.

@@ -1,0 +1,155 @@
+                  DBANK-A Zebra Bank Browser facility
+                 ____________________________________
+
+                   Michael W. Peters, Rajendran Raja
+                           2-Jan-1990
+
+
+Overview:
+    DBANK is a Zebra Browing facility that enables the user to Browse
+through Zebra Banks while in the Debugger. Using SMG, it creates two
+windows, one for the Bank descriptor (.ZEB) file and the other for the
+contents of the bank itself. Each line in the window is flagged by a DBANK
+generated line number. Scrolling is permitted in either window. Format
+change is permitted in the Bank content window. Three related utilities,
+EZBANK, DZSURV_ZEBCOM, and EZPICK_CHECK are described at the bottom of this
+document.
+    
+Using DBANK:
+While in the debugger, the user invokes DBANK by the following command
+    CALL DBANK 
+
+DBANK asks the user for a 4-character bank name.  Giving HELP displays this
+file (or use the H command once you have a bank). DBANK asks for the store
+containing the bank (ZEBCOM for event data) and then looks for a copy of
+the requested Bank.  
+    - If your bank is a linear chain, you get to say which one you want
+(see Linear Chains below for details).
+    - If many copies (non-chained) ofa bank exists, see DADDR described
+below. DBANK next looks for the .ZEB file for the bank, asking for an
+alternate name if it fails.  Giving blank lets you go ahead without a .ZEB
+file.  If you just want to see the .ZEB file, CALL DWRUP instead of CALL
+DBANK.  
+
+Commands supported in both Description and Contents windows:
+                       ACTION              CHARACTER typed in
+        Display this document              H<cr> or HE<cr>
+        Move to right window               Right Arrow or R<cr>
+        Move to left window                Left  Arrow or L<cr>
+        Scroll Down                        Down  Arrow or D<cr>
+        Scroll Up                          Up    Arrow or U<cr>
+        Start display at line nnn          nnn <cr>
+        Display CHFORM block               CH <cr>
+        Browse to another bank             BK<cr>
+        Return to debugger                 <cr>
+
+    In the Bank contents window, negative values of nnn are allowed, 
+giving rise to the link area display. nnn refers to the IQ structure in
+this window. To put a structure link at LQ(-7) on top of the window,
+nnn=-15 needs to be typed.  nnn=35 gets you to the command  descriptions in
+the HELP file.
+
+Commands supported only in Bank contents window:
+                       ACTION              CHARACTER typed in
+        Change format to Auto format       A<cr>    (default: uses MZFORM)
+        Change format to Integer           I<cr>
+        Change format to Floating Point    F<cr>
+        Change format to Hexadecimal       X<cr>
+        Change format to Octal             O<cr>
+        Change format to Character         C<cr>
+        Print Bank to a file               P<cr> 
+        down to a supported bank           LQ -n<cr>
+        up to the supporting bank          LQ  0<cr>
+        go to NEXT on linear chain         LQ  1<cr>
+        n steps along NEXT in linear chain LI  n<cr>
+        n steps backwards in linear chain  LI -n<cr>
+        get bank with ID=m in linear chain ID  m<cr>
+If the MZFORM or .ZEB information is incorrect, contact the bank author.
+
+Using the Link Area to Chain through Banks:
+On the bank contents window, scrolling upwards to negative numbers displays
+the Link area.  Typing LQ -n <cr> will fetch the bank pointed to by the
+link at LQ(-n). LQ(1) is the up link to supporting bank from which this
+bank hangs. In general any command with -n ranging from -NL to +1 are
+allowed. LQ+2 is the Origin link and points to the Link supporting this
+Bank, not to the Bank supporting this bank, so that command is disallowed.
+
+Linear chains:
+    If the Bank you selected initially is a linear structure, DBANK lets
+you choose which member to start browsing.  The numbering starts from the
+bank at the head of the chain (directly connected to the support bank).
+This is normally the member most recently created, so answering 1 usually
+gives you the most recent.  However, this number is not the same as the
+bank numerical ID, which is typically assigned in ascending order, so in a
+15-bank chain, bank number 1 in the chain would probably have  ID = 15. 
+Finally, if there are 100 or more banks in the linear chain, ZEBRA reports
+only 99.
+    LI 1 is a synonym for LQ 1, and LI -1 does what you wanted to do with 
+LQ 2 for linear chains.  LI will stop at the end of the chain if you give 
+too big a number.  ID n will ignore you if you ask for a nonexistent bank.
+    
+Unreleased .ZEB files:
+DBANK uses the logical D0$ZEBLST to search for .ZEB files. D0LOCAL.COM 
+sets  D0$ZEBLST to D0$ZEB$ROOT:[000000...]. If you want it to look for .ZEB
+files that are not yet released, redefine D0$ZEBLST as a search list (e.g)
+      $DEFINE D0$ZEBLST USR$ROOT:[XXX],D0$ZEB$ROOT:[000000...]
+
+GEANT data structures:
+While in ZCEDEX, in order to get into DEBUG gracefully, the following
+procedure is recommended. Upon the ZCEDEX prompt, Ctrl-Y and then type
+DEBUG. WHile in debug, SET BREAK GUIGET and type GO. Then when in ZECDEX,
+type MENU 6 2 (This is a request for Help). This will Break at GUIGET. 
+Then DBANK may be called. If you attempt to CALL DBANK while it is  waiting
+for a ZCEDEX input, DBANK input request will clash with ZCEDEX request.
+
+Getting a particular copy of a bank:
+    An entry CALL DADDR prompts the user for the Address in memory of the
+Bank to Browse to. This command is particularly useful when a Bank occurs
+in multiple places in memory, eg. SHLB bank in Shower library. The user
+has to make sure that the correct Store is set by a CALL DBANK before 
+using DADDR.
+
+Linking:
+The user , while linking his program, includes the following line in his
+link option file 
+    D0$GENERAL:DEB_GENERAL/INCLUDE=(DBANK)/LIB,-
+DEB_UTIL4.OPT automatically sets up not only DBANK but also EZBANK,
+DZSURV_ZEBCOM, and EZPICK_CHECK.  These facilities are described below.
+
+                 Happy Browsing!
+
+
+EZBANK  (Harrison Prosper):
+    EZBANK is an RCP bank Browing facility that enables the user to Browse
+through RCP Banks while in the Debugger. 
+From the debugger, invoke EZBANK by the following command
+    CALL EZBANK 
+You are then given a menu of choices.  The basics are:
+
+HELP            give list of commands
+DIR             list known RCP banks
+PICK bankname   focus attention on one bank
+DUMP            dump to the screen the contents of that bank
+
+EZPICK_CHECK (J. Linnemann)
+    checks whether the stack of RCP banks EZPICK'ed is empty.  If not, it writes
+    out a file with the currently known banks, and the current stack.  This is
+    handy if you are trying to see who forgot to call EZRSET.
+
+DZSURV_ZEBCOM   (J. Linnemann, A. Boehnlein):
+    This facility allow calls to ZEBRA debugging facilities from the 
+Debugger.  Invoke them by the command
+    CALL DZSURV_ZEBCOM          calls DZSURV and DZVERI for ZEBCOM (data)
+or  CALL DZSURV_ZEBSTP          same for ZEBSTP (constants)
+or  CALL DZSHOW_ZEBCOM          call DZSHOW for ZEBCOM
+or  CALL DZSHOW_ZEBSTP          same for ZEBSTP
+
+The ZEBRA facilities called are:
+            DZSURV  dump number and size of banks in a tree, by name
+            DZVERI  verify link integrity
+            DZSHOW  do full dump, formatted with MZFORM information
+
+    In each case, the dump is written to the file for003.dat and a message
+is given that the file for003.dat is temporarily closed so that you can
+look at it with the editor from another window.
+

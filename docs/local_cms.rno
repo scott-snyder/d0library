@@ -1,0 +1,1423 @@
+.PAGE SIZE      58
+.LEFT MARGIN    15
+.RIGHT MARGIN   80
+.FLAGS BOLD
+.LAYOUT 2,3
+  
+.NO NUMBER
+.CENTER ; ^*Code development using Local CMS\*
+.BLANK
+.CENTER ; Version 2.2
+.BLANK
+.CENTER ; Rajendran Raja
+.BLANK
+.CENTER ; Harrison B. Prosper
+.BLANK
+.CENTER ; Fermi National Accelerator Laboratory
+.CENTER ; P.O. Box 500, Batavia, Illinois 60510
+.BLANK
+.CENTER ; 18-NOV-1987
+.CENTER ; Revised 23-Sep-1991
+  
+.PAGE
+.REQUIRE "LOCAL_CMS.RNT"
+  
+.NUMBER PAGE
+.PAGE
+
+.CHAPTER General description
+
+.HEADER LEVEL 1 Introduction
+    
+.NOTE WARNING
+    You should avoid SET DEFAULT to any CMS library; you could interfere
+          with the internal CMS book-keeping.
+.END NOTE
+
+.NOTE SETUP
+
+    To set up the local CMS environment you must execute the commands:
+
+.LITERAL
+
+                $ LIBTEST BETA_UTIL
+                $ @D0$BETA_UTIL:SETUP_LOCAL_CMS
+
+.END LITERAL
+.END NOTE
+
+    When a group of people are contributing to a large software project
+    it simplifies communication within the group, and from the group to
+    others, if the group adopts a uniform approach to code development.
+    The method described here makes use of the DEC software products 
+    CMS (Code Management System) and MMS (Module Management System).
+
+.LIST "o"    
+.list ELEMENT;   CMS -   Local CMS libraries are used to maintain a (temporary) 
+                history of code which is under development.
+                
+.list element; MMS -   MMS is used to selectively update private object
+                libraries with the default name USERLIB.OLB and to
+                create executable files. 
+MMS compares the modification date of a source 
+                    file with that of the corresponding object module 
+                    in USERLIB.OLB. 
+If the source file is newer it is re-compiled and
+                    its object module is re-loaded into the object 
+                    library.
+.END LIST
+
+.HEADER LEVEL 2 Structure of D0LIBRARY
+
+    D0library contains a sub-directory for each official D-ZERO CMS library.
+    These sub-directories, for example, [D0LIBRARY.D0GEANT] are
+    called OFFICIAL areas. Each official area has a corresponding
+    TEST area; the latter reside in the sub-directory [D0LIBRARY.TEST].
+
+.TEST PAGE 20
+.literal
+
+        [D0LIBRARY]-----+
+                        |
+                        +-------[BETA_UTIL]
+                        |
+                        +-------[CALOR_OFF]
+                        |
+                        +-------[CALOR_UTIL]
+                        |
+                        +-------[CDAQ]
+                        |
+                        +-------[D0GEANT]
+                        |
+                        :       :              
+                        |
+                        +-------[TEST]----------+
+                        |                       |
+                        :       :               +-------[BETA_UTIL]
+                                                |
+                                                +-------[CALOR_OFF]
+                                                :       :       :
+                                                
+.end literal
+
+.HEADER LEVEL  2 Structure of LOCAL CMS
+
+    Below is diagram of the local CMS environment. Note: the local
+    CMS libraries are merely sub-directories, CMS.DIR, within BETA 
+    areas; however, access to these sub-directories should be via
+    the CMS commands (do HELP CMS). The beta areas on the other hand
+    can be accessed using the usual VMS directory commands. Therefore, 
+    note
+    the difference between
+
+.literal
+
+        $ CMS SET LIBRARY D0$BETA:[CALOR_OFF.CMS]
+        $ CMS FETCH/NOHISTORY CRUNCH.FOR ""
+
+    and
+
+        $ COPY D0$BETA:[CALOR_OFF]CRUNCH.FOR []/LOG
+    
+.end literal
+
+.TEST PAGE 20
+
+    Here is a sketch of the structure of the projects disk on the
+    D0SFT cluster.
+        
+
+.literal
+
+        Project area            BETA areas      CMS libraries
+
+          D0$BETA: -----+
+                        |
+                        +-------[BETA_UTIL]-----[CMS]
+                        |
+                        +-------[CALOR_OFF]-----[CMS]
+                        |
+                        +-------[CALOR_UTIL]----[CMS]
+                        |
+                        +-------[CDAQ]----------[CMS]
+                        |
+                        +-------[D0GEANT]-------[CMS]
+                        |
+                        :       :               :
+.end literal
+
+.NOTE Figure 1
+.END NOTE
+
+
+    Figure 2 shows the relationship between ALPHA areas, 
+    LOCAL CMS, BETA areas and the D-ZERO CMS libraries.
+    Three alpha areas are shown.
+
+.TEST PAGE 20
+.literal
+
+        alpha1                  alpha2                  alpha3
+
+    [HARRY.CALOR_OFF]       [RAJA.CALOR_OFF]        [STEWART.CALOR_OFF]
+            |                      |                       |
+            |                      |                       |
+            +----------------------+-----------------------+
+                                  /|\
+                                   |
+                                   |    Use CMSUPDATE & CMSFETCH
+                                  \|/
+                       D0$BETA:[CALOR_OFF.CMS] Local CMS library
+                                   |
+                                   |    Beta-release
+                                  \|/
+                         D0$BETA:[CALOR_OFF]     Beta area
+                                   |
+                                   |    Part 1 of Gamma-release
+                                  \|/
+                         D-ZERO-CMS-LIBRARIES 
+                                (FNALD0)
+
+.end literal
+
+.NOTE Figure 2
+.END NOTE
+
+    The local CMS library is used to accumulate changes to files.
+    It is important to update the local CMS library FREQUENTLY to
+    keep the elements current, and to fetch periodically to get
+    the latest versions. 
+.blank
+    When a stable state has been reached a release of files to the beta
+    area, from the CMS library, is performed.
+    This is called a BETA-RELEASE.
+
+.HEADER LEVEL 1    Program Development
+    D-ZERO code development proceeds in several phases:
+    
+.LIST "o"
+.LIST ELEMENT ; ALPHA
+.LIST ELEMENT ; BETA
+.LIST ELEMENT ; GAMMA
+.LIST ELEMENT ; TEST
+.LIST ELEMENT ; OFFICIAL
+.LIST ELEMENT ; PRODUCTION
+.END LIST
+
+    Here we shall be concerned with phases ALPHA through GAMMA.
+
+
+.LIST "o"
+.LIST ELEMENT ; 
+    An ALPHA-RELEASE is a release of code to your own area for testing.
+    Your private area is called an ALPHA area.
+.LIST ELEMENT ; 
+    A BETA-RELEASE is a release of code to the local software group. The
+    code will reside in a shared area called a BETA area. For each
+    beta area there is one person who is responsible for maintaining
+    and making beta-releases, namely the beta-release coordinator or
+    "czar".
+
+.LIST ELEMENT ; 
+    When the beta-release coordinator is satisfied that the code has 
+    been tested the beta-released code is entered
+    into the appropriate official D-ZERO CMS libraries. These are
+    currently held on the FNALD0 cluster at Fermilab. 
+    The entering of beta-released code into the official D-ZERO CMS
+    libraries constitutes PART ONE of a GAMMA
+    release; PART TWO of a gamma release consists of a 
+    release of the code from FNALD0 to a specific node in
+    EXACTLY the same manner as is done for a TEST-RELEASE. If the
+    gamma release is successful one can be reasonably confident that
+    a test-release to all the D-ZERO nodes will succeed, provided
+    that the network is OK and the resources at the remote nodes are adequate.
+.END LIST
+
+.HEADER LEVEL 2 ALPHA Releases
+    Your working default directory is called an ALPHA area. It
+    should contain the following standard code development files.
+
+.literal
+
+    o   SETUP PHASE             - Done ONCE only
+
+        (1) MMS.COM             Main driving procedure
+
+        (2) DEFINE.COM          Defines search-lists and logicals
+
+        (3) DESCRIP.MMS         Rules for creating an EXE
+
+
+    o   DEVELOPMENT PHASE       - Done whenever the list of files
+                                  in the default directory changes.
+
+        (1) USERLIB.MMS         Rules for updating private OLB
+
+        (2) ALPHA_RELEASE.OPT   Defines list of modules to be supplied
+                                to the LINKER
+
+        (3) ALPHA.LIST          Defines other modules, options files
+                                to be supplied to the linker
+
+.end literal
+
+    Each file with the exception of ALPHA.LIST can be be generated
+    with the procedures SETUP__MMS and USERLIB. SETUP__MMS is used in
+    the SETUP PHASE while USERLIB is used in the DEVELOPMENT PHASE.
+    Each phase is described below.
+
+.literal
+
+                SETUP PHASE
+
+    o   STEP 1
+
+    Create a CMS group TEST_xxx in the  local CMS library you intend to use
+for your code development; xxx should  be your  username. The commands required
+are:
+
+        $ CMS SET LIBRARY D0$BETA:[yyyyy]   (yyyy library name)
+    
+to select the CMS library and
+
+        $ CMS CREATE GROUP TEST_xxx "Put a remark here"
+
+to create the group. 
+
+    The TEST  groups  provide a simple  but flexible  way of  indicating who is
+working on which files. 
+
+    o   STEP 2
+
+    Check if the files you wish to work  on are in a local CMS library by using
+the commands
+
+        $ CMS SET LIBRARY D0$BETA:[local-cms-library-name]
+        $ CMS SHOW ELEMENT/MEMBER element[,..]
+
+    You should use the /MEMBER switch to  see if any element resides in a local
+cms TEST group. If an  element is in a TEST group  you should assume that it is
+being worked on. You should alert your colleague that you intend to work on it,
+also.  Use CMSMOVE  to move   the  elements into  your  TEST group,  subject to
+agreement  with your   colleague if  one or more  elements are  in her/his TEST
+group.  Then FETCH these  elements into your  default directory, that is,  into
+your ALPHA area using the command
+
+        $ CMS FETCH/NOHIST element[,...] ""
+
+    If the file does not exist in any local CMS library then copy the file from
+the test area of D0library or from the official area, if the file is not in the
+test area. Use CMSUPDATE to put it  into your TEST group within the appropriate
+local CMS  library, thereby  indicating to the  local software  group  that the
+source  file is  undergoing   modifications. One  should  also,  in  principle,
+RESERVE  the  corresponding  elements in the   appropriate  official D-ZERO CMS
+libraries on FNALD0.  Check that the version  reserved on FNALD0 is the same as
+the version copied from D0library. 
+
+.END LITERAL
+
+.NOTE IMPORTANT
+    Take note of the location of the file in
+                the D-ZERO CMS libraries on FNALD0. When a file is 
+                FIRST entered into a LOCAL CMS library you
+                will be prompted for information specifying its
+                location within the D-ZERO CMS libraries. 
+                This information is used by the procedure which later 
+                updates the D-ZERO CMS libraries.
+                You may use the command 
+
+.LITERAL
+
+                        $ D0ELEMENT element-name
+
+.END LITERAL
+                to get this information.
+
+.END NOTE
+
+.LITERAL
+
+    o   STEP 3
+    
+    Invoke the command  SETUP_MMS to create the  files MMS.COM,  DEFINE.COM and
+DESCRIP.MMS. See the description of SETUP_MMS.
+
+.END LITERAL
+
+
+.LITERAL
+
+                DEVELOPMENT PHASE
+
+    o   STEP 1
+
+    Invoke the command USERLIB to produce the description file  USERLIB.MMS and
+the options file ALPHA_RELEASE.OPT.  This command should be invoked whenever the
+population of the source files in the default directory has changed.
+
+.END LITERAL
+.NOTE 
+       Sometimes it is necessary to link to object modules,
+                object libraries or options files from other alpha
+                or beta areas in addition to your own modules. This
+                is achieved by listing the various link objects in a
+                file called ALPHA.LIST. There should be ONE link object
+                per line. The modules listed in ALPHA.LIST will be
+                passed to the linker.
+.END NOTE
+
+    The description file USERLIB.MMS contains the detailed rules for
+    creating and updating an object library called USERLIB.OLB. The
+    latter can be updated using the DCL command
+
+.LITERAL
+
+        $ MMS/SKIP/DESCRIP=USERLIB
+    
+    or
+
+        $ MMS/SKIP/DESCRIP=USERLIB/MACRO=(DEBUG=0)
+
+    if you want to compile with the debug option.
+
+.END LITERAL
+
+    See the help topic on USERLIB for more details. The updating of 
+    USERLIB.OLB is governed by the modification dates of the object
+    modules in that object library and their relation to the 
+    modification dates of the corresponding source files. If the
+    modification date of a source file is LATER than that of the
+    object module in USERLIB.OLB the source file will be 
+    re-compiled and its module will re-loaded into the object
+    library.
+
+.LITERAL
+
+    o   STEP 2
+
+    To create a new (debug) version of the .EXE file do
+
+        $ @MMS
+
+    (Use the command CMSHELP CMMS to get more information). 
+All the necessary  re-compilations
+will be done before the executable file is  created.
+    
+    Steps 1 - 2 define an ALPHA-RELEASE. 
+
+.END LITERAL
+
+.HEADER LEVEL  2 BETA Releases
+
+        For each major piece of software there should be ONE individual
+    (the beta release czar) who is responsible for making BETA-RELEASES. 
+    The steps listed below should be coordinated with that individual.
+    
+.LITERAL
+
+    o   STEP 1
+
+    When you are  satisfied with your  latest ALPHA-RELEASE  you should use the
+CMSMOVE procedure to move elements from your CMS TEST group to the groups which
+have been  designated as BETA-RELEASE  groups.  These  groups will, in turn, be
+inserted into the standard group RELEASE by the local czar.
+
+    The elements within the group RELEASE are then put into a CMS CLASS  with a
+suitably chosen class  name. Use the procedure  CMSCLASS to  create a class and
+to create the file  CLASS.COM, which  when executed  will  insert the specified
+elements into the specified class. 
+    
+    o   STEP 2
+
+    The elements  in the  beta-release CLASS  are FETCHed into  the appropriate
+beta-area. The  procedures  SETUP_MMS and  USERLIB/BETA are  invoked to create,
+respectively,  the  files  MMS.COM,  DEFINE.COM,  DESCRIP.MMS,  USERLIB.MMS and
+BETA_RELEASE.OPT. Again, SETUP_MMS need be done once only.
+    
+.END LITERAL
+
+.NOTE 
+      Sometimes it is necessary to have the user link
+                to more than one beta-area simultaneously. This
+                is achieved by using a BETA.LIST file. That file
+                should contain a list of the options files needed 
+                from other beta-areas; the full pathname should be
+                given (e.g. D0$BETA:[PIXIE]BETA__RELEASE.OPT). The
+                modules listed in BETA.LIST will be passed to the
+                linker.
+
+.END NOTE
+
+.LITERAL
+    
+    o   STEP 3
+
+    Invoke @MMS to create the  BETA-RELEASE (debug) version of the  USERLIB.OLB
+and the .EXE file. 
+
+    Notify users via D0NEWS of the existence of a new beta-release.
+
+    Users  will  now have  access  to the   beta-release via  the  logical name
+USR$BETA which will point to the BETA_RELEASE.OPT file inthe beta area.
+
+.END LITERAL
+
+.HEADER LEVEL 2 GAMMA Releases
+    When the local czar is satisfied with the beta-release the
+    next step is to make PART ONE of a GAMMA-release, that is, to update
+    the D-ZERO CMS libraries. These reside on FNALD0. 
+    (The second part of a GAMMA-release
+    entails releasing the code from FNALD0 to a gamma release area on
+    a local node.)
+
+    To simplify this task use the procedure CRELEASE to create a file,
+    RELEASE.LIS, which defines the beta release code which is to be
+    inserted into the D-ZERO CMS libraries, i.e, which defines 
+    the GAMMA-release,
+    PART ONE.
+
+.NOTE 
+    Here we describe only the first phase of a 
+                gamma-release.
+.END NOTE
+
+.LIST 
+
+.LIST ELEMENT ; 
+    In each local CMS library there should be a group called BNL
+        containing files with extension .BNL. These files are created
+        by the CMSUPDATE procedure whenever an element is updated and
+        only if the .BNL file for that element does not yet exist. The
+        .BNL files contain information specifying the location of the
+        element in the D-ZERO CMS libraries. Note: the procedure
+        CBNLFILE can also be used to create these files; it may be
+        used to create many .BNL at a time containing the same access
+        information. Use CMSUPDATE to insert
+        the .BNL files into the group BNL of the local CMS library.
+
+.LIST ELEMENT ; 
+    Invoke CRELEASE. 
+        You will be prompted for the local CMS library from which the
+        elements are to be fetched and for the CLASS to be released.
+        CRELEASE will create a file, RELEASE.LIS, from the information
+        contained in the appropriate .BNL files. 
+
+.LIST ELEMENT ; 
+    Invoke MRELEASE.
+        This command reads the file RELEASE.LIS and can perform various
+        actions on the elements listed therein. A log file, RELEASE.LOG,
+        is created containing details of the transactions.
+        You will be prompted for one of the following options:
+
+.literal
+
+            a) COPY         Copy fetched elements to USR$SCRATCH on FNALD0
+
+                    *** NOTE    It is not necessary to use this command
+                                because the D-ZERO CMS Libraries can be
+                                updated directly from the beta areas
+                                which are visible from FNALD0 via DFS.
+
+            b) UPDATE       Update D-ZERO CMS library
+
+            c) DIFFERENCE   Compare elements in a local  CMS library with
+                            files in the areas:
+
+                                D0$"library-section"$root:[*]
+
+                            and create difference files if differences are 
+                            found.
+
+            d) DELETE       Delete ALL  element  generations from the local
+                            CMS  library,  including BNL  files, and create
+                            the  procedure  DELETE.COM which  when executed
+                            will delete files from the beta area.
+
+        The release sequence is:
+
+            1) Log on to FNALD0.
+                
+            2) Move to the appropriate beta area.
+
+                        $ SET DEFAULT D0$BETA:[beta-area-name]
+
+            3) Invoke D0$BETA_UTIL:RELEASE with the UPDATE option.
+
+                        $ @D0$BETA_UTIL:RELEASE UPDATE
+
+            4) RELEASE will update the D-ZERO CMS libraries, directly from
+               the  beta  area,  in   accordance  with   the   information
+               contained in RELEASE.LIS. A log  of these transactions will
+               be produced. Please  CHECK THE LOG FOR PROBLEMS.
+
+.end literal
+
+.END LIST
+
+.HEADER LEVEL 2 Tutorial Example
+
+    Let us suppose that I would like to contribute to the calorimeter
+    offline code development. In particular I would like to 
+    modify the routines CNEIGH__CATE.FOR and CJET__PRECLUSTER.FOR.
+    I know that the latest version of this code is likely to be
+    in the local CMS library for CALOR__OFF so I first check to see if 
+    these routines are in fact there. I type
+
+.LITERAL
+
+        $ CMS SET LIBR D0$BETA:[CALOR_OFF.CMS],D0$BETA:[CALOR_UTIL.CMS]
+
+.END LITERAL
+
+    to select the CMS libraries of interest. Now I do
+
+.LITERAL
+
+        $ CMS SHOW ELEM/MEMBER CNEIGH_C*.FOR,CJET_PR*.FOR
+
+.END LITERAL
+
+    to see if they are in one of these CMS libraries. It turns out that
+    they are there so I now check to see if any of my colleagues have
+    these routines in their TEST group in the CMS libraries. I get this
+    information by using the qualifier /MEMBER which gives the groups
+    to which these elements belong.
+
+    Neither routine happens to be in a test group; they are in the
+    group CALOR. I am therefore free to move them from CALOR to my
+    own test group.
+
+    This informs anyone who looks at the local CMS libraries that I am
+    working on CNEIGH__CATE.FOR and CJET__PRECLUSTER.FOR. 
+
+    To move elements from one group to another within a CMS library I
+    do
+
+.LITERAL
+
+        $ CMSMOVE
+
+.END LITERAL
+
+    and answer the prompts. I now fetch these elements from CMS. I
+    do 
+
+.LITERAL
+
+        $ CMS FETCH/NOHISTORY TEST_xxxx ""
+
+.END LITERAL
+
+    Ok, now I have these two files in my alpha area. To do anything
+    I need to setup the files MMS.COM, DEFINE.COM and DESCRIP.MMS.
+    I type
+
+.LITERAL
+
+        $ SETUP_MMS
+
+.END LITERAL
+
+    and answer the prompts. (The primary beta area should be the area
+pertaining to the program framework you intend to use. If you want to
+link to other beta areas use an ALPHA.LIST file to specify other options
+files you wish to link to.) New versions of MMS.COM, DEFINE.COM and
+    DESCRIP.MMS appear in my alpha-area.
+
+        Now because I entered CALOR__OFF as the primary beta-area I will 
+    pick up, automatically, the BETA__RELEASE.OPT describing the latest 
+    beta release of CALOR__OFF when I link.
+
+    Since the path to BETA__RELEASE.OPT is a search-list I do NOT have
+    to copy that options file into my alpha area!
+
+    Now I've done the hard bit, which I do only once! I modify the code.
+    It compiles ok, so let me now try to build an EXE file. 
+
+    First, however, I have to do
+
+.LITERAL
+
+        $ CMSUP
+
+.END LITERAL
+
+    to update the local CMS library, making sure that the CMS library is
+    set to CALOR__OFF.CMS. 
+    
+
+    Now I run invoke the command
+
+.LITERAL
+
+        $ USERLIB
+
+.END LITERAL
+
+    to build USERLIB.MMS and ALPHA__RELEASE.OPT. CALOR__OFF uses the
+    program builder so I must go to my sub-directory [.PBD] to make
+    my own combined package .OBJ file. Then I go back to my CALOR__OFF
+    directory and type.
+
+.LITERAL
+
+        $ @MMS DEBUG MYPACK
+
+.end literal
+
+    to create a DEBUG version of the EXE. If all goes well the EXE file
+    will appear in the area pointed to by the logical name USR$EXE. 
+    Note, that the name of my combined package is MYPACK. The MMS procedures
+    will therefore expect to find a file with the name
+
+.LITERAL
+
+        DEB_MYPACK_CALOR_OFF.OBJ
+
+
+.END LITERAL
+
+    in a sub-directory called [.PBD] containing program-builder files.
+    If instead of the above I had typed
+
+.literal
+
+        $ @MMS 
+
+.end literal
+
+    then by default a debug EXE would be created and I would link in
+    my default combined package object module.
+
+    As I add more code to my alpha area, add, or remove include files 
+    or delete files I have to run USERLIB to keep ALPHA__RELEASE.OPT
+    and USERLIB.MMS updated. 
+
+    I go through the debugging/@MMS cycle a few times until I am
+    happy that things are in reasonably good shape. Then I use
+    CMSMOVE to move the elements from my test group in the CMS library
+    to one of the beta groups, in this case the group CALOR, and I
+    inform the local czar that I'm ready for a beta-release.
+
+.HEADER LEVEL 2 Quick Reference
+.LIST 
+.LIST ELEMENT ; 
+    Invoke SETUP__MMS to create MMS.COM, DEFINE.COM and DESCRIP.MMS.
+
+.LIST ELEMENT ; 
+    Locate the LATEST version of the code to be modified. Look
+        in the local CMS libraries FIRST, then the test area of
+        D0LIBRARY and lastly the official area.
+
+.LIST ELEMENT ; 
+    Create a TEST group in the appropriate CMS library and move
+        code which is to be modified (or new code) into it. 
+        Use CMSMOVE/CMSUPDATE. FETCH code into default directory.
+
+.LIST ELEMENT ; 
+    Modify code. Check if it compiles. Update CMS using
+        CMSUPDATE.
+
+.LIST ELEMENT ; 
+    Invoke USERLIB to create USERLIB.MMS and ALPHA__RELEASE.OPT.
+
+.LIST ELEMENT ; 
+    Create .EXE file by invoking @MMS, thereby making an
+        alpha-release. DEBUG EXE!! Repeat 4 (as needed, 5) and 6
+        until you're ready to request a beta-release.
+
+.LIST ELEMENT ; 
+    Use CMSMOVE to move tested code into one of the beta-release
+        groups in the CMS library. Ask for a beta-release.
+
+.END LIST
+
+.CHAPTER Local CMS Procedures
+
+.HEADER LEVEL 1 CBNLFILE 
+  Create one or more .BNL files in the default directory.
+  This command is useful for creating many .BNL files at a time. Use
+  CMSUPDATE to load them into a local CMS library. The .BNL files
+  should be loaded into a group called BNL. If the parameter
+  CMS-lib-name (e.g., CALOR__OFF.CMS) is specified then CBNLFILE
+  will scan the CMS library instead of the default directory.
+
+.LITERAL
+
+  Format:
+  
+    CBNLFILE    File-spec[,...] 
+                Author 
+                D0-library 
+                D0-group 
+                D0-Remark 
+                [CMS-lib-name]
+
+2 Parameters
+  file-spec
+
+    One or more valid VMS file-specs. Wildcard characters are
+    allowed.
+  
+  Author
+
+    Your FULL name. If you use "" CBNLFILE will try to read your
+    MY_EDITOR.TPU file to extract your name.
+
+  D0-library
+
+    The name of the CMS library on FNALD0 into which the specified
+    element is to be created or updated.
+
+  D0-group
+
+    The name of the CMS group on FNALD0 into which the specified
+    element is to be inserted.
+
+  D0-remark
+
+    A short, but cogent remark, to be entered into the CMS history
+    file on FNALD0 when the element is updated.
+
+  CMS-lib-name
+
+    The name of the local CMS library to scan for the specified
+    files. 
+
+2 Example
+  
+  1.     $ CBNLFILE EZ*.FOR "" SRCP_UTIL SRCP "Made even EZier"
+
+    Create files EZ*_FOR.BNL corresponding to the files EZ*.FOR.
+    All these files are to go into the Official D-ZERO CMS library 
+    D0$CMS:[SRCP_UTIL] and if any elements are new they will be
+    inserted into group SRCP. Use the name found in MY_EDITOR.TPU.
+  
+.END LITERAL
+
+.HEADER LEVEL 1 CMSMOVE 
+    Move elements from one group to another in a CMS library.
+    Wildcard characters can be used, e.g. *.FOR.
+  
+.LITERAL
+
+  Format:
+  
+    CMSMOVE  element[,...] library old-group new-group remark
+  
+2 Parameters
+
+  element[,...]
+
+    Name of CMS element(s) to be moved.
+  
+  library
+
+    Name of CMS library.
+  
+  remark
+
+    Must be in double quotes.
+
+2 Example
+  
+  1.     $ CMSMOVE *.FOR D0GEANT.CMS TEST_KAHN D0GEANT "beta release"
+
+    Move elements *.FOR in library D0$BETA:[D0GEANT.CMS] from group
+    TEST_KAHN to group D0GEANT.
+
+.END LITERAL
+
+.HEADER LEVEL 1 CMSUPDATE
+    ADD or REPLACE an element in a CMS library. An element is
+    replaced if the file within the default directory is NEWER than
+    the corresponding element in the CMS library. This procedure is useful
+    if one is not sure whether a CMS element is already up to date. Note
+    also that the group argument is needed only when creating a NEW element.
+.BLANK
+    If nontheless one would like to force an update use the /FORCE switch
+    with the element name. NOTE: Wildcard characters may be used to cause the
+    procedure to operate on more than one element during a single 
+    invokation.
+.BLANK
+.NOTE IMPORTANT
+    When a new element is added to a CMS library the procedure CMSUPDATE
+    will issue prompts for information about the location of the element
+    in the D-ZERO CMS libraries on FNALD0.
+.END NOTE
+.BLANK
+    Use the /NOKEEP switch (with the element list argument) if you want 
+    the files to be deleted from the default directory when being added
+    or replaced in the CMS library.
+
+.LITERAL
+
+ Format:
+
+    CMSUPDATE element[,...] library [group|remark] [remark]
+
+2 Parameters
+
+    element     Name of element to be created or updated.
+
+    library     Name of D0 Local CMS library to be accessed.
+
+    group       Name of CMS group within Local CMS library into which 
+                a NEW element is to be added OR a REMARK if element 
+                already exists in the CMS library.
+
+    remark      Short comment. 
+
+2 Examples
+
+  1.    $ CMSUP ERASE.FOR GENERAL.CMS COMPACK -
+        _"Routine to erase COMPACK window"
+
+    The element ERASE.FOR is added to the group COMPACK in CMS Library
+    D0$BETA:[GENERAL.CMS]. 
+
+  2.    $ CMSUP
+
+    This will issue prompts for parameters.
+
+
+  3.    $ CMSU CPUTIM.FOR/FORCE GENERAL.CMS "Timer routine"
+
+    Force an update of the element CPUTIM.FOR in CMS Library
+    D0$BETA:[GENERAL.CMS].
+
+  4.    $ CMSU EZ*.FOR D0GEANT.CMS SRCP "New wonderful EZ stuff"
+
+    The elements whose names begin with EZ are added to the group SRCP
+    in CMS library D0$BETA:[D0GEANT.CMS].
+
+.END LITERAL
+
+.HEADER LEVEL 1 CRELEASE 
+    Create the file RELEASE.LIS from information contained
+    in the BNL files in the specified local CMS library.
+    Note: If a BNL file does not yet exist for a particular element
+    you will be prompted for the information necessary to create
+    that file.
+
+.LITERAL
+
+  Format:
+  
+    CRELEASE  library-spec class-name
+  
+2 Parameters
+  library-spec
+
+    The name of a local CMS library.
+
+  class-name
+    
+    The name of a beta-release class.
+  
+2 Example
+  
+  1.     $ CRELEASE CALOR_OFF.CMS V1.8
+  
+    Create RELEASE.LIS from the local CMS library D0$BETA:[CALOR_OFF.CMS]
+    using elements in the class V1.8
+
+.END LITERAL
+  
+.HEADER LEVEL 1 MRELEASE 
+    Use the information in RELEASE.LIS (created with CRELEASE)
+    to UPDATE the appropriate D-ZERO CMS libraries. 
+
+.NOTE
+    You can update the D-ZERO CMS libraries directly
+            from a beta area because the beta areas are
+            accessible transparently (via DFS) from FNALD0.
+.END NOTE
+
+.LITERAL
+  
+  Format:
+  
+    MRELEASE option 
+  
+2 COPY
+
+    (A)
+
+  Invoke the procedure SCRATCH.COM on FNALD0 to create a sub-
+  directory ``USERNAME''.DIR in USR$SCRATCH:[000000] if one
+  does not already exist. Username is your username on FNALD0.
+
+    (B)
+
+  Copy RELEASE.LIS and the elements listed in RELEASE.LIS to
+  the area USR$SCRATCH:[``USERNAME''].
+
+  Format:
+  
+    MRELEASE COPY
+  
+2 UPDATE
+  Invoke the procedure UPDATE to update the D-ZERO CMS libaries
+  according to the instructions in RELEASE.LIS. This option
+  is used on FNALD0 only.
+  
+  Format:
+  
+    @D0$BETA_UTIL:RELEASE UPDATE
+  
+    or
+
+    MRELEASE UPDATE if you have invoked @D0$BETA_UTIL:SETUP_BETA_UTIL.
+
+2 DELETE
+
+  Delete ALL generations of elements listed in RELEASE.LIS from
+  the local CMS libraries specified in that file. The procedure
+  compares the current generation number of each element with
+  the generation within the class specified in RELEASE.LIS. If the
+  current generation number is greater, thereby indicating that
+  the element has been updated since the class was created, that 
+  element is NOT deleted.
+  
+  Format:
+  
+    MRELEASE DELETE[/NOACTION]
+
+2 DIFFERENCE
+
+    For each element listed in RELEASE.LIS, of the specified class,
+    compare the element in local CMS with the corresponding file
+    in D0$"library-section"$ROOT:[*]. If differences are found create
+    a difference file: "element-name"."extn"_DIFF. Use this command
+    to check that a beta-release class has been correctly released
+    from FNALD0.
+  
+  Format:
+  
+    MRELEASE DIFFERENCE
+  
+2 Examples
+  
+  1.     $ MRELEASE DELETE/NO
+
+    Produce the log file RELEASE.LOG but do not actually perform
+    the deletes.
+
+.END LITERAL
+  
+.HEADER LEVEL 1 SWAP 
+    For the specified file or list of files, if wildcard characters
+    are used in the file-spec, replace the string OLD-string with 
+    the string NEW-string. Optionally, one can specify lines which
+    are to be excluded from consideration. These lines are identified
+    by specifying one or more sub-strings which are common to the
+    lines to be excluded. Refer to the examples. A file SWAP.LOG is
+    produced automatically, containing details of the changes which 
+    have been made. 
+  
+.NOTE WARNING
+    As with all global editing facilities SWAP should
+                be used with caution! Get in the habit of using
+                the /NOCHANGE switch.
+.END NOTE
+
+.LITERAL
+
+  Format:
+  
+    SWAP  file-spec[,...] OLD-string NEW-string
+  
+2 Parameters
+  file-spec
+
+    The name of the source file or files to be scanned. The file-spec
+    can be any valid VMS file specification and can contain wildcard
+    characters. For example, *.FOR.
+  
+  OLD-string
+
+    The string which is to be replaced with NEW-string.
+
+2 Qualifiers
+
+/NOLOG
+
+ /NOLOG
+ /LOG (Default)
+
+    Do not print to screen.
+
+/NOCHANGE
+
+ /NOCHANGE
+ /CHANGE (Default)
+
+    Produce log file but do implement possible changes to specified
+    files. This is useful if you wish to check the effect of changes
+    before actually performing them.
+
+/EXCLUDE
+
+ /EXCLUDE=(..)
+
+    Exclude specified files from file-spec list.
+
+/IGNORE
+
+ /IGNORE=(..)
+
+    All lines containing the specified sub-string(s) are to be 
+    ignored. The strings should be within double quotes.
+
+/IN
+
+ /IN=(..)
+
+    Only lines containing the specified sub-string(s) are to be 
+    considered. The strings should be within double quotes.
+
+2 Examples
+  
+  1.     $ SWAP/IGNORE="ENTRY "/EX=CA*.FOR *.FOR "RXSRCP" "EZREAD" 
+
+    All occurrences of the string "RXSRCP" are to be replaced with the
+    string "EZREAD" except in those lines which contain the string
+    "ENTRY ". All files whose names begin with CA are to be ignored.
+  
+  2.     $ SWAP/IGNORE=("CALL EZ","CALL C") *.FOR ",IER)" ",IER,' ')" 
+
+    All occurrences of the string ",IER)" are to be replaced with the
+    string ",IER,' ')" except in those lines which contain either 
+    the string "CALL EZ" or the string "CALL C".
+
+  3.     $ SWAP/IN=("CALL EZ","CALL C") *.FOR ",IER)" ",IER,' ')" 
+
+    All occurrences of the string ",IER)" are to be replaced with the
+    string ",IER,' ')" ONLY in those lines which contain either 
+    the string "CALL EZ" or the string "CALL C".
+
+.END LITERAL
+    
+.HEADER LEVEL 1 USERLIB 
+    Create the MMS description file USERLIB.MMS and the option 
+    file ALPHA__RELEASE.OPT. The first file contains the rules
+    for creating and updating an object library called USERLIB.OLB.
+    The second file contains the modules which are to be /INCLUDEd
+    from that library when linking. If the /BETA switch is used then
+    the name of the option file will be BETA__RELEASE.OPT. See the
+    Notes topic for more details. 
+
+.LITERAL
+
+  Format:
+  
+    USERLIB  file-spec[,...]
+  
+2 Notes
+
+                NOTE: 1
+
+    To update the library one can invoke the DCL command:
+
+    $ MMS/SKIP/DESCRIP=USERLIB
+
+    To select the compiler switches /DEBUG/NOOPTIMIZE do
+
+    $ MMS/SKIP/DESCRIP=USERLIB/MACRO=(DEBUG=0)
+
+
+                NOTE: 2
+
+    If the file ALPHA.LIST (BETA.LIST in a beta area) exists in
+    your alpha area (your default directory) the link objects
+    listed in this file will be supplied to the linker together
+    with your own object modules.
+
+    The ALPHA.LIST (BETA.LIST) file provides a simple way of linking
+    to many different areas at once.
+
+2 Parameters
+    File-spec
+
+    One or more valid VMS file specifications. Each spec. can 
+    contain wildcard characters and file-specs MUST be delimited
+    by commas. When creating NEW files one can use the /EXCLUDE=
+    qualifier with the file-spec to exclude files. See examples.
+
+2 /FILE
+
+    /FILE=MMS-file-name
+
+    Create an MMS file with the specified name. For example
+    /FILE=DEB_CDAQ will produce the file DEB_CDAQ.MMS which
+    gives the rules for creating DEB_CDAQ.OLB.
+
+  Format:
+  
+    USERLIB/FILE=MMS-file-name  file-spec[,...]
+
+2 /EXCLUDE=(..)
+  
+  Exclude specified files from file-spec-list.
+
+  Format:
+  
+    USERLIB  file-spec[,...]/EXCLUDE=(file-spec[,...])
+
+2 /BETA
+  
+    Create USERLIB.MMS and BETA_RELEASE.OPT.
+
+3 Command_qualifiers
+
+/SORT
+  
+ /SORT
+  
+    Create the file USERLIB.MMS with the dependency rules sorted so
+    that modules upon which a given file depends precede the update
+    rule for that file. This is particularly useful to process PASCAL
+    files which can have dependencies introduced via the INHERIT
+    attribute.
+
+    For example, let module PIE depend on APPLE, FLOUR and SUGAR
+    and FLOUR depend on WHEAT then the result of the sort would be
+
+        WHEAT
+
+        FLOUR
+                WHEAT
+
+        PIE
+                APPLE FLOUR SUGAR.
+
+/FILE
+
+ /FILE=MMS-file-name
+
+    Create an MMS file with the specified name. For example
+    /FILE=DEB_CDAQ will produce the file DEB_CDAQ.MMS which
+    gives the rules for creating DEB_CDAQ.OLB.
+
+2 /ADD
+  
+    Add rules to USERLIB.MMS pertaining to the specified files.
+
+2 /DELETE
+  
+    Delete rules in USERLIB.MMS pertaining to the specified files.
+    These files must exist in the area given in the rule.
+  
+2 /FETCH
+  
+    Fetch all files, from the specified list of CMS libraries,
+    whose revision dates are later than that of the USERLIB.TSP
+    file in the default directory. (See, however, the description
+    of the /OLDCLASS qualifier.) If the /ELEMENT switch is not used
+    then the default is to use the elements in the group RELEASE.
+
+  Format:
+  
+    USERLIB/FETCH  CMS-library-name[,...]
+
+3 Command_qualifiers
+
+/ELEMENT
+  
+ /ELEMENT=(...)
+  
+    Fetch particular elements or groups. 
+
+/OLDCLASS
+  
+ /OLDCLASS=class-name
+  
+    Use this switch to specify a class with respect to which the 
+    elements are fetched. The generation number for each element
+    in the set determined by /ELEMENT and/or /CLASS is compared
+    with its generation number within the OLD class and the element
+    is fetched if 1) it is newer or 2) if it is not a member of the 
+    OLD class. Use the /SOURCES=ONLY switch to create a list of 
+    these elements without actually fetching them.
+
+/CLASS
+  
+ /CLASS=class-name
+  
+    Fetch elements or groups which belong to the specified class.
+
+/SOURCES
+
+ /SOURCES[= ONLY | CLASS ]
+
+    Produce a file containing a list of the fetched elements. If
+    the /ELEMENT switch is not used then by default all elements
+    in the group RELEASE will be fetched in which case the list
+    file will be called RELEASE.SOURCES. If the /ELEMENT switch 
+    is used to give a group name then the file will be called
+    group-name.SOURCES, otherwise it is called USERLIB.SOURCES.
+
+    If the ONLY option is selected the SOURCES file is created but
+    no fetching is done.
+
+    If the CLASS option is selected then the file CLASS.COM is
+    created and no fetching is done.
+
+3 Example
+
+        $ USERLIB/FET/ELE=DOCS D0$BETA:[CALOR_OFF.CMS]
+
+    Fetch, from the CALOR_OFF CMS library, all elements in the 
+    group DOCS, which are newer than the USERLIB.TSP file in
+    the default directory. Use the /SOURCES to produce the file
+    DOCS.SOURCES listing the elements which have been fetched.
+
+
+2 /UPDATE
+  
+    Update the revision dates of the specified files. Each file must
+    have an entry in USERLIB.MMS.
+
+2 /SORT
+  
+    Create the file USERLIB.MMS with the dependency rules sorted so
+    that modules upon which a given file depends precede the update
+    rule for that file. This is particularly useful to process PASCAL
+    files which can have dependencies introduced via the INHERIT
+    attribute.
+
+    For example, let module PIE depend on APPLE, FLOUR and SUGAR
+    and FLOUR depend on WHEAT then the result of the sort would be
+
+        WHEAT
+
+        FLOUR
+                WHEAT
+
+        PIE
+                APPLE FLOUR SUGAR.
+
+3 Command_qualifiers
+
+/SORT
+  
+ /SORT
+  
+/FILE
+
+ /FILE=MMS-file-name
+
+2 Examples
+  
+  1.     $ USERL
+
+    Create USERLIB.MMS (and the module file) with rules for ALL the
+    .FOR files in the default directory.
+  
+  2.     $ USERL/EX=CA*J*.FOR CA*.FOR,EZMAKE.FOR
+
+    Create USERLIB.MMS (and the module file) with rules for EZMAKE.FOR
+    and all routines whose names begin with CA, but excluding those
+    with names which begin with CA and which contain the letter J.
+
+  3.     $ USERL/ADD CAJETS.FOR,INRCP.FOR
+
+    Add rules for CAJETS.FOR and INRCP.FOR in USERLIB.MMS.
+
+  4.     $ USERL/UPDATE CA*.FOR
+
+    Update the time-stamps of all files whose names begin with CA.
+
+  5.     $ USERL/TSP "1-JAN-1900 12:00:00.00"
+
+    Create the file USERLIB.TSP with the specified time-stamp.
+
+.END LITERAL
+
+.HEADER LEVEL 1 SETUP__MMS 
+    Create the files MMS.COM, DEFINE.COM and DESCRIP.MMS. This is
+    a shell for calling CMMS and CDESCRIP with the correct arguments.
+    Use the command CMSHELP CMMS to get more details.
+  
+.LITERAL
+
+  Format:
+  
+    SETUP_MMS   Primary Beta-Area
+                Combined-Package-Name
+                List-of-link-objects
+                Location of EXE         (USR$EXE)
+                Location of OUTPUT      (USR$OUT)
+                Program-Name[/Task-Name][/DI3000]
+                Framework-Name
+
+2 Example
+  
+
+  1.
+
+D0SF16> home
+D0SF16> set def [.examine2]
+D0SF16> setup_mms
+ Primary BETA-Area [EXAMINE2] :
+ Combined-Package : TEST
+ Link object [USR$AREA:EXAMINE2.OPT] :
+ Link object  : D0$CDAQ:CDAQ.OPT
+ Link object  :
+ USR$EXE [HARRY$HROOT:[EXAMINE2]] : USR$SCRATCH:[BONZO]
+ USR$OUT [USR$SCRATCH:[BONZO]] :
+ Program Name [/Task][/DI3000] [EXAMINE2] : EXAMINE2/COSMIC/DI3000
+ Framework Name [EXAMINE2] :
+        
+.END LITERAL
+
+    Create files MMS.COM etc. to create an EXE called 
+    COSMIC__EXAMINE2.EXE which is to be linked with DI3000 and with
+    the specified options files. The EXE will also be linked with the 
+    program-builder object module called TEST__EXAMINE2.OBJ assumed to
+    reside in the sub-directory [.PBD]. 
+    
+    The EXE will appear in the scratch area USR$SCRATCH:[BONZO].
+  
+.HEADER LEVEL 1 SRUN 
+    Spawn a concurrent sub-process to execute a command procedure. 
+    The latter should have NO arguments. A log file is created with
+    the same name as the command procedure but with extension .LOG.
+  
+.LITERAL
+
+  Format:
+  
+    SRUN  procedure-name
+  
+2 Examples
+  
+  1.     $ SRUN MMS
+
+    Spawn a sup-process to execute @MMS and create a log file
+    called MMS.LOG.
+  
+.END LITERAL
+
+.HEADER LEVEL 1 WHERE 
+    Display the exact pathname of the specified file. This is a
+    useful procedure when the file-spec is given as a logical
+    name which might involve a search-list. The procedure will
+    display exactly which file is being picked up first in the
+    search-list.
+  
+.LITERAL
+
+  Format:
+  
+    WHERE  file-spec
+  
+2 Examples
+  
+  1.     $ WHERE CALFRAME_RCP
+
+    Display the precise pathname of the file pointed to by the
+    logical CALFRAME_RCP.
+  
+.END LITERAL

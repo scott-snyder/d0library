@@ -1,0 +1,776 @@
+                    UTILITIES FOR CALORIMETER SOFTWARE
+                    ===================================
+  
+                                                  SDP  JAN. 21,1988
+  
+    Described below are the Zebra banks and the utility subroutines that
+  presently exist for calorimeter software in OFFLINE_UTIL. Most of the
+  utilities use the Zebra bank CAEH (CAlorimeter Energy Hits). To avoid
+  duplicating effort it is recommended that programmers become familiar
+  with the contents of this note. The banks and subroutines described
+  below should not be regarded as final but rather as a starting point
+  subjected to review. To use the Zebra banks effectively programmers
+  should be aware of 2 common blocks (D0$INC:PEDGNS.INC, D0$INC:PTCAEH.INC) 
+  and a parameter definition file (D0$PARAMS:DCDATA.DEF): 
+
+  D0$INC:PEDGNS.INC
+C          store peds and gains
+       REAL PEDS(NETAC,NPHIC,NLYRC,0:1)
+       REAL GAINS(NETAC,NPHIC,NLYRC,0:1)
+       COMMON/PEDGNS/PEDS,GAINS
+
+ 
+  D0$INC:PTCAEH.INC 
+C        pointers to hit bank CAEH
+      INTEGER PTCAEH(NETAC,NPHIC,NLYRC)
+      COMMON/PTCAEH/PTCAEH
+C
+   The array PTCAEH is a local pointer to a given hit in the Zebra
+   bank CAEH. If PTCAEH(I,J,K) is zero, the cell I,J,K has no energy
+   above cutoff. If it is not zero, it points to the location in
+   CAEH where the energy for that cell is to be found,i.e
+        LCAEH=GZCAEH()
+        Energy(I,J,K)=Q(LCAEH+PTCAEH(I,J,K))
+  
+
+  D0$PARAMS:DCPARA.DEF
+C
+C         Parameters for digitization
+C
+C         Readout parameters
+      INTEGER NCRATE,OADC,NADC,NTIMSL,NCHN,NBLS,NEF,NTWRS
+      PARAMETER (NCRATE=1)
+      PARAMETER (NADC =6)
+      PARAMETER (OADC =8)
+      PARAMETER (NCHN=24)
+      PARAMETER (NTIMSL=16)
+      PARAMETER (NBLS=8)
+      PARAMETER (NEF=4)
+      PARAMETER (NTWRS=4)
+C         Cable parameters
+      INTEGER NDEP,NPHI,NETA,NSECT,NQUAD
+      PARAMETER (NDEP=12)
+      PARAMETER (NPHI=2)
+      PARAMETER (NETA=12)
+      PARAMETER (NSECT=4)
+      PARAMETER (NQUAD=2)
+C         Module parameters
+      INTEGER MDEP,MPHI,META,MSECT,MQUAD
+      PARAMETER (MDEP=7)
+      PARAMETER (MPHI=2)
+      PARAMETER (META=12)
+      PARAMETER (MSECT=5)
+      PARAMETER (MQUAD=2)
+C        Physics parameters
+      INTEGER NPHIC,NETAC,NLYRC
+      PARAMETER (NPHIC=6)
+      PARAMETER (NETAC=24)
+      PARAMETER (NLYRC=14)
+
+----------------------------------------------------------------------
+
+
+  Zebra banks (for a more complete description see D0$DOCS:HITS_ZEBANKS.MEM):
+
+C=======================================================================
+C
+C  Bank name: CAHT
+C  Author   : DEMARTEAU,SPD
+C  Date     : September 22,1987
+C  Tree description: HITS_ZEBANKS
+C
+C             Calorimeter hits bank  
+C
+C    LQ     Q/IQ
+C ___________________________________________________________________________
+C     -3            struct.  (free)
+C     -2            struct.  to CAEH
+C     -1            struct.  to CAES 
+C      0            next     to next CAHT (free)
+C     +1            up       to HITS
+C     +2            origin   to HITS for first and previous CAHT for others
+C ............................................................................
+C            I-5             bank number
+C             -4             bank name,  'CAHT'
+C             -3             NL=3
+C             -2             NS=3
+C             -1             ND=NR*nlib+3
+C              0             STATUS
+C             +1     I       controller word
+C             +2     I       bank type 
+C             +3     I       NR=5 (repetition number)
+C             +4     H       Library name 
+C             +5     H       Library name (continued)
+C             +6     H       Library name (continued)
+C             +7     H       Library version number 
+C             +8     H       Library version number (continued)
+C                  4-8 repeated nlib times (nlib=(ND-3)/NR)
+C=======================================================================
+
+
+C=======================================================================
+C
+C  Bank name: CAEH
+C  Author   : DEMARTEAU,SPD
+C  Date     : September 22,1987
+C  Tree description: HITS_ZEBANKS
+C
+C             Energy hits bank  
+C
+C    LQ     Q/IQ
+C ___________________________________________________________________________
+C     -1            struct.  (free)
+C      0            next     to next CAEH
+C     +1            up       to CAHT
+C     +2            origin   to CAHT for first and previous CAEH for others
+C ............................................................................
+C            I-5             bank number
+C             -4             bank name,  'CAEH'
+C             -3             NL=1
+C             -2             NS=1
+C             -1             ND=NR*nchannels+2
+C              0             STATUS
+C             +1     I       bank type
+C             +2     I       NR=5 (repetition number)
+C             +3     F       Energy
+C             +4     I       eta index
+C             +5     I       phi index
+C             +6     I       depth index
+C             +7     I       raw data
+C                  3-7 repeated nchannel times (nchannels=(ND-2)/NR)
+C=======================================================================
+
+
+C=======================================================================
+C
+C  Bank name: CAES
+C  Author   : DEMARTEAU,SPD
+C  Date     : September 22,1987
+C  Tree description: HITS_ZEBANKS
+C
+C             Energy sums bank  
+C
+C    LQ     Q/IQ
+C ___________________________________________________________________________
+C     -1            struct.  (free)
+C      0            next     to next CAES (free)
+C     +1            up       to CAHT
+C     +2            origin   to CAHT 
+C ............................................................................
+C            I-5             bank number
+C             -4             bank name,  'CAES'
+C             -3             NL=1
+C             -2             NS=1
+C             -1             ND=nsector+2
+C              0             STATUS
+C             +1     I       bank type
+C             +2     F       Total energy
+C             +3     F       Energy in sector 1
+C             +4     F       Energy in sector 2
+C             +5     F       Energy in sector 3
+C             +6     F       Energy in sector 4
+C             +7     F       Energy in sector 5
+C=======================================================================
+
+--------------------------------------------------------------------------
+
+List of calorimeter utility subroutines in D0$OFFLINE_UTIL$CALOR:
+
+      LOGICAL FUNCTION CAEHFL
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-         Unpack data and fill CAEH and CAES banks
+C-
+C-   ENTRY PTTHRS(CUT)  set energy threshold cut
+C-   CUT=  energy threshold cut
+C-
+C-   Created  28-SEP-1987   Serban D. Protopopescu
+C-
+C----------------------------------------------------------------------
+C
+
+
+      REAL FUNCTION CAENRG(QS,SS,ES,FS,DS) 
+C***********************************************************************
+C-
+C-  Real function returning the energy in a calorimeter cell given
+C-  its cable address
+C-
+C-  Inputs :
+C-    QS    = quadrant 
+C-    SS    = sector 
+C-    ES    = eta 
+C-    FS    = phi 
+C-    DS    = depth 
+C-                                              Marcel Demarteau      
+C-                                              Serban Protopopescu   
+C-                                              Sept. 29, 1987     
+C***********************************************************************
+C
+
+
+      SUBROUTINE CAHTFL
+C  ************************************************************** 
+C  *                                                            *
+C  *  Create Zebra bank CAHT for the calorimeter hits.          * 
+C  *                                                            *
+C  *                                      Marcel Demarteau      *
+C  *                                      Serban Protopopescu   *
+C  *                                             Sept. 1987     *
+C  *                                                            *
+C  ************************************************************** 
+
+
+      SUBROUTINE CATOEL(Q,S,E,C,A,TIMSL)
+C
+C     ******************************************************************  
+C     *                                                                *  
+C     *       Convert from CAble TO ELetronic system 
+C
+C     *       INPUTS: 
+C     *       Q = quadrant
+C     *       S = sector
+C     *       E = eta
+C
+C     *       OUTPUTS: 
+C     *       C = crate
+C     *       A = adcs
+C     *       TIMSL= time slice
+C     *                                                                *  
+C     *       Author:   S. Linn   11 May 1987                          *
+C     *                 H. WANG,SDP   5  Aug 1987                      *  
+C     ******************************************************************  
+
+
+      SUBROUTINE CATOPH(QS,SS,ES,FS,DS,ETA,PHI,LYR,OK)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-     Convert from cable indices to physics indices
+C-   Inputs  :
+C-       QS = quadrant |
+C-       SS = sector   |
+C-       ES = eta      |  scrambled addresses
+C-       FS = phi      |
+C-       DS = depth    |
+C-   Outputs :
+C-       ETA   = eta
+C-       PHI   = phi
+C-       LYR   = layer
+C-       OK = false  for non-existent address
+C-
+C-   Created  28-SEP-1987   Serban D. Protopopescu
+C-
+C----------------------------------------------------------------------
+
+
+      SUBROUTINE CATOPH_FH(Q,S,E,F,D,ETA,PHI,LYR,OK)
+C----------------------------------------------------------------------
+C
+C   Purpose and Methods : Convert CAble indices (CC feedthru) to
+C                         PHysics indices (CCFH module)
+C
+C   Replaces subroutine CATOPH with same arguments
+C
+C   Inputs  : Q,S,E,F,D =   CC feedthru indices
+C
+C   Outputs : ETA,PHI,LYR = CCFH physics indices
+C             OK          = .false. if channel nonexistent
+C
+C   Created  FEB 4, 1988   JAN GUIDA & HOWARD GORDON
+C   Modified Feb. 5, 1988  Wyatt Merritt
+C   Added depth swap  Feb. 9, 1988 Wyatt Merritt
+C
+C----------------------------------------------------------------------
+
+
+      SUBROUTINE CATOPH_MH(Q,S,E,F,D,ETA,PHI,LYR,OK)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Convert CAble indices (CC feedthru) to
+C-                         PHysics indices (ECMH module)
+C-
+C-   Inverse transformation is in s/r PHTOCA_MH
+C-
+C-   Replaces subroutine CATOPH with same arguments
+C-
+C-   Inputs  : Q,S,E,F,D =   CC feedthru indices (Q,S not required)
+C-
+C-   Outputs : ETA,PHI,LYR = ECMH physics indices
+C-             OK          = .false. if channel nonexistent
+C-
+C-   Created  23-NOV-1987   John Womersley
+C-   Updated   7-DEC-1987   John Womersley  Added swap between warm and
+C-    cold depths in EM3 cable indices 
+C-
+C----------------------------------------------------------------------
+
+
+      SUBROUTINE CATORO(Q,S,E,F,D,C,A,B,T)
+C
+C     ******************************************************************  
+C     *                                                                *  
+C     *       Convert from CAble TO Read Out system                    *
+C     *
+C     *       INPUTS: Q,S,E,F,D                                        *
+C     *       Q = quadrant      |                                      *
+C     *       S = sector        |  as defined in                       *
+C     *       E = eta           |  D0 Note# 455                        *
+C     *       F = phi           |                                      *
+C     *       D = depth         |                                      *
+C     *                                                                *
+C     *       OUTPUTS:                                                 *
+C     *       C =crate                                                 *
+C     *       A =adc                                                   *
+C     *       B =BLS                                                   *
+C     *       T =tower on BLS card                                     *
+C     *                                                                *  
+C     *       Author:   S. Linn   11 May 1987                          *
+C     *                 modified SDP August 1987                       *
+C     *                                                                *  
+C     ******************************************************************  
+C     -----------------------------------------------------------------
+
+
+
+      LOGICAL FUNCTION CHCCEM(QU,SU,EU,FU,DU)
+C    
+C     ****************************************************************** 
+C     *                                                                *
+C     *    TRUE if an index in the range of unscrmbled cable           *
+C     *    channels is an existing CCEM cell                           *
+C     *    INPUTS: QU, SU, EU, FU, DU - unscrambled cable indices      *  
+C     *                                                                *
+C     *    ===>Called by : <USER>                                      *
+C     *        Author: S. Linn   19 Aug 1987                           *
+C     *        Modified J. Linnemann 19 Aug 1987 for source of         *
+C     *                    parameter file                             *
+C     ****************************************************************** 
+C    
+
+
+      REAL FUNCTION ELENRG(DS,FS,TIMSL,ADC,CRA) 
+C***********************************************************************
+C-
+C-  Real function returning the energy in a calorimeter cell given
+C-  its electronic address
+C-
+C-  Inputs :
+C-    DS    = depth index
+C-    FS    = phi index
+C-    TIMSL = time slice
+C-    ADC   = adc number 
+C-    CRA   = crate number 
+C-                                              Marcel Demarteau      
+C-                                              Serban Protopopescu   
+C-                                              Sept. 29, 1987     
+C***********************************************************************
+C
+
+
+      SUBROUTINE ELTOCA(C,A,TIMSL,Q,S,E)
+C
+C     ******************************************************************  
+C     *       Convert from ELectronic TO CAble system
+C     *
+C     *       INPUTS:
+C     *       C = crate
+C     *       A = adcs
+C     *       TIMSL= time slice
+C
+C     *       OUTPUTS:
+C     *       Q = quadrant
+C     *       S = sector
+C     *       E = eta
+C     *
+C     *       Author:   S. Linn   11 May 1987                          *
+C     *                 H. WANG,SDP   5  Aug 1987                      *  
+C
+C     ******************************************************************  
+
+
+      SUBROUTINE ENGET(CRATE,IWORD,IETA,IPHI,ILYR,ISCALE,ENRGY,IOK)
+C--------------------------------------------------------------------
+C-
+C-     Decode a 32 bit word containing the address and pulse height
+C-     then pedestal subtract if necessary 
+C-     finally gain-correct into energy
+C-     return physics indices
+C-
+C-    INPUT:
+C-     CRATE=    The crate number the data comes from
+C-     IWORD=    32 Bit Data word
+C-    
+C-    OUTPUT:
+C-    IETA  = eta index
+C-    IPHI  = phi index
+C-    LYR   = layer index
+C-    ENRGY = pulse height, pedestal subtracted, and gain-corrected
+C-
+C-
+C-      splitting the funtionality here hides the gain and pedestal constants
+C-      from the buffer
+C-
+C-      ENTRY SETPED(FLAG)
+C-      set pedestal subtraction flag
+C-      INPUT:
+C-      FLAG=.true. do pedestal subtraction
+C-
+C-      ENTRY SETGNS(FLAG)
+C-      set gain correction flag
+C-      INPUT:
+C-      FLAG=.true. do gain correction
+C-
+C-              JTL,SDP 12 Aug 1987
+C-              Revised SDP  Sept. 29,1987
+C---------------------------------------------------------------------
+
+
+      LOGICAL FUNCTION EXISTS(CRATE,IADC,BLS,TWR,DS)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-        Check if a given electronics channel exists
+C-
+C-   Inputs  :
+C-    CRATE = crate number
+C-    IADC  = ADC number
+C-    BLS   = bls card
+C-    TWR   = towers
+C-    DS    =depth
+C-
+C-   Created  25-AUG-1987   Serban D. Protopopescu
+C-   Modified from TIMSL to BLS Oct-26-1987 SDP
+C-
+C----------------------------------------------------------------------
+C************************************************************************\
+C       TEMPORARY  ---- CHANNELS THAT ARE NOT THERE  7/18/87
+C                       WILL COME LATER SO THIS CODE SHOULD BE REMOVED
+C************************************************************************
+
+
+      SUBROUTINE FILGNS
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-      fill GAINS array from ZEBRA bank 
+C-      (called by RDGNS)
+C-
+C-   Created   2-OCT-1987   Serban D. Protopopescu
+C-
+C----------------------------------------------------------------------
+
+
+      SUBROUTINE FILPED
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-      fill PEDS array from ZEBRA bank 
+C-     (called by RDPEDS)
+C-
+C-   Created   2-OCT-1987   Serban D. Protopopescu
+C-
+C----------------------------------------------------------------------
+
+
+      REAL FUNCTION PHENRG(ETA,PHI,LYR)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-    Real function returning the energy in a calorimeter cell given
+C-    its physics address
+C-
+C-   Inputs  :
+C-   ETA  = eta index
+C-   PHI  = phi index
+C-   LYR  = layer index
+C-
+C-   Created   6-OCT-1987   Serban D. Protopopescu
+C-
+C----------------------------------------------------------------------
+
+
+      SUBROUTINE PHTOCA(ETA,PHI,LYR,QS,SS,ES,FS,DS,OK)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-      convert PHysics indices TO CAble scrambled indices
+C-
+C-   Inputs  :
+C-       ETA   = eta
+C-       PHI   = phi
+C-       LYR   = layer
+C-   Outputs :
+C-       QS = quadrant   |
+C-       SS = sector     |
+C-       ES = eta        |  scrambled addresses
+C-       FS = phi        |
+C-       DS = depth      |
+C-       OK = false  for non-existent address
+C-
+C-   Created  28-SEP-1987   Serban D. Protopopescu
+C-
+C----------------------------------------------------------------------
+
+
+      SUBROUTINE PHTOCA_MH(Q,S,E,F,D,ETA,PHI,LYR,OK)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Convert PHysics indices (ECMH module) to
+C-                         CAble indices (CC feedthru) 
+C-
+C-   Inverse transformation is in s/r CATOPH_MH
+C-
+C-   Inputs  : ETA,PHI,LYR = ECMH physics indices
+C-
+C-   Outputs : Q,S,E,F,D =   CC feedthru indices (Q,S not required)
+C-             OK          = .false. if channel nonexistent
+C-
+C-   Created  23-NOV-1987   John Womersley
+C-   Updated   7-DEC-1987   John Womersley  Add swaps between warm and
+C-                          cold side depths for EM3 channels
+C-
+C----------------------------------------------------------------------
+
+
+      SUBROUTINE PHTOUN(ETA,PHI,LYR,QU,SU,EU,FU,DU,OK)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-      convert PHysics indices TO CAble scrambled indices
+C-
+C-   Inputs  :
+C-       ETA   = eta
+C-       PHI   = phi
+C-       LYR   = layer
+C-   Outputs :
+C-       QU = quadrant   |
+C-       SU = sector     |
+C-       EU = eta        |  unscrambled addresses
+C-       FU = phi        |
+C-       DU = depth      |
+C-       OK = false  for non-existent address
+C-
+C-   Created  28-SEP-1987   Serban D. Protopopescu
+C-
+C----------------------------------------------------------------------
+
+
+      SUBROUTINE PTCAZR
+C  ************************************************************** 
+C  *                                                            *
+C  * Purpose and Methods :                                      *
+C  *   Zero the array PTCAEH, the pointers to the energy hits   *
+C  *   in the Zebra bank CAEH.                                  *
+C  *                                                            *
+C  *                                      Serban Protopopescu
+C  *                                             24-Nov-1987    *
+C  *                                                            *
+C  ************************************************************** 
+
+
+      LOGICAL FUNCTION RDGNS
+C-------------------------------------------------------------------
+C-
+C-              Reads file RUNXXX.GAIN
+C-       ENTRY GNSRUN 
+C-       integer function returning run number in gain file
+C-
+C-                        SDP October 1987    
+C-
+C---------------------------------------------------------------------
+
+
+      LOGICAL FUNCTION RDPEDS
+C-------------------------------------------------------------------
+C-
+C-              Reads file RUNXXX.PEDS 
+C-       ENTRY PEDRUN 
+C-       integer function returning run number in pedestal file
+C-
+C-                               H.WANG  July 1987
+C-                        modified by SDP August 1987    
+C-
+C---------------------------------------------------------------------
+
+
+      REAL FUNCTION ROENRG(CRA,ADC,BLS,EF,DS) 
+C***********************************************************************
+C-
+C-  Real function returning the energy in a calorimeter cell given
+C-  its read out address
+C-
+C-  Inputs :
+C-    CRA   = crate number 
+C-    ADC   = adc number 
+C-    BLS   = BLS card 
+C-    EF    = tower on BLS card 
+C-    DS    = depth index 
+C-                                              Marcel Demarteau      
+C-                                              Serban Protopopescu   
+C-                                              Sept. 29, 1987     
+C***********************************************************************
+C
+
+
+      SUBROUTINE ROTOCA(C,A,B,T,D,Q,S,E,F)
+C
+C     ******************************************************************  
+C     *                                                                *  
+C     *       Convert from ReadOut system to CAble system
+C     *
+C     *       INPUTS:
+C     *       C =crate                                                 *
+C     *       A =adc                                                   *
+C     *       B =BLS                                                   *
+C     *       T =tower on BLS card                                     *
+C     *       D =depth                                                 *
+C                                                                      *
+C     *       OUTPUTS: Q,S,E,F                                         *
+C     *       Q = quadrant      |                                      *
+C     *       S = sector        |  as defined in                       *
+C     *       E = eta           |  D0 Note# 455                        *
+C     *       F = phi           |                                      *
+C     *                                                                *
+C     *                                                                *  
+C     *       Author:   S. Linn   11 May 1987                          *
+C     *                 modified SDP August 1987                       *
+C     *                                                                *  
+C     ******************************************************************  
+C     -----------------------------------------------------------------
+
+C     **********************************************************
+C
+C     SCRAM : scramble the feedthrough labels to module labels
+C             INPUT  : 
+C             QU = unscrambled quadrant
+C             SU =      "      sector
+C             EU =      "      eta
+C             FU =      "      phi
+C             DU =      "      depth
+C
+C             OUTPUT : 
+C             QS = scrambled quadrant
+C             SS =      "      sector
+C             ES =      "      eta
+C             FS =      "      phi
+C             DS =      "      depth
+C
+C
+C     ( Using Terry's subroutines )
+C
+C                                     8/3/87    Huangxin WANG
+C                       modified by SDP 8/13/87
+C     ***********************************************************
+C
+
+
+      SUBROUTINE SCRAMB(Q,S,E,F,D,CABS,CABE,CABF,CABD,PIN)
+C
+C*****************************************************************
+C
+C SUBROUTINE TAKING PAD QUADRANT (Q), SECTOR (S), ETA (E), PHI (F),
+C AND DEPTH (D) TO PREAMP/BLS CABLE CABS/CABE AND PIN AND AUXILARY
+C LABELS CABF AND CABD.
+C
+C INPUT
+C      Q - QUADRANT
+C      S - SECTOR
+C      E - ETA
+C      F - PHI
+C      D - DEPTH
+C OUTPUT
+C      CABS - CABLE LABEL S
+C      CABE - CABLE LABEL E
+C      CABF - AUXILARY LABEL F (PHI)
+C      CABD - AUXILARY LABEL D (DEPTH)
+C      PIN - PIN IN CABLE CABS/CABE
+C
+C     AUTHOR -    T. HEURING                7/7/87
+C
+C******************************************************************
+
+
+      REAL FUNCTION UNENRG(QU,SU,EU,FU,DU) 
+C***********************************************************************
+C-
+C-  Purpose :
+C-    Real function returning the energy in a calorimeter cell given
+C-    its cable address
+C-
+C-  Inputs :
+C-    QU    = quadrant 
+C-    SU    = sector 
+C-    EU    = eta 
+C-    FU    = phi 
+C-    DU    = depth 
+C-                                              Marcel Demarteau      
+C-                                              Serban Protopopescu   
+C-                                              Oct. 1, 1987     
+C***********************************************************************
+C
+
+
+      SUBROUTINE UNSCRB(CABS,CABE,PIN,Q,S,E,F,D)
+C     ************************************************************
+C
+C     Reverse SCRAMB
+C                                By T.HEURING
+C
+C     Fixed D=11 (preamp but no cable). Now returns -99 as flag
+C                                 SLL 14 Aug 1987
+C     ************************************************************
+
+
+      SUBROUTINE UNTOPH(QU,SU,EU,FU,DU,ETA,PHI,LYR,OK)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-     Convert from unscrambled cable indices to physics indices
+C-   Inputs  :
+C-       QU = quadrant |
+C-       SU = sector   |
+C-       EU = eta      |  unscrambled addresses
+C-       FU = phi      |
+C-       DU = depth    |
+C-   Outputs :
+C-       ETA   = eta
+C-       PHI   = phi
+C-       LYR   = layer
+C-       OK = false  for non-existent address
+C-
+C-   Created  30-SEP-1987   Serban D. Protopopescu
+C-
+C----------------------------------------------------------------------
+
+
+      SUBROUTINE USCRAM(QS,SS,ES,FS,DS,QU,SU,EU,FU,DU)
+C----------------------------------------------------------------
+C
+C     USCRAM : unscramble the module labels to feedthrough labels
+C
+C             INPUT  : 
+C             QS = scrambled quadrant
+C             SS =      "      sector
+C             ES =      "      eta
+C             FS =      "      phi
+C             DS =      "      depth
+C
+C             OUTPUT : 
+C             QU = unscrambled quadrant
+C             SU =      "      sector
+C             EU =      "      eta
+C             FU =      "      phi
+C             DU =      "      depth
+C
+C
+C
+C     ( Using Terry's subroutines )
+C
+C                                     8/3/87    Huangxin WANG
+C                       modified by SDP 8/13/87
+C-
+C----------------------------------------------------------------
+C
+C

@@ -1,0 +1,381 @@
+
+
+                      Doing a Gamma Release
+
+
+    Intro.
+
+        The following documentation is designed to aid the Library Czar and
+    his/her helpers perform a gamma release of their library from the CMS
+    library on the BNL cluster to his/her node.
+
+    What is a gamma release.
+
+        A gamma release is a procedure which lets you perform your own private
+    release of a library. The gamma release procedure executes exactly the same
+    instructions as the regular library release procedures. The major
+    difference is that the library
+    and source code which is released are targeted to your own personal scratch
+    area on the BNL cluster and to a directory and node of your choice.
+
+    How to interface to the Gamma released library.
+
+        The commands Libtest, Showlibtest and Nolibtest have been modified so
+    that you can specify the root directory of the gamma release thus placing
+    the library into 'gamma' mode. The logical names
+    D0$'lib_section'$'sub_directory' are then modified into search lists
+    which chain together the gamma release library and the official
+    release of the library.
+    It does not chain together the gamma release, test release, and
+    official release of the library; only the gamma and official releases.
+    Consult the documentation on the new libtest command for details.
+
+    -- How to use the gamma release. --
+
+    There are three steps required to preform a gamma release.
+
+        1.      You must first setup the structure of the cms library
+                correctly. This includes the organization of the
+                elements and groups which reside under the RELEASE
+                CMS group.
+
+        2.      Create the .release file and insert it into the CMS RELEASE
+                group.
+
+        3.      Execute the gamma release procedure.
+
+    -- Setting up the CMS library. --
+
+
+        The D0 library release procedure needs to have, in the cms
+    library, certain standard groups which it uses to guide itself
+    through the releasing stages. These groups are:
+
+        1. RELEASE
+
+                The release group will reference all the source code
+            and other files which form part of the library which will
+            be released.
+
+        2. OBSOLETE
+
+                This group contains all the elements which have become
+            obsolete to the library. These obsolete elements will be
+            stored here while the current release version of the
+            library is in test mode.
+
+        3. TRASH
+
+                Once the current test version of the library goes
+            'official', then all the elements which reside in the group
+            OBSOLETE will be moved to the group TRASH.
+
+        4. NO_DISTRIBUTE
+
+                The no_distribute is used as a reference group which
+            tells the release procedures which subdirectories of your
+            library contain files which should not be distributed. There
+            will be more information on this group later.
+
+    NOTE: You should NOT create these groups. They should already exist in
+    the library you are working with. If you wish to creat a library, you
+    should contact the BNL D0 librarian and ask for the library to be
+    created. The above groups will be created by the BNL D0 librarian when
+    the library is created.
+
+        The most important group of all is the RELEASE group. The
+    structuring of this group will reflect in the
+    structuring of the library directory structure and its contents.
+    The following rules apply as to how to structure the RELEASE group.
+
+        1. The RELEASE group can only contain, at the first level,
+           groups. Each one of these first level groups will
+           produce a subdirectory off the library's main directory.
+           The name of the subdirectory will be the same as the name
+           of the corresponding first level group.
+
+        2. The first level groups may contains any combination of
+           groups and/or elements. All the elements which reside under
+           the first level groups will be fetched to its corresponding
+           subdirectory.
+
+
+        Therefore, the first step in setting up the cms library before
+    a gamma release is performed, is to make sure the first level
+    groups, which will produce a subdirectory by their name, do
+    indeed exist and are members of RELEASE. Next one must insert the
+    appropriate elements into the first level groups. (Note: One can
+    create a second level group which is inserted into one of the
+    first level groups and then insert the pertaining elements into this
+    second level group etc.)
+
+
+    -- Creating a .release file --
+
+        Refer to the document D0$DOCS:RELEASE_FILE.DOC
+    for information about this topic.
+
+-----------
+
+    Now that the cms library has been setup properly, and you have created
+    the .release file for your library, you can proceed to do the gamma
+    release.
+
+    -- The Gamma Release Procedure. --
+
+        The gamma release procedure is a big and complicated DCL command
+    procedure. It resides on the BNL cluster and must be executed from
+    any user account on the BNL cluster.
+
+        To activate the gamma release procedure, log into your account on the
+    BNL cluster and type:
+
+        $ GAMMA
+
+        You will be prompted to enter several items of information which
+    include the name of the library, the gamma release class name, etc.
+    The following is a step by step description of the gamma release procedure.
+
+    The release procedure will first ask for the name of the library to be
+    released.
+
+        Library Section ? SPL_LIB
+
+    It then ask for the libraries which are to be placed into gamma mode. This
+    question is needed because you might have made a gamma release of another
+    library upon which the current one is dependent. A classic example is the
+    INC library. If there is more than one library to be put in gamma mode,
+    enter the list of libraries on the same line separated by commas. Another
+    important point. All the libraries included on this list must have been
+    released to the same directory as the one you will specify for this
+    library shortly.
+
+        Enter list of gamma libraries: INC,PARAMS,D0GEANT
+
+    The release procedure will next display a list of all the classes which
+    have been created in the cms library you are releasing. For the
+    SPL_LIB example it will display the following.
+
+        Classes in DEC/CMS Library D0$CMS:[SPL_LIB]
+
+        ADLER.GAMMA     V1.00           V1.00_01                v1.01_01
+
+        Enter CMS class to be released: ADLER.GAMMA
+
+    All the classes which begin with a V are official D0 library classes. These
+    are used when doing test and official releases of any D0 library. The class
+    ADLER.GAMMA is a personal gamma release class. The name can be anything you
+    please except that it must contain a period and not begin with a V. The
+    intention is for you to use only one gamma release class. You will build and
+    rebuild this class as you do your software development and need to test the
+    latest changes/addition you have made the your library. If you specify
+    a non-existing class, then it will be created and the latest generation
+    of all elements which are referenced via the CMS group RELEASE will be
+    placed into this class. If you specify a class
+    which already exists, you will be asked if you wish for it to be
+    rebuilt. If you enter YES to this question then the release procedure
+    will make sure that all the elements in the release class are the lates
+    generation of all elements which are referenced via the CMS RELEASE
+    group.
+
+        Class exists, would you like it rebuilt? [N] <CR>
+
+    It then asks for the directory which will receive the gamma release on the
+    BNL cluster. At this point you should be aware that there are two scratch
+    disks on the BNL cluster and it is recommended that you use one of these
+    scratch disks. The two scratch disks are $2$dua11:[xscr.] (the four
+    day scratch disk) and $2$dua15:[scratch.] (the two day scratch disk).
+
+        Enter local gamma release directory: $2$DUA11:[XSCR.ADLER.GAMMA]
+
+    The next item is the directory at the remote node where you want the
+    release to be sent. This directory should also include the node
+    specification.
+
+        Enter remote gamma release directory: BNLD02::USER6:[ADLER.GAMMA]
+
+    Next the release procedure will ask for your account name on the remote
+    node.
+
+        Enter your username on BNLD02:: : ADLER
+
+    Next it will ask for you to enter the password twice for the account you
+    have just entered on the remote node. The password you enter is not
+    echoed to the terminal.
+
+        Enter your password on BNLD02:: PASS_WORD
+        Renter your password on BNLD02:: PASS_WORD
+
+    The next bit of information the gamma release procedure will ask is which
+    phases of the release procedure you wish to execute. The default
+    answers is to execute all phases of the release procedure. That is to  
+    start the release procedure at the BEGIN phase and stop the release
+    procedure at the END phase. The gamma release is broken up into many
+    phases. Each phase can be executed independently, or any sequential
+    group of phases can be executed. The design behind the phasing of the
+    gamma release is to allow the user the flexibility to start the
+    execution of the release procedure at some intermediate phase, or just
+    to execute to execute the first three phases, etc. 
+    This turns out to be useful when debuging the .RELEASE file. You can
+    execute the release procedures from the BEGIN phase and stop at the
+    BUILD_MMS phase. Other
+    problems arise, for example, not setting up the CMS
+    library properly, having code which does not compile and bombing the
+    release, etc. Thus, if the procedure does bomb, you can fix the problem and
+    start the release by executing the phase which bombed and continuing until
+    the end.
+
+    When asking which phases should be executed, the gamma release
+    procedure first prints out the list of phases which the
+    release procedure executes. It then asks you for the starting and ending
+    phases which you wish the release procedure to execute.
+
+        Library Release Phase List:
+
+        Begin  CMS_Fetch  Build_mms   Build_pre_to_post  Obsolete  Pre_exec
+
+        Exec_mms  Inter_exec  Exec_deb_mms  Post_exec  Clean_up  End
+
+      Enter first release phase [BEGIN] ?
+      Enter last release phase [END] ?
+
+    Once you have given the beginning and ending phases of the gamma
+    release, the following question will be to ask what mode you wish to
+    execute the gamma release. This is the last question asked by the
+    release procedures and you have three choices. The release
+    procedures can run interactively, as a sub-process or they can be
+    submitted to a batch queue. In interactive mode, your
+    terminal will be tied up for the duration of the release.
+    In subprocess mode, the release procedures will execute at interactive
+    priority as a sub-process plus produce a log file. The only action you
+    should watch out for is not to log off. If you do, the sub-process you
+    started will automatically be terminated. In Batch mode, the release
+    runs at batch priority, you get a log file, and you can log out.
+
+    If you chose to run in batch mode you should be aware of the queue
+    configuration on the BNL cluster system. There
+    are two sets of queues. The regular, unlimited CPU time, low priority batch
+    queue, and the limited CPU time (20 minutes), higher priority batch
+    queue. In most cases, you will need less than 20 minutes of CPU time to
+    execute the gamma release.
+
+      Enter processing mode (Batch,Subprocess,Interactive) [B] ? S
+
+    Finally it will give you a summary of how the gamma release procedure is to
+    proceed followed by a question asking if you wish to proceed.
+
+
+                 **** GAMMA release summary ****
+
+      Library to be release :                SPL_LIB
+      CMS class to be released :             ADLER.GAMMA
+      Acompaning gamma libraries :           INC,PARAMS,D0GEANT
+      Local release directory :              $2$DUA11:[XSCR.ADLER.GAMMA]
+      Remote release directory :             BNLD02::USER4:[ADLER.GAMMA]
+      First/Last phases to be executed:      BEGIN/END
+      Release mode will be :                 SUBPROCESS
+
+      Do you want to proceed [Y] ? <CR>
+
+    And that is it!
+
+    In the above example, I asked to have the gamma release execute in
+    subprocess mode. But if I had chosen batch mode, then the gamma release
+    proceeds to ask for the batch queue you wish to use. Since there are
+    two sets of batch queues, the regular and 20 minute batch queues, the
+    release procedure asks if you wish to submit the job to the regular
+    batch queue. If you expect the release procedure to take more than 20
+    minutes, you should answer yes. If you expect the release procedure to
+    take less than 20 minutes, then you should answer no. Depending on your
+    answer, a list of the regular batch queues or the 20 minute batch
+    queues is given.
+
+    Do you want to submit your job to the regular batch queues ? [Y] N
+
+        Batch queue AMDCL1_20M, on BNLCL1::
+
+          Jobname      Username    Entry          Status
+          -------      --------    -----          ------
+                --       Job List       --
+
+        Batch queue AMDCL2_20M, on BNLCL2::
+
+          Jobname      Username    Entry          Status
+          -------      --------    -----          ------
+                --       Job List       --
+
+        Batch queue AMDCL3_20M, on BNLCL3::
+
+          Jobname      Username    Entry          Status
+          -------      --------    -----          ------
+                --       Job List       --
+
+        Batch queue AMDCL4_20M, on BNLCL4::
+
+          Jobname      Username    Entry          Status
+          -------      --------    -----          ------
+                --       Job List       --
+
+        Batch queue AMDCL6_20M, on BNLCL6::
+
+          Jobname      Username    Entry          Status
+          -------      --------    -----          ------
+                --       Job List       --
+
+    Compilers         Available on Nodes...
+     Fortran             All
+     Pascal              bnlcl3,bnlcl6
+     C                   bnlcl3,bnlcl6
+     RDB                 bnlcl3
+
+    Available Queues
+
+    1 AMDCL1_20m     3 AMDCL3_20m    4 AMDCL4_20m     6 AMDCL6_20m
+    Enter queue selection 1,3,4,6, queue name or OTHER [6] ? <CR>
+
+    First you see a list of all the queues which are available. You should
+    then choose the queue depending on whether the compiler is available on
+    to the batch queue you wish to use. Notice that pascal, C and RDB
+    applications are limited to only a couple of nodes on the cluster. You
+    can choose the use you wish to use by entering the queue number, the
+    queue name, or the word OTHER. If you enter OTHER, a list of the other
+    type queues are listed. For example, if you are looking at the 20
+    minute queues and find that they are all full, you can enter OTHER and
+    a list of the regular queues is displaied.
+
+
+    **** One final note about the gamma release procedures ***
+
+    When you are done submiting your release procedure the logical name
+    d0$log will be defined in your process logical name table. You can then
+    use this logical name to reference the area where your log file will
+    end up. You can do a SHOW LOGICAL D0$LOG to see where this is, and take
+    note of it for future reference. (i.e. you may wish to log out and log
+    back in the next day at which point you have better written down the
+    area where the log file is to end up.)
+
+    You can define several logical names in your login.com file which will
+    setup defaults in the gamma release procedure. These logical names are:
+
+
+        Logical name: -->   What it should be defined as:
+
+        d0$gamma      -->   The local gamma release directory
+        d0$rmt_gamma  -->   The remote gamma release directory (be sure to
+                            include the node.)
+        d0$username   -->   The username of the account on the remote node
+                            where the gamma release is to be sent.
+        d0$class      -->   The class which you plan to use for the gamma
+                            release
+
+    I find these logical names especial useful since I always use the same
+    values during the inquiry phase of the gamma release. The following is
+    an example of how I define them in my login.com at BNL.
+
+        $ define d0$gamma $2$dua11:[xscr.adler]
+        $ define d0$rmt_gamma bnld02::user6:[adler.gamma]
+        $ define d0$username adler
+        $ define d0$class adler.gamma
+
+
+

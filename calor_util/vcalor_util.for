@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VCALOR_UTIL()
+      VCALOR_UTIL = ' CALOR_UTIL'//
+     X                   '  OFFICIAL V1.44'//
+     X                   ' 14-JUL-1997 09:34:13.42'
+      Return
+      End

@@ -1,0 +1,488 @@
+                General NTUPLE utility
+                ----------------------
+
+                Author:     B.S.Acharya
+                Created:    13-Jun-1991
+                Revised:    19-Nov-1991 Harrison B. Prosper
+                Revised:    21-Dec-1991 Harrison B. Prosper
+                Revised:    17-Jan-1992 Harrison B. Prosper
+
+
+1.  INTRODUCTION
+
+    There are a few routines that may be useful for logging data to Ntuples and
+storing data in files. The routines are
+    
+    NTUPLE_FILE_OPEN    Open a file to store one or more Ntuples
+
+    NTUPLE_BOOK         Book an Ntuple
+
+    NTUPLE_FILL         Fill an Ntuple with data
+
+    NTUPLE_GET          Get data from an Ntuple
+
+    NTUPLE_SAVE         Write the current ntuple buffer to a file.
+
+    NTUPLE_FLUSH        Write the current ntuple buffer to a file,
+                        and close the current file if all the 
+                        Ntuples associated with this file have been 
+                        written out. Delete the ntuple from memory.
+
+    NTUPLE_CLOSE        Write ALL ntuples/histograms to a file and
+                        close the file.
+
+    NTUPLE_END          Write ALL ntuples/histograms to the appropriate 
+                        file and close ALL files.
+
+    NTUPLE_GET_IDS      Get the ntuple IDs from the current HBOOK-directory
+                        in an HBOOK file.
+
+    NTUPLE_GET_INFO     Get nformation for specified ntuple.
+
+
+This utility can be used to open files to which many ntuples can be written. The
+ntuples can be  filled and  closed in any  order. Book-keeping  of files is done
+through their top-directory names (eg: CALOR,MUON, etc.). Hence no two files can
+have the  same  top-directory  name. Data,  once stored  in these  files, may be
+accessed later through  PAW. The ntuples can be  placed into sub-directories  by
+calling the routine DHDIR prior to calling the ntuple routines.
+
+    NOTE: The top-directory name is merely the name by which a particular ntuple
+          file is identified. It need not be the same as the filename.
+
+    The  HBOOK  initialization  (declaration  of common  blocks,  allocation of
+memory etc.) should be done prior to calling these routines. This entails calls
+to the routines MZEBRA(0) and INPAWC. 
+
+    A test program is appended to this note.
+
+                        *****-----*****
+<FF>
+2.  SHORT WRITE-UP
+
+1. To open an existing or a  new file:
+ 
+      SUBROUTINE NTUPLE_FILE_OPEN  (USER_ID,NEWFILE,FILENAME,
+     &                              RECORD_LENGTH,TOP_DIRECTORY,IERR)
+
+   Purpose and Methods : Select a file for logging Ntuples
+
+Inputs  : USER_ID       [I]     User ID  for GTUNIT
+          NEWFILE       [L]     TRUE if a new file is to be opened.
+          FILENAME      [C]     Filename to store Ntuple 
+          RECORD_LENGTH [I]     Record length (=8191 is suggested)
+          TOP_DIRECTORY [C]     Top_directory name of the file
+
+Outputs : IERR          [I]     Error status, 0 means NO error
+
+                    -----*-----
+
+2. To book an Ntuple:
+
+       SUBROUTINE NTUPLE_BOOK (TOP_DIRECTORY,NO_VARIABLES,CHTAGS,
+     &                         TITLE,NTUPLE_ID,IERR)
+
+   Purpose and Methods : Book Ntuple for data_logging
+
+
+Inputs  :  TOP_DIRECTORY [C*]    Top_directory name of the file 
+           NO_VARIABLES  [I]     Number of variables
+           CHTAGS        [C*]    Array containing tags (8 chars. max.)
+                                 for variables 
+           TITLE         [C]     Ntuple title
+
+Outputs : NTUPLE_ID      [I]     ID of an  Ntuple. You can set the
+                                 ID prior to calling NTUPLE_BOOK by
+                                 calling the routine
+                                 
+                                    NTUPLE_SET_ID(ID,IDSTEP)
+                                 
+                                 where ID is the required ID and IDSTEP
+                                 is the amount by which the IDs should be
+                                 incremented thereafter.    
+                             
+          IERR           [I]     Error status, 0 means NO error
+
+                    -----*-----
+
+3. To FILL an Ntuple:
+
+      SUBROUTINE NTUPLE_FILL(TOP_DIRECTORY,NTUPLE_ID,XTUPLE,IERR)
+
+    Purpose and Methods : Fill an Ntuple of given ID
+
+Inputs : TOP_DIRECTORY  [C*]    Top_directory name of the file 
+         NTUPLE_ID      [I]     ID of an  Ntuple
+         XTUPLE(*)      [C*]    Data array 
+
+Outputs : IERR          [I]     Error status, 0 means NO error
+
+Controls: none
+
+                    -----*-----
+
+4. To GET data from an Ntuple:
+
+      SUBROUTINE NTUPLE_GET(TOP_DIRECTORY,NTUPLE_ID,EVENT,XTUPLE,IERR)
+
+    Purpose and Methods : Get data from an Ntuple.
+
+Inputs : TOP_DIRECTORY  [C*]    Top_directory name of the file
+         NTUPLE_ID      [I]     ID of an  Ntuple
+         EVENT          [I]     Ntuple Event number
+        
+
+Outputs : XTUPLE(*)     [C*]    Data array 
+          IERR          [I]     Error status, 0 means NO error
+
+
+                    -----*-----
+
+5. To save the current Ntuple buffer to a file:
+
+      SUBROUTINE NTUPLE_SAVE(TOP_DIRECTORY,NTUPLE_ID,IERR)
+
+   Purpose and Methods : Write out current ntuple buffer to the file
+                         identified by "top_directory".
+
+Inputs : TOP_DIRECTORY [C*]    Top_directory name of the file 
+         NTUPLE_ID     [I]     ID of an  Ntuple
+
+Outputs :IERR          [I]     Error status, 0 means NO error
+
+Controls: none
+
+                    -----*-----
+
+6. To flush an Ntuple from memory which is not needed any more:
+
+      SUBROUTINE NTUPLE_FLUSH (TOP_DIRECTORY,NTUPLE_ID,IERR)
+
+   Purpose and Methods : Write out the last buffer of an Ntuple,
+                         identified by its ID to disk and delete the
+                         Ntuple from memory. Also  close the file if
+                         all Ntuples were written out.
+
+Inputs : TOP_DIRECTORY [C*]    Top_directory name of the file
+         NTUPLE_ID     [I]     ID of an  Ntuple
+
+Outputs :IERR          [I]     Error status, 0 means NO error
+
+Controls: none
+                    -----*-----
+
+7. To write all Ntuples/Histograms to a file and close the file.
+
+      SUBROUTINE NTUPLE_CLOSE(TOP_DIRECTORY,IERR)
+
+   Purpose and Methods : Write out ALL ntuples/histograms and close the file.
+
+Inputs : TOP_DIRECTORY [C*]    Top_directory name of the file
+
+Outputs :IERR          [I]     Error status, 0 means NO error
+
+Controls: none
+
+                    -----*-----
+
+8. To Close all files:
+
+      SUBROUTINE NTUPLE_END 
+
+   Purpose and Methods : End the program. Write out the last buffer of
+                         all remaining Ntuples, and Close all
+                         remaining Direct Access files. 
+
+Inputs  : none
+Outputs : none 
+Controls: none
+
+                    -----*-----
+
+9. Get ntuple IDs
+
+      SUBROUTINE NTUPLE_GET_IDS(MAXID,NID,ID)
+  
+     Purpose and Methods : Return ntuple ids in current RZ directory.
+     Uses some code from HBOOK4.
+  
+     Inputs  : MAXID  [I] Maximum number of IDs to return
+     Outputs : NID    [I] Number of IDs returned
+               ID(*)  [I] Ids
+
+                    -----*-----
+
+10. Get ntuple information
+
+      SUBROUTINE NTUPLE_GET_INFO(IDD,MAXDIM,TITLE,RZPATH,
+     &                           NENTRY,NDIM,TAG,XMIN,XMAX,STATUS)
+  
+     Purpose and Methods : Return info for given ntuple.
+     Uses some code from HBOOK4.
+  
+     Inputs  : IDD      [I]   Ntuple ID
+               MAXDIM   [I]   Maximum number of dimensions of ntuple
+               
+     Outputs : TITLE    [C*]  Title of ntuple
+               DIRPATH  [C*]  Directory-path in which ntuple resides
+               NENTRY   [I]   Number of entries
+               NDIM     [I]   Dimension of ntuple
+               TAG(*)   [C*8] NDIM Tags
+               XMIN(*)  [R]   NDIM Minimum value of field
+               XMAX(*)  [R]   NDIM Maximum value of field
+               STATUS   [I]   0 - Ok
+
+                    -----*-----
+
+<FF>
+      PROGRAM NTUPLE_TEST
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :A sample program to use Ntuple routines
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  24-MAY-1991   B.S.Acharya
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INTEGER NO_CHANNELS,NO_DATA,NO_VARIABLES
+      INTEGER NTC(4),NTD(4),I,L,II,JJ,K,M,INT
+      INTEGER USER_ID,NC(4),ND(4),OPTION
+      INTEGER IERR,LABEL,LAB(4)
+
+      REAL XDATA(15),TIME_ZERO,TIME
+
+      CHARACTER*4 CHANNEL_LABELS(5),DATA_LABELS(3),DET(3)
+      CHARACTER*8 CHTAGS(15)
+      CHARACTER*32 FILENAME,DIR
+      CHARACTER*32 TITLE
+      LOGICAL NEWFILE
+C----------------------------------------------------------------------
+      DATA DATA_LABELS/'_VOL','_CUR','_TMP'/
+      DATA CHANNEL_LABELS/'ONE_','TWO_',
+     &     'THRE','FOUR','FIVE'/
+      DATA DET/'CAL','MUON','TRD'/
+      DATA NTC/5,2,4,3/ ,NTD/3,1,2,3/, USER_ID/111/
+C--------------------------------------------------------------------
+
+      CALL NT_INITIALIZE              ! initialize HBOOK
+
+      TIME_ZERO = SECNDS(0.0)
+C
+C--- open newfiles -----
+C
+      DO II=1,3
+        NEWFILE=.TRUE.
+        FILENAME=DET(II)//'_NTUPLE_RZ_FILE.DAT'
+        CALL NTUPLE_FILE_OPEN(USER_ID,NEWFILE,FILENAME,
+     &                        8191,DET(II),IERR)
+        CALL HCDIR(DIR,'R')
+        PRINT *,II,FILENAME,DIR
+      ENDDO
+C
+C ****  Loop over files
+C
+      DO II=1,3
+C
+C ****  Book 4 ntuples/file
+C
+        DO I = 1,4          
+          NO_CHANNELS=NTC(I)
+          NO_DATA = NTD(I)
+          TITLE=CHANNEL_LABELS(I)//'--HV_DATA_LOGGINGS'
+          CALL DATA_TAGS (
+     &        NO_CHANNELS,CHANNEL_LABELS,
+     &        NO_DATA,DATA_LABELS,CHTAGS )
+
+          NO_VARIABLES = NO_CHANNELS*NO_DATA
+
+          CALL NTUPLE_BOOK(DET(II),NO_VARIABLES,       !Book Ntuple
+     &                     CHTAGS,TITLE,LABEL,IERR)
+
+          IF(IERR.GT.0)THEN
+            PRINT *,' ERROR !! IERR = ',IERR
+          ENDIF
+          LAB(I)=LABEL
+          NC(I)=NO_CHANNELS
+          ND(I)=NO_DATA
+        ENDDO
+C
+C --- FILL THE DATA ARRAY ----
+C
+        DO I=4,1,-1                     ! Fill all Ntuples in any order
+          DO L=1,500
+            CALL BAG(I,NC(I),ND(I),TIME_ZERO,XDATA)
+            CALL NTUPLE_FILL(DET(II),LAB(I),XDATA,IERR)
+          ENDDO
+        ENDDO
+
+        DO I=1,20                       ! Do some more filling
+          JJ=RAN(II)*4+1          ! by picking Ntuples at ramdom
+          IF(JJ.GT.4)JJ=4
+          IF(JJ.LT.1)JJ=1
+          DO L=1,50
+            CALL BAG(JJ,NC(JJ),ND(JJ),TIME_ZERO,XDATA)
+            CALL NTUPLE_FILL(DET(II),LAB(JJ),XDATA,IERR)
+          ENDDO
+        ENDDO
+C
+C- Start writing some Ntuples to disk and continue to fill others
+C
+        CALL NTUPLE_FLUSH(DET(II),LAB(3),IERR) ! write an Ntuple
+C
+C A call to Ntuple_flush will write the last buffer of current Ntuple to
+C disk and delete an Ntuple from memory. (In this example, 3rd Ntuple
+C is written to disk and deleted while the other 3 Ntuples still remain
+C
+        IF(IERR.GT.0)THEN
+          PRINT *,' ERROR ** IERR =',IERR
+        ENDIF
+        JJ=1
+        CALL BAG(JJ,NC(JJ),ND(JJ),TIME_ZERO,XDATA)
+        CALL NTUPLE_FILL(DET(II),LAB(JJ),XDATA,IERR)    !    Fill an Ntuple
+        JJ=4
+        CALL BAG(JJ,NC(JJ),ND(JJ),TIME_ZERO,XDATA)
+        CALL NTUPLE_FILL(DET(II),LAB(JJ),XDATA,IERR)    !   Fill another Ntuple
+        CALL NTUPLE_FLUSH(DET(II),LAB(2),IERR) ! Write one to disk
+        IF(IERR.GT.0)THEN
+          PRINT *,' ERROR ** IERR =',IERR
+        ENDIF
+C
+C (In this example, 2nd Ntuple is written to disk and deleted while the
+C  other 2 Ntuples still remain
+C
+        JJ=4
+        CALL BAG(JJ,NC(JJ),ND(JJ),TIME_ZERO,XDATA)
+        CALL NTUPLE_FILL(DET(II),LAB(JJ),XDATA,IERR) ! fill one Ntuple
+        CALL BAG(JJ,NC(JJ),ND(JJ),TIME_ZERO,XDATA)
+        CALL NTUPLE_FILL(DET(II),LAB(JJ),XDATA,IERR) ! fill one ntuple
+        CALL NTUPLE_FLUSH(DET(II),LAB(4),IERR)       ! write one to disk
+        IF(IERR.GT.0)THEN
+          PRINT *,' ERROR ** IERR =',IERR
+        ENDIF
+C
+C (In this example, 4th Ntuple is written to disk and deleted while one
+C  more Ntuple still remain
+C
+        CALL NTUPLE_FLUSH(DET(II),LAB(1),IERR)       !write one to disk
+        IF(IERR.GT.0)THEN
+          PRINT *,' ERROR ** IERR =',IERR
+        ENDIF
+C
+C-- at this stage all booked Ntuples are already written out to disk and these
+C  Ntuples are deleted from memory. The last call to NTUPLE_FLUSH (the one
+C above) has closed the file. So a call to NTUPLE_END does nothing.(If some
+C of the Ntuples were not closed then a single call to NTUPLE_END would write
+C out all remaining Ntuples to disk and close the file).
+C
+        CALL NTUPLE_END      ! in this example, this call does nothing
+      ENDDO
+C
+C-- at this stage all booked Ntuples are already written out to disk and all
+C  files are closed by previous calls to NTUPLE_FLUSH (or to NTUPLE_END )
+C Hence a call to NTUPLE_END does nothing.(If some of the files were not
+C closed then a single call to NTUPLE_END would write  out all remaining
+C Ntuples to disk and close all the remaining the files).
+C
+      CALL NTUPLE_END      !in this example this call does nothing
+      END
+
+      SUBROUTINE NT_INITIALIZE
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : initialise  HBOOK
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  27-MAY-1991   B.S.Acharya
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      CALL MZEBRA(0)
+      CALL INPAWC
+C
+  999 RETURN
+      END
+
+      SUBROUTINE DATA_TAGS(NO_CHANNELS,CHANNEL_LABELS,
+     &        NO_DATA,DATA_LABELS,CHTAGS)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : load data tags into tags array
+C-
+C-   Inputs  :   NO_CHANNELS              !total number of channels
+C-               CHANNEL_LABELS           !channel names
+C-               NO_DATA                  !number of data per channel
+C-               DATA_LABELS              !data names
+C-
+C-   Outputs :   CHTAGS                   !tags for data
+C-   Controls:
+C-
+C-   Created  27-MAY-1991   B.S.Acharya
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+
+      CHARACTER*(*) CHANNEL_LABELS(*),DATA_LABELS(*)
+      CHARACTER*(*) CHTAGS(*)
+
+      INTEGER NO_CHANNELS,NO_DATA
+      INTEGER I,J,K
+C----------------------------------------------------------------------
+
+C
+C --- FILL THE TAGS ARRAY ----
+C
+      K=0
+      DO I = 1,NO_CHANNELS
+        DO J = 1,NO_DATA
+          K=K+1
+          CHTAGS(K)=CHANNEL_LABELS(I)//'_'//DATA_LABELS(J)
+        ENDDO
+      ENDDO
+C
+  999 RETURN
+      END
+
+      SUBROUTINE BAG(KAKA,NO_CHANNELS,NO_DATA,TIME_ZERO,XDATA)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Generates data to fill DATA array
+C-
+C-   Inputs  : KAKA,NO_CHANNELS,NO_DATA,TIME_ZERO
+C-   Outputs : XDATA
+C-   Controls:
+C-
+C-   Created  27-MAY-1991   B.S.Acharya
+C-
+C----------------------------------------------------------------------
+
+      IMPLICIT NONE
+      INTEGER NO_CHANNELS,NO_DATA
+      INTEGER II,JJ,K,L,M,KAKA,INT
+      REAL XDATA(*),TIME_ZERO,TIME
+
+      K=0
+      TIME = (SECNDS(0.0)-TIME_ZERO)*1000.0     ! m sec since start
+      DO II = 1,NO_CHANNELS
+        DO JJ = 1,NO_DATA
+          K=K+1
+          M=K.AND.1
+          IF(M.EQ.1)THEN
+            XDATA(K)=SIN(RAN(INT)*3.14)
+          ELSE
+            XDATA(K)=COS(RAN(INT)*3.14)
+          ENDIF
+          IF(K.EQ.1)XDATA(K)=KAKA
+          IF(K.EQ.2)XDATA(K)=TIME
+          IF(K.EQ.3)XDATA(K)=COS(TIME*3.14/250.0)
+          IF(K.EQ.4)XDATA(K)=SIN(TIME*3.14/250.0)
+        ENDDO
+      ENDDO
+      END

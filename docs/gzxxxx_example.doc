@@ -1,0 +1,76 @@
+
+Example 1:
+
+      FUNCTION GZxxxx()
+C
+C--------------------------------------------------------------------
+C-
+C-    PURPOSE: Example of a GZxxxx function using a link area
+C-             link area must have Lxxxx pointer
+C-
+C-   Created 30-FEB-1888   Jack-the-Ripper
+C-
+C---------------------------------------------------------------------
+C
+      IMPLICIT NONE
+      INTEGER GZxxxx
+C
+C--   ZEBRA
+      INCLUDE 'D0$INC:ZEBCOM.INC/LIST'
+      INCLUDE 'D0$INC:link_area.INC'
+      INCLUDE 'D0$LINKS:IZxxxx.LINK/LIST'
+      INCLUDE 'D0$PARAMS:ISTAT_DROP.PARAMS'
+      CHARACTER*4 PATH,USED_PATH
+      SAVE USED_PATH
+      DATA USED_PATH/' '/
+C
+C--   INTERNAL VARIABLES
+      INTEGER GZsup
+C
+      GZxxxx=0
+      IF(Lxxxx.EQ.0) THEN  ! set permanent link
+        Lsup=GZsup()
+        IF(Lsup.LE.0) GOTO 999
+        Lxxxx=LQ(Lsup-IZxxxx)
+        CALL PATHGT(USED_PATH)
+C
+      ELSE                 
+        CALL PATHGT(PATH)
+C   reset if not previous path or status bit indicates bank dropped
+        IF(PATH.NE.USED_PATH.OR.IAND(IQ(Lxxxx),ISTAT_DROP).NE.0) THEN
+          Lxxxx=0
+          USED_PATH=PATH
+          Lsup=GZsup()
+          IF(Lsup.LE.0) GOTO 999
+          Lxxxx=LQ(Lsup-IZxxxx)
+        ENDIF
+      ENDIF
+      GZxxxx=Lxxxx
+C
+999   RETURN
+      END
+
+Example 2:
+
+      FUNCTION GZxxxx
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C-     Example of a GZxxxx function not using a link area
+C-
+C-   Created 30-FEB-1888   Jack-the-Ripper
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INTEGER GZxxxx
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$LINKS:IZxxxx.LINK'
+      INTEGER GZsup,Lsup
+C----------------------------------------------------------------------
+C
+      Lsup=GZsup()
+      GZxxxx=0
+      IF(Lsup.NE.0)  GZxxxx=LQ(Lsup-IZxxxx)
+C
+      RETURN
+      END

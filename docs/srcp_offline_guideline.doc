@@ -1,0 +1,134 @@
+                                                            H.Prosper
+                                                            S.Protopopescu
+                                                            R.Raja
+                                                            D.Zieminska
+                                                            7-Apr-1989
+
+
+           Guidelines for usage and maintenance of SRCP files
+                      in offline  programs
+
+The SRCP system of handling parameters is being adopted for general
+use for all D0 Offline packages, as agreed to at the Florida Workshop.
+It is appropriate to agree upon a set of guidelines so that maintenance
+and handling of the SRCP files does not become unduly complex.
+The following is a set of guidelines which we have been able to arrive at.
+Particular attention has been paid to the needs of the Program builder
+and the fact that some of the SRCP files may be Run dependent.
+
+1)All parameters controlling the execution of a program (Logical values,
+Integer numbers and floating point numbers) should be input from
+SRCP files. There should not be data statements in programs as in,
+
+                 DATA ET_THRESHOLD/3.0/
+
+or 
+
+                 DATA DO_WZ/.true./
+
+ The same applies to Conditional statements of the form,
+
+        IF(ELECTRON_MOMENTUM .gt.15.0)Then
+
+The numerical parameters in all these statements should be moved to SRCP
+input files. The only type of DATA statement which we currently see being
+allowed is
+
+              DATA FIRST/.true/
+
+              IF(FIRST)THEN
+              FIRST = .false.
+              ENDIF
+
+which is commonly used to control local initialization in subroutines.
+
+2)Every PACKAGE (in the program builder sense) should OPEN 
+a logical file with the name XXX_RCP where XXX is the package name.
+For example the package CAL (Calorimeter Offline reconstruction package)
+will open a logical file CAL_SRCP. The OPEN should of course be done
+using the subroutine D0OPEN.
+
+3)The program builder will produce a command file XXX_SETUP.COM (where
+XXX is the task name)
+which will contain statements of the form
+
+$Define CAL_SRCP  d0$cal:calorimeter.RCP.
+
+The Physical filename D0$CAL:calorimeter.RCP is made known to the
+Program builder. The Physical SRCP ascii files will have the extension .RCP
+and will be kept in the same disk area as the release libraries. There will also
+be a file provided by the program builder which will inturn invoke
+all the various XXX_SETUP.COM .
+
+4)Each package will access two SRCP files. One is the default set of parameters
+and will be referenced by the mechanism above. WHile debugging, there is also 
+the need to impose a small set of changes to the default set. This will be
+done by accessing a file using the logical
+
+     XXX_RCPE    (E for EDIT)
+
+The program builder does not know anything about the EDIT stream. If the
+edit file is not specified, the Package should continue execution by just
+using the default parameters.
+
+5)During the debug stage, the SRCP files will be maintained using CMS
+in much the same way as .FOR files.
+
+6)While going into production, we anticipate small run dependent corrections
+to the default set of parameters. For this reason, the SRCP files will
+be stored in DBL3 as ASCII files. The Default set will not be Run dependent.
+The Edit set should be made run dependent in much the same way as other
+constants such as Calibration.
+
+7)In the SRCP stream, one specifies the BANK name to which the file
+should be sent. In the package, upon re-entry, the user should Select the
+SRCP bank before trying to access SRCP data. The SRCP bank name
+should be the same as the Logical file name.
+
+For instance, the Calorimeter SRCP bank should be called CAL_SRCP
+and the edit bank CAL_SRCPE. This is specified in the SRCP control
+statement /START. (See below)
+
+
+8)All other data file names should be read in using SRCP and not hardwired
+into the program.
+
+============================================================================
+Example
+==========================================================================
+\START          CAL_SRCP     ! Name of Calorimeter SRCP default bank
+\SIZE 200 200
+!------------------------------------------------------------------------------
+!   Name:       CAL_CONTROL.DAT
+!   Purpose:    Control file for Calorimeter Offline Analysis
+!   Created:    27-FEB-1989     Harrison B. Prosper
+!   Version:    V1.0
+!------------------------------------------------------------------------------
+!   General parameters used in CALOFF
+!------------------------------------------------------------------------------
+ ZEBRA/IOS_CODE         0       ! ZEBRA error code returned by EVTIN
+ ZEBRA/RUN_DIVISION     20      ! Run division number in /ZEBCOM/
+!------------------------------------------------------------------------------
+!   Format of structure DATA_FILES
+!------------------------------------------------------------------------------
+ DATA_FILES/NUMBER      1       ! Pointer to Number of data files to process
+ DATA_FILES/EVENTS      1       ! Pointer to Number of events to process
+ DATA_FILES/FILENAME    2       ! Pointer to name of Data file (32-characters)
+ DATA_FILES/CALIB_FILE  10      ! Pointer to name of Data file (32-characters)
+ DATA_FILES/WORDS       17      ! Number of words/data_files sub-structure
+!------------------------------------------------------------------------------
+!   DATA_FILES specifies the data files to be read
+!------------------------------------------------------------------------------
+ \ARRAY DATA_FILES
+    1                           ! Number of files to process
+    0                           ! Number of events to process/file
+    'D0$data:r001.ZRD'          ! Name of Data file
+    'NOFILE'                    ! Name of Calibration file
+ \END
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY name of TOP Calorimeter directory
+!------------------------------------------------------------------------------
+ \ARRAY HBOOK_CAL_TOP_DIR
+      'CALORIMETER'
+ \END
+ \STOP

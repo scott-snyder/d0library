@@ -1,0 +1,204 @@
+
+                        Electron Selection Package
+
+    COMPUTE_EM_QUALITY :
+        In the current Beta release of Calor_off the electron selection package
+    COMPUTE_EM_QUALITY is available. This package computes the "QUALITY"
+    of all the electrons/photons in the event and stores it in form of a bit
+    mask in the corresponding PELC/PPHO banks. To determine the quality of the
+    electron it uses the information stored in the DST. To use it just include
+    this package BEFORE your analysis package. 
+
+    Inclusion of this package assumes that the user wants to determine the 
+    quality flag using the new value of the cuts from CLEANEM.RCP and overwrites
+    any previously saved status words. If one does not wish to overwrite any
+    previous information, then the user routine can directly access the 
+    status word by using the routine CLEANEM.
+
+    Note that for versions 1 and 2 of PELC/PPHO there is no default status word
+    saved on the DST whereas for version 3 onwards the status word will be
+    available in word 30 of PELC/PPHO. 
+
+
+    
+    CHECK_EM_QUALITY :
+        This routine can be used to  check the quality of the electron/photon
+    cluster. Given the link to the bank and a user defined "quality mask",
+    it tests the status word already saved in PELC/PPHO using the
+    "quality mask/usermask". If none of the bits being tested by the 
+    usermask is set in the status word, it flags the candidate as "good" 
+    by returning true for the last argument - OK.
+
+      SUBROUTINE CHECK_EM_QUALITY(LCLUS,USERMASK,OK)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : uses USERMASK to check the quality of
+C-                         electron/photon cluster
+C-
+C-   Inputs  : LCLUS : Link to electron, photon cluster
+C-             USERMASK = user define electron/photon quality mask
+C-
+C-   Outputs : OK = .true. if electron satifies USERMASK
+
+
+
+
+
+    CLEANEM :
+        The electron selection package COMPUTE_EM_QUALITY uses this subroutine
+    to determine the status word. The current version of CLEANEM has several new
+    features and the bit assignment in the status word has changed. The cut
+    values are determined using CLEANEM.RCP.
+
+    There are four entry points available in CLEANEM which return information
+    for the individual electron/photon cluster on some of the variables used 
+    in computing the status flag. These are
+
+        CLEANEM_CQUANS(NCVAR,CQUAN) 
+         can be used to access information on the variables which primarily use
+         the calorimeter information to define the electron quality for a given
+         cluster. NCVAR is the number of variables for which information is
+         available and their values are returned in the vector CQUAN(NCVAR).
+        CLEANEM_CQUAN_NAMES(NCVAR,CQUAN_NAMES) 
+         returns the name tags of these qualities in the vector
+         CQUAN_NAMES(NCVAR). This can be called once during intialization.
+
+        CLEANEM_TQUANS(NCVAR,TQUAN)
+         can be used to access information on the variables which are based 
+         on matching of tracking information with the calorimeter cluster
+         to define the electron quality for a given cluster.
+         NTVAR is the number of variables for which information is
+         available and their values are returned in the vector TQUAN(NTVAR).
+        CLEANEM_TQUAN_NAMES(NTVAR,TQUAN_NAMES) 
+         supplies the name tags of these qualities in the vector
+         TQUAN_NAMES(NTVAR). This can be called once during intialization.
+
+    Here is a brief explanation of the variables used in CLEANEM to 
+    determine the quality flag word. 
+
+    - Coarse/Fine Hmatrix Chiquared :
+       At the moment this cut is eta dependent. The Coarse chisq cut is 98%
+       efficient while the tighter Fine chisquared cut is set at 90% electron
+       efficiency.
+
+    - CC em flag
+       This bit is set for electron/photons in the CC.
+
+    - cluster EM fraction
+       cuts on fractional energy deposited by the cluster in the EM calorimeter.
+
+    - core energy cut
+       This is the cut on the fractional energy in the Core Cone (0.2)
+       which is contained outside the EM cluster.
+
+    - transverse dispersion cut
+       RMS width of the cluster in cartesian coordinates.
+
+    - sigma5-sigma3
+        A comparison of reconstructed electron with Level2 electrons in the 
+      CC can be done by using this tranverse electron shape variable.
+
+    - Isolation cut Energy (Cone 1,2)
+        Requires isolation of the EM cluster by determining  whether 
+      there is a significant fraction of energy in a cone of a given radius 
+      (set by ISOL_CONE_SIZE) outside the core cone of radius 0.2. 
+       Two isolation cones of radii 0.4 and  0.6 are implemented. 
+        
+            fisol(1) = (E(cone(r1)) - E(cone(0.2))) / E(cone(0.2))
+
+    - Isolation cut ET (Cone 1/2)
+        same as above but use Et instead of E.
+
+    - Close to crack flag
+       determines whether the electron is close to a phi crack in CC
+
+    - Number of cells below minimum
+        cut on the minimum number of cells asscociated with the cluster 
+      in order of eliminate clusters due to noisy calorimeter cells.
+
+    - L2/RECO match
+        bit is set if the reconstructed electron/photon has also been found by
+      the Level2 electron algorithm. This match does not make any requirements
+      on the Et of the Level2 objects.
+
+    - Distance 1 cut (Rdeltaphi for CC and EC)
+        cut on maximum distance perpendicular to the z-axis  (Rdeltaphi) between
+      the cluster and Ztrack
+        
+    - Distance 2 cut (Delta Z for CC delta R for EC)
+        cut on maximum distance along the z-direction (Delta Z) for CC and 
+      radially (deltaR) for EC between the cluster and Ztrack
+
+    - Shower centroid/track match significance
+        cut on a significance paramter. It is computed by adding the two above 
+      distances, normalized to their resolution in CC or EC, in quadrature.
+      For example in CC:
+
+        significance=sqrt((Rdeltaphi/resolution(Rdeltaphi)**2 +
+                          (delta Z/resolution of delta Z)**2)
+
+    - Shower centroid/track match significance of second track
+        Set if any another track in the road (excluding the primary track) 
+      passes the tack match significance cut.
+
+    - number of tracks in a cone of dR
+        Cut on the maximum number of Ztracks allowed in a cone of size dR
+        around the electron cluster.
+
+    - CDC/FDC/VTX ionization (MIP)
+       is used to reject conversion electrons and is a double sided cut.
+
+    - TRD information available 
+        is set in case of unavailability of information due to TRD problems.
+
+    - TRD truncated mean
+
+    - Vertex Transverse impact parameter (in x,y)
+
+    - Vertex Z impact parameter (in Z)
+
+
+      SUBROUTINE CLEANEM(LCLUS,TRK,OK,STATUS)
+C-   Inputs  :  LCLUS  (I) : either LPELC (link to PELC bank) or
+C-                             LPPHO (link to PPHO bank)
+C-              TRK    (I) : 0 do not analyze tracking information
+C-                           1 analyze tracking information
+C-
+C-   Outputs :  OK     (L) :  .TRUE. if passed all USER cuts
+C-                            ALWAYS TRUE if no user cuts specified
+C-              STATUS (I) :  bits (0/1)indicating which cuts passed/failed
+C-
+
+
+C-              STATUS BIT   0 : coarse Hmatrix chisquared
+C-              STATUS BIT   1 : fine H matrix chisquared
+C-              STATUS BIT   2 : CC em flag
+C-              STATUS BIT   3 : cluster EM fraction
+C-              STATUS BIT   4 : core energy cut
+C-              STATUS BIT   5 : transverse dispersion cut
+C-              STATUS BIT   6 : sigma5-sigma3
+C-              STATUS BIT   7 : Isolation cut Energy (Cone 1)
+C-              STATUS BIT   8 : Isolation cut Energy (Cone 2)
+C-              STATUS BIT   9 : Isolation cut ET (Cone 1)
+C-              STATUS BIT  10 : Isolation cut ET (Cone 2)
+C-              STATUS BIT  11 : Close to crack flag
+C-              STATUS BIT  12 : Number of cells below minimum
+C-              STATUS BIT  13 : L2/RECO match
+C-              STATUS BIT  14 : Spare
+C-              STATUS BIT  15 : Spare
+C-              STATUS BIT  16 : Distance 1 cut (Rdeltaphi for CC and EC)
+C-              STATUS BIT  17 : Distance 2 cut (Delta Z for CC delta R for EC
+C-              STATUS BIT  18 : Shower centroid/track match significance
+C-              STATUS BIT  19 : Set if another track in the road passes
+C-                               track match significance criterion
+C-              STATUS BIT  20 : number of tracks in a cone of dR
+C-              STATUS BIT  21 : spare
+C-              STATUS BIT  22 : CDC ionization (MIP)
+C-              STATUS BIT  23 : FDC ionization (MIP)
+C-              STATUS BIT  24 : VTX chamber ionization (MIP)
+C-              STATUS BIT  25 : TRD information available (=1 if problem)
+C-              STATUS BIT  26 : TRD truncated mean cut
+C-              STATUS BIT  27 : spare
+C-              STATUS BIT  28 : Vertex Transverse impact parameter (in x,y)
+C-              STATUS BIT  29 : Vertex Z impact parameter (in Z)
+

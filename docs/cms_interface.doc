@@ -1,0 +1,851 @@
+
+                         --- CMS Interface Primer ---
+
+
+    Intro: This manual documents how to use the CMSINTERFACE and give various
+    operational details needed for the habitual user.
+
+    Preface) This document assume the reader has a working knowledge of
+    DEC's code management system CMS. There are many CMS terms used
+    through out this document which will only confuse a reader who does not
+    know anything about CMS. Thus, my suggestion is, before you continue,
+    pick up a CMS manual, and read it first.
+
+    1) Why do we have a CMS interface.
+
+        The need of having a CMS interface is 3 fold. First of all, the
+    structure of the d0library necessitates a method of imposing some type
+    of software management on the software development effort for D0.
+    Since the D0library is composed of many separate libraries, there needs
+    to be a method of maintaining uniqueness among all the subroutine,
+    function, and common block names. The CMS interface provides this
+    functionality. Since the nature of the computer industry is a free for
+    all market, one cannot predict what kind of computer one will be using
+    to execute the programs which are generated out of the d0library. Thus
+    a coding standard needs to be imposed which allows easier porting of code
+    from one computer/operating system to another. The CMS interface
+    provides this utility. Finally, there is a complicated method of
+    storing the source code for the D0library in CMS. The exact method of
+    storing the source code files in CMS is complicated by the interaction
+    of the release procedures with CMS. Thus it is convenient to hide this
+    from the user. The CMS minimize this entagelment between CMS and the
+    user.
+
+    2) When to use the CMS interface.
+
+        Any time you want to
+
+           - CREATE new elements.
+           - REPLACE reserved elements.
+           - OBSOLETE old elements.
+           - MOVE elements from one library to another.
+
+        you should be using the CMS interface. To provide some kind of
+    symmetry among the operations done by the CMS interface, one can also
+    reserve elements. Just to be clear, one does not have to use the CMS
+    interface to reserve elements but the functionality is still provided.
+
+    3) How to use the CMS interface.
+
+        There are two ways which one can use the CMS interface. One is
+    using it as a stand alone program. In this mode, you will be entering
+    your commands through the popular COMPACK user interface menu system.
+    The other method is to issue the CMS interface command as if they were
+    DCL commands. Both of these user modes will be discussed in this
+    manual.
+
+    3.1) Where to use the CMS interface.
+
+         Currently, the only place where you can use the CMS interface in
+         on nodes BNLCL6:: and BNLD02::. At some point in the future, you
+         may be able to use it on the D0 clusters located at Fermi Lab.
+
+    4) Using the CMS interfaces as a alone program.
+
+        To start the CMS interface you should type the following command at
+    the DCL prompt.
+
+$ cmsinterface
+
+    or 
+
+$ cmsint
+
+    for short.
+
+        This command will startup the CMS interface and place the compack
+    interface in full screen mode. The first thing the program will ask for
+    is a CMS library which you wish to work with. (i.e. you will get the
+    following prompt:)
+
+-Enter library name.
+-Defalut => DISPLAY5
+
+ Library name:
+
+    As the prompt indicates, there will be a default answer if you just hit
+    return. The default is taken from the logical name CMS$LIB. What
+    ever library you specify at this prompt will be used to redefine the
+    logical name CMS$LIB. (As you know, the command CMS SET LIB 'directory'
+    cms command will set the logical name CMS$LIB, thus if you use cms to
+    adjust your library then, if you wish to use the CMS interface, the
+    default should be just the library you used with the previous cms
+    commands.)
+
+        After you have specified what library you will be working with, you
+    will get the following set of commands. (The following is the output of
+    CMS interface when using the COMPACK /NOSMG mode.)
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >menu
+
+        1: SELECT LIBRARY                2: CREATE ELEMENT
+        3: RESERVE ELEMENT               4: REPLACE ELEMENT
+        5: MOVE ELEMENT                  6: OBSOLETE ELEMENT
+        7: REDEFINE INC LOGICALS
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >
+
+        The rest of this document will be dedicated to discussing each
+    command in detail.
+
+    -- 1: SELECT LIBRARY --
+
+        The SELECT LIBRARY command is used to select which library you wish
+    to work with. Since you cannot issue any other command without having
+    selected a library to work with, the CMS interface executes this
+    command when you start it up.
+
+    -- 2: CREATE ELEMENT --
+
+        The CREATE ELEMENT command is used when one wishes to add a new
+    element to your selected library. The CMS interface will then ask for
+    the following input from you: (The following is some sample output.)
+
+Select: {command, #, HELP (#), MENU, EXIT} >2
+-Creating new element(s)-
+-Enter list of elements to be created.
+ Default-> *.*
+
+ Enter element list:sub10.for
+-Enter list of elements to exclude-
+
+ Exclude list:
+-Enter group into which elements will be inserted-
+
+ Group:source
+-Enter directory where candiate files will be located-
+   The default is your current directory-
+
+ Enter directory:
+-Enter CMS remark-
+
+ Remark:This is a CMS remark
+-Building element list from file spec: []SUB10.FOR-
+%CMS-W-NOELE, no elements found
+-Starting code verification-
+-# of FORTRAN source elements:      1
+-# of PASCAL source elements:      0
+-# of C source elements:      0
+-# of INC files:      0
+-# of LINK files:      0
+-# of PARAM files:      0
+-# of RCP files:      0
+-# of Other files:      0
+-Checking fortran standards.
+  ->SUB10.FOR
+%D0FLAVOR-S-FORTRAN, The FORTRAN compiler will now check the standards
+%D0CHECK-I-COMPILE, Compiling SUB10.CHECK
+%D0CHECK-I-CHECKING, Checking compiler listing SUB10.LIS
+%D0CHECK-S-CONFORMS, SUB10.CHECK Conforms TO D0 standards
+
+-Inserting element SUB10.FOR into database.
+-Inserting SUBROUTINE SUB10 into database
+%CMS-S-CREATED, element D0$CMS:[SAMPLE]SUB10.FOR created
+%CMS-S-INSERTED, element D0$CMS:[SAMPLE]SUB10.FOR inserted into group D0$CMS:[SAMPLE]SOURCE
+
+        If you notice from the above output, the CREATE ELEMENT command
+    will ask for 5 things.
+
+        1) The list of elements you wish to create, for further detail on
+           how to specify this data please refer to the ELEMENT LIST SYNTAX
+           SPECIFICATION described later in this document. The default
+           is all files found in the user specified input directory.
+
+        2) The list of elements you wish to exclude from the first list.
+           This list has the same syntax as that used in item 1) above.
+
+        3) The CMS group into which the element will be inserted. This
+           group should be one of the first level groups associated with
+           the group RELEASE. This item does not have a default. If it is
+           not specified, then you will be returned to the main CMS
+           interface menu. Also, you may specify one and only one group.
+
+        4) The directory where elements are to be found. The default is
+           your current default directory.
+
+        5) A remark which will be given as the creation remark for all the
+           selected elements to be created in CMS.
+
+    Once you finish entering in all this data, the CMS interface does the
+    following. First it builds a list of files from the list of element and
+    list of excluded elements you give it and it looks for these elements
+    in the input directory you specified. Then it sorts out these element
+    into 8 categories.
+
+        1) all .FOR files, assumed to be Fortran source code.
+        2) all .PAS files, assumed to be Pascal source code.
+        3) all .C files, assumed to be C source code.
+        4) all .INC files, assumed to contain Fortran common block
+           statments.
+        5) all .LINK files, assumed to be ZEBRA link files.
+        6) all .PARAMS and .DEF files, assumed to fortran parameter files.
+        7) all. RCP files, assumed to be RCP data specification files.
+        8) Every thing else.
+
+    Currently there is special processing done on the .FOR, .INC, .LINKS,
+    .PARAMS, and .RCP files. Basically this translates to special
+    processing done on all offline code since all offline code is written
+    in fortran and uses several include files with the extensions of .INC,
+    .LINKS, .PARAMS, and .DEF. Also since use is made of the RCP facility in
+    the offline code, some special processing is done to the .RCP files.
+    I what I term as special processing is any CMS or Database processing
+    done to a file other than just creating the file in CMS and inserting
+    the file into the destination group. For more information on the
+    processing done to offline code, please refer to the OFFLINE ELEMENT
+    PROCESSING section.
+
+    After the sorting has been done, a summary of the element sort is
+    printed out to the screen. In my example, I only entered in 1 .FOR
+    element to be create, this was SUB10.FOR. The element sort summary
+    lists as having found 1 .FOR file and no other files.
+
+    With the sorting on the files done, it now proceeds to do all of the
+    OFFLINE processing. This includes checking the element citizenship,
+    checking the fortran coding standards using D0FLAVOR/CHECK utility and
+    other offline coding criteria. For a full detail on these standards,
+    please refer to the sections titled OFFLINE CODING STANDARS and 
+    CMS INTERFACE ERROR MESSAGES.
+
+    If an element does not pass either the citizenship test or the offline
+    coding standards, the element is eliminated from the element creation
+    list and nothing else is done with it. Otherwise the element is then
+    created in the selected CMS library and then inserted into your
+    specified group.
+
+
+    -- 3: RESERVE ELEMENT --
+
+        The command RESERVE ELEMENT acts just like the cms command
+
+$ cms reserve 'element list or group list' "CMS remark"
+
+        Since it does not do anything besides just fetch the elements from
+    your select library I will say no more.
+
+    -- 4: REPLACE ELEMENT --
+
+        The REPLACE ELEMENT command is used to replace all reserved
+    elements in OFFLINE libraries. This command will do all the necessary
+    code checking and citizenship checking on the elements which are asked
+    to be replaced.
+
+        The following is some sample output (taken while running the CMS
+    interface in /NOSMG mode) during a replacement operation. I will add some
+    comments after this sample output.
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >menu
+
+        1: SELECT LIBRARY                2: CREATE ELEMENT
+        3: RESERVE ELEMENT               4: REPLACE ELEMENT
+        5: MOVE ELEMENT                  6: OBSOLETE ELEMENT
+        7: REDEFINE INC LOGICALS
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >4
+-Replacing element(s)-
+-Enter list of elements to be replaced-
+ Default-> *.*
+
+ Enter element list:sample_subroutine.for
+-Enter list of elements to exclude-
+
+ Exclude list:
+-Enter directory where candiate files will be located-
+   The default is your current directory-
+
+ Enter directory:
+-Enter CMS remark-
+
+ Remark:This is the replacement remark
+%CMS-W-NOELE, no elements found
+-Starting code verification-
+-# of FORTRAN source elements:      1
+-# of PASCAL source elements:      0
+-# of C source elements:      0
+-# of INC files:      0
+-# of LINK files:      0
+-# of PARAM files:      0
+-# of RCP files:      0
+-# of Other files:      0
+-Checking fortran standards.
+  ->SAMPLE_SUBROUTINE.FOR
+%D0FLAVOR-S-FORTRAN, The FORTRAN compiler will now check the standards
+%D0CHECK-I-COMPILE, Compiling SAMPLE_SUBROUTINE.CHECK
+%D0CHECK-I-CHECKING, Checking compiler listing SAMPLE_SUBROUTINE.LIS
+%D0CHECK-S-CONFORMS, SAMPLE_SUBROUTINE.CHECK Conforms TO D0 standards
+
+-Inserting SUBROUTINE SAMPLE_SUBROUTINE into database
+-Inserting ENTRY SAMPLE_ENTRY0 into database
+-Inserting ENTRY SAMPLE_ENTRY1 into database
+-Inserting ENTRY SAMPLE_ENTRY2 into database
+-Inserting ENTRY SAMPLE_ENTRY3 into database
+-Inserting ENTRY SAMPLE_ENTRY7 into database
+-Inserting ENTRY SAMPLE_ENTRY8 into database
+-Inserting ENTRY SAMPLE_ENTRY9 into database
+%CMS-S-GENCREATED, generation 4 of element D0$CMS:[SAMPLE]SAMPLE_SUBROUTINE.FOR
+created
+
+        The replacement command is much like the CREATE ELEMENT command in
+    that it goes through the whole coding standards checking as well as the
+    citizenship testing to make sure that you code is OK. The input this
+    command asks for is also similar to the CREATE ELEMENT command except
+    that it does not ask for a CMS group. (For obvious resons.)
+
+        One thing to note about the REPLACE ELEMENT command is
+    that if you have never used the CMS interface before and already have a
+    cms library chalk full of elements, then I don't expect you to empty
+    out your library, delete every element and then recreate each element,
+    this time using the CMS interface. Instead, what I have built into this
+    REPLACE ELEMENT command, is the ability to register the element into the
+    database just as if you were creating the element. Of course this will
+    pose a problem. If there is another element of the same name already
+    registered in the database under a different library, your out of luck.
+    Does not matter if your element is 10 years old. If the other guy got
+    his element registered in the database first, he beat ya. You'll have
+    to ether call the czar up and settle this element name conflict with
+    him or rename you element (and subroutine name) to something else.
+    (Personally, I don't expect any naming conficts.) Another bit of
+    information, only the elements with the following extensions are
+    registered in the database. These are .FOR, .INC, .LINK, .PARAMS,
+    .DEF, and .RCP. All other files are not registered thus one can have 
+    .PBD files of the same name in different libraries.
+
+
+    -- 5: MOVE ELEMENT --
+
+        One of the design requirements of the CMS interface was to have the
+    ability of moving an element from one library to another. This command
+    fulfills this design requirement. This command needs as input from the
+    user, the list of elements which one desires to move from the currently
+    library to the destination library, the destination library and the
+    first level group in the destination library. The CMS interface takes
+    care of the details like moving the element into the obsolete group
+    in the source library and inserting the element into the first level
+    destination group. The following is a sample output of such a
+    procedure.
+
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >menu
+
+        1: SELECT LIBRARY                2: CREATE ELEMENT
+        3: RESERVE ELEMENT               4: REPLACE ELEMENT
+        5: MOVE ELEMENT                  6: OBSOLETE ELEMENT
+        7: REDEFINE INC LOGICALS
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >5
+-Moving Element(s) to another library-
+-Moving Elements to another Library-
+ Default-> NONE
+
+ Enter element list:sub10.for
+-Enter list of elements to exclude-
+
+ Exclude list:
+-Enter destination library name-
+-Enter library name.
+-Defalut => SAMPLE
+
+ Library name:spl_test
+%CMS-I-LIBIS, library is D0$CMS:[SPL_TEST]
+-Enter group into which elements will be inserted-
+
+ Group:source
+-Enter CMS remark-
+
+ Remark:This is the move remark
+%CMS-W-NOELE, no elements found
+%CMS-W-NOELE, no elements found
+%CMS-I-COPIED, element D0$CMS:[SAMPLE]SUB10.FOR copied to
+D0$CMS:[SPL_TEST]SUB10.FOR
+%CMS-S-INSERTED, element D0$CMS:[SPL_TEST]SUB10.FOR inserted into group
+D0$CMS:[SPL_TEST]SOURCE
+%CMS-I-REMOVED, element D0$CMS:[SAMPLE]SUB10.FOR removed from group
+D0$CMS:[SAMPLE]SOURCE
+%CMS-I-REMOVALS, 1 removal(s) completed
+%CMS-S-INSERTED, element D0$CMS:[SAMPLE]SUB10.FOR inserted into group
+D0$CMS:[SAMPLE]OBSOLETE
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >exit
+
+        In the above example, I moved the element sub10.for from the
+    library SAMPLE to the group SOURCE in the library SPL_TEST.
+
+
+    -- 6: OBSOLETE ELEMENT --
+
+        The last command which does something directly with the CMS
+    libraries and/or the element database is the OBSOLETE ELEMENT command.
+    This command is used to make an element obsolete. The reson why one
+    must use this command to obsolete elements is because it removes the
+    element from the database, thus freeing the element name up to be used
+    in some other library. If you obsolete an element by 'hand', then this
+    element cannot be used again in any library because an attempt by
+    another czar to add a new element into the library by the same name
+    will result in a citizenship test failure. The following is some sample
+    output of this command in use.
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >menu
+
+        1: SELECT LIBRARY                2: CREATE ELEMENT
+        3: RESERVE ELEMENT               4: REPLACE ELEMENT
+        5: MOVE ELEMENT                  6: OBSOLETE ELEMENT
+        7: REDEFINE INC LOGICALS
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >6
+-Marking Element(s) Obsolete-
+-Enter list of elements to be marked as obsolete-
+ Default-> NONE
+
+ Enter element list:sub10.for
+-Enter list of elements to exclude-
+
+ Exclude list:
+-Enter CMS remark-
+
+ Remark:This is the Obsolete cms remark
+%CMS-W-NOELE, no elements found
+%CMS-I-REMOVED, element D0$CMS:[SPL_TEST]SUB10.FOR removed from group
+D0$CMS:[SPL_TEST]SOURCE
+%CMS-I-REMOVALS, 1 removal(s) completed
+%CMS-S-INSERTED, element D0$CMS:[SPL_TEST]SUB10.FOR inserted into group
+D0$CMS:[SPL_TEST]OBSOLETE
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >exit
+
+    -- 7: REDEFINE INC LOGICALS --
+
+        This last command is used to redefine how the include logical names
+    should be redefined before a D0FLAVOR/CHECK is performed on the .FOR
+    elements. There will be instances where the .INC files, used by a new
+    or updated .FOR will either also be new or updated and these files will
+    not have been released. Thus the idea is that when your run the coding
+    standards check on the .FOR file, you wish that the FORTRAN compiler
+    can find the include file specified by the D0$xxx: include logical
+    name. For example, I have updated my subroutine SUB10.FOR which 
+    includes the modified file SAMPLE_COMMON.INC. Both these files reside
+    in my default directory. In my SUB10.FOR code, I include the file
+    SAMPLE_COMMON.INC by referencing it through the D0$INC: logical name.
+    Thus if at this point I execute D0FLAVOR/CHECK on SUB10.FOR, the
+    modified include file will not be found. Thus what the CMS interface
+    does, is to redefine the logicals D0$INC, D0$LINKS, D0$PARAMS, and
+    D0$RCP, into search lists which first search your default directory and
+    then the d0$XXX$root:[000000] directory. For example D0$INC is
+    redefined to be
+
+        "D0$INC" = "[]"
+                 = "D0$INC$ROOT:[000000]"
+
+    This redefinition for D0$INC, D0$LINKS, D0$PARAMS, and D0$RCP is done
+    automatically. Thus if you do have your modified include files in your
+    default directory (as most of you will), then you do not need to worry
+    about this redefinition problem. But if for some reason you wish to
+    keep you modified .INC files in another directory besides your default
+    directory, (say for example you keep them in the [.inc] subdirectory),
+    then you need to execute this command so that the include logicals will
+    be defines in search lists so as to include your specified directory
+    instead of the default directory. Example; as I just mentioned, you may
+    want to keep your include files in the [.inc] directory, then before
+    you can create or replace a .FOR element into your library, you need to
+    call this command and specify [.inc] as the directory of where to
+    search for you include files. When your done with this command, the
+    next D0FLAVOR/CHECK performed on  you .FOR file, the logical name
+    D0$INC will be redefined prior to the executing D0FLAVOR/CHECK to be;
+
+        "D0$INC" = "[.INC]"
+                 = "D0$INC$ROOT:[000000]"
+
+        This command only needs to be called once during each CMS interface
+    session, but it does need to be called once every time you exit the CMS
+    interface and then re-enter it. The following is some sample output of
+    the command:
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >menu
+
+        1: SELECT LIBRARY                2: CREATE ELEMENT
+        3: RESERVE ELEMENT               4: REPLACE ELEMENT
+        5: MOVE ELEMENT                  6: OBSOLETE ELEMENT
+        7: REDEFINE INC LOGICALS
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >7
+-Enter directory for .INC files-
+  Default-> []
+
+ .INC dir spec:[.INC]
+-Enter directory for .LINKS files-
+  Default-> []
+
+ .LINK dir spec:[.LINKS]
+-Enter directory for .PARAMS files-
+  Default-> []
+
+ .PARAMS dir spec:
+-Enter directory for .RCP files-
+  Default-> []
+
+ .RCP dir spec:
+
+Menu: CMS Interface Menu
+Select: {command, #, HELP (#), MENU, EXIT} >exit
+
+
+        In the above sample output I told the CMS interface to look for
+    .INC files in the directory [.INC], my .LINK files in the [.LINKS]
+    directory and the rest of the include files in my default directory.
+    Thus before the D0FLAVOR/CHECK is done to any .FOR files after this
+    command has been executed, the include logicals will be defined in the
+    following manner.
+
+        "D0$INC" = "[.INC]"
+                 = "D0$INC$ROOT:[000000]"
+
+        "D0$LINKS" = "[.LINKS]"
+                 = "D0$LINKS$ROOT:[000000]"
+
+        "D0$PARAMS" = "[]"
+                 = "D0$PARAMS$ROOT:[000000]"
+
+        "D0$RCP" = "[]"
+                 = "D0$RCP$ROOT:[000000]"
+
+----------------------------------------------------------------------------
+
+    -- Some details about the CMS interface which are common among --
+                          -- several commands --
+
+    --> ELEMENT LIST SYNTAX SPECIFICATION. 
+
+        Many of the CMS interface commands require you to input a list of
+    elements. The format of this list is as follows. You may enter in as
+    many elements as you like on one line separated by commas. Additionally
+    each element specification can contain wild card characters. For
+    example, the following is a valid element list.
+
+        ENTER ELEMENTS: F*.FOR,JUNK.COM,P*.PAS,ANYTHING.*
+
+    --> OFFLINE ELEMENT PROCESSING
+
+        The offline element processing is the following. A set of checks is
+    made on each element selected which falls into the offline element
+    category. All .FOR, .INC, .LINKS, .PARAMS, .DEF, and .RCP files fall
+    under the category of offline elements. The following checks are made
+    on these elements.
+
+        .FOR files)
+
+                .FOR files are assumed to be fortran code files. The fist
+            step of checks is to extract a list of all modules from the
+            file. This will be all subroutine, entry, functions, and
+            program declaration names. Also common block names are
+            extracted from the .for files. Next I check the coding
+            standards by examining the list of modules. These coding
+            standards are listed in the next section. Next I check the
+            citizenship of the element. This means that I check to see if
+            the element name is registered in the database. Next
+            I do the module citizenship test. This means that I check to see
+            whether the module name has been registered in the database.
+            Finally I do the D0FLAVOR/CHECK test. Success or failure of
+            these test are then kept for each element. If the element
+            fails in any one of the tests, then a notice for each failed
+            test (if there are more than one) is listed and the element is
+            either not created or replaced.
+
+        .INC files)
+
+            .INC files are assumed to be common block files. First I
+        extract all the module declarations in the .INC file as described
+        above. This includes all common block names. I then check the
+        coding standards as described in the next section. Next I do an
+        element and module citizenship test.
+
+        .LINKS, .PARAMS, .DEF, .RCP files)
+
+            .LINKS, .PARAMS, .DEF, .RCP files are assumed to be simple
+        include files. I do a element citizenship check on these files.
+
+
+    --> OFFLINE CODING STANDARS and CMS INTERFACE ERROR MESSAGES
+
+        As the elements are checked to see if they meet certain standards,
+    there exists the possibility that the element does not meet a certain
+    standard and a error message is then given. The following is a list of
+    all these error messages, coding standards and what they mean.
+
+*Element does not comply with FORTRAN module name standard
+
+    The name of the source code file is not the same as the name of the
+    module.
+
+*Element does not comply with MULTIPLE MODULE standard
+
+    Only one module per fortran source code file, except for entry points.
+    A fortran subroutine or function may any number of entry points.
+
+*Element does not comply with FORTRAN coding standards
+
+    Element failed the D0FLAVOR/CHECK fortran coding standardization
+    utility.
+
+*Element does not comply with COMMON BLOCK naming standards
+
+    The name of the common block must be the same as the name of the .INC
+    file.
+
+*Element does not comply with MULTIPLE COMMON BLOCK
+
+    Only one common block per file is permitted.
+
+*Element does not pass ELEMENT CITIZENSHIP test
+
+    There is an element with the same name already registered in the
+    database which belongs to another library.
+
+*Element does not pass MODULE CITIZENSHIP test
+
+    There is an entry point registered in the database which belongs to
+    another library.
+
+*Element does not comply with the COMMON BLOCK standard
+
+    Fortran subroutine cannot have common blocks embeded in them. They must
+    use include files and include a common block.
+
+****************************************************************************
+
+                    --DCL interface for the CMSINTERFACE--
+
+
+General Format:
+
+    CMSINTERFACE command param1 param2 param3/qualifier1/qualfier2 ...
+
+        (note: You can abbreviate the command CMSINTERFACE with CMSINT)
+
+    There are 6 command implemented so far with the CMSINTERFACE these are:
+
+    - SETLIB : does a CMS SET LIB (Not needed, but added for completeness)
+
+    - CREATE : does a CMS CREATE ELEMENT; CMS INSERT ELEMENT; and also
+               checks coding standards and module name uniqueness.
+
+    - RESERVE : does a CMS RESERVE ELEMENT (Not needed but added for
+                completeness)
+
+    - REPLACE : does a CMS REPLACE ELEMENT; and also checks coding
+                standards and module name uniqueness.
+
+    - OBSOLETE : does a CMS REMOVE ELEMENT; CMS INSERT ELEMENT -> OBSOLETE;
+                 also frees up any module names which can be used by
+                 new offline subroutines/common blocks.
+
+    - MOVE :  does a CMS COPY ELEMENT; also updates database.
+
+    There are 7 qualifiers which are used in conjunction with several command
+    these are:
+
+        /EXCLUDE : Specifies a list of elements to exclude from the
+                   main element list.
+                   Used with commands CREATE,RESERVE,REPLACE,OBSOLETE,MOVE
+
+        /INPUT_DIR : Specifies the directory where a file will be found.
+                     Used with commands CREATE,REPLACE
+
+        /OUTPUT_DIR : Specifies the directory where a file will be placed.
+                      Used with command RESERVE
+
+        /D0$INC_DIR : Specifies how to redefine the logical name D0$INC.
+                      D0$INC will be redefined to be a search list such that
+                      the directory specified by /D0$INC_DIR qualifier is
+                      searched first and then D0$INC$ROOT:[000000] is
+                      searched secondly.
+                      Used with commands CREATE,REPLACE
+
+        /D0$LINKS_DIR : Specifies how to redefine the logical name D0$LINKS.
+                        This command work just like /D0$INC_DIR except that
+                        it redefines the logical D0$LINKS.
+                        Used with commands CREATE,REPLACE
+
+        /D0$PARAMS_DIR : Same as above but with D0$PARAMS
+                        Used with commands CREATE,REPLACE
+
+        /D0$RCP_DIR : Same as above but with D0$RCP. Note: D0$RCP is not yet
+                      an official library. This will soon be forth comming.
+                      Used with commands CREATE,REPLACE
+
+Specific Format:
+
+
+--
+    CMSINTERFACE SETLIB library_name
+
+    Purpose: The CMSINTERFACE SETLIB command does exactly the same thing
+             as doing a CMS SET LIBRARY. The difference is that the
+             parameter is just the name of the library
+
+        PARAMETERS:
+
+                library_name: Name of the library which will be used
+                              in all subsequent CMSINTERFACE commands.
+
+        QUALIFIERS: NONE
+
+    Examples: If I want to start loading code into the CD_UTIL library
+              using these CMSINTERFACE commands, I must first start by
+              issuing the following command.
+
+              $ CMSINTERFACE SETLIB CD_UTIL
+
+--
+    CMSINTERFACE CREATE element_list group remark
+
+    Purpose: To add new elements to a library.
+
+        PARAMETERS:
+
+                element_list: The list of elements you wish to add to the
+                              library. Elements may be specified using
+                              wild cards and separated by commas.
+
+                group: The CMS 'destination' group for the elements. Once
+                       the elements have been created in the cms library
+                       they will then be inserted into the group specified
+                       by this parameter.
+
+                remark: CMS remark.
+
+        QUALIFIERS
+
+        /INPUT_DIR /D0$INC_DIR /D0$LINKS_DIR /D0$PARAMS_DIR /D0$RCP_DIR
+        /EXCLUDE_LIST
+
+    Example: You want to add the new elements A.FOR, AA.FOR and B.FOR
+             to your library and have them placed into the group SOURCE.
+
+    $ CMSINTERFACE CREATE A*.FOR,B.FOR SOURCE "Example subroutines"
+
+--
+    CMSINTERFACE RESERVE element_list remark
+
+    Purpose: This command is used to reserve elements.
+
+        PARAMETERS
+
+                element_list: The list of elements you wish to reserve
+                              from the library. Elements may be specified
+                              using wild cards and separated by commas.
+
+                remark: CMS remark.
+
+        QUALIFIERS
+
+        /EXCLUDE_LIST /OUTPUT_DIR
+
+    Example: You want to reserve all fortran elements except your
+             initialization subroutine INIT.FOR.
+
+    $ CMSINTERFACE RESERVE *.FOR/EXCLUDE=INIT.FOR "Updating fortran code"
+
+--
+    CMSINTERFACE REPLACE element_list remark
+
+    Purpose: To replace the elements specified by the element list back
+             into the library.
+
+        PARAMETERS
+
+                element_list: The list of elements you wish to replace
+                              into the library. Elements may be specified
+                              using wild cards and separated by commas.
+
+                remark: CMS remark.
+
+        QUALIFIERS
+
+        /INPUT_DIR /D0$INC_DIR /D0$LINKS_DIR /D0$PARAMS_DIR /D0$RCP_DIR
+        /EXCLUDE_LIST
+
+    Example: You want to replace all reserve elements.
+
+    $ CMSINTERFACE REPLACE *.* "Updating library"
+
+--
+    CMSINTERFACE OBSOLETE element_list remark
+
+    Purpose: To make the list of elements specified by the ELEMENT_LIST
+             parameter obsolete.
+
+        PARAMETERS
+
+                element_list: The list of elements you wish to make
+                              obsolete. Elements may be specified
+                              using wild cards and separated by commas.
+                              The library database is then updated.
+
+                remark: CMS remark.
+
+        QUALIFIERS
+
+        /EXCLUDE_LIST
+
+    Example: You want to make the element A.FOR obsolete
+
+    $ CMSINTERFACE OBSOLETE A.FOR "Being phased out"
+
+--
+    CMSINTERFACE MOVE element_list destination_library group remark
+
+    Purpose: Used to move the elements from the library specified through
+             the CMSINTERFACE SETLIB command, to the library specified
+             by the DESTINATION_LIBRARY parameter.
+
+        PARAMETER
+
+                element_list: List of elements to be moved.
+
+                destination_library: The destination library where
+                                     the elements will be moved to.
+
+                group: The group in the destination library in which
+                       the elements will be inserted into.
+
+                remark: CMS remark.
+
+        QUALIFIERS
+
+        /EXCLUDE_LIST
+
+    Example: You want to move the element A.FOR to the library CD_UTIL,
+             and insert it into group SOURCE.
+
+    $ CMSINTERFACE MOVE A.FOR CD_UTIL SOURCE "Moving A.FOR"
+

@@ -1,0 +1,154 @@
+
+                           EVENT I/O UTILITIES
+                           ===================
+
+                                                   Serban D. Protopopescu
+                                                   May 15,1992
+
+    The  group  EVENT_IO in  the CMS  library   EVENT_UTIL has  a set of
+utilities for writing  and reading D0 Zebra  format events and providing
+event  ID,  counting  number of  events  read, etc.  The  utilities make
+extensive  use of  flags. Output  streams are  defined by 3  letters, an
+event is  written to an  output stream XXX  if flag  WRITE_STREAM_XXX is
+true. A flag is set by CALL FLGSET(name,value). 
+
+    The writing  of events to  multiple  output streams  is handled by 3
+subroutines which contain a number of entry points:
+
+
+o EVMARK(XXX)
+===============
+mark banks to be dropped from output stream XXX. It is called by EVTWOS.
+XXX (input) = character*3 output stream, 'STA' for standard, 'DST' for DST,
+        users can define their own 
+
+It has the following entry points which users may call to decide which banks
+should be written to a given output stream:
+
+o EVDROP(XXX,BANK)
+add a bank to the list of banks to drop from an output stream.
+BANK (input)  = bank name, character*4
+
+o EVBACK(XXX,BANK)
+remove BANK from the XXX list of banks 
+
+o EVDRLS(XXX,NUM,NAMLST)
+give list of banks to be dropped from output stream XXX
+XXX (input) = character*3 output stream
+NUM (output)  = number of banks on list
+NAMLST(NUM) (ouput) = list of banks, character*4
+
+o EVBANK_CHECK(XXX,NAME,YES)
+returns YES=true if bank NAME is on output stream XXX
+
+
+o EVTWOS
+========
+write    events  to  any   defined   output   streams  XXX if  the  flag
+WRITE_STREAM_XXX  is true, 'STA' is  reserved for standard output, 'DST'
+for DST output, users may define any others themselves. A flag is set to
+true or false by: CALL FLGSET(flag_name,value)
+
+EVTWOS has the following entry points:
+
+o EVOPWO(XXX,FILE_NAME,OK)
+defines  output stream XXX,  opens output  file with  name FILE_NAME and
+returns OK true if succesful
+
+XXX (input) = character*3 output stream
+FILE_NAME (input)= file name for output stream XXX
+OK = true if file opened succesfully.
+
+o EVCLWO(XXX)
+close output stream XXX
+
+
+o EVWR_MULT
+===========
+
+    Handles multiple DST and STA streams, it is called by EVTWOS.
+It is a utility meant for filtering and splitting events. It has
+a number of entry points whose function is described in the header
+of EVWR_MULT.
+
+To use the facility one must first call  EVTWOS_MULT(.TRUE.), this
+sets a flag so EVTWOS knows it must call EVWR_MULT.
+
+Then to initialize each stream one must 
+    CALL EVGET_STREAMS(stream_name,STREAM_NUMBER)
+
+the  stream_name  is provided  by the  user and  must be no  more than 5
+characters. This name  will be appended  automatically to the end of the
+file name specified for STA or DST outputs. STREAM_NUMBER is returned to
+the user and must be used by him to  tell the facility to write an event
+to that stream. This is done by
+     CALL EVSET_STREAM(STREAM_NUMBER)
+if that call is not made the event will not be written to STREAM_NUMBER.
+
+As an example of how to use this facility you can look at the
+package RECO_FILTER (mentioned below).
+
+
+Other utility subroutines for writing events:
+============================================
+
+o EVWRIT
+write a single event file. Checks  on flag WRITE_EVENT, if true it opens
+file  E_run#.DAT, writes  event to  E_run#.DAT, closes  E_run#.DAT, and sets
+flag WRITE_EVENT to  false. If output stream  EDS is defined then EVWRIT
+writes to the  file defined  for EDS  which remains  open for all events
+rather than EVENT.DAT which is closed after each event.
+
+
+o WREVNT(OUNIT)
+write events to OUNIT.
+
+
+Utilities for reading event files:
+=================================
+
+o EVTIN
+wipe event division, read in a new event (called by EVTRD)
+
+o EVTIN2
+read in a second event (does not wipe event division)
+
+o EVTRD
+call EVTIN, raw dump and increment event counter. Raw dump is active
+only on request.
+
+o EVNTOK  
+logical function, true if an event record was read with LHEAD>0
+
+o EVTCNT
+integer function, number of events read
+
+the package DROP_INPUT (mentioned below) can be used to drop banks
+immediately after an event has been read in.
+
+
+Utilities for event ID:
+======================
+
+o EVONUM
+integer function = event output number 
+
+o EVTID(run#,event#)
+return event id numbers: run# and event output#
+
+o EVTMSG(MSG)
+return MSG, a character*48 string for printing containing event id.
+
+o RUNNO
+integer function = run number.
+
+
+Program Builder packages:
+=========================
+
+RECO_FILTER  :  a general facility to filter events using RECO bits
+                and write them to separate output streams. It uses
+                EVWR_MULT. See D0$GENERAL:RECO_FILTER.RCP for details
+                on how to use it.
+
+DROP_INPUT :
