@@ -1,0 +1,116 @@
+                                                            James T. Linnemann
+                                                            Nicholas Hadley
+                                                            Amber Boehnlein
+                                                            12 Dec, 1991
+                    Level 1 and Level 2 Bit routines
+
+You can find which level 1 and level 2 bits fired with logical functions
+ 
+    L1_PASSED()   to see if ANY level 1 bit passed
+and L2_PASSED()   to see if ANY level 2 bit passed
+ 
+For bit by bit information, use
+ 
+    L1BIT_PASSED(I) where I ranges from 0 to 31
+and L2BIT_PASSED(J) where J ranges from 0 to 127
+ 
+NOTE:
+    These four routines will work on any event which has the event header.
+HOWEVER, L2BIT_PASSED(J) only REALLY gives the right results on events for which
+the FILT bank has been kept.  Otherwise, it reports the weaker results of
+L2BIT_ON(J).  In this case, a bit can be reported as ON if it was not TRIED, but
+some other level 2 bit caused the event to pass.
+
+    There also exists L2BIT_TRIED(J).
+
+    L2BIT_UNBIASED(J) tells if this event is was one of an unbiased sample
+passed along for filter efficiency measurements.
+
+    Efficiency can be measured either by UNBIASED events, or by events
+in which a DIFFERENT L2BIT_PASSED is true (which provides a different unbiased
+sample): 
+
+    IF (L2BIT_PASSED(J)) THEN
+        IF (L2BIT_TRIED(I)) THEN
+            IF (L2BIT_PASSED(I)) THEN
+                yes(i)
+            ELSE
+                no(i)
+            ENDIF
+        ENDIF
+    ENDIF
+
+    There are other functions available which give more detailed information:
+
+    L2BIT_ON(J) or L2BIT_WRITE(J)       (synonmys)
+        ON means that the script either passed or was never tried or was chosen
+        to be part of the unbiased sample (pass 1 of n)
+            (i.e. the WRITE bit was on for this filter)
+
+    L2BIT_SET(J)
+        SET means that the level 1 bit which this script requires was set
+
+More Detail:
+------------
+
+SET  means the script was eligible to try this event, i.e. its level 1 bit
+        fired.  
+
+ON   means that the script result was to allow writing of the event.  The real 
+        result of level 2.  It's what is kept in the event header.
+     also called the WRITE bit
+
+TRY means the script was actually run to produce a real result.  
+
+PASS means the script was actually run and actually passed.
+
+UNBIASED means that a counter hit the value requested to write out the event
+    regardless of the outcome of filtering (pass 1 of n)
+
+The conditions we need to reconstruct are:
+                                                                        need:
+1. used by data logger to write streams: ON                             ON
+
+2. used by RECO to decide whether to rerun filter (?) 
+        Rerun = .NOT.TRY                                                TRY
+
+3. useable to cross check trigger efficiency:
+    (test bit a only when bit b is ON.AND.PASS)                       (ON,)PASS
+            (PASS implies ON, so only PASS need be tested)
+    GOOD = TRY.AND.PASS; BAD = TRY.AND..NOT.PASS                        TRY,PASS
+
+4. useable to measure trigger efficiency directly:
+
+    GOOD = UNB.AND.PASS; BAD = UNB.AND..NOT.PASS                        UNB,PASS
+        which tags an event as among the UNBiased sample.
+
+The breakdown of cases:
+    Redundancy: PASS => TRY
+                PASS => ON
+                UNB => ON
+                UNB => TRY
+                TRY.OR.ON => SET
+
+SET ON  TRY PASS    comments
+F   F   F   F       ignore this bit this event--couldn't have been tried
+F   ---any T---     ILLEGAL : ran on a bit it shouldn't have 
+T   F   F   F       ILLEGAL : should have SET = (ON.OR.TRY)
+T   F   F   T       ILLEGAL : If PASS, must have TRY and ON
+T   F   T   F       Failure : another bit is ON, so this isn't unbiased write
+T   F   T   T       ILLEGAL : if it passes, it should be ON
+T   T   F   F       Possible: never tried (another bit must be on)
+T   T   F   T       ILLEGAL : if PASS, must have TRY
+T   T   T   F       Failed, but written on pass 1 of n (unbiased)
+T   T   T   T       Certified: TRIED AND PASSED
+
+So to summarize the Legal states:
+F   F   F   F       ignore this bit this event--couldn't have been tried
+T   T   F   F       Possible: never tried (another bit must be on)
+T   T   T   T       Certified: TRIED AND PASSED
+                        unfortunately, those in the unbiased sample are not
+                        marked.
+T   F   T   F       Failure : another bit is ON, so this isn't unbiased write
+                        if the other trigger is interesting, can use this to
+                        measure efficiency by also looking at T T T T with the
+                        other bit on
+T   T   T   F       Failed, but written as part of unbiased sample

@@ -1,0 +1,115 @@
+
+
+
+
+                                                        Jason McCampbell
+                                                        James T. Linnemann
+                                                        June 30, 1989
+
+                        Offline Time facility          
+                            version 1.0
+
+The purpose of this facility is to have on each machine a time base which is
+based on a continuous time base (ignoring daylight savings time) across the
+whole of D0 (ignoring local time zones).  The times should be consistent to
+within a few seconds across the network.
+
+To accomplish this, each installation must make some local modifications.
+The D0 standard time is set to FNAL standard time and ignores day light savings
+time.  The time offsets are held in two files defined by the logicals
+D0$HOUR_OFFSET and D0$SECOND_OFFSET.  The second offset may eventually be 
+calculated by tasks running across the network, but for now the offsets
+will be defined by hand.
+
+The user routines in the package are:
+
+
+CALL OFTIM(ITIM)
+    returns D0 standard time in seconds from a base time of 1 Jan 1989 = 0
+    ITIM is a 32 bit integer.  At a given time this routine is meant to give the
+    same answer on all D0 machines within a few seconds.
+
+CALL OFTSTR(ITIM,TIMSTR)
+    converts D0 standard time to TIMSTR, a CHARACTER*26 string in VAX standard 
+    form, with the appended marker D0, i.e.
+    13-OCT-1997 23:37:01 D0      
+
+CALL STROFT(TIMSTR,ITIM, IER)
+    converts a TIMSTR to ITIM.  The string should be D0 standard time.  If not,
+    the result will be off by +- local offset.  A date before the base time will
+    yield unpredictable results. IER is an integer that will be set to 0 if the
+    D0 tag is found, otherwise it is set to 1.  It is up to the caller to check
+    that IER = 0.
+
+CALL LSTOFT(TIMSTR,ITIM)
+    converts a TIMSTR assuming it is local to this vax, rather than D0 time, 
+    i. e. it uses the local offset to D0 standard time.  Conversion of past 
+    dates may be off by +-1 hour if the local offsets have changed (eg due to
+    daylight saving time).
+
+CALL EVTOFT(IVAX, ITIM)
+    IVAX is INTEGER IVAX(2)
+    converts a time in standard VAX 64-bit form to D0 standard time, assuming 
+    that the time came from the event header (i.e. was set by the level 2
+    system).  NOTE: For NOW the level 2 time is assumed to have an offset of 0 
+    to D0 standard time.)
+
+CALL OFTEVT(ITIM, IVAX)
+    the inverse of EVTOFT 
+                                                                Page 2
+
+
+
+CALL OFTVAX(ITIM,IVAX)
+    converts from D0 to local vax time.  The offsets are in the files pointed 
+    to by the aforementioned logicals.  Conversion of past dates may be off by 
+    +-1 hour if the local offsets have changed (eg due to daylight saving time).
+
+CALL VAXOFT(IVAX,ITIM)
+    the inverse of OFTVAX.  The above warning also applies.
+
+
+The internal routines of the package are:
+
+CALL GETOFS(IOFSET)
+    Reads the two offset files and computes the offset in INTEGER seconds.
+
+CALL TIMADD(ITIM, IVAX)
+    converts D0 standard time (ITIM-32 bit) to VAX format (IVAX-64 bit).  This
+    routine does not use the local offsets.
+
+CALL TIMSUB(ITIM, IVAX)
+    the inverse of TIMADD.
+
+
+OFFSET FILES:
+    Each of these files holds one integer to be set by each location.  The
+D0$HOUR_OFFSET holds the number of time zones away from D0 standard (CST). 
+The count is negative for each zone to the east and positive to the west.
+(i.e., A computer in LBL would have a +2 hour adjustment.)  The seconds
+opperate the same, except to adjust for the differences in System Managers'
+watch.
+
+
+CALL TREE:
+
+USER ROUTINES:
+
+Routine  Called  Routines       VAX System Calls    
+------   ------  ------         ----------------
+EVTOFT   TIMSUB  
+LSTOFT   GETOFS  STROFT
+OFTEVT   TIMADD
+OFTIM    TIMSUB                 $GETTIM
+OFTSTR   TIMADD                 $NUMTIM
+OFTVAX   GETOFS  TIMADD
+STROFT   TIMSUB                 $BINTIM
+VAXOFT   GETOFS  TIMSUB
+
+INTERNAL ROUTINES:
+   
+Routine  Called Routines
+------   ------  ------
+GETOFS   GTUNIT  RTUNIT
+TIMADD   MVBITS                 $BINTIM
+TIMSUB                          $BINTIM

@@ -1,0 +1,129 @@
+      LOGICAL FUNCTION OUTPUT_STREAM ()
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : To write out STANDARD or DST ZEBRA EVENT files
+C-
+C-   Returned value  : TRUE IF OK
+C-   Inputs  : NONE
+C-   Outputs : NONE
+C-   Controls: OUTPUT_STREAM_RCP FILE
+C-
+C-   Created   9-JUN-1990   Chip Stewart
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      LOGICAL FIRST,OUTPUT_STREAM_END,OK,DO_BRUN,OUTPUT_STREAM_EDIT
+      INTEGER HROUT_UNIT,OUTPUT_UNIT,LOG_UNIT,IEVENT
+C
+C--     ZEBRA VARIABLES
+      INCLUDE 'D0$INC:ZEBCOM.INC/LIST'
+      INCLUDE 'D0$INC:QUEST.INC'
+C
+      CHARACTER*80 HROUT_FILE/' '/,OUT_FILE/' '/,LOG_FILE/' '/
+      CHARACTER*80 COMMAND,EXIST_FILE
+      INTEGER NSKIP/0/,NEVENT/99999/
+      INTEGER NUH,IUHEAD(20),RUNNUM,RUNNO,N
+      INTEGER IER,IRUN,NRUN
+      CHARACTER*5 RUN
+      CHARACTER*15 FILE_LABEL
+C
+      INTEGER I,J,K,II,JJ,KK,LL,NIO,IFILE,GTUNIT_ID,UNIT
+      INTEGER III,JJJ,KKK
+      CHARACTER*4 DOING
+      DATA FIRST/.TRUE./
+C----------------------------------------------------------------------
+C INITIALIZE ZEBRA
+      OUTPUT_STREAM = .TRUE.
+      IF (FIRST) THEN
+        FIRST = .FALSE.
+        CALL INRCP('OUTPUT_STREAM_RCP',IER)
+        IF(IER.NE.0)THEN
+          CALL ERRMSG('OUTPUT_STREAM','INRCP',
+     &     'COULD NOT OPEN RCP FILE','W')
+          OUTPUT_STREAM = .FALSE.
+        ENDIF
+C
+C ****  RUN NUMBER
+C
+        NRUN= RUNNO()
+        IRUN = NRUN/10000
+        IRUN = IRUN * 10000
+        RUNNUM = NRUN - IRUN
+        WRITE(RUN,'(I5)') RUNNUM
+C
+C ****  COPY OUTPUT_STREAM_RCP TO BEGIN RUN DIVISION
+C
+        CALL BRCPFL('OUTPUT_STREAM_RCP')
+C
+C ****  OPEN OUTPUT TEXT FILE
+C
+        CALL EZPICK('OUTPUT_STREAM_RCP')
+        CALL EZ_FILE_OPEN1(100,'LOG_FILE','OF',RUN,
+     &    LOG_UNIT,LOG_FILE,IER)
+C
+C ****  OPEN FZ OUTPUT UNIT
+C
+        CALL EZ_FILE_OPEN1(100,'OUTPUT_FILE','OU',RUN,
+     &     OUTPUT_UNIT,OUT_FILE,IER)
+        IF(IER.NE.0)THEN
+          CALL ERRMSG('OUTPUT_STREAM','EZ_FILE_OPEN1',
+     &    'COULD NOT OPEN OUPUT FILE','W')
+          OUTPUT_STREAM = .FALSE.
+          GOTO 999
+        ENDIF
+        WRITE(LOG_UNIT,*) ' Output: ',OUT_FILE
+        CALL FZFILE(OUTPUT_UNIT,0,'O')
+C
+C ****  NUMBERS of EVENTS
+C
+        CALL EZGET('WRITE_BEGIN_RUN_RECORD',DO_BRUN,IER)
+        CALL EZGET('NEVT_SKIP',NSKIP,IER)
+        CALL EZGET('NEVT_WRITE',NEVENT,IER)
+        IF ( NEVENT.LE.0 ) NEVENT = 999999
+        WRITE(LOG_UNIT,*) ' Events: skip/WRITE ',nskip,nevent
+        IEVENT = 0
+        CALL EZRSET
+      END IF
+C
+C ****  LOOP OVER EVENTS
+C
+      NUH = 20
+C
+C **** STATUS CHECK
+C
+      IF ( LHEAD.LE.0 ) GO TO 999                !PROBLEM
+C
+      IEVENT = IEVENT + 1
+      IF ( IEVENT.EQ.1 .AND. DO_BRUN) THEN
+        IF( IEVENT.EQ.1)CALL DZSURV(' Begin Run banks',IXCOM,LHEADR)
+        CALL FZOUT(OUTPUT_UNIT,IXDVR,LHEADR,1,' ',2,NUH,IUHEAD)
+      END IF
+      IF ( IEVENT.GT.NEVENT ) GOTO 999
+      IF ( IEVENT.GT.NSKIP .AND. IEVENT.LE.NEVENT ) THEN
+        IF (OUTPUT_STREAM_EDIT('OUTPUT_STREAM_RCP')) THEN
+C
+C ****  DROP UNWANTED BANKS
+C
+          IF( IEVENT.EQ.1)CALL DZSURV('Existing event banks',0,LQ)
+          CALL PURGE_BANKS ('OUTPUT_STREAM_RCP',IER)
+          IF( IEVENT.EQ.1)CALL DZSURV('Purged event banks',0,LQ)
+C
+C ****  WRITE IT OUT
+C
+          CALL FZOUT(OUTPUT_UNIT,IXMAIN,LHEAD,1,' ',2,NUH,IUHEAD)
+C
+        END IF
+      ENDIF
+C
+C **** FINISHED
+C
+  999 RETURN
+C
+      ENTRY OUTPUT_STREAM_END
+      OUTPUT_STREAM_END = .TRUE.
+      CALL FZENDO(OUTPUT_UNIT,'TU')
+C
+      WRITE(LOG_UNIT,12) IEVENT
+   12 FORMAT(' WROTE ',I12,' EVENTS' )
+  998 CONTINUE
+      END

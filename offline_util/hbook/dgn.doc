@@ -1,0 +1,56 @@
+    DGN: A simple HGN wrapper
+    Harrison B. Prosper
+    3-July-1995
+
+(A) INTRODUCTION
+
+    The routine DGN(NtupleID,Row,Buffer,Status) returns the values pertaining to
+a sub-set of fields from a row-wise  ntuple. The sub-set of fields and the order
+in which they are  to be returned is  determined by an  array in an RCP file. An
+example of such an array is
+
+ \ARRAY PATTERNS_INPUTS
+ '*RUN'
+ '*EVENT'
+ 'X1/400'           ! Divide variable X1 by 400 before input to network
+ 'X2/400'
+ 'HTELE/400'
+ 'MET4/400'
+ \END
+
+In this example, the values of fields RUN to MET4 will be returned by DGN in the
+order given,  irrespective of  the their order  within the  row-wise ntuple. The
+asterisk and slash  symbols can be used by  applications (for example NEURAL and
+RGSEARCH) to perform special functions on these fields. The divisors, if present
+will be stored in the array XSCALE(*), located in the common block DGNCOM.INC. 
+
+    To initialize DGN, which calls HGN, you must first call
+
+    DGN_BEGIN(RcpBank,RcpArray,Ntag,Tag,Status),     
+
+where all  variables are  inputs except for  Status. The  character array Tag(*)
+should be  filled with all the  field names  (tag names) in the  ntuple. The tag
+names can be obtained as follows
+
+C       OPEN RZ-FILE
+
+        CHOPT = ' '
+        LREC  = 0
+        CALL HROPEN(Unit,Directory,File,CHOPT,LREC,Status)
+
+C       LOAD LAST BUFFER FROM RZ-FILE
+
+        CALL HRIN(nTupleID,9999999,0)
+
+C       GET NTUPLE INFO
+
+        NTAG = MAXTAG   !Initialize to maximum number of tag names
+        CALL HGIVEN(nTupleID,Title,Ntag,Tag,xLO,xHI)
+
+Then one calls DGN_BEGIN.
+
+(B) EXAMPLE
+
+    For a good example of how to use DGN, please refer to the file
+D0$NEURAL$SOURCE:NEURAL_READFILES.FOR.
+

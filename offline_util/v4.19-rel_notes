@@ -1,0 +1,728 @@
+ 27-SEP-1991 : Modifications released by Harrison B. Prosper
+ 
+    - Fix bugs in NTUPLE package.
+
+
+==============================================================================
+
+ 27-SEP-1991 : Modifications released by Harrison B. Prosper
+ 
+    - 
+
+==============================================================================
+
+  6-NOV-1991 : Modifications released by Harrison B. Prosper
+ 
+    - Use HROPEN in NTUPLE_FILE_OPEN, add CLOSE in NTUPLE_END
+
+==============================================================================
+
+ 22-NOV-1991 : Modifications released by Harrison B. Prosper
+ 
+    - Correct directory switching in ntuple package.
+
+==============================================================================
+
+  9-DEC-1991 : Modifications released by Harrison B. Prosper
+ 
+    - Modified
+      
+        DHDIR       See D0NEWS/Software "HBOOK Directories..."
+        DO_HBOOK
+        NTUPLE_*
+
+
+    (A) Introduction
+
+    In HBOOK one can create a directory tree and book histograms and ntuples in
+different  directories.   Unfortunately, the tools  provided by HBOOK to create
+directories   are   available at  too low  a  level to  be  really  convenient.
+Therefore, a higher level routine  (called DHDIR) which simplifies the creation
+and management of HBOOK  directory trees was  released to D0$OFFLINE_UTIL$HBOOK
+some time ago, and is used extensively in the offline code.
+
+    The routine DHDIR can be used to  create directory trees both in memory (in
+PAWC) or in a random access ZEBRA (RZ)  file. That routine has been enhanced so
+that  the  directory path  can be  read  either  from an RCP  bank or  be given
+explicitly. 
+
+    In a  typical  program (D0RECO  or  CALOR_OFF)  histograms and  ntuples are
+created in PAWC and then  written out to an RZ file  at the very end. This does
+not work for large ntuples. A better  way to handle ntuples is to use the HBOOK
+routine HROPEN to open an  RZ file to which ntuple  buffers can be spooled from
+memory to disk, automatically. Histograms can also be written to the same file.
+
+    This note  describes a few  routines  designed to simplify  the creation of
+HBOOK files  containing an  arbitrary mix of  ntuples and  histograms stored in
+directory trees.
+
+
+    (B) DO_HBOOK_OPEN, DO_HBOOK and DO_HBOOK_CLOSE
+
+    The routines  DO_HBOOK_OPEN  and  DO_HBOOK_CLOSE are meant  to be called by
+program frameworks, while DO_HBOOK is to be called from packages.
+
+        a) DO_HBOOK_OPEN
+
+    The calling sequence for this routine is
+
+        CALL DO_HBOOK_OPEN(Parameter-Name, Status)
+
+    For example,
+
+        CALL DO_HBOOK_OPEN('HBOOK_OPEN',STATUS)
+
+would open one or more RZ files  specified by the RCP parameter HBOOK_OPEN. 
+
+    The format of the parameter is
+
+        \ARRAY ParameterName
+
+            'FileName' 'TopDirectory'   [NewFile]   [RecordLength]
+                :           :               :           :
+        \END
+
+        where
+        
+            Filename        is the name of the HBOOK file;
+
+            TopDirectory    is the name to be assigned to the top-directory
+                            within the file. (This directory maps to //LUNxx
+                            in PAW);
+
+            NewFile         optional boolean which is TRUE for a new file 
+                            FALSE otherwise; the default is NewFile=TRUE;
+                            
+            RecordLength    optional integer which is the record length. 
+                            The default is RecordLength=8191 which is a good
+                            value to use.
+
+        Example,
+
+            \ARRAY HBOOK_OPEN
+                'HBOOK_SAVE'    'CALOR_OFF' TRUE
+            \END
+
+would open  a new RZ  file defined by  the logical  name  HBOOK_SAVE and create
+within it  the top  directory  //CALOR_OFF. The  record length  will assume the
+default  value of  8191. 
+
+    NOTE: The top directory  name can be chosen  arbitrarily. Whatever name one
+chooses it will be mapped to //LUNxx in PAW where xx is the unit number used in
+the PAW command HIST/FILE.
+
+        b) DO_HBOOK
+
+    This RCP-driven routine can be used to book ntuples and histograms. See the
+RCP file attached to this note for details.
+
+        c) DO_HBOOK_CLOSE
+
+    All files opened with a call to DO_HBOOK_OPEN must be closed by calling:
+
+        CALL DO_HBOOK_CLOSE
+
+
+    (C) DHDIR
+
+    This routine  has been  modified to allow  the explicit  specification of a
+directory  path as  well as the  implicit   specification via an  RCP bank. The
+examples below illustrate the new feature.
+
+    Example 1
+
+       CALL DHDIR('MYBANK_RCP','HBOOK_DIRECTORY',STATUS,' ')
+
+    where   MYBANK_RCP      is the name of an RCP bank
+
+    and     HBOOK_DIRECTORY is the name of an RCP array containing an
+                            ordered list of sub-directory names
+
+    Example 2
+
+        CALL DHDIR(' ','//PAWC/BONZO/DOG',STATUS,' ')
+                :   :
+        CALL DHDIR(' ','/DOODAH/BAND',STATUS,' ')
+
+    The first call creates the directory branch /BONZO/DOG and
+    the second creates the branch /DOODAH/BAND beneath the directory
+    /DOG, that is, creates the branch /BONZO/DOG/DOODAH/BAND.
+    
+
+    (D) NTUPLE_XXXX 
+
+    The ntuple routines written by  Acharya (D0$DOCS:NTUPLE.DOC) can be used to
+manage multiple files each containing multiple ntuples. The routines
+
+            NTUPLE_FILL.FOR
+            NTUPLE_GET.FOR
+            NTUPLE_SAVE.FOR
+
+have  been  modified  so that  they  can be  used in   conjunction  with DHDIR.
+Therefore,  one can now  create files  containing  directory  trees. One simply
+calls DHDIR  to first  create or set  the desired  directory in  PAWC, then one
+books the ntuples. The ntuple booking  routine will replicate automatically the
+current PAWC directory branch in the file identified by the given top directory.
+
+    For example, suppose that the current PAWC directory branch is
+
+            //PAWC/PIE/A_LA_MODE
+
+and that the top directory name of the file is APPLE then the branch
+
+            //APPLE/PIE/A_LA_MODE
+
+will be created,  automatically by the ntuple  routines, in the file identified
+by the top directory //APPLE. Therefore, if you are using multiple files it may
+be wise to make  the FIRST  sub-directory name unique  across the files unless,
+of course, you wish to replicate a  given set of directory branches in more than
+one file.
+
+    Use DO_HBOOK_OPEN to open the file and DO_HBOOK to book the ntuples and the
+histograms. Close the file with  DO_HBOOK_CLOSE. The same thing can be achieved
+by calling 
+
+            NTUPLE_FILE_OPEN.FOR
+            NTUPLE_BOOK.FOR
+            NTUPLE_END.FOR
+
+    An  example RCP  file is  appended to  this note  illustrating  the various
+structures used by  DO_HBOOK_XXXX.  This example will be  released along with a
+test program (DO_HBOOK_TEST.FOR) to D0$OFFLINE_UTIL$HBOOK.
+
+    (E) Example of typical RCP structures used by DO_HBOOK_OPEN etc.
+
+\START    DO_HBOOK_TEST_RCP                                                     
+\SIZE        140        38
+!----------------------------------------------------------------------
+!    Name:       DO_HBOOK_TEST.RCP
+!    Package:
+!    Library:    D0$OFFLINE_UTIL$HBOOK
+!    Purpose:    Example of DO_HBOOK and DO_HBOOK_OPEN structures
+!    Version     V1.00
+!    Created:     4-DEC-1991   Harrison B. Prosper
+!----------------------------------------------------------------------
+! HBOOK RZ files to be opened;  Used by DO_HBOOK_OPEN
+!----------------------------------------------------------------------
+\ARRAY HBOOK_OPEN
+!   Filename    TopDirectory    NewFile RecordLength
+    'APPLE'     'APPLE'                 1024    !Default NewFile=TRUE
+    'PEACHES'   'PEACHES'       TRUE            !Default RecordLength=8191
+\END
+!----------------------------------------------------------------------
+! First set of histograms in file APPLE; Used by DHDIR
+!----------------------------------------------------------------------
+\ARRAY APPLE_DIRECTORY
+ 'PIE'
+ 'A_LA_MODE'
+\END
+
+\ARRAY APPLE_HISTOGRAMS1    ! Used by DO_HBOOK
+
+!   Dimension
+    'NDIM'
+
+!       ID
+        1
+
+!           Title
+            'An Ntuple'
+
+!   NOTE: When creating a disk-resident ntuple the Nprime variable is taken 
+!         to be the record length specified when the file identified by
+!         the variable CHRZPA (that is, the TopDirectory) is opened. 
+!
+!         The Nprime value may be omitted.
+!
+!         If CHRZPA is set to ' ' then the ntuple will be written to the
+!         FIRST file opened by DO_HBOOK_OPEN. 
+
+!               NDim    CHRZPA  Nprime  Tags
+                5       ' '             'Px' 'Py' 'Pz' 'Energy' 'Identity'
+
+    '1DIM'
+        1000
+            'A Histogram'
+!               NX      XMI     XMA     VMX
+                50      0.5     90.0    0.
+\END
+!----------------------------------------------------------------------
+! Second set of histograms in file APPLE
+! The directory /COBBLER is given explicitly in DO_HBOOK_TEST
+!----------------------------------------------------------------------
+\ARRAY APPLE_HISTOGRAMS2
+    '1DIM'
+        1001                     !    One dimensional plot
+            'Another Histogram'
+                50 0.5  90.0   0.
+    'NDIM'
+        1
+            'Another Ntuple'
+                5       ' '     0       'Px' 'Py' 'Pz' 'Energy' 'Identity'
+\END
+!----------------------------------------------------------------------
+! Histograms in file PEACHES
+!----------------------------------------------------------------------
+\ARRAY PEACHES_DIRECTORY
+ 'AND'
+ 'CREAM'
+\END
+\ARRAY PEACHES_HISTOGRAMS
+    '1DIM'
+        2000                     !    One dimensional plot
+            'histogram title'
+                50 0.5  90.0   0.
+
+    'NDIM'
+        1
+            'Second Ntuple'
+                5 'PEACHES'         'Px' 'Py' 'Pz' 'Energy' 'Njet'
+
+    'NDIM'
+        3
+            'Third Ntuple'
+                3 'PEACHES' 8191    'Px' 'Py' 'Pz'
+\END
+\STOP    !   DO_HBOOK_TEST_RCP
+
+    NTUPLES
+    -------
+                General NTUPLE utility
+                ----------------------
+
+                Author:     B.S.Acharya
+                Created:    13-Jun-1991
+                Revised:    19-Nov-1991 Harrison B. Prosper
+
+1.  INTRODUCTION
+
+    There are a few routines that may be useful for logging data to Ntuples and
+storing data in files. The routines are
+    
+    NTUPLE_FILE_OPEN    Open a file to store one or more Ntuples
+
+    NTUPLE_BOOK         Book an Ntuple
+
+    NTUPLE_FILL         Fill an Ntuple with data
+
+    NTUPLE_GET          Get data from an Ntuple
+
+    NTUPLE_SAVE         Write the current ntuple buffer to a file.
+
+    NTUPLE_FLUSH        Write the current ntuple buffer to a file,
+                        and close the current file if all the 
+                        Ntuples associated with this file have been 
+                        written out. Delete the ntuple from memory.
+
+    NTUPLE_END          Write out the last buffer of any remaining
+                        Ntuples to a file. Close any remaining Ntuple
+                        files.
+
+This utility can be used to open files to which many ntuples can be written. The
+ntuples can be  filled and  closed in any  order. Book-keeping  of files is done
+through their top-directory names (eg: CALOR,MUON, etc.). Hence no two files can
+have the  same  top-directory  name. Data,  once stored  in these  files, may be
+accessed later through  PAW. The ntuples can be  placed into sub-directories  by
+calling the routine DHDIR prior to calling the ntuple routines.
+
+    NOTE: The top-directory name is merely the name by which a particular ntuple
+          file is identified. It need not be the same as the filename.
+
+    The  HBOOK  initialization  (declaration  of common  blocks,  allocation of
+memory etc.) should be done prior to calling these routines. This entails calls
+to the routines MZEBRA(0) and INPAWC. 
+
+    A test program is appended to this note.
+
+                        *****-----*****
+<FF>
+2.  SHORT WRITE-UP
+
+1. To open an existing or a  new file:
+ 
+      SUBROUTINE NTUPLE_FILE_OPEN  (USER_ID,NEWFILE,FILENAME,
+     &                              RECORD_LENGTH,TOP_DIRECTORY,IERR)
+
+   Purpose and Methods : Select a file for logging Ntuples
+
+Inputs  : USER_ID       [I]     User ID  for GTUNIT
+          NEWFILE       [L]     TRUE if a new file is to be opened.
+          FILENAME      [C]     Filename to store Ntuple 
+          RECORD_LENGTH [I]     Record length (=8191 is suggested)
+          TOP_DIRECTORY [C]     Top_directory name of the file
+
+Outputs : IERR          [I]     Error status, 0 means NO error
+
+                    -----*-----
+
+2. To book an Ntuple:
+
+       SUBROUTINE NTUPLE_BOOK (TOP_DIRECTORY,NO_VARIABLES,CHTAGS,
+     &                         TITLE,NTUPLE_ID,IERR)
+
+   Purpose and Methods : Book Ntuple for data_logging
+
+
+Inputs  :  TOP_DIRECTORY [C*]    Top_directory name of the file 
+           NO_VARIABLES  [I]     Number of variables
+           CHTAGS        [C*]    Array containing tags (8 chars. max.)
+                                 for variables 
+           TITLE         [C]     Ntuple title
+
+Outputs : NTUPLE_ID      [I]     ID of an  Ntuple. You can set the
+                                 ID prior to calling NTUPLE_BOOK by
+                                 calling the routine
+                                 
+                                    NTUPLE_SET_ID(ID,IDSTEP)
+                                 
+                                 where ID is the required ID and IDSTEP
+                                 is the amount by which the IDs should be
+                                 incremented thereafter.    
+                             
+          IERR           [I]     Error status, 0 means NO error
+
+                    -----*-----
+
+3. To FILL an Ntuple:
+
+      SUBROUTINE NTUPLE_FILL(TOP_DIRECTORY,NTUPLE_ID,XTUPLE,IERR)
+
+    Purpose and Methods : Fill an Ntuple of given ID
+
+Inputs : TOP_DIRECTORY  [C*]    Top_directory name of the file 
+         NTUPLE_ID      [I]     ID of an  Ntuple
+         XTUPLE(*)      [C*]    Data array 
+
+Outputs : IERR          [I]     Error status, 0 means NO error
+
+Controls: none
+
+                    -----*-----
+
+4. To GET data from an Ntuple:
+
+      SUBROUTINE NTUPLE_GET(TOP_DIRECTORY,NTUPLE_ID,EVENT,XTUPLE,IERR)
+
+    Purpose and Methods : Get data from an Ntuple.
+
+Inputs : TOP_DIRECTORY  [C*]    Top_directory name of the file
+         NTUPLE_ID      [I]     ID of an  Ntuple
+         EVENT          [I]     Ntuple Event number
+        
+
+Outputs : XTUPLE(*)     [C*]    Data array 
+          IERR          [I]     Error status, 0 means NO error
+
+
+                    -----*-----
+
+5. To save the current Ntuple buffer to a file:
+
+      SUBROUTINE NTUPLE_SAVE(TOP_DIRECTORY,NTUPLE_ID,IERR)
+
+   Purpose and Methods : Write out current ntuple buffer to the file
+                         identified by "top_directory".
+
+Inputs : TOP_DIRECTORY [C*]    Top_directory name of the file 
+         NTUPLE_ID     [I]     ID of an  Ntuple
+
+Outputs :IERR          [I]     Error status, 0 means NO error
+
+Controls: none
+
+                    -----*-----
+
+6. To flush an Ntuple from memory which is not needed any more:
+
+      SUBROUTINE NTUPLE_FLUSH (TOP_DIRECTORY,NTUPLE_ID,IERR)
+
+   Purpose and Methods : Write out the last buffer of an Ntuple,
+                         identified by its ID to disk and delete the
+                         Ntuple from memory. Also  close the file if
+                         all Ntuples were written out.
+
+Inputs : TOP_DIRECTORY [C*]    Top_directory name of the file
+         NTUPLE_ID     [I]     ID of an  Ntuple
+
+Outputs :IERR          [I]     Error status, 0 means NO error
+
+Controls: none
+
+                    -----*-----
+
+7. To Close all files:
+
+      SUBROUTINE NTUPLE_END 
+
+   Purpose and Methods : End the program. Write out the last buffer of
+                         all remaining Ntuples, and Close all
+                         remaining Direct Access files. 
+
+Inputs  : none
+Outputs : none 
+Controls: none
+
+                    -----*-----
+
+<FF>
+      PROGRAM NTUPLE_TEST
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :A sample program to use Ntuple routines
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  24-MAY-1991   B.S.Acharya
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INTEGER NO_CHANNELS,NO_DATA,NO_VARIABLES
+      INTEGER NTC(4),NTD(4),I,L,II,JJ,K,M,INT
+      INTEGER USER_ID,NC(4),ND(4),OPTION
+      INTEGER IERR,LABEL,LAB(4)
+
+      REAL XDATA(15),TIME_ZERO,TIME
+
+      CHARACTER*4 CHANNEL_LABELS(5),DATA_LABELS(3),DET(3)
+      CHARACTER*8 CHTAGS(15)
+      CHARACTER*32 FILENAME,DIR
+      CHARACTER*32 TITLE
+      LOGICAL NEWFILE
+C----------------------------------------------------------------------
+      DATA DATA_LABELS/'_VOL','_CUR','_TMP'/
+      DATA CHANNEL_LABELS/'ONE_','TWO_',
+     &     'THRE','FOUR','FIVE'/
+      DATA DET/'CAL','MUON','TRD'/
+      DATA NTC/5,2,4,3/ ,NTD/3,1,2,3/, USER_ID/111/
+C--------------------------------------------------------------------
+
+      CALL NT_INITIALIZE              ! initialize HBOOK
+
+      TIME_ZERO = SECNDS(0.0)
+C
+C--- open newfiles -----
+C
+      DO II=1,3
+        NEWFILE=.TRUE.
+        FILENAME=DET(II)//'_NTUPLE_RZ_FILE.DAT'
+        CALL NTUPLE_FILE_OPEN(USER_ID,NEWFILE,FILENAME,
+     &                        8191,DET(II),IERR)
+        CALL HCDIR(DIR,'R')
+        PRINT *,II,FILENAME,DIR
+      ENDDO
+C
+C ****  Loop over files
+C
+      DO II=1,3
+C
+C ****  Book 4 ntuples/file
+C
+        DO I = 1,4          
+          NO_CHANNELS=NTC(I)
+          NO_DATA = NTD(I)
+          TITLE=CHANNEL_LABELS(I)//'--HV_DATA_LOGGINGS'
+          CALL DATA_TAGS (
+     &        NO_CHANNELS,CHANNEL_LABELS,
+     &        NO_DATA,DATA_LABELS,CHTAGS )
+
+          NO_VARIABLES = NO_CHANNELS*NO_DATA
+
+          CALL NTUPLE_BOOK(DET(II),NO_VARIABLES,       !Book Ntuple
+     &                     CHTAGS,TITLE,LABEL,IERR)
+
+          IF(IERR.GT.0)THEN
+            PRINT *,' ERROR !! IERR = ',IERR
+          ENDIF
+          LAB(I)=LABEL
+          NC(I)=NO_CHANNELS
+          ND(I)=NO_DATA
+        ENDDO
+C
+C --- FILL THE DATA ARRAY ----
+C
+        DO I=4,1,-1                     ! Fill all Ntuples in any order
+          DO L=1,500
+            CALL BAG(I,NC(I),ND(I),TIME_ZERO,XDATA)
+            CALL NTUPLE_FILL(DET(II),LAB(I),XDATA,IERR)
+          ENDDO
+        ENDDO
+
+        DO I=1,20                       ! Do some more filling
+          JJ=RAN(II)*4+1          ! by picking Ntuples at ramdom
+          IF(JJ.GT.4)JJ=4
+          IF(JJ.LT.1)JJ=1
+          DO L=1,50
+            CALL BAG(JJ,NC(JJ),ND(JJ),TIME_ZERO,XDATA)
+            CALL NTUPLE_FILL(DET(II),LAB(JJ),XDATA,IERR)
+          ENDDO
+        ENDDO
+C
+C- Start writing some Ntuples to disk and continue to fill others
+C
+        CALL NTUPLE_FLUSH(DET(II),LAB(3),IERR) ! write an Ntuple
+C
+C A call to Ntuple_flush will write the last buffer of current Ntuple to
+C disk and delete an Ntuple from memory. (In this example, 3rd Ntuple
+C is written to disk and deleted while the other 3 Ntuples still remain
+C
+        IF(IERR.GT.0)THEN
+          PRINT *,' ERROR ** IERR =',IERR
+        ENDIF
+        JJ=1
+        CALL BAG(JJ,NC(JJ),ND(JJ),TIME_ZERO,XDATA)
+        CALL NTUPLE_FILL(DET(II),LAB(JJ),XDATA,IERR)    !    Fill an Ntuple
+        JJ=4
+        CALL BAG(JJ,NC(JJ),ND(JJ),TIME_ZERO,XDATA)
+        CALL NTUPLE_FILL(DET(II),LAB(JJ),XDATA,IERR)    !   Fill another Ntuple
+        CALL NTUPLE_FLUSH(DET(II),LAB(2),IERR) ! Write one to disk
+        IF(IERR.GT.0)THEN
+          PRINT *,' ERROR ** IERR =',IERR
+        ENDIF
+C
+C (In this example, 2nd Ntuple is written to disk and deleted while the
+C  other 2 Ntuples still remain
+C
+        JJ=4
+        CALL BAG(JJ,NC(JJ),ND(JJ),TIME_ZERO,XDATA)
+        CALL NTUPLE_FILL(DET(II),LAB(JJ),XDATA,IERR) ! fill one Ntuple
+        CALL BAG(JJ,NC(JJ),ND(JJ),TIME_ZERO,XDATA)
+        CALL NTUPLE_FILL(DET(II),LAB(JJ),XDATA,IERR) ! fill one ntuple
+        CALL NTUPLE_FLUSH(DET(II),LAB(4),IERR)       ! write one to disk
+        IF(IERR.GT.0)THEN
+          PRINT *,' ERROR ** IERR =',IERR
+        ENDIF
+C
+C (In this example, 4th Ntuple is written to disk and deleted while one
+C  more Ntuple still remain
+C
+        CALL NTUPLE_FLUSH(DET(II),LAB(1),IERR)       !write one to disk
+        IF(IERR.GT.0)THEN
+          PRINT *,' ERROR ** IERR =',IERR
+        ENDIF
+C
+C-- at this stage all booked Ntuples are already written out to disk and these
+C  Ntuples are deleted from memory. The last call to NTUPLE_FLUSH (the one
+C above) has closed the file. So a call to NTUPLE_END does nothing.(If some
+C of the Ntuples were not closed then a single call to NTUPLE_END would write
+C out all remaining Ntuples to disk and close the file).
+C
+        CALL NTUPLE_END      ! in this example, this call does nothing
+      ENDDO
+C
+C-- at this stage all booked Ntuples are already written out to disk and all
+C  files are closed by previous calls to NTUPLE_FLUSH (or to NTUPLE_END )
+C Hence a call to NTUPLE_END does nothing.(If some of the files were not
+C closed then a single call to NTUPLE_END would write  out all remaining
+C Ntuples to disk and close all the remaining the files).
+C
+      CALL NTUPLE_END      !in this example this call does nothing
+      END
+
+      SUBROUTINE NT_INITIALIZE
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : initialise  HBOOK
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  27-MAY-1991   B.S.Acharya
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      CALL MZEBRA(0)
+      CALL INPAWC
+C
+  999 RETURN
+      END
+
+      SUBROUTINE DATA_TAGS(NO_CHANNELS,CHANNEL_LABELS,
+     &        NO_DATA,DATA_LABELS,CHTAGS)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : load data tags into tags array
+C-
+C-   Inputs  :   NO_CHANNELS              !total number of channels
+C-               CHANNEL_LABELS           !channel names
+C-               NO_DATA                  !number of data per channel
+C-               DATA_LABELS              !data names
+C-
+C-   Outputs :   CHTAGS                   !tags for data
+C-   Controls:
+C-
+C-   Created  27-MAY-1991   B.S.Acharya
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+
+      CHARACTER*(*) CHANNEL_LABELS(*),DATA_LABELS(*)
+      CHARACTER*(*) CHTAGS(*)
+
+      INTEGER NO_CHANNELS,NO_DATA
+      INTEGER I,J,K
+C----------------------------------------------------------------------
+
+C
+C --- FILL THE TAGS ARRAY ----
+C
+      K=0
+      DO I = 1,NO_CHANNELS
+        DO J = 1,NO_DATA
+          K=K+1
+          CHTAGS(K)=CHANNEL_LABELS(I)//'_'//DATA_LABELS(J)
+        ENDDO
+      ENDDO
+C
+  999 RETURN
+      END
+
+      SUBROUTINE BAG(KAKA,NO_CHANNELS,NO_DATA,TIME_ZERO,XDATA)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Generates data to fill DATA array
+C-
+C-   Inputs  : KAKA,NO_CHANNELS,NO_DATA,TIME_ZERO
+C-   Outputs : XDATA
+C-   Controls:
+C-
+C-   Created  27-MAY-1991   B.S.Acharya
+C-
+C----------------------------------------------------------------------
+
+      IMPLICIT NONE
+      INTEGER NO_CHANNELS,NO_DATA
+      INTEGER II,JJ,K,L,M,KAKA,INT
+      REAL XDATA(*),TIME_ZERO,TIME
+
+      K=0
+      TIME = (SECNDS(0.0)-TIME_ZERO)*1000.0     ! m sec since start
+      DO II = 1,NO_CHANNELS
+        DO JJ = 1,NO_DATA
+          K=K+1
+          M=K.AND.1
+          IF(M.EQ.1)THEN
+            XDATA(K)=SIN(RAN(INT)*3.14)
+          ELSE
+            XDATA(K)=COS(RAN(INT)*3.14)
+          ENDIF
+          IF(K.EQ.1)XDATA(K)=KAKA
+          IF(K.EQ.2)XDATA(K)=TIME
+          IF(K.EQ.3)XDATA(K)=COS(TIME*3.14/250.0)
+          IF(K.EQ.4)XDATA(K)=SIN(TIME*3.14/250.0)
+        ENDDO
+      ENDDO
+      END
+
+
+==============================================================================
+
+ 21-DEC-1991 : Modifications released by Harrison B. Prosper
+ 
+    - Modified  Dhdir to allow automatic replication of a PAWC
+                directory in an RZ-file. By default DO_HBOOK_OPEN 
+                declares the first opened RZ-file to be the one to which
+                histograms and ntuples are to be written.
