@@ -1,0 +1,137 @@
+THISDIR := $(TOPDIR)/$(PACKAGE)
+TMP_OPT := $(THISDIR)/tmp_opt
+TMP_DEB := $(THISDIR)/tmp_deb
+TMP_SRC := $(THISDIR)/tmp_src
+
+ifeq (,$(wildcard $(TMP_OPT)))
+  $(shell mkdir -p $(TMP_OPT))
+endif
+ifeq (,$(wildcard $(TMP_DEB)))
+  $(shell mkdir -p $(TMP_DEB))
+endif
+ifeq (,$(wildcard $(TMP_SRC)))
+  $(shell mkdir -p $(TMP_SRC))
+endif
+
+ifneq (,$($(PACKAGE)_SOURCE_FOR))
+SOURCE_FOR := $(foreach s,$($(PACKAGE)_SOURCE_FOR),\
+                $(wildcard $(THISDIR)/*/$(s)))
+else
+SOURCE_FOR := $(filter-out $(THISDIR)/tmp_src/%.for,\
+                 $(wildcard $(THISDIR)/*/*.for))
+endif
+ifneq (,$($(PACKAGE)_EXCEPT_FOR))
+EXCEPT_FOR := $(foreach s,$($(PACKAGE)_EXCEPT_FOR),\
+                $(wildcard $(THISDIR)/*/$(s)))
+SOURCE_FOR := $(filter-out $(EXCEPT_FOR),$(SOURCE_FOR))
+endif
+OBJECT_FOR := $(patsubst %.for,%.o,$(notdir $(SOURCE_FOR)))
+OBJECT_FOR_OPT := $(addprefix $(TMP_OPT)/,$(OBJECT_FOR))
+OBJECT_FOR_DEB := $(addprefix $(TMP_DEB)/,$(OBJECT_FOR))
+
+ifneq (,$($(PACKAGE)_SOURCE_F))
+SOURCE_F := $(foreach s,$($(PACKAGE)_SOURCE_F),\
+                $(filter-out $(THISDIR)/tmp_src/%.f,\
+                $(wildcard $(THISDIR)/*/$(s))))
+else
+SOURCE_F := $(filter-out $(THISDIR)/tmp_src/%.f,\
+                 $(wildcard $(THISDIR)/*/*.f))
+endif
+ifneq (,$($(PACKAGE)_EXCEPT_F))
+EXCEPT_F := $(foreach s,$($(PACKAGE)_EXCEPT_F),\
+                $(wildcard $(THISDIR)/*/$(s)))
+SOURCE_F := $(filter-out $(EXCEPT_F),$(SOURCE_F))
+endif
+OBJECT_F := $(patsubst %.f,%.o,$(notdir $(SOURCE_F)))
+OBJECT_F_OPT := $(addprefix $(TMP_OPT)/,$(OBJECT_F))
+OBJECT_F_DEB := $(addprefix $(TMP_DEB)/,$(OBJECT_F))
+
+ifneq (,$($(PACKAGE)_SOURCE_C))
+SOURCE_C := $(foreach s,$($(PACKAGE)_SOURCE_C),\
+                $(filter-out $(THISDIR)/tmp_src/%.c,\
+                $(wildcard $(THISDIR)/*/$(s))))
+else
+SOURCE_C := $(filter-out $(THISDIR)/tmp_src/%.c,\
+                 $(wildcard $(THISDIR)/*/*.c))
+endif
+ifneq (,$($(PACKAGE)_EXCEPT_C))
+EXCEPT_C := $(foreach s,$($(PACKAGE)_EXCEPT_C),\
+                $(wildcard $(THISDIR)/*/$(s)))
+SOURCE_C := $(filter-out $(EXCEPT_C),$(SOURCE_C))
+endif
+OBJECT_C := $(patsubst %.c,%.o,$(notdir $(SOURCE_C)))
+OBJECT_C_OPT := $(addprefix $(TMP_OPT)/,$(OBJECT_C))
+OBJECT_C_DEB := $(addprefix $(TMP_DEB)/,$(OBJECT_C))
+
+OBJECT_DEB := $(OBJECT_FOR_DEB) $(OBJECT_C_DEB) $(OBJECT_F_DEB)
+OBJECT_OPT := $(OBJECT_FOR_OPT) $(OBJECT_C_OPT) $(OBJECT_F_OPT)
+TMP_SOURCES := $(addprefix $(TMP_SRC)/,\
+                 $(notdir $(SOURCE_FOR) $(SOURCE_C) $(SOURCE_F)))
+
+define for_common_compile
+	$(NOECHO) echo $(1) $(patsubst ../../%,%,$(shell readlink $<))
+	$(BINDIR)/tasteofd0 LINUX < $< | \
+          $(BINDIR)/vmstounix > $(patsubst %.for,%.f,$<)
+	$(F77) -I$(dir $(patsubst ../../%,%,$(shell readlink $<))) \
+          $(F77_COMMON_FLAGS) $(F77_$(1)_FLAGS) -c -o $@ \
+          $(patsubst %.for,%.f,$<)
+endef
+
+
+define c_common_compile
+	$(NOECHO) echo $(1) $(patsubst ../../%,%,$(shell readlink $<))
+	$(CC) -I$(dir $(patsubst ../../%,%,$(shell readlink $<))) \
+          $(C_COMMON_FLAGS) $(C_$(1)_FLAGS) -c -o $@ $<
+endef
+
+
+define f_common_compile
+	$(NOECHO) echo $(1) $(patsubst ../../%,%,$(shell readlink $<))
+	$(F77) $(F77_COMMON_FLAGS) $(F77_$(1)_FLAGS) -c -o $@ $<
+endef
+
+
+define make_lib_common
+	$(NOECHO) echo Make lib $@
+	ar cr $@ $+
+endef
+
+
+ifneq (,$($(PACKAGE)_LIB))
+  LIB_OPT := $(THISDIR)/$(PACKAGE).a
+  LIB_DEB := $(THISDIR)/deb_$(PACKAGE).a
+  libs : $(LIB_DEB) $(LIB_OPT)
+
+  $(LIB_DEB) : $(OBJECT_DEB)
+	$(make_lib_common)
+  $(LIB_OPT) : $(OBJECT_OPT)
+	$(make_lib_common)
+
+  $(OBJECT_FOR_DEB) : $(TMP_DEB)/%.o : $(TMP_SRC)/%.for
+	$(call for_common_compile,DEB)
+  $(OBJECT_FOR_OPT) : $(TMP_OPT)/%.o : $(TMP_SRC)/%.for
+	$(call for_common_compile,OPT)
+
+  $(OBJECT_C_DEB) : $(TMP_DEB)/%.o : $(TMP_SRC)/%.c
+	$(call c_common_compile,DEB)
+  $(OBJECT_C_OPT) : $(TMP_OPT)/%.o : $(TMP_SRC)/%.c
+	$(call c_common_compile,OPT)
+
+  $(OBJECT_F_DEB) : $(TMP_DEB)/%.o : $(TMP_SRC)/%.f
+	$(call f_common_compile,DEB)
+  $(OBJECT_F_OPT) : $(TMP_OPT)/%.o : $(TMP_SRC)/%.f
+	$(call f_common_compile,OPT)
+
+  $(TMP_SOURCES) : % :
+	$(NOECHO) ln -sf ../../$(wildcard $(subst /tmp_src/,/*/,$@)) $@
+endif
+
+clean : clean-$(PACKAGE)
+clean-$(PACKAGE) :
+	$(NOECHO) PACKAGE=$(patsubst clean-%,%,$@); \
+	echo Cleaning $$PACKAGE; \
+	rm -rf $(TOPDIR)/$$PACKAGE/tmp_opt; \
+	rm -rf $(TOPDIR)/$$PACKAGE/tmp_deb; \
+	rm -rf $(TOPDIR)/$$PACKAGE/tmp_src; \
+        rm -f $(TOPDIR)/$$PACKAGE/$$PACKAGE.a; \
+        rm -f $(TOPDIR)/$$PACKAGE/deb_$$PACKAGE.a
