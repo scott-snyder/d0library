@@ -1,0 +1,337 @@
+
+                                                            R. Avery
+                                                            November 23, 1991
+                                                            Version  1.0
+
+                                                        Qizhong Li-Demarteau
+                                                        Updated 20-OCT-1992 
+                                                        for 3D display
+   
+
+                         ZTRAKSDIS - CD Event Display
+
+ I. INTRODUCTION
+      ZTRAKSDIS is the Central Detector event display package.
+    It makes displays that combine the various central detector views.
+    It is intended to provide all of the displays needed to get a
+    general idea of the central detector's performance, displaying
+    hits, tracks in individual detectors, and combined CD tracks.
+    The CD can be viewed in the R-Z view, in the R-Phi view and in a 3-D view.
+    More detailed views can be found in the individual detector packages 
+    (FDCDIS,CDCDIS,VTXDIS and TRDDIS).
+    It is part of the PIXIE library, which can be run in various frameworks.
+    Hooks are set up for PIXIE in D0USER and EXAMINE2. (See .DOCs)
+
+
+II. GETTING a CD DISPLAY
+
+ A. Program builder
+
+    The package ZTRAKSDIS must be included in the package list to get
+    the CD event display. Since ZTRAKSDIS makes combined displays using
+    displays from VTXDIS,TRDDIS,CDCDIS, and FDCDIS, these should also
+    be included. To get these combined displays for the Central Detector
+    just use the combined package CDDIS_COMBINED.PBD for D0USER or
+    CD_DISPLAY_COMBINED.PBD for EXAMINE2. To get combined displays, 
+    including CAL and all tracking and muon displays, just use the package 
+    ALL_DISPLAY_COMBINED.PBD for D0USER or D0_DISPLAY_COMBINED.PBD for 
+    EXAMINE. 
+
+ B. LINK
+
+    The normal D0USER link does not include the event display
+    package. One needs to do: $@ZTRAKS_D0USER.LNK DI3000.
+    Also, it is usually best to do a $LIBT PIXIE in order to
+    pick up the latest event display routines and parameters.
+
+ C. Setup for RUN
+
+
+   1. DI3000 logicals
+
+      If the DI3000 logicals are not automatically setup, do
+      $SETUP DI3000 or find out where DI3000 is stored on your node
+      and execute DILOGIN.COM
+
+      The sharable version of DI3000 should be requested by the command:
+
+      $ DISETSHR EXT HI
+
+    $SETDRV cod1 cod2 ! to setup the DI3000 device Drivers.
+
+    The first driver should correspond to the type of terminal you are
+    logged on to; the second one to a hardcopy device[ e.g. TLP ].
+
+    For more information see D0$DOCS:DI3000_GUIDE.DOC
+
+ 2. PIXIE logicals. The event display needs a RCP file to define the views
+    to be displayed and the interactive parameters which control them.
+    For the ZTRAKS display, the file needed is D0$PIXIE:PX_ZTRAKSDIS.RCP.
+    The corresponding logical is PX_ZTRAKSDIS_RCP. The user may redirect
+    the RCP logicals to their own files. The ZTRAKSDIS routines also
+    need access to some of the parameters used in Central Tracking
+    reconstruction, for example D0$TRACKING_UTIL:ZTRAKS.RCP.
+        All the required RCP files are defined automatically by the
+    'combined_package'_D0USER.COM if the ZTRAKS or ALL_DISPLAY packages have
+    been included. The command file D0$D0USER:EVENT_DISPLAY.COM must also
+    be executed. (This procedure does $SETDRV and sets up the STP files.)
+
+ D. RUNNING
+
+    1. Running EXAMINE2
+
+       After "BEGIN PROCESSING" in EXAMINE2, choose menu item
+       "EVENT DISPLAY" in the INTERRUPT menu.
+
+    2.  Running D0USER.
+
+       There are two ways to use event display. The first
+       is to turn on the interactive menu and then, while analyzing
+       events, do a DISPLAY EVENT. This will start at a random event.
+       One can also turn on the automatic event display by doing
+       EVENT DISPLAYS (7) before starting the run. It will ask how
+       many events and their particular IDs (if -1 then assumes
+       consecutive).
+
+
+ III. ZTRAKSDIS MENU
+
+SUB_LEVEL: ZTRAKS Event Display    SETUP
+Select: {command, #, HELP (#), MENU, BACK} > ?
+
+   1: CEN Detect R-PHI                    2: VTX+CDC+FDC R-PHI View
+   3: VTX+CDC+FDC R-Z View                4: Combined 3-D Tracks
+   5: FDC Combined View                   6: FDC_Hits
+   7: ZTRAKS TOP VIEW                     8: ZTRAKS SIDE VIEW
+   9: NEXT Event                         10: GO TO Event
+  11: ZOOM                               12: ROTATE
+  13: PICK                               14: HARDCOPY
+  15: MODIFY                             16: Change Display Mode
+  17: Superimpose(On/Off)                18: Set Path
+  19: Dump Bank                          20: Dump Event
+  21: Write Event                        22: Start Sequencial Display
+  23: COMPACK System Menu
+
+ For further information on menu items 9 - 23, see D0$PIXIE:PX_SYSTEM.DOC
+
+
+--------------------------------------------------------------------------------
+*ZTRAKSDIS Menu Title    * Function & Remark                                   *
+--------------------------------------------------------------------------------
+  CEN Detect R-PHI      - This is a combined view of the VTX, CDC and TRD
+                                chambers as seen in the R-Phi projection.
+                                For the CDC and VTX, all hits are shown.
+                                For the TRD, an energy histogram plot is shown.
+                                Tracks in individual detectors are
+                                color coded according to particle type,
+                                if that information exists:
+                                 * Green - track is in a muon road.
+                                 * Red - track is in an electron road.
+                                 * Blue - track is in a tau road.
+                                 * Yellow - track contributed to a Vee.
+                                In addition, combined CD fitted tracks are
+                                shown as Forground dashed lines.
+                                If tracking was done in roads, the phi
+                                extent of the roads are drawn.
+
+  VTX+CDC+FDC R-PHI View - This is a combined view of the VTX, CDC and FDC
+                                chambers as seen in the R-Phi projection.
+                                For the CDC and VTX, all hits are shown.
+                                For the FDC, delay line hits are shown only
+                                if they are associated with a track segment.
+                                Track are drawn as in "CEN Detect R-PHI".
+                                If tracking was done in roads, the phi
+                                extent of the roads are drawn.
+
+  VTX+CDC+FDC R-Z View  - This is a combined view of the VTX, CDC and FDC
+                                tracking chambers as seen in an R-Z projection.
+                                The top half consists of hits and tracks
+                                within the region 'PHI CENTER'+- 'PHI WIDTH'
+                                given in PX_SYSTEM_RCP. The default is for
+                                this to be the top half (y>0). The bottom half
+                                of the display is always the region
+                                diametrically opposite. For the CDC and VTX,
+                                all hits with Z information are shown.
+                                For the FDC, delay line hits are shown only
+                                if they are associated with a track segment.
+                                Track are drawn as in "CEN Detect R-PHI".
+                                If tracking was done in roads, the theta
+                                extent of the roads are drawn.
+
+  Combined 3-D Tracks   - 3D view of Central Detector tracks reconstructed
+                          in 3-dimensions. This view can be rotated on 
+                          VAXSTATIONS or the Evans and Sutherland, using 
+                          the ROTATE command.
+                          All hits, which have 3D information can also be 
+                          drawn. The hits display is controled by the 
+                          parameter "ZTRAKS DRAW HITS". In the central region,
+                          draw_hits=1 all hits are same color
+                          draw_hits=2 mark hit on track
+                          draw_hits=3 mark mirror hits (+phi purple;
+                                                        -phi green)
+                          Draw the sectors and wires are available in the
+                          3D view display too.
+
+  FDC Combined View     - Displays a combined view of R-Z, and R-Phi for
+                                both FDC halves.
+
+  FDC Hits              - Displays all hits and track segments in an FDC half. 
+                        Each sector (cell) of  each FDC theta quadrant 
+                        and each FDC Phi sector is displayed on one page. 
+                        The arrangement of this display does not reflect 
+                        the true geometry of the FDC! 
+                        The page is divided into 4 columns, each showing three 
+                        layers of the FDC in order: 
+                                1) an inner theta quadrant (INR),
+                                2) on forth of the Phi sectors (9 cells),
+                                3) an outer theta quadrant (OUTR).
+                        If the segment is not on a full track, it is 
+                        drawn as dotted green line.
+                        If the segment is on a full track, it is 
+                        drawn as solid line in forground color.
+
+  ZTRAKS Top View - R-Z projections of VTX, CDC and FDC hits and tracks
+                    with fixed PHI angle cuts of -45. deg to +45. deg
+                    (with same+ 2 PI slice plotted below the axes). 
+
+
+
+  ZTRAKS Side View - R-Z projections of VTX, CDC and FDC hits and tracks
+                    with fixed PHI angle cuts of +45. deg to +135. deg
+                    (with same+ 2 PI slice plotted below the axes). 
+
+ IV. ZTRAKSDIS PARAMETERS in PX_ZTRAKSDIS.RCP:
+    The above descriptions are the default behavior. The user can modify
+    some aspects of the displays by modifying the RCP parameters in
+    the PX_ZTRAKSDIS.RCP file, either by directly editting the file before
+    running, or interactively, via the menu command, MODIFY.
+    There are only a few ZTRAKSDIS specific parameters.
+    Many aspects of the displays can be modified by changing parameters 
+    of the individual detector displays (CDCDIS, etc.).
+
+--------------------------------------------------------------------------------
+* Parameter Name    * Default[Type]  * Remark                                  *
+--------------------------------------------------------------------------------
+   'ZTRAKS DRAW HITS'          3  ' If >0 draw hits in 3D'
+   'ZTRAKS DRAW ZTRKS'      TRUE  ' If .TRUE., draw ZTRAKS in 3D'
+   'ZTRAKS DRAW DTRKS'      TRUE  ' If .TRUE., draw DTRAKS in 3D'
+   'ZTRAKS DRAW FTRKS'      TRUE  ' If .TRUE., draw FTRAKS in 3D'
+   'ZTRAKS DRAW VERTEX'        1  ' >0 draw primary verties in 3D;'
+   'ZTRAKS COLR ZFIT'       'FOR' ' Colour for ZFIT track'
+   'IMPACT CUT'              50.0 ' impact>cut, will not be drawn'
+   'CDC DRAW 3D SEC'           2  ' Used internally for 3D displays'
+   'TRD DRAW 3D LAYE'          2  ' Used internally for 3D displays'
+   'VTX DRAW 3D SEC'           2  ' Used internally for 3D displays'
+   'VTX DRAW WIRES'            0  ' Used internally for 3D displays'
+
+V. ZTRAKSDIS SCREENS in PX_ZTRAKSDIS.RCP:
+
+     The ZTRAKS COMBINED VIEWS are mostly all multiviews.  The parameters 
+     for ZTRAKSDIS are used to override the sub-detector display parameters
+     (so all displays are in same coordinate system, etc.).
+     Below is VTX+CDC+FDC R-PHI View, as an example of a multiview command.
+
+\ARRAY VTX+CDC+FDC_R-PHI_VIEW%
+ '%TITLE'       'VTX+CDC+FDC R-PHI View'   'Combined View Title'
+ '%PACKAGE'     'FDCDIS'          ' '
+ '%ACTION'      'FDC DL & TRACKS' ' '
+ '%PARAMS'      ' '               ' '
+    'FDC ONLY'            FALSE    ' '
+    'FDC DRAW LABEL'      0       ' '
+    'FDC DRAW SECTOR'     0       ' '
+    'FDC CHOOSE HALF'     T       ' '
+ '%SCREEN'      ' '               ' '
+    'VPORTXMIN'         -0.9890 ' '
+    'VPORTXMAX'          0.6119 ' '
+    'VPORTYMIN'         -0.9891 ' '
+    'VPORTYMAX'          0.9739 ' '
+    'WINDOWXMIN'      -100.0000   ' '
+    'WINDOWXMAX'       100.0000   ' '
+    'WINDOWYMIN'         0.0000   ' '
+    'WINDOWYMAX'        -1.0000   ' '
+
+ '%PACKAGE'     'CDCDIS'        ' '
+ '%ACTION'      'CDC_X-Y VIEW'  ' '
+ '%PARAMS'      ' '     ' '
+    'CDC ONLY'            FALSE ' '
+    'CDC DRAW SECTORS'   1      ' '
+    'CDC DRAW VERTEX'    1      ' '
+    'CDC DRAW LABEL'     0      ' '
+    'ALL PHI PICK'       0      ' '
+ '%SCREEN'      ' '     ' '
+    'VPORTXMIN'         -0.9890 ' '
+    'VPORTXMAX'          0.6119 ' '
+    'VPORTYMIN'         -0.9891 ' '
+    'VPORTYMAX'          0.9739 ' '
+    'WINDOWXMIN'      -100.0000 ' '
+    'WINDOWXMAX'       100.0000 ' '
+    'WINDOWYMIN'         0.0000 ' '
+    'WINDOWYMAX'        -1.0000 ' '
+
+ '%PACKAGE'     'CDCDIS'        ' '
+ '%ACTION'      'CDC_DRAW_PHI_ROAD'  ' '
+ '%PARAMS'      ' '     ' '
+    'CDC DRAW ROAD'   1      ' '
+ '%SCREEN'      ' '             ' '
+    'VPORTXMIN'         -0.9890 ' '
+    'VPORTXMAX'          0.6119 ' '
+    'VPORTYMIN'         -0.9891 ' '
+    'VPORTYMAX'          0.9739 ' '
+    'WINDOWXMIN'      -100.0000 ' '
+    'WINDOWXMAX'       100.0000 ' '
+    'WINDOWYMIN'         0.0000 ' '
+    'WINDOWYMAX'        -1.0000 ' '
+
+ '%PACKAGE'     'VTXDIS'        ' '
+ '%ACTION'      'VTX_R-PHI VIEW'        ' '
+ '%PARAMS'      ' '     ' '
+    'VTX ONLY'            FALSE ' '
+    'VTX DRAW VERTEX'    0      ' '
+    'VTX DRAW BEAMLINE'  0      ' '
+ '%SCREEN'      ' '     ' '
+    'VPORTXMIN'         -0.9890 ' '
+    'VPORTXMAX'          0.6119 ' '
+    'VPORTYMIN'         -0.9891 ' '
+    'VPORTYMAX'          0.9739 ' '
+    'WINDOWXMIN'      -100.0000 ' '
+    'WINDOWXMAX'       100.0000 ' '
+    'WINDOWYMIN'         0.0000 ' '
+    'WINDOWYMAX'        -1.0000 ' '
+
+ '%PACKAGE'     'ZTRAKSDIS'        ' '
+ '%ACTION'      'ZTRAKS_R-PHI VIEW'  ' '
+ '%PARAMS'      ' '     ' '
+ '%SCREEN'      ' '     ' '
+    'VPORTXMIN'         -0.9890 ' '
+    'VPORTXMAX'          0.6119 ' '
+    'VPORTYMIN'         -0.9891 ' '
+    'VPORTYMAX'          0.9739 ' '
+    'WINDOWXMIN'      -100.0000 ' '
+    'WINDOWXMAX'       100.0000 ' '
+    'WINDOWYMIN'         0.0000 ' '
+    'WINDOWYMAX'        -1.0000 ' '
+\END
+
+
+
+ VI. DOCUMENTATION
+
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction to the use of the
+                                   commercial graphics package, DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives more than introduction to D0USER
+                                   which provides an offline framework.
+
+    4. D0$EXAMINE2:EXAMINE_GUIDE.DOC - Users guide to EXAMINE,  the ONLINE
+                                       event monitoring framework.
+
+    5. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE Event Display
+
+    6. D0$PIXIE:CDCDIS.DOC,FDCDIS.DOC,VTXDIS.DOC,TRDDIS.DOC - Guides to 
+                                 individual tracking detector displays.
+

@@ -1,0 +1,217 @@
+\START          PXBUILD_RCP                                                     
+\SIZE        988        40
+!------------------------------------------------------------------------------
+!   Name:       PXBUILD.RCP
+!   Purpose:    Control file for PXBUILD.EXE
+!   Created:    12-Sep-1990     Harrison B. Prosper
+!   Version:    V1.00
+!------------------------------------------------------------------------------
+VERSION                 'V1.00'         !Version number of PXBUILD
+DISPLAY_FILE_AREA       'D0$PIXIE:'     !Area containing RCP Display files
+!------------------------------------------------------------------------------
+!   COMPACK SETUP
+!------------------------------------------------------------------------------
+SPLSTA          TRUE    ! Create a STATUS window
+SPLTIT          TRUE    ! Create a SPLIT screen
+SETSTA          4       ! Number of lines in status window
+SETLIN          8       ! Number of lines in Upper window
+DEFSPA          1       ! Default spacing between menu items
+
+\ARRAY COMPACK_MENUS
+    'BUILD'
+    'MODIFY'
+    'MENU_EDITING'
+    'EDIT'
+\END
+
+\ARRAY BUILD
+    TRUE
+    TRUE
+    'READ Display File'
+    'READ'
+    'Read into memory the specified PIXIE Display Description File (DDF)'
+    'and add its name as a menu item to the current menu. The DDF files '
+    'are RCP files with extension .RCP, for example, '
+    'D0$PIXIE:CAL_ACTIONS.RCP'
+
+    TRUE
+    TRUE
+    'MODIFY RCP Files'
+    'MODIFY RCP FILES'
+    'Lets you modify the RCP file(s).'
+    'Displays the submenu:'
+    '  Edit Menu'
+    '  Edit Screen Parameters'
+    '  Merge with s RCP file'
+    '  Change RCP file'
+    '  Write File'
+\END
+
+\ARRAY MENU_EDITING
+    TRUE
+    TRUE
+    'List Menu Items'
+    'LIST'
+    'List the names of the selected action routines.'
+
+    TRUE
+    TRUE
+    'Add Menu Item'
+    'ADD'
+    'Adds a menu item to the list.'
+
+    TRUE
+    TRUE
+    'Remove Menu Item'
+    'REMOVE'
+    ' A list of all the available menus will be displayed for'
+    ' you to select the Menu item you wish to remove'
+
+    TRUE
+    TRUE
+    'Clear Menu'
+    'CLEAR'
+     'Clears all the changes made after entring this submenu'
+\END
+
+\ARRAY EDIT
+    TRUE
+    TRUE
+    'Modify Viewport'
+    'MODIFY VIEW'
+     'Allows the user to modify the viewport using the mouse'
+     ' or in a line mode.'
+
+    TRUE
+    TRUE
+    'Delete Viewport'
+    'DELETE VIEW'
+    'Delets the activated viewport'
+
+    TRUE
+    TRUE
+    'Change WINDOW Params'
+    'CHANGE WINDOW'
+    'Change the window parameters of the screen activated'
+
+    TRUE
+    TRUE
+    'Center and Size Window'
+    'CENTER'
+    ' '
+
+    TRUE
+    TRUE
+    'Change Action Routine'
+    'CHANGE ACTION'
+    'Changes the action routine corresponding to the active view'
+
+    TRUE
+    TRUE
+    'Modify 3-D Parameters'
+    'MODIFY 3-D'
+    'Modifies the 3D parameters of the active screen'
+
+    TRUE
+    TRUE
+    'Change View Name'
+    'CHANGE NAME'
+    'Changes the name of the current screen'
+\END
+
+
+\ARRAY EXEC_TEMPLATE
+'      FUNCTION %ROUTINE ()'
+'C----------------------------------------------------------------------'
+'C-'
+'C-   Purpose and Methods : EXEC Interface Routine for PIXIE package'
+'C-                         %PACKAGE'
+'C-'
+'C-   Called from the PIXIE hook PXEXEC.'
+'C-'
+'C-   Returned value  : TRUE'
+'C-   Inputs  : None'
+'C-   Outputs : None'
+'C-   Controls: None'
+'C-'
+'C-   Created  %DATE   PXBUILD %VERSION'
+'C-'
+'C----------------------------------------------------------------------'
+'      IMPLICIT NONE'
+'      LOGICAL %ROUTINE'
+'C----------------------------------------------------------------------'
+'      CHARACTER*(*) TITLE'
+'      PARAMETER( TITLE   = %TITLE )'
+'      CHARACTER*(*) MENNAM'
+'      PARAMETER( MENNAM  = %MENU )'
+'      CHARACTER*40 COMMAND'
+'C----------------------------------------------------------------------'
+'      %ROUTINE = .TRUE.'
+'C'
+'C ****  Process commands'
+'C'
+'      COMMAND = %BLANK'
+'      DO WHILE ( COMMAND .NE. %EXIT )'
+'        CALL PUMENUDO(TITLE,MENNAM,COMMAND)'
+'        ENDIF'
+'      ENDDO'
+'  999 RETURN'
+'      END'
+\END
+
+\ARRAY INIT_TEMPLATE
+'      FUNCTION %R ()'
+'C----------------------------------------------------------------------'
+'C-'
+'C-   Purpose and Methods : INIT Interface Routine for PIXIE package'
+'C-                         %P'
+'C-'
+'C-   Read RCP file %F1 into memory.'
+'C-'
+'C-   Returned value  : TRUE'
+'C-   Inputs  : None'
+'C-   Outputs : None'
+'C-   Controls: None'
+'C-'
+'C-   Created  %D   PXBUILD %V'
+'C-'
+'C----------------------------------------------------------------------'
+'      IMPLICIT NONE'
+'      LOGICAL %R'
+'C----------------------------------------------------------------------'
+'      INTEGER IER'
+'      CHARACTER*(*) RCPFILE'
+'      PARAMETER( RCPFILE = %F2 )'
+'C----------------------------------------------------------------------'
+'      LOGICAL OK, FIRST'
+'      DATA FIRST/.TRUE./'
+'      SAVE OK, FIRST'
+'C----------------------------------------------------------------------'
+'      IF( FIRST ) THEN'
+'        FIRST = .FALSE.'
+'        CALL INRCP (RCPFILE,IER)'
+'        OK = IER .EQ. 0'
+'        IF ( .NOT. OK ) THEN'
+'          CALL ERRMSG'
+'     &  (%ERRMSG_INRCP)'
+'        ENDIF'
+'C'
+'C ****  Initialize menu'
+'C'
+'        CALL EZ_SETUP_COMPACK(RCPFILE,IER)'
+'        IF ( IER .NE. 0 ) THEN'
+'          CALL ERRMSG'
+'     &  (%ERRMSG_COMPACK)'
+'        ENDIF'
+'      ENDIF'
+'C'
+'C ****  Read geometry data '
+'C'
+'      CALL %STPROT(%STPFILE,IER)'
+'      OK = OK .AND. (IER .EQ. 0)'
+' '
+'      %R = OK'
+'  999 RETURN'
+'      END'
+\END
+\STOP

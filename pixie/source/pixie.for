@@ -48,6 +48,9 @@ C-     case, the original filename is kept
 C-   Updated  24-MAY-1993   Lupe Howell   Fix pick option for SGI, cleanup
 C-   Updated  12-JUL-1993   Vipin Bhatnagar  Autodisplay of the first file
 C-     for the single event case & cleanup of redundent code
+C-   Updated  08-NOV-1995   Nobuaki Oshima
+C-     Added VTRPAR for VTX init. after reading an event. No CALL VTISTP
+C-     in PVINIT anymore.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -64,45 +67,47 @@ C
       INTEGER BIG_COUNT
       PARAMETER( BIG_COUNT = 1000000 )
 C
-      INTEGER I,J,K,GZCAEP,GZCAEH,RUNNO,LAST_RUN,RUN,IUW,IUS,N
-      INTEGER EVNUM,LAST_EVN,EVONUM,INDEX,IBAKA, LANLS
+      INTEGER I,J,K,GZCAEP,GZCAEH,RUNNO,LAST_RUN,RUN,IUW,IUS
+      INTEGER EVNUM,LAST_EVN,EVONUM,IBAKA, LANLS
       INTEGER TRNLNM,STATUS,LENGTH,LOOP,COUNT,LUN,IER,IOS
       INTEGER ISTAT,LIB$FIND_FILE,LIB$FIND_FILE_END,CONTXT
+      INTEGER GZVCAL
       REAL    VALUE
 
       INTEGER IDR,NDR,LDR,IFN,NFN,DLN,IFD,NFD
       INTEGER LFN,IDF,NDF,LDF,LST,FMODE,LFD
-      INTEGER NM,MAXITM,ITM,ITMOLD,IUT,ITRY,IK,NC,KF,IV
-      INTEGER IXS,NXS,LXS,ML,PKCNT
+      INTEGER NM,MAXITM,ITM,ITMOLD,IK,NC
+      INTEGER ML,PKCNT
       INTEGER SPN_LIB,LIB$SPAWN
       INTEGER IVERSION,IPASS
 C
       LOGICAL ONOFF,OPEN
-      LOGICAL OK,EVENT,EOF,EOD,FLGVAL,FINE,FOUND,ACTIVE
+      LOGICAL OK,EVENT,EOF,EOD,FLGVAL,FINE,FOUND
       LOGICAL DO_MUODIS,DO_ZTRAKSDIS,SINGLE_FILE,NFLLST
       LOGICAL ZTRINI, CALOR_INI, CHTINI, MUONLY_INI, PMEVT_INI
-      LOGICAL FIRST,ODD,PICK_NEXT,SECOND,MERGE_FILE,FTFLG
-      LOGICAL UDST_TO_DST
+      LOGICAL ODD,PICK_NEXT,MERGE_FILE,FTFLG
+      LOGICAL VTRPAR,UDST_TO_DST
 C
       CHARACTER*160 DATAFILE,STRING,DATFILNM,STRINGDF,SCANFILE
-      CHARACTER*132 DIRNAME,FILENAME,STRINGD,STRINGFN,OLDDIR,TMPDIR
+      CHARACTER*132 DIRNAME,FILENAME,STRINGD,TMPDIR
       CHARACTER*60 MMSSG,FILENEXT(512),STRINGFL(512)
       CHARACTER*60 OLDFILE,STRINGI,STRINGO
       CHARACTER*45 STRVER
-      CHARACTER*26 MODE,FAILMSG,DEFMSG
-      CHARACTER*24 EXTS,EXT1,EXTSV
+      CHARACTER*26 MODE,FAILMSG
+      CHARACTER*24 EXTS,EXT1
       CHARACTER*5  BLNK
       CHARACTER*3  STREAM
-      CHARACTER    ANS,NANS,V,SOPT
+      CHARACTER    SOPT
 C
       PARAMETER (MMSSG = '  No such file exists ')
       PARAMETER (FAILMSG = ' Sorry,try later ')
 C
       DATA OPEN /.TRUE./
-      DATA FIRST,SECOND,FTFLG /.TRUE.,.TRUE.,.FALSE./
+      DATA FTFLG /.FALSE./
       DATA MAXITM,ITMOLD /512,512/
-      DATA N,ISTAT,CONTXT,PKCNT /10,1,0,0/
-      DATA EXT1,ITRY,BLNK /'.*',0,'.....'/
+      DATA ISTAT,CONTXT,PKCNT /1,0,0/
+      DATA EXT1,BLNK /'.*','.....'/
+      DATA DATFILNM /'    '/
 C----------------------------------------------------------------------
 C
 C ****  Defining the ODD function
@@ -379,9 +384,10 @@ C
 C ****  Read event
 C
         IOS = 0
-        CALL EVTIN_HEADER(.TRUE.)         ! For GO TO EVENT Menu
-        CALL EVTIN (LUN,IOS)
         CALL FLGSET('GOTO_EVENT',.FALSE.)
+CNO     CALL EVTIN_HEADER(.TRUE.)         ! For GO TO EVENT Menu
+        CALL EVTIN (LUN,IOS)
+CNO     CALL FLGSET('GOTO_EVENT',.FALSE.)
         EVENT = IOS .EQ. 0                ! Set Event flag
         EOF   = IOS .EQ. 3                ! Set End-of-File flag
         EOD   = IOS .GE. 4                ! Set End-of-Data flag
@@ -397,12 +403,19 @@ C ****  Check for run number change
 C
         RUN   = RUNNO()
         EVNUM = EVONUM()
-C--- This is for the stupid MUON Initialization !!!
+C--- This is for the MUON and VTX Initialization !!!
         IF (RUN.NE.LAST_RUN .OR. LOOP.EQ.2 ) THEN
           IF ( DO_MUODIS ) THEN
             OK = PMEVT_INI()
           ENDIF
-C--- This is for the stupid MUON Initialization !!!
+          IF ( DO_ZTRAKSDIS ) THEN
+            IF (GZVCAL(1) .GT. 0) THEN
+              OK = VTRPAR()
+            ELSE
+              CALL VTISTP('VTX_STPFILE',IER)
+            ENDIF
+          ENDIF
+C--- The End
           LAST_RUN = RUN
           LAST_EVN = EVNUM
         ENDIF
@@ -415,6 +428,13 @@ C *** FILL THE PTCAEP ARRAY
 C
           IF (GZCAEP() .GT. 0) THEN
             CALL CPTCAF
+          ELSE
+            CALL CAEQ_TO_CAEP
+            IF(GZCAEP() .GT. 0) THEN
+              CALL CPTCAF
+            ELSE
+              CALL INTMSG('CAEQ_TO_CAEP cannot make CAEP?')
+            ENDIF
           ENDIF
 C
 C *** FILL CAEH BANK for CAL. Display using STA file
@@ -526,8 +546,7 @@ C
             LFD = LFD - 5
           ENDIF
           SCANFILE = DATAFILE(1:LFD)//EXTS
-          CALL INTMSG(' FILE '//SCANFILE//'
-     &        WRITTEN.')
+          CALL INTMSG('FILE '//SCANFILE//' WRITTEN.')
         ENDIF
       ENDIF
 C

@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VPIXIE()
       VPIXIE = ' PIXIE'//
-     X                   '  OFFICIAL V3.16'//
-     X                   ' 13-APR-1995 16:56:54.10'
+     X                   '  TEST V3.16_01'//
+     X                   ' 16-FEB-1996 17:08:50.04'
       Return
       End

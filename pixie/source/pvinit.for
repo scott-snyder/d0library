@@ -14,8 +14,9 @@ C-
 C-   Created  25-SEP-1990   Lupe Howell
 C-   Updated  22-MAR-1991   Harrison B. Prosper  
 C-      CALL VTISTP 
-C-   Updated  5-July-1994   Danilo Puseljic create the VTX link area
+C-   Updated   5-JUL-1994   Danilo Puseljic create the VTX link area
 C-                          by CALL VTPLNK
+C-   Updated   8-NOV-1995   Nobuaki Oshima - No 'CALL VTISTP' anymore
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -45,12 +46,12 @@ C
 C
 C ****  Read in Vertex geometry data
 C
-      CALL VTISTP('VTX_STPFILE',IER)
-      IF ( IER .NE. 0 ) THEN
-        CALL ERRMSG
-     &    ('PIXIE','PVINIT','Problem accessing VTX_STPFILE','F')
-      ENDIF
-      OK = OK .AND. (IER.EQ.0)
+CNO      CALL VTISTP('VTX_STPFILE',IER)
+CNO      IF ( IER .NE. 0 ) THEN
+CNO        CALL ERRMSG
+CNO     &    ('PIXIE','PVINIT','Problem accessing VTX_STPFILE','F')
+CNO      ENDIF
+CNO      OK = OK .AND. (IER.EQ.0)
       PVINIT = OK
 C
       CALL VTPLNK                ! Create permanent link area for hit banks

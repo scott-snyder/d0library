@@ -1,0 +1,250 @@
+                                                           J. Glicenstein
+                                                           S. Hagopian
+                                                           November 25, 1991
+                                                           Version 1.0
+                                                           Updated Feb.8, 1993
+                                                           (JFG)
+
+                         TRDDIS - TRD Event Display
+
+ I. INTRODUCTION
+
+      TRDDIS is the package for D0 Transition Radiation Detector (TRD) event 
+    display. It is part of the PIXIE library, which can be run in various 
+    frameworks. Hooks are set up for PIXIE in D0USER and EXAMINE2. (See .DOCs)
+    It can be combined with other detector's event display too.
+    It displays the ADC counts or energy in each radial sector and
+    FADC traces. There are choices to make the display flexible.
+
+
+II. GETTING a TRD DISPLAY
+
+  A. Program Builder 
+
+    The package TRDDIS must be included in the package list to get the TRD 
+    event display. To get combined displays for the Central Detector's all 
+    subdetectors, just use the package CDDIS_COMBINED.PBD for D0USER or
+    CD_DISPLAY_COMBINED.PBD for EXAMINE2. To get combined displays, 
+    including CAL, MUON and all CD subdetectors just use the package 
+    ALL_DISPLAY_COMBINED.PBD for D0USER or D0_DISPLAY_COMBINED.PBD for 
+    EXAMINE. 
+
+    The TRD event  display has  the capability  to display raw  hits on RAW data
+    files and DST files or  hits on interesting tracks  such as electrons on  
+    STA or DST files.   To do TRD  reconstruction  and make TRD  event display 
+    in the same program, the  package TRDDIS should be  combined with  ZTRAKS 
+    at least (and also possibly several calorimeter packages).
+    
+    For example to make a D0USER which can do TRD reconstruction of all the
+    tracks in an event (e.g. a minimum bias event) and TRD display at the same
+    time, one should run PBD as:
+    $ PBD/FRAME=D0USER/PACKAGE=(ZTRAKS,TRDDIS)/NAME=xxxx
+    and set the ZTRAKS.RCP parameter CALL_TRD to .TRUE. at run time.
+
+  B. Link
+
+    Once the package TRDDIS is included in your PBD command, the DI3000
+    have to be include in the link command for D0USER (but not for EXAMINE2).
+    For example,
+    $ @xxxx_D0USER.LNK DI3000
+    
+    Also, it is usually best to do a $LIBT PIXIE in order to pick up the 
+    latest event display routines and parameters.
+
+
+  C. Setup for Run
+
+   1. DI3000 Logicals 
+      If the DI3000 logicals are not automatically setup, do
+
+      $SETUP DI3000 
+
+      or find out where DI3000 is stored on your node and execute DILOGIN.COM.
+      The sharable version of DI3000 should be requested by the command:
+
+      $ DISETSHR EXT HI 
+
+      $ SETDRV driv1 driv2 ! to setup the DI3000 device Drivers.
+
+      The first driver driv1 should correspond to the type of terminal you are 
+      logged on to; the second one driv2 to a hardcopy device [e.g. LN3].
+
+      For more information see D0$DOCS:DI3000_GUIDE.DOC
+
+   2. PIXIE Logicals. 
+      The event display needs a RCP file to define the views to be 
+      displayed and the interactive parameters which control them.
+      For the TRD display, the file needed is D0$PIXIE:PX_TRDDIS.RCP.
+      The corresponding logical is PX_TRDDIS_RCP.
+      The user may redirect the RCP logicals to their own files.
+      The logicals pointing to the default files are defined in the 
+      program builder file, xxxx_D0USER.COM.  Execute:
+
+      $ @xxxx_D0USER
+
+      to get all RCP logicals defined.
+
+   3. STP File Logical
+      The TRD display also needs STP file to define the geometry. 
+      To pick up the right file, you need to execute the following command file:
+
+      $ @D0$D0USER:EVENT_DISPLAY
+      (This procedure setup STP file and does $SETDRV)
+      
+      You are prompted to choose between three different STP files: data, COSMIC
+      or MC. For the TRD, these are actually the same file, so you just have to
+      enter CR.
+
+  D. Running
+
+   1. Running EXAMINE2
+      After "BEGIN PROCESSING" in EXAMINE2, choose menu item
+      "EVENT DISPLAY" in the INTERRUPT menu.
+
+   2. Running D0USER. 
+      There are two ways to use event display. The first is to turn on 
+      the interactive menu and then, while analyzing events, do a 
+      DISPLAY EVENT. This will start at a random event.
+      One can also turn on the automatic event display by select the item
+      EVENT DISPLAYS (7) before entering the input data file. It will ask 
+      how many events and their particular IDs (answer -1, if you want to
+      start the event display from the first event).
+
+
+III. TRDDIS MENU
+
+SUB_LEVEL: TRD EVENT DISPLAY    SETUP
+Select: {command, #, HELP (#), MENU, BACK} >menu
+
+   1: TRD TK R-PHI                        2: TRD HITS Display
+   3: Select Wire TK R-PHI                4: Select Wire Hits
+   5: NEXT Event                          6: GO TO Event
+   7: Modify Scan                         8: ZOOM
+   9: ROTATE                             10: PICK
+  11: HARDCOPY                           12: MODIFY
+  13: Change Display Mode                14: Superimpose(On/Off)
+  15: Set Path                           16: Dump Bank
+  17: Dump Event                         18: Write Event
+  19: Start Sequencial Display           20: Add/Remove Views
+  21: COMPACK System Menu
+
+Note: There is an additionnal item which can be obtained by a switch in the
+PX_TRDDIS.RCP and doesn't appear on this menu: TRD 3D geometry. Up to
+now (2/93), this is nothing more than a drawing a view of the TRD in 
+perspective. 
+
+  For further information on menu items 5 - 21, see D0$PIXIE:PX_SYSTEM.DOC
+
+--------------------------------------------------------------------------------
+*TRDDIS Menu Title    * Function & Remark                                    *
+--------------------------------------------------------------------------------
+   1: TRD_TK_R-PHI - Displays the energy for TRD Tracks per sector in the
+                     R-PHI view.
+
+   2: TRD_HITS_DISPLAY - Display of the raw ADC counts/sector in the R-PHI view.
+
+   3: SELECT WIRE TK R-PHI - This command gives a sub-menu with two items:
+
+      3.1: FADC DISPLAY OF A WIRE - When this is selected, the TK_R-PHI DISPLAY
+                                is redrawn, and the user should click with the
+                                mouse on the wire for with the FADC trace is
+                                desired. Then the program draws three FADC
+                                traces, one for each layer and labels them with
+                                wire number and layer number.
+
+      3.2: ENERGY AND WIRE -- When this is selected, the TK_R-PHI DISPLAY
+                                is redrawn, and the user should click with the
+                                mouse on the wire of interest. The program
+                                displays its energy and wire number.
+
+   4: SELECT WIRE HITS - This command gives a sub-menu with three TRD specific 
+   items in addition to the system commands:
+
+       4.1: FADC DISPLAY OF A WIRE - When this is selected, the HITS R-PHI 
+                                DISPLAY is redrawn, and the user should click 
+                                with the mouse on the wire for with the FADC 
+                                trace is desired. Then the program draws three 
+                                FADC traces, one for each layer and labels 
+                                them with wire number and layer number.
+
+       4.2: ENERGY AND WIRE -- When this is selected, the HITS R-PHI DISPLAY
+                                is redrawn, and the user should click with the
+                                mouse on the wire of interest. The program
+                                displays its energy and wire number.
+
+       4.3. ANODE/CATHODE - This is a toggle switch. The program will either 
+                     display information from the ANODE or from the CATHODE 
+                     depending how the toggle is set. The default is ANODE. 
+                     Note: if the toggle is set to CATHODE, it will remain 
+                     there for NEXT EVENT, and even if the user goes back to 
+                     the main program and then requests event display again.
+
+
+IV. TRDDIS PARAMETERS in PX_TRDDIS.RCP:
+
+--------------------------------------------------------------------------------
+* Parameter Name    * Default value  * Remark                                  *
+--------------------------------------------------------------------------------
+ 'TRD EMIN'                   .5 ' E min in MIPS to be displayed'
+ 'TRD BIN_TOMIPS'             .8 '<E layer> for Min bias '
+ 'TRD ONLY'                 TRUE  ' '
+ 'TRD ALL LAY'              TRUE  ' '
+ 'TRD PEDESTALS'            TRUE  ' '
+ 'TRD GAINS'                TRUE  ' '
+ 'TRD HITS DISPLAY'         TRUE  'Contrl for hardcopy FADC'
+ 'TRD ELEC_ONLY'            FALSE 'Set to TRUE if only high total energy'
+ 'TRD DRAW 3D LAYER'        TRUE  ' '
+
+V. TRDDIS SCREENS in PX_TRDDIS.RCP:
+    
+    Each basic menu has its own screen parameters. Here is an example,
+    for the TRD_TK_R-PHI view display.
+
+ --------------------------------------------------------
+  * Definition of TRDDIS Screens
+ ---------------------------------------------------------
+ 'NAME' 'TRD_TK_R-PHI'            'TRD TK R-PHI'
+ 'VIEWREFY'               0.0000  ' Y View reference pnt'
+ 'VIEWREFZ'               0.0000  ' Z View reference pnt'
+ 'ACTION'         'PTRDTK'        'Action Routine'
+ 'PICKABLE'                    F  'Pickable Flag'
+ 'VIEW3D'                  FALSE  ' True if eD viewport'
+ 'KEEPCIRCLE'               TRUE  ' True if circles are kept'
+ 'VPORTXMIN'             -1.0000  ' X min Viewport'
+ 'VPORTXMAX'              1.0000  ' X max Viewport'
+ 'VPORTYMIN'             -1.0000  ' Y min Viewport'
+ 'VPORTYMAX'              1.0000  ' Y max Viewport'
+ 'WINDOWXMIN'           -70.0000  ' X Min Window limit'
+ 'WINDOWXMAX'            70.0000  ' X Max Window limit'
+ 'WINDOWYMIN'             0.0000  ' Y Min Window limit'
+ 'WINDOWYMAX'            -1.0000  ' Y Max Window limit'
+ 'VIEWREFX'               0.0000  ' X View reference pnt'
+ 'VIEWREFY'               0.0000  ' Y View reference pnt'
+ 'VIEWREFZ'               0.0000  ' Z View reference pnt'
+ 'UPVECX'                 0.0000  ' X Up vector'
+ 'UPVECY'                 1.0000  ' Y Up vector'
+ 'UPVECZ'                 0.0000  ' Z Up vector'
+ 'CAMX'                   0.0000  ' X Camera point'
+ 'CAMY'                   0.0000  ' Y Camera point'
+ 'CAMZ'                   1.0000  ' Z Camera point'
+
+VI. DOCUMENTATIONS
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and 
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction to the use of the
+                                   commercial graphics package, DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives more than introduction to D0USER
+                                   which provides an offline framework.
+
+    4. D0$EXAMINE2:EXAMINE_GUIDE.DOC - Users guide to EXAMINE,  the ONLINE
+                                       event monitoring framework.
+
+    5. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE Event Display
+
+    6. d0$PIXIE: PX_SYSTEM.DOC - gives an introduction to PIXIE SYSTEM MENU 
+                                 and PARAMETERS.
+

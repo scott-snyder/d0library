@@ -39,6 +39,7 @@ C-                                     after the label 250.
 C-   Updated   9-FEB-1993   Jeffrey Bantly  add Level 0 slow vertex marker,
 C-                                          values are multiple interaction
 C-                                          flag of Slow Z (1-4) 
+C-   Updated   8-FEB-1995   N. Oshima - fixed a typo on C(LDRFT+26+WIR[E]).
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -403,7 +404,7 @@ C
      &                     (NUMHIT-1) * LHIT + KPDSEC
             ZERROR = Q(IPHIT + 6)
             IF (ZERROR .GT. 9990.) GOTO 200
-            DDIS = Q(IPHIT+2+ISIDE) - C(LDRFT+26+WIRE)
+            DDIS = Q(IPHIT+2+ISIDE) - C(LDRFT+26+WIR)
             XHPOS = XWIR + DDIS * CPHIW
             YHPOS = YWIR + DDIS * SPHIW
             HITPHI = ATAN2(YHPOS, XHPOS)

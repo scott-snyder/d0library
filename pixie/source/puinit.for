@@ -35,6 +35,8 @@ C-      Add PX_WRITE_EVENT flag
 C-   Updated  13-JAN-1993   Vipin Bhatnagar
 C-      Add PX_WRITE_SCAN flag & ACTIVE_SCAN flag
 C-   Updated  23-MAR-1993   Lupe Howell   Batch mode set
+C-   Updated  11-OCT-1995   Nobuaki Oshima
+C-      Add the device viewport definition in XWNDI3 mode
 C----------------------------------------------------------------------
       IMPLICIT NONE
       LOGICAL OK
@@ -45,13 +47,13 @@ C----------------------------------------------------------------------
       INTEGER CTRL_X
       PARAMETER( CTRL_X = 24 )
 C
-      REAL    RATIO, FRSCRE
-      INTEGER FOUR_BIT_COLOR,DEVCOL,STATUS
+      REAL    RATIO, FRSCRE, RLEVEL,DX,DY
+      INTEGER FOUR_BIT_COLOR,DEVCOL,STATUS,IER
       PARAMETER( FOUR_BIT_COLOR = 11 )
       CHARACTER*72 V,VPIXIE
       CHARACTER*4 CHOPTN(1)
       CHARACTER*3 DRIVER
-      LOGICAL FLGVAL
+      LOGICAL FLGVAL,EZERROR
 C----------------------------------------------------------------------
       LOGICAL FIRST, ONCE,OKAY
       DATA    FIRST / .TRUE. /
@@ -159,6 +161,23 @@ C ****  Setup the DI3000 configuration, the segment handling, and
 C ****  write the header ONLY if NOT in BATCH
 C
       IF ( .NOT. FLGVAL('BATCH') ) THEN
+        CALL JIQDIL(RLEVEL)
+C-
+C--- Do XWNDI3 mode only (RLEVEL=5)
+C-
+        IF (RLEVEL .EQ. 5.) THEN
+          CALL EZPICK('PX_SYSTEM_RCP')
+          IF ( EZERROR(IER) ) THEN
+            CALL ERRMSG('PIXIE','PUINIT','Bank PX_SYSTEM_RCP NOT FOUND',
+     &     'W')            
+          ELSE
+            CALL PUGETV('XWINDOW',DX)
+            CALL PUGETV('YWINDOW',DY)
+            CALL JDEVVP(0,0.,DX,0.,DY)
+            CALL EZRSET
+          ENDIF          
+        ENDIF
+C-
         CALL FLGSET('DI3_INI',.TRUE.)
         CALL DI3_START(IDEV)
 C

@@ -1,0 +1,89 @@
+                                                                Guadalupe Howell
+                                                                March 13, 1992
+                                                                Version 1.1
+
+                             SEQUENCE_DISPLAY.DOC
+
+                         PIXIE SEQUENCE DISPLAY SYSTEM
+
+
+I. SEQUENCE DISPLAY 
+
+   A "Sequence Display" is the display of a set of views displayed together 
+   with a delay interval between each view.  The display of these set of views
+   is defined in an RCP array.   The views will be displayed together with a 
+   delay interval between each view skipping a number of events between the 
+   whole sequence display. 
+
+   The sequence display is repeated either a specified number of times or 
+   infinitely.   This sequence can be interrupted at any given time by the 
+   user by executing the "Stop Sequence Display" option that will be displayed 
+   during the sequence. The delay interval, the number of event to skip and 
+   the number of times the display is repeated are paramters specified in 
+   the array.
+
+  The display will be done skipping a requested amount of events in between 
+  each "Sequence Display", this is determine by the first input in the 
+  '%SEQUENCE ..'  line.  When the sequence display is executed it will show 
+  first the views in the sequence display before any events are skipped and 
+  then it will start skipping events and displaying views.  The number of 
+  times this sequence display is repeated will depend on the second input in 
+  the '%SEQUENCE INPUT1 INPUT2' line.
+
+
+II. SETUP THE SEQUENCE DISPLAY ARRAY
+    
+   The Sequence Display RCP array should follow certain guidelines:
+
+    1) The name of the sequence display array has to start with a '$'
+    2) The sequence display array should have a '%TITLE' as first item.
+    2) The sequence display array should define every view it contains by the
+       following:
+        '%PACKAGE'   'CALDIS'               ' '
+        '%ACTION'    'END VIEW CALORIMETER' ' '
+        '%ACTION'    'DELAY 1.0'            ' ' ! Dealy of view 1
+        '%PACKAGE'   'CALDIS'               ' '
+        '%ACTION'    'ETA HISTO CALORIMETER' ' '
+        '%ACTION'    'DELAY 1.0'            ' ' ! Dealy of view 2
+        :              :                    :
+   3)At the end of all the views in the sequence display array an aditional 
+     '%ACTION' should be place defining the number of events to skip and the 
+     number of times the sequence display should be done:
+      \ARRAY $TEST_SEQUENCE
+           :            :                     :
+         '%ACTION'     '%SEQUENCE  2 3'          ' '
+       \END
+      where,
+        2 : Is the number of events that are goint to be skipped between
+            sequence displays, and 
+        3 : is the number of times the sequence display will be executed.
+ 
+
+   If the first number in the '%SEQUENCE' is left out or set to zero it will
+   not skip any events, it will display the events sequentially.
+
+   If the second number is left out or set to zero the  default value is
+   9999999, i.e., it will run until the interrupt botton is use or until it run
+   out of events.
+
+
+  During the execution of sequence display an interrupt menu item will be
+  displayed in the menu system allowing the user to interrupt the sequence
+  display at any time, returning to the regular menu system afterwords.
+
+   
+III SEQUENCE EVENT ARRAY
+
+    \ARRAY $D0_SEQUENCE
+    '%TITLE'       'TRIG Display'     'Title of sequence'
+    
+    '%PACKAGE'     'CALDIS'           'Package of 1st display in sequence' 
+    '%ACTION'      'END_SIDE_CAL%'    'First display of sequence' 
+    '%ACTION'      'DELAY  5.0'       'Delay of 1st display'
+    '%PACKAGE'     'CALDIS'           'Package of 1st display in sequence' 
+    '%ACTION'      '3D CAL CELLS'     'Second display of sequence' 
+    '%ACTION'      'DELAY  5.0'       'Delay of 2nd display'
+    '%ACTION'      '%SEQUENCE 0  999' 'Skip events sequentially, repeate seq 999
+                                       times'
+    \END
+

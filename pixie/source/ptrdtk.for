@@ -22,6 +22,7 @@ C-                          with the TRD HIT display package.
 C-   Updated 24-MAR-1992    S. Hagopian, changed call to PTLEMX
 C-   Updated  26-NOV-1992   A. Zylberstejn  : change normalization
 C-   Updated   7-JAN-1994   S. Hagopian, use UNPACK_TPRL
+C-   Updated   8-DEC-1994   Norman A. Graf call to TRD_NWIRE_PER_LAYER
 C=====================================================================
 
 C  Local Declarations:
@@ -102,6 +103,7 @@ C
 C
 C ****  Get some TRD constants
 C
+      CALL EZGET('SATURATION',SATURATION,IER)
       CALL EZGET('URANIUM_LAYER1',URANIUM(1),IER)
       CALL EZGET('URANIUM_LAYER2',URANIUM(2),IER)
       CALL EZGET('URANIUM_LAYER3',URANIUM(3),IER)
@@ -140,6 +142,11 @@ C Fetch parameter to draw TRD for electron candidates
       END IF
       ANODE=1
   900 CONTINUE
+C
+C set up number of wires per layer. Layer3-256 Run Ia, =512 Run Ib.
+C Call every event since a mix of events from Run1a and run1b is possible.
+C
+      CALL TRD_NWIRE_PER_LAYER
       LTRDT=GZTRDT()
       IF(LTRDT.LE.0)GO TO 995
       IF(FIRST)THEN

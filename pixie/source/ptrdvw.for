@@ -20,6 +20,7 @@ C  Updated  15-APR-1991   Lupe Howell  The Hardcopy choice only if TRD ONLY.
 C  Updated   3-OCT-1991   Lupe Howell  The TRD Emin displayed only if TRD ONLY
 C  Updated  18-NOV-1991   JFG  Implementing the use of the cathodes toggle
 C  Updated  19-FEB-1992   Lupe Howell   Remove seflt nested DO loop fo SGI
+C  Updated   8-DEC-1994   Norman A. Graf call to TRD_NWIRE_PER_LAYER
 C
 C=====================================================================
 
@@ -91,6 +92,7 @@ C
      &      'PXPARAMS NOT FOUND','W')
         GOTO 900
       ENDIF
+      CALL EZGET('SATURATION',SATURATION,IER)
       CALL EZGET('URANIUM_LAYER1',URANIUM(1),IER)
       CALL EZGET('URANIUM_LAYER2',URANIUM(2),IER)
       CALL EZGET('URANIUM_LAYER3',URANIUM(3),IER)
@@ -122,6 +124,11 @@ C
       ELSE
         ANODE = 2
       ENDIF
+C
+C set up number of wires per layer. Layer3-256 Run Ia, =512 Run Ib.
+C Call every event since a mix of events from Run1a and run1b is possible.
+C
+      CALL TRD_NWIRE_PER_LAYER
 C
 C ****  Cell By Cell Loop Process
 C

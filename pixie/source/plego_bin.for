@@ -15,7 +15,7 @@ C-             TYMIN - Min of y lego plot
 C-             TYMAX - Max of y lego plot
 C-             ZDIV  - Scale factor
 C-             ETCUT - minimum ET to plot value
-C-             NMARK - number of marks of this type plotted
+C-   Output  : NMARK - number of marks of this type plotted
 C-
 C-   Modified  26-JUL-1993   Nobuaki Oshima
 C-      Get an EM fraction of Electron/Photon from CACL instead of the
@@ -29,7 +29,7 @@ C----------------------------------------------------------------------
 C ARGUMENTS:
       INTEGER IMARK  ! FLAG to tell which kind of BIN to put
       INTEGER NMARK ! number of marks of ITYPE plotted
-      INTEGER NTAU,IT,IER
+      INTEGER IT,IER
       INTEGER NUM_TAU
       REAL    ETAU(4),ETTAU,THETAT,ETAT,PHIT,RMS_WIDTH
       REAL TXMIN,TXMAX ! Min and max of lego plot x axis
@@ -45,14 +45,14 @@ C------------------------------------------------------------------------
       INTEGER IPHI,IETA,IP
       INTEGER LPELC,GZPELC
       INTEGER LPPHO,GZPPHO
-      INTEGER LCACL
-      INTEGER IFILL,IFILL2
-      REAL ET,TE,EM,THETA,ETA,PHI,TET,EMT,HADT
-      REAL HAD,EMFRAC
+      INTEGER LCACL,IPTAU,J
+      INTEGER NUM_ELC
+      REAL ET,TE,EM,ETA,PHI,TET,EMT
+      REAL HAD,EMFRAC,ELC_ETA(10),ELC_PHI(10)
       REAL TX,TY,Z1,Z2,Z3,DELZ
-      REAL XSIZ,YSIZ
-      CHARACTER*3 COL1
+      REAL XSIZ,YSIZ,DRET,DRMIN
       CHARACTER*8 TITLE(4)
+      SAVE NUM_ELC,ELC_ETA,ELC_PHI
       DATA TITLE/'Miss ET ','  ELEC  ','  PHO   ','  TAU   '/
 C------------------------------------------------------------------------
       NMARK=0
@@ -107,6 +107,9 @@ C Draw vertical line for edge of bin
 C- FOR ELECTRONS
 C--- Start PELC loop...
 C-
+        NUM_ELC = 0
+        CALL VZERO(ELC_ETA,10)
+        CALL VZERO(ELC_PHI,10)
         LPELC = GZPELC()
    50   IF (LPELC .LE. 0)     GO TO 999
         ET      =  Q(LPELC+7)
@@ -125,6 +128,11 @@ C-
         ENDIF
         ETA=Q(LPELC+9)
         PHI=Q(LPELC+10)
+        IF (NMARK.GT.0 .AND. NMARK.LE.10) THEN
+          NUM_ELC = NMARK
+          ELC_ETA(NMARK) = ETA
+          ELC_PHI(NMARK) = PHI
+        ENDIF
 C      WRITE(72,803)NELE,ETA,PHI,ET
   803   FORMAT(/' NELE=',I4,' ETA=',F12.1,' PHI='F12.1,' ET='F12.1)
         IP=(PHI/TWOPI)*64. +1.
@@ -237,6 +245,9 @@ C TAUS  !!!!!!!!!!!!
 C====== Process PTAU ================================================
 C-
 C-
+        CALL PUGETV('PHYDIS DRAW PTAU',IPTAU)
+        IF (IPTAU .EQ. 0) GO TO 999
+C-
         CALL GTPTAU_TOTAL(NUM_TAU,IER)
         IF (NUM_TAU.EQ.0.OR. IER .NE. 0) GO TO 999
 C-
@@ -246,6 +257,16 @@ C-
           CALL GTPTAU(IT,ETAU,ETTAU,THETAT,ETAT,PHIT,RMS_WIDTH,IER)
 C-
           NMARK=NMARK+1
+C-
+C--- Check overlap Tau and Electron
+C-
+          DRMIN = 10.
+          DO J=1,NUM_ELC
+            DRET = SQRT((ELC_ETA(J)-ETAT)**2 + (ELC_PHI(J)-PHIT)**2)
+            IF (DRET .LT. DRMIN)   DRMIN = DRET
+          ENDDO
+          IF (DRMIN .LT. .3) GO TO 756
+C-
           IP=(PHIT/TWOPI)*64. +1.
           IETA=10.*(ETAT+3.7)+1.
 C      WRITE(16,802)IP,IETA

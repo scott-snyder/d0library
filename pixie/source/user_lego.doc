@@ -1,0 +1,273 @@
+                                                            S. Hagopian
+                                                            May, 14 ,1989
+                                                            Rev. June 15, 1989
+                      USER_LEGO.DOC
+
+     A. INTRODUCTION
+
+        Users can book and fill stand-alone LEGO banks, which can be plotted
+     using the D0 display package PIXIE. Utilities exist for booking a LEGO
+     bank, finding the pointer to the bank, giving the title of a bank, giving
+     the total number of LEGO banks, and printing the contents of a bank.
+     The PIXIE command execution routine, PLZEXE, allow the user to plot
+     a LEGO bank by entering the bank number. The sum of 2 LEGO banks can
+     also be plotted.  Parameters can be changed interactively to set the
+     number of X and Y bins, the X and Y limits of the plot, the cut value
+     of Z, and the labels of the axes.
+
+     B. UTILITY ROUTINES
+
+        These routines are a part of ZEBRA_UTIL in GENERAL.OLB.
+
+        1. SUBROUTINE BKLEGO(TITLE,NTRIPL,LLEGO)- books 1 stand-alone LEGO bank
+
+           Input:
+                 TITLE [C*32] - Character string for title 
+                 NTRIPL [I] - number of triplet data points (X,Y,Z,)
+           Output:
+                 LLEGO = Pointer to newly created bank
+
+
+           ENTRY GZLEGO(NUMB)- INTEGER FUNCTION, returns the ZEBRA 
+
+                                  pointer to the LEGO bank number NUMB
+
+        2. FUNCTION NLEGOS()- Returns the total number of  LEGO banks.(INTEGER)
+
+
+        3. SUBROUTINE LEGOTT(LEGO,TITLE) -returns the title of the bank
+
+           Input:
+                 LEGO [I] - pointer to the bank
+           Output:  
+                 TITLE [C*32]- Title of the bank 
+       
+        4. SUBROUTINE PRLEGO(PRUINT,LLEGO,NLEGO,CFL,IFL)-prints contents of bank
+
+           Input:
+
+                PRUNIT [I] - Unit number for printout
+
+                LLEGO [I] - Pointer to the one bank (CFL = 'ONE') or to the
+                            first of a linear structur (CRL='LINEAR').
+
+                NLEGO [I] -Bank number, used only if CFL='ONE' and LLEGO=0.
+
+                CFL [C*] - Character flag, other input depends on it's value:
+                         'ONE' : LLEGO points to a bank; if LLEGO =0, NLEGO 
+                                 is the bank number.
+                         'LINEAR' : LLEGO points to the first bank of the
+                                    linear structur
+                         'ALL' : Prints all banks with name 'LEGO'
+
+                IFL [I] - Defines the amount of printing: 0 means full
+                          printout, .NE.0 print only title
+
+
+
+     C. STRUCTURE OF LEGO BANK
+
+        (This can be found in  D0$ROOT:[ZEB.STAND_ALONE]LEGO.ZEB)
+
+C=======================================================================
+C
+C  Bank Name : LEGO
+C  Author    : Serban D. Protopopescu
+C  Date      : 15-FEB-1989
+C  Tree description : none
+C
+C  Bank description : stand alone banks for lego plots
+C
+C     LQ     Q/IQ
+C-----------------------------------------------------------------------
+C      0          Next   link to LEGO
+C     +1          Up     link to none
+C     +2          Origin link to none or previous LEGO
+C.......................................................................
+C             -5         Bank number
+C             -4         Bank name, 'LEGO'
+C             -3         NL = 0
+C             -2         NS = 0
+C             -1         ND = 3*(number of triplets)+10
+C              0         Status
+C             +1         vrsn (=1)
+C             +2         number of triplets
+C             +3         title 1
+C             +4         title 2
+C             +5         title 3
+C             +6         title 4
+C             +7         title 5
+C             +8         title 6
+C             +9         title 7
+C             +10        title 8
+C             +11        x
+C             +12        y
+C             +13        z
+C             +14        x
+C              .         .
+C              .         .
+C=======================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     D. INTERFACE TO PIXIE
+
+        The program D0USER already has an interface to PIXIE with a call to
+        PXMAIN(NOMORE). In order to get the USER LEGO display, the user must
+        LINK in LOGICAL FUNCTION PXEXEC(), which can either have a call to
+        LOGICAL FUNCTION PLZEXE() or can test the command PLEGOZ directly. 
+
+
+      LOGICAL FUNCTION PXEXEC
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Call subroutine PLZEXE - dispatching routine
+C-                         for USER LEGO plot
+C-
+C-   Created  30-NOV-1988 S. Hagopian
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      LOGICAL PLZEXE
+C----------------------------------------------------------------------
+      IF(PLZEXE())THEN
+        PXEXEC = .TRUE.
+      ELSE
+        PXEXEC = .FALSE.
+      ENDIF
+  999 RETURN
+      END
+
+        (See D0$PIXIE:SOURCE:PLZEXE.FOR)        
+ 
+    E. SCREEN and PARAMETER FILES
+
+       The user may either use the standard screen and parameter files directly:
+       
+       DEFINE PXPARAMS D0$PIXIE$DATA:USER_LEGO.PXPARA (in PIXIE VER 1.44)
+       DEFINE PXSCREEN D0$PIXIE$DATA:USER_LEGO.PXSCREEN (in PIXIE VER 1.44)
+
+       or merge these files with other PIXIE screen and parameter files
+
+       Note: The .PXPARA files are an ASCII file and can be merged with EVE,
+             the .SCREEN files are binary files and can be merged using the
+             EDIT SCREEN menu in PIXIE.
+       
+       1. USER_LEGO.PXPARA
+
+PARAMETER        TYPE      DEFAULT          USE
+----------       ----      --------  ---------------------------
+LEGO NX           [I]          64    Number of X bins
+LEGO XMIN         [F]      0.0000    minimum value of X
+LEGO XMAX         [F]         64.    maximum value of X
+LEGO NY           [I]          74    Number of Y bins
+LEGO YMIN         [F]     -3.7000    minimum value of Y
+LEGO YMAX         [F]      3.7000    maximum value of Y
+LEGO ZCUT         [F]      0.0000    data with Z<ZCUT will not be plotted
+LEGO ZMAX         [F]     -1.0000    maximum value of Z plotted;
+                                     ZMAX<0 to have ZMAX determined from data
+LEGO ALLGRID      [L]           F    F for every Nth grid line to be plotted
+                                     T for every grid line to be plotted
+LEGO XTITL        [A]         PHI    title for X axis
+LEGO YTITL        [A]         ETA    title for Y axis
+LEGO ZTITL        [A]          ET    title for Z axis
+X CHAR SIZE       [F]      0.0221    Menu X character size
+Y CHAR SIZE       [F]      0.0442    Menu Y character size
+STRING QUALITY    [I]           1    1 for hardware char, 4 for software char
+WAIT FOR MENU     [L]           F    F - menu appears immediately,
+                                     T menu does not appear until hit keyboard 
+RETAINED MENU     [L]           F    F - menu does not appear on hardcopy
+                                     T - menu appears on hardcopy
+PRINT HARDCOPY    [L]           F    F - harcopy written to file
+                                     T - hardcopy printed immediately on
+                                         queue SYS$PRINT
+SCREEN FRACTION   [F]      1.0000    Fraction of screen to use
+KEYBOARD INPUT    [L]           F    F - mouse input only for GPV driver
+                                     T - keyboard input only for GPV driver
+                                     (VT240,T10,T14 and S04 allow intermixed 
+                                      cursor and keyboard input)
+
+     2. USER_LEGO.SCREEN 
+
+   The action (command execution) routine for  USER_LEGO screen is PLEGOZ.
+   The viewing window limits of the plot have the values in USER_LEGO.SCREEN of:
+     XMIN=-1000.
+     XMAX=1000.
+     YMIN=-1000.
+     YMAX=1000.
+
+    With these default values, the program tries to automatically adjust the
+    viewing window for any NX by NY size plot. It is not always successful.
+    If the USER_LEGO plot is cut off or does not appear as you wish, the window
+    values can be changed interactively by choosing the menu item EDIT SCREEN
+    in the MAIN MENU or the item MODIFY SCREEN in the USER LEGO sub-menu.
+    Choose the item "SET JWINDOW". The program will print the current value
+    it has calculated. Change these values as necessary to get the desired
+    view. Remember to save these values by choosing the menu item "WRITE
+    SCREEN FILE" in the menu EDIT SCREENS, if you want to use the new values
+    when running your job again.
+
+F. RUNNING D0USER with USER_LEGO
+
+          The item 'DISPLAY EVENT" can be chosen in the main D0MENU menu, 
+          and the user giving a list of events to be displayed,
+          or -1 to display the next N events, or by choosing the item
+          "SET INTERRUPT MENU" in the main D0USER
+          menu and choosing EVENT DISPLAY in the INTERRUPT menu.
+
+          The USER_LEGO screen menu has 2 items:
+           "USER LEGO" 
+           "USER LEGO SUM"
+          If "USER LEGO" is chosen, the total number of booked LEGO 
+          banks is printed on the screen and the user must enter the
+          bank number to be displayed. If "USER LEGO SUM" is chosen the user
+          must enter the 2 bank numbers whose data is to be added.
+          The 2 parts are show in different colors.
+               
+
+
+
+     F. SUMMARY
+
+        The following is a summary of the user action necessary to get a 
+         USER LEGO plot:
+
+       1. LINK a version of SUBROUTINE PXEXEC with D0USER which calls 
+          LOGICAL FUNCTION PLZEXE.
+
+       2. Define the screen and parameter files using USER_LEGO.PXPARA
+          and USER_LEGO.SCREEN as examples.
+
+       3. Add user routine  to book and fill LEGO banks, starting with 
+          location Q(LLEGO+11) (See LEGO.ZEB Section C)
+
+       4. Run D0USER and choose the following menu items:
+          "EVENT DISPLAY"
+             then choose
+            "USER LEGO"
+                 or
+            "USER LEGO SUM"
+                Enter the bank number(s) to be plotted.
+
+       5. Modify the parameter and screen files as necessary to get
+          desired plot.
+
+     NOTE: This facility assumes a small number of LEGO  banks. The binning
+          can be changed by choosing the menu item "MODIFY PARAMETERS"
+          and varying NX and NY. If banks with various types of data are
+          being filled, the user may want to write a new interface routine
+          using PLEGOZ as an example. 
+
+          For further information about the utilities to make general LEGO
+          plots see D0$ROOT:[PIXIE]LEGO_REF.DOC.
+          

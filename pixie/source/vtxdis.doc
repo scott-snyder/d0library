@@ -1,0 +1,273 @@
+                                                                S. Hagopian
+                                                                November 8, 1991
+                                                                Version 1.0
+
+                         VTXDIS  
+
+                 VERTEX CHAMBER Event Display
+
+ I. INTRODUCTION
+
+      VTXDIS is the D0 VERTEX tracking chamber (VTX) event display. 
+    It is part of the PIXIE library, which can be run in various frameworks. 
+    Hooks are set up for PIXIE in D0USER and EXAMINE2. (See .DOCs)
+    It can be combined with other detector's event display too.
+    It displays the chamber layer and sector outlines, wires, hits, segments 
+    and tracks as well as FADC traces. There are many choices to make the 
+    display flexible. For example, one can select a phi region for the R-Z 
+    view display. 
+    If the event is fully reconstructed with the particle information, the
+    dislay uses the colour to distinguish the different particles:
+    Green track indicates this track is in a muon road,
+    Red track indicates this track is in an electron road,
+    Blue track indicates that this track is in a tau road and
+    Yellow track indicates that this track contributed to a Vee.
+
+II. GETTING a VTX DISPLAY
+
+ A. Program builder 
+
+    The package VTXDIS must be included in the package list to get the VTX
+    event display. To get combined displays for the Central Detector's all 
+    subdetectors, just use the package CDDIS_COMBINED.PBD for D0USER or
+    CD_DISPLAY_COMBINED.PBD for EXAMINE2. To get combined displays, 
+    including CAL, MUON and all CD subdetectors just use the package 
+    ALL_DISPLAY_COMBINED.PBD for D0USER or D0_DISPLAY_COMBINED.PBD for 
+    EXAMINE. 
+
+    To do VTX reconstruction and make VTX event display in the same program,
+    the package VTRAKS and VTXDIS should be both included.
+    For example to make such a D0USER one should run PBD as:
+    $ PBD/FRAME=D0USER/PACKAGE=(VTRAKS,VTXDIS)/NAME=xxxx
+
+ B. LINK
+
+    The normal D0USER link does not include the event display
+    package. One needs to do: $@VTX_D0USER.LNK DI3000
+    or $@ALL_DISPLAY_D0USER.LNK DI3000.
+    Also, it is usually best to do a $LIBT PIXIE in order to
+    pick up the latest event display routines and parameters.
+
+ C. Setup for RUN
+
+
+   1. DI3000 logicals 
+
+      If the DI3000 logicals are not automatically setup, do
+      $SETUP DI3000 or find out where DI3000 is stored on your node
+      and execute DILOGIN.COM
+
+      The sharable version of DI3000 should be requested by the command:
+
+      $ DISETSHR EXT HI 
+
+    $SETDRV cod1 cod2 ! to setup the DI3000 device Drivers.
+
+    The first driver should correspond to the type of terminal you are 
+    logged on to; the second one to a hardcopy device[ e.g. TLP ].
+
+    For more information see D0$DOCS:DI3000_GUIDE.DOC
+
+ 2. PIXIE logicals. The event display needs a RCP file to define the views
+    to be displayed and the interactive parameters which control them.
+    For the VTX display, the file needed is D0$PIXIE:PX_VTXDIS.RCP.
+    The corresponding logical is PX_VTXDIS_RCP.
+    The user may redirect the RCP logicals to their own files.
+    It also needs STP files to define the geometry. Logicals pointing
+    to the default files are defined in the program builder file,
+    VTX_D0USER.COM or ALL_DISPLAY_D0USER.COM. When doing ALL_DISPLAY,
+    the command file D0$D0USER:EVENT_DISPLAY.COM must also be executed.
+    (This procedure does $SETDRV and sets up the STP files.)
+
+ D. RUNNING
+
+    1. Running EXAMINE2
+ 
+       After "BEGIN PROCESSING" in EXAMINE2, choose menu item
+       "EVENT DISPLAY" in the INTERRUPT menu.
+
+    2.  Running D0USER. 
+   
+       There are two ways to use event display. The first
+       is to turn on the interactive menu and then, while analyzing
+       events, do a DISPLAY EVENT. This will start at a random event.
+       One can also turn on the automatic event display by doing
+       EVENT DISPLAYS (7) before starting the run. It will ask how
+       many events and their particular IDs (if -1 then assumes 
+       consecutive). 
+
+
+ III. VTXDIS MENU
+
+     SUB_LEVEL: VTX Event Display    PIXIE
+     Select: {command, #, HELP (#), MENU, BACK} > help
+
+        1: VTX_R-phi View                    2: VTX_R-Z View
+        3: VTX_Z-Y View                      4: VTX_FADC_Wires
+        5: VTX_FADC_Strips                   6: NEXT Event
+        7: ZOOM                              8: ROTATE
+        9: PICK                             10: HARDCOPY
+       11: MODIFY                           12: GO TO Event
+       13: Change Display Mode              14: Superimpose(On/Off)
+       15: Set Path                         16: Dump Event
+       17: Write Event                      18: Other Options
+       19: COMPACK System Menu
+
+ For further information on menu items 6 - 19, see D0$PIXIE:PX_SYSTEM.DOC
+
+
+--------------------------------------------------------------------------------
+*VTXDIS Menu Title    * Function & Remark                                    *
+--------------------------------------------------------------------------------
+
+ VTX_R-PHI_VIEW -  Displays the Vertex R Phi view. This view show vertex chamber
+                   hits, track segments, wire positions and sector boundaries
+                   depending on the values of the interactive parameters. It 
+                   also show phi road limits in yellow outside the VTX chamber.
+      
+ VTX_R-Z_VIEW - Displays the Vertex R-Z view. This view shows hits and tracks 
+                    with phi between PHI1 and PHI2 in the upper (+R) plot and
+                    hits and tracks with phi between PHI1+180 and PHI2+180 in 
+                    the bottom (-R) plot. This view allows a phi road cut for 
+                    the display. The cut value is defined for the Upper half of
+                    the VTX. The lower part is always displays the opposite 
+                    region in phi from the upper part.
+                    There are three ways to choose a phi road:
+                         . use the default (0.0 - 180.0 degree). That means
+                           you display the tracks in a full phi region 
+                         . use PHI region from PX_SYSTEM.RCP. That means
+                           you display the tracks in the same phi cut region 
+                           as in the other detectors (for a combined package
+                           with other detector's displays).
+                         . enter the phi road cut values by yourself. By this
+                           way you can choose any phi region for the display
+                           as you like.
+
+                     Here is an example when you want to get a VTX_R-Z view
+                     display with a phi region selected between 30 degree
+                     to 60 degree. You can answer these questions 
+                     inteactively.
+                         
+        Phi from   0.0 to 180.0 (degree) Y/N> (?:for help; default:Y) ?
+            The VTX R-Z view display is split into two hemispheres.
+            The Upper hemisphere is shown on the upper part of the screen,
+            The Lower hemisphere is shown on the lower part of the screen.
+            One can select a phi region for the R-Z view display.
+            The phi region has to be defined for the Upper part. The lower
+            part is always the opposite region in phi for the upper hemisphere.
+
+        Phi from   0.0 to 180.0 (degree) Y/N> (?:for help; default:Y) N
+            select a mode to determine the phi region for the R-Z display
+            0: default (0. - 180. degree)
+            1: use PHI values from PX_SYSTEM.RCP
+            2: enter PHI values by yourself
+
+        Enter the mode number [0 or 1 or 2] (default is 0) 2
+
+        Enter minimum PHI value [0.0 - 180.0 degree]: 30.0
+
+        Enter maxmum PHI value  [0.0 - 180.0 degree]: 60.0
+
+
+ VTX_Z-Y VIEW - Displays the vertex Z-Y view, which is useful when the VTX
+         hits have been used to calculate the vertex Z position. The display
+         shows the hits used the in calculation (usually the first and last 
+         wires of a sector) in a different color from the other hits. The
+         vertex Z position is marked with a small green x.
+
+ VTX_FADC_WIRES - Displays the FADC wires. The user can plot 8 FADC traces
+         for all the wires in a sector, whose sector number is entered 
+         interactively, or plot a user chosen channel number, which gives 
+         one FADC trace and its first differential. Defaults and limits are 
+         printed as well as requests for user input.
+
+ VTX_FADC_STRIPS - Displays FADC traces for the strips, when the user 
+          specifys either a channel number, which gives 1 FADC trace and its 
+          1st Diff. or layer number, which gives the FADC traces for 8 strips. 
+          Defaults and limits are printed as well as requests for user input.
+
+
+
+ IV. VTXDIS PARAMTERS in PX_VTXDIS.RCP:
+
+--------------------------------------------------------------------------------
+* Parameter Name    * Default[Type]  * Remark                                  *
+--------------------------------------------------------------------------------
+
+
+ 'VTX DRAW WIRES'              0  'R-phi display: '
+ 'VTX DRAW SECTORS'            1  'R-phi display: '
+ 'VTX DRAW HITS'               1  'R-phi:0=no,1=yes;'
+ 'VTX DRAW TRACKS'             1  'R-phi:0=no,1=yes;'
+ 'VTX DRAW ROAD'               1  'Draw road limit                 0=N, 1=Y'
+ 'VTX LAYER'                   0  'VTX wire layer = 0-2'
+ 'VTX SECTOR'                  0  'VTX sector = 0-31'
+ 'VTX WIRE'                    0  'VTX wire = 0-7'
+ 'VTX WIRE END'                0  'VTX wire end = 0-1'
+ 'VTX STRIP LAYER'             2  'VTX strip layer = 2-5'
+ 'VTX STRIP'                   0  'VTX strip = '
+ 'VTX STRIP END'               0  'VTX strip end = 0-1 '
+ 'VTX FADC'                    0  'VTX FADC'
+ 'VTX ONLY'                 TRUE  'R-Z display'
+ 'VTX USE PHI MODE'            0  'if VTX ONLY=true, use '
+ 'VTX PHI MODE'                0  '0=full detector,1=phi '
+ 'VTX IMPACT CUT'         1.0000  'cut tracks not pointing'
+ 'VTX CHISQZ CUT'        20.0000  'cut tracks with high '
+ 'VTX DRAW VERTEX'             1  'mark vertex, 0=no, 1 = yes'
+ 'VTX DRAW BEAMLINE'           1  'draw beamline, 0 = no, 1 = yes'
+ 'VTX DRAW 3D SEC'             2  'draw 3D sectors in VTX module'
+ 'VTX DRAW WIRES'              0  'draw VTX wires in 3D view'
+ 'DRAW NO Z MATCH'             1  'R-Z display; 1=mark'
+ 'ISAJET TRACKS'               1  '1=draw Isajet tracks,'
+ 'STRING QUALITY'              1  ' '
+
+
+V. VTXDIS SCREENS in PX_VTXDIS.RCP:
+    
+    Each basic menu has own screen parameters. Here we show an example,
+    for the R-PHI view.
+
+!---------------------------------------------------------
+! Definition of VTXDIS Screens
+!---------------------------------------------------------
+
+
+ 'NAME' 'VTX_R-PHI VIEW'          ' VTX_R-PHI VIEW'
+ 'PICKABLE'                    F  ' TRUE if pickable'
+ 'VIEW3D'                  FALSE  ' True if eD viewport'
+ 'KEEPCIRCLE'               TRUE  ' True if circles are kept'
+ 'VPORTXMIN'             -1.0000  ' X min Viewport'
+ 'VPORTXMAX'              1.0000  ' X max Viewport'
+ 'VPORTYMIN'             -1.0000  ' Y min Viewport'
+ 'VPORTYMAX'              1.0000  ' Y max Viewport'
+ 'WINDOWXMIN'           -25.0000  ' X Min Window limit'
+ 'WINDOWXMAX'            25.0000  ' X Max Window limit'
+ 'WINDOWYMIN'             0.0000  ' Y Min Window limit'
+ 'WINDOWYMAX'            -1.0000  ' Y Max Window limit'
+ 'VIEWREFX'               0.0000  ' X View reference pnt'
+ 'VIEWREFY'               0.0000  ' Y View reference pnt'
+ 'VIEWREFZ'               0.0000  ' Z View reference pnt'
+ 'UPVECX'                 0.0000  ' X Up vector'
+ 'UPVECY'                 1.0000  ' Y Up vector'
+ 'UPVECZ'                 0.0000  ' Z Up vector'
+ 'CAMX'                   0.0000  ' X Camera point'
+ 'CAMY'                   0.0000  ' Y Camera point'
+ 'CAMZ'                   1.0000  ' Z Camera point'
+
+ VI. DOCUMENTATION
+
+
+    1. D0$DOCS:GRAPHICS_GUIDE.DOC - gives an introduction to D0 graphics and 
+                                   references to other documentation.
+
+    2. D0$DOCS:DI3000_GUIDE.DOC   - gives an introduction to the use of the
+                                   commercial graphics package, DI3000, and
+                                   hints on using it on various devices.
+
+    3. D0$D0USER:D0USER_GUIDE.MEM - gives more than introduction to D0USER
+                                   which provides an offline framework.
+
+    4. D0$EXAMINE2:EXAMINE_GUIDE.DOC - Users guide to EXAMINE,  the ONLINE
+                                       event monitoring framework.
+
+    5. D0$PIXIE:PIXIE_GUIDE.DOC - General guide to PIXIE Event Display
