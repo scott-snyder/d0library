@@ -13,6 +13,7 @@ C-             NWORDS     [I]       Number of returned words
 C-   Controls:
 C-
 C-   Created  13-JUL-1993   Richard V. Astur
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -114,8 +115,12 @@ C                                              ! likelihood
         NTRK_LYR2 = MOD(NTRK_TRD,10) + 1
         NTRK_TRD = NTRK_TRD/10
         NTRK_LYR3 = MOD(NTRK_TRD,10) + 1
-        WORDS( NWORDS + 3)  = (NTRK_LYR1.EQ.1).AND.(NTRK_LYR2.EQ.1).AND.
-     &    (NTRK_LYR3.EQ.1)                    ! TRD info
+        if ((NTRK_LYR1.EQ.1).AND.(NTRK_LYR2.EQ.1).
+     &      AND.(NTRK_LYR3.EQ.1)) then
+          words(nwords+3) = 1
+        else
+          words(nwords+3) = 0
+        endif
         WORDS( NWORDS + 4)  = Q(LTRDT+5)      ! TRD truncated mean
       ENDIF
 C

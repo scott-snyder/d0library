@@ -8,6 +8,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created   9-AUG-1993   Rajendran Raja
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -48,7 +49,7 @@ C
       IF ( MONTE_CARLO_DATA() ) THEN
 C WRITE BTAG INFO
         WRITE(PRUNIT,3)NTAG,(JET_TAGGED(K),K=1,NTAG)
-    3   FORMAT(' NUMBER OF JETS BTAGGED ',I6,' TAGGED JETS ',2I)
+    3   FORMAT(' NUMBER OF JETS BTAGGED ',I6,' TAGGED JETS ',2I7)
 C
         WRITE(PRUNIT,4)(DIF_R(K),DIF_ET(K),NAME_TAG(K),K=1,NTAG)
     4   FORMAT(' DIFF_R,DIFF_ET,NAME_TAG ',2F12.3,2X,A2/)

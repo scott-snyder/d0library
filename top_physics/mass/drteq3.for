@@ -2,8 +2,13 @@
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       COMPLEX*16
      +  I,Z(0:2)
+C&IF LINUX
+C&      REAL*8
+C&     + ZQ1,QQ,PP,Q1,Q2,Q3
+C&ELSE
       REAL*16
      + ZQ1,QQ,PP,Q1,Q2,Q3
+C&ENDIF
       DIMENSION X(*),Y(0:2)
 
       PARAMETER(EPS = 1D-6, DELTA = 1D-15)

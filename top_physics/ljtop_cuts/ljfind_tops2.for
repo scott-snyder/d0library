@@ -19,13 +19,14 @@ C-
 C-   ENTRY TOP_CUTS2(ETCUTB,ETCUTW,DELW)  change default cuts
 C-
 C-   Created  21-MAY-1992   Serban D. Protopopescu
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
       REAL    PWLEP(5),PJETS(5,4),PTOP1(5),PTOP2(5),PWHAD(7)
       LOGICAL OK
       INTEGER INDX(4)
-      REAL    MASST1(4),MASST2(4),DM(4),PSUM(4)
+      REAL    MASST1(4),MASST2(4),DM(4),PSUM(5)
       REAL    DMMIN,MW(3),MTP1,MTP2,MWH,SAVEPZ
       REAL    ET_CUTB(2),ET_CUTW
       INTEGER K1,K2,K3,I2(3),I3(3),I,NTRY

@@ -9,6 +9,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created  20-DEC-1990   Rajendran Raja
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -21,8 +22,8 @@ C----------------------------------------------------------------------
       TOP_FIT_FIN = .TRUE.
       CALL NTUPLE_CLOSE('FIT2C',STATUS)
       WRITE(SSUNIT(),1)ITOT_EV,IACC_EV,IFIT_EV
-    1 FORMAT(' TOTAL NUMBER OF EVETNS READ ',I,/,
-     &       ' NUMBER OF EVENTS PASSING CUTS ',I,/,
-     &       ' NUMBER OF EVENTS WITH MASS FITS ',I)
+    1 FORMAT(' TOTAL NUMBER OF EVETNS READ ',I7,/,
+     &       ' NUMBER OF EVENTS PASSING CUTS ',I7,/,
+     &       ' NUMBER OF EVENTS WITH MASS FITS ',I7)
   999 RETURN
       END

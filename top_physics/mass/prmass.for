@@ -21,6 +21,7 @@ C-   Outputs : on unit PRUNIT
 C-   Controls: none
 C-
 C-   Created  22-JUN-1993 10:51:16.15  Rajendran Raja
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -70,38 +71,38 @@ C
       WRITE( PRUNIT, 1100 )  IQ(LMASS1+1),
      & ( Q( LMASS1 + J ) , J = 2, IQ( LMASS1-1) )
  1100 FORMAT(/' Printout of MASS bank ',//,
-     & ' VERSION    Bank Version Number (=1) ',I    ,/,
-     & '    Low end  of top mass range ',F   ,/,
-     & '    High end of top mass range ',F   ,//,
-     & '    Most likely top mass RR method ICMB=1 ',F   ,/,
+     & ' VERSION    Bank Version Number (=1) ',I7    ,/,
+     & '    Low end  of top mass range ',F6.2   ,/,
+     & '    High end of top mass range ',F6.2   ,//,
+     & '    Most likely top mass RR method ICMB=1 ',F6.2   ,/,
      & '    Maximum likelihood RR method ICMB=1 ',E12.3   ,/,
-     & '    90% Lower end CL RR method ICMB=1 ',F   ,/,
-     & '    90% Upper end CL RR method  ICMB=1 ',F   ,//,
-     & '    Most likely top mass DG method ICMB=1 ',F   ,/,
-     & '    Maximum likelihood DG method ICMB=1 ',F   ,/,
-     & '    90% Lower end CL DG method ICMB=1 ',F   ,/,
-     & '    90% Upper end CL DG method  ICMB=1 ',F   ,/,
-     & '    turn on mass for ICMB=1 ',F   ,//,
-     & '    Most likely top mass RR method ICMB=2 ',F   ,/,
+     & '    90% Lower end CL RR method ICMB=1 ',F6.2   ,/,
+     & '    90% Upper end CL RR method  ICMB=1 ',F6.2   ,//,
+     & '    Most likely top mass DG method ICMB=1 ',F6.2   ,/,
+     & '    Maximum likelihood DG method ICMB=1 ',F6.2   ,/,
+     & '    90% Lower end CL DG method ICMB=1 ',F6.2   ,/,
+     & '    90% Upper end CL DG method  ICMB=1 ',F6.2   ,/,
+     & '    turn on mass for ICMB=1 ',F6.2   ,//,
+     & '    Most likely top mass RR method ICMB=2 ',F6.2   ,/,
      & '    Maximum likelihood RR method ICMB=2 ',E12.3   ,/,
-     & '    90% Lower end CL RR method ICMB=2 ',F   ,/,
-     & '    90% Upper end CL RR method  ICMB=2 ',F   ,//,
-     & '    Most likely top mass DG method ICMB=2 ',F   ,/,
-     & '    Maximum likelihood DG method ICMB=2 ',F   ,/,
-     & '    90% Lower end CL DG method ICMB=2 ',F   ,/,
-     & '    90% Upper end CL DG method  ICMB=2 ',F   ,/,
-     & '    turn on mass for ICMB=2 ',F   ,//,
-     & ' 4 Vectors of 3 High Et jets(see note 2)'  ,/, 3(4F/),/,
-     & '    Combination number ',F   ,/,
-     & '    Btag flag  ',F   ,/,
-     & '    Number of btags ',F   ,/,
+     & '    90% Lower end CL RR method ICMB=2 ',F6.2   ,/,
+     & '    90% Upper end CL RR method  ICMB=2 ',F6.2   ,//,
+     & '    Most likely top mass DG method ICMB=2 ',F6.2   ,/,
+     & '    Maximum likelihood DG method ICMB=2 ',F6.2   ,/,
+     & '    90% Lower end CL DG method ICMB=2 ',F6.2   ,/,
+     & '    90% Upper end CL DG method  ICMB=2 ',F6.2   ,/,
+     & '    turn on mass for ICMB=2 ',F6.2   ,//,
+     & ' 4 Vectors of 3 High Et jets(see note 2)'  ,/, 3(4F6.2/),/,
+     & '    Combination number ',F6.2   ,/,
+     & '    Btag flag  ',F6.2   ,/,
+     & '    Number of btags ',F6.2   ,/,
      & '    Name tag for 1st btag ',A4   ,/,
-     & '    difference in R(ISAJ-JET) 1st tag ',F   ,/,
-     & '    difference in ET(ISAJ-JET) 1st tag ',F   ,/,
+     & '    difference in R(ISAJ-JET) 1st tag ',F6.2   ,/,
+     & '    difference in ET(ISAJ-JET) 1st tag ',F6.2   ,/,
      & '    Name tag for 2nd btag ',A4   ,/,
-     & '    difference in R(ISAJ-JET) 2nd tag ',F   ,/,
-     & '    difference in ET(ISAJ-JET) 2nd tag ',F  ,/,
-     & '    Number of configurations generated ',F )
+     & '    difference in R(ISAJ-JET) 2nd tag ',F6.2   ,/,
+     & '    difference in ET(ISAJ-JET) 2nd tag ',F6.2  ,/,
+     & '    Number of configurations generated ',F6.2 )
 C
 C  ***  Look if another bank is needed
 C
@@ -122,7 +123,7 @@ C  *** Error : Linear without bank pointer
 C
   990 CONTINUE
       WRITE( PRUNIT, 2000 ) LMASS
- 2000 FORMAT(/' ** PRMASS ** called for LINEAR without valid bank '
+ 2000 FORMAT(/' ** PRMASS ** called for LINEAR without valid bank ',
      &        'pointer, LMASS =',I10/)
       GOTO 999
 C
@@ -130,7 +131,7 @@ C  *** Error : One bank, but neither pointer nor number
 C
   980 CONTINUE
       WRITE( PRUNIT, 2100 ) LMASS, NMASS
- 2100 FORMAT(/'  ** PRMASS ** called for ONE without bank pointer and '
+ 2100 FORMAT(/'  ** PRMASS ** called for ONE without bank pointer and ',
      &        'bank number, LMASS =',I10,' NMASS =', I10/)
       GOTO 999
       END

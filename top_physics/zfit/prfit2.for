@@ -21,6 +21,7 @@ C-   Outputs : on unit PRUNIT
 C-   Controls: none
 C-
 C-   Created   3-SEP-1993 23:29:14.64  Pushpa C. Bhat
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -89,7 +90,7 @@ C  *** Error : Linear without bank pointer
 C
   990 CONTINUE
       WRITE( PRUNIT, 2000 ) LFIT2
- 2000 FORMAT(/' ** PRFIT2 ** called for LINEAR without valid bank '
+ 2000 FORMAT(/' ** PRFIT2 ** called for LINEAR without valid bank ',
      &        'pointer, LFIT2 =',I10/)
       GOTO 999
 C
@@ -97,7 +98,7 @@ C  *** Error : One bank, but neither pointer nor number
 C
   980 CONTINUE
       WRITE( PRUNIT, 2100 ) LFIT2, NFIT2
- 2100 FORMAT(/'  ** PRFIT2 ** called for ONE without bank pointer and '
+ 2100 FORMAT(/'  ** PRFIT2 ** called for ONE without bank pointer and ',
      &        'bank number, LFIT2 =',I10,' NFIT2 =', I10/)
       GOTO 999
       END

@@ -8,6 +8,7 @@ C-   Outputs :IER not zero if other neutrino present.
 C-   Controls:
 C-
 C-   Created   5-JAN-1991   Rajendran Raja
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -54,7 +55,7 @@ C
         IF(BAD_COUNT(I).GT.BAD_PERM(I))THEN
           IER = 1
           WRITE(MSG,1)PARTICLE(I),PT_MAX
-    1     FORMAT(A20,' Present with Et greater than 'F6.3)
+    1     FORMAT(A20,' Present with Et greater than ',F6.3)
           CALL ERRMSG('HMATRIX','SEE_IF_OTHER_NEUTRINO',
      &      MSG,'W')
         ENDIF

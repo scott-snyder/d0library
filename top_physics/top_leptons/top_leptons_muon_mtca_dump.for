@@ -13,6 +13,7 @@ C-              Printout on unit LUN
 C-   Controls:
 C-
 C-   Created  11-MAY-1994   Stephen J. Wimpenny
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -95,7 +96,7 @@ C----------------------------------------------------------------------
  1011 FORMAT(5X,' Norm Track Fit Residuals with/without vertex = ',F8.2,
      1 ' / ',F8.2)
  1020 FORMAT(5X,' Calorimeter Layers (Used Fraction : No. Avialable) : '
-     1 F5.2,' :',I2,' / ',F4.2,' :',I2,' / ',F4.2,' :',I2,
+     1 ,F5.2,' :',I2,' / ',F4.2,' :',I2,' / ',F4.2,' :',I2,
      2 ' (Total/Hadronic/MG+ICD) ')
  1021 FORMAT(5X,' Fraction of Used Calorimeter Layers = ',F4.2,' / ',
      1 F4.2,' / ',F4.2,' (Total/Hadronic/MG+ICD) ')

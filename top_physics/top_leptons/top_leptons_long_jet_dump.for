@@ -8,6 +8,7 @@ C-   Outputs :
 C-   Controls: 
 C-
 C-   Created  22-APR-1993   Stephen J. Wimpenny
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -31,5 +32,5 @@ C----------------------------------------------------------------------
      1 ' No cells above 1 GeV = ',I4,/, 
      2 5X,' Merge/splitting flag = ',I3,/,
      3 5X,' em Et Fraction , ICD+MG Fraction , CH Fraction = ',
-     4 3F8.2,/,5X' Ratio hottest to next-hottest cell = ',F8.2)
+     4 3F8.2,/,5X,' Ratio hottest to next-hottest cell = ',F8.2)
       END

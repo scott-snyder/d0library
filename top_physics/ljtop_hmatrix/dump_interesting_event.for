@@ -15,6 +15,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created   9-JAN-1991   Rajendran Raja
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -48,8 +49,8 @@ C
       IF(ELECTRON.AND.MUON.AND.PHOTON)THEN
         WRITE(SSUNIT(),2)LOCAL_RUN,LOCAL_EVENT,IR,IE
     2   FORMAT(//' **THREE EXOTIC PARTICLES IN SAME EVENT** ',/,
-     &    ' LOCAL RUN NUMBER :' I10, ' LOCAL EVENT NUMBER : ',I10,/,
-     &    ' RUN NUMBER :' I10, 'EVENT NUMBER : ',I10)
+     &    ' LOCAL RUN NUMBER :',I10, ' LOCAL EVENT NUMBER : ',I10,/,
+     &    ' RUN NUMBER :',I10, 'EVENT NUMBER : ',I10)
         GO TO 123
       ENDIF
 C
@@ -58,8 +59,8 @@ C
      &  .OR.NMUO.GE.2) THEN
         WRITE(SSUNIT(),1)LOCAL_RUN,LOCAL_EVENT,IR,IE
     1   FORMAT(//' **TWO EXOTIC PARTICLES IN SAME EVENT** ',/,
-     &    ' LOCAL RUN NUMBER :' I10, ' LOCAL EVENT NUMBER : ',I10,/,
-     &    ' RUN NUMBER :' I10, 'EVENT NUMBER : ',I10)
+     &    ' LOCAL RUN NUMBER :',I10, ' LOCAL EVENT NUMBER : ',I10,/,
+     &    ' RUN NUMBER :',I10, 'EVENT NUMBER : ',I10)
         GO TO 123
       ENDIF
       RETURN

@@ -10,6 +10,7 @@ C-   Controls:
 C-
 C-   Created   2-FEB-1993   Stephen J. Wimpenny
 C-   Modified 17-Mar-1993   Routine name change for library compatibility
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -376,7 +377,7 @@ C----------------------------------------------------------------------
      1 ' (CC,EC)')
  2042 FORMAT(15X,' Apply distance 1 cut (Rdphi for CC and EC) ')
  2044 FORMAT(15X,' Apply distance 2 cut (dz for CC and dR for EC) ')
- 2046 FORMAT(15X', Min shower centriod/track match significance = ',
+ 2046 FORMAT(15X,' Min shower centriod/track match significance = ',
      1 F8.2)
  2050 FORMAT(15X,' Max no of Ztraks within dR cone = ',I3)
  2054 FORMAT(15X,' Limits for CDC 1 mip cut = ',2F6.2)

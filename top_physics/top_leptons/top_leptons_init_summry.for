@@ -45,6 +45,7 @@ C-                          Muon dE/dx correction added
 C-   Modified  4-Dec-1993   Filter Select and dumps for new version
 C-                          of FIND_MUJET added
 C-   Modified  3-Apr-1994   New features added
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -1030,8 +1031,8 @@ C
  4020 FORMAT(5X,' Lepton+Jets Finder Cuts : ',/,
      1  5X,' Leptons : ',/,
      2 15X,     ' Ptmin Muon                            = ',F8.1,/,
-     3 15X      ' Min no. of Muons                      = ',I8,/,
-     4 15X      ' Max no. of Muons                      = ',I8,/,
+     3 15X,     ' Min no. of Muons                      = ',I8,/,
+     4 15X,     ' Max no. of Muons                      = ',I8,/,
      5 15X,     ' Min DPhi between Jet1 and Neg_Phi_Mu1 = ',F8.1,/,
      6 15X,     ' Ptmin Electron                        = ',F8.1,/,
      7  5X,' Missing Et Cuts : ',/,

@@ -306,7 +306,7 @@ C     PARAMETER (NNW=30000)
 C-
 C-    The following is the new parameter value
 C-
-      PARAMETER (NNW=100 )
+      PARAMETER (NNW=10000 )
 C-
       PARAMETER (NWR=9)
       COMMON/ZEBWRK/IXWRK,IDVWRK,FENWRK,LWRKH,LRWRK,LSTEP,

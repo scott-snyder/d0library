@@ -9,6 +9,7 @@ C-   Outputs :
 C-   Controls: 
 C-
 C-   Created   9-AUG-1993   Rajendran Raja
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -29,7 +30,7 @@ C
       EVENT=IQ(LHEAD+9)
 C
       WRITE(PRUNIT,1)RUN,EVENT
-    1 FORMAT(//' ISAJET DUMP FOR RUN/EVENT ',2I)
+    1 FORMAT(//' ISAJET DUMP FOR RUN/EVENT ',2I7)
       CALL PRISAJ(PRUNIT,0,0,'ALL',0)
       CALL PRISAQ(PRUNIT,0,0,'ALL',0)
       CALL PRISAL(PRUNIT,0,0,'ALL',0)

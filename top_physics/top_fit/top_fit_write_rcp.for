@@ -9,6 +9,7 @@ C-   Outputs :
 C-   Controls: 
 C-
 C-   Created  15-MAR-1994   Rajendran Raja
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -41,7 +42,7 @@ C
         WRITE(IRO,12)TMASS,(TLEP(K),K=1,3),CTH_TL,PH_TL,CTH_WL,PH_WL,
      &    (THAD(K),K=1,3),CTH_TH,PH_TH,CTH_WH,PH_WH
    12   FORMAT('\ARRAY INIVAR',/,
-     &    15(1X,F/))
+     &    15(1X,F6.2/))
         WRITE(IRO,5)
     5   FORMAT(' \END')
 C

@@ -79,7 +79,11 @@ C
       ELSE
         MUCTAG = 0
       ENDIF
-      XOCT        = JBIT(IQ(LPMUO+44),9).GT.0         ! 2
+      if (JBIT(IQ(LPMUO+44),9).gt.0) then
+        XOCT        = 1
+      else
+        xoct = 0
+      endif
       X3D_IMPACT   = Q(LPMUO+41)                       ! 3
       BEND_IMPACT = Q(LPMUO+56)                       ! 4
       NON_BEND_IMPACT = Q(LPMUO+57)                   ! 5

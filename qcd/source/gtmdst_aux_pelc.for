@@ -32,6 +32,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created  16-JUL-1993   Richard V. Astur
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -109,7 +110,7 @@ C
       VTXMIP = 0.
       LIKE   = 0.
       EFFIC  = 0.
-      TRDINFO= 0.
+      TRDINFO= .false.
       TRUN_MEAN = 0.
       CAL_ETA = 0.
       IF ( ITYPE .NE. 1 ) GOTO 999
@@ -124,7 +125,7 @@ C
       VTXMIP = Q( LPOINT + 12 )
       LIKE   = Q( LPOINT + 13 )
       EFFIC  = Q( LPOINT + 14 )
-      TRDINFO= Q( LPOINT + 15 )
+      TRDINFO= (Q( LPOINT + 15 ) .ne. 0)
       TRUN_MEAN = Q( LPOINT + 16 )
       CAL_ETA  = Q( LPOINT + 17 )
 

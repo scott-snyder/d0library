@@ -14,6 +14,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Updated  12-JUN-1993   Rajendran Raja
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -28,7 +29,7 @@ C----------------------------------------------------------------------
       INTEGER SSUNIT,LOUT
       INTEGER KUN,IER
       CHARACTER*80 KUMAC_FILE
-      INTEGER TRNLNM ,TRULEN
+      INTEGER TRULEN
       CHARACTER*80 DILEPTON
       INTEGER LEND
       LOGICAL FIRST

@@ -5,6 +5,7 @@ C-   Purpose and Methods : Fluctuate low mising ET QCD from ELF stream
 C-                         to get high missing ET QCD
 C-
 C-   Updated  24-MAR-1994   Rajendran Raja
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -145,7 +146,7 @@ C
 C
   999 CONTINUE
       WRITE(6,111)NEV
-  111 FORMAT(' NUMBER OF EVENTS READ FROM NTUPLE = ',I)
+  111 FORMAT(' NUMBER OF EVENTS READ FROM NTUPLE = ',I7)
       CALL NTUPLE_CLOSE('FAKES',STATUS)
       CALL DO_HBOOK_CLOSE
   997 CONTINUE

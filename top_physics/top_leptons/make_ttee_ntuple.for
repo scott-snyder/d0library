@@ -8,6 +8,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created  17-NOV-1993   Balamurali V
+C-   Updated  23-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -119,8 +120,9 @@ C ** Electron/Gamma params
         IF(NPHOT .LT. 1)LFLAG=0
         IE = ABS(IGELEC(1))
         IP = MAX(IGPHOT(1),1)
-        IF(REQ_TRKMATCH.AND.(IGELEC(1).GT.0))GOTO 90
-        IF(RELEC(1,IE) .LT. RPHOT(1,IP))THEN
+c$$$        IF(REQ_TRKMATCH.AND.(IGELEC(1).GT.0))GOTO 90
+        IF(RELEC(1,IE) .LT. RPHOT(1,IP) .and. .not.
+     &     (REQ_TRKMATCH.AND.(IGELEC(1).GT.0)))THEN
           LFLAG = 3
           I1 = IP
           I2 = IE
