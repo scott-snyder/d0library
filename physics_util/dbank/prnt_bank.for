@@ -48,6 +48,10 @@ C&IF IBMAIX
 C&      integer vec1(3)
 C&      pointer (ptvec1, vec1)
 C&ENDIF
+C&IF LINUX
+C&      integer zero  ! fake out compiler
+C&      data zero/0/
+C&ENDIF
 C----------------------------------------------------------------------
       ICUR = 1
       LINEB = ' '
@@ -66,6 +70,10 @@ C&      ptvec1 = loc (vect(1)) - 4*(loc (vect(2)) - loc (vect(1)))
 C&      nl = vec1(1)
 C&      ns = vec1(2)
 C&      nd = vec1(3)
+C&ELSEIF LINUX ! fake out compiler to avoid warnings.
+C&      QNL = VECT(zero-3)
+C&      QNS = VECT(zero-2)
+C&      QND = VECT(zero-1)
 C&ELSE
       QNL = VECT(-3)                    ! Number of links
       QNS = VECT(-2)                ! Number of structural links

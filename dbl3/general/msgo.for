@@ -19,6 +19,7 @@ C-   Outputs :
 C-   Controls: 
 C-
 C-   Created   4-SEP-1992   Lars O. Rasmussen
+C-   Updated  18-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -77,6 +78,10 @@ C
       WRITE(INUT,802,ERR=999) C3,MSG1(1:IC1),MSG2(1:IC2),CBHL(IC0:)
 C
   801 FORMAT (' ',A3,' ',A,': ',A)
+C&IF LINUX
+C&  802 FORMAT (' ',A3,' ',A,': ',A,' ',A)
+C&ELSE
   802 FORMAT (' ',A3,' ',A,': ',A,' ',A<NC>)
+C&ENDIF
   999 RETURN
       END

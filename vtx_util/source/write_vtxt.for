@@ -41,6 +41,7 @@ C-
 C-   Created  16-DEC-1993   Ed Oltman
 C-   Updated  21-FEB-1994   Ed Oltman  fix Justin's discovery
 C-   Modified subsequently (March 1994) to open correct file in EXAMINE
+C-   Updated  20-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -62,7 +63,7 @@ c Externals:
       INTEGER GZVTXT,EVONUM, RUNNO, ISL
       LOGICAL TRNLNM, UserOut
 c Data:
-      DATA IUSER/315/, Closed/.TRUE./, OpenError/.FALSE./, First/.TRUE./
+      DATA OpenError/.FALSE./, First/.TRUE./
       DATA MinHits/6/
       COMMON /CALIB_FILE/ LUN, Closed, IUSER, UserOut, Store, DateString
       COMMON /SLATE/ ISL(6)
@@ -72,7 +73,7 @@ c Data:
 C----------------------------------------------------------------------
       WRITE_VTXT = .TRUE.
       IF(OpenError) GOTO 999
-      IF(Closed) THEN
+      IF(Closed .or. first) THEN
         UserOut = TRNLNM('USR$OUT', Space, I)
         Run = RUNNO()
         Store = 0
@@ -80,10 +81,12 @@ C----------------------------------------------------------------------
         WRITE(DateString,30) ISL(2),ISL(3),MOD(ISL(1),100),ISL(4),ISL(5)
         Sequence = 1
         IF(First) THEN
+          closed = .true.
           First = .FALSE.
           CALL EZPICK('VTRAKS_RCP')
           CALL EZGET('MIN_HITS', MinHits, Err)
           CALL EZRSET
+          iuser = 315
           CALL GTUNIT(IUSER,LUN,ERR)
           IF(ERR .NE. 0) THEN
             CALL ERRMSG('GTUNIT', 'WRITE_VTXT',
@@ -91,8 +94,13 @@ C----------------------------------------------------------------------
             GOTO 1000
           ENDIF
         ENDIF
+C&IF LINUX
+C&        OPEN(LUN, FILE='CURRENT_ACCEL_STORE.DAT',
+C&     &       STATUS='OLD', IOSTAT=Status)
+C&ELSE
         OPEN(LUN, FILE='ONLINE:[COOR_EXEC]CURRENT_ACCEL_STORE.DAT',
      &       STATUS='OLD', READONLY, IOSTAT=Status)
+C&ENDIF
         IF(Status .EQ. 0) THEN
           READ(LUN,*) Store
           CLOSE(LUN)
@@ -106,8 +114,13 @@ C----------------------------------------------------------------------
           ELSE
             WRITE(FileName,10) Run, Store, Sequence
           ENDIF
+C&IF LINUX
+C&          OPEN(LUN,FILE=FileName,STATUS='OLD',
+C&     &         IOSTAT=Status)
+C&ELSE
           OPEN(LUN,FILE=FileName,STATUS='OLD',READONLY,
      &         IOSTAT=Status)
+C&ENDIF
           IF(Status .EQ. 0) THEN
             CLOSE(LUN)
             Sequence = Sequence + 1

@@ -36,7 +36,7 @@ int get_peer_name_ (int *socket_fd, char *host_name)
  address_length = &length;
  remote_peer = &peer_remote;
  
- status = getpeername (fd, remote_peer, address_length) ;
+ status = getpeername (fd, (struct sockaddr*)remote_peer, address_length) ;
  if (status != 0)  
     status = errno ;
  else {

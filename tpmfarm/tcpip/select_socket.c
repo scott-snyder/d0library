@@ -64,7 +64,7 @@
 
  select_socket_ (n_descr, read_mask, write_mask, exc_mask, timeo)
  int *n_descr ;
- int read_mask, write_mask, exc_mask ;
+ int *read_mask, *write_mask, *exc_mask ;
  int *timeo ;
 
 {
@@ -75,7 +75,7 @@
  timeout.tv_sec  = *timeo ;
  timeout.tv_usec = 0 ;
 
- n_found = select (*n_descr, read_mask, write_mask, exc_mask, &timeout) ;
+ n_found = select (*n_descr, (fd_set*)read_mask, (fd_set*)write_mask, (fd_set*)exc_mask, &timeout) ;
 
  if (n_found < 0)  n_found = -errno ;
 

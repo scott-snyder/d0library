@@ -41,7 +41,7 @@ int *descr, *port_number ;
  sock.sin_addr.s_addr = INADDR_ANY ;
  sock.sin_port        = htons (*port_number) ;
 
- status = bind (*descr, &sock, sizeof (sock)) ;
+ status = bind (*descr, (struct sockaddr*)&sock, sizeof (sock)) ;
 
  if (status != 0)  status = -errno ;
 

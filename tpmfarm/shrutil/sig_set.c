@@ -2,10 +2,10 @@
 
 void sig_set_(int *sigsend)
 {
-	void onintr(void);
+	void onintr(int);
 	int status, sig;
 	sig = *sigsend;
 	signal(sig,onintr);
 }
-void onintr(void) 
+void onintr(int x) 
 {}

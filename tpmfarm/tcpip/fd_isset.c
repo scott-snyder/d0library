@@ -1,12 +1,7 @@
 /* Fortran interface to a system macro FD_SET */
 #define IBMAIX 2
-#if D0FLAVOR == IBMAIX
-        #define HDR <sys/select.h>
-#else
-        #define HDR <sys/types.h>
-#endif
-
-#include HDR
+#define _XOPEN_SOURCE
+#include <sys/select.h>
 
 int fd_isset_(descr, descr_set)
 int *descr;

@@ -21,9 +21,10 @@ C-   Updated  30-SEP-1994   Alain PLUQUET  version 4.512 new calibration method
 C-                                         (with Yves's routine TRD_CALURAPT)
 C-   Updated  31-JAN-1995   Lewis Taylor Goss   include over-all correction
 C-                                              factor in REAL_WORD(48)
+C-   Updated  20-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
       IMPLICIT NONE
-      INCLUDE 'D0$INC: TPRL_VERSION_NB.INC'
+      INCLUDE 'D0$INC:TPRL_VERSION_NB.INC'
       INCLUDE 'D0$PARAMS:TRD_NB_OF_WIRES.PARAMS'
       INCLUDE 'D0$INC:TRD_NB_OF_WIRES.inc'
       INCLUDE 'D0$INC:TCLUS_PER_WIRE.INC'

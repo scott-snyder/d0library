@@ -41,6 +41,7 @@ C-   Updated  29-AUG-1995   A. ZYLBERSTEJN  Suppress call to trd_like
 C-   Updated  30-AUG-1995   Lewis Taylor Goss  added EPSL_2 courtesy of JFL
 C-   Updated   5-OCT-1995   A. Zylberstejn : change place of TDSTFL
 C-   Updated   4-APR-1996   LT Goss modify to pass LDUMM
+C-   Updated  20-MAR-2004   sss - compile with g77
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:TRD_NWORD.INC'
@@ -201,7 +202,7 @@ C      IF(DOPRINT)WRITE(LOUT,*)' calor eta',Q(LCLUS+19)
         ENDIF
         IF(DOPRINT)WRITE(LOUT,*)' in TRD_ANALYSIS,lpelc',LPELC
         IF (LCLUS.NE.0) THEN
-          IF (IQ(LCLUS-4).EQ.'PELC')THEN
+          IF (IQ(LCLUS-4).EQ.4HPELC)THEN
             IF( .NOT.TRD_CHECK_INTEGRITY(LZTRK_LOCAL)) GOTO 999
             IETA=Q(LCLUS+19)
 C            write(lout,*)' lztrk,LQ(LTRDT-4)',lztrk,LQ(LTRDT-4)

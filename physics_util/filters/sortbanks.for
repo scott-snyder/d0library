@@ -18,6 +18,7 @@ C-   Outputs : none
 C-   Controls: ZEBRA common block ZEBCOM - contains IXCOM
 C-
 C-   Created  13-MAY-1991   Marc Paterno
+C-   Updated  13-Jan-1996   sss - avoid g77 warning.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -35,6 +36,7 @@ C
       INTEGER      LZLAST
       EXTERNAL     LZLAST
 C----------------------------------------------------------------------
+      SORTBANKS = 0
 C
 C ****  First we sort into ASCENDING order
 C

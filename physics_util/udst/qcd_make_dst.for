@@ -1,5 +1,4 @@
       FUNCTION QCD_MAKE_DST()
-      ENTRY QCD_MAKE_STA()
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Construct the 'standard' QCD DST from this event
@@ -20,6 +19,7 @@ C-   Created  15-DEC-1992   Richard V. Astur
 C-   Updated   8-AUG-1993   Brent J. May - added LTRK, PLV0, VERT banks
 C-   Updated  20-AUG-1993   Brent J. May - added call to remake PLV0 if needed
 C-   Updated  23-NOV-1994   Ulrich Heintz - changed ZSHUNT for CAID to MZCOPY 
+C-   Updated  13-Jan-1996   sss - compile with g77.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:QUEST.INC'
@@ -47,6 +47,9 @@ C----------------------------------------------------------------------
       INTEGER NJ,NR, POINT, IER
       DATA FIRST /.TRUE./
 C----------------------------------------------------------------------
+      ENTRY QCD_MAKE_STA()
+C----------------------------------------------------------------------
+      QCD_MAKE_DST = .FALSE.
 C
 C: We will make the QCD specialized DST/STA which is described in
 C: PRJ$ROOT:[QCD_1.NTUPLES.DOC]QCD_DST_STA_FORMAT.DOC.  All final

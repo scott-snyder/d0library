@@ -40,7 +40,7 @@ connect_socket_ (socket_descr, port_number, internet_address)
  conn_addr.sin_port        = htons (*port_number) ;
  conn_addr.sin_addr.s_addr = htonl (*internet_address) ;
 
- status = connect (*socket_descr, &conn_addr, sizeof (conn_addr)) ;
+ status = connect (*socket_descr, (struct sockaddr*)&conn_addr, sizeof (conn_addr)) ;
 
  if (status != 0)  status = -errno ;
 

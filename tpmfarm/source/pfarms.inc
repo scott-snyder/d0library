@@ -25,7 +25,9 @@ C----------------------------------------------------------------------
       parameter ( outdst =  2 )
       parameter ( outsta = 25 )
 C&IF SIUNIX
-      integer SIGINT /2/, SIGUSR1 /16/, SIGUSR2 /17/
+C&      integer SIGINT /2/, SIGUSR1 /16/, SIGUSR2 /17/
 C&ELSEIF IBMAIX
 C&      integer SIGINT /2/, SIGUSR1 /30/, SIGUSR2 /31/
+C&ELSEIF LINUX
+      integer SIGINT /2/, SIGUSR1 /10/, SIGUSR2 /12/
 C&ENDIF

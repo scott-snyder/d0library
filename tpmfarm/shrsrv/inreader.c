@@ -67,7 +67,7 @@ main(  int argc, char *argv[] )
 
 /*  Function Prototypes                                            */
 	int read_buf(int , int *, int);
-	void onintr_inr(void);
+	void onintr_inr(int);
 	void bzero(void *, int );
 	void bcopy(const void *, void *, int);
 
@@ -154,7 +154,8 @@ wait_cre:
 	conn_addr.sin_family      = AF_INET ;
 	conn_addr.sin_port        = htons (port_number) ;
 	conn_addr.sin_addr.s_addr = htonl (inet_as) ;
-	if (connect (socket_descr, &conn_addr, sizeof (conn_addr)) != 0 ) {
+	if (connect (socket_descr, (struct sockaddr*)&conn_addr,
+                     sizeof (conn_addr)) != 0 ) {
 		perror("[INREADER]: Error connecting a socket\n");
 		goto end_of_data;
 	}
@@ -342,7 +343,7 @@ end_of_data:
 	printf("Inreader is done.\n");
 }
 
-void onintr_inr(void)
+void onintr_inr(int x)
 {}
 
 

@@ -14,6 +14,7 @@ C-      Add EZPRINT and EZSTYLE
 C-   Updated   3-JUL-1991   Harrison B. Prosper
 C-      Bug fix
 C-   Updated   3-APR-1992   James T. Linnemann  input from screen if in .INP 
+C-   Updated  13-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -137,7 +138,7 @@ C
 C&IF VAXVMS,ULTRIX,SIUNIX,ALFOSF
      &          STATUS='NEW',CARRIAGECONTROL='LIST')
 C&ENDIF
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&     &          STATUS='NEW')
 C&ENDIF
           ENDIF
@@ -194,7 +195,7 @@ C
 C&IF VAXVMS,ULTRIX,SIUNIX,ALFOSF
      &          STATUS='NEW',CARRIAGECONTROL='LIST')
 C&ENDIF
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&     &          STATUS='NEW')
 C&ENDIF
             ENDIF
@@ -235,7 +236,7 @@ C
 C&IF VAXVMS,ULTRIX,SIUNIX,ALFOSF
      &          STATUS='NEW',CARRIAGECONTROL='LIST')
 C&ENDIF
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&     &          STATUS='NEW')
 C&ENDIF
             ENDIF

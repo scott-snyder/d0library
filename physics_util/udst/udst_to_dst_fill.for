@@ -23,6 +23,7 @@ C-   Updated  18-NOV-1995   Ulrich Heintz  increase PELC/PPHO bank size to 47
 C-   Updated  11-DEC-1995   Ian Adam  Fill bookkeeping info into PNU1 
 C-                                    since it isn't done in PNU1
 C-   Updated  11-DEC-1996   Ulrich Heintz  fix pointer to VCORPX, VCORPY 
+C-   Updated  13-Jan-1996   sss - compile with g77.
 C-  
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -96,6 +97,9 @@ C- DTRK 1,2,3,4,5,6,7,8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,
 C- DTRK 25,26,27
      &   0, 0, 0/
 
+      INTEGER IPELCTMP, IPPHOTMP, IPTAUTMP, IPMUOTMP
+      SAVE    IPELCTMP, IPPHOTMP, IPTAUTMP, IPMUOTMP
+
       REAL Z0
       LOGICAL BOOK_BANKS,BOOK_DTRK
       LOGICAL FIRST,IF_JETS
@@ -132,6 +136,11 @@ C
           ENDIF
           IF(XGRP1(I) .EQ. 'PNU1')ID_PNU1=I
         ENDDO
+
+        CALL UCTOH ('PELC', IPELCTMP, 4, 4)
+        CALL UCTOH ('PPHO', IPPHOTMP, 4, 4)
+        CALL UCTOH ('PTAU', IPTAUTMP, 4, 4)
+        CALL UCTOH ('PMUO', IPMUOTMP, 4, 4)
       ENDIF
 C
 C... check RECO version
@@ -504,7 +513,7 @@ C-
 C-
 C- ELEMENT IS FROM PELC
 C-
-            IF (XGRP1(K) .EQ. 'PELC')THEN
+            IF (XGRP1(K) .EQ.  'PELC')THEN
               IF (BOOK_BANKS) THEN
                 BOOK_BANKS = .FALSE.
 C- book PELC bank
@@ -743,18 +752,18 @@ C              IF( IOR(I,K) .EQ. 'B')I=I+1
                   LZTRK = LQ(LZTRK)
                 ENDDO
                 IF (LZTRK .NE. 0)THEN
-                  IF(IQ(IOBJECT_ADDR-4) .EQ. 'PELC' .OR.
-     &              IQ(IOBJECT_ADDR-4) .EQ. 'PPHO')THEN
+                  IF(IQ(IOBJECT_ADDR-4) .EQ. IPELCTMP .OR.
+     &              IQ(IOBJECT_ADDR-4) .EQ. IPPHOTMP)THEN
                     LQ(IOBJECT_ADDR-3)=LZTRK
                     LQ(LZTRK-4) = IOBJECT_ADDR
-                    IF(IQ(IOBJECT_ADDR-4) .EQ. 'PELC')THEN
+                    IF(IQ(IOBJECT_ADDR-4) .EQ. IPELCTMP)THEN
                       LCACL=LQ(IOBJECT_ADDR-2)
                       IF(LCACL.GT.0)LQ(LCACL-6)=LZTRK
                     ENDIF
-                  ELSEIF(IQ(IOBJECT_ADDR-4) .EQ. 'PMUO')THEN
+                  ELSEIF(IQ(IOBJECT_ADDR-4) .EQ. IPMUOTMP)THEN
                     LQ(IOBJECT_ADDR-IQ(LPMUO-2)-4)=LZTRK
                     LQ(LZTRK-3) = IOBJECT_ADDR
-                  ELSEIF(IQ(IOBJECT_ADDR-4) .EQ. 'PTAU')THEN
+                  ELSEIF(IQ(IOBJECT_ADDR-4) .EQ. IPTAUTMP)THEN
                     LQ(IOBJECT_ADDR-2-NTAU_TRK)=LZTRK
                     NTAU_TRK=NTAU_TRK+1
                     LQ(LZTRK-5) = IOBJECT_ADDR

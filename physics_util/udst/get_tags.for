@@ -7,6 +7,7 @@ C-   Outputs : TAGS - array with tags
 C-             NDIM - dimension of TAGS array
 C-
 C-   Created  16-OCT-1992   Ulrich Heintz
+C-   Updated  18-MAR-2004   sss - use fdate instead of date.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -43,7 +44,7 @@ C
         WRITE(LTAGS,1)
     1   FORMAT('!',70('-'))
         WRITE(LTAGS,4)'!    Name:       TAGS.RCP'
-        CALL DATE(DATUM)
+        CALL fDATE(DATUM)
         WRITE(LTAGS,4)'!    Created:    '//DATUM//'   MAKE_NT'
         WRITE(LTAGS,1)
         WRITE(LTAGS,4)'OUTPUT_TAGS    .false.'

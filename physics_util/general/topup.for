@@ -18,6 +18,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created   02-MAR-1993   SHAHRIAR ABACHI
+C-   Updated   18-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -61,7 +62,11 @@ C
       IF(.NOT.OK)CALL D0_ABORT('D0OPEN failed in TOPUP')
       READ(11,1) STEP,METH,IHST,ICOMB,CL,NMAS,NC
       REWIND(UNIT=11)
+C&IF LINUX
+C&      READ(11,*) STEP,METH,IHST,ICOMB,CL,NMAS,NC,(BF(I),I=1,NC)
+C&ELSE
       READ(11,2) STEP,METH,IHST,ICOMB,CL,NMAS,NC,(BF(I),I=1,NC)
+C&ENDIF
 C
       IF(IHST .GT. 0) THEN
 C      CALL MZEBRA(0)
@@ -189,7 +194,10 @@ C
       ENDIF
 C
     1 FORMAT(/F19.9,3I12,F19.9,2I12)
+C&IF LINUX
+C&ELSE
     2 FORMAT(/F19.9,3I12,F19.9,2I12,<NC>F19.9,/)
+C&ENDIF
     3 FORMAT(/12F19.9,A20)
     4 FORMAT(12F19.9,A20)
 C

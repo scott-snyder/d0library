@@ -13,6 +13,7 @@ C-   Created  22-APR-1989   Rajendran Raja
 C-   Updated   3-SEP-1991   Herbert Greenlee
 C-   Updated  20-AUG-1992   sss - compile on ibm
 C-   Updated   4-JUN-1993   James T. Linnemann  wider filename,help from d0$docs
+C-   Updated  13-Jan-1996   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -41,7 +42,7 @@ C
       CALL LIB$FIND_FILE(FILNAM,RES_FILE,CONTEXT)  !PERMITS WILDCARD
 C                                        ! SEARCH LIST
       call lib$find_file_end(context)
-C&IF IBMAIX
+C&IF IBMAIX,LINUX
 C&      OPEN(UNIT=LUN,FILE=RES_FILE,STATUS='OLD',ERR=101)
 C&ELSE
       OPEN(UNIT=LUN,FILE=RES_FILE,STATUS='OLD',READONLY,ERR=101)

@@ -21983,13 +21983,25 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 * *** Now open the file 
 *   
       IF (IOPTO.EQ.0) THEN  
+C&IF LINUX
+C&        OPEN (UNIT=LUN, FILE=NAME, ACCESS='DIRECT', STATUS=STATE,   
+C&     +        FORM='UNFORMATTED', ERR=50, 
+C&     +        IOSTAT=IOERR) 
+C&ELSE
         OPEN (UNIT=LUN, FILE=NAME, ACCESS='DIRECT', STATUS=STATE,   
      +        READONLY, SHARED, FORM='UNFORMATTED', ERR=50, 
      +        IOSTAT=IOERR) 
+C&ENDIF
       ELSE  
+C&IF LINUX
+C&        OPEN (UNIT=LUN, FILE=NAME, ACCESS='DIRECT', STATUS=STATE,   
+C&     +        RECL=NREC, FORM='UNFORMATTED', ERR=50,    
+C&     +        IOSTAT=IOERR) 
+C&ELSE
         OPEN (UNIT=LUN, FILE=NAME, ACCESS='DIRECT', STATUS=STATE,   
      +        SHARED, RECL=NREC, FORM='UNFORMATTED', ERR=50,    
      +        IOSTAT=IOERR) 
+C&ENDIF
       ENDIF 
       IOPT(1) = LUN 
       IOPT(2) = NREC    
@@ -22927,12 +22939,23 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 * *** Now open the file 
 *   
       IF (STATE.EQ.'OLD') THEN  
+C&IF LINUX
+C&        OPEN (UNIT=LUN, FILE=NAME, FORM=FORMT, STATUS=STATE,    
+C&     +        ERR=50, IOSTAT=IOERR)   
+C&ELSE
         OPEN (UNIT=LUN, FILE=NAME, FORM=FORMT, STATUS=STATE,    
      +        READONLY, SHARED, ERR=50, IOSTAT=IOERR)   
+C&ENDIF
       ELSE IF (IOPTX.NE.0) THEN 
+C&IF LINUX
+C&        OPEN (UNIT=LUN, FILE=NAME, FORM=FORMT, STATUS=STATE,    
+C&     +        RECL=LREC, ERR=50,    
+C&     +        IOSTAT=IOERR) 
+C&ELSE
         OPEN (UNIT=LUN, FILE=NAME, FORM=FORMT, STATUS=STATE,    
      +        RECORDTYPE='FIXED', RECL=LREC, BLOCKSIZE=NREC, ERR=50,    
      +        IOSTAT=IOERR) 
+C&ENDIF
       ELSE  
         OPEN (UNIT=LUN, FILE=NAME, FORM=FORMT, STATUS='UNKNOWN',    
      +        RECL=NREC, ERR=50, IOSTAT=IOERR)  
@@ -29624,6 +29647,9 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
       CHARACTER       CHPRT*(*) 
       DIMENSION       KY(9) 
+      real*4 rky(9)
+      integer kky(9), iii
+      equivalence (kky,rky)
 *   
 *     ------------------------------------------------------------------    
 *   
@@ -29638,7 +29664,10 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *  **   Binary  
 *   
         IEND = ISTR + NUMCDD(I) - 3 
-        CALL DBCTOB (CHPRT(ISTR:IEND), KY(I))   
+        CALL DBCTOB (CHPRT(ISTR:IEND), rKY(I))   
+        do iii=1, 9
+          ky(i)=kky(i)
+        enddo
         ISTR = IEND + 3 
         GO TO 10    
     2   CONTINUE    
@@ -29741,6 +29770,9 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
       CHARACTER       LINE*80, CHFOR*1, CHVAL*80    
       DIMENSION       KY(9), IC(9)  
+      real rky
+      integer kky
+      equivalence (rky, kky)
 *   
 *     ------------------------------------------------------------------    
 *   
@@ -29763,9 +29795,11 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       IF (CHFOR.EQ.'I') THEN    
         CALL DBCTOI (CHVAL, KY(J))  
       ELSE IF (CHFOR.EQ.'F') THEN   
-        CALL DBCTOR (CHVAL, KY(J))  
+        CALL DBCTOR (CHVAL, rKY)  
+        ky(j)=kky
       ELSE IF (CHFOR.EQ.'B') THEN   
-        CALL DBCTOB (CHVAL, KY(J))  
+        CALL DBCTOB (CHVAL, rKY)  
+        ky(j) = kky
       ELSE IF (CHFOR.EQ.'H') THEN   
         NREP = IC(J)    
         LCDAT = 4*(NREP+1)  
@@ -32157,8 +32191,13 @@ C-------------------------  CDE  -----------------------------------
 * *** Open the file 
 *   
       IF (STATE.EQ.'OLD') THEN  
+C&IF LINUX
+C&        OPEN (UNIT=LUN, FILE=CHNAM, ACCESS='SEQUENTIAL', STATUS=STATE,  
+C&     +        FORM='FORMATTED', IOSTAT=ISTAT, ERR=20) 
+C&ELSE
         OPEN (UNIT=LUN, FILE=CHNAM, ACCESS='SEQUENTIAL', STATUS=STATE,  
      +        FORM='FORMATTED', READONLY, IOSTAT=ISTAT, ERR=20) 
+C&ENDIF
       ELSE  
         OPEN (UNIT=LUN, FILE=CHNAM, ACCESS='SEQUENTIAL', STATUS=STATE,  
      +        FORM='FORMATTED', IOSTAT=ISTAT, ERR=20)   

@@ -64,7 +64,7 @@ main(  int argc, char *argv[] )
 
 /*  Function Prototypes                                            */
 	int read_buf(int , int *, unsigned);
-	void onintr_owr(void);
+	void onintr_owr(int);
 	void bzero(void *, int );
 	void bcopy(const void *, void *, int);
 
@@ -164,7 +164,8 @@ reconnect:
 	conn_addr.sin_port        = htons (port_number) ;
 	conn_addr.sin_addr.s_addr = htonl (inet_as) ;
 
-	if (connect (socket_descr, &conn_addr, sizeof (conn_addr)) != 0 ) {
+	if (connect (socket_descr, (struct sockaddr*)&conn_addr,
+                     sizeof (conn_addr)) != 0 ) {
 		printf("[OUTWRITER]: Error connecting a socket: %d\n", errno);
 		if ( t_count < 3 ) {
 			t_count++;
@@ -420,7 +421,7 @@ end_of_data:
 	printf("OUTWRITER is done.\n");
 }
 
-void onintr_owr(void)
+void onintr_owr(int x)
 {}
 
 int read_buf(int sock_des, int *buffer, int bytes)

@@ -83,6 +83,10 @@ C&IF IBMAIX
 C&      integer vec1(3)
 C&      pointer (ptvec1, vec1)
 C&ENDIF
+C&IF LINUX
+C&      integer zero  ! fake out compiler
+C&      data zero/0/
+C&ENDIF
 C
       NEWBNK = ' '                      ! no new bank to go to from here.
       LNEXT = 0                         ! No bank to be browsed after this
@@ -91,6 +95,8 @@ C
 C&IF IBMAIX   ! (*sigh*)
 C&      ptvec1 = loc (vb(1)) - 4*(loc (vb(2)) - loc (vb(1)))
 C&      inext = vec1(1)
+C&ELSEIF LINUX ! fake out compiler to avoid warnings.
+C&      FNEXT = VB(zero-3)
 C&ELSE
       FNEXT = VB(-3)
 C&ENDIF

@@ -16,13 +16,11 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:UTAG_DATA.INC'
       INCLUDE 'D0$INC:UTAG_VERSIONS.INC'
       INTEGER     NDIMG(MAX_GRP)
-      CHARACTER*4 XGRP(MAX_GRP)
-      REAL        RGRP(MAX_GRP)
+      INTEGER     IXGRP(MAX_GRP)
       CHARACTER*8 XTAGS(MAX_GRP,MAX_WORDS)
       INTEGER     UDST_VERSION,V
       INTEGER     LUTAG
       INTEGER     I,J
-      EQUIVALENCE(RGRP,XGRP)
       LOGICAL     FIRST/.TRUE./
 C----------------------------------------------------------------------
 C     FILL THE ARRAYS
@@ -43,13 +41,13 @@ C     FILL THE ARRAYS
 
       DO I=1,IDMAX
         NDIMG(I) = NDIMGV(V,I)
-        XGRP(I)  = XGRPV(V,I)
+        CALL UCTOH (XGRPV(V,I), IXGRP(I), 4, 4)
         DO J = 1, NDIMGV(V,I)
           XTAGS(I,J) = XTAGSV(V,I,J)
         ENDDO
       ENDDO
 
-      CALL UTAGFL(IDMAX,NDIMG,XTAGS,RGRP,MAX_GRP,MAX_WORDS,LUTAG)
+      CALL UTAGFL(IDMAX,NDIMG,XTAGS,IXGRP,MAX_GRP,MAX_WORDS,LUTAG)
 
       IQ(LUTAG+1) = V
 

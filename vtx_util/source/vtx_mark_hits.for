@@ -12,7 +12,8 @@ C-   Controls:
 C-
 C-   Created  15-FEB-1994   Al Clark
 C-   Updated  25-FEB-1994   Al Clark  Change status format; 
-C-                                  include VCTH link bank. 
+C-                                  include VCTH link bank.
+C-   Updated  20-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -79,7 +80,7 @@ C**  Need a mask for clearing all status bits except for the saturation bit.
 C**  Make a mask with all bits "1", except for the 4 status bits we want to
 C**  clear.
         VERS = 1
-        CALL MVBITS('FFFF'X, 0, STAT_LENGTH(VERS)-1,
+        CALL MVBITS(65535, 0, STAT_LENGTH(VERS)-1,
      &    MASK, STAT_OFFSET(VERS)+1)
         MASK = NOT( MASK)
 
