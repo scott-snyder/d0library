@@ -12,6 +12,7 @@ C-             IER 0=ok
 C-   Controls:
 C-
 C-   Created  29-APR-1993   W. Dharmaratna, Chip Stewart, Jasbir Singh
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -59,7 +60,11 @@ C
           CALL ERRMSG('MUONLIBRARY','MULIB_MATCH_KEY',
      &        'ERROR DURING MUON_RZVIN1','W')
           WRITE(LOUT,605)RKEY,CYC
+C&IF LINUX
+C&  605     FORMAT(' *******  Error during RZ READ ******',(I7))
+C&ELSE
   605     FORMAT(' *******  Error during RZ READ ******',(I))
+C&ENDIF
           DO 606 JQ=1,10
             WRITE(LOUT,607)IQUEST(JQ)
   606     CONTINUE

@@ -9,6 +9,7 @@ C-              ICYCLE   = CYCLE NUMBER
 C-   Controls: 
 C-
 C-   Created  11-APR-1990   Rajendran Raja
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -18,7 +19,7 @@ C----------------------------------------------------------------------
       INTEGER BIT_BOUNDARY(3),LEN_BYTE(4)
       INTEGER MAX_CYCLE
       INTEGER IER
-      INTEGER IDIV(4)
+      INTEGER IDIV(6)
       INTEGER LRECS,LRECO
       INTEGER RKEY1
       LOGICAL FIRST

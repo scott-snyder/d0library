@@ -8,6 +8,7 @@ C-   Outputs :
 C-   Controls: 
 C-
 C-   Created  17-MAY-1990   Rajendran Raja
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -15,12 +16,20 @@ C----------------------------------------------------------------------
       REAL    DD,THETA,ETA
       INTEGER I,IETAC,ARGSOK
 C----------------------------------------------------------------------
-      TYPE *,' TYPE IN VERTEX Z '
+      write (*,*),' TYPE IN VERTEX Z '
+C&IF LINUX
+C&      read (*,*),VTX(3)
+C&ELSE
       ACCEPT *,VTX(3)
+C&ENDIF
       VTX(1) = 0.
       VTX(2) = 0.
-      TYPE *,' TYPE IN CO-ORDINATE OF INTERSECTION POINT '
+      write (*,*),' TYPE IN CO-ORDINATE OF INTERSECTION POINT '
+C&IF LINUX
+C&      read (*,*), pint
+C&ELSE
       ACCEPT *,PINT
+C&ENDIF
 C
       DD = 0.                           
       DO I = 1,3
@@ -35,6 +44,6 @@ C
       ETA = ALOG(TAN(THETA/2.0))
 C
       CALL CLINPH_FAST(VTX,DIR,IETAC,ARGSOK)
-      TYPE *,' IETC = ',IETAC
+      write (*,*),' IETC = ',IETAC
   999 RETURN
       END

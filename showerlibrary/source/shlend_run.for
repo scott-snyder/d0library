@@ -9,6 +9,7 @@ C-   Outputs :
 C-   Controls:
 C-
 C-   Created  11-FEB-1990   Rajendran Raja
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -56,7 +57,7 @@ C
 C WRITE AUXILLIARY INFO
 C
         WRITE(PRTUN,2)NFILE,FILNAM(1:TRULEN(FILNAM))
-    2   FORMAT(' INPUT FILE NAME : '1X,I5,1X,A,/,' AND CYCLES ARRAY '
+    2   FORMAT(' INPUT FILE NAME : ',1X,I5,1X,A,/,' AND CYCLES ARRAY ',
      &  'SAVED TO AUXILLIARY FILE')
 C
       ENDIF

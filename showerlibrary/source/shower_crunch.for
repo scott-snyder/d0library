@@ -39,6 +39,7 @@ C-   Updated  26-JAN-1990   Harrison B. Prosper
 C-      Added Skip/Read control words to CINJOB
 C-   Updated   1-JUL-1992   W.G.D.Dharmaratna, made it compatible with new
 C-                                            CINJOB with XOPT
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:FATCOM.INC/LIST'
@@ -47,8 +48,6 @@ C----------------------------------------------------------------------
 C
       LOGICAL CAL_BEGIN_RUN                ! Get parameters for begining of run
       LOGICAL CAL_EVENT                    ! Event processing
-      LOGICAL CAL_EVENT_DUMP               ! Dump events
-      LOGICAL CAL_EVENT_RESET              ! Called before writing event.
       LOGICAL CAL_END_RUN                  ! End-of-run etc. processing
 C
       LOGICAL ERROR,DONE,EVENT,BOR,EOR,EOF,EOD,OK,QUIT

@@ -8,6 +8,7 @@ C-   Outputs :
 C-   Controls: 
 C-
 C-   Created  11-APR-1990   Rajendran Raja
+C-   Updated  24-MAR-2004   sss - compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -16,17 +17,21 @@ C----------------------------------------------------------------------
       INTEGER UKEY(5),UICYCLE
       INTEGER INDX_KEY,INDX
 C----------------------------------------------------------------------
-      TYPE *, ' TYPE IN RKEY(5), RCYCLE '
+      write (*,*), ' TYPE IN RKEY(5), RCYCLE '
+C&IF LINUX
+C&      read (*,*), RKEY,RCYCLE
+C&ELSE
       ACCEPT *, RKEY,RCYCLE
+C&ENDIF
 C
       CALL PACK_REC(RKEY,RCYCLE,LREC)
 C
       CYCLES(INDX_KEY(RKEY)) = RCYCLE
       CALL UNPACK_REC(UKEY,UICYCLE,LREC)
 C
-      TYPE *, ' UKEY,UICYCLE ',UKEY,UICYCLE
+      write (*,*), ' UKEY,UICYCLE ',UKEY,UICYCLE
       INDX = INDX_KEY(UKEY)
-      TYPE *, ' INDX_UKEY,CYCLES(INDX_KEY(UKEY)) ',INDX,CYCLES(INDX)
+      write (*,*),' INDX_UKEY,CYCLES(INDX_KEY(UKEY)) ',INDX,CYCLES(INDX)
 C
   999 RETURN
       END
