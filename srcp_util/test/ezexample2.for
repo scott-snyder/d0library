@@ -19,8 +19,11 @@ C
       PARAMETER( LUN = 1 )
       PARAMETER( LUNOUT = 2 )
 C----------------------------------------------------------------------
-      OPEN (UNIT=LUN,FILE='TEST',STATUS='NEW',
-     &  CARRIAGECONTROL='LIST')
+      OPEN (UNIT=LUN,FILE='TEST',STATUS='NEW'
+C&IF VAXVMS,ULTRIX,SIUNIX
+     &          ,CARRIAGECONTROL='LIST'
+C&ENDIF
+     &  )
 C
       CALL MZEBRA(0)                    ! (1)  Initialize ZEBRA
 C

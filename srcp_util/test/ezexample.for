@@ -45,8 +45,11 @@ C
 C
 C ****  Open dump file
 C
-      OPEN (UNIT=LUNOUT,FILE='DUMP',STATUS='NEW',
-     &  CARRIAGECONTROL='LIST')
+      OPEN (UNIT=LUNOUT,FILE='DUMP',STATUS='NEW'
+C&IF VAXVMS,ULTRIX,SIUNIX
+     &          ,CARRIAGECONTROL='LIST'
+C&ENDIF
+     &  )
 C
 C ****  Pick RCP bank: EZEXAMPLE_RCP
 C

@@ -1,3 +1,6 @@
+C DEC/CMS REPLACEMENT HISTORY, Element EZTEST.FOR
+C *1    11-DEC-1989 22:40:40 HARRISON "Harrison B. Prosper: Test routine"
+C DEC/CMS REPLACEMENT HISTORY, Element EZTEST.FOR
       PROGRAM EZTEST
 C----------------------------------------------------------------------
 C-
@@ -46,8 +49,11 @@ C
 C
 C ****  Open dump file
 C
-      OPEN (UNIT=LUNOUT,FILE='EZTEST_DUMP',STATUS='NEW',
-     &  CARRIAGECONTROL='LIST')
+      OPEN (UNIT=LUNOUT,FILE='EZTEST_DUMP',STATUS='NEW'
+C&IF VAXVMS,ULTRIX,SIUNIX
+     &          ,CARRIAGECONTROL='LIST'
+C&ENDIF
+     &  )
 C
       CALL EZPICK ('EZTEST_RCP')
 C

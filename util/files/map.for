@@ -141,7 +141,7 @@ c
 c
 c     parse command into arguments
 c
-      call getarg(citem,'=,/ ',rgumnts,nargs)
+      call xgetarg(citem,'=,/ ',rgumnts,nargs)
 c
 c     upper case for 1st one, this is the command
 c
@@ -198,6 +198,7 @@ c
       else if (arg(1:3).eq.'STP') then
 C
 C       the following will NOT work on the IBM yet!!!
+C
 c
 c       open file
 c
@@ -214,13 +215,12 @@ c
 c
 c       STP files are native mode...
 c
-C&IF VAXVMS
-        Open (Unit=Lun2,File=Filnam,Status='Old',Readonly,
-     1   Form='Unformatted',Err=500,Iostat=IERR)
-C&ELSE
-C&        Open (Unit=Lun2,File=Filnam,Status='Old',
-C&     1   Form='Unformatted',Err=500,Iostat=IERR)
+        Open (Unit=Lun2,File=Filnam,Status='Old',
+     1   Form='Unformatted',Err=500,Iostat=IERR
+C&IF VAXVMS,ULTRIX,SIUNIX
+     &          ,readonly
 C&ENDIF
+     &  )
         call FZFILE(lun2,0,'I')
         call FZLOGL(lun2,-2)
         call MZWIPE(IXSTP)
@@ -267,7 +267,7 @@ C&        tlen = trulen(area)
 C&        if (tlen.eq.80) then
 C&          call system('ls -l | more')
 C&        else
-C&          call getarg(citem,'=,',rgumnts,nargs)
+C&          call xgetarg(citem,'=,',rgumnts,nargs)
 C&          area = rgumnts(2)
 C&          tlen = trulen(area)
 C&          uarea(1:6) = 'ls -l'
@@ -653,7 +653,7 @@ c
 c
 c     parse command into arguments
 c
-      call getarg(citem,'=,/ ',rgumnts,nargs)
+      call xgetarg(citem,'=,/ ',rgumnts,nargs)
 c
 c     if there are more than 1 arguments, then use command line,
 c     otherwise prompt
@@ -722,7 +722,7 @@ c
       return
       end
 c-------------------------------------------------------------------------------
-      subroutine getarg(string,cdelin,subs,n)
+      subroutine xgetarg(string,cdelin,subs,n)
 c
 c     pass string along, if there are "words", or substrings, separated
 c     by delineartors as in delin, then each substring is shoved into subs
@@ -926,7 +926,7 @@ c
      &    '' "bank" (e.g. PRJETS)'',/,
      &    10X,''             type PRxxxx to get active list'')')
       write(*,'(
-     &    '' EZ[bank]    '',10x,''calls EZBANK on the ZEBSTP common'',/,
+     &    '' EZ[bank]    ''10x,''calls EZBANK on the ZEBSTP common'',/,
      &    '' DU[mp] [/edit]        calls DZSURV (map of what '',
      &    ''banks are present)'',/,
      &    '' IN[fo] [/edit]        calls DZSHOW and DZSTOR '',
