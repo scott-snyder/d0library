@@ -1,0 +1,163 @@
+.!   RUNOFF file.      Change margins and page size if needed
+.!
+.PAGE SIZE 60,90    .LEFT MARGIN  5        .RIGHT MARGIN  85
+.FLAGS SPACE `       .FLAGS HYPHENATE |     .FLAGS SUBSTITUTE %
+.LAYOUT  3,2
+.SUBTITLE
+.AUTOSUBTITLE 1
+.RIGHT ;Daria Zieminska
+.RIGHT ;29-NOV-1988
+.BLANK 3       !------------------- begin (underlined) title
+.CENTER ; ^& Pattern Recognition program for D0 Vertex Drift Chamber\&
+.BLANK 2
+.!------------ main text start here.
+.PARAGRAPH  3   ! arg = horizontal indentation
+This note describes a package VTRAKS which does track finding for the Vertex 
+Drift Chamber. 
+We describe the input and output of the program, algorithms used, the contents 
+of histograms and printout 
+and the procedure of executing the program. 
+.BLANK 2
+1. Track finding
+.PARAGRAPH  3   ! arg = horizontal indentation
+The input to the program are processed VTX hits stored in Zebra banks VSEC 
+and VZLA. 
+The output consists of tracks, ordered in the asimuthal angle phi, 
+stored in Zebra banks VTXT, 
+and the hit-track associations stored in banks VTTH. 
+The VTRAKS package consists of functions VTRINI,VTRPAR,VTRAKS and VTRNDR, 
+called
+at job initialization, run initialization, at execution time for each event, 
+and at the end of 
+the run, respectively.
+.PARAGRAPH  3   ! arg = horizontal indentation
+At the initialization (VTRINI), the program reads a short file 
+containing control
+parameters, VTXPAR.DAT. The parameters are: 
+ID offset for VTX tracking histograms, segment finding method to be 
+used, maximum number of missing hits allowed for a track segment, minimum 
+number of hits required on a full VTX track and the path for the analysis
+('GEAN' or 'RECO'). Parameter values are passed
+to individual routines by functions: VHISID,VMETHO,VINEFF,VMINHI,VPATH.
+The routine VTRINI also contains booking of histograms. 
+A static parameter file is read for each run in VTRPAR.
+.PARAGRAPH  3   ! arg = horizontal indentation
+The routine VTRPAR reads a static parameter file for each run. The files are
+expected to have names STP_xxxx.ZEB, where xxxx is the run number, and reside
+in an area defined as D0$VTX_GEO. 
+[D0LIBRARY.STP]VTX_STPFILE.DAT is an example of VTX static parameter file.
+PARAGRAPH  3   ! arg = horizontal indentation
+The main driving routine VTRAKS is called for each event. First, 
+track segments are reconstructed in individual sectors (VSEGME).
+The process starts by going over hits in a sector and flagging 
+those hits that are not to be used in track finding, e.g. outside a selected
+road (VCHEKH). If the input consists of ideal hits (path = 'GEAN') routine
+VCHEKH  calls a routine SMVSEC, to simutate the final resolution.  
+The unflagged hits are referred to as active hits.   
+The program proceeds to assigning wire hits to track segments using one of two 
+algorithms, selected at the initialization stage: 'link and tree', or 'road'
+(VSEGLT or VSEGRD), respectively.
+In both cases the search is done in the r-phi plane.
+.PARAGRAPH  3   ! arg = horizontal indentation
+In the 'link and tree' method, 
+the program  builds 2-hit 'links', using all active hits in a sector, 
+then 2-link 'elementary trees', and then chains. In this procedure only local 
+criteria are checked: Links must point to the interaction region within a
+tolerance; the slopes of two links making an elementary tree must 
+agree withing a tolerance. Chains are fitted; those that pass the 
+chi squared and length (# hits) criteria are accepted as track segments and
+used hits are flagged. This is done in several passes, allowing for 
+an inrcreasing number of missing hits in each pass.
+.PARAGRAPH  3   ! arg = horizontal indentation
+The 'road' method is similar to that used for track finding in Central Drift
+Chamber, although segments are searched for in individual sectors rather
+than globally, in the whole layers.
+After the pattern recognition is completed, z-strip clusters 
+are assigned to track segments. 
+.PARAGRAPH  3   ! arg = horizontal indentation
+Track segments are linked into complete VTX track candidates (LINSEG). 
+Track candidates are fitted and stored in Zebra banks VTXT, 
+and the hit-track associations are stored in banks VTTH. 
+Finally, a clean-up procedure (VCLEAN) removes spurious track candidates
+allowing two tracks to share one hit. The remaining tracks are ordered 
+in the asimuthal angle phi. 
+.BLANK 2
+2. Histograms and printout 
+.PARAGRAPH  3   ! arg = horizontal indentation
+A number of histograms are set up for checking the quality of
+reconstructed tracks (VHISTO). These include:
+.lit
+    1. "normalized chi_squared" for track fit in x-y projection 
+       sqrt(2*chisq)-sqrt(2*ndf-1)
+    2. "normalized chi_squared" for track fit in r-z projection
+    3. Number of hits on track
+.end lit
+.PARAGRAPH  3   ! arg = horizontal indentation
+The statistics printed out for each event include:
+number of hits in VTX, number of active hits,
+number of track candidates, number of tracks. 
+In addition, if debug flag is set for an event, track segments found in all
+layers and sectors (VPRSEG) and full VTX tracks are printed out (PRVTXT),
+including track-hit assignments and fit residuals for each hit on track. 
+.PARAGRAPH  3   ! arg = horizontal indentation
+Tracking statistics  and the
+values of control parameters are printed out at the end of the run (VTRNDR).
+.BLANK 2
+3. Executing the program
+.PARAGRAPH  3   ! arg = horizontal indentation
+The program is run within the D0USER framework. 
+.PARAGRAPH  3   ! arg = horizontal indentation
+The executable image VTRAKS__D0USER.EXE is made by running the program builder 
+with the 'VTRAKS'
+option for the Library Package list, and then executing the resulting
+VTRAKS__D0USER.LNK command file.
+WARNING: the standard size of Zebra common bloc is too small for large
+events. The user should have a local copy of INZCOM.FOR and ZEBCOM.INC, with 
+NNQ increased from 200000 to 500000 or so. INZCOM compiled locally should be
+added to objects to be linked in the .LNK file.
+.PARAGRAPH  3   ! arg = horizontal indentation
+One can run D0USER interactively, or in the batch mode. 
+The file for running a job is VTRAKS.COM. It reads a command file with 
+all the options defined. An example of a command file is SETUP$TTBAR.INP,
+shown in the Appendix A. 
+One can copy and edit it, or create a new one by running D0USER in setup mode 
+(by selecting the menu option SETUP COMMAND FILE). (note: while setting up the 
+command file the program executes the selected options, so it's best to run 1 
+event, and later to edit the file SETUP$xxxx.INP and modify it).
+.PARAGRAPH  3   ! arg = horizontal indentation
+The data file is obtained by running GEANT. Examples of data files xxxx.VTX 
+can be found in IND::DISK2:[DBZD0.BB]. 
+.APPENDIX 
+.lit
+Example of VTRAKS.COM
+
+ $ ASSIGN VTXPAR.DAT FOR080 
+ $ @D0$D0USER:D0USER_SETUP disk:[your_area]VTRAKS 
+ $ D0USER/NOSMG
+RUN
+TTBAR 
+
+
+
+Example of the command file for D0USER, SETUP$TTBAR.INP 
+
+MENU
+Manual Process
+N    !-< Want to run without input file? Y/N >
+TTBAR.VTX    !-< Name of input file >
+Y    !-<Store histograms ? (Y/N)<cr>:NO >
+N    !-<Y/N >
+1    !-< Number of events >
+0    !-< Number of events to skip.Default is 0 >
+Y    !-< Y/N >
+Finish
+
+
+
+Example of the control parameters file, VTXPAR.DAT 
+
+     IDVTX    METHOD     INEFF    MINHIT      PATH
+         0         1         3         6      GEAN
+
+.end lit
+

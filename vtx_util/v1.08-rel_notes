@@ -1,0 +1,334 @@
+ 25-SEP-1992 : Modifications released by Peter M. Grudberg
+ 
+Modified routines:
+
+    - PRVLAY,PRVSEC,PRVWDA,PRVZLA,PRVZDA:  Modify program structure to be
+      compatible with IBM compiler
+
+    - VTRPAR:  Fix DBL3 message so that it is only given once
+
+    - ENDSEG:  Use exact formula to calculate separation of segment endpoints
+      (Pang)
+
+    - FTVTXT:  Do area correction vs drift distance (Pang); use dx/dz and 
+      dy/dz from VALS (Liang-Ping)
+
+    - GZVTXT:  For ITRACK = 0, return pointer to VTXT bank hanging directly
+      below VTRH (Sandor)
+
+    - LINSEG:  Fix PHI argument in second call to ENDSEG (for matching L1 and
+      L0 segments in three layer ladders).  PHI from layer 2 was passed
+      instead of PHI1 from layer 1.
+
+    - VPOINT:  Store hits in frame where beam position is at x=y=0 (Pang); use
+      slopes from VALS (Liang-Ping); fix branch cut at phi=pi for layer 0
+      (wrong sector was checked)
+
+    - VSEGRD:  Handle MXHWIR consistently with VPOINT (allow for mirror hits);
+      fix bug involving intermediate wires with no hits; calculate PHIEXPected
+      correctly; use dynamic road size depending on drift error (the meaning
+      of the rcp parameter VTTRTO was changed from an absolute road size to
+      the number of drift sigmas that define the road size for a given hit.
+
+    - VTPULS:  Do gain correction before storing area
+
+    - VTQDIV:  Use new parameter RINPUT_MC for monte carlo data (real data
+      uses RINPUT=180; the mc uses 400 ohms).
+
+New routine:
+
+    - V_CORRECT_AREA:  do area correction vs drift distance prior to the
+      calculation of dE/dX.
+
+Modified RCP:
+
+    - VTRAKS.RCP:
+        New parameters: VERTX, VERTY (x-y beam position); RINPUT_MC
+
+        Modofied params:  hitfinding thresholds (5 10 10 --> 4 8 8); VTTRTO;
+            NZGOOD; DTM map file names (.ZDAT suffix --> .X_ZDAT suffix)
+
+Associated library releases needed:
+        STP MUST be released prior to VTX_UTIL, as the area and gain
+        corrections require the new VGNL structure that is in the new STP
+        file.
+
+==============================================================================
+
+ 29-SEP-1992 : Modifications released by Peter M. Grudberg
+ 
+    - VSEGRD:  make hit info array big enough to hold mirror hits; handle
+      branch cut in calculation of PHISEG
+
+    - VFITSG:  make hit info array big enough to hold mirror hits
+
+==============================================================================
+
+ 13-OCT-1992 : Modifications released by Qizhong Li-Demarteau
+ 
+    - ENDSEG: fixed by M. Pang to protect from divide by zero
+
+
+==============================================================================
+
+ 21-OCT-1992 : Modifications released by Tom Trippe
+ 
+    - Added two routines to access VTX compressed hits
+       GTVHIT.FOR is a utility to access the compressed hits.
+       VHIT_UNPACK.FOR is called by GTVHIT to unpack the hits.
+
+==============================================================================
+
+  3-NOV-1992 : Modifications released by Peter M. Grudberg
+ 
+----- VTXCOFF package (D. Elvira, M. Pang.):  D0USER package that performs
+      offline calibration of the VTX detector using collider data.  The
+      package handles tzeros, gains and charge division constants.  The
+      VTXCOFF package is used as the third (and last) package of a combined
+      package consisting of ZTRAKS (with VTX and TRD turned off), VTRAKS
+      (constrained so that segments are not linked between layers - that is,
+      only one layer tracks are found), and VTXCOFF.  The output of VTXCOFF
+      can be directed to any combination of the offline paths of the VTX DBL3
+      calibration database (in either server mode or diect mode), an ASCII
+      file which can be fed to the STP-making machinery, or a ZEBRA file which
+      can be fed either directly to the offline program or to the offline
+      paths of the database via the standalone program VDBPUT (described
+      below).  For now, it was decided that VTXCOFF would not write directly
+      to the dbl3 database by default, so that there would be a chance to
+      check the results.
+
+    New routines:
+        VHBLOW, VTMW_TO_ASCII, VTMW_WRITE, VTXCOFF_EVT, VTXCOFF_INI,
+        VTXCOFF_PAR, VTXCOFF_SUMMARY, VTXC_FILL_EMPTY, VTXC_MATCH_ZTRAK,
+        VTXC_QDIV, VTXC_RELATIVE_GAIN, VTXC_WRITE_GAINS, VTX_AREA_GAIN,
+        VTX_END_GAINS, VTX_IMPEDANCES, VTX_TRANS_CHAN, VTX_UNIT_GAIN,
+        VTZERO_EVT, VTZERO_INI, VTZERO_JSUM, Z_QDIV, VGNCHK, VTMCHK, VPDCHK,
+        VSTP_INSERT (also uses CD_UTIL routine ZDB_INSERT)
+
+    New RCP files:
+        VTXCOFF.RCP: contains parameters that control VTXCOFF processing.
+            This file is also used by the standalone program VDBPUT to control
+            the insertion of calibration results into the DBL3 database.
+        VTXCOFF_EDIT.RCP: contains rcp banks ZTRAKS_RCPE and VTRAKS_RCPE. This
+            file is read in using INRCPE and the values contained therein are
+            used to edit the original values in ZTRAKS_RCP and VTRAKS_RCP
+            (thus avoiding the need to have special versions of ZTRAKS.RCP and
+            VTRAKS.RCP for use with VTXCOFF).
+        
+    New COMMON block: VTXCOFF.INC (to be put into D0$INC).  This common block
+        is used to pass information for area, gain and charge division
+        processing.
+
+    WARNING:
+
+ >>>>>>>>> A release of INC is REQUIRED prior to releasing VTXCOFF <<<<<<<<<<<<
+
+    ANOTHER WARNING:  The updated version of DBCLB_PATH must be in the library
+                      prior to using this code to access the offline paths of
+                      the DBL3 database.
+
+    Other associated files:
+        VTXCOFF.PBD: package description file, to be put in D0$PBD
+        VTXCOFF_COMBINED.PBD: combined package description
+
+----- VDBPUT.FOR : standalone program that puts calibration results into the
+        offline paths of the VTX DBL3 database.  ZEBRA files produced by
+        VTXCOFF are used as input.  VTXCOFF.RCP contains the parameters needed
+        to control the processing (input file names, database name/TODO area
+        location, calibration type switches)
+
+    New program:
+        VDBPUT
+
+    New routines used (see above):
+        VSTP_INSERT, (ZDB_INSERT from CD_UTIL)
+
+    Link file:
+        VDBPUT.LNK
+
+    See comment above about DBCLB_PATH
+
+----- MODIFICATION TO CALIBRATION INITIALIZATION IN VTX RECONSTRUCTION:
+        The handling of the calibration initialization in the VTX
+        reconstruction was changed so that for each calibration type, there
+        are the following choices:
+            - use values straight from the STP file (method 0)
+            - use online path of DBL3 database (method 1)
+            - use offline path of DBL3 database (method 2)
+            - read ZEBRA file, as produced by VTXCOFF (method 3)
+        The methods and filenames are new RCP parameters.  The printout of the
+        calibration methods used was also upgraded (for real data, there is
+        now one line per calib type the first time through, then one line per
+        calib type every time the DBL3 database is accessed, identifying what
+        crates are being updated).  For backwards compatibility, the variables
+        PD_INI, GN_INI and TM_INI are kept and used as switches enabling the
+        new XX_METH variables:  if XX_INI is false, then XX_METH = 0 is used.
+        (the routine CDST_INI uses the XX_INI variables to turn off reading of
+        the DBL3 databases for the tracking detectors).
+
+    New routines:
+        VPDH_READ, VTMH_READ, VGNH_READ, VSTP_FETCH, VGNINI(undummied)
+
+    Modified routines:
+        VTRPAR, VDBINI, VPDINI, VTMINI, VGTPDS, VGTTMS, VGTGNS
+
+    New RCP parameters (in VTRAKS.RCP):
+        PD_METH, TM_METH, GN_METH: calibration methods to use for each calib
+            type
+        VPDH_FILE, VTMH_FILE, VGNH_FILE: filenames to use for method=3.  These
+            are ZEBRA format files with the appropriate header bank (VPDH,
+            VTMH,VGNH) as the top level bank in the file.
+
+    Note: Once again, the new version of DBCLB_PATH, which recognizes the
+          offline paths in the database, is needed (for method = 2).
+
+----- TIME TO DISTANCE FOR NEW REALISTIC VTX MONTE CARLO:  Sasha Zinchenko
+        has provided the routines necessary to do the time to distance
+        conversion properly for his realistic version of the VTX monte carlo.
+        Using a new RCP switch (MC_VERSION), the code can be directed to either
+        try its best to figure out what version MC is being processed
+        (MC_VERSION=0), or to assume either old (MC_VERSION=1) or new
+        (MC_VERSION=2) version without checking.
+
+    New routine:
+        VTXERT: contains time to distance table for realistic MC
+
+    Modified routines:
+        VCOMBN, VTGETX: modified to handle both MC data types
+
+    New RCP parameter:
+        MC_VERSION: used to control handling of monte carlo version as
+            described above.
+
+----- REMOVE ALL CALLS TO Z-STRIP RELATED ROUTINES (what are z-strips???):
+        All references to z-strips have been removed (calls to z-strip related
+        routines, accesses to the strip STP banks, etc).  The z-strip banks
+        have been dropped in the most recent STP file; this change should
+        avoid the occasional crashes caused by the missing strip STP banks.
+
+    Modified routines:
+        VTRAKS, VTROAD(CD_UTIL, -->VTX_UTIL?), BKVTTH, FTVTXT, LDVSEG, LDVTXT,
+        GTVTXT (comments only), GTVTXT_LINK, VTPULS
+
+----- CHANGE FORMAT OF VTXT BANK: ZG in R-Z fit now stored @ R corresponding to
+        (XG,YG); the necessary correlation term was added instead of SG in the
+        VTXT bank.  The track is now described by one 3-d space point and two
+        angles (instead of two 2-d points and two angles).
+
+    Modified routines:
+        FTVTXT, PRVTXT
+
+    Also modified:
+        VTXT.ZEB (to go into D0$ZEB)
+
+----- CHANGE FORMAT OF VSGn BANK: Use ZG at (XG,YG) as above; add errors and
+        covariance term.
+
+    Modified routines:
+        VFITSG, LDVSEG, VPRSEG, GTSEGM, VFITCH(link-n-tree)
+
+    Also modified:
+        VSG0.ZEB (to go into D0$ZEB)
+
+----- UPDATE GZ ROUTINES FOR VTX STP STRUCTURE: The top level VTX STP banks
+        did not have associated GZ routines, since the link variables are in
+        the ZEBSTP common.  Under some circumstances, those numbers are
+        unreliable, so GZ routines which work down from LSTPC were written.
+        The GZ routines for the lower level banks were modified to use the new
+        GZ routines instead of the ZEBSTP values.
+
+    New routines:
+        GZSVTX, GZVPDH, GZVTMH, GZVGNH, GZVGEH
+
+    Modified routines:
+        GZVALH, GZVPDL, GZVTMW, GZVGNL, GZVRFT, GZVWAL, GZVMAT
+
+----- INSTALL HISTOGRAMS IN VTRAKS: Put some standard histograms into the
+      VTRAKS package to show how well the reconstruction performs.  A new hook
+      was added to the package (JOB_SUMMARY) to call the routine that does
+      post-processing of the histograms.
+
+    New routines:
+        VTXHST(with entrypoint VTXHST_END), VTRSUM (new hook, call VTXHST_END)
+
+    Modified routine:
+        VTRAKS: call VTXHST if CALLHST from VTRAKS_RCP is true
+
+    New RCP parameters:
+        CALLHST: if true, call VTXHST from VTRAKS
+        CLNHST: if true, delete individual area histograms for each HV channel
+
+----- ASSORTED MODIFICATIONS:
+
+    VFITSG: Clean up the tagging of used hits (for now, mirror hits are not
+            tagged); translate the segments back to the D0 frame (from the
+            frame where Xvert=Yvert=0., which is the frame used for segment
+            finding to avoid problems due to the off-center beam).
+
+    VPOINT: Avoid storing duplicate hits - either when the hit is right on the
+            sense wire and both phi solutions give the same position, or when
+            there is pile-up at the cathode in the PWC region.
+
+    ZFVSEC: Store all unique hits from both sides.  Previously, once a
+            duplicate cathode-region hit was found on the plus-phi side, the
+            duplicate hit was not stored, even if the -phi solution was
+            different for the two hits.
+
+    FTVTXT: Make the correction of hit position due to wire slope (dx/dz,
+            dy/dz) optional, controlled by the new rcp parameter
+            SLOPE_CORRECT, set to false by default.  Even when doing the
+            correction, only do it for matched hits (ie, those that have z
+            information).
+
+    ENDSEG: Clean up the equation; add protection.
+
+    PRVTX: remove printing of strip banks (this routine used only by D0GEANT)
+
+----- MOVE ASCII WRITING AND READING ROUTINES FROM STP TO VTX_UTIL: The
+      routines {VGNL,VTMW}_{FROM,TO}_ASCII.FOR are more appropriate for the
+      _UTIL library (they are of more general use than just for STP stuff).
+
+    Moved routines:
+        VTMW_TO_ASCII,VTMW_FROM_ASCII,VGNL_TO_ASCII,VGNL_FROM_ASCII
+
+----- ROUTINES MADE OBSOLETE: Many routines are being OBSOLETEd, due to the
+      removal of the strip reconstruction and the removal of the strip banks
+      in the STP file.
+
+    OBSOLETEd routines:
+        GZVTMZ, GZVZDA, GZVZLA, PRVALZ, PRVGNZ, PRVPDZ, PRVTMZ, PRVZDA,
+        PRVZLA, PRVZST, VZCLUS, VZCOMB, VZCORD, VZLAHT, ZCOORD, ZFVZDA,
+        ZFVZLA, GTVZDA, GZVALZ, GZVGNZ
+
+    Routines that are not used but are still called by other library routines
+      (these routines should be OBSOLETEd once all the new code that has the
+      strip processing removed goes official).
+
+        GZVZST, MATCHT, MATCHZ, PUVZDA, PUVZLA, ZGVZDA, ZSTRNO, BKVZDA,
+        BKVZLA, GTVZLA, GZVPDZ
+     
+
+----- ADD READING OF VTRAKS_RCPE TO VTRINI: The ability to read in an edit RCP
+      file was added to VTRINI.  The edit rcp file is ponited to by the
+      logical VTRAKS_RCPE; values in this edit rcp file overwrite the values
+      in the VTRAKS_RCP bank.  If VTRAKS_RCPE is not defined, the values in
+      VTRAKS_RCP are use as before.
+
+    Modifeid routine:
+        VTRINI
+
+
+==============================================================================
+
+ 12-NOV-1992 : Modifications released by Peter M. Grudberg
+ 
+    - VFITSG, VFITCH:  Fix phi bug that causes some segments to have phi off 
+                       by pi.
+
+
+==============================================================================
+
+ 11-DEC-1992 : Modifications released by Liang-ping
+ 
+    - VTMINI, VDBPUT:  L.Chen match EZRSET with EZPICK
+    - VCOMBN:       ZINCHENKO check EVENT_HEAD for MC version

@@ -1,0 +1,65 @@
+ 11-MAR-1992 : Modifications released by Qizhong Li-Demarteau
+ 
+    - FLVSEC.FOR: skip search sectors to speed up for full_tracking
+
+
+==============================================================================
+
+ 18-MAR-1992 : Modifications released by Peter M. Grudberg
+ 
+    - VCOMBN.FOR: for processing real data, add stagger and get drift error
+      from RCP.
+
+    The following routines were changed for UNIX compatibility:
+        - INIT_VDTM:  OPEN --> D0OPEN
+        - PRVTXT:  remove machine block
+        - VHITFL:  handle byte ordering
+
+    - VTRPAR.FOR:  Upgrade handling of STP and DTM.  Different STP files are
+      now used for real and MC data; for MC data, D0$STP:VTX_STPFILE.DAT is 
+      used, while for real data, D0$STP:VTX_D0STPFILE.DAT is used (VTRAKS.RCP 
+      was changed to contain both these file names).  The STP file for real
+      data contains the time-distance maps and version 1 of VTMW; for MC data,
+      version 0 of VTMW is present and there are no VDTM (time to distance)
+      banks.
+
+        ***** NOTE: A release of STP is required *****
+
+      VTRPAR checks the compatibility of the STP file for the data being
+      processed, and if necessary, for real data, tries to reinitialize the
+      time to distance banks if they don't already exist in the STP file read
+      in.  It is possible to force initialization of the VDTM banks by
+      choosing INIT_DTM = true in VTRAKS.RCP; default is false.
+
+    - VTRAKS.RCP:  The array VTX_STPFILE now has two entries, one for MC data,
+      one for real data. A parameter DRIFT_ERROR was added to control the
+      error stored for real hits.  The default for INIT_DTM was changed to
+      false, since the VDTM banks will be present in the STP file read in.
+      Finally, the locations of the DTM files (for use when INIT_DTM = true)
+      were changed from D0::USER3:[VERTEX.EXAMINE2] to 
+      FNALD0::USR$ROOT0:[VERTEX].  At some point, these files may be stored in
+      D0$STP, and the nasty reference to a specific node will be removed.
+
+==============================================================================
+
+ 27-MAR-1992 : Modifications released by Peter M. Grudberg
+ 
+    - Released routines needed for converting old CDD1 data format into the
+      current multi-crate format (needed for L2 studies).  The routines
+      released are:
+            RECDD1: do the conversion
+            VFADCMAP: convert electronic to logical address
+            VCHANMAP: convert logical to electronic address
+
+==============================================================================
+
+  9-APR-1992 : Modifications released by Peter M. Grudberg
+ 
+    - VPDINI, VTMINI: take out handling of pad channels, to avoid the conflict
+      with the T0 detector (that caused VTRAKS to crash).
+
+    - VTRPAR, VCOMBN:  put in fixes to handle older versions of VTRAKS.RCP,
+      which do not contain needed parameters.  Without these fixes, the
+      program crashes when an old version of VTRAKs.RCP is used.
+
+    - BKVTTH:  change the bank data format to allow UNIX compatibility

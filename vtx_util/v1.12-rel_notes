@@ -1,0 +1,234 @@
+ 23-FEB-1994 : Modifications released by Liang-ping Chen
+ 
+    - FITLIN   Al Clark fix the VMS_UNIX difference in CHISQ
+    - LDVTXT            update the comment on VTXT word 14, 15, 21
+    - GTVTXT_LINK       update the comment on VTXT word 14, 15, 21
+
+==============================================================================
+
+ 27-FEB-1994 : Modifications released by Liang-ping chen
+
+
+ Section 1 . Routines related to VCHT version=1 and VCAL.
+
+                            D0$VTX_UTIL
+
+*** BKVCAL.FOR          "(NEW) Books VCAL bank"
+*** BKVCHT.FOR          "Book VCHT version = 1 bank"
+*** GZVCAL.FOR          "(NEW) gets pointer to VCAL (in  /ZEBCOM/ or /ZEBSTP/)"
+*** SVTX_TO_VCAL.FOR    "(NEW) fills VCAL bank with VTX calibrations in /ZEBSTP/"
+*** VCAL_GNPACK.FOR     "(NEW) Computes average gains needed for VTX gain packing"
+*** VCAL_T0PACK.FOR     "(NEW) Computes VTX T0 packing parameters"
+*** VCAL_TO_SVTX.FOR    "(NEW) Fills /ZEBSTP/ VTX calibration banks from VCAL"
+*** VCHT_PACK_HIT.FOR   "Packs compressed hit word for version = 1 VCHT bank"
+*** VCHT_UNPACK.FOR     "Unpacks version 0,1 VCHT banks and optionally fills VWDA"
+*** VDYNSAVE.FOR        "(NEW) Interface routine for passing dynamic parameters"
+*** VTRAKS.RCP          "Add VWDA_FROM_VCHT word, modify \ARRAY HV_ISCALE(1)"
+*** COSMIC_VTRAKS.RCP          "          "                "
+*** MC_VTRAKS.RCP              "          "                "
+*** VTRPAR.FOR          "No DBL3 access if VCAL bank exists"
+*** VTX_COMBINE.FOR     "Trim drift time -- assure RAW and STA results identical"
+*** VTX_DYNADJ.FOR      "call VTRPAR,use VCAL if exists; else fill it"
+*** VTX_ENVADJ.FOR      "Save environment parameters via call to VDYNSAVE"
+*** VTX_HVCHK.FOR       "Save luminosity via call to VDYNSAVE"
+*** VTX_LUMADJ.FOR      "Save luminosity via call to VDYNSAVE"
+*** VWDA_TO_VCHT.FOR    "Fill VCHT version = 1 bank"
+
+*** VTX_MARK_HITS.FOR   "Set status bits in VCHT for all hits used in VTXT and/or ZTRK"
+
+                            D0$CD_UTIL
+*** ZCLEAN.FOR          "Add call to VTX_MARK_HITS to associate hits in VCHT with tracks in VTXT and ZTRK"
+
+                            D0$PARAMS
+*?* VCAL.PARAMS         "(NEW) VCAL packing parameters"
+*?* VCHT.PARAMS         "(NEW) VCHT version = 1 packing parameters"
+
+                            D0$LINKS
+*?* IZVCAL.LINK         "(NEW) Links for VCAL from VTXH and SVTX"
+
+                            D0$PBD
+    VTRAKS.PBD          "Remove SETUP_RUN hook (e.g. call to VTRPAR)"
+
+                            D0$STP (test released)
+*** D0$STP:VTX_D0STPFILE.DAT "Include VCAL link in SVTX"
+    BKSVTX.FOR          "Include extra structural link for VCAL"
+
+                            D0$ZEB
+   SVTX.ZEB            "Indicate extra structural link"
+   VCAL.ZEB            "(NEW) Specification of VCAL bank"
+   VCHT.ZEB            "Include description of version=1"
+   VTXH.ZEB            "Indicate extra structural link for VCAL"
+
+
+
+ section 2 Routines related to mini VTTH bank (VCTH)                
+                            D0$VTX_UTIL
+*** BKVCTH.FOR          "(new) book the mini VTTH bank VCTH"
+*** BKVTRH.FOR          "include extra structural  link for VCTH"
+*** GZVCTH.FOR          "(new) find the pointer to bank VCTH"
+
+                            D0$LINKS
+    IZVCTH.LINK         "(NEW) Links for VCTH from VTRH "
+         
+                            D0$ZEB
+    VCTH.ZEB            "(NEW) Specification of VCTH bank"
+    VTRH.ZEB            "update for the structural link to VCTH"
+
+ 
+ section 3 Routines related to move VTRPAR from ZTRPAR to VTX_DYNADJ
+
+                            D0$CD_UTIL
+*** ZTRPAR.FOR          "Remove call to VTRPAR"
+    XYVERT_PAR.FOR      "Remove call to VTRPAR"
+    VERPAR.FOR          "Remove call to VTRPAR"
+
+
+ section 4. Routines related to elimination of VHIT bank on STA
+
+                            D0$VTX_UTIL
+*** FTVTXT.FOR          "Remove code which pertains to VHIT"
+                            D0$CD_UTIL
+*** ZSTCMP.FOR          "Remove code which pertains to VHIT" 
+
+
+ section 5 Routines related to processing level 2 hits, CDH1, as well as CDD1
+
+                            D0$VTX_UTIL
+*** GZCDH1.FOR         "(new)get pointer to VTX level 2 hit bank CDH1"  
+*** VTPULS.FOR         "generalized for both offline and level 2 hit finding"
+*** VSECHT.FOR         "call CDH1_TO_HITLST if CDH1 exists"
+*** CDH1_TO_HITLST.FOR "(new)convert level 2 hit bank CDH1 to HITLST array"
+
+***   VTX_HITS.FOR     "redefine RAW_EXSISTS=.TRUE. if CDD1 or CDH1 exsists"
+***   VTHITS.FOR       "redefine RAW_EXSISTS=.TRUE. if CDD1 or CDH1 exsists"
+***   VRHITS.FOr       "redefine RAW_EXSISTS=.TRUE. if CDD1 or CDH1 exsists"
+      VTRAKS.FOR       "redefine RAW_EXSISTS=.TRUE. if CDD1 or CDH1 exsists"
+***   VTROAD.FOR       "eliminate unused THEMIN, THEMAX to VRHITS"
+
+                            D0$LINKS
+*?* IZCDH1.LINK         "(NEW) Links for CDH1 from L2CH"
+
+
+section 6 Routines related to the VTXT chi square calculation on VMS and UNIX
+(done on  25-feb, see above)
+                            D0$VTX_UTIL
+***   FITLIN.FOR       "Fix VMS-UNIX difference on VTXT chisq"
+
+
+
+==============================================================================
+
+ 28-FEB-1994 : Modifications released by Liang-ping Chen 
+ 
+    MATCHT.FOR       No CMS group before, inserted to OBSOLETE group
+    MATCHZ.FOR             "
+    VHISID.FOR             "      
+    VINEFF.FOR             "
+    VMETHO.FOR             "
+    VMINHI.FOR             "
+    VPRSEG.FOR             " 
+
+==============================================================================
+                    after VTX_UTIL V1.11_01
+==============================================================================
+
+  1-MAR-1994 : Modifications released by Liang-ping Chen
+ 
+    - VTX_MARK_HITS.FOR  bug fixes with the hits_on_track bits in VCTH
+                         update the comments
+    - BKVCTH.FOR         Bank length, update the comments      
+
+==============================================================================
+
+  2-MAR-1994 : Modifications released by Liang-ping Chen
+ 
+    - VCAL_GNPACK.FOR   provides the dummy varibles for HFITHN to conform the
+                        UNIX FORTRAN
+    - VCAL_T0PACK.FOR   "                              "   
+    - PRVLAY.FOR        necessary "," in FORMAT statement for UNIX FORTRAN
+==============================================================================
+
+  4-MAR-1994 : Modifications released by Liang-ping Chen
+ 
+    - VFITSG.FOR        refresh LPOIN after call LDVSEG
+    - VSEGRD.FOR        refresh LPOIN after CALL VFITSG
+    - VHITS_IN_ROAD.FOR (new) hit counting in road
+    - VTX_BAD_SECTOR    (new) Flag the bad sectors for VHITS_IN_ROAD
+
+==============================================================================
+
+  5-MAR-1994 : Modifications released by Ed Oltman
+ 
+    - VCHT_UNPACK.FOR   Refresh pointer to VCHT bank after calls made to
+                        booking rountes
+
+==============================================================================
+
+  6-MAR-1994 : Modifications released by Ed Oltman
+ 
+    - VHITS_IN_ROAD.FOR Include call to VTX_DYNADJ; fix z-hit in road bug
+                        (z-hit must by within (DZTOL1 .AND. DZTOL0*sigma) of 
+                        road, not .OR.
+
+==============================================================================
+
+  7-MAR-1994 : Modifications released by Ed Oltman
+ 
+    - VTPULS.FOR        Make saturation bit, bilinear bit reflect hit-peak
+                        rather then pulse peak
+    - XYBEAM_1.DAT      Include run 1B through end of Feb-94.  Also strip out
+                        duplicate and unmeasured runs
+
+
+==============================================================================
+                    after VTX_UTIL V1.11_02
+==============================================================================
+
+ 11-MAR-1994 : Modifications released by Liang-ping Chen
+ 
+    - VTX_HITS.FOR  REDOCD supersede REDOVTX
+    - VSECHT.FOR    correct spelling errors 
+
+==============================================================================
+
+ 16-MAR-1994 : Modifications released by Liang-ping Chen
+ 
+    - PRVLAY.FOR    add more commas in FORMAT statements for UNIX FORTRAN. 
+                    (triggered by a mail from D0library) 
+
+==============================================================================
+
+ 21-MAR-1994 : Modifications released by Liang-ping Chen
+ 
+    - VHITS_IN_ROAD.FOR   call VTX_DYNADJ as the first thing
+
+==============================================================================
+
+ 22-MAR-1994 : Modifications released by Liang-ping Chen 
+   
+    - VHITS_IN_ROAD.FOR   check whether LVSEC=0 before use it 
+
+
+==============================================================================
+
+ 18-APR-1994 : Modifications released by Liang-ping Chen
+ 
+    - BKSVTX.FOR move back from D0$STP$VTX, since proceses like COMM_TKR,
+      CALIB may use it
+ 
+
+==============================================================================
+                    after VTX_UTIL V1.11_02
+==============================================================================
+
+  6-JUN-1994 : Modifications released by Liang-ping Chen
+ 
+    - VCAL_GNPACK Oltman, check if fit parameters are sensible.
+
+
+==============================================================================
+
+ 27-JUN-1994 : Modifications released by Liang-ping Chen
+ 
+    - VXY_BEAM use DXB=0.1, DYB=0.1 for runs greater than 75332 as in RECO
+      V12.13

@@ -1,0 +1,143 @@
+ 26-AUG-1991 : Modifications released by Qizhong Li-Demarteau
+ 
+     - VTXTHT: added NHIT=0 if no hits information available
+
+
+      Following changes have been made by Peter Grudberg:
+
+     - For compressed hits bank VHIT:
+        New:  BKVHIT, GZVHIT, VHITFL
+        Changed: BKVTXH, FTVTXT, VRHITS, VTHITS
+        VTRAKS.RCP:  Added BUILD_VHIT    .TRUE.
+
+     - VTRINI: flag VTRAKS_RCP
+
+********* The libraries LINKS and CD_UTIL need to be released before the
+          next release of VTX_UTIL
+
+
+==============================================================================
+
+ 27-AUG-1991 : Modifications released by Susan K. Blessing
+ 
+    VDBINI.FOR,VGNINI.FOR,VPDINI.FOR,VTMINI.FOR -
+     Added logical DB_OPENED to flag if DBCLB_INITIALIZE has been called 
+     yet for the current run.  Use LORUN and HIRUN from the previous read
+     of the database to check if the current run is within the validity 
+     range without looking in the database.  If updating is necessary, then 
+     call DBCLB_INITIALIZE from VPDINI, VGNINI, or VTMINI if it hasn't 
+     already been called.  
+
+
+==============================================================================
+
+  6-SEP-1991 : Modifications released by Tom Trippe
+ 
+    - VTXISA: added debug print control, corrected error message.
+
+    - VTRAKS.RCP: added debug print control for VTXISA.
+
+    - PRVITR: added GZVITR call.
+
+==============================================================================
+
+  7-NOV-1991 : Modifications released by Peter M. Grudberg
+ 
+    - Many routines with a call to EZPICK did not have a corresponding call to
+      EZRSET.  This was fixed for the following routines:
+
+        FLVSEC,LINSEG,MATCHT,MATCHZ,PRVTXT,SAVCHN,SMVSEC,VCHEKH,VCHEKL,VCLIMB,
+        VFITCH,VFITSG,VLINKS,VMATCH,VSEGLT,VSEGME,VSEGRD,VTQDIV,VTRAKS,VTRNDR,
+        VUSDSG,VZCLUS
+
+    - The handling of PATH was corrected for the VTRAKS package.  Previously,
+      the track banks were always built under RECO; now they are built under
+      whatever PATH bank (RECO, GEAN, etc) is chosen.  The following routines
+      were modified:
+
+        FTVTXT,GTSEGM,LDVSEG,LINSEG,VCHEKL,VRHITS,VSEGME,VTHITS,VTRAKS,VUSDSG
+
+    - A. Mayorov found several bugs that are now fixed in the following
+      routines:
+
+        GTVTXT_LINK: avoid destroying input variable LOC; use local variable
+                LOCH instead.
+        HSVTXT: add crash protection before calculating chi
+        VCLEAN: use 2nd word of VTRH instead of 1st word for NTRACKS
+        VTXYZ: Theta was being used as tan(theta); now fixed.  Some crash
+               protection was also added.
+
+    - The status word of the compressed hit bank VHIT was changed to allow 8
+      bits to store the ZTRK #.  Bit 12 of the VSEC status word is now
+      utilised to indicate whether compression has been done for a sector.
+      The modified routines are:
+
+        BKVHIT: fixed error in MZFORM call
+        VHITFL: change status word filling, remove VHIT_INI entrypoint, add
+                VHITPT entry for use by ZSTCMP, implement bit 12 of VSEC
+        VRHITS,VTHITS: remove call to VHIT_INI, implement bit 12 of VSEC
+
+    - Remove TYPE input argument from VHTCHK and all routines calling VHTCHK
+      (no need for processing strips).  The affected routines are:
+
+        VHTCHK,VRHITS,VTHITS,VSECHT,VZLAHT(for VZLAHT, the call to VHTCHK is
+        made for LAY=0 SEC=16, which doesn't exist, so the call is effectively
+        a dummy that does nothing).
+
+    - Add reference link in VTXT to point to ZTRK.  Affected routines are:
+
+        LDVTXT,BKVTXT(new),BKVTTH(new)
+
+    - The second word for a wire hit stored in VTTH was changed to HIT NUMBER
+      (as advertised in VTTH.ZEB) instead of a pointer within the VSEC bank.
+      The affected routines are:
+
+        FTVTXT,VTXTHT,(ZSTCMP in CD_UTIL)
+
+    - A permanent link area for the VTX hit banks was implemented, replacing
+      the temporary one.  The affected rotuines are:
+
+        VTRINI(add call to VTPLNK),VTPLNK(new),BKVTXH(remove calls to init
+          temp link area),VRHITS,VTHITS(remove calls that init temp link area
+          for PATH=GEAN).
+
+    - The calls to BLVPDH,BLVGNH,and BLVTMH were removed from VDBINI to avoid
+      the need of linking in the D0$STP library.  The calls were replaced by
+      checks on the link values; if the banks do not exist, the program will
+      abort.  Affected routines include:
+
+        VDBINI: remove calls to BLVXXX, replace with link checks
+        VTRPAR: improve error handling - specifically, abort if the
+                reading of VTX_STPFILE fails
+    The .OPT files used for VTRAKS were also changed to remove the reference
+    to D0$STP:
+        VTRAKS.OPT,DEB_VTRAKS.OPT
+
+    - Some more changes to individual routines are listed below:
+
+        VTRAKS: Add the ability to redo hitfinding and tracking; controlled by
+                a switch REDOVTX in VTRAKS_RCP.  Also do a general cleanup of
+                the routine.
+
+        GZVTXT: Handle the case where ITRACK = 0.
+
+        VTMINI: Fix bug in addressing words within VTMW bank.
+
+        GTVSEC: Handle the case where the relevant VSEC bank does not exist.
+
+==============================================================================
+
+ 15-NOV-1991 : Modifications released by Peter M. Grudberg
+ 
+    - VTXTHT: modify to handle both versions of VTTH, to deal with older data
+      files.
+
+==============================================================================
+
+ 11-DEC-1991 : Modifications released by Peter M. Grudberg
+ 
+    - VTRAKS: redo the logic so that VTRAKS always returns .TRUE. unless the
+      event is somehow currupted/unusable (this allows further processing of
+      the event even if there are no tracks found).  Instead of returning
+      .FALSE. when there are no tracks, put out an informational message
+      (contained in the D0USER_nn.OUT file).

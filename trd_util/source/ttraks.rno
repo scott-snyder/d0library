@@ -1,0 +1,147 @@
+.!   Created by A. Zylberstejn on 27-APR-1989
+.!   Modified by J.Fr. Glicenstein on 13-NOV-1989 
+.!   Modified by A. Zylberstejn    on 16-NOV-1989 
+.!   Modified by A. Zylberstejn    on  2-DEC-1989 
+.!
+.PAGE SIZE  60,80     .LEFT MARGIN  5    .RIGHT MARGIN  75
+.LAYOUT  3,2
+.RIGHT ;A. Zylberstejn,J.Fr. Glicenstein
+.RIGHT ;10-JUL-1989
+.BLANK 3     !--- underlined title on next line
+.CENTER ; ^&TRD Reconstruction  Program flow\&
+.BLANK 2
+.!------------ main text start here.
+.LIT
+
+     +-------+
+     |TTRAKS |
+     +-------+
+         |
+         |     +--------+
+         |-----| TRREAD | Reads in TRD-RCP file
+         |     +--------+
+         |          |            +--------+
+         |          +------------| TRDISA |
+         |                       +--------+
+         |     +--------+
+         |-----| TRATRD | Looks for good tracks in the TRD
+         |     +--------+ Input = ITR
+         |          |  |                   
+         |          |  +-----------------+
+         |          +--+                 |              
+         |             |                 |TYPPRO=1,2 
+         |             |TYPPRO=0,2       |           
+         |          +--------+    +--------+
+         |          | TRISRC |    | TRISTR |
+         |          +--------+    +--------+
+         |             |              |       Finds if the track is a
+         |             |          +--------+ "good track". Finds its geometry
+         |             |          | TRISIS |
+         |             |          +--------+
+         |             |              |
+         |             |              +-------+
+         |             +---------------------||
+         |                               +--------+
+         |                               | TRDFIL |
+         |                               +--------+
+         |                                    |
+         |                               +--------+
+         |                               | TRCELL |  Compute hit anodes and cathodes
+         |                               +--------+
+         |                                   |        +--------+
+         |                                   +--------| EXTCYL |
+         |                                            +--------+
+         |     +--------+
+         |-----| BKTTRH |
+         |     +--------+
+-------->|     +--------+
+         +-----| TRFPNT | Compute pointers in bank CDD4 for hit anodes and
+         |     +--------+    cathodes for every good tracks
+  Loop   |          |        +--------+
+   on    |          +--------| MZLINT |
+  Tracks |          |        +--------+
+   in    |          |        +--------+
+   TRD   |          +--------| BKTLYR |
+         |                   +--------+
+         |
+         |     +----------+
+         +-----|  TRCFAD  | Fill TRD FADC bins corresponding to every tracks
+         |     +----------+
+         |          |        +--------+
+         |          +--------| TRGPED | Get pedestal
+         |          |        +--------+
+         |          |        +--------+
+         |          +--------| TRGGN  | Get wire gains
+         |                   +--------+
+         |
+         |     +----------+
+         +-----|  TRDANA  | Compute the "Physical" quantities from FADC
+               +----------+ Output a "probability" to be an electron for
+         |          |       every tracks. (this last part to be implemented)
+         |          |        +--------+
+         |          +--------| TDEFLI | Compute links for TRD tables
+         |          |        +--------+
+         |          |        +--------+
+         |          +-if pi--| COREPI | correct deposited energies for E/m
+         |          |        +--------+ dependance
+         |          |        +--------+
+         |          +--------|   HF1  | Make histograms of Physical quantities
+         |          |        +--------+   at the layer level
+         |          |        +--------+
+         |          +--------| CLIKET | Compute likelihood
+         |          |        +--------+
+         |          |        +--------+
+         |          +--------|   HF1  | Make histograms of Physical quantities
+         |          |        +--------+   for the 3 layers
+         |          |        +--------+
+         |          +--------| ETOTEF | Compute electron eff. with ETOT
+         |          |        +--------+
+         |          |        +--------+
+         |          +--------| ETO3EF | Compute electron with ETOT
+         |          |        +--------+     for 3 chambers hit
+         |          |        +--------+
+         |          +--------| ETRUEF | Compute electron eff. with TRUNC.
+         |          |        +--------+      MEAN
+         |          |        +--------+
+         |          +--------| ETR3EF | Compute electron with TRUNCATED
+         |          |        +--------+   MEAN for 3 chambers hit
+         |          |        +--------+
+         |          +--------| LIKEEF | Compute electron with LIKELIHOOD
+         |          |        +--------+   on ETOT
+         |          |        +--------+
+         |          +--------|   HF1  | Make histograms of efficiencies
+         |                   +--------+
+-------->|
+         |     +----------+
+         +-----|  TFILBK  |  Fill TRD ZEBRA banks
+               +----------+
+                    |        +--------+
+                    +--------| TCELLF | Compute if several tracks in same cells
+                    |        +--------+
+                    |        +--------+
+                    +--------| BKTRDT |
+                    |        +--------+
+                    |        +--------+
+                    +--------| BKTPRL |
+                             +--------+
+.END LITERAL
+.PAGE
+.NAP
+.RIGHT ; ^&   Comments:\&
+  The previous structure (see TRDEVT-USER.RNO;1) has been modified to allow
+more flexibility. The search for TRD information can be done on a single track
+or on all tracks in a route defined by the Vertex chamber (option OPT=VTX),
+by the CDC (option OPT=CDC), by both (option OPT=ZTR), or by the calorimeter
+(not yet tested). If the use of reference links is adopted, this structure
+will have to be modified.
+
+  The "electron Probability " is a number X such that if you keep all the
+events with X > x0 you'll have an electron efficiency of x0 %.
+  The hadron rejection power is not computed since it depends on the unknown
+hadron energy (more exactly on E/M). The effective hadron rejection has to be
+computed with M.C.
+
+  Nothing is done yet to use Cathode strips information beside computing the hit
+strips for ech track and computing the pointers of the FADC in CDD4. It's not
+clear we need to go farther.
+.PAGE

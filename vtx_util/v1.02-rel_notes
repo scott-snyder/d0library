@@ -1,0 +1,55 @@
+  8-APR-1991 : Modifications released by Peter M. Grudberg
+ 
+    - Several routines were modified and several new routines were added to
+      handle real data.
+
+    New routines:
+
+        BKVDTM: book the bank VDTM (hangs from VTMW) to hold the time to
+                distance conversion tables for real data.
+
+        BKVTMW: book the bank VTMW which holds time constants.  There are
+                different versions for monte carlo and real data.
+                  Version 0: mc data, 2 words/wire (T0 and Vd)
+                  Version 1: real data, 5 words/wire (T0 + sigma for each end,
+                   and a scale factor)
+
+        FILL_VDTM: Read time-to-distance tables from a binary file and store
+                   in VDTM bank.
+
+        INIT_VDTM: Drop mc-type VTMW banks (if necessary), create and fill
+                   read-data-type VTMW banks, and then create and fill the
+                   VDTM banks.
+
+        VTRGTM: Find trigger time from timing pulse which is put into the
+                system on an unused fadc channel.
+
+        VTX_DRIFT: Convert time to distance using lookup tables stored in VDTM
+
+    The following routines were modified to treat mc data and real data
+differently (depending on the value in IQ(LHEAD+1)):
+
+        VTRPAR: Clean up logical structure; call INIT_VDTM to initialize
+                real-data time-distance banks.  For MC data, only read in
+                VTX_STPFILE for the first run processed.
+
+        VDBINI: Get name of database file from rcp (machine dep. problem)
+
+        VPDINI, VTMINI: Force garbage collection after processing each crate to save
+                        room in ZEBSTP
+
+        VSECHT: Use value in IQ(LHEAD+1) to control processing of trigger
+                times, trigger offsets.
+
+        VTPULS: Use IQ(LHEAD+1) to control using bilinear conversion (mc) or
+                lookup table (real) to process fadc data.
+
+        VCOORD: fix index bug which could cause crashes in VERY large events.
+
+        VCOMBN: convert time to distance differently depending on whether
+                processing real or mc data.
+
+    Finally, many parameters were added to VTRAKS.RCP that are needed to
+handle real data.  It should finally be possible to run the VTRAKS code on
+either real data or mc data without having to make any special definitions,
+assignments, etc. (that's what they all say . . . )

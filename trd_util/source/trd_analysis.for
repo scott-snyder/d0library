@@ -175,7 +175,7 @@ C  | micro dst's|
 C  +------------+
       IF(LUDST.NE.0)THEN
         IF(DOPRINT) WRITE(LOUT,*)' Call get_trd_on_mdst'
-        CALL GET_TRD_ON_MDST(LTRDT,IER)
+        CALL GET_TRD_ON_MDST(LDUMM,IER)
         LTDST = GZTDST()
         ACCEPTANCE =Q(LTDST+7).GT.0.5
         EFFICIENCY =Q(LTDST+8)

@@ -1,4 +1,4 @@
-      SUBROUTINE GET_TRD_ON_MDST(LTRDT,IER)
+      SUBROUTINE GET_TRD_ON_MDST(LDUMM,IER)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : unpack_trd information on micro_dst
@@ -39,12 +39,12 @@ C      COMMON/WORKSP/WS(LENGWS)
       LOGICAL ACCEPTANCE,DOPRINT,TRD_BADRUN,BAD_SECTOR,TRD_DO_PRINT
       LOGICAL BADTRACK(10),CC,ENVIR
       REAL EPSL,EPSL_2,LIK1,LIK2,EPST
-      INTEGER LCLUS,LTRDT,LOUT,TRUNIT,MINT
+      INTEGER LCLUS,LDUMM,LOUT,TRUNIT,MINT
       INTEGER LPPHO_TEMP,LCACL_TEMP,GZPPHO,GZUDST,LUDST,UDST_VER
       PARAMETER (NINT = 8)
       CHARACTER*6 CLUS_VAR_NAME(NINT)
       CHARACTER*6 PELC_VAR_NAME(NINT),PPHO_VAR_NAME(NINT)
-      CHARACTER*4 CLUS_NAME
+      CHARACTER*4 CLUS_NAME,BANK
       REAL ECDC,UDST_VALUE
       REAL REAL_TRD(10)
       LOGICAL GEOMETRY(3)
@@ -77,40 +77,55 @@ C      DOPRINT=IFOIS.LE.50
         REAL_TRD(K) = 0
       ENDDO
 C
-      LZTRK = LQ(LTRDT - 4)
-      LCACL = LQ(LTRDT - 5)
-      CC=.FALSE.
-      IF(LZTRK.NE.0) THEN
-        LCLUS = LQ(LZTRK-4)
-        IF (LCLUS.NE.0) THEN
-          IF (Q(LCLUS-4).EQ.'PELC') THEN
-            DO K = 1,NINT
-              CLUS_VAR_NAME(K) = PELC_VAR_NAME(K)
-            ENDDO
-            CLUS_NAME = 'PELC'
-C take care of PPHOs
-          ELSEIF (Q(LCLUS-4).EQ.'PPHO') THEN
-            DO K = 1,NINT
-              CLUS_VAR_NAME(K) = PPHO_VAR_NAME(K)
-            ENDDO
-            CLUS_NAME = 'PPHO'
-          ENDIF
-        ENDIF
-      ELSE
-C take care of PPHOs
+      CALL UHTOC(IQ(LDUMM-4),4,BANK,4)
+      IF(BANK.EQ.'PELC') THEN
+        LCLUS = LDUMM
+        DO K = 1,NINT
+          CLUS_VAR_NAME(K) = PELC_VAR_NAME(K)
+        ENDDO
+        CLUS_NAME = 'PELC'
+      ELSEIF(BANK.EQ.'PPHO') THEN
+        LCLUS = LDUMM
         DO K = 1,NINT
           CLUS_VAR_NAME(K) = PPHO_VAR_NAME(K)
         ENDDO
         CLUS_NAME = 'PPHO'
-        LPPHO_TEMP = GZPPHO()
-        LCACL_TEMP = 0
-        DO WHILE(LPPHO_TEMP.NE.0.AND.LCACL.NE.LCACL_TEMP)
-          LCACL_TEMP = LQ(LPPHO_TEMP - 2)
-          IF (LCACL_TEMP.EQ.LCACL) LCLUS = LPPHO_TEMP
-          LPPHO_TEMP = LQ(LPPHO_TEMP)
-        ENDDO
+      ELSEIF(BANK.EQ.'TRDT') THEN
+        LZTRK = LQ(LDUMM - 4)
+        LCACL = LQ(LDUMM - 5)
+        IF(LZTRK.NE.0) THEN
+          LCLUS = LQ(LZTRK-4)
+          IF (LCLUS.NE.0) THEN
+            IF (Q(LCLUS-4).EQ.'PELC') THEN
+              DO K = 1,NINT
+                CLUS_VAR_NAME(K) = PELC_VAR_NAME(K)
+              ENDDO
+              CLUS_NAME = 'PELC'
+C take care of PPHOs
+            ELSEIF (Q(LCLUS-4).EQ.'PPHO') THEN
+              DO K = 1,NINT
+                CLUS_VAR_NAME(K) = PPHO_VAR_NAME(K)
+              ENDDO
+              CLUS_NAME = 'PPHO'
+            ENDIF
+          ENDIF
+        ELSE
+C take care of PPHOs
+          DO K = 1,NINT
+            CLUS_VAR_NAME(K) = PPHO_VAR_NAME(K)
+          ENDDO
+          CLUS_NAME = 'PPHO'
+          LPPHO_TEMP = GZPPHO()
+          LCACL_TEMP = 0
+          DO WHILE(LPPHO_TEMP.NE.0.AND.LCACL.NE.LCACL_TEMP)
+            LCACL_TEMP = LQ(LPPHO_TEMP - 2)
+            IF (LCACL_TEMP.EQ.LCACL) LCLUS = LPPHO_TEMP
+            LPPHO_TEMP = LQ(LPPHO_TEMP)
+          ENDDO
+        ENDIF
       ENDIF
 C
+      CC=.FALSE.
       IF (LCLUS.GT.0) THEN
         CALL TRD_NUM_LAYERS(LCLUS,GEOMETRY,BADTRACK,TGEO)
         BAD_SECTOR = BADTRACK(2)
@@ -171,7 +186,7 @@ C      EPSL=-99.
         Q(LTDST+8) = EPST
       ENDIF
 C      IF(CC)THEN
-C        ACCEPTANCE=ACCEPTANCE .AND. Q(LTRDT+31).GT.0.5
+C        ACCEPTANCE=ACCEPTANCE .AND. Q(LDUMM+31).GT.0.5
 C      ELSE
 C        ACCEPTANCE=ACCEPTANCE .AND. Q(LTDST+24).NE.0.
 C      END IF

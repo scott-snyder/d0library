@@ -1,0 +1,125 @@
+\START     VTXCOFF_RCP        ! Name of VTXCOFF package control file
+\SIZE        138       121
+C
+!------------------------------------------------------------------------------
+!   Name:       VTXCOFF.RCP
+!   Purpose:    Control file for VTXCOFF package
+!------------------------------------------------------------------------------
+ T_ZERO                       T             ! T_ZERO CALIBRATION SWITCH
+ AREA                         T             ! AREA CORRECTION SWITCH
+ E_GAIN                       T             ! END GAIN CALIBRATION SWITCH
+ W_GAIN                       T             ! WIRE GAIN CALIBRATION SWITCH
+                                            ! T_zero should be FALSE when it's
+                                            ! true
+ WRITE_DBL3                   F             ! Write to DBL3 database?
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+!
+\ARRAY HBOOK_DIRECTORY_T
+      'VTXCOFF'
+      'TZERO'
+\END
+\ARRAY HBOOK_DIRECTORY_G
+      'VTXCOFF'
+      'GAIN'
+\END
+\ARRAY HBOOK_DIRECTORY_Q
+      'VTXCOFF'
+      'QDIV'
+\END
+!
+! T_ZERO CALIBRATION CONTROL
+!------------------------------------------------------------------------------
+!
+NX 50       ! number of bins of individual histograms
+IMI 70.     ! lower limit
+IMA 120.    ! uper limit
+!
+FRAC 0.5    ! fraction of the maximum of the gaussian used to pick tzeros
+!
+SINGLE .FALSE.! if true writes drift time dist. for each channel in HST4 file
+CRAST .TRUE.  ! if true writes tzeros info for each crate in HST4 file
+ROWST .TRUE.  ! if true writes tzeros info in 10 groups of channels.
+XCHANGE .TRUE.! true for exchange mode
+WVTMHA .TRUE. ! if true, writes tzeros in ASCII format
+WVTMH .TRUE. ! if true, writes VTMH ZEBRA structure to a file
+!
+\ARRAY OUTPUT_AREA
+  ' '       ! area where ASCII or ZEBRA files are written
+\END
+!
+THT 3.     ! # of sigmas tzero can deviate from average in crate.
+THS 10.     ! sigma threshold for the gaussian before correcting tzeros.
+!
+! GENERAL GAIN CONTROL
+!------------------------------------------------------------------------------
+!
+ WVGNH                        T             ! IF TRUE, WRITE VGNH ZEBRA FILE
+ WVGNHA                       T             ! IF TRUE, WRITE VGNH ASCII FILE
+ SET_UNIT_GAIN                T             ! PRE_SET THE GAINS EQUAL TO 1.
+                                            ! BEFORE GAIN CALIBRATION.
+!
+! W_GAIN CALIBRATION CONTROL
+!------------------------------------------------------------------------------
+!
+ G_GAIN_HST                   F             ! W_GAIN HISTOGRAM SWITCH
+ G_NMIN                      40.            ! MIN # OF ENTRIES FOR EACH CHANNEL
+                                            ! TO FIND W_GAIN
+ AREA_BIN                   360             ! # OF BINS FOR AREA HISTOGRAM
+!
+! GENERAL METHODES
+!------------------------------------------------------------------------------
+!
+ AV_METHODE                   2             ! 1: GAUSS. FIT AFTER TRUNC.
+                                            ! 2: TRUNCATED MEAN
+                                            ! 3: GUASS. FIT OF SQUARE DIST.
+ TRUNCATION                 0.7             ! PORTION INCLUDED WHEN TRUNCATED
+!
+! AREA CORRECTION CONTROL
+!------------------------------------------------------------------------------
+!
+ A_NMIN                     50.             ! MIN # OF ENTRIES FOR EACH
+                                            ! HISTOGRAM TO FIND AREA CORR.
+                                            ! FACTOR
+ MIN_DRFT_0     0.3             ! MIN. & MAX. DRIFT DISTANCE TO BE
+ MAX_DRFT_0     1.5             ! USED FOR AREA CORRECTION. LAYER 0
+ MIN_DRFT_1     0.3             ! MIN. & MAX. DRIFT DISTANCE TO BE
+ MAX_DRFT_1     1.5             ! USED FOR AREA CORRECTION. LAYER 1
+ MIN_DRFT_2     0.3             ! MIN. & MAX. DRIFT DISTANCE TO BE
+ MAX_DRFT_2     1.5             ! USED FOR AREA CORRECTION. LAYER 2
+ DEL_AREA       0.15            ! DRIFT BIN SIZE FOR AREA CORRECTION (cm)
+!
+! BEAM POSITION
+!------------------------------------------------------------------------------
+!
+ VERT_X                   -0.31             ! X POSITION OF BEAM
+ VERT_Y                    0.1              ! Y POSITION OF BEAM
+!
+! TOLERANCES
+!------------------------------------------------------------------------------
+!
+ VZ_TOL_CDC                3.6              ! ON MISMATCH OF Z-VERT. OF CDC TRAK
+ VZ_TOL_FDC                7.2              ! ON MISMATCH OF Z-VERT. OF FDC TRAK
+ DPHIG_TOL                 0.03             ! ON DIFFERENCE OF PHI OF C.O.G.
+ DPHI_OLD_TOL              0.01             ! MIN. PHI OF NEXT CLOSEST
+ DPHI_TOL                  0.02             ! ON DELTA PHI
+!------------------------------------------------------------------------------
+! Parameters used by standalone program VDBPUT to control database access
+!------------------------------------------------------------------------------
+ WVTMH_DBL3     TRUE                        ! Write times to database
+ WVGNH_DBL3     TRUE                        ! Write gains to database
+ WVPDH_DBL3     FALSE                       ! Write pedestals to database
+ VTMH_FILE     'VTMH_FILE'                  ! Name of Tzero ZEBRA file
+ VGNH_FILE     'VGNH_FILE'                  ! Name of Gains ZEBRA file
+ VPDH_FILE     'VPDH_FILE'                  ! Name of Peds ZEBRA file
+!------------------------------------------------------------------------------
+! Parameters needed by DBL3 insertion routine VSTP_INSERT
+! Note: TODO_AREA must be a logical; it cannot end in a ']', since the
+! routine which uses it puts a ':' right after it.
+!------------------------------------------------------------------------------
+ TODO_AREA     'VTX$TODO'
+ DBCALIB$VTX   'DBCALIB$VTX.DAT'
+ WRITE_MODE     0   ! 0: Write FZ file to TODO area (server mode)
+                    ! 1: Direct insertion into above database
+                    ! 2: Direct write + server mode
+\STOP

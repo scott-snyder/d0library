@@ -1,0 +1,98 @@
+\START    TRD_ANALYSIS_RCP
+\SIZE        134        55
+!----------------------------------------------------------------------
+!    NAME:       TRD_ANALYSIS.RCP
+!    PACKAGE:    DST
+!    LIBRARY:    TRD_UTIL
+!    PURPOSE:    select options for TRD analysis at DST level
+!    VERSION     1.0
+!    CREATED:    8-APR-1993   ALAIN PLUQUET
+!    Updated:    24-JUN-1994   Alain PLUQUET
+!    Updated:    29-JAN-1996   A. Zylberstejn : Introduce ENERGY_CORRECTION key
+!    Updated:     3-JUL-1996   A. Zylberstejn  : Introduce new normalization
+!                                                  values for MC
+!    Updated:     3-JUL-1996   Y. Ducros: Introduce new key for density analysis
+!----------------------------------------------------------------------
+!                        DEFINITIONS OF POSSIBLE ACTIONS
+! CANCEL   : cancels previous correction (if any)
+! NOCHANGE : takes into account previous correction (if any)
+! MAXIMUM  : takes into account previous correction (if any) or makes correction
+! OVERWRITE: cancels previous correction (if any) and makes correction
+!----------------------------------------------------------------------
+!
+! Reads information in TRD.RCP for new corrections (MAXIMUM or OVERWRITE)
+!
+!----------------------------------------------------------------------
+\ARRAY SEC_CORRECTION    ! sector correction
+'OVERWRITE' ! ACTION
+\END
+\ARRAY WIR_CORRECTION    ! wire correction
+'CANCEL'    ! ACTION
+\END
+\ARRAY HVT_CORRECTION    ! high voltage correction
+'OVERWRITE'    ! ACTION
+\END
+\ARRAY GAS_CORRECTION    ! gas and ageing correction
+'OVERWRITE' ! ACTION
+\END
+\ARRAY EPI_CORRECTION    ! epicor calibration
+'OVERWRITE' ! ACTION
+\END
+\ARRAY APC_CORRECTION    ! additive pedestal correction
+'CANCEL'    ! ACTION
+\END
+\ARRAY ANG_CORRECTION    ! angular correction
+'NOCHANGE'  ! ACTION
+\END
+\ARRAY PED_CORRECTION    ! pedestal subtraction
+'NOCHANGE'  ! ACTION
+\END
+\ARRAY ELE_CORRECTION    ! electronic gain correction
+'CANCEL'    ! ACTION
+\END
+!----------------------------------------------------------------------
+ENERGY_CORRECTION .TRUE. ! do not perform energy corrections if false
+DO_TEMP_CORRECTION .FALSE. ! do not uncorrect for TEMP if false
+DO_DENS_ANALYSIS  .TRUE. ! perform YD analysis if TRUE
+DOCCVTXONLY       .FALSE. ! if .TRUE., compute EPST for CC VTX only tracks
+OLD_MC_EFF .FALSE. ! TO SELECT OLD TABLES FOR EFFIC CALCULATIONS FOR MC
+DEBUG_MODE .FALSE.
+\ARRAY ANODE_BADRUN
+! begin     end
+      0   54649  ! TRD not working before Oct 15th 1992
+  74561   74561  ! TRD download problems
+  78757   78783  ! TRD HV problems
+  79175   79312  ! between May and june 94 the potential HV was incorrect
+  79405   80045  !
+  86263   86263  ! TRD Layer 3 not at 100%
+  86922   86922  ! HV set to 50%
+  87551   87551  !
+  91206   91213  ! Bad peds
+\END
+\ARRAY ANODE_BAD_SECTOR
+!                          ___1 ___0 ___0 ___0  anode sectors:
+! begin     end     hex       3    9    5    1    1 = good, 0 = bad
+  60376   60377   '0FF0' ! 0000 1111 1111 0000  bad sectors 1-4, 13-16
+  60414   60417   '0FF0' ! 0000 1111 1111 0000  bad sectors 1-4, 13-16
+  64275   64276   'FBBF' ! 1111 1011 1011 1111  bad sectors 7 & 11
+  64277   64278   '0BB0' ! 0000 1011 1011 0000  bad sectors 1-4, 7, 11, 13-16
+  64279   64500   'FBBF' ! 1111 1011 1011 1111  bad sectors 7 & 11
+  74601   74601   'FF7F' ! 1111 1111 0111 1111  bad sector 8
+  82466   82470   '0FFF' ! 0000 1111 1111 1111  bad sectors 13-16 - download pr
+  82722   82722   '0FFF' ! 0000 1111 1111 1111  bad sectors 13-16
+  86258   86258   'EFFF' ! 1110 1111 1111 1111  bad sector 13
+  86871   86900   'FFFD' ! 1111 1111 1111 1101  bad sector 2
+  86901   87046   'BFFD' ! 1011 1111 1111 1101  bad sectors 2 & 15
+  87021   87024   'FF0F' ! 1111 1111 0000 1111  bad sectors 5-8 - download pr
+  87047   87060   '3FFC' ! 0011 1111 1111 1100  bad sectors 1, 2, 15, & 16
+  87061   87061   '3FFE' ! 0011 1111 1111 1110  bad sectors 1, 15, & 16
+  87063   87065   'BFFF' ! 1011 1111 1111 1111  bad sector 15
+  88318   88321   'FF7F' ! 1111 1111 0111 1111  bad sector 8 - download prob.
+\END
+\ARRAY MC_EPICOR   ! MC overall Energy normalization factors per layer
+690.  635.  655. ! corrected 30 nov 95
+\END
+DO_LTG_ANALYSIS .TRUE. ! create cw Ntuple (CWN)
+MC_ENORM 110.   ! normalize energies to CERN energies for MC
+\END
+\STOP       ! TRD_ANALYSIS_RCP

@@ -1,0 +1,140 @@
+ 29-APR-1992 : Modifications released by Peter M. Grudberg
+ 
+    - BKVTTH:  A ZEBRA bug was fixed.  A garbage collection caused by the
+      MZFORM call in the first call to BKVTTH causes the supporting link
+      LVTXT, passed as an input variable, to be invalid.  LVTXT was removed as
+      an input, and instead is determined within the routine (the VTXT bank
+      directly below VTRH is used).
+
+    - LDVTXT:  LVTXT removed from call to BKVTTH
+
+==============================================================================
+
+ 21-MAY-1992 : Modifications released by Peter M. Grudberg
+ 
+    - VSECHT: a typo was fixed so that the trigger offset would be handled
+      correctly.  Also, the default for real data was changed to be
+      appropriate for collider data (don't look for a timing pulse).
+
+    - VTRAKS.RCP: The parameter containing the DBL3 file was changed to
+      include a logical (DBL3$VTX) pointing to the correct directory on D0 or
+      FNALD0.  The trigger offset (TRGOFF) was changed to be approx. correct
+      for collider running.
+
+==============================================================================
+
+ 21-MAY-1992 : Modifications released by Peter M. Grudberg
+ 
+    - VSEGRD: protection was added against too many hits on a wire
+
+==============================================================================
+
+ 22-MAY-1992 : Modifications released by Peter M. Grudberg
+ 
+    - VPOINT: Increase space in POIN bank to hold mirror hits, and add
+      protection against overfilling.
+
+    - VTRPAR: Do not crash the program if reading DBL3 fails (change 'F' to
+      'W' in ERRMSG call).  Instead, fill the chosen banks with default
+      numbers from the RCP file.  Three new routines were added to do the
+      default filling:
+                V_DFLT_PD, V_DFLT_TM, V_DFLT_GN
+
+    - VTRAKS.RCP: default PD, TM and GN values were added
+
+==============================================================================
+
+  1-JUN-1992 : Modifications released by Susan K. Blessing
+
+    - VPDINI.FOR,VTMINI.FOR  Change DBCLB_FETCH to DBCLB_FETCH_OFFLINE.  
+       Remove DBSTP.INC.  Replace UZERO call with data statement.
+
+
+==============================================================================
+
+  9-JUN-1992 : Modifications released by Peter M. Grudberg
+ 
+    - DEDX: M. Pang wrote a dEdx routine for the VTX.  For each track, it sums
+      all the pulse areas from hits with good z info, using the TRUNCATION
+      specified in VTRAKS.RCP, then converts to MIP units using the constant
+      IONCONVERSION from the rcp file.  The user has the option of whether to
+      include saturated hits (SATURATED in rcp file) and whether to do the
+      sin(theta) correction (SIN_CORRECTION in rcp).  Note that for tracks
+      with no theta information, sin(theta) = 1. is used, and that a bit is
+      set in the status word of the track if the sin correction has been done.
+            New routine:  VXDEDX
+            Modified: FTVTXT
+            New rcp params: TRUNCATION,IONCONVERSION,SATURATED,SIN_CORRECTION
+
+    - Time to Distance:  Ed modified VTX_DRIFT so that for FAST = .TRUE., it
+      assumes radial tracks (the lookup tables have been modified such that
+      the first parameter is appropriate for radial tracks).  He also now 
+      returns errors on the drift distance, calculated from a time sigma
+      calculated as sig_t = sqrt( DT_RESA + DT_RESB*t ), and the drift
+      velocity as returned by the new subroutine DIVDIFL, a linear
+      interpolation routine based on CERNlib's DIVDIF.  A fourth lookup table
+      was also added in order to parametrize the drift correction needed for a
+      1% change in E/p; lack of knowledge of varying E/p can be incorporated
+      into the drift error by adding the effect of a DT_ENV % change in E/p
+      in quadrature with the time error.  One final change is that the region
+      near the cathode is treated like a single wire pwc:  all hits in the
+      region near the cathode where trhe isochrones break down are given a
+      drift distance halfway between the breakdown point and the cathode (and
+      an error appropriate for this assignment is returned).  The drift times
+      and distances of the breakdown points can be obtained using the routine
+      VDTMAX.
+            New routines: DIVDIFL, VDTMAX
+            Modified routines: VTX_DRIFT, VCOMBN
+            New rcp params:  DT_RESA,DT_RESB,DT_ENV
+
+    - The status word for VSEC hits was changed so that it would be possible
+      to go back to the VWDA info used to make the hit.  This involved using
+      two bytes of the status word to store the VWDA hit number; as a result,
+      less of the VWDA status info is stored in the VSEC status word. (see
+      VSEC.ZEB)
+            Modified routine: VCOMBN
+
+    - Old STA files from the blind events have VTXH banks that don't have a
+      structural link for the compressed hit bank VHIT.  Modify the top level
+      hitfinding routines to check whether there are enough links, and if not,
+      drop the old VTXH and rebook it.
+            Modified routines:VTHITS,VRHITS
+
+    - New DTM maps: Ed's new VTX_DRIFT uses different dtm maps, based on
+      radial tracks instead of tracks parallel to the sense plane.  Another
+      table was also added to contain corrections for changing E/p.  In order
+      to make these new tables available, a new version of VTX_D0STPFILE must
+      be released in the STP library.  In order to become more legal in the D0
+      software world, the routine INIT_VDTM was modified to read in ZEBRAized
+      dtm maps instead of the binary files that Ed produces.  A program that
+      converts Ed's format to ZEBRA format will be made available in the
+      D0$STP$VTX area (MAKE_VDTM; after the STP release just execute 
+      @D0$STP$VTX:MAKE_VDTM.LNK from an area where you have write access and
+      an executable will be created).  Individual dtm files (other than the
+      dtm maps within VTX_D0STPFILE) will be made available in the D0$STP$VTX
+      area when necessary (suffix .ZDAT)
+            Modified routine: INIT_VDTM
+            Modified rcp params: DTM0_00 --> 'D0$STP$VTX:DTM0B.ZDAT'
+                                 DTM1_00 --> 'D0$STP$VTX:DTM1A.ZDAT'
+                                 DTM2_00 --> 'D0$STP$VTX:DTM2A.ZDAT'
+            Note:  These parameters used to point to the [VERTEX] area on
+                   FNALD0 (not a good thing in a library-distributed rcp
+                   file).  In general, these parameters are not used, since
+                   VTX_D0STPFILE already contains these (same) dtm maps.  In
+                   order to use different dtm maps than those in the STP file,
+                   set INIT_VDTM to TRUE and modify the file names above to
+                   point to the desired maps.
+
+WARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWAR
+
+        STP NEEDS TO BE RELEASED WITH VTX_UTIL IN ORDER TO HAVE THE PROPER DTM
+        MAPS AVAILABLE (OLD MAPS WON'T CRASH THE PROGRAM, THO)
+
+WARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWAR
+
+    - Pileup: It is possible to get pileup of hits at the anode (drift time
+      .le. 0.) and at the cathode.  This results in several hits all with the
+      same drift distance, leading to many duplicate segments.  In order to
+      remove the pileup, ZFVSEC was modified to only store the last hit with
+      t>= 0. and the first hit in the cathode region for each wire.
+            Modified routine: ZFVSEC

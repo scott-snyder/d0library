@@ -1,0 +1,341 @@
+ 14-DEC-1992 : Modifications released by Liang-ping Chen
+ 
+    - last item on VTMINI, VDBPUT, VCOMBN is invalid. modification
+      is defered to V_1.08_01 
+
+==============================================================================
+
+ 18-DEC-1992 : Modifications released by Susan K. Blessing
+ 
+    - VTX_AVE_PH.FOR,VTX_EXM_ANAL.FOR,VTX_EXM_HST.FOR  New routines for CD
+       Examine.
+
+==============================================================================
+
+ 20-DEC-1992 : Modifications released by Liang-ping Chen
+ 
+    - VTMINI, VDBPUT:  match EZRSET with EZPICK
+    - VCOMBN:          use event head for MC version
+    - VTMINI, VGNINI, 
+      VPDINI, VTRPAR:  add switch BYPASS_DBL3_ERROR 
+
+     (V1.08_01 had been made with codes above but before this note item 
+      available in CMS)
+
+
+
+==============================================================================
+
+ 29-DEC-1992 : Modifications released by Liang-ping
+ 
+    - VTXHST.FOR       use single precision PI, TWOPI, HALFPI in HBOOK,
+                       pointed out by GREENLEE
+
+==============================================================================
+
+  7-JAN-1993 : Modifications released by Liang-ping
+ 
+    
+    _ VTRAKS.FOR:      add switch VTXRECO, (0:no reco, 1: Hits, 
+                                            2: seg,    3: tracking)
+                       add CALL VTX_DYNADJ  
+    _ VTROAD.FOR       add CALL VTX_DYNADJ
+
+    _ VTRAKS.RCP:      add switches BYPASS_DBL3_ERROR and VTXRECO
+                       add parameters for VTX_DYNADJ 
+
+    _ BKVDTM.FOR  Book VDTM banks for different luminosities before HV 
+                  adjustment as linear structure.0 luminosity bank is 
+                  booked as before, but subsequent ones are
+                  booked as a linear structure. Called by VDTM_INI (and
+                  D0$VTX_UTIL routine INIT_VDTM)
+
+    New routines written by Ed Oltman for pressure, temprature, HV related
+    corrections:
+
+    VTX_DYNADJ -- driving routine for all corrections.  On first call, saves
+                  contents of VGNL gains and VDTM scales (latter via call to
+                  VTX_ENVDTM).  On subsequent calls,  computes and re-inserts 
+                  new calibrtation data in these banks. Called by VTRAKS
+                  or VTROAD.  
+                  Also has entry VTX_DYNSTAT -- used to return status of 
+                  dynamic adjustments -- called by VTRAKS or VTROAD to 
+                  set bits in IQ(LVTRH+3) 
+
+    VTX_ENVADJ -- This routine reads (via DBMU_GETDM) the VTX pressure and 
+                  temperature from the DBMON$GLB database and computes 
+                  adjustments to gain and drift velocity. Called by VTX_DYNADJ
+
+    VTX_ENVCHK -- checks to see if all devices are present: require 2 of the 6
+                  wire bulkhead RTD averages; 1 of the three static line
+                  pressures and the atmospheric pressure.  Returns status word
+                  and single temperature and pressure for correction.  Called by
+                  VTX_ENVADJ
+
+    VTX_ENVDTM -- On initial call, the existing SCALE factors are updated by a
+                  gas composition correction (second term in equation below) and
+                  saved. (The gas composition is assumed not to vary on the time
+                  scale of a run)  This saved SCALE factor is multiplied by the
+                  enviornmental factor f_enf and stored in the VDTM banks. This
+                  routine works with existing VDTM banks or the new linear
+                  structure.  Called by VTX_DYNADJ
+                  
+    VTX_ENVINI -- Reads and averages several canary records from the DBMON 
+                  database and computes the gas composition correction.  Called
+                  by VTX_ENVDTM
+
+    VTX_GETLUM -- Reads a special ASCII file which contains the luminosity from
+                  runs between 49648 and 57495 (1-Aug and 14-Dec 1992) and
+                  returns most recent luminosity.  Called by VTX_LUMADJ
+
+    VTX_HVADJ  -- Reads VTX HV currents and voltages from DBMON$GLB database for
+                  runs starting with 57496 and computes the (residual) gain 
+                  correction factor for HV sagging.  Called by VTX_DYNADJ
+
+    VTX_HVCHK  -- Checks the HV data from the DBMON$GLB database -- looks for
+                  channels with bad current readback and replaces with average
+                  of neighbors. Called by VTX_HVADJ
+
+    VTX_HVSLOG -- Reads in from VTRAKS_RCP the HV channel to logical address 
+                  relation along with the target anode voltages for each 
+                  sector.  Also reads in a history section for changes to HV.
+                  Called by VTX_HVADJ and VTX_LUMADJ
+
+    VTX_IVLPAR -- Reads in from VTRAKS_RCP the I vs. Luminosity parametrizations
+                  for each HV supply.  These are normalized to one
+                  sector/supply.  Called by VTX_LUMADJ
+
+    VTX_LUMADJ -- Reads (via VTX_GETLUM) luminosity and computes gain adjustment
+                  factor due to voltage sagging.  Called by VTX_DYNADJ
+
+    VTX_LUMDTM -- Loops over the VDTM linear structure for the best map for the
+                  current luminosity.  It moves this map to the front of the
+                  structure if it is not alread there.  This way, future access
+                  to the VDTM bank work with the existing GZVDTM.  Called by by
+                  VTX_LUMADJ
+
+    LUMINOSITY.DAT Luminosity readings with time stamp for runs 
+                  LUM_START_RUN=49648 to LUM_STOP_RUN=57495   
+
+==============================================================================
+
+
+==============================================================================
+
+ 12-JAN-1993 : Modifications released by Liang-ping Chen
+ 
+    - VTX_GETLUM   Minor bug fix by Oltman .GT. --> .GE., .LE. --> .LT.
+
+==============================================================================
+
+ 27-JAN-1993 : Modifications released by Liang-ping
+ 
+    - VTRAKS.RCP   changed the KG,G0 parameters in array ENV_PAR,
+                   update the V_read of 8 HV channels since run 59332  
+
+==============================================================================
+
+ 28-JAN-1993 : Modifications released by Liang-ping
+ 
+    - VTMH_READ, VSTP_FETCH: ZSHUNT chains of VDTM
+
+==============================================================================
+
+ 09-FEB-1993 : Modifications released by Liang-ping
+
+    - VTRAKS.RCP update the V_read history since run 60330 with new 68K codes
+
+ 11-FEB-1993 : Modifications released by Liang-ping
+     
+    - VTRAKS, VTROAD:   add number of hits to VTRH for TRD DST use
+    - LDVTXT:           update the number of (STA) tracks in VTRH 
+
+ 12-FEB-1993 : Modifications released by Ed Oltman 
+    - VTX_HVSLOG        initialize nsec for multiple runs
+    - VTX_HVADJ         FIX OVERWRITE BUG IN INITIALIZATION
+
+ 14-FEB-1993 : Modifications released by Liang-ping
+     
+    - VTRAKS, VTROAD:   add CDD1 bank length to VTRH for TRD DST use
+    - VTRAKS.RCP        update the V_read history since run 60782,
+                        after 3 fuses are replaced      
+
+
+
+==============================================================================
+
+  9-MAR-1993 : Modifications released by Liang-ping
+ 
+    - VTRAKS.RCP The voltage unit in the HV history is corrected 
+                 from kV to volts.
+
+
+==============================================================================
+
+ 25-MAR-1993 : Modifications released by Liang-ping
+ 
+    - VTX_DYNADJ Ed Oltman  fix bug -- skip if  monte carlo. it is
+                            IQ(LHEAD+1), not LQ
+    - LINSEG     L. Chen    Call ZTOPSY prior to sorting segments
+
+==============================================================================
+
+ 30-MAR-1993 : Modifications released by Liang-ping Chen 
+               (modified by Ed Oltman)
+ 
+VTRAKS.RCP  -- (1) Added USE_CANARY_DEFAULT switch (=TRUE); 
+               (2) got rid of extra \END that should not be there; 
+               (3) Commented out VTX_HV_121 and VTX_HV_122 from 
+                   HV history section
+VTX_DYNADJ  -- Updated ERRMSG calls, fixed MC jump condition (again)
+VTX_ENVADJ  -- Fix bug in STATUS handling; loop backwards through DBL3 if
+               first reading is bad; update ERRMSG calls
+VTX_ENVINI  -- Update ERRMSG calls; utilize new USE_CANARY_DEFAULT switch
+VTX_GETLUM  -- fixed minor bug in error handling; updated ERRMSG calls
+VTX_HVADJ   -- Fix bug iN STATUS handling; loop backwards through DBL3 if
+               first reading is bad; update ERRMSG calls; call VTX_LUMDTM(0.) 
+               when new run is sensed; combine categories into a single one
+               (good, fresh, ets)
+VTX_HVCHK   -- Update ERRMSG calls; combine categories into single one.
+VTX_HVSLOG  --   "       "     "
+VTX_LUMADJ  --   "       "     "  ; Fix bug in STATUS handling
+VTX_LUMDTM  --   "       "     "
+
+
+==============================================================================
+
+ 31-MAR-1993 : Modifications released by Liang-ping Chen 
+               A release of stuff in Beta V0.11  
+
+              Notes from 12-Feb (changes for Feb-93 VTX_UTIL beta release)
+
+FTVTXT     -- Add call to VRDGET to get central value of road.  Use
+              z-interpolation to properly convert drift distance to (x,y)
+VCHEKH     -- Disable tagging of sectors for which segment finding has been
+              done.  Does nothing for full tracking option
+VPOINT     -- Same as FTVTXT
+VRDSAVE    -- Interface routine -- save central value of road; entry VRDGET to
+              retrieve
+VTROAD     -- Add call to VRDSAVE to save central value of road
+VTX_DRIFT  -- Use scale info from VTMW
+VTRAKS.RCP -- Change hit finding thresholds fro (4,8,8) to (2,6,6)
+
+        Notes from 22-Mar (changes for Mar-93 VTX_UTIL beta release)
+
+CLNSEG     -- New routine:  Eliminate duplicate segments that result from hit
+              sharing.  Called by VSEGME
+FITLIN     -- Compute DOF from number of points w/non-zero weight hits
+FTVTXT     -- Jump out of routine if MINHIT requirement cannot be satisfied.
+              Also, use road THETA instead of VTXT THETA for dE/dx if it
+              exists
+INIT_VDTM  -- Generate a message if VDTM is not coming from STP
+LINSEG     -- Call ZTOPSY prior to sorting segments
+VFITSG     -- Add call to VTHROW
+VSEGME     -- Add call to CLNSEG
+VTHROW     -- Finds the worset residual hit on trial segment and sets that
+              hit's weight to zero
+VTRAKS.FOR -- Call VRDSAVE(ZVTX=9999.) --> signal VPOINT,FTVTXT not to use
+              roads
+VTROAD     -- move segment deleting from end to beginning of the routine
+VTX_DRIFT  -- clean up comments and get SCALE from VTMW for individual wires
+VTRAKS.RCP -- Change segment road width, VTTRTO from 2 to 4,Change VERTY to .2
+              from .1, change DTMn_00 to point to current DTM files.  Also,
+              update the value of Pulse-height to MIP conversion
+
+        Notes from 31-Mar 
+VTRAKS.RCP -- the single code which overwrites the one in V1.08-08:
+              so that the following changes are remade:
+               (1) Added USE_CANARY_DEFAULT switch (=TRUE);
+               (2) got rid of extra \END that should not be there;
+               (3) Commented out VTX_HV_121 and VTX_HV_122 from
+                   HV history section
+
+
+
+==============================================================================
+
+ 31-MAR-1993 : Modifications released by Liang-ping Chen
+       (Sasha Zinchenko's modification)
+
+    - VTXERT.FOR display once the message that t to d for new MC is in use  
+
+    - VHITFL.FOR change VHITPT entry as in DHITPT
+
+
+
+==============================================================================
+
+  9-APR-1993 : Modifications released after V1.08_10
+ 
+
+==============================================================================
+
+ 13-APR-1993 : Modifications released by Qizhong Li-Demarteau
+ 
+    - VTROAD: fixed the overwritting problem, which was introduced recently
+              and causes D0RECO crash
+              (use LVTRH=GZVTRH()  before LVTRH is re-used)
+
+
+==============================================================================
+
+  3-MAY-1993 : Modifications released by Liang-ping Chen
+ 
+    -  BKVTTH               Ed OLtman add segment map and spare word
+    -  CLNSEG               Ed Oltman Allow 2nd pass if more then MAXSEG 
+                                      segments; replace INTMSG call 
+                                      with ERRMSG if 2-pass not enough
+                            Liang-ping Chen require CHI2<CHI1, no longer
+                                      both CHI2<CHI1 and HIT2>hit1
+    - FTVTXT  
+              04-APR-1993   Ed Oltman add a new method to select R-Z hits,
+                                      use all R-Z hits in a wide THETA road 
+                                      if RZMETHOD=1
+              19-APR-1993   Liang-ping Chen Do not use saturated pulse for Z
+              20-APR-1993   Al Clark, Liang-ping Chen Move TAN() SQRT() out
+                                      of DO LOOP. Correct DZ and QHSEC(4,IH)
+              22-APR-1993   Al Clark, correct SXY, same is done in VFITSG
+                                      Remove unused or redundant variables.
+                                      correct dimension of CONT from 27 to 31
+              29-APR-1993   Al Clark Fix phi bug, per VFITSG fix of 11/12/92
+              03-MAY-1993   L.Chen,  add map to VSGs in VTTH through SEGMP()
+
+    - GTSEGM                Al Clark update the dimension of CON in comments
+                            Liang-ping Chen use LOC=LZFIND(0,LSEGM,ISEG,-5)
+    - LDVSEG                Liang-ping Chen take out IQ(LSEGM+1)=NSEGM
+    - LDVTXT                Ed Oltman  accommondate the VTTH change
+    - VFITCH                Al Clark correct SXY calculation
+    - VFITSG                Al Clark correct SXY calculation
+    - VRHITS                Ed Oltman clear ION if the secotr is not on road
+    - VTHROW                Ed Oltman use more efficient residual algorithm
+    - VTXC_QDIV             Ed Oltman accommondate the VTTH change
+    - VTXHST                Ed Oltman accommondate the VTTH change
+    - VTXTHT                Ed Oltman include wire slopes and curvatures
+                                      accommondate the VTTH change   
+    - VTX_AREA_GAIN         Ed Oltman accommondate the VTTH change
+    - VUSDSG.FOR            Liang-ping Chen change IQ(LSEG+1) from VSGs 
+                                       bank # to trk #
+
+
+    -VTRAKS.RCP add new variables for new RZ method in FTVTXT
+ 
+                RZMETHOD  1.  ! RZ method for tracking in road,
+                              ! 0: conventional,1: use all hits in THETA road;
+                              ! conventional with DZTOL0 for full tracking
+                DZTOL0    7.0 ! max residual in r-z for RZMETHOD=0
+                DZTOL1    9.0 ! theta road width    for RZMETHOD=1
+
+
+
+==============================================================================
+
+  6-MAY-1993 : Modifications released by Liang-ping Chen
+ 
+    - FTVTXT  bug fix. assign value to TGALZ for new RZ
+    - VTRAKS.RCP  set RZMETHOD=1, new RZ method
+
+==============================================================================
+
+ 11-MAY-1993 : Modifications released by Liang-ping Chen
+ 
+    - CLNSEG   Ed Oltman  Fix "restore bank number" bug
