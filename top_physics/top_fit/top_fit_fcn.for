@@ -1,0 +1,134 @@
+      SUBROUTINE TOP_FIT_FCN(NPAR,GRAD,CHISQ,XP,IFLAG,FUTIL)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Work out chisquared for lepton+jet event fit
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  15-FEB-1994   Rajendran Raja
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:EVENT_QUAN_2C.INC'
+      INCLUDE 'D0$INC:KINE_FIT.INC'
+      INCLUDE 'D0$INC:FIT_QUAN_2C.INC'
+C----------------------------------------------------------------------
+      DOUBLE PRECISION  XP(*),GRAD(*) ,CHISQ
+      EXTERNAL FUTIL
+      DOUBLE PRECISION    ET_REST_F
+      DOUBLE PRECISION    W_HADRON_F(7),W_HAD_TOP_F(7)
+      DOUBLE PRECISION    JET1_W_W_F(7)
+      DOUBLE PRECISION    W_LEPTON_F(7),W_LEP_TOP_F(7)
+      DOUBLE PRECISION    B_LEPTON_F(7),B_LEP_TOP_F(7)
+      DOUBLE PRECISION    LEPTON1_W_F(7),LEPTON_F4(7)
+      DOUBLE PRECISION    NEUTRINO_W_F(7),NEUTRINO_F4(7)
+      DOUBLE PRECISION    BLEP_JET_F4(7)
+      INTEGER NPAR, IFLAG
+      INTEGER I,J
+      DOUBLE PRECISION    LEPMASS
+      DOUBLE PRECISION    B_HAD_TOP_F(7),B_HADRON_F(7)
+      DOUBLE PRECISION    JET2_W_W_F(7),HAD_JET22_F4(7)
+      DOUBLE PRECISION    BHAD_JET_F4(7)
+      DOUBLE PRECISION    HAD_JET1_F4(7)
+      DOUBLE PRECISION    HAD_JET2_F4(7)
+C----------------------------------------------------------------------
+C
+C ****  CALCULATE THE PARAMETERS
+C
+      IF ( IFLAG.NE.3 ) THEN
+C
+        TOP_MASS_F = XP(1)
+C
+C ****  DO THE LEPTONIC W FIRST
+C
+        DO I = 1 , 3
+          TOP_LEPTON_F(I) = XP(1+I)
+        ENDDO
+C
+        CALL MAKE_ON_SHELL(TOP_LEPTON_F,TOP_MASS_F,TOP_LEPTON_F,2)
+        CTHETA_TL_F = XP(5)
+        PHI_TL_F = XP(6)
+        CTHETA_WL_F = XP(7)
+        PHI_WL_F = XP(8)
+C
+        CALL MAKE_DECAY_VECTOR(TOP_MASS_F,CTHETA_TL_F,PHI_TL_F,WMASS,
+     &    BMASS,W_LEP_TOP_F,B_LEP_TOP_F)
+        CALL DLORENB(TOP_MASS_F,TOP_LEPTON_F,W_LEP_TOP_F,W_LEPTON_F)
+        CALL DLORENB(TOP_MASS_F,TOP_LEPTON_F,B_LEP_TOP_F,B_LEPTON_F)
+C
+        DO I = 1 , 4
+C 4 VECTOR OF FIT BLEP_JET IN THE LAB.
+          BLEP_JET_F4(I) = TOP_LEPTON_F(I) - W_LEPTON_F(I)
+        ENDDO
+        CALL GET_ET_ETA_PHI(BLEP_JET_F4)
+        CALL GET_POLAR(BLEP_JET_F4,BLEP_JET_F)
+C
+        LEPMASS=ELMASS
+        IF ( LEPTON_TYPE.EQ.2 ) THEN
+          LEPMASS=MUMASS
+        ENDIF
+C
+        CALL MAKE_DECAY_VECTOR(WMASS,CTHETA_WL_F,PHI_WL_F,LEPMASS,
+     &    NUMASS,LEPTON1_W_F,NEUTRINO_W_F)
+        CALL DLORENB(WMASS,W_LEPTON_F,LEPTON1_W_F,LEPTON_F4)
+        CALL DLORENB(WMASS,W_LEPTON_F,NEUTRINO_W_F,NEUTRINO_F4)
+        CALL GET_ET_ETA_PHI(LEPTON_F4)
+        CALL GET_POLAR(LEPTON_F4,LEPTON_F)
+C
+C ****  NOW DO THE HADRONIC W
+C
+        DO I = 1 , 3
+          TOP_HADRON_F(I) = XP(8+I)
+        ENDDO
+C
+        CALL MAKE_ON_SHELL(TOP_HADRON_F,TOP_MASS_F,TOP_HADRON_F,2)
+        CTHETA_TH_F = XP(12)
+        PHI_TH_F = XP(13)
+        CTHETA_WH_F = XP(14)
+        PHI_WH_F = XP(15)
+C
+        CALL MAKE_DECAY_VECTOR(TOP_MASS_F,CTHETA_TH_F,PHI_TH_F,WMASS,
+     &    BMASS,W_HAD_TOP_F,B_HAD_TOP_F)
+        CALL DLORENB(TOP_MASS_F,TOP_HADRON_F,W_HAD_TOP_F,W_HADRON_F)
+        CALL DLORENB(TOP_MASS_F,TOP_HADRON_F,B_HAD_TOP_F,B_HADRON_F)
+C
+        DO I = 1 , 4
+C 4 VECTOR OF FIT BHAD_JET IN THE LAB.
+          BHAD_JET_F4(I) = TOP_HADRON_F(I) - W_HADRON_F(I)
+        ENDDO
+        CALL GET_ET_ETA_PHI(BHAD_JET_F4)
+        CALL GET_POLAR(BHAD_JET_F4,BHAD_JET_F)
+C
+        CALL MAKE_DECAY_VECTOR(WMASS,CTHETA_WH_F,PHI_WH_F,HADMASS,
+     &    HADMASS,JET1_W_W_F,JET2_W_W_F)
+        CALL DLORENB(WMASS,W_HADRON_F,JET1_W_W_F,HAD_JET1_F4)
+        CALL DLORENB(WMASS,W_HADRON_F,JET2_W_W_F,HAD_JET22_F4)
+C
+        DO I = 1 , 4
+          HAD_JET2_F4(I) = W_HADRON_F(I) - HAD_JET1_F4(I)
+        ENDDO
+C
+        CALL GET_ET_ETA_PHI(HAD_JET1_F4)
+        CALL GET_POLAR(HAD_JET1_F4,HAD_JET1_F)
+        CALL GET_ET_ETA_PHI(HAD_JET2_F4)
+        CALL GET_POLAR(HAD_JET2_F4,HAD_JET2_F)
+C
+        DO I = 1 , 2
+          REST_F(I) = TOP_HADRON_F(I) + TOP_LEPTON_F(I)
+          REST_F(I) = - REST_F(I)
+        ENDDO
+C
+        CHISQ = 0.0D0
+        DO I = 1 , NMEAS
+          DO J = 1 , NMEAS
+            CHISQ = CHISQ +
+     &        (XMEAS(I)-XPRED(I))*HMAT(I,J)*(XMEAS(J)-XPRED(J))
+          ENDDO
+        ENDDO
+      ELSE
+      ENDIF
+C
+  999 RETURN
+      END

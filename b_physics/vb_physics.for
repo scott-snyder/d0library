@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VB_PHYSICS()
+      VB_PHYSICS = ' B_PHYSICS'//
+     X                   '  OFFICIAL V1.03'//
+     X                   ' 12-JUL-1997 21:03:29.56'
+      Return
+      End

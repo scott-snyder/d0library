@@ -1,0 +1,359 @@
+\START   TOP_LEPTONS_RCP
+\SIZE        487       351
+!------------------------------------------------------------------------------
+!   Name:       TOP_LEPTONS_RCP
+!   Purpose:    Control file for TOP_LEPTONS package
+!   Created:    10-JUL-1992
+!   Modified:   18-Oct-1992  Top channel specific logicals added
+!   Modified:    1-Nov-1992  Vertex and Trigger Cuts added
+!   Modified:    2-Nov-1992  Bad Run Checking Added
+!   Modified:   13-Nov-1992  Run Range Checking Added
+!   Modified:   16-Nov-1992  Cuts for Lepton+jets analysis added
+!   Modified:   14-Dec-1992  Isolation cuts for top->dilepton finders added
+!   Modified    28-Dec-1992  updates for new electron selection package
+!   Modified     1-Feb-1993  CLEANEM package parameters added
+!   Modified     7-Apr-1993  Additional cuts in mujet finder for leptons tags
+!   Modified    22-Apr-1993  RECO study toggle added + more parameters for
+!                            mujet
+!   Modified    29-Apr-1993  Jet Hot Cell rejection code added
+!   Modified     1-May-1993  Additional hooks for QCD background studies added
+!                            dilepton finder isolation logic changed
+!   Modified    16-May-1993  More parameters for Top_Dilepton Finders + WGamma
+!                            finders.
+!   Modified     7-Jul-1993  New version of CLEANEM
+!                            Energy Scale Corrections Added
+!                            Controls for new Jet Corrections Added
+!   Modified    22-Jul-1993  Muon dE/dx and core cone energies added
+!   Modified    16-Sep-1993  extra cuts added for dimuon finder
+!   Modified    14-Oct-1993  extra cuts added for mu+jets finder
+!   Modified     4-Dec-1993  Filter Name Selection Added + mu+jets finder
+!                            parameters revised
+!
+!   Version:     V5.10
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+\ARRAY HBOOK_DIRECTORY
+      'TOP_LEPTONS'
+\END
+!------------------------------------------------------------------------------
+! Cuts used in LEPTONS package
+!------------------------------------------------------------------------------
+!   1.) Global event/run quantities
+!       a.) Look for Known Bad Runs
+DO_RUN_RANGE_SELECT  .TRUE. ! Select Run Range for analysis
+FIRST_RUN             50000 ! 1st Run Number
+LAST_RUN              70000 ! Last Run Number
+DO_GOOD_RUN_SELECT  .FALSE. ! Test for Bad Runs (Access BAD_RUN_RCP)
+!
+!       b.) L1 and L2 Trigger Information
+DO_TRIGGER_SELECT   .FALSE.  ! Test on L1/L2 Trigger Bits
+DO_TRIGFAIL_SELECT  .FALSE. ! Select only events which do NOT pass trigger sel
+DO_BIT_SELECT       .FALSE. ! Test on L1/L2 trigger bits
+\ARRAY    L1_BITS           ! Bit No. Array of desired L1 Trigger Bits
+    8
+\END
+\ARRAY    L2_FILTERS        ! Bit No. Array of desired L2 Filters
+    8
+\END
+DO_FILTERNAME_SELECT .FALSE. ! Test on L2 filter names
+\ARRAY    FILTER_LIST
+    'MU_ELE'
+\END
+DO_MICRO_BLANK_CUT  .TRUE. ! Cut on Micro_Blank flag
+DO_MRBS_LOSS_CUT    .FALSE. ! Veto on MRBS Loss window
+!
+!       c.) Vertex Information
+DO_VERTEX_CUTS      .FALSE.  ! Apply cuts to primary vertex information
+VERTEX_MAX_NO_P          1  ! Max allowed Primary Vertex Multiplicity
+VERTEX_ZMIN          -110.  ! Min vertex z-position (cm)
+VERTEX_ZMAX            90.  ! Max vertex z-position (cm)
+!------------------------------------------------------------------------------
+!   2.) Track/Particle Information
+!       a.) Muon cuts
+PMUO_ETAMIN            0.0  ! Min eta for allowable muon candidate
+PMUO_ETAMAX            1.7  ! Max eta for allowable muon candidate
+PMUO_PTMIN             3.0  ! Min Pt for muon
+PMUO_PTMAX         99000.0  ! Max Pt for muon
+\ARRAY MUON_MASK
+ 1 1 1 1   1 1 1 0   1 1 1 1   1 1 1 0   1 1 0 1   0 1 0 0   0 0 0 0   0 0 0 0
+\END
+!
+!       b.) electron cuts
+PELC_ETAMIN            0.0  ! Min eta for allowable electron candidate
+PELC_ETAMAX            2.5  ! Max eta for allowable electron candidate
+PELC_PTMIN             5.0  ! Min Pt for electron
+PELC_PTMAX          5000.0  ! Max Pt for electron
+\ARRAY ELECTRON_MASK
+ 0 1 0 1   0 0 0 1   0 0 0 0   0 0 0 1   0 0 0 0   0 0 0 0   0 0 0 0   0 0 1 0
+\END
+!
+!       c.) photon cuts
+PPHO_ETAMIN            0.0  ! Min eta for allowable gamma candidate
+PPHO_ETAMAX            2.5  ! Max eta for allowable gamma candidate
+PPHO_PTMIN             5.0  ! Min Pt for gamma
+PPHO_PTMAX          5000.0  ! Max Pt for gamma
+\ARRAY PHOTON_MASK
+ 0 1 0 1   0 0 0 1   0 0 0 0   0 0 0 1   0 0 0 0   0 0 0 0   0 0 0 0   0 0 1 0
+\END
+!
+!       d.) jet cuts
+JETS_ETAMIN            0.0  ! Min eta for allowable jet
+JETS_ETAMAX            4.0  ! Max eta for allowable jet
+JETS_PTMIN             6.0  ! Min Pt for jet
+JETS_PTMAX          1000.0  ! Max Pt for jet
+!------------------------------------------------------------------------------
+!   3.) Physics Analysis selections
+!
+!   Isolated Lepton Cuts - common to top, W, Z and WW finders -
+!
+ISOLEL_PTMIN          10.0  ! Min Et of isolated electron
+ISOLMU_PTMIN          10.0  ! Min Pt of isolated muon
+ISOLPH_PTMIN          10.0  ! Min Et of isolated photon
+!
+DO_ISOL_CONE_SUB     .FALSE. ! Muon Isolation : toggle core/isolation cone alg.
+MU_JET_DRMIN          -0.5  ! Muon Isolation : Min dR muon-jet alg.
+EL_JET_DRMIN          -0.5  ! Electron Iso.  : Min dR electron-nearest jet
+PH_JET_DRMIN          -0.5  ! Photon Iso.    : Min dR photon-nearest jet
+ETMIN_JET_DRMIN       10.0  ! min Jet Et for min dR veto
+CORECONE_SIZE         0.2   ! Cone size : muon core cone
+ISOCONE_SIZE          0.4   ! Cone size : muon isolation cone
+ISOCONE_CUT_CF        4.0   ! Max Energy Cut (GeV) : CF region
+ISOCONE_CUT_EF        5.0   ! Max Energy Cut (GeV) : EF region
+!
+!       a.) top->dileptons finder selection cuts
+!
+NISOLMU_PTMIN          5.0  ! Min Et of non-isolated muon
+!
+DO_EF_COSMIC_CUT    .FALSE.  ! for mumu, EF to EF cosmic rejection
+EF_DETA_CUT            0.3  ! diff. in back to back of suspected EF dimuon
+!
+I_BREM_FLAG              1  ! Bremm flag -1/1 keep brem/non-brem elec/phot
+MU_ELPH_DRMIN        -0.25  ! Bremm : Min dR muon-nearest electron/photon
+!
+DO_MT_WAB_CUT        .FALSE. ! Bremm : Toggle Mt(lep,gam,Etmiss) cut
+I_BREM_FLAG2             1  ! Bremm flag -1/1 keep WAbrem/non-WAbrem elec/phot
+WAB_PNUT3_ETMIN       15.0  ! Bremm : Min Pnut3 Etmiss for WAB
+WAB_DR_MAX_MUCLUS      1.5  ! Bremm : Max allowed dR(mu-clus)
+MT_MIN_WAB            25.0  ! Bremm : Min cluster mass
+MT_MAX_WAB           120.0  ! Bremm : Max cluster mass
+!
+PNUT2_ETMIN           -20.0  ! MIn Missing Et (before muon corr = CALO+ICD+MG)
+PNUT3_ETMIN           -10.0  ! Min Missing Et (after muon correction)
+!
+DO_DPHI12_CUT      .FALSE.  ! Toggle for dPhi(Lepton1-Lepton2) cut
+MAX_DPHI_L12         160.0  ! Max delta-phi between lepton1 and lepton2 (deg)
+DO_MASS12_CUT      .FALSE.  ! Toggle for Mass(Lepton1-Lepton2) cut
+MASS_L12_MIN           0.0  ! Min Pair mass
+MASS_L12_MAX          90.0  ! Max Pair mass
+DO_MASS_DPHI_CUT    .FALSE. ! Toggle for Mass-dPhi Correlation cut
+DO_DPHILEM_CUT     .FALSE.  ! Toggle for max dphi(Etmiss-Pt(mumu)) cut
+MAX_DPHI_LEMISS     120.0   ! Max dphi(Etmiss-Pt(mumu))
+!
+JET_MULT_MIN             0  ! Minimum jet multiplicity (after cuts)
+JET1_PTMIN            15.0  ! Min Et of leading jet
+JET2_PTMIN            15.0  ! Min Et of second jet
+!
+!       b.) top->lepton+jets finder selection cuts
+!
+LJ_MUON1_PTMIN        10.0  ! Min muon Pt - leading muon
+LJ_NOMUON_MIN            1  ! Min muon multiplicity
+LJ_NOMUON_MAX           10  ! Max muon multiplicity
+!
+LJ_DO_ISOL_CUT     .TRUE.  ! Turn isolation cuts on/off
+LJ_NOMU_NONISO_MIN       0  ! Min no of isolated muons
+LJ_NOMU_ISO_MAX          1  ! Max no of isolated muons
+LJ_MUON2_PTMIN         5.0  ! Min muon Pt - secondary
+LJ_NOMU_NONISO_MIN       0  ! Min no of non-isolated muons
+LJ_NOMU_NONISO_MAX      10  ! Max no of non-isolated muons
+!
+LJ_B2B_DPHIMIN        -1.0  ! Min dphi diff between Mu_NegPhi and Phi Jet1
+LJ_MUON2_DRMAX         1.0  !Max dR to near jet for secondary muon selection
+!
+LJ_PNUT2_ETMIN        -20.0  ! Min Missing Et (before muon corr = CALO+ICD+MG)
+LJ_PNUT3_ETMIN        -20.0  ! Min Missing Et (after muon correction)
+!
+LJ_JET_MULT_MIN         1   ! Minimum jet multiplicity (after cuts)
+LJ_JET_MULT_MAX         10  ! Not invoked for >= 10  "n"
+LJ_PTMAX_NEXTJET      15.0  ! Max ET of jet "n+1"
+!
+LJ_JET1_PTMIN         10.0  ! Min Et of leading jet
+LJ_JET2_PTMIN         10.0  ! Min Et of second jet
+LJ_JET3_PTMIN         10.0  ! Min Et of third jet
+LJ_JET4_PTMIN         10.0  ! Min Et of fourth jet
+LJ_JET5_PTMIN         10.0  ! Min Et of fifth jet
+LJ_JET6_PTMIN         15.0  ! Min Et of sixth jet
+!
+LJ_APLAN_MIN           0.1  ! Min Aplanarity for the event
+!
+LJ_DO_SHAPE_JET_DROP .FALSE. !Drop one jet for QCD aplanarity calculations
+LJ_JET_DROP_ETMIN     20.   !Min ET of dropped jet
+LJ_JET_DROP_ETMAX     90.   !Max ET of dropped jet
+LJ_JET_DROP_ETAMIN     0.   !Min eta of dropped jet
+LJ_JET_DROP_ETAMAX     1.7  !Max eta of dropped jet
+!
+LJ_HT_MIN            -60.0  ! Min Ht for event
+LJ_HT_JETPT_MIN      -10.0  ! Min jet Pt for inclusion in HT calculation
+LJ_HT_JETETA_MAX    9994.0  ! Max jet eta for inclusion in HT calculation
+!
+LJ_ELEC_PTMIN         10.0  ! Min electron Et
+LJ_ISOL_2N_MAX    999999.0  ! Max sigma of 2nn isol word
+!
+!       c.) W finder specific cuts
+!
+PNUT2_ETMIN_W        -15.0  ! MIn Missing Et (before muon corr = CALO+ICD+MG)
+PNUT3_ETMIN_W        -10.0  ! Min Missing Et (after muon correction)
+!
+!       d.) Z finder specific cuts
+!
+!
+!       e.) Wgamma finder specific cuts
+!
+WWG_LEPTON_PTMIN      10.0  ! Min Pt of leading lepton
+WWG_PHOTON_PTMIN       5.0  ! Min Pt of photon candidate
+WWG_PNUT2_ETMIN      -10.0  ! MIn Missing Et (before muon corr = CALO+ICD+MG)
+WWG_PNUT3_ETMIN      -20.0  ! Min Missing Et (after muon correction)
+WWG_MIN_MT_CLUSTER   -30.0  ! Minimum lep1+lep2+neut cluster mass - WWgamma
+WWG_DRMIN_LEP_PHO     -0.5  ! Minimum dR(lepton-photon)
+!
+WWG_ISOL_CUT         .TRUE. ! Enable/disable isolation cut on lepton/photon
+WWG_DRMIN_LEP_JET      0.7  ! Minimum dR(lepton-jet)
+WWG_MAX_ISO_SIG_LEP   99.0  ! Max sigmas for dR=0.6 cone isolation cut on lepton
+WWG_DRMIN_PHO_JET      0.7  ! Minimum dR(photon-jet)
+!
+WWG_DPHI_CUT         .TRUE. ! Enable/disable dPhi(lepton-photon) cut
+WWG_DPHI_LEP_PHO     160.0  ! Max dPhi(lepton-photon)
+!
+WWG_MASS_CUT         .TRUE. ! Enable/disable window cut on mass(lepton-photon)
+WWG_MASS_MIN          0.0   ! Min mass(lepton-photon)
+WWG_MASS_MAX         90.0   ! Max mass(lepton-photon)
+!
+WWG_MASS_DPHI_CUT    .TRUE. ! Enable/disable correlated MASS and DPHI cut
+!
+!       f.) QCD Top-dilepton Background (misc. extra cuts)
+!
+QCD_PNUT2_ETMIN      -20.0  ! Min Missing Et (before muon corr = CALO+ICD+MG)
+QCD_PNUT2_ETMAX    99999.0  ! Max Missing Et (before muon corr = CALO+ICD+MG)
+QCD_PNUT3_ETMIN      -20.0  ! Min Missing Et (after muon correction)
+QCD_PNUT3_ETMAX    99999.0  ! Max Missing Et (after muon correction)
+MU_JET_DRMAX           0.7  ! Max dR to near jet for muon selection
+QCD_JET_MULT_MIN         0  ! Minimum jet multiplicity (after cuts)
+QCD_JET1_PTMIN       -12.5  ! Min Et of leading jet
+QCD_JET2_PTMIN       -10.0  ! Min Et of second jet
+!
+!       g.) Wpair Background (misc. extra cuts)
+!
+WP_JET_MULT_MAX          0  ! Maximum Jet multiplicity (after cuts)
+WP_JET_PTMAX          20.0  ! Max Jet Pt
+!------------------------------------------------------------------------------
+! Controls used in LEPTONS package
+!------------------------------------------------------------------------------
+!
+PRINT_CUTSUM        .TRUE.  ! Print summary of selection cuts
+LIST_IDCUTS         .TRUE.  ! List e/mu/gamma id/validation cuts
+DO_EVENT_FIX        .FALSE.  ! Fixups for spacific events
+DO_DUMPS            .TRUE.  ! dump slected events (user selected)
+LONG_DUMPS          .TRUE.  ! enable/disble long dump
+PLOT_HISTOGRAMS     .FALSE.  ! enable/disable Histogramming
+PLOT_ELECTRON_HIST  .FALSE.  !    electron diagnostic plots
+PLOT_MUON_HIST      .TRUE.  !    muon diagnostic plots
+PLOT_DIMUON_HIST    .FALSE. !    dimuon diagnostic plots
+PLOT_MUJET_HIST     .FALSE. !    muon-jet diagnostic plots
+PLOT_PHOTON_HIST    .FALSE.  !    photon diagnostic plots
+FILL_NTUPLES        .FALSE. ! enable/disable Ntuple filling
+ELPH_NTUPLE         .FALSE. !    electron/photon specific NTUPLE
+MU_NTUPLE           .FALSE. !    muon specific NTUPLE
+PRINT_LUN           12      ! LUN for all (non-debug) printout/diagnostics
+ERROR_LUN           3       ! LUN for all error messages
+!-----------------------------------------------------------------------------
+! Program testing/diagnostic options
+!-----------------------------------------------------------------------------
+DO_DIAGNOSTIC_DUMPS .FALSE. ! event dumps with no evt selection (diag. testing)
+NO_EVT_DIAGNOSTICS   5      ! no of events wanted in dump
+DO_ANAL_TEST        .FALSE. ! limited event processing - full event selection
+NO_EVT_TEST          5     ! no of events wanted in test run
+DO_RECO_DIAGNOSTICS .FALSE. ! RECO diagnostic output
+!------------------------------------------------------------------------------
+! Physics related options
+!------------------------------------------------------------------------------
+!
+FINDW_CAND          .FALSE. ! enable/disable W-finder
+FINDW_ENU           .TRUE.  !      enable/disable W->enu finder
+FINDW_MUNU          .FALSE.  !      enable/disable W->munu finder
+!
+FINDZ_CAND          .FALSE.  ! enable/disable Z-finder
+FINDZ_EE            .FALSE. !      enable/disable Z->ee finder
+FINDZ_MUMU          .TRUE. !      enable/disable Z->mumu finder
+!
+FINDWWG_CAND        .FALSE. ! enable/disable WGamma finder
+FIND_WE_GAM         .FALSE. !      enable/disable Wgamma in e-gamma mode
+FIND_WMU_GAM        .FALSE. !      enable/disable Wgamma in mu-gamma mode
+!
+FINDTOP_CAND        .TRUE. ! enable/disable Top-finder
+FINDTOP_EE          .FALSE. !      enable/disable Top->ee finder
+FINDTOP_EMU         .TRUE. !      enable/disable Top->emu finder
+FINDTOP_MUMU        .FALSE. !      enable/disable Top->mumu finder
+FINDTOP_MUJET       .FALSE. !      enable/disable Top->mu+jets find
+FINDTOP_EJET        .FALSE. !      enable/disable Top->e+jets fin
+!
+FINDQCD_CAND        .FALSE.  ! enble/disable QCD background finder
+FINDQCD_EE          .FALSE. !      enable/disable QCD->ee finder
+FINDQCD_EMU         .TRUE. !      enable/disable QCD->emu finder
+FINDQCD_MUMU        .FALSE. !      enable/disable QCD->mumu finder
+FINDQCD_MUJET       .FALSE. !      enable/disable QCD->mu+jets find
+FINDQCD_EJET        .FALSE. !      enable/disable QCD->e+jets fin
+!
+FINDWPAIR_CAND      .FALSE. ! enable/disable WPair Finder.
+FINDWPAIR_EE        .FALSE. !      enable/disable Wpair->ee finder
+FINDWPAIR_EMU       .FALSE. !      enable/disable Wpair->emu finder
+FINDWPAIR_MUMU      .FALSE. !      enable/disable WPair->mumu finder
+FINDWPAIR_MUJET     .FALSE. !      enable/disable WPair->mujet
+FINDWPAIR_EJET      .FALSE. !      enable/disable WPair->ejet
+!-----------------------------------------------------------------------------
+! Muon, Energy Scale, Jet Corrections and Hot Cell Killer
+!-----------------------------------------------------------------------------
+!
+MU_CORR             .TRUE.  ! correct muon momentum using measured dE/dx
+!----------------------------
+EM_CORR             .TRUE.  ! apply absolute em enrgy scale corrections
+HV_SCALE_FACTOR     1.015   ! high voltage correction - only RECO 10 data
+\ARRAY EM_SCALE_FACTORS
+   1.025    1.072    1.012
+\END
+!----------------------------
+JETS_CORR           .TRUE.  ! apply correction to jets
+JETS_ISYS           0       !    correction : 0/1/2 for nominal/low/high
+DO_ZSP_CORR         .TRUE.  !    enable zero suppression correction to jets
+DO_UNDEVT_CORR      .TRUE.  !    enable underlying event correction to jets
+DO_OUTOFCONE_CORR   .TRUE.  !    enable out-of-cone correction to jets
+JETS_ALGORITHM      1       ! Jet algorithm for analysis
+!                               = 1/2/3/4  for 0.7/0.5/0.3 cone/NN
+!----------------------------
+JETS_KILL_HOT_CELLS .FALSE.  ! Kill Hot Cell Jets
+HOTCELL_RAT_CUT     10.0    !    ratio hottest/next hottest cell in jet
+CH_FRAC_CUT       990.40    !    max allowed jet CH fraction
+EM_FRAC_CUT        -0.05    !    min allowed jet em fraction
+EM_FRAC_MAX_CUT   990.95    !    max allowed jet em fraction
+ICD_FRAC_CUT      991.00    !    max allowed jet ICD+MG fraction
+!------------------------------------------------------------------------------
+! Selected Event File I/O
+!------------------------------------------------------------------------------
+!
+WRITE_EVENTS_OUT    .FALSE.     ! enable/disable writing of selected events
+WRITE_STA_FILE      .FALSE.     ! write STA file
+WRITE_DST_FILE      .TRUE.     ! write DST file
+! output filename for seleced event STA
+!OUTPUT_STA  'D0UCR5$DKA0:[tmp38.top_emu]Good_STA_Reu1012.STA'
+OUTPUT_STA  'D0UCR6$DKA0:[prj39.top4.dilepton.data]EMU_1010_COBREM_CAND.STA'
+! output filename for seleced event DST
+OUTPUT_DST  'D0UCR6$DKA0:[prj39.top4.dilepton.data]EMU_1515_CORR.DST'
+!------------------------------------------------------------------------------
+! Ntuple initialization
+!------------------------------------------------------------------------------
+NTUPE_TOP_DIR 'TOP_LEPTONS'     ! top hbook directory for Ntuples
+NTUPLE_FILE   'TOP_LEPTONS.NT4' ! output filename for selected event Ntuple
+NTUPLE_TITLE  'top dilepton variables'
+NTUPLE_PRIMARY_ALLOCATION 8191
+NTUPLE_ID     1
+USER_ID       333
+\STOP

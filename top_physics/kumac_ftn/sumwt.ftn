@@ -1,0 +1,48 @@
+      SUBROUTINE SUMWT(ID,SUM,XLO,XHI)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : RETURNS THE SUM OF WEIGHTS OF HISTOGRAM
+C-
+C-   Inputs  :ID OF HISTOGRAM
+C-   XLO,XHI ARE THE LIMITS OF ABSCISSA IN WHICH TO FIND THE WEIGHTS
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  12-MAY-1993   Rajendran Raja
+C-
+C----------------------------------------------------------------------
+C      VECTOR    XLO
+C      VECTOR XHI 
+C      VECTOR    SUM
+      CHARACTER*80 TITLE
+      REAL Y(200)
+      REAL    X1,X2,Y1,Y2,DELX,X
+      INTEGER ID,NX,NY,NWT,LOC,NENT,I
+C----------------------------------------------------------------------
+      WRITE(33,*)' INTEGRATING ID ',ID
+      CALL HGIVE(ID, TITLE,NX,X1,X2,NY,Y1,Y2,NWT,LOC)
+      CALL HNOENT(ID,NENT)
+      WRITE(33,*)' number of entries',NENT
+C
+      CALL HUNPAK(ID,Y,' ',0)
+C
+      SUMS = 0.
+      DELX = (X2-X1)/NX
+      WRITE(33,*) ' ID,NX,X1,X2,DELX', ID,NX,X1,X2,DELX
+C
+      XLO1 = XLO
+      XHI1 = XHI
+      WRITE(33,*)'XLO,XHI ',XLO1,XHI1
+      DO 100 I = 1, NX
+        X = X1 + (I-1)*DELX
+        WRITE(33,*)' I,X,Y',I,X,Y(I)
+        IF ( X.GE.XLO1.AND.X.LE.XHI1 ) THEN
+          SUMS = SUMS + Y(I)
+        ENDIF
+  100 CONTINUE
+C
+      WRITE(33,*)' SUM OF HISTOGRAM BINS ',SUMS
+      SUM = SUMS
+C
+  999 RETURN
+      END

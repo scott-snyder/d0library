@@ -1,0 +1,126 @@
+\START   MUON_SELECT_RCP
+\SIZE        132       129
+!------------------------------------------------------------------------------
+!   Name:       MUON_SELECT_RCP
+!   Purpose:    Control file for Muon id/selection routine
+!   Created:    25-Sep-1992
+!   Modified:   23-Oct-1992 Cuts on no. of muon layers and B.dl added
+!   Modified:   27-Jan-1993 t0 float,mip opposite, multiplicity cuts added
+!   Modified:    1-Feb-1993 Muon Isolation Parameters added
+!   Modified:   12-Feb-1994 Flag to reject A-layer stubs added
+!
+!   Version:     V5.11
+!------------------------------------------------------------------------------
+! Cuts used in muon id/selection
+!------------------------------------------------------------------------------
+!    a.) Cosmic Ray rejection cuts
+MU_DO_MUCTAG_CUT     .TRUE.  ! Cut on MUCTAG Cosmic flags
+MU_IFW2_BIT7_CUT          0  !   IFW2 Bit 7 Selection (0/1=veto/select Cosmics)
+MU_IFW2_BIT8_CUT          0  !   IFW2 Bit 8 Selection (0/1=veto/select Cosmics)
+!
+MU_DO_OCTANT_CUT     .TRUE.  ! Cut on crossing octant tracks
+MU_IFW2_BIT9_CUT          0  !   IFW2 Bit 9 Selection (0/1=veto/select Cosmics)
+!
+MU_DO_IMPACT_CUT     .TRUE.  ! Cut on Impact parameters wrt closest vertex
+MU_MAX_IMPACT          22.0  !     Max 3-D impact parameter
+MU_MAX_BEND_IMPACT    999.0  !     Max impact parameter in Bend view (x,y-z)
+MU_MAX_NONBEND_IMPACT 999.0  !     Max impact parameter in Non-bend view (x-y)
+!
+MU_DO_T0FLOAT_CUT   .FALSE.  ! Cut on floating t0 offset
+MU_MAX_T0FLOAT       100.0  !     Max (abs) value of t0 float offset
+!
+MU_DO_OPP_MIP_CUT   .FALSE.  ! Cut on b2b mip signal in Calorimeter
+MU_MIN_OPP_MIPEN        1.5  !     Minimum value of energy (2NN) for b2b veto
+!    b.) Track validation/quality cuts - muon system
+MU_DO_IFW1_CUT      .FALSE.  ! Cut on value of IFW1
+MU_IFW1_NOMISS_A          0  !     0 => force A-layer information on track
+MU_IFW1_NOMISS_B          1  !     0 => force B-layer information on track
+MU_IFW1_NOMISS_C          1  !     0 => force C-layer information on track
+!
+MU_DO_HITPLN_CUTS   .FALSE.  ! Cut on observed available hit/plane mult
+MU_CF_WAMA_MIN            0  !     Min WAMUS CF A-layer hits
+MU_CF_WAMB_MIN            0  !     Min WAMUS CF B-layer hits
+MU_CF_WAMC_MIN            0  !     Min WAMUS CF C-layer hits
+MU_CF_WAMTOT_MIN          0  !     Min WAMUS CF total (A+B+C) hits
+MU_EF_WAMA_MIN            0  !     Min WAMUS EF A-layer (A+A') hits
+MU_EF_WAMB_MIN            0  !     Min WAMUS EF B-layer (B+B') hits
+MU_EF_WAMC_MIN            0  !     Min WAMUS EF C-layer (C+C'+D) hits
+MU_EF_WAMTOT_MIN          0  !     Min WAMUS EF total (A+B+C+D+A'+B'+C') hits
+MU_DO_EF_LVL2_CUT    .FALSE. !     Aplly level 2 trigger mult cuts
+!
+MU_DO_REJECT_A_STUB  .TRUE.  ! Reject A-Layer Stubs
+!
+MU_DO_IFW4_CUT       .TRUE.  ! Cut on value of IFW4
+MU_IFW4_CUT               1  !     Max allowed value of IFW4
+!
+MU_DO_BEND_QUAL_CUT .FALSE.  ! Cut on Bend view quality of fit
+MU_MAX_BEND_QUAL       20.0  !     Max bend view quality of fit (cm)
+!
+MU_DO_NBEND_QUAL_CUT .FALSE. ! Cut of Non-bend view qulity of fit
+MU_MAX_NO_BEND_QUAL    20.0  !     Max non-bend view quality of fit (cm)
+!
+!    c.) Track validation/quality cuts - central tracking system
+MU_DO_CDCUT          .TRUE.  ! Require PMUO-ZTRAK match
+MU_MAX_ZTRAK_DPHI      0.45  !     Max dPhi muon-Ztrak for match (rad)
+MU_MAX_ZTRAK_DTHETA    0.45  !     Max dTheta muon-Ztrak for match (rad)
+MU_DO_CD_MULT_CUT    .TRUE.  ! Appply cuts on matching track multiplicity
+MU_MIN_CD_MULT            0  !     Min no of matching CD tracks
+MU_MAX_CD_MULT           20  !     Max no of matching CD tracks
+!
+!    d.) Track validation/qulaity cuts - calorimeter energy deposition
+MU_DO_CALDEP_CUT     .TRUE. ! Cut on minimum energy seen in Calorimeter
+MU_MIN_ENERGY_02       0.5  !     Min energy hit cell + 2NN (cd match)
+MU_MIN_MIP_NOCD        1.5  !     Min energy hit cell + 2NN (no cd match)
+!
+!       Global fit info
+!
+GLOBFIT_MAX_CHISQ      50.0 ! Max global fit chisquare for use of glob fit chisq
+!    e.) Fiducial volume cuts
+MU_DO_BDL_CUT        .FALSE. ! Cut on integ. B.dl used in p calculation
+MU_MIN_BDL             0.55  !     Minimum B.dl for good p determination
+!
+!    f.) Isolation parameters
+!------------------------------------------------------------------------------
+!Isolation methods & parameters:
+!------------------------------------------------------------------------------
+!Methods:
+! 1=isolation parameter method, 2=energy in cone method,
+! 3=jets nearby method,4=core cone subtract method. (Also AND & OR of various
+! methods can be done. for instance method 14 means it should pass method 1
+! and 4. Also "OR" of all array elements of MUISO_METHOD are accepted.
+\ARRAY  MUISO_METHOD
+ 1
+ 2
+ 3
+ 4
+\END
+!
+! Method 1 based on pmuo isolation parameter
+!
+ ISOPAR_CONE_SIZE      0.4
+ ISOPAR_CUT            3.8
+!
+! Method 2 based on pmuo energy in cone minus expected energy
+!
+ ECONE_SIZE            0.6
+ ECONE_CUT             2.0    !GeV
+!
+! Method 3 based on jets found in a cone arround muon
+!
+ CORE_JET_TYPE           3    ! (Jet type in core 1=cone 0.7,2=0.5,3=0.3,4=NN)
+ ISO_JET_TYPE            2    ! (Jet type in isolation cone)
+ CORECONE_SIZE_MUJT     0.15
+ ISOCONE_SIZE_MUJT      0.5
+!
+! Method 4 based on core cone subtraction
+!
+! CORECONE_SIZE         0.2
+! ISOCONE_SIZE          0.4
+! ISOCONE_CUT_CF        4.0    !GeV
+! ISOCONE_CUT_EF        5.0    !GeV
+!
+!------------------------------------------------------------------------------
+! Controls used in Muon id/selection code
+!------------------------------------------------------------------------------
+!
+\STOP

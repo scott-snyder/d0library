@@ -1,0 +1,170 @@
+    This document is located in D0$B_PHYSICS:DILBOSON.DOC
+
+
+    DILBOSON:  PACKAGE FOR RECONSTRUCTION OF BOSONS FROM DILEPTON DECAYS
+    --------------------------------------------------------------------
+
+                        Chris Murphy & Daria Zieminska  
+                              (17 March 1992)
+
+    
+    This  document is  divided into  three  main parts.  First we  describe very
+briefly the main  intention of the overall package.  The second part attempts to
+make clear the basic structure  and methods of the package. Finally, we describe
+how to run the package.
+
+
+PURPOSE:
+-------
+            
+    This  package attempts  to  reconstruct  bosons, such as  J/psi , from their
+two-body decays  into weak-isospin=  -1/2 particle and  anti-particle pairs. For
+example, 
+
+                        J/psi -> mu+  mu-
+                        Z0    -> e+   e-           .
+
+    At the present time  only dimuon decays and  reconstruction are implemented,
+but the capability for treating dielectron and ditau decays is foreseen. 
+
+    Additionally, the DILBOSON package  incorporates the basic parts of the VEES
+package.   The   purpose  of  the   latter  is to   make   possible  the further
+reconstruction of certain exclusive decays such as
+
+                        B -> j/psi  Ks          .
+
+
+
+STRUCTURE:
+---------
+
+    The  PBD  file for  the  DILBOSON   package is   located in  the  usual area
+D0$PBD:DILBOSON.PBD.    It  lists the   following  package   hooks to the d0user
+framework (sources are in D0$B_PHYSICS$SOURCE):
+
+                     PROCESS EVENT          DILBOSON
+                     BEGIN_PROGRAM          DILBOSON_INI
+                     SETUP_RUN              DILBOSON_PAR
+                     REDEFINE_EVENT_DUMP    DILBOSON_DDF(entry to 
+                                                          DILBOSON_DMP)
+                     DUMP_EVENT             DILBOSON_DMP
+                     JOB_SUMMARY            DILBOSON_SUM      .
+
+    The package uses an RCP  file, namely  DILBOSON.RCP, which is located in the
+B_PHYSICS library  area  D0$B_PHYSICS:DILBOSON.RCP. The RCP  file is fairly well
+annotated and should be self-explanatory.
+
+    The event processing  hook DILBOSON has implicit  calls to the main analysis
+subroutines.   At the  present  time,  as was  stated   above,the main  analysis
+subroutine applies to dimuon decay and so is called DIMUON.
+
+    DIMUON gets its initial information  from the PMUO banks. Looping over pairs
+of opposite sign muons,  the momenta of the two  muons are picked up and stored,
+also the pointers  to the best matching  central-tracking  candidates are picked
+up. 
+
+    From  the  information  in  ZTRK it is   determined  which  central tracking
+detector component  observed the muon  tracks  (VTX,CDC,FDC). The pointer to the
+corresponding  zebra bank is picked up and then the angles theta and phi for the
+two tracks are  stored (phi is  preferred to be  taken from the  VTX if this  is
+available). 
+
+    The invariant mass of the pair is calculated and if it lies in an adjustable
+mass  range (read  in from  the file   DILBOSON.RCP) a mass   constrained fit is
+determined by the  subroutine VKIN_FIT This latter  subroutine calls into play a
+series of further  subroutines which perform  general least-squares fits subject
+to possible constraints.  This series of  subroutines is capable of fitting vees
+as well as  dilepton  decays. Observed  and fitted  track  parameters are passed
+among various subroutines via arrays such as STR(4,10),which are declared in the
+common D0$INC:VEEKIN.INC. Information  on fitted dilepton pairs is stored in the
+zebra  bank  PDIL.  Calorimeter  energy  in  cones  about the   direction of the
+reconstructed dilepton is determined by subroutine CAL_ECONES.
+
+    The rcp file contains several switches. Setting the switch DO_KSHORT to true
+allows for the  possibility of fitting  tracks  corresponding to vees. A call to
+subroutine   VEES_CONE  brings   portions of  the VEES  package  to  bear. These
+vees-related subroutines attempt to reconstruct vees on the hypothesis that they
+originate from Ks, lambda, etc.  (currently only Ks is implemented). Fitted vees
+are stored in the zebra bank PVES. The invariant mass of the fitted dilepton and
+the fitted  vee  particle is  calculated in  an  attempt to  reconstruct certain
+exclusive decays of possible interest.
+
+    A comparison of reconstructed muon tracks with the corresponding ISAJET data
+is also done provided one sets the rcp switch MCDATA to true. All histogramming,
+both booking  and filling, is  done via the  subroutine  DILBOSON_HIS. Since all
+filling is done only in this subroutine, items to be histogrammed must be passed
+as an   argument  in  the  call to    DILBOSON_HIS.  All   histogram  parameters
+(titles,number of   channels,limits,etc.) are read by  DILBOSON_HIS from the RCP
+file.  Hence any  further  histograms to be  booked  and filled  must have their
+parameters entered  into the RCP file.  Switches in the RCP  file allow selected
+histograms to be turned  on or off and the limits  etc changed without relinking
+the program.
+
+    An end of job summary hook called DILBOSON_SUM allows for final analysis and
+manipulation of booked histograms, printout of summaries,etc.
+
+
+RUNNING DILBOSON:
+----------------
+
+    The following steps are required to run the DILBOSON package:
+
+0) Muon and  central  tracking   reconstruction must  already have  been done by
+   running the  full  reconstruction  program  RECO_COMBINED  which collectively
+   utilizes the  packages  ZTRAKS,CALOR,CAHITS,MUON_RECO.  These can be combined
+   with the dilboson package into one  overall combined package, but it seems to
+   be much more  efficient to have done  the initial  reconstruction once, using
+   muon_reco   et.al.  while   simultaneously  producing  an STA  file which can
+   subsequently be used as input to the dilboson package.
+
+1) Go to your directory where you want to create the DILBOSON package.
+
+            $ SET DEF [XXXX.YYYY]
+
+2) If you want to use the test version of the library do,
+
+            $ LIBTEST ALL
+
+3) Run program builder to create the package in your directory.
+
+            $ PBD/FRAME=D0USER/NAME=DILBOSON
+
+   The above command makes use of a pbd  file called DILBOSON_COMBINED.PBD. This
+package  represents a  combined  one which   automatically  includes  along with
+DILBOSON the two packages CALOR and CAHITS. 
+
+4) Link the program,
+
+            $ @name_D0USER.LNK
+   or
+            $ @name_D0USER.LNK DEBUG
+
+5) Define input rcp files.
+
+            $ @name_D0USER.COM
+
+   The user may wish  to copy  DILBOSON.RCP and perhaps  VEES.RCP to his/her own
+area, and then appropriately edit  name_D0USER.COM to  force the program to take
+the rcp files from the user default directory.
+
+6) Run D0USER,
+
+            $D0USER/NOSMG
+   or
+            $D0USER/FULL
+   or
+            $DEB_D0USER/NOSMG    
+
+7) Adding user subroutines or modifying existing package subroutines.
+
+
+            The file specs for these should be inserted into the file
+
+             name_D0USER.OPT
+    or
+             DEB_name_D0USER.OPT
+
+    and then relink as in step 4.   
+
+         
+

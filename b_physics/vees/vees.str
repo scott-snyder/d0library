@@ -1,0 +1,130 @@
+.LITERAL
+ Structure Chart for: VEES Package                             Version 1    27 Mar 1992
+ Page: 1                                                       Author: Gene Alvarez
+ 
+ 
+                                               _____________________________
+                                               |          VEES             |
+                                               | Event processing routine  |
+                                               |   for the package VEES.   |
+                                               |___________________________|
+                                                            |
+                                                            |
+              ------------------|---------------------------|----------------------------------------------------
+              |                 |                           |                                                   |
+     _________|_________   _____|______             ________|___________                              __________|__________
+     |      ZVERTE     |   |  GTZTRH  |             |   VEES_CONE      |                              |      VEEHIS       |
+     |  z coordinate   |   | tracking |             | Finds all vees   |                              | Booking & filling |
+     | of primary vert |   |  Header  |             | in a given cone. |                              |    histograms.    |
+     |_________________|   |__________|             |__________________|                              |___________________|
+                                                             |                                                  |
+                                                  ___________|___________                            ___________|___________
+                                                  |                     |                            |                     |
+                                             _____|______     __________|__________         _________|_________      ______|______
+                                             |  GTZTRH  |     |        VEE        |         |     GTPARH      |      |  GTPVES   |
+                                             | tracking |     |   Checks if pair  |         | Particle Header |      | PVES Bank | 
+                                             |  Header  |     | of central tracks |         |_________________|      |___________|
+                                             |__________|     |   makes a vee.    |
+                                                              |___________________|
+                                                                        |
+           ------------------------------------------------------------------------------------
+           |                    |                            |                                |
+  _________|_________ __________|___________     ____________|____________           _________|___________
+  |      ZVERTE     | |       VEE2D        |     |        ZENERGY        |           |      VEE3D        |
+  |  z coordinate   | | of central tracks  |     |  for a central track. |           | of central tracks |
+  | of primary vert | | makes a vee in the |     |_______________________|           | makes a vee in 3D.|
+  |_________________| | r - phi plane.     |                 |                       |___________________|
+                      |____________________|                 |                                |
+                                |               _____________|______________                  |             
+                           _____|______         |         CAL_ECELL        |         _________|__________   
+                           |  UBITS   |         |     Finds calorimeter    |         |      VEEFIT      |   
+                           | CERNLIB  |         |    energy deposited      |         | fits a Vee;      |  
+                           | routine. |         |  along a given direction |         | Books and fills  |   
+                           |__________|         |    from a given point.   |         |VERT & PVES banks |   
+                                                |__________________________|         | for a found Vee. |   
+                                                                                     |__________________| 
+
+
+ 
+ Structure Chart for: VEES Package                             Version  1   27 Mar 1992
+ Page: 2                                                       Author: Gene Alvarez
+
+
+                                                                                                           
+                                                   ____________________                                   
+                                                   |      VEEFIT      |                                   
+                                                   | fits a Vee;      |                                   
+                                                   | Books and fills  | 
+                                                   |VERT & PVES banks | 
+                                                   | for a found Vee. | 
+                                                   |__________________| 
+                                                            |
+                                                            |
+            --------------------|---------------------------|----------------------------------------------- 
+            |                   |                           |                                              |
+      ______|_______       _____|________           ________|___________                         __________|_____________
+      |  BKVERT    |       |  BKPVES    |           |   SIGMA_VEE      |                         |      VKINEMA         |
+      | Books VERT |       | Books PVES |           | Calculate errors |                         | Least square fitting |
+      |   bank.    |       |   bank.    |           |  of Vee angles.  |                         | of Vees found in the |
+      |____________|       |____________|           |__________________|                         |  central detector.   |
+                                                             |                                   |______________________|
+                                                   __________|_____________                                |       
+                                                   |      PHI_VEE         |                  _____________ |__________
+                                                   | Calculates shperical |                  |                        | 
+                                                   |     phi angle.       |       ___________|___________       ______|________     
+                                                   |______________________|       |    STEP1_MOMENTA    |       |  VKIN_FIT   |     
+                                                                                  | Calculates momenta  |       | main s/r for|     
+                                                                                  | of decayed particle |       |kinematic fit|     
+                                                                                  |   and daughters.    |       |_____________|     
+                                                                                  |_____________________|                           
+                                                                                                                                   
+ 
+
+ Structure Chart for: VEES Package                             Version 1    27 Mar 1992
+ Page: 3                                                       Author: Gene Alvarez
+
+
+ 
+                                                      _______________ 
+                                                      |  VKIN_FIT   | 
+                                                      | main s/r for| 
+                                                      |kinematic fit| 
+                                                      |_____________| 
+                                                             |        
+                                                             |
+                                                   __________|___________
+                                                   |                    |
+                                           ________|_______   __________|___________
+                                           |  VKIN_NCFIT  |   |    VKIN_TYPE       |
+                                           | Fit routine. |   | Determines degrees |
+                                           |______________|   |   of freedom and   |
+                                                   |          |   successful fit.  |                                              
+                                                   |          |____________________|
+                                                   |                            
+          _________________________________________|_____________________________________________________________________
+          |             |                |                     |                    |                  |                |
+     _____|_____   _____|_____   ________|_________     _______|________     _______|______     _______|______     _____|_____
+     |  DVCPY  |   |  DVSET  |   |   VKIN_DERIV   |     |  VKIN_BOECK  |     |   PDILFL   |     |   PVESFL   |     |  DVADD  |
+     | CERNLIB |   | CERNLIB |   |   Calculates   |     |  Multiplies  |     | Fills PDIL |     | Fills PVES |     | CERNLIB |
+     | routine.|   | routine.|   |  matrices of   |     | matrices for |     |    bank.   |     |    bank.   |     | routine.|
+     |_________|   |_________|   | derivatives and|     | each fitting |     |____________|     |____________|     |_________|
+                                 |  four-vector   |     |    step.     |
+                                 | of E,p conserv.|     |______________|
+                                 |________________|            |
+                                         |                     |
+                                    _____|_____                |
+                                    |  DMCPY  |                |
+                                    | CERNLIB |                |
+                                    | routine.|                | 
+                                    |_________|                |
+                                                               |
+      _________________________________________________________|____________________________________________________________
+      |            |            |            |            |            |            |            |            |            |
+ _____|_____  _____|_____  _____|_____  _____|_____  _____|_____  _____|_____  _____|_____  _____|_____  _____|_____  _____|_____
+ |  DMCPY  |  |  DMSUB  |  |  DMMPA  |  |  DMMLT  |  |  DVSCL  |  |  DVCPY  |  |  DINV   |  |  DMMPY  |  |  DVADD  |  |  DVSUB  |
+ | CERNLIB |  | CERNLIB |  | CERNLIB |  | CERNLIB |  | CERNLIB |  | CERNLIB |  | CERNLIB |  | CERNLIB |  | CERNLIB |  | CERNLIB |
+ | routine.|  | routine.|  | routine.|  | routine.|  | routine.|  | routine.|  | routine.|  | routine.|  | routine.|  | routine.|
+ |_________|  |_________|  |_________|  |_________|  |_________|  |_________|  |_________|  |_________|  |_________|  |_________|
+ 
+
+.END LITERAL

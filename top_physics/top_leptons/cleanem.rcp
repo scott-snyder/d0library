@@ -1,0 +1,215 @@
+\START    CLEANEM_RCP
+\SIZE        282       181
+!----------------------------------------------------------------------
+!    Name:       CLEANEM.RCP
+!    Package:
+!    Library:
+!    Purpose:    Used to CLEAN up EM clusters (PELC or PPHO)
+!    Version
+!    Created:    22-SEP-1992   Norman A. Graf
+!    Updated:    29-OCT-1992   Meenakshi Narain  update default cuts
+!                             Make Hmatrix cut eta dependent.
+!    Updated:    24-NOV-1992   Rajendran Raja  Changed some formats
+!    Updated:     7-DEC-1992   Meenakshi Narain   REVISE BIT STRUCTURE
+!    Updated:    31-MAY-1993   Meenakshi Narain  Add min cell energy thershold
+!    Updated:    25-JUN-1993   Meenakshi Narain  Add cut on ET outside the
+!                                   cluster in an isolation cone of 0.7.
+!                                   The corresponding status bit is 14
+!    Updated:     8-JUL-1993   Meenakshi Narain  ADD TURNOFF_EC_OFFSET variable
+!------------------------------------------------------------------------------
+!   PHOTON / ELECTRON QUALITY VARIABLES
+!              STATUS BIT   0 : coarse Hmatrix chisquared
+!              STATUS BIT   1 : fine H matrix chisquared
+!              STATUS BIT   2 : CC em flag
+!              STATUS BIT   3 : cluster EM fraction
+!              STATUS BIT   4 : core energy cut
+!              STATUS BIT   3 : transverse dispersion cut
+!              STATUS BIT   6 : sigma5-sigma3
+!              STATUS BIT   7 : Isolation cut Energy (Cone 1)
+!              STATUS BIT   8 : Isolation cut Energy (Cone 2)
+!              STATUS BIT   9 : Isolation cut ET (Cone 1)
+!              STATUS BIT  10 : Isolation cut ET (Cone 2)
+!              STATUS BIT  11 : Close to crack flag
+!              STATUS BIT  12 : Number of cells below minimum
+!              STATUS BIT  13 : L2/RECO match
+!              STATUS BIT  14 : Isolation cut ET (Cone 2)
+!              STATUS BIT  15 : Spare
+!              STATUS BIT  16 : Distance 1 cut (Rdeltaphi for CC and EC)
+!              STATUS BIT  17 : Distance 2 cut (Delta Z for CC delta R for EC)
+!              STATUS BIT  18 : Shower centroid/track match significance
+!              STATUS BIT  19 : Set if another track in the road passes
+!                               track match significance criterion
+!              STATUS BIT  20 : number of tracks in a cone of deltar
+!              STATUS BIT  21 : spare
+!              STATUS BIT  22 : CDC ionization (MIP)
+!              STATUS BIT  23 : FDC ionization (MIP)
+!              STATUS BIT  24 : VTX chamber ionization (MIP)
+!              STATUS BIT  25 : TRD information available (=1 if problem)
+!              STATUS BIT  26 : TRD truncated mean cut
+!              STATUS BIT  27 : spare
+!              STATUS BIT  28 : Vertex Transverse impact parameter (in x,y)
+!              STATUS BIT  29 : Vertex Z impact parameter (in Z)
+!              STATUS BIT  30 : spare
+!              STATUS BIT  31 : spare
+!------------------------------------------------------------------------------
+! user define mask to determine electron/photon quality
+!
+USERMASK $001F186B
+!
+! hmatrix cuts
+!
+\ARRAY COARSE_CHISQUARED
+ 25*300.0   9*100.0  3*60.0    !Typically 98% acceptance
+\END
+\ARRAY FINE_CHISQUARED
+ 13*100.0   12*200.0   9*60.0  3*20.0    !Typically 90% acceptance
+\END
+!
+ CLUSTER_EM_RATIO_THRESHOLD     0.9
+ CORE_ENERGY_FRACTION_CUT       1.0
+ DISPERSION_CUT                 15.0
+ DSIGMA_CUT                     0.2
+!
+!Size of isolation cones in Delta R
+!
+\ARRAY ISOLATION_CONES
+ 0.4   0.7
+\END
+!
+! FRACTIONAL Isolation ENERGY cut for cone 1 and cone 2 for CC and EC
+!
+\ARRAY ISOLATION_CONE_ENERGY_CUT
+! cone 1 CC    cone 2 CC       cone 1 EC    cone 2 EC
+ 0.10           0.3             0.10         0.3
+\END
+!
+! FRACTIONAL Isolation ET cut for cone 1 and cone 2 for CC and EC
+!
+\ARRAY ISOLATION_CONE_ET_CUT
+! cone 1 CC    cone 2 CC       cone 1 EC    cone 2 EC
+ 0.10           0.3             0.10         0.3
+\END
+!
+! Isolation ET cut (in GeV) for cone 1 and cone 2 for CC and EC
+!
+\ARRAY ISOLATION_CONE_TOT_ENERGY_CUT
+! cone 1 CC    cone 2 CC       cone 1 EC    cone 2 EC
+    2.5           2.5            2.5         2.5
+\END
+\ARRAY ISOLATION_CONE_TOT_ET_CUT
+! cone 1 CC    cone 2 CC       cone 1 EC    cone 2 EC
+    2.5           2.5            2.5         2.5
+\END
+\ARRAY CC_CRACK_WIDTH
+  0.005        !WIDTH OF CRACK IN radians
+\END
+!
+!An electron should at least fire these many cells
+!
+MINIMUM_NUMBER_OF_CELLS     20
+!
+! Compute number of cells above the E-thershold GeV
+!
+CELL_ENERGY_THRESHOLD       5.0
+!
+! check for a match in space with a level2 electron
+!
+MATCH_LEVEL2_ELECTRON    .TRUE.
+!
+! L1 and  L2 thresholds for electron matches
+!
+L1ET_THRESHOLD      2.5
+L2ET_THRESHOLD      2.5
+!
+!Tracking cuts here
+!
+! CC - CDC MISALIGNMENT CORRECTION
+!
+!
+ CC_ALIGN_CORR      .TRUE.
+\ARRAY CC_ALIGN_OFF
+  0.26   0.86    0.04
+\END
+!
+!Rdeltaphi, delta Z for CC electrons
+!
+\ARRAY DISTANCE_CC_CUT
+ 0.5  5.0
+\END
+!
+! Offset in Rdeltaphi, delta r for EC electrons
+!
+\ARRAY OFFSET_DISTANCE_CC
+ 0.  0.
+\END
+!
+! Errors in Rdeltaphi, delta r for EC electrons
+! to be used while computing Significance ot trackmatch
+!
+\ARRAY ERR_DISTANCE_CC
+ 0.26  2.1
+\END
+!
+!Rdeltaphi, delta r for EC electrons
+!
+\ARRAY DISTANCE_EC_CUT
+ 0.5  2.0
+\END
+!
+! Offset in Rdeltaphi, delta r for EC electrons SOUTH/NORTH
+!
+TURNOFF_EC_OFFSET .TRUE.
+\ARRAY OFFSET_DISTANCE_EC
+ 0.0  0.33   0.0  0.25
+\END
+!
+! Errors in Rdeltaphi, delta r for EC electrons
+! to be used while computing Significance ot trackmatch
+!
+\ARRAY ERR_DISTANCE_EC
+ 0.25  0.74   0.25  1.08
+\END
+!
+! Significance of track match CUT
+!
+SIG_TRKMATCH_CUT    10.0
+!
+! cone size to count the number of Ztraks associated with the cluster
+!
+TRACK_CONE_SIZE     0.2
+!
+! Number of Ztraks in road
+!
+ NZTRAKS_CUT        2
+!
+! chamber Ionization (MIP)
+!
+\ARRAY CDC_MIP_CUT
+    1.6   3.0
+\END
+\ARRAY FDC_MIP_CUT
+    1.6   2.5
+\END
+\ARRAY VTX_MIP_CUT
+    1.5   2.5
+\END
+!
+! TRD electron Likelihood CUT
+!
+TRD_LIKELIHOOD_CUT  0.9
+!
+ETOT_LEFF_CUT 0.
+!
+! TRD truncated mean cut
+!
+TRD_TRUNCATED_MEAN_CUT 0.
+!
+!track impact parameter cuts in cm (for CC and EC)
+!
+\ARRAY  IMPACT_PARAMETER_XY
+1.0  2.0
+\END
+IMPACT_PARAMETER_Z  15.
+!
+ WEIGHT_CUT                5.5  !used in log-weighted center of gravity  EM3
+\STOP    !   CLEANEM_RCP

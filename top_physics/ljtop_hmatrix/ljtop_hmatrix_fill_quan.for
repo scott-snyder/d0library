@@ -1,0 +1,213 @@
+      SUBROUTINE LJTOP_HMATRIX_FILL_QUAN(IER)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : FILL QUAN BANK FOR TOP TO LEPTON + JETS HMATRIX
+C-   ANALYSIS
+C-
+C-   Inputs  :
+C-   Outputs : IER = NON ZERO ON ERROR
+C-   Controls:
+C-
+C-   Created  18-JAN-1993   Rajendran Raja
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:PI.DEF'
+      INCLUDE 'D0$INC:HMATRIX_PARS.INC'
+      INCLUDE 'D0$INC:ZHMATRIX.INC'
+      INCLUDE 'D0$INC:ZEBSTP.INC'
+      INCLUDE 'D0$INC:EVENT_QUAN.INC'
+      INTEGER I,J,IER
+      LOGICAL FIRST,OK
+      DATA FIRST/.TRUE./
+      REAL    ET_LEPT
+      LOGICAL USE_EVENT
+      LOGICAL NEW_SYS
+C
+      REAL    PJETSWP(4),PJETSWM(4),SSJETSWP(3),SSJETSWM(3)
+      INTEGER NJETSWP , NJETSWM
+C
+C PJETSWP IS THE NET 4 VECTOR OF JETS WITH MOMENTUM COMPONENT POSITIVE ALONG W
+C PJETSWM IS THE NET 4 VECTOR OF JETS WITH MOMENTUM COMPONENT NEGATIVE ALONG W
+C SSJETSWP IS THE  SUM SQUARED OF THE THREE PROJECTED COMPONENTS
+C (ALONG W, ALONG BEAM AND NORMAL TO BEAM/W PLANE) OF ALL JETS WITH POSITIVE
+C W COMPONENT
+C SSJETSWM IS THE  SUM SQUARED OF THE THREE PROJECTED COMPONENTS
+C (ALONG W, ALONG BEAM AND NORMAL TO BEAM/W PLANE) OF ALL JETS WITH NEGATIVE
+C W COMPONENT
+C NJETSWP, NJETSWM ARE THE NUMBER OF JETS WITH POSITIVE AND NEGATIVE W
+C COMPONENT RESPECTIVELY
+C
+      INTEGER NJETS_MIN !Number of jets minimum for hmatrix usage
+      SAVE NJETS_MIN
+      INTEGER IQUAL
+      REAL    QUAL
+      EQUIVALENCE (QUAL,IQUAL)
+      REAL    HT,LONG_SUM,HTP
+      REAL    WT
+C
+      REAL    ET_CUT_NEUTRINO,HT_ETA_CUT
+      SAVE    ET_CUT_NEUTRINO,HT_ETA_CUT
+C
+      LOGICAL FLGVAL
+      LOGICAL DO_MUON_ONLY,USE_W
+C----------------------------------------------------------------------
+C
+      IER = 0
+      CALL DHDIR('LJTOP_HMATRIX_RCP','HBOOK_DIRECTORY',IER,' ')
+C         ! Create/Set HBOOK directory
+      IF ( IER.NE.0 ) THEN
+        CALL ERRMSG('HMATRIX','LJTOP_HMATRIX_FILL_QUAN',
+     &    ' ERROR SETTING HBOOK DIRECTORY ','W')
+      ENDIF
+C
+      IF ( FIRST  ) THEN
+        FIRST = .FALSE.
+        CALL EZPICK('LJTOP_HMATRIX_RCP')
+        CALL EZGET('W_MASS ',WMASS,IER)
+        CALL DO_HBOOK('TOP_QUAN_HISTOGRAMS')
+        CALL EZGET('MINIMUM_NUMBER_OF_JETS',NJETS_MIN,IER)
+        CALL EZGET('ET_CUT_NEUTRINO',ET_CUT_NEUTRINO,IER)
+        CALL EZGET('HT_ETA_CUT',HT_ETA_CUT,IER)
+        CALL EZGET('DO_MUON_ONLY',DO_MUON_ONLY,IER)
+        CALL EZRSET
+      ENDIF
+C
+      IER=0  !RESET RCP ERROR
+      CALL UZERO(P9_VERTEX,1,NV*NVERT_MAX)
+      CALL UZERO(P25_JETS,1,NJ*NJETS_MAX)
+      CALL UZERO(P24_ELECTRON,1,NE*MAX_LEPHOT)
+      CALL UZERO(P18_PHOTON,1,NP*MAX_LEPHOT)
+      CALL UZERO(P25_MUON,1,NM*MAX_LEPHOT)
+      CALL UZERO(P25_MUON_TAGGED,1,NM*MAX_LEPHOT)
+      CALL UZERO(P2_NEUT,1,NN)
+      CALL UZERO(DEL_P2_NEUT,1,NN)
+      CALL UZERO(JET_PROJ,1,4*NJETS_MAX)
+C
+      IF ( FLGVAL('READ_NTUPLE') ) THEN
+        CALL LJTOP_DECODE_NTUPLE(USE_EVENT)
+      ELSE
+        CALL LJTOP_DECODE_DST(USE_EVENT)
+      ENDIF
+C
+C ****  SOLVE FOR W 4 VECTOR.
+C
+C
+      IF(USE_EVENT) THEN
+        ET_LEPT = SQRT(P6_CLUST(1)**2+P6_CLUST(2)**2)
+        IF(ELECTRON)THEN          ! ELECTRON
+          CALL DO_HF2(510,MET_D0,ET_LEPT,WT)
+        ELSEIF(PHOTON)THEN      ! PHOTON
+          CALL DO_HF2(511,MET_D0,ET_LEPT,WT)
+        ENDIF
+        CALL FIND_WLNU(WMASS,P6_CLUST,P2_NEUT,W4_VEC,WPZ2,OK)
+        IF ( .NOT.OK ) THEN
+          CALL ERRMSG('HMATRIX','LJTOP_HMATRIX_FILL_QUAN',
+     &      'Cannot find W 4 vector ','W')
+        ENDIF
+C
+        WPT = SQRT(W4_VEC(1)**2 + W4_VEC(2)**2)
+        CALL TRANSVERSE_MASS(P6_CLUST,P2_NEUT,TRMASS)
+C
+C ****  now to fill QUAN
+C
+        DO I = 1 , TOT_DIM
+          C(LQUAN+I) = 0.               ! ZEROIT
+        ENDDO
+C
+        DO I = 1 , NJETS
+          IF ( I.EQ.1 ) THEN
+            NEW_SYS = .TRUE.
+          ELSE
+            NEW_SYS = .FALSE.
+          ENDIF
+C
+          CALL GET_PROJ_QUAN(NEW_SYS,W4_VEC,P25_JETS(1,I),
+     &      JET_PROJ(1,I))
+C
+        ENDDO
+C
+        CALL UZERO(PJETSWP,1,4)
+        CALL UZERO(PJETSWM,1,4)
+        CALL UZERO(SSJETSWP,1,3)
+        CALL UZERO(SSJETSWM,1,3)
+        NJETSWP = 0
+        NJETSWM = 0
+C
+        DO I = 1 ,NJETS
+          IF ( JET_PROJ(1,I).GT.0.0 ) THEN
+            NJETSWP = NJETSWP + 1
+            DO J = 1 ,4
+              PJETSWP(J) = PJETSWP(J) + P25_JETS(J,I)
+            ENDDO
+            DO J = 1 ,3
+              SSJETSWP(J) = SSJETSWP(J) + JET_PROJ(J,I)**2
+            ENDDO
+          ELSE
+            NJETSWM = NJETSWM + 1
+            DO J = 1 ,4
+              PJETSWM(J) = PJETSWM(J) + P25_JETS(J,I)
+            ENDDO
+            DO J = 1 ,3
+              SSJETSWM(J) = SSJETSWM(J) + JET_PROJ(J,I)**2
+            ENDDO
+          ENDIF
+
+        ENDDO
+C
+        CALL PAIR_MASS(W4_VEC,PJETSWP,WSUM)
+C
+C
+        TMASS = PJETSWM(4)**2 - (PJETSWM(3)**2 + PJETSWM(2)**2 +
+     &    PJETSWM(1)**2)
+        IF ( TMASS.LE.0.0)TMASS = 0.0
+        TMASS = SQRT(TMASS)
+C
+        IF ( DO_MUON_ONLY ) THEN
+          USE_W = .FALSE.
+        ELSE
+          USE_W = .TRUE.
+        ENDIF
+        CALL LJTOP_HMATRIX_CALC_SPHERICITY(USE_W)
+C
+      ELSE
+        IER = 1  !Do not process further
+      ENDIF
+C
+      IF ( NJETS.LT.NJETS_MIN ) THEN
+        IER = 1
+      ENDIF
+
+      IF ( MET_D0.LT.ET_CUT_NEUTRINO ) THEN
+        IER = 1
+      ENDIF
+C
+C
+      HT = 0.
+      HTP = 0.
+      LONG_SUM = 0.
+      DO I = 1 , NJETS
+        HT = HT + P25_JETS(5,I)
+        IF ( ABS(P25_JETS(6,I)).LT.HT_ETA_CUT ) THEN
+          HTP = HTP + P25_JETS(5,I)
+        ENDIF
+        LONG_SUM = LONG_SUM + P25_JETS(3,I)
+      ENDDO
+C
+C ****  now fill quantities for new H matrix
+C
+      C(LQUAN+1) = SQRT(SSJETSWP(3)+SSJETSWM(3))/WMASS ! REDUCED ROOT SUM SQUARED NORMAL
+      C(LQUAN+2) = TMASS/WMASS             !MASS OF SYSTEM RECOLING AGAINST W
+      C(LQUAN+3) = SPHERIC1                !SPHERICITY INCLUDING JETS,W AND BEAM DIR
+      C(LQUAN+4) = APLANAR1                !APLANARITY INCLUDING JETS,W AND BEAM DIR
+      C(LQUAN+5) = HTP/WMASS               !HT WITHIN AN ETA CUT.REDUCED
+C
+      IF ( IER.EQ.0) THEN
+        CALL DO_HF1(610,LONG_SUM,WT)
+      ELSE
+        CALL DO_HF1(609,HT,WT)
+        CALL DO_HF1(611,LONG_SUM,WT)
+      ENDIF
+C
+  999 RETURN
+      END

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VTOP_PHYSICS()
+      VTOP_PHYSICS = ' TOP_PHYSICS'//
+     X                   '  OFFICIAL V0.01'//
+     X                   ' 17-JUL-1997 22:44:44.43'
+      Return
+      End

@@ -1,0 +1,118 @@
+      SUBROUTINE LJTOP_READ_CUTS
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : 
+C-        initialize TOP cut analysis
+C-
+C-   ENTRY LJTOP_SET_CUTS(ETCUTB,ETCUTW,ELEC_CUT,MUON_CUT,MISET_CUT,
+C-     &  JET_ETA_CUT,DIST_EL_CUT)
+C-   ENTRY LJTOP_SET_CUT_OPT(ALGO,CORR_MISET,CORRJ,DO_DUMPS,ICHOICE)
+C-      override constants defined by RCP file
+C-      all arguments are inputs
+C-
+C-   ENTRY LJTOP_GET_CUTS(ETCUTB,ETCUTW,ELEC_CUT,MUON_CUT,MISET_CUT,
+C-     &  JET_ETA_CUT,DIST_EL_CUT)
+C-   ENTRY LJTOP_GET_JCUTS(ETCUTB,ETCUTW)    (subset of above)
+C-   ENTRY LJTOP_GET_CUT_OPT(ALGO,CORR_MISET,CORRJ,DO_DUMPS,ICHOICE)
+C-      give constants, all arguments are outputs
+C-
+C-   see D0$TOP_PHYSICS:LJTOP_CUTS.RCP for definition of constants
+C-
+C-   Created   4-MAY-1992   Serban D. Protopopescu
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      REAL    ETCUTB(2),ETCUTW,ELEC_CUT,MUON_CUT
+      REAL    MISET_CUT,JET_ETA_CUT,DIST_EL_CUT,CORR_MISET
+      LOGICAL ALGO(3),DO_DUMPS,CORRJ
+      REAL    CUTB(2),CUTW,EL_CUT,MU_CUT,MET_CUT,ETA_CUT,DIST_CUT
+      REAL    CORR_MET
+      INTEGER IALGO,ICHOICE,ICH,LRCP,IER,I
+      LOGICAL FIRST,ALGO_T(3),DODUMPS,JCORR
+      DATA FIRST,DODUMPS,JCORR/.TRUE.,.FALSE.,.TRUE./
+      DATA CUTB,CUTW/10.,10.,10./
+      DATA EL_CUT,MU_CUT,MET_CUT,ETA_CUT/3*10.,2.0/
+      DATA CORR_MET/1.0/  ! 1.15 seems to give a better Missing Et
+      DATA IALGO/4/
+      DATA ALGO_T/3*.TRUE./
+      DATA DIST_CUT/20./
+      DATA ICH/2/
+C----------------------------------------------------------------------
+C
+      IF(FIRST) THEN
+        CALL INRCP('LJTOP_CUTS_RCP',IER)
+        IF(IER.NE.0) THEN
+          CALL ERRMSG('No RCP file, defaults used','LJTOP_READ_CUTS',
+     &      ' ','W')
+          GOTO 999
+        ENDIF
+        CALL EZPICK('LJTOP_CUTS_RCP')
+        CALL EZGET('ETCUTB1',CUTB(1),IER)
+        CALL EZGET('ETCUTB2',CUTB(2),IER)
+        CALL EZGET('ETCUTW',CUTW,IER)
+        CALL EZGET('ELEC_CUT',EL_CUT,IER)
+        CALL EZGET('MUON_CUT',MU_CUT,IER)
+        CALL EZGET('MISET_CUT',MET_CUT,IER)
+        CALL EZGET('JET_ETA_CUT',ETA_CUT,IER)
+        CALL EZGET('DIST_EL_CUT',DIST_CUT,IER)
+        CALL EZGET('ALGO1',ALGO_T(1),IER)
+        CALL EZGET('ALGO2',ALGO_T(2),IER)
+        CALL EZGET('ALGO3',ALGO_T(3),IER)
+        CALL EZGET('CORR_MISET',CORR_MET,IER)
+        CALL EZGET('CORRJ',JCORR,IER)
+        CALL EZGET('DO_DUMPS',DODUMPS,IER)
+        CALL EZGET('ICHOICE',ICH,IER)
+        CALL EZRSET
+        FIRST=.FALSE.
+      ENDIF
+      GOTO 999
+C
+C
+      ENTRY LJTOP_GET_CUTS(ETCUTB,ETCUTW,ELEC_CUT,MUON_CUT,MISET_CUT,
+     &  JET_ETA_CUT,DIST_EL_CUT)
+       ELEC_CUT=EL_CUT
+       MUON_CUT=MU_CUT
+       MISET_CUT=MET_CUT
+       JET_ETA_CUT=ETA_CUT
+       DIST_EL_CUT=DIST_CUT
+       ENTRY LJTOP_GET_JCUTS(ETCUTB,ETCUTW)
+       ETCUTB(1)=CUTB(1)
+       ETCUTB(2)=CUTB(2)
+       ETCUTW=CUTW
+       GOTO 999
+C
+C
+      ENTRY LJTOP_GET_CUT_OPT(ALGO,CORR_MISET,CORRJ,DO_DUMPS,ICHOICE)
+      DO I=1,3
+        ALGO(I)=ALGO_T(I)
+      ENDDO
+      JCORR=CORRJ
+      CORR_MISET=CORR_MET
+      DO_DUMPS=DODUMPS
+      ICHOICE=ICH
+      GOTO 999
+C
+C
+      ENTRY LJTOP_SET_CUTS(ETCUTB,ETCUTW,ELEC_CUT,MUON_CUT,MISET_CUT,
+     &  JET_ETA_CUT,DIST_EL_CUT)
+       CUTB(1)=ETCUTB(1)
+       CUTB(2)=ETCUTB(2)
+       CUTW=ETCUTW
+       EL_CUT=ELEC_CUT
+       MU_CUT=MUON_CUT
+       MET_CUT=MISET_CUT
+       ETA_CUT=JET_ETA_CUT
+       DIST_CUT=DIST_EL_CUT
+       GOTO 999
+C
+C
+      ENTRY LJTOP_SET_CUT_OPT(ALGO,CORR_MISET,CORRJ,DO_DUMPS,ICHOICE)
+      DO I=1,3
+        ALGO_T(I)=ALGO(I)
+      ENDDO
+      CORRJ=JCORR
+      CORR_MET=CORR_MISET
+      DODUMPS=DO_DUMPS
+      ICH=ICHOICE
+  999 RETURN
+      END

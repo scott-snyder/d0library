@@ -1,0 +1,131 @@
+(This document is located in D0$B_PHYSICS:VEES.DOC)
+
+
+                VEES:  PACKAGE FOR RECONSTRUCTION OF VEE DECAYS
+                -----------------------------------------------
+
+                        Vladimir Burtovoy & Daria Zieminska  
+                              (25 April 1992)
+
+    
+    This  document describes th purpose of the VEES package, its structure 
+and methods as well as instructions how to run it.
+
+
+PURPOSE:
+-------
+            
+    This  package is designed to reconstruct decays of neutral particles into 
+pairs of charged particles, such as  Ks -> pi+ pi, Lambda -> p + pi-.  
+At present only Ks decay reconstruction is fully implemented, but the 
+capability for treating Lambda/lambda_bar decays is foreseen. 
+The search for "Vees" can be done in the full volume of the Central Detector
+or can be limited to a cone e.g. around a J/psi candidate.
+
+STRUCTURE:
+---------
+
+    The PBD file for the  VEES   package is   located in  D0$PBD:VEES.PBD.  
+It lists the  following  package  hooks to the d0user framework (sources are 
+in D0$B_PHYSICS$VEES):
+
+                     PROCESS EVENT          VEES
+                     BEGIN_PROGRAM          VEEINI
+                     SETUP_RUN              VEEPAR
+                     REDEFINE_EVENT_DUMP    VEEDDF(entry to VEEDMP)
+                     DUMP_EVENT             VEEDMP
+
+    The package uses an RCP  file, namely  VEES.RCP, which is located in the
+D0$B_PHYSICS:VEES.RCP. The RCP  file is fairly well annotated and should be 
+self-explanatory.
+
+    The structure chart is located in D0$B_PHYSICS$VEES:VEES.STR.
+The event processing  function VEES checks the value of the RCP parameter
+ALL_VEES. If ALL_VEES is true the subroutine VEES_CONE is called for the
+full angle covered by the Central Detector.
+
+    VEES_CONE does the Vee reconstruction in a given cone. It can be called 
+by the user from her/his analysis program. It gets the information from CD 
+track banks ZTRK and VTX, CDC, FDC track banks associated with them. 
+The program loops over pairs of tracks and checks if they are consistent with 
+coming from a secondary vertex. Track angles are picked up and stored. An 
+attempt is made to use the information on the energy deposited in the 
+calorimeter cells pointed by the tracks (ZENERGY). The use of the calorimeter 
+information is optional, governed by the RCP parameter CALL_ZENERGY.
+
+    A mass constrained fit for the Ks, lambda etc hypothesis is performed by 
+the call to subroutine VKIN_FIT. (currently only Ks is fully implemented)
+Observed  and fitted  track  parameters are passed among various subroutines 
+via array s STR(4,10) which is declared in the common D0$INC:VEEKIN.INC. 
+Information  on fitted Vees is stored in the ZEBRA  bank  PVES.  
+
+    A set of histograms is defined in the RCP file. It includes the
+number of Vees found, the ditribution of fit probability, Ks momentum.
+A comparison of reconstructed Ks momentum and angles with the corresponding
+ISAJET data is also done provided one sets the rcp switch MCDATA to true. 
+Switches in the RCP  file allow selected histograms to be turned on or off 
+and the limits  etc changed without relinking the program.
+
+RUNNING VEES:
+----------------
+
+    The following steps are required to run the VEES package:
+
+0) Central tracking and calorimeter reconstruction must already have been done
+   by running e.g. the  reconstruction  program  RECO_COMBINED which includes 
+   the  packages  ZTRAKS,CALOR,CAHITS.  These can be combined
+   with the VEES package into one  overall combined package, but it seems to
+   be much more  efficient to have done  the initial  reconstruction once, 
+   while simultaneously  producing  an STA  file which can  subsequently be 
+   used as input to the dilboson package.
+
+1) Go to your directory where you want to create the VEES package.
+
+            $ SET DEF [XXXX.YYYY]
+
+2) If you want to use the test version of the library do,
+
+            $ LIBTEST ALL
+
+3) Run program builder to create the package in your directory.
+
+            $ PBD/FRAME=D0USER/NAME=VEES
+
+   The above command makes use of a pbd  file called VEES_COMBINED.PBD. This
+package  represents a  combined  one which automatically  includes  along with
+VEES the two packages CALOR and CAHITS (needed if the calorimeter information
+is used in VEES). 
+
+4) Link the program,
+
+            $ @name_D0USER.LNK
+   or
+            $ @name_D0USER.LNK DEBUG
+
+5) Define input rcp files.
+
+            $ @name_D0USER.COM
+
+   The user may wish  to copy  VEES.RCP and perhaps  VEES.RCP to his/her own
+area, and then appropriately edit  name_D0USER.COM to  force the program to take
+the rcp files from the user default directory.
+
+6) Run D0USER,
+
+            $D0USER/NOSMG
+   or
+            $D0USER/FULL
+   or
+            $DEB_D0USER/NOSMG    
+
+7) Adding user subroutines or modifying existing package subroutines.
+
+
+            The file specs for these should be inserted into the file
+
+             name_D0USER.OPT
+    or
+             DEB_name_D0USER.OPT
+
+    and then relink as in step 4.   
+

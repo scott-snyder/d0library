@@ -1,0 +1,130 @@
+      SUBROUTINE TOP_FIT_DO
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : DO THE FIT
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  14-FEB-1994   Rajendran Raja
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:EVENT_QUAN_2C.INC'
+      INCLUDE 'D0$INC:FIT_QUAN_2C.INC'
+      INCLUDE 'D0$INC:KINE_FIT.INC'
+      INTEGER IER
+      INTEGER MNINP,MNOUT,MNSAV
+      INTEGER NCHRS
+      INTEGER I
+      LOGICAL INTERACT
+      CHARACTER*80 TITLE
+C
+      EXTERNAL TOP_FIT_FCN
+C
+      LOGICAL first
+      SAVE first
+      DATA first / .true. /
+C
+      CHARACTER*80 COMMANDS(30)
+      DOUBLE PRECISION ARGCM(3,30)
+      INTEGER NARGCM(30)
+      INTEGER NCOMMANDS
+      DOUBLE PRECISION    VAL
+      INTEGER IVAL
+      EQUIVALENCE (VAL,IVAL)
+      CHARACTER*80 CVAL
+      INTEGER TYPE,LVAL,PTR
+      DOUBLE PRECISION    PROB
+C
+      REAL    PAR_STEPS_S(NFIT),PAR_LOLIM_S(NFIT),PAR_HILIM_S(NFIT)
+C----------------------------------------------------------------------
+      IF( first ) THEN
+        first = .false.
+        CALL EZPICK('TOP_FIT_RCP')
+        CALL EZGET('MINUIT_INP_UNIT',MNINP,IER)
+        CALL EZGET('MINUIT_OUT_UNIT',MNOUT,IER)
+        CALL EZGET('MINUIT_SAV_UNIT',MNSAV,IER)
+        CALL MNINIT(MNINP,MNOUT,MNSAV)
+        CALL EZ_GET_CHARS('PAR_NAMES',NCHRS,PAR_NAMES,IER)
+        CALL EZGET('PAR_STEPS',PAR_STEPS_S,IER)
+        CALL EZGET('PAR_LOLIM',PAR_LOLIM_S,IER)
+        CALL EZGET('PAR_HILIM',PAR_HILIM_S,IER)
+C
+        CALL UCOPYSD(PAR_STEPS_S,PAR_STEPS,NFIT)
+        CALL UCOPYSD(PAR_LOLIM_S,PAR_LOLIM,NFIT)
+        CALL UCOPYSD(PAR_HILIM_S,PAR_HILIM,NFIT)
+C
+        CALL EZGET('INTERACTIVE',INTERACT,IER)
+        IER = 0
+        NCOMMANDS = 0
+C
+        DO WHILE(IER.EQ.0)
+          CALL EZGET_NEXT_VALUE_TYPE('MINUIT_COMMANDS',VAL,CVAL,
+     &      TYPE,LVAL,IER,PTR)
+          IF ( TYPE.GT.10 ) THEN
+C CHARACTER VALUE
+            NCOMMANDS = NCOMMANDS + 1
+            COMMANDS(NCOMMANDS) = ' '
+            COMMANDS(NCOMMANDS) = CVAL
+            CALL UZEROD(ARGCM(1,NCOMMANDS),1,3)
+            NARGCM(NCOMMANDS) = 0
+          ELSE
+C ARGUMENT
+            NARGCM(NCOMMANDS) = NARGCM(NCOMMANDS) + 1
+            IF ( TYPE.EQ.1 ) THEN
+              ARGCM(NARGCM(NCOMMANDS),NCOMMANDS) = IVAL
+            ELSEIF ( TYPE.EQ.2.OR.TYPE.EQ.3 ) THEN
+              ARGCM(NARGCM(NCOMMANDS),NCOMMANDS) = VAL
+            ENDIF
+          ENDIF
+        ENDDO
+C
+        CALL EZRSET
+      ENDIF
+C
+      PAR_INIV(1) = TOP_MASS
+C
+      CALL UCOPYDD(TOP_LEPTON,PAR_INIV(2),3)
+      PAR_INIV(5) = CTHETA_TL
+      PAR_INIV(6) = PHI_TL
+      PAR_INIV(7) = CTHETA_WL
+      PAR_INIV(8) = PHI_WL
+C
+      CALL UCOPYDD(TOP_HADRON,PAR_INIV(9),3)
+      PAR_INIV(12) = CTHETA_TH
+      PAR_INIV(13) = PHI_TH
+      PAR_INIV(14) = CTHETA_WH
+      PAR_INIV(15) = PHI_WH
+C
+      WRITE(TITLE,10)RUNC,EVENTC,COMBNUM
+   10 FORMAT(' RUN,EVENT ',I8,'/',I5,' COMBNUM ',I4)
+      CALL MNSETI(TITLE)
+      WRITE(MNOUT,11)TITLE
+   11 FORMAT(' MINUIT: ',A)
+C
+      DO I = 1 , NFIT
+        CALL MNPARM(I,PAR_NAMES(I),PAR_INIV(I),PAR_STEPS(I),
+     &    PAR_LOLIM(I), PAR_HILIM(I),IER)
+      ENDDO
+C
+      DO I = 1 , NCOMMANDS
+        CALL MNEXCM(TOP_FIT_FCN,COMMANDS(I),ARGCM(1,I),NARGCM(I),IER,0)
+      ENDDO
+C
+      IF ( INTERACT ) THEN
+        CALL MNINTR(TOP_FIT_FCN,0)   !INTERACTIVE
+      ENDIF
+C
+      CALL MNSTAT(CHISQC,FEDM,ERRDEF,NPARI,NPARX,ISTAT)
+      PROBC = PROB(CHISQC,2)  !2C FIT
+C
+      DO I = 1 , NMEAS
+        STRFN(I) = (XPRED(I)-XMEAS(I))/SQRT(EMAT(I,I))
+C can be made more sophisticated
+      ENDDO
+C
+  999 RETURN
+      END
+

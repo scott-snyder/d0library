@@ -1,0 +1,198 @@
+      SUBROUTINE LJTOP_DECODE_DST(USE_EVENT)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : DECODE INF FROM DST FOR FILLING H MATRIX
+C-
+C-   Inputs  :
+C-   Outputs : USE_EVENT = .TRUE. PROCESS FURTHER
+C-
+C-   Controls:
+C-
+C-   Created  16-APR-1994   Rajendran Raja
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$INC:ZLINKC.INC'
+      INCLUDE 'D0$INC:EVENT_QUAN.INC'
+      INCLUDE 'D0$INC:FILE_WT.INC'
+      INTEGER I,IER,IP
+      INTEGER NSIZEV
+      INTEGER GZPNUT
+      REAL    RJETS
+      INTEGER IPNUT
+      LOGICAL DO_ELECTRON_ONLY
+      LOGICAL DO_MUON_ONLY
+      REAL    JET_ET_CUT
+      LOGICAL USE_EVENT
+      LOGICAL JET
+      LOGICAL CLEAN_CAL_JUNK
+C
+      CHARACTER*32 JET_ALG_NAME
+      INTEGER NCHR
+      REAL    JET_TEMPLATE(3)
+C
+      INTEGER IQUAL
+      REAL    QUAL
+      EQUIVALENCE (QUAL,IQUAL)
+      REAL    WT
+      LOGICAL MONTE_CARLO_DATA
+      LOGICAL GOOD_ELECTRON
+C
+      REAL    CDCMIP,FDCMIP
+      INTEGER TRGMX
+      PARAMETER( TRGMX = 100 )
+      INTEGER NFILTON,NTRIGON
+      INTEGER TRIGBON(TRGMX),FILTBON(TRGMX)
+      CHARACTER*32 TRIGNON(TRGMX),FILTNON(TRGMX)
+C
+      LOGICAL FIRST
+      DATA FIRST/.TRUE./
+C----------------------------------------------------------------------
+      IF ( FIRST  ) THEN
+        FIRST = .FALSE.
+        CALL EZPICK('LJTOP_HMATRIX_RCP')
+        CALL EZGET('PNUT_NUMBER',IPNUT,IER)
+        CALL EZGET('DO_ELECTRON_ONLY',DO_ELECTRON_ONLY,IER)
+C
+        CALL EZGET('DO_MUON_ONLY',DO_MUON_ONLY,IER)
+C
+        CALL EZGET('JET_ET_CUT',JET_ET_CUT,IER)
+        CALL EZ_GET_CHARS('JET_ALGORITHM_NAME',NCHR,
+     &    JET_ALG_NAME,IER)
+        CALL EZRSET
+C
+      ENDIF
+C
+      WT = WEIGHTS(IFILE) !WEIGHT FOR FILE
+C
+      IER = 1                         ! FLAG FOR OUTSIDE
+      USE_EVENT = .FALSE.
+      ELECTRON = .FALSE.
+      PHOTON = .FALSE.
+      MUON = .FALSE.
+C
+      IF ( .NOT.MONTE_CARLO_DATA().AND..NOT.CLEAN_CAL_JUNK() )
+     &    GO TO 999
+C
+      CALL NOBJ_VERTEX(NVER,NSIZEV)
+      IF ( NSIZEV.GT.NV ) THEN
+        CALL ERRMSG('CALORIMETER','LJTOP_HMATRIX_FILL_QUAN',
+     &      ' vertex allocation too small in ljtop_hmatrix_fill_quan',
+     &      'W')
+      ENDIF
+C
+      NVER = MIN(NVER,NVERT_MAX)
+      IP = 0
+      DO I = 1 , NVER
+        IP = IP + 1
+        CALL OBJECT_VERTEX(I,NV,P9_VERTEX(1,IP))
+C        IF ( cut on vertex here ) THEN
+C          IP = IP -1   !vertex  BELOW  CUT
+C        ENDIF
+      ENDDO
+      NVER = IP
+C CORRECTION ALREADY DONE
+C
+      LPNUT = GZPNUT(IPNUT)
+      P2_NEUT(1) = Q(LPNUT+3)
+      P2_NEUT(2) = Q(LPNUT+4)
+C
+      SCALAR_ET = Q(LPNUT+14)         ! SCALAR ET FOR EVENT
+      MET_D0 = SQRT(P2_NEUT(1)**2 + P2_NEUT(2)**2)
+C
+      CALL GET_W_OBJECTS(MAX_LEPHOT,NE,P24_ELECTRON,NELEC,
+     &    NP,P18_PHOTON,NPHO,
+     &    NM,P25_MUON,NMUO,P25_MUON_TAGGED,NTAG,
+     &    ELECTRON,PHOTON,MUON,TAG)       ! GET FROM RECO
+C
+C CONVERTING EM QUALITY FLAG FROM BYTE TO FLOATING POINT
+C SO IF QUALITY IS 102 IN INTEGER, IT WILL APPEAR AS 102.0
+C
+C
+      TIGHT_ELECTRON=0
+      LOOSE_ELECTRON=0
+C
+      IF ( MONTE_CARLO_DATA() ) THEN
+        IF ( ELECTRON ) THEN
+          TIGHT_ELECTRON =
+     &        GOOD_ELECTRON(P24_ELECTRON(9,1),'SHLIB_TIGHT_NOLINK')
+          LOOSE_ELECTRON =
+     &        GOOD_ELECTRON(P24_ELECTRON(9,1),'SHLIB_LOOSE_NOLINK')
+        ENDIF
+      ELSE
+        IF ( ELECTRON ) THEN
+          TIGHT_ELECTRON =
+     &        GOOD_ELECTRON(P24_ELECTRON(9,1),'TIGHT_NOLINK')
+          LOOSE_ELECTRON =
+     &        GOOD_ELECTRON(P24_ELECTRON(9,1),'LOOSE_NOLINK')
+        ENDIF
+      ENDIF
+C
+      QUAL = P24_ELECTRON(9,1)
+      P24_ELECTRON(9,1) = IQUAL   !NOW INTEGER IS IN SAFE FLOATING POINT FORM
+C
+      IF ( ELECTRON.AND.DO_ELECTRON_ONLY ) THEN
+        CALL UCOPY(P24_ELECTRON,P6_CLUST,6)
+C
+        CDCMIP = P24_ELECTRON(21,1)
+        FDCMIP = P24_ELECTRON(22,1)
+        RDEDX = 0.0
+        IF ( CDCMIP.GT.0.0 ) THEN
+          RDEDX = CDCMIP
+        ELSEIF ( FDCMIP.GT.0.0 ) THEN
+          RDEDX = FDCMIP
+        ENDIF
+C
+        USE_EVENT = .TRUE.
+      ENDIF
+C
+      IF ( MUON.AND.DO_MUON_ONLY ) THEN
+        CALL UCOPY(P25_MUON,P6_CLUST,6)
+C
+        RDEDX = P25_MUON(21,1)  !CALORIMETER ENERGY
+        USE_EVENT = .TRUE.
+C
+      ENDIF
+C
+      IF(USE_EVENT)THEN
+        IER = 0                         ! USE THIS EVENT
+C
+C ****  GET JETS.
+C
+        CALL GET_JETS1(JET_ALG_NAME,NJETS_MAX,JET_ET_CUT,NJ,
+     &    P25_JETS,NJETS,JET)
+                                                                  ! ORDER SORT IN ET
+      ENDIF
+C
+      NFILTON=0
+      CALL GTTSUM (NTRIGON,TRIGBON,TRIGNON,NFILTON,FILTBON,FILTNON)
+      ELE_HIGH = 0.0
+      DO I = 1 , NFILTON
+        IF ( FILTNON(I).EQ.'ELE_HIGH' ) THEN
+          ELE_HIGH=1.0
+        ENDIF
+      ENDDO
+C
+C ****  HISTOGRAM SOME QUANTITIES
+C
+      IF(ELECTRON)THEN
+        CALL DO_HF1(509,P24_ELECTRON(20,1),WT)      ! DISTANCE OF CLOSEST APPROACH
+      ENDIF
+      RJETS = NJETS
+      CALL DO_HF1(601,RJETS,WT)
+C
+      DO I = 1 , NJETS
+        CALL DO_HF1(602,P25_JETS(5,I),WT)     ! ET HISTOGRAM
+      ENDDO
+C
+      DO I = 1 , NJETS
+        CALL DO_HF1(602+I,P25_JETS(5,I),WT)      ! SORTED ET HISTS
+      ENDDO
+C
+      IF ( USE_EVENT ) THEN
+        CALL DO_HF1(504,SCALAR_ET,WT)
+      ENDIF
+C
+  999 RETURN
+      END

@@ -1,0 +1,84 @@
+
+                     LJTOP_CUTS PACKAGE
+                                                      S. Protopopescu
+                                                      May 12,1992
+                                                      version 1.0
+
+    The LJTOP_CUTS package uses standards cuts to analyze the top to lepton +
+jets  channel.  The  analysis  assumes  the  events has  two top  jets both
+decaying to W + b-jet with one of  the W's decaying to e or mu + nu and the
+other to 2 jets. 
+
+    A basic assumption is that the  missing Et is dominated by the neutrino
+coming from W leptonic decay, it is then used to calculate the pz of the W.
+There are 2 solutions, it is assumed that the more central solution (lowest
+absolute pz) is  the correct one.  This happens to be  true over 70% of the
+time and in those cases when the wrong one is picked the two solutions tend
+to be closed together.
+
+The jets are ordered in descending Et, another assumption is that the first
+4 jets are the ones coming from top jets.
+
+There are three  algorithms  available to assign jets  to the various decay
+channels:
+
+1) Assume the jet closest to the W  decaying leptonically is the associated
+   b-jet  from the  first top  decay.  Assume  any  leftover jets  (up to 3
+   highest ET ones)  are from the  second top. Assume  the pair giving mass
+   closest to W mass are the jets from W -> jets (if there is more than one
+   pair available).
+
+2) Require at least 4 jets and use  the 4 with highest ET. Allocate jets to
+   top 1 and top 2 so as  to minimize the mass  difference between the two.
+   Assume the pair out of 3 attached  to top 2 closest in mass to W are the
+   ones coming from W -> jets.
+
+3) Pick the jet that maximizes the ET of top with W decaying leptonically.
+   Assume the remaining up to 3 jets come from the 2nd top.
+
+
+The package can be used in CALOR_OFF or D0USER frame. The driving
+subroutines are:
+
+In any frame:
+LJTOP_CUT_INI  initialization, calls LJTOP_READ_CUTS to unpack control
+             parameters in LJTOP_CUTS.RCP file
+
+LJTOP_CUTS     event processing, calls FIND_TOPS1, FIND_TOPS2 and FIND_TOPS3
+             to try the 3 algorithms. One can try any or all, choice
+             controlled by flags in RCP file. Calls LJTOP_CUT_NTUPLES
+             to fill N-tuples, if more than 2000 events are read 
+             LJTOP_CUT_NTUPLES has to be modified to increase amount of 
+             memory allowed. 
+             If there is ISAJET data calls LJTOP_CUT_ISA to try the same
+             algorithms on ISAJET data.
+          
+LJTOP_CUT_FIN  is called at job summary time. It is now a no-op entry point 
+             in LJTOP_CUTS.
+
+in D0USER frame:
+LJTOP_CUT_DIAL called if option 'User Dialog' is picked. It allows modifying
+             parameters in RCP at run time.
+
+DST_DEFD     called for option 'Define dumps'. Provides dialog for chosing
+             events to dump.
+
+DST_DUMP     called for option 'Dump event' in interrupt menu
+
+
+Each algorithm allocates enough room in PAWC to handle 2000 events (this
+matches the default size of PAWC.INC). If all 3 algorithms are run
+simultaneaously the size of PAWC must be increased by a factor of 3.
+So it is recommended when making a program with this package to:
+
+$ PBD/FRAME=D0USER/PACK=LJTOP_CUTS/PAWC=300000
+
+you then link and run doing the standard things:
+$ @LJTOP_CUTS_D0USER.LNK (DEBUG)
+$ @LJTOP_CUTS_D0USER
+$ D0USER/FULL
+
+Users should modify algorithms by modifying FIND_TOPSi.FOR which can
+be fetched from D0$TOP_PHYSICS$TOP_LEPJTS. This way the algorithm
+will run on both real and ISAJET data. Note that if the arguments are
+changed you need to modify both LJTOP_CUTS and LJTOP_CUT_ISA.

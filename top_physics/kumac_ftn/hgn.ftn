@@ -1,0 +1,109 @@
+      SUBROUTINE HGN(IDN,NIDN,IDNEVT,X,IERROR)
+*.==========>
+*.           Return in array X the variables of event IDNEVT
+*.
+*..=========> ( R.Brun )
+*CMZ :  4.19/01 30/04/93  17.22.15  by  Rene Brun
+*-- Author :
+      INTEGER     NWPAW,IXPAWC,IHDIV,IXHIGZ,IXKU,        LMAIN
+      REAL                                       FENC   ,      HCV
+      COMMON/PAWC/NWPAW,IXPAWC,IHDIV,IXHIGZ,IXKU,FENC(5),LMAIN,HCV(9989)
+      INTEGER   IQ        ,LQ
+      REAL            Q
+      DIMENSION IQ(2),Q(2),LQ(8000)
+      EQUIVALENCE (LQ(1),LMAIN),(IQ(1),LQ(9)),(Q(1),IQ(1))
+      INTEGER       HVERSN,IHWORK,LHBOOK,LHPLOT,LGTIT,LHWORK,
+     +LCDIR,LSDIR,LIDS,LTAB,LCID,LCONT,LSCAT,LPROX,LPROY,LSLIX,
+     +LSLIY,LBANX,LBANY,LPRX,LPRY,LFIX,LLID,LR1,LR2,LNAME,LCHAR,LINT,
+     +LREAL,LBLOK,LLBLK,LBUFM,LBUF,LTMPM,LTMP,LTMP1,LHPLIP,LHDUM,
+     +LHFIT,LFUNC,LHFCO,LHFNA,LCIDN
+      COMMON/HCBOOK/HVERSN,IHWORK,LHBOOK,LHPLOT,LGTIT,LHWORK,
+     +LCDIR,LSDIR,LIDS,LTAB,LCID,LCONT,LSCAT,LPROX,LPROY,LSLIX,
+     +LSLIY,LBANX,LBANY,LPRX,LPRY,LFIX,LLID,LR1,LR2,LNAME,LCHAR,LINT,
+     +LREAL,LBLOK,LLBLK,LBUFM,LBUF,LTMPM,LTMP,LTMP1,LHPLIP,LHDUM(9),
+     +LHFIT,LFUNC,LHFCO,LHFNA,LCIDN
+*
+*CMZ :  4.19/00 26/04/93  12.34.29  by  Rene Brun
+*-- Author :
+      INTEGER   KNCX   ,KXMIN  ,KXMAX  ,KMIN1  ,KMAX1 ,KNORM  , KTIT1,
+     +          KNCY   ,KYMIN  ,KYMAX  ,KMIN2  ,KMAX2 ,KSCAL2 , KTIT2,
+     +          KNBIT  ,KNOENT ,KSTAT1 ,KNSDIR  ,KNRH ,
+     +          KCON1  ,KCON2  ,KBITS  ,KNTOT
+      PARAMETER(KNCX=3,KXMIN=4,KXMAX=5,KMIN1=7,KMAX1=8,KNORM=9,KTIT1=10,
+     +          KNCY=7,KYMIN=8,KYMAX=9,KMIN2=6,KMAX2=10,KSCAL2=11,
+     +          KTIT2=12,KNBIT=1,KNOENT=2,KSTAT1=3,KNSDIR=5,KNRH=6,
+     +          KCON1=9,KCON2=3,KBITS=1,KNTOT=2)
+*
+*CMZ :  4.20/03 28/07/93  09.33.32  by  Rene Brun
+*-- Author :
+      PARAMETER (NLPATM=100, MXFILES=50)
+      COMMON /HCDIRN/NLCDIR,NLNDIR,NLPAT,ICDIR,NCHTOP,ICHTOP(MXFILES)
+     +              ,ICHTYP(MXFILES),ICHLUN(MXFILES)
+      CHARACTER*16   CHNDIR,    CHCDIR,    CHPAT    ,CHTOP
+      COMMON /HCDIRC/CHCDIR(NLPATM),CHNDIR(NLPATM),CHPAT(NLPATM)
+     +              ,CHTOP(NLPATM)
+      CHARACTER*80 HFNAME
+      COMMON /HCFILE/HFNAME(MXFILES)
+*
+      COMMON/QUEST/IQUEST(100)
+      DIMENSION X(*)
+      INTEGER   KEYS(2)
+*.___________________________________________
+*
+      CALL HGNPAR(IDN,'HGN   ')
+      IF(LCIDN.LE.0)GO TO 90
+*
+      IF(IDNEVT.LE.0)GO TO 90
+      IF(IDNEVT.GT.IQ(LCIDN+3))THEN
+         IERROR=-1
+         RETURN
+      ENDIF
+      LC=LQ(LCIDN-1)
+      NEVB=IQ(LC-1)/IQ(LCIDN+2)
+      IBANK=(IDNEVT-1)/NEVB + 1
+*
+*           Load bank containing this event
+*
+      IF(IQ(LCIDN+11).EQ.0)THEN
+         LC=LQ(LCIDN-3-IBANK)
+      ELSE
+         IF(IQ(LCIDN).EQ.IBANK.OR.IQ(LCIDN+6).EQ.0)GO TO 20
+         IF(IBANK.LE.IQ(LCIDN+6))THEN
+            LKEY=LQ(LC)
+            IF(LKEY.GT.0)THEN
+*-*  case where bank with keys serial numbers exist
+               KEYS(1)=IQ(LKEY+IBANK)
+               CALL HRZIN(IHDIV,LCIDN,-1,KEYS,99999,'RS')
+            ELSE
+*-*  case where bank with keys serial numbers does not exist
+               IF(ICHTYP(ICDIR).EQ.1)THEN
+                  KEYS(1) = IDN+10000*IBANK
+                  KEYS(2) = 0
+               ELSE
+                  KEYS(1) = IDN
+                  KEYS(2) = IBANK
+               ENDIF
+               CALL HRZIN(IHDIV,LCIDN,-1,KEYS,99999,'R')
+            ENDIF
+         ELSE
+            CALL HDELET(IDN)
+            CALL HRIN(IDN,99999,0)
+            NIDN=LOCATI(IQ(LTAB+1),IQ(LCDIR+KNRH),IDN)
+            LCIDN=LQ(LTAB-NIDN)
+         ENDIF
+         LC=LQ(LCIDN-1)
+         IQ(LCIDN)=IBANK
+      ENDIF
+*
+  20  IERROR=0
+      IAD=IQ(LCIDN+2)*(IDNEVT-NEVB*(IBANK-1)-1)
+      DO 30 I=1,IQ(LCIDN+2)
+         X(I)=Q(LC+IAD+I)
+  30  CONTINUE
+      RETURN
+*
+*            Error
+*
+  90  IERROR=1
+      END
+

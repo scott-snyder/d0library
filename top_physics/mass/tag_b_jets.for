@@ -1,0 +1,248 @@
+      SUBROUTINE TAG_B_JETS
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Use Isajet to tag b jets
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  10-AUG-1993   Rajendran Raja
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$INC:ZLINKC.INC'
+      INCLUDE 'D0$INC:TOP_SOLNSE.INC'
+      INCLUDE 'D0$INC:KINEQ.INC'
+      INCLUDE 'D0$INC:EVENT_QUAN1.INC'
+      INCLUDE 'D0$INC:BTAG_ISAJ.INC'
+C
+      INTEGER LISAE,LISAQ,LISAL,LISAJ
+      INTEGER GZISAL,GZISAQ,GZISAJ
+      EQUIVALENCE (LISAE,CSTLNK(LNKMX)),(LISAQ,CSTLNK(LNKMX-1))
+      EQUIVALENCE (LISAL,CSTLNK(LNKMX-2)),(LISAJ,CSTLNK(LNKMX-3))
+      INTEGER LISAQ_BT,LISAQ_BB
+      EQUIVALENCE (LISAQ_BT,CSTLNK(LNKMX-4))
+      EQUIVALENCE (LISAQ_BB,CSTLNK(LNKMX-5))
+      INTEGER LISAL_BT,LISAL_BB,LISAQ_REF
+      EQUIVALENCE (LISAL_BT,CSTLNK(LNKMX-6))
+      EQUIVALENCE (LISAL_BB,CSTLNK(LNKMX-7))
+      INTEGER LISAL_REF
+      EQUIVALENCE (LISAL_REF,CSTLNK(LNKMX-8))
+C
+      INTEGER PRUNIT,SSUNIT
+      INTEGER RUN,EVENT
+      LOGICAL MONTE_CARLO_DATA
+      CHARACTER*8 LABEL,NAME,NAMEJ
+      REAL    DELTA_R
+      REAL    DDIF_BB,DDIF_BT
+      REAL    ETA1,PHI1,ETA2,PHI2
+      REAL    DELTA_ET_BT
+      INTEGER I,ITAG_BT
+      REAL    DELTA_BT
+      REAL    DELTA_ET_BB,DELTA_BB
+      INTEGER ITAG_BB
+      REAL    MAX_ETDIFF_BTAG
+      REAL    ET_BT,ET_BB,ET_JET
+      INTEGER IER
+      REAL    DELTA_LEPTON,DELTA_JET
+      INTEGER ICOMB
+      LOGICAL BPART
+      INTEGER IPISAQ
+C
+      LOGICAL first
+      SAVE first
+      DATA first / .true. /
+      REAL    RAT_BT,RAT_BB
+      REAL    TTBSUM(5),PT_TP,PT_TB
+C----------------------------------------------------------------------
+      DELTA_R(ETA1,PHI1,ETA2,PHI2) = SQRT((ETA1-ETA2)**2+(PHI1-PHI2)**2)
+C
+      IF( first ) THEN
+        first = .false.
+        CALL EZPICK('TOP_MASS_RCP')
+        CALL EZGET('MAX_ETDIFF_BTAG',MAX_ETDIFF_BTAG,IER)
+        CALL DO_HBOOK('BTAG_HISTS')
+        CALL EZRSET
+      ENDIF
+C
+      IF ( .NOT.MONTE_CARLO_DATA() ) RETURN
+C
+      IF ( COMBNUM.GT.1.0 ) THEN
+        RETURN
+      ENDIF
+C
+      LISAQ_BT = 0
+      LISAQ_BB = 0
+      LISAQ = GZISAQ()
+      CALL UZERO(BT,1,8)
+      CALL UZERO(BB,1,8)
+C
+      DO WHILE (LISAQ.NE.0)
+        IPISAQ = IQ(LISAQ+1)
+        IF ( BPART(IPISAQ,5) ) THEN
+C BOTTOM QUARK
+          CALL UCOPY(Q(LISAQ+2),BT,8)
+          LISAQ_BT = LISAQ
+        ELSEIF ( BPART(IPISAQ,-5) ) THEN
+C ANTI-BOTTOM QUARK
+          CALL UCOPY(Q(LISAQ+2),BB,8)
+          LISAQ_BB = LISAQ
+        ENDIF
+        LISAQ = LQ(LISAQ)
+      ENDDO
+C
+      DDIF_BT = 99999.
+      DELTA_ET_BT = 0.
+      ITAG_BT = 0
+      NTAG = 0
+      ET_BT = SQRT(BT(1)**2+BT(2)**2)
+      DO I = 1 , NJETS
+        DELTA_BT = DELTA_R(BT(8),BT(6),P25_JETS(6,I),P25_JETS(7,I))
+        IF ( DELTA_BT.LT.DDIF_BT ) THEN
+          DELTA_ET_BT = ET_BT - P25_JETS(5,I)
+          DDIF_BT=DELTA_BT
+          ITAG_BT = I
+        ENDIF
+      ENDDO
+C
+      CALL DO_HF1(701,DDIF_BT,1.0)
+      CALL DO_HF1(702,DELTA_ET_BT,1.0)
+C
+      IF ( ABS(DELTA_ET_BT).LT.MAX_ETDIFF_BTAG ) THEN
+        NTAG = NTAG + 1
+        JET_TAGGED(NTAG) = ITAG_BT
+        NAME_TAG(NTAG) = 'BT'
+        DIF_R(NTAG) = DDIF_BT
+        DIF_ET(NTAG) = DELTA_ET_BT
+      ENDIF
+C
+      DDIF_BB = 99999.
+      DELTA_ET_BB = 0.
+      ET_BB = SQRT(BB(1)**2+BB(2)**2)
+      DO I = 1 , NJETS
+        DELTA_BB = DELTA_R(BB(8),BB(6),P25_JETS(6,I),P25_JETS(7,I))
+        IF ( DELTA_BB.LT.DDIF_BB ) THEN
+          DDIF_BB=DELTA_BB
+          ITAG_BB = I
+          DELTA_ET_BB = ET_BB - P25_JETS(5,I)
+        ENDIF
+      ENDDO
+C
+      CALL DO_HF1(701,DDIF_BB,1.0)
+      CALL DO_HF1(702,DELTA_ET_BB,1.0)
+C
+      IF ( ABS(DELTA_ET_BB).LT.MAX_ETDIFF_BTAG ) THEN
+        NTAG = NTAG + 1
+        JET_TAGGED(NTAG) = ITAG_BB
+        NAME_TAG(NTAG) = 'BB'
+        DIF_R(NTAG) = DDIF_BB
+        DIF_ET(NTAG) = DELTA_ET_BB
+      ENDIF
+C
+      CALL DO_HF1(703,ET_BT,1.0)
+      CALL DO_HF1(704,ET_BB,1.0)
+C
+      DO I = 1 , NTAG
+        ET_JET = P25_JETS(5,JET_TAGGED(I))
+        IF ( NAME_TAG(I).EQ.'BT') THEN
+          CALL DO_HF1(705,ET_JET,1.0)
+          RAT_BT = ET_JET/SQRT(BT(1)**2+BT(2)**2)
+          CALL DO_HF1(707,RAT_BT,1.0)
+        ELSEIF ( NAME_TAG(I).EQ.'BB' ) THEN
+          CALL DO_HF1(706,ET_JET,1.0)
+          RAT_BB = ET_JET/SQRT(BB(1)**2+BB(2)**2)
+          CALL DO_HF1(708,RAT_BB,1.0)
+        ENDIF
+      ENDDO
+C
+C
+C ****  NOW TO TAG THE LEPTONS
+C
+      LISAQ_BT = 0
+      LISAQ_BB = 0
+      LISAQ = GZISAQ()
+      CALL UZERO(BTL,1,9)
+      CALL UZERO(BBL,1,9)
+      DO WHILE (LISAQ.NE.0)
+        NAME=LABEL(IQ(LISAQ+1))
+        IF ( NAME(1:3).EQ.'MU+'.OR.NAME(1:3).EQ.'MU-'
+     &    .OR.NAME(1:2).EQ.'E+'.OR.NAME(1:2).EQ.'E-' ) THEN
+C CHARGE E OR MU
+          LISAJ = LQ(LISAQ-1) !W
+          LISAJ = LQ(LISAJ-1) !TOP
+          NAMEJ = LABEL(IQ(LISAJ+1))
+          IF ( NAMEJ(1:2).EQ.'TP' ) THEN
+C TOP DECAY LEPTON
+            CALL UCOPY(Q(LISAQ+1),BTL,9)
+            CALL UCOPY(Q(LISAJ+1),TP,9)
+          ELSEIF ( NAMEJ(1:2).EQ.'TB' ) THEN
+C TBAR DECAY LEPTON
+            CALL UCOPY(Q(LISAQ+1),BBL,9)
+            CALL UCOPY(Q(LISAJ+1),TB,9)
+          ENDIF
+        ENDIF
+        LISAQ = LQ(LISAQ)
+      ENDDO
+C
+      DO I = 1 , 2
+        DELTAL_BT(I) = DELTA_R(BTL(9),BTL(7),
+     &    ETA_PHI_LEPTON(1,I),ETA_PHI_LEPTON(2,I))
+        DELTAL_BB(I) = DELTA_R(BBL(9),BBL(7),
+     &    ETA_PHI_LEPTON(1,I),ETA_PHI_LEPTON(2,I))
+        LEPTON_TAGGED(I) = I
+      ENDDO
+      IF ( DELTAL_BT(1).GT.DELTAL_BT(2) ) THEN
+C LEPTON2 TAGS TO BT
+        LEPTON_TAGGED(1)=2
+        LEPTON_TAGGED(2)=1
+
+      ENDIF
+C
+C ****  NOW WORK OUT WHICH COMBINATION HAS THE  BTAG FLAG IF ANY
+C
+      BTAG_FL = 0
+      IF ( NTAG.LT.2 ) THEN
+        RETURN
+C NO BTAG FLAG TO WORK OUT
+      ELSE
+C THE TOP DECAY IS THE 1ST TAGEED AND THE TBAR DECAY IS THE SECOND TAGGED
+        DELTA_LEPTON = LEPTON_TAGGED(1)-LEPTON_TAGGED(2)
+        DELTA_JET = JET_TAGGED(1)-JET_TAGGED(2)
+        IF(DELTA_LEPTON*DELTA_JET.GT.0)THEN
+C ICMB=1 IS THE RIGHT SOLUTION
+          ICOMB=1
+        ELSE 
+C ICMB=2 IS THE RIGHT SOLUTION
+          ICOMB=2
+        ENDIF
+        IF ( COMBNUM.EQ.1.0 ) THEN
+C 
+          IF ( JET_TAGGED(1)+JET_TAGGED(2).EQ.3 ) THEN
+C JET 1+JET 2
+            BTAG_FL = ICOMB
+          ENDIF
+        ELSEIF ( COMBNUM.EQ.2.0 ) THEN
+C
+          IF ( JET_TAGGED(1)+JET_TAGGED(2).EQ.4 ) THEN
+C JET 1+JET 3
+            BTAG_FL = ICOMB
+          ENDIF
+        ELSEIF ( COMBNUM.EQ.3.0 ) THEN
+          IF ( JET_TAGGED(1)+JET_TAGGED(2).EQ.5 ) THEN
+C JET 2+JET 3
+            BTAG_FL = ICOMB
+          ENDIF
+        ENDIF
+      ENDIF
+C
+      CALL PAIR_MASS(TP(2),TB(2),TTBSUM)
+      CALL DO_HF1(905,TTBSUM(5),1.0)
+      PT_TP = SQRT(TP(2)**2+TP(3)**2)
+      PT_TB = SQRT(TB(2)**2+TB(3)**2)
+      CALL DO_HF1(906,PT_TP,1.0)
+      CALL DO_HF1(906,PT_TB,1.0)
+C
+  999 RETURN
+      END

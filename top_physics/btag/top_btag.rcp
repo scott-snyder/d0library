@@ -1,0 +1,214 @@
+\START   TOP_BTAG_RCP
+!------------------------------------------------------------------------------
+!   Name:       TOP_BTAG_RCP
+!   Purpose:    Control file for TOP_BTAG package
+!   Created:    16-Aug-1993
+!------------------------------------------------------------------------------
+USER_WEIGHT 1.0                ! Can store luminosity info here.
+!------------------------------------------------------------------------------
+! Ntuple control.
+!
+! Usage notes:
+!
+! 1.  The total capacity of the ntuple file is limited to the product of
+!     of NTUPLE_MAX_RECORDS and NTUPLE_RECORD_SIZE.
+!
+! 2.  For column-wise ntuple, the size of /PAWC/ should be bigger than
+!     NTUPLE_BUFFER_SIZE*NTUPLE_NUM_COLUMNS.
+!
+! 3.  For maximum efficiency, make NTUPLE_BUFFER_SIZE a multiple of 
+!     NTUPLE_RECORD_SIZE.
+!
+!------------------------------------------------------------------------------
+NTUPLE_DIR               'TOP_BTAG' ! Directory of ntuple in memory
+NTUPLE_FILE              'NTUPLE'   ! Ntuple filename
+NTUPLE_MAX_RECORDS       65000      ! Max number of physical records (max 65k)
+NTUPLE_RECORD_SIZE       1024       ! Physical record size
+NTUPLE_BUFFER_SIZE       1024       ! Ntuple memory buffer size
+COLUMN_WISE_NTUPLE       .TRUE.     ! Make column-wise ntuple?
+NTUPLE_NUM_COLUMNS       50         ! Number of columns
+USE_ISP1                 .FALSE.    ! ISAL or ISP1?
+!------------------------------------------------------------------------------
+! C.M. energy
+!------------------------------------------------------------------------------
+CM_ENERGY          1800.
+!------------------------------------------------------------------------------
+! Vector boson masses
+!------------------------------------------------------------------------------
+MASS_W             80.22
+MASS_Z             91.17
+!------------------------------------------------------------------------------
+! Z vertex
+!------------------------------------------------------------------------------
+USE_MC_VERTEX      .TRUE.
+!------------------------------------------------------------------------------
+! Jet parameters 
+!------------------------------------------------------------------------------
+JET_ALG            2           ! Algorithm (1,2,3,4 = .7, .5, .3, NN)
+JET_SYS            0           ! Systematics flag (0=nominal, 1=low, 2=high).
+!------------------------------------------------------------------------------
+! Topological pre-selection cuts (pre-ntuple)
+!------------------------------------------------------------------------------
+NUM_ELEC_MIN       1
+NUM_PHOT_MIN       0
+NUM_EM_MIN         0
+NUM_JET_MIN        0
+NUM_MUON_MIN       0
+NUM_MUTAG_MIN      0
+MET2_MIN           12.
+MET3_MIN           0.
+!------------------------------------------------------------------------------
+! Final selection cuts (Determines whether entire package is true or false)
+!------------------------------------------------------------------------------
+DO_FINAL_SELECTION      .FALSE.             ! If .FALSE., the package will
+                                            ! return .TRUE. if the event
+                                            ! was added to the ntuple.
+NUM_ELEC_MIN_FINAL      1
+NUM_PHOT_MIN_FINAL      0
+JET1_ETMIN_FINAL        15.
+JET2_ETMIN_FINAL        15.
+JET3_ETMIN_FINAL        15.
+JET4_ETMIN_FINAL        15.
+NUM_MUON_MIN_FINAL      0
+NUM_MUTAG_MIN_FINAL     0
+MET2_MIN_FINAL          20.
+MET3_MIN_FINAL          0.
+!------------------------------------------------------------------------------
+! HT calculation parameters
+!------------------------------------------------------------------------------
+HT_JETPT_MIN       0.
+HT_JETETA_MAX      10.
+!------------------------------------------------------------------------------
+! Vector bosons
+!------------------------------------------------------------------------------
+DO_ELECTRON_W_ANALYSIS         .TRUE.       ! Do W analysis using electrons?
+DO_ELECTRON_W_RECONSTRUCTION   .TRUE.       ! Reconstruct W 4-vector?
+W_USE_MET3                     .TRUE.       ! Use MET(2) or MET(3) for W
+                                            ! reconstruction?
+DO_ELECTRON_Z_ANALYSIS         .TRUE.       ! Do Z analysis using electrons?
+DO_ELECTRON_Z_RECONSTRUCTION   .FALSE.      ! Reconstruct Z 4-vector?
+!------------------------------------------------------------------------------
+! Ntuple definition
+!------------------------------------------------------------------------------
+!
+! Non-repeated tags used in ntuple definition.  Each tag appears once at the
+! beginning of the ntuple.
+!
+!------------------------------------------------------------------------------
+
+\ARRAY GLOB_TAG
+'RUN'       'EVENT'     'WEIGHT'    'UWGHT'     'DWGHT'
+'NELEC'     'NPHOT'     'NJET'      'NMUON'     'NMUTAG'
+'MET2U'     'MPHI2U'    'MET2'      'METPHI2'
+'MET3'      'METPHI3'   'HT'        'SERBAN'    'CLNCAL'
+'TRIG:U'    'NVERT'     'ZVERT'     'MCDATA'    'ZMCVTX'
+'NT'        'NB'        'NC'        'NS'        'ND'
+'NU'        'NG'        'NE'
+'NMU'       'NTAU'      
+'NGI'       'NUI'       'NDI'       'NSI'       'NCI'       'NBI'
+'SET'       'SETC'      'SETE'      'SETMR'     'HOTE'      'HOTET'     
+'NJET10'    'NJET15'    'NJET20'    'NJET25'
+'NJET30'    'NJET35'    'NJET40'
+'MJ12'      'MJ13'      'MJ23'      'MJBEST'    'MJ123'     'MASS'
+'XF'        'X1'        'X2'        'MT4'       'DMT4'
+'S'         'Y'         'A'
+'SJ'        'YJ'        'AJ'
+'MGG'       'MGJ1'      'MGJ2'      'MGJ3'      'MBP3'      'DMBP3'
+\END
+
+!------------------------------------------------------------------------------
+! Trigger bitmask definition
+!------------------------------------------------------------------------------
+! Format:
+!
+! <ntuple bit number> <L2 bit name>
+!       .
+!       .
+!       .
+!------------------------------------------------------------------------------
+\ARRAY TRIG_BITMASK
+     0      'MU_ELE'
+     1      'MU_JET_HIGH'
+     1      'MU_JET_MAX'
+     2      'SCALAR_ET'
+     3      'MISSING_ET'
+     4      'JET_3_MISS'
+     5      'JET_MULTI'
+     5      'JET_MULTI_X'
+     5      'SCAL_ET_JET'
+     6      'ELE_HIGH'
+     7      'ELE_MAX'
+     8      'ELE_JET'
+     8      'ELE_JET_MAX'
+     9      'GIS_DIJET'
+\END
+
+!------------------------------------------------------------------------------
+! Repeated tags.
+! 
+! 1. VERT   - Vertices.
+! 2. ELEC   - Electrons
+! 3. PHOT   - Photons
+! 4. JET    - Jets
+! 5. MUON   - High-pt (isolated) muons
+! 6. MUTAG  - Tagging (soft) muons
+! 7. W      - Electron W's 
+! 8. Z      - Electron Z's
+!
+! The index of the repitition is appended to the tag in the ntuple definition.
+!
+!------------------------------------------------------------------------------
+
+NUM_VERT      3
+NUM_ELEC      2
+NUM_PHOT      1
+NUM_JET       8
+NUM_MUON      2
+NUM_MUTAG     2
+NUM_W         1
+NUM_Z         1
+
+\ARRAY VERT_TAG
+'ZVERT'
+\END
+
+\ARRAY ELEC_TAG
+'EETU'      'EET'       'EETA'      'EPHI'      'ECETA'
+'ECHI'      'EDR'       'EB2B'
+'EFRAC'     'EISO'      'ECELLS'    'ETSIG'     'ECDCMIP'
+'EFDCMIP'   'ETRDACC'   'ETRDEFF'
+\END
+
+\ARRAY PHOT_TAG
+'PETU'      'PET'       'PETA'      'PPHI'      'PCETA'
+'PCHI'      'PDR'       'PB2B' 
+'PFRAC'     'PISO'      'PCELLS'
+\END
+
+\ARRAY JET_TAG
+'JALG'      'JETU'      'JET'       'JETA'      'JPHI'
+'JRAD'      'JEMF'      'JDRB'      'JDRC'      'JDRT'
+\END
+
+\ARRAY MUON_TAG
+'MPT'       'META'      'MPHI'      'MIFW4'     
+'MBDL'      'MECAL2'    'MECAL4'    'MECAL6'    'MFT0'      
+'MIPB'      'MIPN'      'MDR'
+\END
+
+\ARRAY MUTAG_TAG
+'MTPT'      'MTETA'     'MTPHI'     'MTIFW4'    
+'MTBDL'     'MTECAL2'   'MTECAL4'   'MTECAL6'   'MTFT0'     
+'MTIPB'     'MTIPN'     'MTDR'      
+'MTPTR'     'MTJET'     'MTJETA'    'MTJPHI'
+'MTTAG'
+\END
+
+\ARRAY W_TAG
+'WMT2'      'WMT3'      'WPT2'      'WPT3'
+\END
+
+\ARRAY Z_TAG
+'ZMASS'     'ZPT'
+\END
+\STOP

@@ -1,0 +1,966 @@
+\START          TOP_MASS_RCP  ! control file for TOP_MASS package
+\SIZE       3325       166
+
+!------------------------------------------------------------------------------
+!   Name:       TOP_MASS.RCP
+!   Purpose:    Control file for TOP_MASS package
+!   Updated:    3-APR-1993   Rajendran Raja
+!   Version:    V1.0
+!
+!----------------------------------------------------------------------
+! ANALYSIS CONTROL
+!----------------------------------------------------------------------
+ DO_TOP_MASS_ANAL  .true.
+ DO_TOP_MASS_ANAL1  .TRUE.   !will analyze mass banks
+ READ_EVENT_FROM_RCP .FALSE. !WILL READ FROM RCP FILE
+ ADD_JETS            .TRUE. ! WILL ADD JETS IF TRUE
+ \ARRAY LEPTON_TYPE
+  1   2    !1=ELECTRON 2=MUON used when reading from zebra file
+ \END
+!
+ NUMBER_OF_WARNINGS 999
+ NUMBER_DUMP_EVENTS 30   !WILL DUMP THESE MANY EVENTS TO OUTPUT
+\ARRAY ERROR_HANDLING
+!Error number,contin,count,type,log,maxlim - arguments for errset
+ 70  .true. .true. .false. .true. 500  !integer overflow
+ 71  .true. .true. .false. .true. 500  !integer zero divide
+ 72  .true. .true. .false. .true. 500  !floating overflow
+ 73  .true. .true. .false. .true. 500  !zero divide
+ 74  .true. .true. .false. .true. 500  !floating underflow
+\END
+!----------------------------------------------------------------------
+! BTAG CONTROL
+!----------------------------------------------------------------------
+MAX_ETDIFF_BTAG  20.0  !WILL TAG CLOSEST JET IS NOT DIFFERENT IN ET BY THIS
+!
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+ \ARRAY HBOOK_OPEN
+!Filename      TOPdirectory       NEWFILE   RECORDlength
+  'DILEPTON'   'DILEPTON'          TRUE      8191
+ \END
+ \ARRAY HBOOK_DIRECTORY
+      'TOP_MASS'
+ \END
+!
+NUMBER_CONFIGS  100   !WILL GENERATE THESE NUMBER OF VARIED EVENTS CONFIGS
+!
+!----------------------------------------------------------------------
+! RESOLUTION PARAMETERS
+!----------------------------------------------------------------------
+\ARRAY ELECTRON_RESOLN
+ 0.15  0.03   !XX/SQRT(E) + YY IN QUADRATURE
+\END
+!
+\ARRAY MUON_RESOLN
+ 0.01  0.20 !DELTAPT/PT FROM GLOBAL FIT
+\END
+MAXIMUM_MUON_MOMENTUM 300.0  !IF GENERATED GREATER THAN THIS WILL REJECT
+!
+\ARRAY JET_RESOLN
+ 0.8   0.05  !XX/SQRT(E) + YY IN QUADRATURE
+\END
+!
+WMASS 80.0
+!
+PHILO  0.    !LOWEST PHI VALUE FOR 1ST NEUTRINO VECTOR FOR SCAN
+PHIHI  180.  !HIGHEST PHI VALUE FOR 1ST NEUTRINO VECTOR FOR SCAN
+NPHI   200    !NUMBER OF PHI SCANS
+!
+DO_ITERATE F   !IF TRUE WILL FIND SOLUTION BY ITERATION
+DELTA_F    0.2     !MAX. DIFFERENCE IN MASS WHEN ITERATING FOR CONVERGENCE
+DEL_LAMBDA 2.0    !STEPSIZE IN LAMBDA
+DEL_LAMBDA_ITERATE 10.0   !STEPSIZE IN LAMBDA WHEN ITERATING
+DEL_MASS_MAX 10.0  !HIST TOP MASS IF MASSES WITHIN THIS WINDOW
+MAX_ABS_LAMBDA 200.0  !MAXIMUM VALUE OF LAMBDA
+ITER_MAX   20      !Maximum number of iterations
+!
+!----------------------------------------------------------------------
+! INPUT/OUTPUT FILES
+!----------------------------------------------------------------------
+\ARRAY TOP_CROSS_SECTION_INPUT
+ 'CROSS_100_250.DAT'
+\END
+!
+\ARRAY TOP_CROSS_SECTION_OUTPUT
+ 'CROSS_100_250.DAT'
+\END
+\ARRAY KUMAC
+ 'KUMAC'   !PUTS OUT CONFIDENCE LEVEL KUMAC
+\END
+!
+!----------------------------------------------------------------------
+! EXACT SOLUTION PARAMETERS
+!----------------------------------------------------------------------
+!
+DO_EXACT T    !IF TRUE WILL SOLVE FOR EACH TOPMASS EXACTLY
+TMASS_LO  100.0
+TMASS_HI  250.0
+DELMASS   1.
+TOLERANCE_W_MASS 0.1    !ERROR EMITTED IF SOLN NOT NEAR
+TOLERANCE_TOP_MASS 0.1 !ERROR EMITTED IF SOLN NOT NEAR
+!
+ROOTS_TEV 1800.0     !TEVATRON CENTER OF MASS ENERGY
+EXACT_CONFIGS 20    !Number of configurations to run
+MAKE_DEBUG_PLOTS   TRUE !IF TRUE WILL MAKE DEBUG PLOTS
+!----------------------------------------------------------------------
+! Event selection parameters
+!----------------------------------------------------------------------
+ ET_CUT_W_ELECTRON    15.0      !DO NOT USE ELECTRON IF BELOW THIS
+ ET_CUT_W_PHOTON      15.0      !DO NOT USE PHOTON IF BELOW THIS
+ ET_CUT_W_MUON        15.0      !DO NOT USE MUON IF BELOW THIS
+ JET_ET_CUT           15.0      !USE ONLY JETS ABOVE THIS ET
+ MIN_JET_NUM          2         !Minimum number of jets
+ MIN_EL_NUM           1         !Minimum number of electrons
+ MIN_MU_NUM           1         !Minimum number of MUONS
+!
+\ARRAY JET_ALGORITHM_NAME
+ 'CONE_JET'
+\END
+!
+\ARRAY JET_TEMPLATE
+1.    !Check 1 word
+6.    !offset of word in CAPH
+0.5  !Cone size
+\END
+!----------------------------------------------------------------------
+! KT**2 FITTED PARAMETERS
+!----------------------------------------------------------------------
+ DO_KT2_WEIGHTS .TRUE.  !IF TRUE WILL EMPLOT KT2 WEIGHTING
+\ARRAY  KT2_EXPONENTIAL1
+ 5.255356   -.4503817E-02
+\END
+\ARRAY  KT2_EXPONENTIAL2
+ 2.467924   -.4074589E-03
+\END
+ KT2_BINSIZE 100.0 !SIZE OF KT**2 BIN
+ KT2_EVENTS  815   !NUMBER OF EVENTS IN FITTED PLOT
+!----------------------------------------------------------------------
+! VISIBLE CROSS SECTION PARAMETERS
+!----------------------------------------------------------------------
+DO_VISIBLE_CROSS   TRUE !IF TRUE WILL USE VISIBLE CROSS SECTION
+\ARRAY TOP_MASS_EFF
+80. 100. 120. 140. 160. 180. 200. 250. 300.
+\END
+\ARRAY EMU_EFFICIENCIES
+ 0.4838710     0.7483871      1.058065      1.000000      1.245161
+  1.245161      1.245161      1.245161      1.245161
+\END
+POLYNOMIAL_DEGREE  3  !DEGREE OF INTERPOLATING POLYNOMIAL
+!----------------------------------------------------------------------
+! ISAJET STRUCTURE FUNCTION CONSTANTS
+!----------------------------------------------------------------------
+QCD_LAMBDA  0.2     !FOR USE IN STRUC
+ALPHA_STRONG 0.112  !Alpha_strong value. Should be at top mass
+CUTJET     6.0
+STRUCTURE_FUNCTION_TYPE 3  !EHLQ
+!----------------------------------------------------------------------
+! PDFLIB STRUCUTRE FUNCTION CONSTANTS
+!----------------------------------------------------------------------
+STRUCTURE_FN_NPTYPE 1 !Particle type=nucleons
+STRUCTURE_FN_NGROUP 1 !Author group
+STRUCTURE_FN_NSET   8 !set within Author group EHLQ1=9, DO1.1=10
+STRUCTURE_FN_NFL  5   !Number of flavors (udcsb)
+STRUCTURE_FN_LO   2   !LEADING ORDER     (default=2)
+STRUCTURE_FN_SCALE 0.5 !QCD SCALE = THIS*TOP_MASS
+!
+CONV_PB    0.389379E9  !CONVERTS GEV-2 TO PICOBARNS
+NGAUSS 6    !Degree of Gaussian Integration
+NSUB_DIV 4  !Number of subdivisions over which gauss is applied
+TEST_MODEL   .false.  !IF true will histogram parton model functions
+TEST_MODEL_IN_SITU .true. !WILL TEST THE MODEL FOR GENERATED CONFIGS
+NUMBER_TESTS 100    !NUMBER OF TESTS TO PERFORM
+TOP_TEST_MASS 150.  !TEST TOP MASS
+TEST_SHAT     400.  !TEST SHAT
+!
+USE_FITTED_CROSS_SECTION  F  !WILL USE POLY EXTRAPOLATION
+READ_CROSS_SECTION        F  !WILL READ FROM UNIT 18
+!
+\ARRAY GLUON_FIT
+9.0  27317.63     -1147.915      20.90074     -.2129251     0.1307053E-02
+ -.4824415E-05 0.9898604E-08 -.8698943E-11
+\END
+\ARRAY QUARK_FIT
+9.0  2434.403     -85.58639      1.377003     -.1286189E-01 0.7421045E-04
+ -.2618507E-06 0.5196389E-09 -.4453378E-12
+\END
+\ARRAY TOTAL_FIT
+9.0  29721.78     -1232.006      22.24638     -.2254251     0.1378783E-02
+ -.5076155E-05 0.1039556E-07 -.9122671E-11
+\END
+!
+!----------------------------------------------------------------------
+! HBOOK PARAMETERS
+!----------------------------------------------------------------------
+!
+\ARRAY CONFIG_NTUPLE
+!
+ 'DO'
+ '1DIM'  101
+ 'TOP MASS DELM.lt.10GEV ALL SOLUTIONS WEIGHTED'
+ 100 100.0  250.0   0.
+!
+ 'DO'
+ '1DIM'  102
+ 'TOP MASS DELM.lt.10GEV SOLUTION 11 WEIGHTED'
+ 100 100.0  250.0   0.
+!
+ 'DO'
+ '1DIM'  103
+ 'TOP MASS DELM.lt.10GEV SOLUTION 21 WEIGHTED'
+ 100 100.0  250.0   0.
+!
+ 'DO'
+ '1DIM'  104
+ 'TOP MASS DELM.lt.10GEV SOLUTION 12 WEIGHTED'
+ 100 100.0  250.0   0.
+!
+ 'DO'
+ '1DIM'  105
+ 'TOP MASS DELM.lt.10GEV SOLUTION 22 WEIGHTED'
+ 100 100.0  250.0   0.
+!
+ 'DO'
+ '1DIM'  106
+ 'x1  fully weighted'
+ 100 0. 1. 0.
+!
+ 'DO'
+ '1DIM'  107
+ 'x2 fully weighted '
+ 100  0. 1. 0.
+!
+ 'DO'
+ '1DIM'  108
+ 'Sqrt(-t) fully weighted '
+ 100 0.0 500. 0.
+!
+ 'DO'
+ '1DIM'  109
+ 'LEPTON ENERGY1 IN TOP CMS fully weighted '
+ 100 0.0 200. 0.
+!
+ 'DO'
+ '1DIM'  110
+ 'LEPTON ENERGY2 IN top CMS fully weighted '
+ 100 0.0 200. 0.
+!
+ 'DO'
+ '1DIM'  111
+ 'TOP MASS DELM.lt.10GEV ALL SOLUTIONS UNWEIGHTED'
+ 100 100.0  250.0   0.
+!
+ 'DO'
+ '1DIM'  112
+ 'TOP MASS DELM.lt.10GEV SOLUTION 11 UNWEIGHTED'
+ 100 100.0  250.0   0.
+!
+ 'DO'
+ '1DIM'  113
+ 'TOP MASS DELM.lt.10GEV SOLUTION 21 UNWEIGHTED'
+ 100 100.0  250.0   0.
+!
+ 'DO'
+ '1DIM'  114
+ 'TOP MASS DELM.lt.10GEV SOLUTION 12 UNWEIGHTED'
+ 100 100.0  250.0   0.
+!
+ 'DO'
+ '1DIM'  115
+ 'TOP MASS DELM.lt.10GEV SOLUTION 22 UNWEIGHTED'
+ 100 100.0  250.0   0.
+!
+ 'DO'
+ '1DIM'  198
+ 'x1 weighted by gluon structure function'
+ 100  0. 1. 0.
+!
+ 'DO'
+ '1DIM'  199
+ 'x1  weighted by quark structure function'
+ 100 0. 1. 0.
+!
+ 'DO'
+ '1DIM'  200
+ 'x2 weighted by gluon structure function'
+ 100  0. 1. 0.
+!
+ 'DO'
+ '1DIM'  201
+ 'x2  weighted by quark structure function'
+ 100 0. 1. 0.
+!
+ 'DO'
+ '1DIM'  202
+ 'Sqrt(-t) weighted by Dsigma/Dt gluon'
+ 100 0.0  500. 0.
+!
+ 'DO'
+ '1DIM'  203
+ 'Sqrt(-t) weighted by Dsigma/Dt quark'
+ 100 0.0 500. 0.
+!
+ 'DO'
+ '1DIM'  204
+ 'top mass weighted by NORM_QUARK'
+ 100 0.0 500. 0.
+!
+ 'DO'
+ '1DIM'  205
+ 'top mass weighted by NORM_GLUON'
+ 100 0.0 500. 0.
+!
+ 'DO'
+ '1DIM'  206
+ 'LEPTON ENERGY1 IN TOP CMS WEIGHTED BY DECAY FACTOR'
+ 100 0.0 200. 0.
+!
+ 'DO'
+ '1DIM'  207
+ 'LEPTON ENERGY2 IN TOP CMS WEIGHTED BY DECAY FACTOR'
+ 100 0.0 200. 0.
+!
+ 'DO'
+ '1DIM'  298
+ 'x1 unweighted by gluon structure function'
+ 100  0. 1. 0.
+!
+ 'DO'
+ '1DIM'  299
+ 'x1  unweighted by quark structure function'
+ 100 0. 1. 0.
+!
+ 'DO'
+ '1DIM'  300
+ 'x2 unweighted by gluon structure function'
+ 100  0. 1. 0.
+!
+ 'DO'
+ '1DIM'  301
+ 'x2  unweighted by quark structure function'
+ 100 0. 1. 0.
+!
+ 'DO'
+ '1DIM'  302
+ 'Sqrt(-t) unweighted by Dsigma/Dt gluon'
+ 100 0.0  500. 0.
+!
+ 'DO'
+ '1DIM'  303
+ 'Sqrt(-t) unweighted by Dsigma/Dt quark'
+ 100 0.0 500. 0.
+!
+ 'DO'
+ '1DIM'  304
+ 'top mass '
+ 100 0.0 500. 0.
+!
+ 'DO'
+ '1DIM'  306
+ 'LEPTON ENERGY1 IN TOP CMS'
+ 100 0.0 200. 0.
+!
+ 'DO'
+ '1DIM'  307
+ 'LEPTON ENERGY2 IN TOP CMS '
+ 100 0.0 200. 0.
+!
+    'DO'
+    'NDIM'
+     100
+     'Top_configurations'
+      125       ' '
+
+ 'RUN' 'EVENT' 'CONFIG' 'IPHI'
+
+!Now the configuration kinematic quantities
+
+ 'LEPTON11'   'LEPTON12'  'LEPTON13'  'LEPTON14'
+ 'LEPTON21'   'LEPTON22'  'LEPTON23'  'LEPTON24'
+ 'JET11' 'JET12' 'JET13' 'JET14'
+ 'JET21' 'JET22' 'JET23' 'JET24'
+ 'JET31' 'JET32' 'JET33' 'JET34'
+ 'PNUT1' 'PNUT2'
+
+!Now the four solutions for this PHI of Et 1st neutrino
+ 'PHI'
+ 'LAMBDA_LO'
+ 'LAMBDA_HI'
+!
+!the notation is as follows. 1st index is particle number. second index
+!is component of vector. 3rd and 4th indices are the solution numbers
+!e.g. W14_12 means the 4th component of W1 in the solution combination 12
+!i.e. 1st solution of 1st W is combined with second solution of second W
+!
+ 'WT_11'    !parton model weight for solution
+ 'LAMDA_11'
+ 'SOL_11'
+ 'DELM_11'
+ 'NUT11_11' 'NUT12_11'
+ 'W11_11' 'W12_11' 'W13_11' 'W14_11'
+ 'T11_11' 'T12_11' 'T13_11' 'T14_11' 'T15_11'
+ 'W21_11' 'W22_11' 'W23_11' 'W24_11'
+ 'T21_11' 'T22_11' 'T23_11' 'T24_11' 'T25_11'
+!
+ 'WT_21'    !parton model weight for solution
+ 'LAMDA_21'
+ 'SOL_21'
+ 'DELM_21'
+ 'NUT11_21' 'NUT12_21'
+ 'W11_21' 'W12_21' 'W13_21' 'W14_21'
+ 'T11_21' 'T12_21' 'T13_21' 'T14_21' 'T15_21'
+ 'W21_21' 'W22_21' 'W23_21' 'W24_21'
+ 'T21_21' 'T22_21' 'T23_21' 'T24_21' 'T25_21'
+!
+ 'WT_12'    !parton model weight for solution
+ 'LAMDA_12'
+ 'SOL_12'
+ 'DELM_12'
+ 'NUT11_12' 'NUT12_12'
+ 'W11_12' 'W12_12' 'W13_12' 'W14_12'
+ 'T11_12' 'T12_12' 'T13_12' 'T14_12' 'T15_12'
+ 'W21_12' 'W22_12' 'W23_12' 'W24_12'
+ 'T21_12' 'T22_12' 'T23_12' 'T24_12' 'T25_12'
+!
+ 'WT_22'    !parton model weight for solution
+ 'LAMDA_22'
+ 'SOL_22'
+ 'DELM_22'
+ 'NUT11_22' 'NUT12_22'
+ 'W11_22' 'W12_22' 'W13_22' 'W14_22'
+ 'T11_22' 'T12_22' 'T13_22' 'T14_22' 'T15_22'
+ 'W21_22' 'W22_22' 'W23_22' 'W24_22'
+ 'T21_22' 'T22_22' 'T23_22' 'T24_22' 'T25_22'
+!
+\END
+\ARRAY CONFIGE_NTUPLE  !NTUPLE FOR EXACT SOLUTION
+!
+ 'DO'
+ '1DIM'  2001
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=1 COMBNUM=1'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2002
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=1 COMBNUM=1'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2003
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=1 COMBNUM=1'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2004
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=2 COMBNUM=1'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2005
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=2 COMBNUM=1'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2006
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=2 COMBNUM=1'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2011
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=1 COMBNUM=2'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2012
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=1 COMBNUM=2'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2013
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=1 COMBNUM=2'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2014
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=2 COMBNUM=2'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2015
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=2 COMBNUM=2'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2016
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=2 COMBNUM=2'
+ 151 100.0  251.0   0.
+!
+!
+ 'DO'
+ '1DIM'  2021
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=1 COMBNUM=3'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2022
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=1 COMBNUM=3'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2023
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=1 COMBNUM=3'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2024
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=2 COMBNUM=3'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2025
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=2 COMBNUM=3'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2026
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=2 COMBNUM=3'
+ 151 100.0  251.0   0.
+!
+!
+ 'DO'
+ '1DIM'  2031
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=1 COMBNUM=4'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2032
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=1 COMBNUM=4'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2033
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=1 COMBNUM=4'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2034
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=2 COMBNUM=4'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2035
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=2 COMBNUM=4'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2036
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=2 COMBNUM=4'
+ 151 100.0  251.0   0.
+!
+!
+ 'DO'
+ '1DIM'  2041
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=1 COMBNUM=5'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2042
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=1 COMBNUM=5'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2043
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=1 COMBNUM=5'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2044
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=2 COMBNUM=5'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2045
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=2 COMBNUM=5'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2046
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=2 COMBNUM=5'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2051
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=1 COMBNUM=6'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2052
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=1 COMBNUM=6'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2053
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=1 COMBNUM=6'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2054
+ 'TOP MASS SOLUTIONS UNWEIGHTED ICMB=2 COMBNUM=6'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2055
+ 'TOP MASS SOLUTIONS WEIGHTED 1/SIGMA DSIGMA/DLIPS ICMB=2 COMBNUM=6'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  2056
+ 'TOP MASS SOLUTIONS WEIGHTED DALITZ ICMB=2 COMBNUM=6'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  3001
+ 'TOP CROSS SECTION VS MASS'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  3002
+ 'TOP CROSS SECTION QQBAR INDUCED'
+ 151 100.0  251.0   0.
+!
+ 'DO'
+ '1DIM'  3003
+ 'TOP CROSS SECTION GLUON INDUCED'
+ 151 100.0  251.0   0.
+!
+    'NO'
+    'NDIM'
+     200
+     'Top_configurations_EXACT'
+      143       ' '
+
+ 'RUN' 'EVENT' 'ICNFG' 'ICMB' 'NCNFGE'
+
+!Now the configuration kinematic quantities
+
+ 'LEPTON11'   'LEPTON12'  'LEPTON13'  'LEPTON14'
+ 'LEPTON21'   'LEPTON22'  'LEPTON23'  'LEPTON24'
+ 'JET11' 'JET12' 'JET13' 'JET14'
+ 'JET21' 'JET22' 'JET23' 'JET24'
+ 'JET31' 'JET32' 'JET33' 'JET34'
+ 'PNUT1' 'PNUT2'
+
+ 'NTOPS' 'TMASS_LO' 'TMASS_HI'
+!
+!LOOP OVER NUMBER OF TOP MASSES HERE
+!
+ 'TOP_MASS' 'TOP_CRSS' 'QQB_CRSS' 'GG_CRSS' 'NSOLS'
+!
+ 'ISOL_1'
+ 'RWT_1' 'WTD_1'
+!
+ 'NEUT11_1' 'NEUT12_1' 'NEUT13_1' 'NEUT14_1'
+ 'WB11_1'   'WB12_1'   'WB13_1'   'WB14_1'
+ 'TOP11_1'  'TOP12_1'  'TOP13_1'  'TOP14_1'
+!
+ 'NEUT21_1' 'NEUT22_1' 'NEUT23_1' 'NEUT24_1'
+ 'WB21_1'   'WB22_1'   'WB23_1'   'WB24_1'
+ 'TOP21_1'  'TOP22_1'  'TOP23_1'  'TOP24_1'
+!
+ 'ISOL_2'
+ 'RWT_2' 'WTD_2'
+!
+ 'NEUT11_2' 'NEUT12_2' 'NEUT13_2' 'NEUT14_2'
+ 'WB11_2'   'WB12_2'   'WB13_2'   'WB14_2'
+ 'TOP11_2'  'TOP12_2'  'TOP13_2'  'TOP14_2'
+!
+ 'NEUT21_2' 'NEUT22_2' 'NEUT23_2' 'NEUT24_2'
+ 'WB21_2'   'WB22_2'   'WB23_2'   'WB24_2'
+ 'TOP21_2'  'TOP22_2'  'TOP23_2'  'TOP24_2'
+!
+ 'ISOL_3'
+ 'RWT_3' 'WTD_3'
+!
+ 'NEUT11_3' 'NEUT12_3' 'NEUT13_3' 'NEUT14_3'
+ 'WB11_3'   'WB12_3'   'WB13_3'   'WB14_3'
+ 'TOP11_3'  'TOP12_3'  'TOP13_3'  'TOP14_3'
+!
+ 'NEUT21_3' 'NEUT22_3' 'NEUT23_3' 'NEUT24_3'
+ 'WB21_3'   'WB22_3'   'WB23_3'   'WB24_3'
+ 'TOP21_3'  'TOP22_3'  'TOP23_3'  'TOP24_3'
+!
+ 'ISOL_4'
+ 'RWT_4' 'WTD_4'
+!
+ 'NEUT11_4' 'NEUT12_4' 'NEUT13_4' 'NEUT14_4'
+ 'WB11_4'   'WB12_4'   'WB13_4'   'WB14_4'
+ 'TOP11_4'  'TOP12_4'  'TOP13_4'  'TOP14_4'
+!
+ 'NEUT21_4' 'NEUT22_4' 'NEUT23_4' 'NEUT24_4'
+ 'WB21_4'   'WB22_4'   'WB23_4'   'WB24_4'
+ 'TOP21_4'  'TOP22_4'  'TOP23_4'  'TOP24_4'
+!
+\END
+!
+NUMBER_DEBUG_SMEARS 1000
+\ARRAY DEBUG_HISTS
+    'DO'
+    'NDIM'
+     500
+     'Smeared configurations'
+      6       ' '
+
+ 'EN_LEP1' 'EN_LEP2' 'MIS_ET' 'EN_JT1' 'EN_JT2' 'EN_JT3'
+
+ '1DIM'  501
+ 'effective mass of dileptons'
+ 50 0.0  250.0 0.
+
+\END
+\ARRAY LIKELY
+    'DO'
+    'NDIM'
+     400
+     'Likelihood of mass fit'
+      172       ' '
+ 'RUN' 'EVENT' 'ICMB' 'IRR'  'COMNUM' 'MASS' 'LIKELY' 'LOCL' 'HICL'
+ 'BTFL' 'NTAG' 'JTAG1' 'JTAG2' 'DIFR1' 'DIFR2' 'DIFET1'  'DIFET2'
+ 'TURNON1' 'TURNON2' 'NJETS'  'FSRFL'
+ 'LIK001'  'LIK002'  'LIK003'  'LIK004'  'LIK005'  'LIK006'  'LIK007'  'LIK008'
+ 'LIK009'  'LIK010'  'LIK011'  'LIK012'  'LIK013'  'LIK014'  'LIK015'  'LIK016'
+ 'LIK017'  'LIK018'  'LIK019'  'LIK020'  'LIK021'  'LIK022'  'LIK023'  'LIK024'
+ 'LIK025'  'LIK026'  'LIK027'  'LIK028'  'LIK029'  'LIK030'  'LIK031'  'LIK032'
+ 'LIK033'  'LIK034'  'LIK035'  'LIK036'  'LIK037'  'LIK038'  'LIK039'  'LIK040'
+ 'LIK041'  'LIK042'  'LIK043'  'LIK044'  'LIK045'  'LIK046'  'LIK047'  'LIK048'
+ 'LIK049'  'LIK050'  'LIK051'  'LIK052'  'LIK053'  'LIK054'  'LIK055'  'LIK056'
+ 'LIK057'  'LIK058'  'LIK059'  'LIK060'  'LIK061'  'LIK062'  'LIK063'  'LIK064'
+ 'LIK065'  'LIK066'  'LIK067'  'LIK068'  'LIK069'  'LIK070'  'LIK071'  'LIK072'
+ 'LIK073'  'LIK074'  'LIK075'  'LIK076'  'LIK077'  'LIK078'  'LIK079'  'LIK080'
+ 'LIK081'  'LIK082'  'LIK083'  'LIK084'  'LIK085'  'LIK086'  'LIK087'  'LIK088'
+ 'LIK089'  'LIK090'  'LIK091'  'LIK092'  'LIK093'  'LIK094'  'LIK095'  'LIK096'
+ 'LIK097'  'LIK098'  'LIK099'  'LIK100'  'LIK101'  'LIK102'  'LIK103'  'LIK104'
+ 'LIK105'  'LIK106'  'LIK107'  'LIK108'  'LIK109'  'LIK110'  'LIK111'  'LIK112'
+ 'LIK113'  'LIK114'  'LIK115'  'LIK116'  'LIK117'  'LIK118'  'LIK119'  'LIK120'
+ 'LIK121'  'LIK122'  'LIK123'  'LIK124'  'LIK125'  'LIK126'  'LIK127'  'LIK128'
+ 'LIK129'  'LIK130'  'LIK131'  'LIK132'  'LIK133'  'LIK134'  'LIK135'  'LIK136'
+ 'LIK137'  'LIK138'  'LIK139'  'LIK140'  'LIK141'  'LIK142'  'LIK143'  'LIK144'
+ 'LIK145'  'LIK146'  'LIK147'  'LIK148'  'LIK149'  'LIK150'  'LIK151'
+\END
+!
+\ARRAY MONTE_HISTS
+ 'DO'
+ '1DIM'  601
+ 'KT SPECTRUM OF TTBAR'
+ 50 0.0  200.0   0.
+!
+ 'DO'
+ '1DIM'  602
+ 'KT**2 SPECTRUM OF TTBAR'
+ 50 0.0  5000.0   0.
+\END
+!
+\ARRAY BTAG_HISTS
+ 'DO'
+ '1DIM'  701
+ 'DIFFERENCE IN R PARTON-JET'
+ 100 0.0  1.0   0.
+!
+ 'DO'
+ '1DIM'  702
+ 'DIFFERENCE IN ET PARTON-JET'
+ 100 -50.0 50.0   0.
+!
+ '1DIM'  703
+ 'ET spectrum of BT parton'
+ 50 0.0  100.   0.
+!
+ '1DIM'  704
+ 'ET spectrum of BB parton'
+ 50 0.0  100.   0.
+!
+ '1DIM'  705
+ 'ET spectrum of BT matched jet'
+ 50 0.0  100.   0.
+!
+ '1DIM'  706
+ 'ET spectrum of BB matched jet'
+ 50 0.0  100.   0.
+!
+ '1DIM'  707
+ 'ET OF RECO JET/ET OF BT ISAQ JET'
+ 50 0.0  5.   0.
+!
+ '1DIM'  708
+ 'ET OF RECO JET/ET OF BB ISAQ JET'
+ 50 0.0  5.   0.
+!
+\END
+\ARRAY MASS_HISTS
+ '1DIM'  801
+ 'MAXIMUM LIKELIHOOD MASS RR METHOD'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  802
+ 'MAXIMUM LIKELIHOOD MASS DG METHOD'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  803
+ 'NEG LOG MAXIMUM LIKELIHOOD BEST SOLUTION RR METHOD'
+ 50 -10. 10.   0.
+!
+ '1DIM'  804
+ 'NEG LOG MAXIMUM LIKELIHOOD BEST SOLUTION DG METHOD'
+ 50 -10. 10.   0.
+!
+ '1DIM'  805
+ 'WEIGHTED MAXIMUM LIKELIHOOD MASS RR METHOD'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  806
+ 'WEIGHTED MAXIMUM LIKELIHOOD MASS DG METHOD'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  811
+ 'MAXIMUM LIKELIHOOD MASS RR METHOD BTAG'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  812
+ 'MAXIMUM LIKELIHOOD MASS DG METHOD BTAG'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  813
+ 'NEG LOG MAXIMUM LIKELIHOOD BEST SOLUTION RR METHOD BTAG'
+ 50 -10. 10.   0.
+!
+ '1DIM'  814
+ 'NEG LOG MAXIMUM LIKELIHOOD BEST SOLUTION DG METHOD BTAG'
+ 50 -10. 10.   0.
+!
+ '1DIM'  815
+ 'WEIGHTED MAXIMUM LIKELIHOOD MASS RR METHOD BTAG'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  816
+ 'WEIGHTED MAXIMUM LIKELIHOOD MASS DG METHOD BTAG'
+ 50 100.0  250.0   0.
+!
+ '2DIM'  820
+ 'MASS MAX LIKELY RR(X) VS MASS MAX LIKELY DG(Y)'
+ 25 100.0  250.0   25.   100.0  250.0  0.
+!
+!Turn on mass hists
+ '1DIM'  831
+ 'Turn on mass ICMB =1 COM_NUM=1'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  832
+ 'Turn on mass ICMB =1 COM_NUM=2'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  833
+ 'Turn on mass ICMB =1 COM_NUM=3'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  841
+ 'Turn on mass ICMB =2 COM_NUM=1'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  842
+ 'Turn on mass ICMB =2 COM_NUM=2'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  843
+ 'Turn on mass ICMB =2 COM_NUM=3'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  851
+ 'Turn on mass for max likely RR'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  852
+ 'Turn on mass for max likely DG'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  861
+ 'MASS IRR=1 ICMB=1 COMNUM=1'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  862
+ 'MASS IRR=1 ICMB=1 COMNUM=2'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  863
+ 'MASS IRR=1 ICMB=1 COMNUM=3'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  864
+ 'MASS IRR=1 ICMB=2 COMNUM=1'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  865
+ 'MASS IRR=1 ICMB=2 COMNUM=2'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  866
+ 'MASS IRR=1 ICMB=2 COMNUM=3'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  871
+ 'MASS IRR=2 ICMB=1 COMNUM=1'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  872
+ 'MASS IRR=2 ICMB=1 COMNUM=2'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  873
+ 'MASS IRR=2 ICMB=1 COMNUM=3'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  874
+ 'MASS IRR=2 ICMB=2 COMNUM=1'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  875
+ 'MASS IRR=2 ICMB=2 COMNUM=2'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  876
+ 'MASS IRR=2 ICMB=2 COMNUM=3'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  901
+ 'MAXIMUM LIKELIHOOD MASS RR METHOD ISAJET RAW'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  902
+ 'MAXIMUM LIKELIHOOD MASS DG METHOD ISAJET RAW'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  903
+ 'NEG LOG MAXIMUM LIKELIHOOD BEST SOLUTION RR METHOD ISAJET RAW'
+ 50 -10. 10.   0.
+!
+ '1DIM'  904
+ 'NEG LOG MAXIMUM LIKELIHOOD BEST SOLUTION DG METHOD ISAJET RAW'
+ 50 -10. 10.   0.
+!
+ '1DIM'  905
+ ' TTBAR EFFECTIVE MASS ISAJ'
+ 50 200. 600. 0.
+!
+ '1DIM'  906
+ ' TOP / TBAR PT SPECTRUM'
+ 50 0. 200. 0.
+!
+ '1DIM'  951
+ 'Turn on mass for ISAJET RAW RR'
+ 50 100.0  250.0   0.
+!
+ '1DIM'  952
+ 'Turn on mass for ISAJET RAW DG'
+ 50 100.0  250.0   0.
+!
+\END
+\STOP
