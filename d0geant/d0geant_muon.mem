@@ -1,0 +1,300 @@
+
+
+
+                                                            Susumu Igarashi
+                                                                24-MAR-1992
+                                   (updated from D.Hedin's 5-19-86 version)
+
+
+
+                           _____ __________ __ _______                           WAMUS Simulation in D0GEANT
+
+
+
+
+
+      1  INTRODUCTION
+
+      This note describes routines used in the simulation of the Wide Angle
+      Muon  System.  In the framework of D0GEANT user hooks are provided in
+      several  simulation  stages  such  as  initialization,  stepping  and
+      digitization.   Flow  charts  of  the muon routines are shown here in
+      each stage.
+
+          * Initialization
+          
+              LURSWT : User run time switches
+                |--FFIMUO : Set default switches
+           
+              LUESWT : edit run time switches
+                |--CLNMUO : dummy
+           
+              LUBOOK : Histgram Booking
+                |--BOKMUO : dummy
+           
+              LURGEO : Initialization
+                |--INIMUO : call mrzcon 
+                    |--MRZCON : read data from STP file
+           
+              LUSGEO : Geometry and Detector Setup
+                |--GEOMUO : Geometry
+                    |--DETMUO,DETMUO_V1 : Detector
+           
+              LUTREV : Before each event
+                |--TEVMUO : call mstrak
+                     |--MSTRAK : initialization for the muon trajectory 
+                                 bank MTRJ
+          
+          * Tracking and stepping
+           
+              LUSTEP : Each step
+                |--STPMUO,STPMUO_V1 : Handle stepping in Muon detector
+                     |--MSTRAK : Save muon trajectory info in the bank MTRJ
+           
+              GUFLD,GUFLD_V1 : Magnetic field
+           
+              LUTRAK : After each track loop
+                |--TRKMUO : call mstrak
+                     |--MSTRAK : Save muon trajectory info in the bank MTRJ
+
+                                   - 1 -
+                                                                     Page 2
+
+
+          * Digitization
+          
+              LUDIGI : Digitization
+                |--DIGMUO,DIGMUO_V1 : Simulate Muon detector digitization
+                     |--MSMUD1,MSMUD1_V1 : Create simulated MUD1 bank
+                     |--MSCRAT : Obtain crate numbers and module numbers
+                     |--MSINDX,MSINDX_V1 : Create index for hits
+                     |--MSTVC,MSTVC_V1 : Simulate TVC response
+                     |    |--MSDRFT : Drift time response
+                     |    |--MSDELT : Delta time response
+                     |--MSPAD,MSPAD_V1 : Simulate PAD response
+                          |--MSPADS : PAD charge sum
+                          |--MSPADR : PAD charge ratio
+           
+          * Finishing up 
+          
+              LUOUT  : Analysis and Output, End of event
+                |--ANLMUO : dummy
+           
+              LULAST : End of job
+                |--LSTMUO : dummy
+
+
+
+      2  INITIALIZATION
+
+
+          FFIMUO initializes the run-time switches.  The SMUO switches  are
+          setted  to  SMUO(1)=0., SMUO(2)=2., SMUO(3)=1.  and SMUO(4-10)=0.
+          Each SMUO switches are used as followings.
+               SMUO(1)=0. to draw modules in the GEANT display.
+                      =1. to draw modules and planes.
+                      =2. to draw modules, planes and cells.
+               SMUO(2)=1. to select version 1 (old version) of Muon 
+                          detector digitization.
+                      =2. to select version 2 (new version) of Muon 
+                          detector digitization.
+               SMUO(3)=0. to use the uniform magnetic field map.
+                      =1. to use the POISSON calculation field map.
+               SMUO(4-10) not used.
+          By default switches the simulation will be done using  version  2
+          of   Muon  detector  digitization  and  POISSON  calculation  for
+          magnetic  field  map.   Only  modules  will  be  drawn  in  GEANT
+          displays.   These  switches  can  be  changed at run time.  Other
+          switches DMUO and PMUO are setted in the  function  FFIDO  to  be
+          DMUO=3 and PMUO=1.
+
+          INIMUO calls the subroutine  MRZCON  to  read  detector  geometry
+          constants   and   magnetic   field   maps   from   a   STP   file
+          D0$STP:MUO_STPFILE_1.DAT and copy them to ZEBRA banks in  ZEBSTP.
+          INIMUO  also  checks  the switch SMUO(2) when a simulation job is
+          specified to get  the  initialization  information  from  a  file
+          GSAVE.DAT  because  the  file  GSAVE.DAT should be made using the
+          same  version  of  Muon  digitization.   The   new   version   of
+          digitization  have a different setup for JHITS bank of GEANT from
+
+                                   - 2 -
+                                                                     Page 3
+
+
+          the old version.
+
+          GEOMUO sets up the geometry of the Muon chambers as well  as  the
+          toroidal  magnets.   All muon modules and magnets are in the muon
+          mother volume MMUO which  also  includes  the  small  angle  muon
+          system.   Here  is  the  tree for the part of the wide angle muon
+          system.
+                MMUO      Muon mother volume
+                 I
+                 I--CMxx     muon PDT module in C layer. (xx module number)
+                 I   I--CPxx(3)         three decks of muon chamber.
+                 I       I--CCxx(24)    24 cells in a deck.
+                 I
+                 I--BMxx     muon PDT module in B layer. (xx module number)
+                 I   I--BPxx(3)         three decks of muon chamber.
+                 I       I--BCxx(24)    24 cells in a deck.
+                 I
+                 I--MCSB     central iron slabs            (1:4)
+                 I--MCCR     central iron slabs at corner  (1:4)
+                 I--METD     end iron slabs    (1:4,z>0 AND 5:8,Z<0)
+                 I
+                 I--AMxx    muon PDT module in A layer. (xx module number)
+                     I--APxx(4)         four decks of muon chamber.
+                         I--ACxx(24)    24 cells in a deck.
+
+
+
+          DETMUO is called by GEOMUO  when  DMUO  >=  2.   DETMUO  sets  up
+          sensitive  detector  parameters  to handle the detector response.
+          In the application for the muon detector,  nine  parameters  list
+          below  are  stored in JHITS bank of GEANT when a charged particle
+          comes to a muon cell.  These parameters are used  later  to  make
+          simulated  raw  data.   There  are  two versions of this routine,
+          DETMUO and DETMUO_V1.  DETMUO  is  for  the  version  2  of  muon
+          digitization,  DETMUO_V1  is  for the version 1.  DETMUO looks up
+          the switch SMUO(2) for version number, then calls DETMUO_V1  when
+          SMUO(2)  is  less  than  1.5.   The  difference  is the number of
+          parameters, the version 1 uses parameters up to 6 in  this  list.
+          The parameters 7 through 9 are added for the version 2.
+                  1=  module
+                  2=  plane
+                  3=  wire nuber 
+                  4=  distance from track to wire 
+                  5=  distance from read out end in cm. 
+                  6=  distance from far end in centi meter. 
+                  7=  phi incident angle in local X-Y plane 
+                  8=  theta incident angle for z direction 
+                  9=  time of flight of particle from origin 
+
+
+
+
+
+
+
+
+                                   - 3 -
+                                                                     Page 4
+
+
+      3  TRACKING AND STEPPING
+
+
+          TEVMUO is called before each event.  It calls a subroutine MSTRAK
+          to  initialize  a  process  of saving muon trajectory in the bank
+          MTRJ.
+
+          MSTRAK is a routine to make MTRJ of muon data ZEBRA bank for  the
+          trajectory of muons.  The information such as position, direction
+          and momentum are stored when a muon is  entering  either  Central
+          Tracking,  Calorimeter,  Muon  mother volume, each muon module or
+          toroidal magnets, only if the track reachs  Muon  mother  volume.
+          This  routine  can  be  called  in three ways for three different
+          stages;  1)initialization,  2)updating   track   information   or
+          3)filling the data in the bank.
+
+          STPMUO is called for each step of each track.   STPMUO  checks  a
+          particle type and a current position.  If the particle is charged
+          and  entering  a  muon  cell,  the  information  listed  in   the
+          description  of DETMUO is stored in JHITS bank.  STPMUO_V1 is for
+          the version 1, corresponding to the sensitive parameter setup  of
+          DETMUO_V1.
+
+          GUFLD is a subroutine which outputs three components of  magnetic
+          field,  requiring  coordinates  of a particle position as inputs.
+          If the version 1 is chosen for field map, this routine looks up a
+          magnetic  field  map in the bank MMAP of ZEBSTP.  This 20 cm grid
+          map is made using the POISSON program.  The routine  interpolates
+          these  grid values and returns field values.  If the version 0 is
+          selected for field map, then the field is setted to  be  uniform,
+          20 KGauss, in toroidal magnets.
+
+          TRKMUO is called after each track.  It calls a subroutine  MSTRAK
+          to fill the muon trajectory data into MTRJ bank.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   - 4 -
+                                                                     Page 5
+
+
+      4  DIGITIZATION
+
+
+          DIGMUO is called to retrieve a data of JHITS and make a simulated
+          raw  data  bank  MUD1  after  finishing all tracking in an event.
+          This calls several routines in the flow  chart  to  simulate  the
+          muon  detector  response  of drift time, delta time, charge ratio
+          and these resolution.  Cosmic ray data and  test  beam  data  are
+          refered to determine parameters of the detector response.  If the
+          version 2 of digitization is chosen, the following  list  of  the
+          resolution, fullscale, t0 and pedestal are employed.
+              Resolution
+                Drift time   : 200 micron
+                Delta time   : Interpolation of both ends of wire,
+                               9 cm at Far-end, 18 cm at Business-end
+                Charge ratio : 3 mm
+              Fullscale (4096 ADC counts) corresponds
+                Drift time   : 2 micro sec
+                Delta time   : 200 nano sec
+              T0
+                Drift time   : 3000 counts
+                Delta time   : 1434 counts (delay of 70nsec) 
+                                           for hits at Far-end
+              Pedestal is setted to zero for every channel.
+
+
+
+
+
+
+      5  FINISHING UP
+
+
+          ANLMUO is called after each event and can be  used  for  analysis
+          and output including histgram filling.  It is currently dummy.
+
+          LSTMUO is called at the end of run and can be used  for  histgram
+          storing.  It is currently dummy.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   - 5 -

@@ -1,0 +1,267 @@
+.!   RUNOFF file.      Change margins and page size if needed
+.!
+.LEFT MARGIN  5        .RIGHT MARGIN  85
+.SUBTITLE
+.AUTOSUBTITLE 1
+.RIGHT ;SSL,AMJ
+.RIGHT ;30-JUL-1987
+.RIGHT ;UPDATED - 17-FEB-1988
+.BLANK 3       !------------------- begin (underlined) title
+.CENTER ; ^& D0GEANT CALLING HIERARCHY \&
+.BLANK 2
+.!------------ main text start here.
+.literal
+D0MAIN                              ! D0 Main Program - VAX780 interactive
+| GZEBRA                            !   Zebra init
+| HLIMIT                            !   Hbook init
+|*UGINIT <===                       !   D0 init
+| GINTRI                            !   Init Geant menues 1-5
+| |*ZCINIT                          !     Init ZCEDEX
+| |*ZCENBR                          !     Init Geant menues 
+| |*ZCMENU                          !     Init Geant menues 
+| |*ZCBOOK                          !     Init Geant menues
+| |*GUINTI                          !     Init D0  menues 6-N
+| | |*TVBGN                         !       Init Graphics Device (MGKS)
+| | | GDINIT                        !       Init drawing package
+| | | ZCMENU                        !       Init Menu entries
+| | | ZCBOOK                        !       Book Menu items
+| | |*GUIxxx                        !       Init  xxx menues
+| | ZCLOGO                          !     Finish ZCEDEX init
+| TIMEX                             !   Get start time
+| GINTER <===                       !   Interactive processing
+|*UGLAST <===                       !   Finish up processing
+.end literal
+.page
+.literal
+>*UGINIT                            ! D0 init
+| | GINIT                           !   Global geant init
+| |*DFFINI                          !   Define D0 FFREAD cards
+| | | FFINIT                        !     FFREAD init
+| | |*FFID0                         !     Init D0 general cards
+| | | | FFKEY                       !       Enter key definition
+| | | GFFGO                         !     Read D0 cards
+| | |*FFIxxx                        !     Init detector specific cards
+| | | | FFKEY                       !       Enter key definition
+| | | FFGO                          !     Read detector specific cards
+| | GZINIT                          !   Geant/Zebra init
+| |*ZEBINI                          !   D0/Zebra init
+| | |*ISZEB                         !     /ZEBCOM/ MZSTORE
+| | | FZFILE                        !     Open /ZEBCOM/ input
+| | |*RDZEB                         !     Read BOR record
+| | | | MZWIPE                      !       Wipe /ZEBCOM/ just in case
+| | | | FZIN                        !       Read BOR record
+| | | FZFILE                        !     Open /ZEBCOM/ output
+| | | MZFORM                        !     Form /ZEBCOM/ header if no input
+| | | MZBOOK                        !     Book LHEAD if no input
+| | |*WRZEB                         !     Write BOR record
+| | | | FZOUT                       !       Output BOR record
+| | | | MZWIPE                      !       Wipe BOR record
+| |*GUBOOK                          !   Book User Histograms
+| | |*BOKxxx                        !     Book detector specific histograms
+| | GBHSTA (mch dep)                !   Book "Geant" Histograms if requested
+| |*INID0                           !   Define general geometry constants
+| |*INIxxx                          !   Special User initialization
+| | GOPEN                           !   Open file for GET    (if GET)
+| | GGET                            !   Get SAVE'd data      (if GET)
+| | GPART                           !   Particle init        (if .NOT.GET)
+| |*GEODEF <===                     !   Geometry definitions (if .NOT.GET)
+| | GPHYSI                          !   Physics init         (if .NOT.GET)
+| | GHEINI                          !   Gheisha init
+| | GOPEN                           !   Open file for SAVE   (if SAVE)
+| | GSAVE                           !   Save Geant banks     (if SAVE)
+.end literal
+.page
+.literal
+> |*GEODEF                          ! Geom init              (if .NOT.GET)
+| | | GSROTM                        !   Geant Store Rotation
+| | |*DZEMAT                        !   Create standard materials/media
+| | | | GMATE                       !     Init default materials
+| | | | GSMATE                      !     Add D0 standard materials
+| | | | GSTMED                      !     Form D0 standard media
+| | |*GEOMVL                        !   Create and position mother volumes
+| | | | GSVOLU                      !     Mother volume Definitions
+| | | | GSATT                       !     Mother volume Attributes
+| | | | GSPOS                       !     Mother volume Positions
+| | |*GEOxxx                        !   Init detector specific geom
+| | |*DETxxx                        !   Init detector specific "detectors"
+| | | GSVOLU                        !   Create beam pipes
+| | | GSPOS                         !   Position beam pipes
+| | | GPMATE                        !   Print materials
+| | | GPTMED                        !   Print media
+| | | GPVOLU                        !   Print volumes
+| | | GPSETS                        !   Print sets
+| | | GGCLOS                        !   Close geom bank
+| | |*RRLAM                         !   RR's lambda routines
+
+
+
+> GINTER                            ! Interactive processing loop
+| | ZCGET                           !   Get commands
+| | GINCOM                          !   Steering routine
+| | | ZCBRON                        !     ZCEDEX ???
+| | | GINC1                         !     Drawing     Menu 1
+| | | GINC2                         !     Graphics    Menu 2
+| | | GINC3                         !     Geometry    Menu 3
+| | | GINC4                         !     General     Menu 4
+| | | | GTRIGC                      !       Clear memory
+| | | | GTRIGI                      !       Init event
+| | | | GTRIG <===                  !       Proc event
+| | | | TVSHOW                      !       Plot (if requested)
+| | | GINC5                         !     ??
+| | |*GUIGET  <===                  !     D0 defined Menus
+| | | ZCBROF                        !     ZCEDEX ???
+
+
+> | | | GTRIG                       ! Proc event
+| | | | |*GUKINE <===               !   Fill Kinematics Banks
+| | | | |*GUTREV <===               !   Track an event
+| | | | |*GUDIGI <===               !   Digitisize an event
+| | | | |*GUOUT  <===               !   Output an event
+.end literal
+.page
+.literal
+> | | | |*GUKINE                    ! Fill Kinematics Banks
+| | | | | |*ISKINE                  !   Read and fill /ZEBCOM/
+| | | | | | | MZFORM                !     Form LHEAD format
+| | | | | | |*RDZEB                 !     Read event (IF ZBIO)
+| | | | | | | | MZWIPE              !       Wipe /ZEBCOM/ first
+| | | | | | | | FZIN                !       Read record
+| | | | | | |*ISDROP                !     Drop JTRACK/JVERT Geant banks
+| | | | | | | | MZDROP              !       Drop banks
+| | | | | | | GSVERT                !     Store new Vertices
+| | | | | | |*ISAGEA                !     Convert Isajet->Geant part. ID's
+| | | | | | | GFPART                !     Get particle data
+| | | | | | | GSKINE                !     Store new tracks
+| | | | | | | DZSURV                !     Summaries /ZEBCOM/ structure
+| | | | | | | GPVERT                !     Print Vertex Data - Geant
+| | | | | | | GPKINE                !     Print Track Data - Geant
+| | | | | | | MZBOOK                !     Book LHEAD (IF .NOT. ZBIO)
+| | | | | | GGET                    !   Get KINE (IF GET .AND. .NOT. ZBIO)
+| | | | | | GSVERT                  !   Enter vertex (IF .NOT. ZBIO)
+| | | | | |*ISAGEA                  !   Isajet->Geant track ID's(IF .NOT. ZBIO)
+| | | | | | GSKINE                  !   Enter particle  (IF .NOT. ZBIO)
+| | | | | | PCOLOR                  !   Set track color (IF DTRK.EQ.2)
+
+*** ZBIO takes precedence, then GET, then RKIN .NE. 0, then RKIN .EQ. 0
+    ZBIO is ISAJET /ZEBCOM/ input, GET is GEANT banks written by SAVE
+    RKIN .NE. 0 is ASCII input file, RKIN .EQ. 0 is KINE data card (1 track)
+
+
+> | | | |*GUTREV                    ! Track an event
+| | | | | | MZFORM                  ! Form LHEAD bank
+| | | | | | MZBOOK                  ! Book LHEAD if not already there
+| | | | | |*TEVxxx                  !   Detector specific
+| | | | | | GTREVE                  !   Track loop
+| | | | | | | GFKINE                !     Fetch track data
+| | | | | | | GEKBIN                !     ??
+| | | | | | |*GUTRAK <===           !     User track loop
+.end literal
+.page
+.literal
+> | | | | | |*GUTRAK                ! User track loop
+| | | | | | | | GPKINE              !   Print track data
+| | | | | | | | GTRACK              !   tracking control
+| | | | | | | | | GTSET             !     init physics
+| | | | | | | | | GMEDIA            !     init media
+| | | | | | | | | GFINDS            !     init set
+| | | | | | | | |*GUSTEP <===       !     D0 control of step
+| | | | | | | | | GTVOL             !     track thru vol
+| | | | | | | | | | GNEXT           !       distance to bound
+| | | | | | | | | | GTGAMA          !       physics
+| | | | | | | | | |    etc          !
+| | | | | | | | | |*GTNINO          !       GTNINO physics
+| | | | | | | | | | | GSCHIT        !         Store Cal-Geant
+| | | | | | | | | | |*DSCHIT        !         Store Caltower
+| | | | | | | | | |*GUSTEP <===     !       D0 control of step
+| | | | | | | | | |*GMENEW          !       is point in volu
+| | | | | | | |*TRKxxx              !   xxx control of track
+
+
+
+> | | | | | | | | |*GUSTEP          ! D0 control of step
+| | | | | | | | | | |*STPxxx        !   xxx control of step
+| | | | | | | | | | | GSVERT        !   Store new vertices 
+| | | | | | | | | | |*ISUBUF        !   Change users words of track
+| | | | | | | | | | | GSKINE        !   Store new tracks
+| | | | | | | | | | | GSKING        !   Store tracks on STAK
+| | | | | | | | | | | GPCXYZ        !   Print point
+| | | | | | | | | | | GDCXYZ        !   Plot point (mach dep)
+
+
+
+> | | | |*GUDIGI                    ! Digitisize an event
+| | | | | |*DIGxxx                  !   Device dependent digitization
+
+
+
+> | | | |*GUOUT                     ! Output an event
+| | | | | |*ANLxxx                  !   Device dependent anlysis
+| | | | | |*ZEBOUT                  !   Output D0/Zebra
+| | | | | | GFHSTA   (mch dep)      !   Fill standard Geant Histograms
+| | | | | | GSAVE                   !   Save requested Geant banks
+.end literal
+.page
+.literal
+> | |*GUIGET                        !  D0 defined Menus
+| | | |*MENHLP                      !    D0 Help
+| | | |*MEND0                       !      D0 Menu
+| | | | | TVNEXT                    !        ??
+| | | | | GDSHOW                    !        Draw view
+| | | | | GSATT                     !        Set Attributes
+| | | | | GDTREE                    !        Draw tree
+| | | | | GDHEAD                    !        Draw header
+| | | | |*VDZERO                    !        Set up "standard" views
+| | | | | ZCGETTI                   !        Get Zedex input
+| | | | | GPPART                    !        Print particle data
+| | | | |*UGLAST                    !        Call end-of-run routines
+| | | |*MENxxx                      !        Device dep. Menus
+| | | | |*VDxxx                     !           "    "   Views
+| | | | |*DCUT etc.                 !           "    "   options
+
+
+
+>*UGLAST                            !   Finish up processing
+| | GLAST                           !     Geant last routine
+| |*ZEBFIN                          !     Finish up D0 Zebra output
+| | GCLOSE                          !     Close Geant I/O
+| |*LSTxxx                          !     Device dependent finish (HSTOR etc)
+| | HISTDO                          !     Print Histograms (Mach dep)
+| | MZEND                           !     Print Zebra statistics
+.end literal
+.PAGE
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+YYYxxx routines are device specific. The xxx can take the values: CAL, CEN and
+MUO (sometime MU for historical reasons). In all cases YYYCEN calls YYYVTX,
+YYYCDC, YYYFDC and YYYTRD. Usually that is ALL it does. 
+
+.PARAGRAPH  3   ! arg = horizontal indentation
+
+The device specific routines are:
+.literal
+
+Initialization:
+    FFIxxx          ! Init detector specific cards, and their default values
+    INIxxx          ! Special User initialization, done EVERY run
+    BOKxxx          ! Book detector specific histograms
+
+Geometry/Detector definitions:
+    GEOxxx          ! Init detector specific geometry
+    DETxxx          ! Init detector specific "detectors"
+
+Tracking routines
+    TEVxxx          ! Called BEFORE each event - mostly dummies
+    TRKxxx          ! Called AFTER each track - mostly dummies
+    STPxxx          ! Called AT each step - MUST do something 
+    DIGxxx          ! Called AFTER each event - digitise HITS 
+    ANLxxx          ! Called AFTER each event - Output/Analyse an event
+
+Finish up:
+    LSTxxx          ! Device dependent finish (HSTOR etc)
+
+Interactive ONLY:
+    GUIxxx          ! Init  xxx menues
+    MENxxx          ! Device dep. Menus
+    VDxxx           ! "    "   Views
+.END LITERAL

@@ -1,0 +1,167 @@
+      SUBROUTINE FLICDH(INPASS,DEPASS,LTILE)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : FLICDH fills the ICDH bank
+C-
+C-   Inputs  : INPASS = passed INWVOL
+C-             DEPASS = the energy deposited in the scintillator tile
+C-   Outputs : LTILE  = light deposited in tile 
+C-                      (.NE.0 at exit of volume only)
+C-   Controls: 
+C-
+C-   Created:  3-NOV-1988   Z. Wolf
+C    Updated: 27-Feb-1989   Z. Wolf
+C-   Updated:  9-AUG-1989   Alan M. Jonckheere Add LTILE as output
+C-   Updated  24-JUN-1991   K. Wyatt Merritt  Change IUDET to IHDET -
+C-                          compatible with GEANT 3.14 
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+C--   I/O
+      INTEGER INPASS
+      REAL DEPASS
+C
+C--   ZEBRA BANKS
+      INCLUDE 'D0$INC:ZEBCOM.INC/LIST'
+C
+C--   GEANT UNITS
+      INCLUDE 'D0$INC:GCSETS.INC/LIST'
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+      INCLUDE 'D0$INC:GCTRAK.INC/LIST'
+      INCLUDE 'D0$INC:GCKINE.INC/LIST'
+      INCLUDE 'D0$INC:GCMATE.INC/LIST'
+      INCLUDE 'D0$PARAMS:BYTE_ORDER.PARAMS'
+C
+C--   INTERNAL VARIABLES
+      INTEGER LICDH,GZICDH
+      INTEGER ND,NTRK,NWTRK
+      BYTE BYTES(4)
+      INTEGER IE,IP,PKADDR
+      EQUIVALENCE (BYTES,PKADDR)
+      INTEGER POINTR,I
+      INTEGER NMVERT
+      REAL DE,SIN,SOUT,DX,DEDX,KB,BIRK,LTILE
+      INTEGER IUCOMP
+      INTEGER NAMSV(18),ISCIN
+      DATA NAMSV/
+     +4hD06+,4hD07+,
+     +4hD08+,4hD09+,4hD10+,4hD11+,4hD12+,4hD13+,
+     +4hD14+,
+     +4hD06-,4hD07-,
+     +4hD08-,4hD09-,4hD10-,4hD11-,4hD12-,4hD13-,
+     +4hD14-/
+C----------------------------------------------------------------------
+C
+      LTILE = 0.
+C--   ARE WE IN THE ICD?
+      ISCIN = IUCOMP(IHDET,NAMSV,18)
+      IF(ISCIN.LE.0)THEN
+        WRITE (LOUT,*) 'FLICDH--> IHDET NOT IN ICD NAME LIST'
+        RETURN
+      ENDIF
+C
+C--   FIND LINK TO ICDH BANK
+      LICDH=GZICDH()
+      IF(LICDH.LE.0)CALL BKICDH(LICDH)
+C
+C--   CHECK LINK TO ICDH BANK
+      IF(LICDH.LE.0)THEN
+        WRITE(LOUT,*)'FLICDH--> PROBLEM WITH LICDH'
+        RETURN
+      END IF
+      IF(IQ(LICDH-4).NE.4hICDH)THEN
+        WRITE(LOUT,*)'FLICDH--> PROBLEM WITH ICDH BANK NAME'
+        RETURN
+      END IF
+C
+C--   CHECK NUMBER OF WORDS PER TRACK
+      NWTRK=IQ(LICDH+2)
+      IF(NWTRK.LT.11)THEN
+        WRITE(LOUT,*)'FLICDH--> NWTRK IS NOT SUFFICIENT'
+        RETURN
+      END IF
+C
+C--   ADD SPACE IF NEEDED
+      ND=IQ(LICDH-1)
+      NWTRK=IQ(LICDH+2)
+      NTRK=IQ(LICDH+3)
+      IF(NWTRK*(NTRK+1)+10.GE.ND)THEN
+        CALL MZPUSH(IXCOM,LICDH,0,3000,'I')
+      END IF
+C
+C--   INCREMENT # OF TRACKS FOR NEW TRACK
+      NTRK=IQ(LICDH+3)
+      IF(INPASS.EQ.1.OR.NTRK.EQ.0)THEN
+        NTRK=NTRK+1
+        IQ(LICDH+3)=NTRK
+      END IF
+C
+C--   FIND POINTER TO STORAGE LOCATION
+      NWTRK=IQ(LICDH+2)
+      NTRK=IQ(LICDH+3)
+      POINTR=(NTRK-1)*NWTRK+3   !LICDH+POINTR+1 POINTS TO FIRST WORD
+C
+C--   INITIALIZE STORAGE AREA
+      IF(INPASS.EQ.1)THEN
+        NWTRK=IQ(LICDH+2)
+        DO I=1,NWTRK
+          IQ(LICDH+POINTR+I)=0
+        END DO
+      END IF
+C
+C--   FIND TRACK PARAMETERS FOR NEW TRACK
+C--   PACK ADDRESS OF HIT INTO PKADDR
+C--   FIND MATERIAL IN WHICH TRACK ORIGINATED
+C--   FIND INITIAL TRACK LENGTH (USED IN DE/DX CALCULATION)
+      IF(INPASS.EQ.1)THEN
+        IF(ISCIN.LE.9)THEN
+          IE=ISCIN+5
+        ELSE
+          IE=-(ISCIN-4)
+        END IF
+        IP = NUMBV(1)
+        BYTES(BYTE4)=IE
+        BYTES(BYTE3)=IP
+C       CALL GMEDIA(VERT,NMVERT)
+        SIN=SLENG
+      END IF
+C
+C--   STORE TILE ADDRESS WHEN ENTER SCINTILLATOR
+      IF(INPASS.EQ.1)THEN
+        IQ(LICDH+POINTR+1)=PKADDR
+      END IF
+C
+C--   INCREMENT ENERGY DEPOSITED IN SCINTILLATOR
+      IQ(LICDH+POINTR+2)=IQ(LICDH+POINTR+2)+IFIX(DEPASS*1.E6)  !KEV
+C
+C--   ON EXIT, STORE LIGHT PRODUCED IN TILE ACCORDING TO BIRK'S LAW
+      IF(INPASS.EQ.2.OR.ISTOP.NE.0)THEN
+        DE=FLOAT(IQ(LICDH+POINTR+2))/1.E6
+        SOUT=SLENG
+        DX=SOUT-SIN
+        IF(DX.LE.0.)GO TO 10
+        DEDX=DE/DX
+        KB=0.0085     !g/(MeV*cm**2)
+        BIRK=KB*1000./DENS
+        LTILE=DE/(1.+BIRK*DEDX)
+        IQ(LICDH+POINTR+3)=IFIX(LTILE*1.E6)
+      END IF
+10    CONTINUE
+C
+C--   STORE TRACK PARAMETERS WHEN ENTER SCINTILLATOR
+      IF(INPASS.EQ.1)THEN
+       IQ(LICDH+POINTR+4)=ITRA
+       IQ(LICDH+POINTR+5)=ISTAK
+       IQ(LICDH+POINTR+6)=IPART
+       IQ(LICDH+POINTR+7)=IFIX(CHARGE)
+       IQ(LICDH+POINTR+8)=IFIX(GEKIN*1.E6)   !KEV
+       IQ(LICDH+POINTR+9)=NMVERT
+       IQ(LICDH+POINTR+10)=IFIX(SLENG)
+C
+C ****  Comment out for now, causes overflow on TOFG>2sec
+C       IQ(LICDH+POINTR+11)=IFIX(TOFG*1.E9)
+      END IF
+C
+  999 RETURN
+      END

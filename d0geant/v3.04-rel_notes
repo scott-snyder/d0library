@@ -1,0 +1,282 @@
+ 31-JUL-1990 : Modifications released by Alan M. Jonckheere
+ 
+    - Add switch (SD0(2) .NE. 0) to drop *all* banks except the raw data
+      banks. If SD0(2) .NE. 0 all banks from 10 to the number booked are
+      dropped. Routines added: ISRAW - actually does the dropping. Routines
+      changed: DFFINI, ISOUT. D0GEANT_USER.MEM updated to reflect changes.
+
+    - Correct Zebra calls: Store vs Division references
+
+==============================================================================
+
+  6-AUG-1990 : Modifications released by Jeffrey Bantly
+ 
+    - Add D0GEANT_FDC.RNO as documentation for the Forward Drift Chambers.  It
+      is brand new and, I hope, very complete.  It will also come out as D0
+      Note 996 which will contain many pictures as well as the text.
+
+    - DIGFDC.FOR has been changed to drop all of the FDC hits banks if the hit
+      bank switches SFDC(2) and SFDC(3) are both set off (<>1.).  The
+      necessary structure is retained if one or the other is set on (=1.).
+
+==============================================================================
+
+  6-AUG-1990 : Modifications released by A.M.Jonckheere
+ 
+    - FFICAL and D0GEANT_USER.RNO: Make SCAL(4)=0 the default. This suppresses
+      the calculation and output of Ideal Jets in the default case.
+
+==============================================================================
+
+ 28-AUG-1990 : Modifications released by Peter Grudberg
+
+    - DIGVTX.FOR was modified to drop hit banks if they are empty
+
+==============================================================================
+
+ 11-SEP-1990 : Modifications released by Qizhong Li
+
+    - CLANDA and VLANDA: fixed maxmum height cut (ADC saturation is removed)
+
+    - DIGCDC: drop CDCH-DLYR banks when they are not needed
+
+    - ANLCDC: fixed a mistyping: DVTX -> DCDC
+
+    - D0GEANT_CDC.RNO: revised, updated and rewritten completely
+
+
+==============================================================================
+
+ 19-SEP-1990 : Modifications released by A.M.Jonckheere
+
+    - Marc Paterno's mod to MKCAD releasing the temporary link *always*
+
+    - Ignore Zebra Begin and End Run records. This allows you to read files
+      *written* by D0Geant as new input. You *must* be careful doing this
+      however, the event and run numbers are moved when the event is read in. If
+      you use a D0Geant output and an input, the original event and run numbers
+      from ISAJET will be lost.
+
+==============================================================================
+
+ 19-SEP-1990 : Modifications released by A.M.Jonckheere
+
+    - Additions to the CD switch descriptions in D0Geant_USER.RNO - 
+      from Qizhong Li
+
+==============================================================================
+
+ 21-SEP-1990 : Modifications released by A.M.Jonckheere
+
+    - Modified CNLCDC/VTX/TRD/FDC to use PCEN as an upper limit on the value for
+      the relevant Pxxx switch.
+
+    - Added SD0 and a correction to the SSEC description to D0GEANT_USER.MEM
+
+
+=========================================================================
+
+ 14-OCT-1990 : Modifications released by Michael Diesburg
+
+    - Changes were made to bring code into compliance with the Silicon
+      Graphics Fortran.  Except as noted below, all changes were made
+      in machine dependent blocks.
+
+    - [d0geant.dzero]
+    -  d0main.for, gukine.for, guout.for, lddum.for, uginit.for, uglast.for
+       Added SIUNIX to existing VAXVMS machine block.
+
+    -  gutrev.for
+       Added UNIX system time to event record.
+
+    -  stplv0.for
+       Added dummy argument list to function definition. 
+        Affects both VAX and UNIX versions.
+      
+    -  gustep.for
+       Added graphics control via SD0(1) for SGI systems.
+
+
+    - [d0geant.caltower]
+    -  calbld.for
+       Changed byte packing of IADDR to match SG ordering.
+
+    -  shinit.for
+       Moved IUSER initialization from SHLCON common block.
+        Affects both VAX and UNIX versions.
+
+    -  shcopy.for
+       Added type definition for RAN.
+
+
+    - [d0geant.trd]
+       cludig.for, initrd.for, rwxspc.for
+       Added SIUNIX to existing machine block.
+
+    -  boktrd.for
+       Put calls to HBOOK in machine block because of variable
+       argument lists.
+
+    -  initrd.for
+       Added SIUNIX to existing machine block, changed hardwired
+       file name in data statement (D0$STP:TRD_STPFILE.DAT) to
+       logical TRD_STPFILE
+        Affects both VAX and UNIX versions.
+
+    - [d0geant.zebio]
+    -  iskine.for, rdzeb.for, wrzeb.for
+       Added SIUNIX to existing machine block.
+
+==============================================================================
+
+ 21-OCT-1990 : Modifications released by Alan M. Jonckheere and R. Raja
+ 
+
+    - All OPEN/CLOSE sequences have been changed to get the Unit number from
+      GTUNIT and release it via RLUNIT. The routines modified were:
+
+    CLUDIG.FOR    D0MAIN.FOR    GUKINE.FOR    GUOUT.FOR    INITRD.FOR
+    MEND0.FOR     RRLAM.FOR     RWXSPC.FOR    TRDSHP.FOR   UGINIT.FOR
+
+      There should be no changes in operation or the results of the the
+      program.
+
+==============================================================================
+
+ 25-OCT-1990 : Modifications released by Alan M. Jonckheere 
+ 
+    - JETINI.FOR assumed that BKCAPH (called in CAPHFL) only booked *one*
+      version of CAPH. Since this was made a linear structure a month or so ago,
+      this assumption is no longer true. The result was that the JET routines
+      couldn't find the JET banks, resulting in many error messages, and no
+      data.
+
+    - GTNINO.FOR: the approximation used in GTNINO to fit the longitudinal
+      shower shape broke down and gave negative energy losses when the incoming
+      track had less than 1.3MeV of kinetic energy. When CALTOWERs was used,
+      this negative dE/dx increased the incoming energy and was subtracted from
+      the appropriate cell. Since the resulting kinetic energy was *always* much
+      less than the lower cutoff, the track was stopped and the energy *added*
+      to the same cell. Thus this negative energy was first subtracted from,
+      then added to the cell. So there was no resulting problem. HOWEVER, when
+      you used Geant's GSCHIT to store the energy, the negative energy caused an
+      error. So the *extra* energy was added, without first being subtracted
+      from the cell. The errors were always very small, being less than 1.3 MeV
+      per track, and only 5-10 tracks at most per event. 
+
+==============================================================================
+
+ 26-NOV-1990 : Modifications released by Natalie Roe
+ 
+    - Change SMRFAC algorithm to work from the energy in a cell rather than
+      from the primary track's energy.
+
+==============================================================================
+
+  4-FEB-1991 : Modifications released by R.Raja
+ 
+    - Modify ISKINE to call SHOWERLIBRARY routines, add various showlibrary
+      routines.
+
+==============================================================================
+
+  4-FEB-1991 : Modifications released by S.Kunori
+ 
+    - Modify FFID0 and D0LOG.INC to add Samus switches, still unused
+
+    - Fix GPHYS errors, and remove overlap checking each time.
+
+
+==============================================================================
+
+ 11-FEB-1991 : Modifications released by A. Zylberstejn
+ 
+    - Modify TRD routines :CLUPOS,ENTRD and STPTRD to add some protection
+      against pathological tracks created in GEANT
+
+==============================================================================
+
+ 24-FEB-1991 : Modifications released by Qizhong Li
+ 
+    - BLCDD2, FICDD2, FIDCDA and DVECDA: fixed array size for delay lines
+
+
+==============================================================================
+
+ 26-FEB-1991 : Modifications released by Jeffrey Bantly
+ 
+    - FTDATA: remove ICALL as an output param.  It hasn't been used in ages.
+              It is not listed in calling routine MKFTHE.
+
+==============================================================================
+
+ 28-FEB-1991 : Modifications released by Peter M. Grudberg
+ 
+    - FICDD1: remove unneeded reference to T0
+
+    - BLVWDA: Fix bad indexing bug that ruined charge division information for
+      VTX sectors with > 2 hits (total number of pulse heights overwritten =
+      nhits -2, total number of pulse heights = 2 * nhits (both ends read
+      out)).  This bug is largely the cause of the seemingly bad VTX 
+      charge division performance.
+
+==============================================================================
+
+ 15-MAR-1991 : Modifications released by A. Zylberstejn
+ 
+    - Modify CLUPOS.FOR in order to have a better treatment of the splitting
+      of clusters between 2 wires
+
+==============================================================================
+
+ 17-APR-1991 : Modifications released by Michael Diesburg
+ 
+    - IBMAIX and ULTRIX machine blocks were added to the following routines:
+
+        INICAL.FOR      ENJPTS.FOR      MKCAD.FOR       FLJPTS.FOR
+        FLICDH.FOR      UGLAST.FOR      GUSTEP.FOR      D0MAIN.FOR
+        GUTREV.FOR      LDDUM.FOR       GUKINE.FOR      GUOUT.FOR
+        INITRD.FOR      CLUDIG.FOR      BOKTRD.FOR      RWXSPC.FOR
+        RDZEB.FOR       WRZEB.FOR
+
+    - A loop over ISAE was added to ISKINE.FOR to read in events with
+      multiple vertices. 
+    
+    - A bug in ISAJET_GEANT_VTX.FOR was fixed that used the same primary vertex
+      on all events in a run.
+
+    - Changes were made to ABSORB.FOR and RRLAM.FOR to handle radiation
+      lengths.
+
+    - Changes were made to followingf routines to reset SHWG parameter
+      depending on the Pt of the particle (see D0GEANT_USER for details)
+
+        SET_ELECTRON_PARS.FOR   CLNCAL.FOR      MENCAL.FOR      FFICAL.FOR
+        LUTRA1.FOR              GUTRAK.FOR
+      
+    - A bug was fixed in UGINIT.FOR in the calling order of GEANT routines.
+
+    - Updates for SHOWERLIBRARY usage were made to :
+
+        USE_SHLB.FOR    USE_SHOWERLIBRARY.FOR   SHOWERLIBRARY.RCP
+
+    - Example run and control files BAT1.DAT, BAT2.DAT, and BAT3.DAT were
+      added.
+
+    - A change was made in CADFL.FOR to handle new CAD addressing scheme.
+
+==============================================================================
+
+ 22-APR-1991 : Modifications released by A. Zylberstejn
+ 
+    - Modify : ANLTRD ,BOKTRD ,ENTRD ,FFITRD ,INITRD and STPTRD 
+in order to discard booking and filling of TRD histos if STRD(7)=1. The
+default option is STRD(7)=0 with histograms being booked and filled.
+
+==============================================================================
+
+ 10-MAY-1991 : Modifications released by A. Zylberstejn
+ 
+    - Modify TRDTIM to give a "physical" drift time to clusters in the TEC
+      originating very close to the the potential wire (the time was set to
+      zero previously)

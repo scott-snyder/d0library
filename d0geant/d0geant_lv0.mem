@@ -1,0 +1,120 @@
+
+
+
+                                                               Chip Stewart
+                                                                21-MAR-1989
+
+
+
+                        _____ ____ __________ __ _______                        Level Zero simulation in D0GEANT
+
+
+
+        The code for simulating the response of the Level Zero hardware  in
+     D0GEANT  is  available.  The geometry and response parameters are kept
+     in the SRPC data file D0$ROOT:[STP]SRCP RAW LV0.DAT which is  used  to
+     create  the  ZEBRA file D0$ROOT:[STP]LV0 STPFILE.DAT.  The LV0 STPFILE
+     is the one actually used by D0GEANT to set the  LV0  parameters.   The
+     Level  Zero geometry is based on numbers from Zack Wolfe.  It consists
+     of arrays of 80 scintillator tiles (9x9 with a hole for the  beampipe)
+     placed  inside  each  end cryostat.  Level Zero support structures are
+     simulated by blocks of aluminum on  the  outside  edges  of  the  tile
+     arrays.   Changes  to  the  Geometry are done via modifications to the
+     file D0$ROOT:[STP]SRCP RAW LV0.DAT and then running the CAWSTP program
+     in the D0$STP$GEOCAL area (see Harrison Prosper's CAWSTP Documentation
+     for details) on the file to create an undated  LV0  STPFILE.DAT  file.
+     Extensive  changes to the GEOMETRY may also involve changing a routine
+     within CAWSTP called MAKELV0 which translates the RAW SRCP file into a
+     final SRCP format.
+
+        The response of the Level Zero hardware is stored in a  Zebra  bank
+     GLVH which hangs beneath GHIT.
+
+
+     _____ ____ ___________ __ ___ _______ _______     Level Zero Subroutines in CMS Library D0GEANT
+
+
+      o  GEOLV0 - Defines LV0  geometry.   Called  from  GEODEF  when  flag
+         DLV0>0.  Uses SRCP.
+
+      o  DETLV0 - Defines digitization elements  from  SRCP.   Called  from
+         GEODEF when DLV0 > 1.
+
+      o  STPLV0 - Stores LV0 data for each step a track takes  through  the
+         LV0 tiles or supports.  Called from GUSTEP when DLV0>1.  If IDTYPE
+         for current tracking volume  is  in  LV0  range  (5001-5001)  then
+         STPLV0  stores  the energy loss (DESTEP) and Time of Flight (TOFG)
+         for each track using GEANT routine GSCHIT.  The TOF at  the  first
+         step into the volume is used.
+
+      o  DIGLV0 - Sets up routine STOLV0 to fetch LV0  data  and  create  a
+         bank  (GLVH)  which  contains  the energy and TOF for each tile as
+         well as the energy lost in the LV0 supports.  Called  from  GUDIGI
+         when DLV0>2.
+
+      o  STOLV0  -  Fetches  LV0  data  stored  by  STPLV0  and  puts   LV0
+         information  into  bank  GLVH.   Called by DIGLV0.  The energy for
+         each tile is summed over all tracks which hit the tile and the TOF
+         for each tile is the minumum TOF of all tracks which hit the tile.
+
+                                     - 1 -
+                                                                          Page 2
+
+
+         Zebra bank GLVH is described below.
+
+      o  BOKLV0 - Books LV0 histograms with ID in range 5000-5999.   Called
+         by GUBOOK when DLV0>1.  Histograms are filled in routine ANLLV0.
+
+      o  ANLLV0 - Does analysis on GLVH bank to check  LV0  data  during  a
+         GEANT  run.  Called by GUOUT when DLV0>3.  Fills histograms booked
+         in BOKLV0, Checks data for consistency, and Prints out  GLVH  bank
+         if PVL0>1.
+
+
+
+     _____ ____ ___________ __ ___ _______ _____ ____     Level Zero Subroutines in CMS Library ZEBRA UTIL
+
+
+      o  BKGLVH - Books GLVH bank hanging below GHIT.
+
+      o  GZGLVH - Integer Function returns location of GLVH bank.
+
+      o  PRGLVH - Routine to print GLVH bank data.
+
+
+
+     _____ ____ _______ _____ ____ ____     Level Zero D0GEANT Zebra Bank GLVH
+
+     Tree description is given in GHIT ZEBANKS file.  The structure of GLVH
+     is as follows:
+          LQ     Q/IQ
+     =======================================================================
+           0          Next   link to none
+          +1          Up     link to GHIT
+          +2          Origin link to GHIT
+     =======================================================================
+                  -5         Bank number
+                  -4         Bank name, 'GZGLVH'
+                  -3         NL = 4 (UNUSED AS YET)
+                  -2         NS = 4 (UNUSED AS YET)
+                  -1         ND = 495
+                   0         Status
+     =======================================================================
+                   1         Bank version number(=1)
+                   2-163     Real Array ENGLV0(IX,IY,IZ)
+                             Energy (GeV) deposited in each LV0 tile 
+                             9 rows (IX), 9 columns (IY) & 2 Z positions (IZ)
+                   164-325   Real Array TOFLV0(IX,IY,IZ)
+                             Time of Flight (S) for first charged track 
+                             in each LV0 tile 
+                   326-487   Integer Array NUMLV0(IX,IY,IZ)
+                             Number of charged tracks depositing energy 
+                             in each LV0 tile 
+                   488-495   Real Array ENGSUP(I,IZ)
+                             Energy (GeV) deposited in each LV0 support
+                             4 supports (I) & 2 Z positions (IZ)
+     =======================================================================
+
+
+                                     - 2 -

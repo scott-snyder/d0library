@@ -1,0 +1,176 @@
+ 13-DEC-1989 : Modifications released by Peter M. Grudberg
+ 
+    - The routine structure for VTX digitization has been changed to eliminate
+      double calls to GFHITS (which takes most of the time).  The structure now
+      parallels that of both the FDC and CDC.
+
+    The following routines were changed:
+        DIGVTX, ZSINIT, ZSTRHT, ZSTRNO, ZINDUC, LDVSEC, CHGDIV, ZSTRIP,
+        LDVZLA, NXTZST
+    The following routines are new:
+        MKVTXW, MKVTXS, BLVSEC, BLVWDA, BLVZLA, BLVZDA, LDVWDA, FIVZDA,
+        LDVZDA
+    The following routines are obsolete:
+        VXHITS, VXCHAN, WIHITS, ZLHITS, VTDRIF, VDRIFT, VDIGIT, VTXOUT,
+        UNPKVX
+    Three new commons ****must**** be released with these routines:
+        VZHITS.INC, VZDATA.INC, VTLOCA.INC
+    The following common is made obsolete:
+        ZHITSV.INC
+
+    - INIVTX: SCALE was redefined to give a larger pulse height
+
+    - GEOVTX: a small bug was fixed
+
+
+==============================================================================
+
+ 13-DEC-1989 : Modifications released by Jeffrey Bantly
+ 
+    - FTHITS.FOR,FTDATA.FOR have a bug fixed to drift time calculation, may be
+      solution to Alan's overwrite bomb.
+
+==============================================================================
+
+ 13-DEC-1989 : Modifications released by Qizhong Li
+ 
+    - CLANDA and VLANDA: added a check on BETHE to avoid taking the square 
+      root of a negative number
+
+    - SIMPUL: added a check on ITMIN to avoid negative FADC channel numbers.
+
+==============================================================================
+
+ 15-DEC-1989 : Modifications released by Jeffrey Bantly
+ 
+    - INIFDC.FOR adjusted two of the pulse shape parameters at Qizhong's
+      suggestion
+
+==============================================================================
+
+ 15-DEC-1989 : Modifications released by A. Zylberstejn
+ 
+    - modif CLUDIG:remove a call to HFILL for all clusters
+
+==============================================================================
+
+ 17-DEC-1989 : Modifications released by Peter M. Grudberg
+ 
+    - The CD digitization code has been modified to effect an approximate
+      doubling in processing speed.  The following routines were changed:
+
+        FICDDn(n=1,2,3): the number of digitization bins was reduced from 512
+                         to 256, and a call to ZADPED was added to replace the
+                         pedestal addition in the individual routines.
+        ZERSUP: restructured to speed up processing
+        DZEMAT: the vacuum medium parameters were changed to speed up tracking
+                stable particles through the beampipe.
+
+    One new routine was added:
+
+        ZADPED: add the pedestal to the raw CD fadc data.  Instead of rolling
+                one random number per fadc bin, this routine fills an array
+                with random numbers on the first call and cycles through these
+                on subsequent calls (one new random number is generated every
+                call to dynamically regenerate the random number pool).
+
+==============================================================================
+
+ 20-DEC-1989 : Modifications released by A.M.Jonckheere
+
+    - These changes contain a few bug fixes, some modifications to improve the
+      run and event number handling for the blind challenge and some changes
+      to get ready for PBD operation.
+
+    - Operationally, the biggest changes are that we now use INZCOM to init
+      ZEBCOM (instead of ISZEB), and we use a new routine INZGCB to init and
+      change the size of GCBANK. In order to use INZGCB via the PBD, the user
+      will now modify GCBANK.INC inself, rather than NGCBNK.DEF to set the
+      size of GCBANK.
+
+CADFL.FOR       "GET Parameters from D0$PARAMS *not* D0$CALOR_UTIL$PARAMS"
+D0GEANT.ASS     "Add TRD_STRIP logical definition"
+D0GEANT.LNK     "Use new logicals"
+                "New .LNK for PBD version"
+D0GEANT_COMBINED_PACKAGES.PBD   "Combined PBDs"
+D0GEANT_SETUP.COM       "Renamed D0Geant.ASS to agree with PBD convention"
+                "Delete CALTOWER_STP definition - obsolete"
+D0MAIN.FOR      "New versions for PBD"
+                "Call INZGCB (in Zebra_UTIL) to increase size of /GCBANK/"
+GCBANK.INC      "Modify for PBD"
+                "Use parameter for all array dimensions"
+GUTREV.FOR      "Insert IDEVT and IDRUN from RUNG card into HEAD bank"
+INZGCB.FOR      "Init GCBANK - Geant Data Store"
+ISKINE.FOR      "Fill event number from IDEVT (from RUNG card)"
+                "Report ISAJET event # - not Geant event #" 
+                "Print ISAJET event number"
+ISUBFN.FOR      "Fix Bug. in User buffer 1."
+LIBRARY_PACKAGES.PBD    "Library Packages available to Program Builder"
+                "Combined PBDs"
+MSPAD.FOR       "Kunori's bug fix"
+RDZEB.FOR       "Simplify and save Isajet Run/Event in Event ID field of HEAD"
+                "Save RUN/EVENT only if not already done"
+STPTRD.FOR      "Correct array dimension"
+WRZEB.FOR       "Use new *saved* Isajet number in Farm status report"
+ZEBINI.FOR      "Use INZCOM rather than ISZEB to init ZEBCOM"
+
+==============================================================================
+
+ 26-DEC-1989 : Modifications released by A. Zylberstejn
+ 
+    - Modify call to TRDCON in INITRD (to be compatible with use of TRDCON
+in TRACKING_util).Needs concomitant release of TRACKING_UTIL)
+
+==============================================================================
+
+ 28-DEC-1989 : Modifications released by Jeffrey Bantly
+ 
+    - fixed a bad call to BKFTSC in LDFTSC.FOR, caused access violation
+
+==============================================================================
+
+  2-JAN-1990 : Modifications released by A.M.Jonckheere
+ 
+    - Modify D0GRUN.COM to use INZGCB and INZCOM as well as INZSTP to change
+      sizes of Zebra stores. To use correctly, you must copy to your area, and
+      modify GCBANK.INC, ZEBCOM.INC and ZEBSTP.INC. NOTE: GCBANK.INC replaces
+      NBCBNK.DEF.
+
+==============================================================================
+
+ 10-JAN-1990 : Modifications released by A. Zylberstejn
+ 
+    - The following routines have been modified (and cleaned) in order to get
+      rid of all the calls to MZLINT ANLTRD.FOR,INITRD.FOR,INITRD.FOR,BOKTRD.
+      FOR,CLUDIG.FOR,CLURAD.FOR, STPTRD.FOR,DIGTRD.FOR,ENTRD.FOR,TRDCAL.FOR
+      They cannot work without a simultaneous release of TRACKING_UTIL and
+      INC 
+
+==============================================================================
+
+ 19-JAN-1990 : Modifications released by Armand Zylberstejn
+ 
+    - Replace ANLTRD and PRGTRH : modify incorrect reference to link LGTLY due
+      to the removal of the temporay link areas.
+
+==============================================================================
+
+ 29-JAN-1990 : Modifications released by Qizhong Li
+ 
+    - BLCDD2, CDCWRT, FIDCDA and FIDSEC: fixed the wrong argument in the 
+      call to MZPUSH, which caused access violations.
+
+==============================================================================
+
+ 30-JAN-1990 : Modifications released by Jeffrey Bantly
+ 
+    - BLCDD3 fixed wrong argument in MZPUSH call, which caused access viol.
+
+==============================================================================
+
+ 30-JAN-1990 : Modifications released by Peter M. Grudberg
+ 
+    - BLCDD1, VTXWRT: IXMAIN => IXCOM in MZPUSH call (see above)
+
+    - STPVTX: fixed track id word (this was fixed before, but the program
+      builder version was built from the unfixed routine)

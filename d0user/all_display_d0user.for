@@ -1,0 +1,2088 @@
+      SUBROUTINE PBDINI                                                         
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-    This routine must be called by the FrameWork to initialize                
+C-    the run time switches associated with the packages                        
+C-    Created by the PROGRAM BUILDER                                            
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL WRNGOK                                                            
+      INTEGER LOGUNT,MAXLOG,MAXWRN                                              
+      CHARACTER*32 STRGLG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+C-                                                                              
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      LOGUNT = 0                                                                
+      WRNGOK = .TRUE.                                                           
+      CALL ERRINI(LOGUNT,WRNGOK)                                                
+      MAXLOG = 1                                                                
+      MAXWRN = 1                                                                
+      STRGLG = ' '                                                              
+      CALL ERRMAX(STRGLG,MAXLOG,MAXWRN)                                         
+C-                                                                              
+      PBD_FLAG_MAX = 13                                                         
+C-                                                                              
+      PBD_FLAG_VALUE( 1) = .TRUE.                                               
+      PBD_FLAG_NAME( 1) = 'ALL_DISPLAY'                                         
+      PBD_FLAG_VALUE( 2) = .TRUE.                                               
+      PBD_FLAG_NAME( 2) = 'COMBDIS'                                             
+      PBD_FLAG_VALUE( 3) = .TRUE.                                               
+      PBD_FLAG_NAME( 3) = 'ZTRAKSDIS'                                           
+      PBD_FLAG_VALUE( 4) = .TRUE.                                               
+      PBD_FLAG_NAME( 4) = 'VTXDIS'                                              
+      PBD_FLAG_VALUE( 5) = .TRUE.                                               
+      PBD_FLAG_NAME( 5) = 'TRDDIS'                                              
+      PBD_FLAG_VALUE( 6) = .TRUE.                                               
+      PBD_FLAG_NAME( 6) = 'CDCDIS'                                              
+      PBD_FLAG_VALUE( 7) = .TRUE.                                               
+      PBD_FLAG_NAME( 7) = 'FDCDIS'                                              
+      PBD_FLAG_VALUE( 8) = .TRUE.                                               
+      PBD_FLAG_NAME( 8) = 'CALDIS'                                              
+      PBD_FLAG_VALUE( 9) = .TRUE.                                               
+      PBD_FLAG_NAME( 9) = 'MUTRAKSDIS'                                          
+      PBD_FLAG_VALUE(10) = .TRUE.                                               
+      PBD_FLAG_NAME(10) = 'MUODIS'                                              
+      PBD_FLAG_VALUE(11) = .TRUE.                                               
+      PBD_FLAG_NAME(11) = 'SAMDIS'                                              
+      PBD_FLAG_VALUE(12) = .TRUE.                                               
+      PBD_FLAG_NAME(12) = 'PHYDIS'                                              
+      PBD_FLAG_VALUE(13) = .TRUE.                                               
+      PBD_FLAG_NAME(13) = 'LV0DIS'                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-    The following routine has been generated by the Program Builder           
+C-    because the size of the common blocks has been modified                   
+C-    by the user.                                                              
+C-                                                                              
+C-    Created by the PROGRAM BUILDER                                            
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      SUBROUTINE INZCOM(I)                                                      
+C----------------------------------------------------------------------         
+C-                                                                              
+C-   Purpose and Methods :                                                      
+C-       Initialize ZEBCOM (event data Zebra common)                            
+C-                                                                              
+C-   Inputs  : I = 1 data in division 1, otherwise in division 2                
+C-   Outputs : NONE                                                             
+C-                                                                              
+C-   Created  28-OCT-1988   Serban D. Protopopescu                              
+C-                                                                              
+C----------------------------------------------------------------------         
+      IMPLICIT NONE                                                             
+C-                                                                              
+C     INCLUDE 'D0$INC:ZEBCOM.INC'                                               
+C-                                                                              
+C-                                                                              
+C                                                                               
+C  ZEBCOM is the main zebra common block for event data storage                 
+C                                                                               
+      INTEGER NNQ,NREF                                                          
+C     PARAMETER (NNQ=200000)                                                    
+C-                                                                              
+C-    The following is the new parameter value                                  
+C-                                                                              
+      PARAMETER (NNQ=2400000 )                                                  
+C-                                                                              
+      PARAMETER (NREF=9)                                                        
+      COMMON/ZEBCOM/IXCOM,IXMAIN,IXDVR,FENCE,LHEAD,LHEADR,LREF,                 
+     &  ZSTOR,ENDZS                                                             
+      INTEGER IXCOM    ! store number                                           
+     &       ,IXMAIN   ! event division number                                  
+     &       ,IXDVR    ! run division number                                    
+      INTEGER FENCE(8),LREF(NREF),ZSTOR(NNQ),ENDZS                              
+      INTEGER LHEAD     ! pointer to event HEAD bank                            
+      INTEGER LHEADR    ! pointer to begin run HEAD bank                        
+      REAL Q(NNQ)                                                               
+      INTEGER IQ(NNQ),LQ(NNQ)                                                   
+      EQUIVALENCE (LHEAD,LQ(1)),(LQ(9),IQ(1),Q(1))                              
+C                                                                               
+C-                                                                              
+C-                                                                              
+      INTEGER I                                                                 
+      LOGICAL FIRST                                                             
+      SAVE FIRST                                                                
+      DATA FIRST/.TRUE./                                                        
+C----------------------------------------------------------------------         
+C                                                                               
+      IF(FIRST) THEN                                                            
+C                                                                               
+C **** Initialize store in /ZEBCOM/ common (store 0)                            
+C                                                                               
+        IXCOM=0                                                                 
+        CALL MZSTOR (IXCOM,'/ZEBCOM/','Q',FENCE,LHEAD,LREF(1),ZSTOR(1),         
+     &   ZSTOR(40000),ENDZS)                                                    
+C                                                                               
+C **** Use division IXMAIN for event data                                       
+C                                                                               
+        IXMAIN=IXCOM+2                                                          
+        IF(I.EQ.1) IXMAIN=IXCOM+1                                               
+C                                                                               
+C **** Create a division for run header (3rd division)                          
+C                                                                               
+        CALL MZDIV(IXCOM,IXDVR,'RUN DIV',100,40000,'L')                         
+        FIRST=.FALSE.                                                           
+      ENDIF                                                                     
+  999 RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+C-                                                                              
+C-    The following routine has been generated by the Program Builder           
+C-    because the size of the common blocks has been modified                   
+C-    by the user.                                                              
+C-                                                                              
+C-    Created by the PROGRAM BUILDER                                            
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      SUBROUTINE INZSTP                                                         
+C----------------------------------------------------------------------         
+C-                                                                              
+C-   Purpose and Methods :                                                      
+C-       Initialize ZEBSTP (Zebra common for static parameters)                 
+C-                                                                              
+C-   Created  28-OCT-1988   Serban D. Protopopescu                              
+C-                                                                              
+C----------------------------------------------------------------------         
+      IMPLICIT NONE                                                             
+C-                                                                              
+C     INCLUDE 'D0$INC:ZEBSTP.INC'                                               
+C-                                                                              
+C-                                                                              
+C ZEBSTP.INC                                                                    
+      INTEGER NNC                                                               
+C     PARAMETER (NNC=200000)                                                    
+C-                                                                              
+C-    The following is the new parameter value                                  
+C-                                                                              
+      PARAMETER (NNC=1200000 )                                                  
+C-                                                                              
+      COMMON/ZEBSTP/IXSTP,IDVSTP,IDVSUM,FENSTP,LSTPH,LZSUM,                     
+     1 LSLV0,LLPDH,LLGNH,LLTMH,LLGEH,LLV,               ! level 0 links         
+     2 LSMUO,LMPDH,LMGNH,LMTMH,LMGEH,LMU,               ! muon links            
+     3 LSVTX,LVPDH,LVGNH,LVTMH,LVGEH,LBMXY,LVT,         ! vertex chamber links  
+     4 LSCDC,LDPDH,LDGNH,LDTMH,LDGEH,LDALH,LDC,         ! cdc links             
+     5 LSTRD,LTPDH,LTGAI,LTGEN,LTGEO,LTCAN,LTLIK,LTR,   ! trd links             
+     6 LSFDC,LFPDH,LFGNH,LFTMH,LFGEH,LFD,               ! fdc links             
+     7 LSCAL,LCPDH,LCGNH,LCGEH,LCA,                     ! calorimeter links     
+     8 ZCONS,ENDZC                                                              
+      INTEGER IXSTP,IDVSTP,IDVSUM,FENSTP(10),LZSUM,ZCONS(NNC),ENDZC             
+      REAL C(NNC)                                                               
+      INTEGER IC(NNC),LC(NNC)                                                   
+      EQUIVALENCE (LSTPH,LC(1)),(LC(9),IC(1),C(1))                              
+      INTEGER LSTPH ! static parameter header                                   
+     $,  LSLV0      ! level 0 constants header                                  
+     $,  LLPDH      ! level 0 pedestal header                                   
+     $,  LLGNH      ! level 0 gain header                                       
+     $,  LLTMH      ! level 0 time constants header                             
+     $,  LLGEH      ! level 0 geometry constants header                         
+     $,  LLV(10)    ! available                                                 
+C                                                                               
+      INTEGER LSMUO ! Muon constants header                                     
+     $,  LMPDH      ! Muon pedestal header                                      
+     $,  LMGNH      ! Muon gain header                                          
+     $,  LMTMH      ! Muon time constants header                                
+     $,  LMGEH      ! Muon geometry constants header                            
+     $,  LMU(10)    ! available                                                 
+C                                                                               
+C LBMXY added NGraf 8/16/94                                                     
+      INTEGER LSVTX ! Vertex chamber constants header                           
+     $,  LVPDH      ! Vertex chamber pedestal header                            
+     $,  LVGNH      ! Vertex chamber gain header                                
+     $,  LVTMH      ! Vertex chamber time constants header                      
+     $,  LVGEH      ! Vertex chamber geometry constants header                  
+     $,  LBMXY      ! Beam position bank (does NOT hang from SVTX)              
+     $,  LVT(9)     ! available                                                 
+C                                                                               
+      INTEGER LSCDC ! CDC constants header                                      
+     $,  LDPDH      ! CDC pedestal header                                       
+     $,  LDGNH      ! CDC gain header                                           
+     $,  LDTMH      ! CDC time constants header                                 
+     $,  LDGEH      ! CDC geometry constants header                             
+     $,  LDALH      ! CDC wire alignment constants header                       
+     $,  LDC(9)     ! available                                                 
+C                                                                               
+C LTCAN and LTLIK add Azlyber 8/1/94                                            
+      INTEGER LSTRD ! TRD constants header                                      
+     $,  LTPDH      ! TRD pedestal header                                       
+     $,  LTGAI      ! TRD gains header                                          
+     $,  LTGEN      ! TRD general header                                        
+     $,  LTGEO      ! TRD geometry constants header                             
+     $,  LTCAN      ! TRD canary header                                         
+     $,  LTLIK      ! TRD header for JFL's likelihood tables                    
+     $,  LTR(8)     ! available                                                 
+C                                                                               
+      INTEGER LSFDC ! FDC constants header                                      
+     $,  LFPDH      ! FDC pedestal header                                       
+     $,  LFGNH      ! FDC gain header                                           
+     $,  LFTMH      ! FDC time constants header                                 
+     $,  LFGEH      ! FDC geometry constants header                             
+     $,  LFD(10)    ! available                                                 
+C                                                                               
+      INTEGER LSCAL ! Calorimeter constants header                              
+     $,  LCPDH      ! Calorimeter pedestal header                               
+     $,  LCGNH      ! Calorimeter gain header                                   
+     $,  LCGEH      ! Calorimeter geometry constants header                     
+     $,  LCA(11)    ! available                                                 
+C                                                                               
+C-                                                                              
+C-                                                                              
+      LOGICAL FIRST                                                             
+      SAVE FIRST                                                                
+      DATA FIRST/.TRUE./                                                        
+C----------------------------------------------------------------------         
+C                                                                               
+      IF(FIRST) THEN                                                            
+C                                                                               
+C          Note that 10 words are set aside for reference links                 
+C          but are not specifically named in the common block                   
+C                                                                               
+        CALL MZSTOR (IXSTP,'/ZEBSTP/','C',FENSTP,LSTPH,ZCONS,ZCONS(10),         
+     &   ZCONS(10000),ENDZC)                                                    
+C                                                                               
+C **** IDVSTP is the 2nd division in the ZEBSTP store.                          
+C                                                                               
+        IDVSTP=IXSTP+2                                                          
+        CALL CONSTP                 ! construct STP headers                     
+        FIRST=.FALSE.                                                           
+      ENDIF                                                                     
+  999 RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+C-                                                                              
+C-    The following routine has been generated by the Program Builder           
+C-    because the size of the common blocks has been modified                   
+C-    by the user.                                                              
+C-                                                                              
+C-    Created by the PROGRAM BUILDER                                            
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      SUBROUTINE INZWRK                                                         
+C----------------------------------------------------------------------         
+C-                                                                              
+C-   Purpose and Methods :                                                      
+C-      Initialize /ZEBWRK/, working area not written out                       
+C-                                                                              
+C-   Created  28-OCT-1988   Serban D. Protopopescu                              
+C-                                                                              
+C----------------------------------------------------------------------         
+      IMPLICIT NONE                                                             
+C-                                                                              
+C     INCLUDE 'D0$INC:ZEBWRK.INC'                                               
+C-                                                                              
+C-                                                                              
+C                                                                               
+C--     Zebra working space; Banks WRKH; STEP; ADCS;                            
+C                                                                               
+      INTEGER NNW,NWR                                                           
+C     PARAMETER (NNW=30000)                                                     
+C-                                                                              
+C-    The following is the new parameter value                                  
+C-                                                                              
+      PARAMETER (NNW=1000000 )                                                  
+C-                                                                              
+      PARAMETER (NWR=9)                                                         
+      COMMON/ZEBWRK/IXWRK,IDVWRK,FENWRK,LWRKH,LRWRK,LSTEP,                      
+     2 ZWORK,ENDZW                                                              
+C                                                                               
+      INTEGER IXWRK,IDVWRK,LSTEP,FENWRK(10),ZWORK(NNW),ENDZW                    
+      REAL W(NNW)                                                               
+      INTEGER IW(NNW),LW(NNW)                                                   
+      INTEGER*2 KW(2*NNW)                                                       
+      EQUIVALENCE (LWRKH,LW(1)),(LW(9),IW(1),W(1),KW(1))                        
+      INTEGER LWRKH               ! working space header                        
+     $,  LRWRK(NWR)                                                             
+C                                                                               
+C-                                                                              
+C-                                                                              
+      LOGICAL FIRST                                                             
+      SAVE FIRST                                                                
+      DATA FIRST/.TRUE./                                                        
+C----------------------------------------------------------------------         
+C                                                                               
+      IF(FIRST) THEN                                                            
+        CALL MZSTOR (IXWRK,'/ZEBWRK/','Q',FENWRK,LWRKH,LRWRK,ZWORK(1),          
+     &   ZWORK(10000),ENDZW)                                                    
+        IDVWRK=IXWRK+2                                                          
+        FIRST=.FALSE.                                                           
+      ENDIF                                                                     
+  999 RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+C-                                                                              
+C-    The following routine has been generated by the Program Builder           
+C-    because the size of the common blocks has been modified                   
+C-    by the user.                                                              
+C-                                                                              
+C-    Created by the PROGRAM BUILDER                                            
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      SUBROUTINE INPAWC                                                         
+C----------------------------------------------------------------------         
+C-                                                                              
+C-   Purpose and Methods :                                                      
+C-       Initialize PAWC common for HBOOK4                                      
+C-                                                                              
+C-   Created  27-MAR-1989   Serban D. Protopopescu                              
+C-   Updated  17-APR-1991   Rajendran Raja  Updated to have Global sections     
+C-   Updated   3-MAR-1992   K. Wyatt Merritt  Put global sections in machine    
+C-                           block for unix compatibility                       
+C-                                                                              
+C----------------------------------------------------------------------         
+      IMPLICIT NONE                                                             
+C-                                                                              
+C     INCLUDE 'D0$INC:PAWC.INC'                                                 
+C-                                                                              
+C-                                                                              
+C----------------------------------------------------------------------         
+C-                                                                              
+C-   Created  16-MAY-1989   Serban D. Protopopescu                              
+C-   Updated   1-JUN-1991   Rajendran Raja                                      
+C-                                                                              
+C----------------------------------------------------------------------         
+      INTEGER NPAWC                                                             
+C     PARAMETER (NPAWC=100000)                                                  
+C-                                                                              
+C-    The following is the new parameter value                                  
+C-                                                                              
+      PARAMETER (NPAWC=100000 )                                                 
+C-                                                                              
+      INTEGER PAGELEN                                                           
+      PARAMETER( PAGELEN = 128 )        ! LENGTH OF PAGE                        
+      INTEGER MAXPAGES                                                          
+      PARAMETER( MAXPAGES = NPAWC/PAGELEN )                                     
+      CHARACTER*32 GNAME                                                        
+C                                                                               
+      COMMON/PAWC/NWPAW,IXPAWC,IHDIV,IXHIGZ,IXKU,FENC(5),LPMAIN,                
+     &  HCV(9989)                                                               
+C                                                                               
+      REAL HMEMOR(PAGELEN*MAXPAGES)                                             
+      INTEGER NWPAW,IXPAWC,IHDIV,IXHIGZ,IXKU,FENC,LPMAIN,HCV                    
+      EQUIVALENCE(NWPAW,HMEMOR(1))                                              
+      INTEGER IP(2),LP(8000)                                                    
+      REAL    P(2)                                                              
+      EQUIVALENCE (LP(1),LPMAIN),(IP(1),LP(9)),(P(1),IP(1))                     
+C-                                                                              
+C-                                                                              
+      INTEGER NPAGES,HCREATEG                                                   
+      INTEGER TRNLNM,STATUS,LENG                                                
+      INTEGER TRULEN                                                            
+C----------------------------------------------------------------------         
+C                                                                               
+      STATUS = TRNLNM('GLOBAL$PAWC',GNAME,LENG)                                 
+      IF ( GNAME(1:LENG).EQ.'GLOBAL$PAWC' ) THEN          ! NO GLOBAL SECTION   
+        CALL HLIMIT(-PAGELEN*MAXPAGES)                                          
+      ELSE                                                                      
+C&IF VAXVMS                                                                     
+        NPAGES = HCREATEG(GNAME(1:LENG),HMEMOR,PAGELEN*MAXPAGES)                
+        IF ( NPAGES.GT.0 ) THEN                                                 
+          CALL ERRMSG(' INPAWC ','INPAWC',                                      
+     &    ' GLOBAL SECTION: '//GNAME(1:LENG)//' CREATED ','S')                  
+          CALL HLIMIT(-PAGELEN*MAXPAGES)                                        
+        ELSE                                                                    
+          CALL ERRMSG(' INPAWC ','INPAWC ',                                     
+     &    ' GLOBAL SECTION ERROR ','S')                                         
+        ENDIF                                                                   
+C&ELSE                                                                          
+C&        CALL HLIMIT(-PAGELEN*MAXPAGES)                                        
+C&        CALL ERRMSG(' INPAWC ','INPAWC ',                                     
+C&     &    'Global section not created on non-VMS system','S')                 
+C&ENDIF                                                                         
+      ENDIF                                                                     
+C                                                                               
+  999 RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+C-                                                                              
+C-    The following routine has been generated by the Program Builder           
+C-    because the size of the common blocks has been modified                   
+C-    by the user.                                                              
+C-                                                                              
+C-    Created by the PROGRAM BUILDER                                            
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      SUBROUTINE INZGCB                                                         
+C----------------------------------------------------------------------         
+C-                                                                              
+C-   Purpose and Methods : Init GCBANK (Geant Data Store)                       
+C-                                                                              
+C-   Inputs  :                                                                  
+C-   Outputs :                                                                  
+C-   Controls:                                                                  
+C-                                                                              
+C-   Created  24-NOV-1989   Alan M. Jonckheere                                  
+C-                                                                              
+C----------------------------------------------------------------------         
+      IMPLICIT NONE                                                             
+C-                                                                              
+C     INCLUDE 'D0$INC:GCBANK.INC'                                               
+C-                                                                              
+C-                                                                              
+C----------------------------------------------------------------------         
+C-                                                                              
+C-   Created  26-APR-1991   Alan M. Jonckheere - Geant 3.14                     
+C-                                                                              
+C----------------------------------------------------------------------         
+      INTEGER NGCBNK                                                            
+C     PARAMETER( NGCBNK = 69000 )                                               
+C-                                                                              
+C-    The following is the new parameter value                                  
+C-                                                                              
+      PARAMETER( NGCBNK = 300000 )                                              
+C-                                                                              
+      INTEGER KWBANK,KWWORK                                                     
+      PARAMETER (KWBANK=NGCBNK,KWWORK=5200)                                     
+      COMMON/GCBANK/NZEBRA,GVERSN,ZVERSN,IXSTOR,IXDIV,IXCONS,FENDQ(16)          
+     +             ,LMAIN,LR1,WS(KWBANK)                                        
+      EQUIVALENCE (Q(1),IQ(1),LQ(9)),(LQ(1),LMAIN),(IWS(1),WS(1))               
+c                                                                               
+      INTEGER IQ(2),LQ(8000),IWS(2)                                             
+      INTEGER NZEBRA,IXSTOR,IXDIV,IXCONS,LMAIN,LR1                              
+      REAL GVERSN,ZVERSN,FENDQ,WS,Q(1)                                          
+C                                                                               
+C-                                                                              
+C-                                                                              
+      LOGICAL FIRST                                                             
+      DATA    FIRST/.TRUE./                                                     
+C----------------------------------------------------------------------         
+      IF ( FIRST ) THEN                                                         
+        CALL GZEBRA(NGCBNK)                                                     
+      ENDIF                                                                     
+  999 RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION STSWCH()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-    This routine allows the Program Builder user to set                       
+C-    and reset(ON/OFF) the run time switches associated                        
+C-    with the packages.                                                        
+C-    Created by the PROGRAM BUILDER                                            
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+C-    A dummy routine becuase no SWITCH
+C-    input qualifier specified
+C-                                                                              
+      STSWCH = .TRUE.                                                           
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION PBD_SET_FLAG(FLAG_NAME,VALUE)                            
+C-                                                                              
+      IMPLICIT NONE                                                             
+C-                                                                              
+      CHARACTER*(*) FLAG_NAME                                                   
+      CHARACTER*80 TMP_FLAG_NAME                                                
+      INTEGER I                                                                 
+      LOGICAL DONE,VALUE                                                        
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+C-                                                                              
+      I = 1                                                                     
+      DONE = .FALSE.                                                            
+      CALL PBD_UPCASE(FLAG_NAME,TMP_FLAG_NAME)                                  
+      DO WHILE ((I.LE.PBD_FLAG_MAX).AND.(.NOT.DONE))                            
+        IF (TMP_FLAG_NAME(1:LEN(FLAG_NAME)).EQ.                                 
+     &      PBD_FLAG_NAME(I)(1:LEN(FLAG_NAME))) THEN                            
+          PBD_FLAG_VALUE(i) = VALUE                                             
+          DONE = .TRUE.                                                         
+        END IF                                                                  
+        I = I + 1                                                               
+      END DO                                                                    
+      PBD_SET_FLAG = DONE                                                       
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION PBD_GET_FLAG(FLAG_NAME,VALUE)                            
+C-                                                                              
+      IMPLICIT NONE                                                             
+C-                                                                              
+      CHARACTER*(*) FLAG_NAME                                                   
+      CHARACTER*80 TMP_FLAG_NAME                                                
+      INTEGER I                                                                 
+      LOGICAL DONE,VALUE                                                        
+C-                                                                              
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      I = 1                                                                     
+      DONE = .FALSE.                                                            
+      CALL PBD_UPCASE(FLAG_NAME,TMP_FLAG_NAME)                                  
+      DO WHILE ((I.LE.PBD_FLAG_MAX).AND.(.NOT.DONE))                            
+        IF (TMP_FLAG_NAME(1:LEN(FLAG_NAME)).EQ.                                 
+     &      PBD_FLAG_NAME(I)(1:LEN(FLAG_NAME))) THEN                            
+          VALUE = PBD_FLAG_VALUE(I)                                             
+          DONE = .TRUE.                                                         
+        END IF                                                                  
+        I = I + 1                                                               
+      END DO                                                                    
+      PBD_GET_FLAG = DONE                                                       
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      SUBROUTINE PBD_DUMP_FLAGS                                                 
+C-                                                                              
+      IMPLICIT NONE                                                             
+C-                                                                              
+      INTEGER I                                                                 
+C-                                                                              
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+      DO I = 1, PBD_FLAG_MAX                                                    
+        WRITE (6,'('' '',A,'' : '',L1)') PBD_FLAG_NAME(I)(1:32),                
+     &PBD_FLAG_VALUE(I)                                                         
+      END DO                                                                    
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      SUBROUTINE PBD_UPCASE(IN_STRING,OUT_STRING)                               
+      IMPLICIT NONE                                                             
+      CHARACTER*(*) IN_STRING,OUT_STRING                                        
+      INTEGER I,OFFSET                                                          
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      OFFSET = ICHAR('A') - ICHAR('a')                                          
+      DO I = 1, LEN(IN_STRING)                                                  
+        IF ((IN_STRING(I:I).GE.'a').AND.(IN_STRING(I:I).LE.'z')) THEN           
+          OUT_STRING(I:I) = CHAR(ICHAR(IN_STRING(I:I)) + OFFSET)                
+        ELSE                                                                    
+          OUT_STRING(I:I) = IN_STRING(I:I)                                      
+        END IF                                                                  
+      END DO                                                                    
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      SUBROUTINE PBD_GET_FLAG_NAME(FLAG_ID,FLAG_NAME,FLAG_VALUE)                
+C-                                                                              
+      IMPLICIT NONE                                                             
+C-                                                                              
+      INTEGER FLAG_ID                                                           
+      CHARACTER*(*) FLAG_NAME                                                   
+      LOGICAL FLAG_VALUE                                                        
+C-                                                                              
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      IF ( FLAG_ID .LE. PBD_FLAG_MAX ) THEN                                     
+        FLAG_NAME = PBD_FLAG_NAME(FLAG_ID)                                      
+        FLAG_VALUE = PBD_FLAG_VALUE(FLAG_ID)                                    
+      ELSE                                                                      
+        FLAG_NAME = ' '                                                         
+        FLAG_ID = 0                                                             
+        FLAG_VALUE = .FALSE.                                                    
+      END IF                                                                    
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION EVENT_READ_OK()                                          
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      EVENT_READ_OK = .TRUE.                                                    
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USREVT()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL ALL_DISPLAY_EVT                                                   
+      EXTERNAL ALL_DISPLAY_EVT                                                  
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USREVT = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 1))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. ALL_DISPLAY_EVT()) THEN                                      
+            USREVT = .FALSE.                                                    
+            MESSID = '!ALL_DISPLAY_EVT is false.'                               
+            CALLER = 'ALL_DISPLAY_EVT'                                          
+            MESSAG = 'Further processing is skipped'                            
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'W')                               
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USRINI()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL ALL_DISPLAY_INI                                                   
+      EXTERNAL ALL_DISPLAY_INI                                                  
+      LOGICAL PCOMB_INIT                                                        
+      EXTERNAL PCOMB_INIT                                                       
+      LOGICAL PZTRAKS_INIT                                                      
+      EXTERNAL PZTRAKS_INIT                                                     
+      LOGICAL PVINIT                                                            
+      EXTERNAL PVINIT                                                           
+      LOGICAL PTINIT                                                            
+      EXTERNAL PTINIT                                                           
+      LOGICAL PDINIT                                                            
+      EXTERNAL PDINIT                                                           
+      LOGICAL PFINIT                                                            
+      EXTERNAL PFINIT                                                           
+      LOGICAL PCINIT                                                            
+      EXTERNAL PCINIT                                                           
+      LOGICAL PMUTRAKS_INIT                                                     
+      EXTERNAL PMUTRAKS_INIT                                                    
+      LOGICAL PMINIT                                                            
+      EXTERNAL PMINIT                                                           
+      LOGICAL PSINIT                                                            
+      EXTERNAL PSINIT                                                           
+      LOGICAL PPINIT                                                            
+      EXTERNAL PPINIT                                                           
+      LOGICAL P0INIT                                                            
+      EXTERNAL P0INIT                                                           
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USRINI = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 1))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. ALL_DISPLAY_INI()) THEN                                      
+            USRINI = .FALSE.                                                    
+            MESSID = '!ALL_DISPLAY_INI is false.'                               
+            CALLER = 'ALL_DISPLAY_INI'                                          
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 2))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PCOMB_INIT()) THEN                                           
+            USRINI = .FALSE.                                                    
+            MESSID = '!PCOMB_INIT is false.'                                    
+            CALLER = 'PCOMB_INIT'                                               
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 3))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PZTRAKS_INIT()) THEN                                         
+            USRINI = .FALSE.                                                    
+            MESSID = '!PZTRAKS_INIT is false.'                                  
+            CALLER = 'PZTRAKS_INIT'                                             
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 4))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PVINIT()) THEN                                               
+            USRINI = .FALSE.                                                    
+            MESSID = '!PVINIT is false.'                                        
+            CALLER = 'PVINIT'                                                   
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 5))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PTINIT()) THEN                                               
+            USRINI = .FALSE.                                                    
+            MESSID = '!PTINIT is false.'                                        
+            CALLER = 'PTINIT'                                                   
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 6))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PDINIT()) THEN                                               
+            USRINI = .FALSE.                                                    
+            MESSID = '!PDINIT is false.'                                        
+            CALLER = 'PDINIT'                                                   
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 7))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PFINIT()) THEN                                               
+            USRINI = .FALSE.                                                    
+            MESSID = '!PFINIT is false.'                                        
+            CALLER = 'PFINIT'                                                   
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 8))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PCINIT()) THEN                                               
+            USRINI = .FALSE.                                                    
+            MESSID = '!PCINIT is false.'                                        
+            CALLER = 'PCINIT'                                                   
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 9))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PMUTRAKS_INIT()) THEN                                        
+            USRINI = .FALSE.                                                    
+            MESSID = '!PMUTRAKS_INIT is false.'                                 
+            CALLER = 'PMUTRAKS_INIT'                                            
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE(10))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PMINIT()) THEN                                               
+            USRINI = .FALSE.                                                    
+            MESSID = '!PMINIT is false.'                                        
+            CALLER = 'PMINIT'                                                   
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE(11))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PSINIT()) THEN                                               
+            USRINI = .FALSE.                                                    
+            MESSID = '!PSINIT is false.'                                        
+            CALLER = 'PSINIT'                                                   
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE(12))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PPINIT()) THEN                                               
+            USRINI = .FALSE.                                                    
+            MESSID = '!PPINIT is false.'                                        
+            CALLER = 'PPINIT'                                                   
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE(13))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. P0INIT()) THEN                                               
+            USRINI = .FALSE.                                                    
+            MESSID = '!P0INIT is false.'                                        
+            CALLER = 'P0INIT'                                                   
+            MESSAG = 'Program execution is aborted'                             
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+C-                                                                              
+C-          ERRMSG will trigger error messages printing                         
+C-          and will abort the execution.                                       
+C-          The following RETURN statement is only there                        
+C-          to satisfy the FORTRAN compiler.                                    
+C-                                                                              
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USDIAL()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USDIAL = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USENDR()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USENDR = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USRPAR()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PMEVT_INI                                                         
+      EXTERNAL PMEVT_INI                                                        
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USRPAR = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE(10))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. PMEVT_INI()) THEN                                            
+            USRPAR = .FALSE.                                                    
+            MESSID = '!PMEVT_INI is false.'                                     
+            CALLER = 'PMEVT_INI'                                                
+            MESSAG = 'Further processing is skipped'                            
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'W')                               
+            RETURN                                                              
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USRPST()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USRPST = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USETSS()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USETSS = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION EVT_DSTDROP()                                            
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      EVT_DSTDROP = .TRUE.                                                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION PXEXEC()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PCOMB_EXEC                                                        
+      EXTERNAL PCOMB_EXEC                                                       
+      LOGICAL PZTRAKS_EXEC                                                      
+      EXTERNAL PZTRAKS_EXEC                                                     
+      LOGICAL PVEXEC                                                            
+      EXTERNAL PVEXEC                                                           
+      LOGICAL PTEXEC                                                            
+      EXTERNAL PTEXEC                                                           
+      LOGICAL PDEXEC                                                            
+      EXTERNAL PDEXEC                                                           
+      LOGICAL PFEXEC                                                            
+      EXTERNAL PFEXEC                                                           
+      LOGICAL PCEXEC                                                            
+      EXTERNAL PCEXEC                                                           
+      LOGICAL PMUTRAKS_EXEC                                                     
+      EXTERNAL PMUTRAKS_EXEC                                                    
+      LOGICAL PMEXEC                                                            
+      EXTERNAL PMEXEC                                                           
+      LOGICAL PSEXEC                                                            
+      EXTERNAL PSEXEC                                                           
+      LOGICAL PPEXEC                                                            
+      EXTERNAL PPEXEC                                                           
+      LOGICAL P0EXEC                                                            
+      EXTERNAL P0EXEC                                                           
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      PXEXEC = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 2))                                                 
+     &    ) THEN                                                                
+         IF (PCOMB_EXEC()) RETURN                                               
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 3))                                                 
+     &    ) THEN                                                                
+         IF (PZTRAKS_EXEC()) RETURN                                             
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 4))                                                 
+     &    ) THEN                                                                
+         IF (PVEXEC()) RETURN                                                   
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 5))                                                 
+     &    ) THEN                                                                
+         IF (PTEXEC()) RETURN                                                   
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 6))                                                 
+     &    ) THEN                                                                
+         IF (PDEXEC()) RETURN                                                   
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 7))                                                 
+     &    ) THEN                                                                
+         IF (PFEXEC()) RETURN                                                   
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 8))                                                 
+     &    ) THEN                                                                
+         IF (PCEXEC()) RETURN                                                   
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 9))                                                 
+     &    ) THEN                                                                
+         IF (PMUTRAKS_EXEC()) RETURN                                            
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE(10))                                                 
+     &    ) THEN                                                                
+         IF (PMEXEC()) RETURN                                                   
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE(11))                                                 
+     &    ) THEN                                                                
+         IF (PSEXEC()) RETURN                                                   
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE(12))                                                 
+     &    ) THEN                                                                
+         IF (PPEXEC()) RETURN                                                   
+      END IF                                                                    
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE(13))                                                 
+     &    ) THEN                                                                
+         IF (P0EXEC()) RETURN                                                   
+      END IF                                                                    
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USRSSM()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USRSSM = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USRUSM()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USRUSM = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USRWRT()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USRWRT = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USRZEV()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL ALL_DISPLAY_EVZ                                                   
+      EXTERNAL ALL_DISPLAY_EVZ                                                  
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USRZEV = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 1))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. ALL_DISPLAY_EVZ()) THEN                                      
+            USRZEV = .FALSE.                                                    
+            CALLER = 'ALL_DISPLAY_EVZ'                                          
+            MESSAG = 'This error is ignored'                                    
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION USZERO()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      USZERO = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION DMPUDF()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL ALL_DISPLAY_DDF                                                   
+      EXTERNAL ALL_DISPLAY_DDF                                                  
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      DMPUDF = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 1))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. ALL_DISPLAY_DDF()) THEN                                      
+            DMPUDF = .FALSE.                                                    
+            CALLER = 'ALL_DISPLAY_DDF'                                          
+            MESSAG = 'This error is ignored'                                    
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION DMPUSR()                                                 
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL ALL_DISPLAY_DMP                                                   
+      EXTERNAL ALL_DISPLAY_DMP                                                  
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      DMPUSR = .TRUE.                                                           
+C-                                                                              
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 1))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. ALL_DISPLAY_DMP()) THEN                                      
+            DMPUSR = .FALSE.                                                    
+            CALLER = 'ALL_DISPLAY_DMP'                                          
+            MESSAG = 'This error is ignored'                                    
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
+      LOGICAL FUNCTION UQUIT()                                                  
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-     4-AUG-95 14:12:39                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL DI3_END                                                           
+      EXTERNAL DI3_END                                                          
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      UQUIT = .TRUE.                                                            
+C-                                                                              
+C-                                                                              
+      IF ( (PBD_FLAG_VALUE( 1))                                                 
+     &    ) THEN                                                                
+         IF (.NOT. DI3_END()) THEN                                              
+            UQUIT = .FALSE.                                                     
+            CALLER = 'DI3_END'                                                  
+            MESSAG = 'This error is ignored'                                    
+            CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+         END IF                                                                 
+      END IF                                                                    
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              

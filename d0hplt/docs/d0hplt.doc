@@ -1,0 +1,208 @@
+                                                            S. Hagopian
+                                                            Nov. 22, 1991
+                                                            Version 1.2
+
+                         D0HPLT.DOC
+
+I. INTRODUCTION
+
+       D0HPLT is the D0 interactive interface to the CERN Histogramming 
+   package, HBOOK, and the CERN Plotting package, HPLOT.(ref. 1)  It allows 
+   the user to manipulate and display histograms inside the event processing 
+   program.  Only selected basic HBOOK and HPLOT features are implemented. 
+   The user can plot 1-D and 2-D histograms on a CRT, make hardcopies of
+   the plots and start and stop an updating histogram. (See section III. 
+   for the current list of commands.)  A post-analysis histogram display
+   program, DISPLAY5, is available for the user to display histograms saved
+   in a file. It has more commands than D0HPLT. (ref. 3)  
+     
+     D0HPLT uses COMPACK, the D0 menu system (ref. 4), and the HIGZ-DI3000 
+   graphical interface supported by Fermilab. (ref. 5). D0HPLT is linked to
+   EXAMINE, the D0 ONLINE Event Monitoring framework, and optionally linked
+   into D0USER, the offline analysis framework, if the DI3000 option is
+   specified. 
+
+II. LINKING with DI3000
+
+    The DI3000 logicals must be setup before before LINKING 
+
+    1. To set up the DI3000 logicals do:
+    
+      $SETUP DI3000 (FNAL CLUSTER )
+   
+    2. To get the shareable high precision version do:
+
+      $DISETSHR EXT HI           
+
+
+III. SETUP and RUN the program
+
+     One or two DI3000 drivers should be set. The first driver should 
+     correspond to the type of terminal you are logged onto; 
+     the second one to a hardcopy device
+
+      $SETDRV TYPE1 (TYPE2)
+
+   Some common terminal types and their DI3000 codes are:
+
+       T10 - Tektronix 4010
+       240 - VT240
+       HDS - Human Devices Systems (Fermilab)
+       GPV - UIS VAX Workstation
+       XDW - DECWINDOWS VAX Workstation
+       TLL - TALARIS, LANDSCAPE MODE      
+       LN3 - DEC LN03 LASER PRINTER
+       PST - postscript printer
+
+    For more details about DI3000, see D0$DOCS:DI3000_GUIDE.DOC
+
+   If the user wants hardcopies of histograms to be automatically 
+   printed on the device chosen as TYPE2, two logicals should be 
+   defined: $DEF cod$PRINT  as your local laser printer queue
+            $DEF cod$FORM as the graphics form for the same queue
+      where cod is the 3 letter DI3000 code for the laser driver.
+   Standard values of these logicals for each laser driver should
+   be set in D0LOCAL.COM, but can be overridden by the user.
+
+   If the user does not want the hardcopies to be automatically
+   printed, but wishes to keep them as disk files, do:
+
+     $DEFINE cod$PRINT DUMMY
+
+   and ignore the warning message about printer queue not defined.
+
+   The files will be named with the code of the printer and extension .DAT
+   For postscript, the name of the file is given in the text configuration
+   file, DI3_DATA:DRVPST.CFG. (default is DI3K.PS for D0 LACs at Fermilab)
+
+ IV. HISTOGRAM OUTPUT FILES
+
+         When the command STORE HISTOGRAMS is chosen, the program writes
+     out the histograms in a ZEBRA file, using the HBOOK4 routine HRPUT.
+     Histogram files are labeled with run number and histogram number 
+     and have the extension .HST  If the number 0 is entered, all histograms
+     are written out, and the file is labeled with the run number only.
+     If the command is given again for the same run and histogram number,
+     a new output histogram file is written with the same name and the
+     next higher version number. The user can choose to store histograms 
+     in some directory other than the default directory by setting the LOGICAL
+     USR$OUT before running the program:
+
+         $DEF USR$OUT  new_directory      
+
+
+ V. COMMANDS for D0HPLT
+   
+
+   GENERAL D0HPLT COMMANDS for both EXAMINE2 and D0USER
+
+   ___________________
+   |                 | 
+   |   STATUS REPORT | Prints number of events processed on top half of screen
+   |                 | 
+   |_________________| 
+   |                 |       
+   |    CHANGE DIR   | Change HBOOK directory. User must enter the full 
+   |                 | directory name. For example: //PAWC/TEST
+   |_________________| 
+   |                 |       
+   |    PLOT HIST    | User enters histogram ID of histogram to be plotted
+   |                 | on the CRT
+   |_________________| 
+   |                 |       
+   |   UPDATING HIST | User enters histogram ID and number of times the
+   |                 | hist is to be updated. (0 to update until STOP update
+   |_________________| command is entered) Must choose END HISPAK to begin!!
+   |                 |       
+   |    STOP UPDATE  | Stop updating the histogram chosen in 5
+   |                 | 
+   |_________________| 
+   |                 |       
+   |    HINDEX       | Makes list of histograms in current DIRECTORY
+   |                 | 
+   |_________________| 
+   |                 |       
+   |    LASER PLOT   | User enters histogram ID and a hardcopy is made in
+   |                 | a file and sent to SYS$PRINT.
+   |_________________| 
+   |                 |       
+   |  SHOW HIST TITLE| User enters histogram ID and the title of 
+   |                 | that histogram is printed on the screen.
+   |_________________| 
+   |                 |       
+   |    TYPE HIST    | User enters hist ID. Hist is typed in XXX's 
+   |                 | (line mode) on CRT.
+   |_________________| 
+   |                 |       
+   |    PRINT HIST   | A line printer file is made for hist ID entered.
+   |                 | 
+   |_________________| 
+   |                 |       
+   |    STORE HIST   | A ZEBRA file is made of the histograms, enter 0 to
+   |                 | store all.
+   |_________________| 
+   |                 |       
+   | PRECEEDING PLOT | A PLOT is made of histogram number ID-1, where ID
+   |                 | was the last histogram ID entered.
+   |_________________| 
+   |                 |       
+   |    SAME PLOT    | This command will replot the last requested plot.
+   |                 | 
+   |_________________| 
+   |                 |       
+   |    NEXT PLOT    | A PLOT is made of histogram number ID+1, where ID
+   |                 | was the last histogram ID entered.
+   |_________________| 
+
+
+
+
+   COMMANDS unique to D0USER:
+
+
+   ___________________
+   |                 |       
+   |  PAUSE/PROCESS  | Toggles between pausing data taking and processing
+   |                 | events. If the word PAUSED does not appear in menu
+   |_________________| title, you are currently in a processing state.
+   |                 |       
+   |    CONTROL MENU | Special COMPACK commands for control of menu
+   |                 | 
+   |_________________| 
+   |                 |       
+   |    END HISPAK   | Return to previous menu
+   |                 | 
+   |_________________| 
+
+
+
+     COMMANDS unique to EXAMINE2:
+
+   ___________________
+   |                 |       
+   |     CLEAR       | This command clears out all the old events in the DAQ 
+   |                 | system and resets all the histograms.
+   |_________________| 
+
+                       Use the BACK key (PF4) to get back to the previous menu
+
+----------------------------------------------------------------------------
+
+
+
+                         REFERENCES
+
+
+  1. HBOOK, CERN Computer Center Long Write-up, Y250.
+
+  2. HPLOT, CERN Computer Center Long Write-up, Y251.
+
+  3. DISPLAY5, D0LIBRARY file D0$DISPLAY5:DISPLAY5.MEM
+
+  4. COMPACK, D0LIBRARY file D0$COMPACK:USERS_GUIDE.MEM 
+
+  5. HIGZ - High Level Interface to Graphics and ZEBRA,
+            CERN Computer Center Long Write-up, Q120
+
+  6. DI3000 - D0$DOCS:DI3000_GUIDE.DOC
+

@@ -1,0 +1,87 @@
+C SAMPL1.FOR
+      SUBROUTINE ANLCAL
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Analyse Calorimeter Data
+C-                         Look at sum of all tracks - smeared
+C-                         Calculate Missing Pt
+C-                         Valid for D0Geant V0.11 and greater
+C-
+C-   Inputs  : GCAH banks in /ZEBCOM/
+C-   Outputs : Sample Histograms
+C-
+C-   Created  27-JUL-1987   A.M.Jonckkhere
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+C----------------------------------------------------------------------
+C
+C
+C  S/R PARAMETERS
+       REAL VERT(3),P(4),TOTAL(4)
+       INTEGER ITRA,IDATA(12),NPOINT
+       LOGICAL EOD
+C
+       REAL ECELL
+       INTEGER IZ,IE,IP,IL,IPOINT
+       REAL SET,ETX,ETY,ETA,THETA,STH,PHI,SPHI,CPHI,EXY,EX,EY
+C
+       CALL CALLNK                        ! INIT FOR THIS EVENT
+C
+C  HAVE EVENT SO NOW GET AND CALCULATE Et's
+C
+C ****  Find sum of smeared tracks
+C
+       ITRA = 0
+       CALL GTGCAH(ITRA,VERT,P,IDATA,TOTAL,NPOINT,EOD)    ! FIND TRACK 0
+       IF ( EOD ) THEN                      ! NOT THERE!
+         WRITE ( LOUT,* ) ' SUM NOT THERE'
+         GOTO 999
+       ENDIF
+C
+       SET  = 0.
+       ETX = 0.
+       ETY = 0.
+C
+C ****  Loop over points in track
+       IPOINT = 1
+C
+ 200   CONTINUE                              ! GET NEXT CELL'S ENERGY
+       CALL GTENXT(IPOINT,ECELL,IZ,IE,IP,IL,EOD) ! V0.11 and later D0Geant
+C
+C ****  CALL GCELLE(ECELL,IZ,IE,IP,IL,EOD)   ! V0.10 or earlier D0Geant
+C
+       IF ( EOD ) GOTO 400                   ! Done with track
+C
+       IF ( IL.GE.20 ) THEN                  ! Do only calorimeter data
+C
+         CALL ETAPHI(IZ,IE,IP,IL,ETA,PHI)
+C
+         THETA = 2.*ATAN(EXP(-ABS(ETA)))
+         STH  = SIN(THETA)
+         SPHI = SIN(PHI)
+         CPHI = COS(PHI)
+         EXY  = ECELL*STH
+         EX   = EXY*CPHI
+         EY   = EXY*SPHI
+         SET  = SET  + EXY
+         ETX  = ETX + EX
+         ETY  = ETY + EY
+       ENDIF
+C
+C ****  Next data point
+       IPOINT = IPOINT + 1
+       GOTO 200
+C
+C ****  Done with track
+C
+  400  CONTINUE
+C
+C ****  Fill Histograms
+C
+C       CALL ANALFL(SET,ETX,ETY)
+C       
+  999 RETURN
+      END

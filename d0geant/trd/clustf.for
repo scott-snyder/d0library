@@ -1,0 +1,285 @@
+      SUBROUTINE CLUSTF(Y,N)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : TRD CLUSTER FINDING
+C-          ADAPTED FROM AN OLD ROUTINE USED IN TEST RUN ANALYSIS
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  A LONG TIME AGO IN SACLAY
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INTEGER I,IA,IDY,IDY1,II,IINF,ILEFT,IM,IMAX,IR,IRIGHT
+      INTEGER IS,ISUP
+      INTEGER N,NBL1,NBL2,NBL3,NBL4,NCL
+      INTEGER IFOIS,IAUX(256),JPRNT
+      REAL ENER,ESEUI,RLRG,XLEFT,XRIGHT,XX,XIL,XIR
+      REAL Y(256),YIA,YIR,YMAX,YREF,YSEUI
+      INCLUDE 'D0$INC:CLUREC.INC/LIST'
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+      INCLUDE 'D0$INC:GCFLAG.INC/LIST'
+      INCLUDE 'D0$INC:D0LOG.INC/LIST'
+      INCLUDE 'D0$INC:TGRAV.INC/LIST'
+      DATA ESEUI/5./
+      DATA YSEUI/0.5/
+      DATA IFOIS/0/
+C
+C  ESEUI = MINIMAL ORDINATE VALUE FOR CENTRAL PEAK
+C  YSEUI =THRESHOLD VALUE FOR "PEDESTALS"
+      IFOIS=IFOIS+1
+      JPRNT=0
+      IF(IDEBUG.GT.0.AND.PTRD.GE.5)JPRNT=1
+      CALL UZERO(IAUX,1,N)
+      NCL=0
+      IBMIN=1000
+      CALL UZERO(ECLR,1,100)
+      CALL UZERO(NBINR,1,100)
+      IINF=N
+      NCREC=0
+      ISUP=0
+      DO 10 I=1,N-1
+        IF(Y(I).GT.YSEUI)IINF=MIN0(I,IINF)
+        IF(Y(I).GT.YSEUI)ISUP=MAX0(I,ISUP)
+C  WE SUPPRESS BINS BELOW PEDESTALS
+        IF(Y(I).LE.YSEUI)IAUX(I)=1
+   10 CONTINUE
+   20 YMAX=ESEUI
+      IMAX=0
+C
+C  SEARCH FOR THE MAX
+C
+      II=ISUP
+      IS=IINF
+      DO 40 I=IINF,ISUP
+        IF(IAUX(I).NE.0)GO TO 40
+        II=MIN0(II,I)
+        IS=MAX0(IS,I)
+        IF(YMAX.GT.Y(I))GO TO 40
+        IF(Y(I).LT.ESEUI)GO TO 40
+        IMAX=I
+        YMAX=Y(I)
+   40 CONTINUE
+      IF(YMAX.LE.ESEUI)GO TO 1000
+      IF(IMAX.LT.1)GO TO 1000
+      IINF=II
+      ISUP=IS
+      IAUX(IMAX)=1
+      IM=IMAX
+C  LOOK FOR THE LEFT BOUNDARY OF THE CLUSTER
+   50 IM=IM-1
+      IF(IM.LE.IINF)THEN
+        ILEFT=IINF
+        IAUX(ILEFT)=1
+        GO TO 82
+      END IF
+      IF(Y(IM).LE.YSEUI)THEN
+        ILEFT=IM
+        GO TO 82
+      END IF
+      IF(IAUX(IM).NE.0)GO TO 80
+      IDY=ABS(Y(IM)-YMAX)
+C  CAS DE L'EGALITE AVEC LE BIN MAX
+      IF(IDY.LE.1)THEN
+        IDY1=ABS(YMAX-Y(IM+1))
+        IF(IDY1.LE.1)THEN
+          IAUX(IM)=1
+          GO TO 50
+        END IF
+      END IF
+      IF(Y(IM).LT.Y(IM+1))THEN
+        IAUX(IM)=1
+        GO TO 50
+      ELSE
+        IF(IM-1.LT.IINF)THEN
+          ILEFT=IM
+          IAUX(IM)=1
+          GO TO 82
+        END IF
+C        TEST DE L'EGALITE DU BIN AVEC LE BIN A DROITE
+        IF(ABS(Y(IM)-Y(IM+1)).LE.1. .AND.
+     + Y(IM-1).GE.Y(IM))THEN
+          ILEFT=IM
+          IAUX(IM)=1
+          GO TO 82
+        END IF
+        IF(Y(IM-1).GT.Y(IM+1))GO TO 80
+        IF(Y(IM-1).GE.Y(IM))GO TO 80
+        IAUX(IM)=1
+        GO TO 50
+      END IF
+   80 ILEFT=IM+1
+   82 IM=IMAX
+C  RECHERCHE DE LA PARTIE DROITE DU CLUSTER
+  100 IM=IM+1
+      IF(IM.GE.ISUP)THEN
+        IRIGHT=ISUP
+        IAUX(IRIGHT)=1
+        GO TO 122
+      END IF
+      IF(Y(IM).LE.YSEUI)THEN
+        IRIGHT=IM
+        GO TO 122
+      END IF
+      IF(IAUX(IM).NE.0)GO TO 120
+      IDY=ABS(Y(IM)-YMAX)
+C  CAS DE L'EGALITE AVEC LE BIN MAX
+      IF(IDY.LE.1)THEN
+        IDY1=ABS(YMAX-Y(IM-1))
+        IF(IDY1.LE.1)THEN
+          IAUX(IM)=1
+          GO TO 100
+        END IF
+      END IF
+C  Y(BIN)< Y(BIN -1)  :ON CONTINUE
+      IF(Y(IM).LT.Y(IM-1))THEN
+    2   IAUX(IM)=1
+        GO TO 100
+      ELSE
+        IF(IM+1.GT.ISUP)THEN
+          IRIGHT=IM
+          IAUX(IM)=1
+          GO TO 122
+        END IF
+        IF(ABS(Y(IM)-Y(IM-1)).LT.1..AND.
+     +  Y(IM+1).GE.Y(IM))THEN
+          IRIGHT=IM
+          IAUX(IM)=1
+          GO TO 122
+        END IF
+        IF(Y(IM+1).GT.Y(IM-1))GO TO 120
+        IF(Y(IM+1).GT.Y(IM))GO TO 120
+        IAUX(IM)=1
+        GO TO 100
+      END IF
+  120 CONTINUE
+      IRIGHT=IM-1
+  122 IF(IRIGHT-ILEFT.LE.2)GO TO 20
+      NCL=NCL+1
+      NBINR(NCL)=0
+      ENER=0.
+C
+C  CALCUL DE LA LARGEUR A MI HAUTEUR
+      YREF=.5*YMAX
+      XRIGHT=IRIGHT
+      NBL1=0
+      NBL2=0
+      NBL3=0
+      NBL4=0
+      XLEFT=ILEFT
+C  ON DEMANDE AU MOINS UN BIN DE PART ET D"AUTRE DU MAX
+      IF(IMAX-ILEFT.LT.1)GO TO 139
+      IF(IRIGHT-IMAX.LT.1)GO TO 139
+      DO 134 I=ILEFT,IMAX-1
+        IR=I
+        IA=IR
+        IF(Y(I).GE.YREF)GO TO 136
+  134 CONTINUE
+  136 IA=IA-1
+      IF(IA.GT.ILEFT)THEN
+        IF(ABS(Y(IA)-Y(IR)).LT.1.)GO TO 136
+        GO TO 1364
+      ELSE
+        IA=ILEFT
+ 1362   IF(ABS(Y(IA)-Y(IR)).GT.1.)GO TO 1364
+        IR=IR+1
+        IF(IR.LT.IMAX)GO TO 1362
+      END IF
+ 6683 FORMAT(' ILEFT,IMAX,IA,IR',4I4,' Y(IA),Y(IR)',2F5.1)
+ 1364 YIR=Y(IR)
+C      NBL1=0
+C      NBL2=0
+      YIA=Y(IA)
+      CALL EXTRAP(YIR,FLOAT(IR),YIA,FLOAT(IA),YREF,XLEFT)
+      DO 137 I=IMAX+1,IRIGHT
+        IR=I-1
+        IA=IR
+        IF(Y(I).LT.YREF)GO TO 138
+  137 CONTINUE
+  138 IA=IA+1
+      IF(IA.LT.IRIGHT)THEN
+        IF(ABS(Y(IA)-Y(IR)).LT.1.)GO TO 138
+        GO TO 1384
+      ELSE
+        IA=IRIGHT
+ 1382   IF(ABS(Y(IA)-Y(IR)).GE.1.)GO TO 1384
+        IR=IR-1
+        IF(IR.GT.IMAX)GO TO 1382
+      END IF
+ 1384 YIR=Y(IR)
+      NBL3=0
+      NBL4=0
+      YIA=Y(IA)
+      CALL EXTRAP(YIR,FLOAT(IR),YIA,FLOAT(IA),YREF,XRIGHT)
+  139 CONTINUE
+      XX=0.
+      DO 140 I=ILEFT,IRIGHT
+        IF(Y(I).LT.YSEUI)GO TO 140
+        ENER=ENER+Y(I)
+        XX=XX+I*Y(I)
+        NBINR(NCL)=NBINR(NCL)+1
+  140 CONTINUE
+      XX=XX/ENER
+      ECLR(NCL)=ENER
+      IGCL(NCL)=1
+      XIL=FLOAT(ILEFT)
+      XIR=FLOAT(IRIGHT)
+C  ANALYSE DE LA LARGEUR A MI-HAUTEUR
+      IF(XLEFT.LT.XIL)THEN
+        IF(XRIGHT.GT.XIR)THEN
+          IF(2*YMAX-Y(ILEFT)-Y(IRIGHT).GT.5.)THEN
+            XRIGHT=XIR
+            XLEFT=XIL
+            GO TO 144
+          END IF
+          IGCL(NCL)=0
+          GO TO 144
+        ELSE
+          XLEFT=2.*XX-XRIGHT
+          XLEFT=AMAX1(XLEFT,XIL)
+          IF(XLEFT.GT.XX)XLEFT=XIL
+          GO TO 144
+        END IF
+      ELSE
+        IF(XRIGHT.GT.XIR)XRIGHT=2*XX-XLEFT
+        XRIGHT=AMIN1(XRIGHT,XIR)
+        IF(XRIGHT.LT.XX)XRIGHT=XIR
+      END IF
+  144 CONTINUE
+      IF(XLEFT.LT.XIL .OR. XLEFT.GT.XX)XLEFT=XIL
+      IF(XRIGHT.GT.XIR .OR. XRIGHT.LT.XX)XRIGHT=XIR
+C
+      RLRG=XRIGHT-XLEFT
+C  REQUIRE AT LEAST ONE BIN ON THE LEFT AND ONE BIN ON THE RIGHT OF THE
+      IF(XX-XIL.LT.1.) IGCL(NCL)=0
+      IF(XIR-XX.LT.1.)IGCL(NCL)=0
+C      IF(Y(ILEFT).GE.IYREF)IGCL(NCL)=0
+C      IF(Y(IRIGHT).GE.IYREF)IGCL(NCL)=0
+      IF(RLRG.GT.20.)IGCL(NCL)=0
+      IBLFT(NCL)=ILEFT
+      IBRGHT(NCL)=IRIGHT
+      YSUP(NCL)=YMAX
+      XCG(NCL)=XX
+      IBCEN(NCL)=IMAX
+      IBMIN=MIN0(IBMIN,ILEFT)
+      FWHM(NCL)=XRIGHT-XLEFT
+      IF(JPRNT.EQ.1)THEN
+        WRITE(LOUT,6600)NCL,IMAX,YMAX,ILEFT
+     +                               ,IRIGHT,ECLR(NCL)
+        WRITE(LOUT,6608)XLEFT,XRIGHT,FWHM(NCL)
+     +                               ,IGCL(NCL),XX
+      END IF
+ 6608 FORMAT(' XLEFT,XRIGHT',2G10.4,' FWHM',G10.4,
+     + 'IGCL',I2,' XX',G10.4)
+C      IF(JPRNT.EQ.1)PRINT 6600,NCL,IMAX,YMAX,ILEFT,IRIGHT,ECLR(NCL)
+ 6600 FORMAT(' NCL',I3,' IMAX ',I4,' YMAX',F5.1,' ILEFT ',I4
+     +,' IRIGHT',I3,' ENERGIE',G10.4)
+C  CLUSTERS WITH LESS THAN 3 BINS ARE SUPPRESSED
+      IF(NBINR(NCL).LE.2)NCL=NCL-1
+      GO TO 20
+ 1000 CONTINUE
+      NCREC=NCL
+      RETURN
+      END

@@ -1,0 +1,92 @@
+$!------------------------------------------------
+$!
+$! Name      : D0GEANT_FARM.LNK
+$!
+$! Purpose   : Link Farm version of D0Geant.EXE
+$!
+$! Arguments : P1 - "DEBUG" to create DEB_d0geant_FARM.EXE
+$!                - "PCA"   to create DEB_D0GEANT_FARM.EXE with PCA
+$!                      (DECs Program Coverage Analyser)
+$!
+$! Created  20-APR-1989   Alan M. Jonckheere
+$!
+$!------------------------------------------------
+$   ON ERROR     Then Goto EXIT
+$   ON CONTROL_Y Then Goto EXIT
+$!
+$ sav_ver = f$verify(0)
+$!
+$ IF "''TASK'" .eqs. ""
+$ THEN
+$     TASK = "FULLD0"
+$     pgbd_sources_object = "'DEB'FULLD0_D0GEANT.OBJ,"
+$     user_libraries = ""
+$ ENDIF
+$ define/nolog def_sea [],d0$d0geant:
+$ pgbd_sources  = "def_sea:''pgbd_sources_object'"
+$!
+$ IF P1 .eqs "DEBUG"
+$ THEN
+$   SWIT  = "/DEBUG"
+$   FORSW = "/DEBUG=ALL/NOOPT"
+$   DEB   =  "DEB_"
+$ ELSE
+$     SWIT  = ""
+$     FORSW = ""
+$     DEB   = ""
+$ ENDIF
+$ IF P1 .eqs. "PCA"
+$ THEN
+$   SWIT  = "/DEBUG=SYS$LIBRARY:PCA$OBJ.OBJ"
+$   FORSW = "/DEBUG=ALL/NOOPT"
+$   DEB   = "DEB_"
+$ ENDIF
+$!
+$!.....        check D0NEW.OPT
+$!
+$  Open/Read/Err=Noopt Test D0NEW.Opt
+$  Close Test
+$  D0NEW = "D0NEW/Opt,"
+$  Goto Yesopt
+$ Noopt:
+$  Write Sys$output "        No option file D0NEW.OPT, will link without"
+$  D0NEW = ""
+$ Yesopt:
+$!
+$   COPY SYS$INPUT SYS$OUTPUT 
+
+ *********************************************************************
+ D0Geant is now a full Program_Builder Program. To change the sizes of 
+ the three (3) main ZEBRA stores in D0GEANT you must run Program_Builder.
+
+   PBD/FRAME=D0GEANT/NAME=your_name-
+        /PACKAGES=(D0,GVTX,GCDC,GFDC,GTRD,GLV0,GCAL,GMUO,GSAM)-
+                /ZEBCOM=iii/ZEBSTP=jjj/ZEBWRK=kkk/PAWC=lll/GCBANK=mmm
+
+        NOTE: D0 *must* always be declared, and must be first.
+
+ Files your_name_D0GEANT.COM, .LNK, .FOR and the DEB_ and non-DEB_ OBJ's
+ will be created in your area. @your_name_D0GEANT.COM should be used to setup
+ D0Geant's logicals. @your_name_D0GEANT.LNK [DEBUG] will link
+ your_name_D0GEANT.EXE.
+
+ The default sizes in FULLD0_COMBINED.PBD (FULLD0_D0GEANT.EXE) are:
+   ZEBCOM=1.75, ZEBSTP=0.60, ZEBWRK=0.02, PAWC=0.25, GCBANK=1.5 Mwd
+
+ *********************************************************************
+
+$!
+$   WRITE SYS$OUTPUT "Linking ''deb'D0Geant_FARM"
+$   WRITE SYS$OUTPUT " "
+$  LINK'SWIT'/NOMAP/EXE='DEB'd0geant_farm -
+        'D0NEW' -
+        'pgbd_sources' -
+        'user_libraries' -
+        d0$d0geant:'deb'd0geant_farm/opt, -
+        D0$D0GEANT:'DEB'D0GEANT/OPT
+$!
+$   WRITE SYS$OUTPUT "Linking Done"
+$   WRITE SYS$OUTPUT " "
+$EXIT:
+$ sav_ver = f$verify(sav_ver)
+$   EXIT

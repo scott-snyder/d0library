@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VD0GEANT()
+      VD0GEANT = ' D0GEANT'//
+     X                   '  OFFICIAL V4.02'//
+     X                   ' 10-JUL-1997 16:03:52.53'
+      Return
+      End

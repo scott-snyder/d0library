@@ -1,0 +1,251 @@
+      SUBROUTINE UGINIT
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Initialisation
+C-                         include standard GEANT3 init.;
+C-                             - particle definition
+C-                             - material
+C-                             - physics
+C-                         Reading and initialisation of Run-time switches
+C-                         Initialization and filling of ZEBSTP structure
+C-                         for each detector
+C-
+C-
+C-   Inputs  : None
+C-   Outputs : None
+C-
+C-   Created   8-JUL-1987   A.M.Jonckheere
+C-   Updated  20-MAY-1988   Ghita Rahal-Callot: Modify initialisation and
+C-                                              filling of ZEBSTP structure
+C-   Updated   5-JUN-1989   Harrison B. Prosper
+C-   Transfer some code from GEODEF. Add
+C-   hooks LURSWT, LUESWT, LUBOOK, LURGEO and LUSGEO.
+C-   Updated   2-APR-1991   K. Wyatt Merritt  Modifications required to run
+C-                           with Geant V3.14; some general cleanup 
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$INC:ZEBSTP.INC'
+      INCLUDE 'D0$INC:GCFLAG.INC/LIST'
+      INCLUDE 'D0$INC:GCLIST.INC/LIST'
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+      INCLUDE 'D0$INC:GCPHYS.INC/LIST'
+      INCLUDE 'D0$INC:D0LOG.INC/LIST'
+C
+      CHARACTER*72 ENTRY(10),VD0GEANT,VGENERAL,VMUON_UTIL,VCD_UTIL,
+     &  VCDC_UTIL,VTRD_UTIL,VFDC_UTIL,VVTX_UTIL,VCALOR_UTIL,
+     &  VTRACKING_UTIL
+      CHARACTER*4 LGETC(20),LSAVEC(20)
+C
+C
+      INTEGER IER,IDENT,IUCOMP,IUNIT,I
+      DATA IER  /0/
+      DATA IDENT/1/
+      INTEGER KINE,HITS,DIGI,JXYZ
+      DATA KINE/4hKINE/,HITS/4hHITS/,DIGI/4hDIGI/,JXYZ/4hJXYZ/
+C----------------------------------------------------------------------
+C
+C ****  Initialize user-packages
+C
+      CALL PBDINI
+C
+C **** Set defaults for GEANT debugging
+C
+      IDEBUG=0
+      IDEMIN=1       ! FIRST EVENT TO DEBUG
+      IDEMAX=100000  ! LAST EVENT TO DEBUG
+C
+C     Set defaults for physics processes - turn them ALL on and keep
+C     any secondaries produced.
+C
+      IANNI=1
+      IBREM=1
+      ICOMP=1
+      IDRAY=1
+      IPAIR=1
+      IPHOT=1
+      IHADR=1
+      IMULS=1
+      ILOSS=1
+      IDCAY=1
+      IPFIS=1
+C
+C ****  Write version numbers of OLBs
+C
+      ENTRY(1) = VD0GEANT()                   ! D0GEANT version #
+      WRITE (LOUT,*) ' ***** ',ENTRY(1)
+      ENTRY(2) = VMUON_UTIL()                 ! MUON_UTIL version #
+      WRITE (LOUT,*) ' ***** ',ENTRY(2)
+      ENTRY(3) = VCALOR_UTIL()                ! CALOR_UTIL version #
+      WRITE (LOUT,*) ' ***** ',ENTRY(3)
+      ENTRY(4) = VGENERAL()                   ! GENERAL version #
+      WRITE (LOUT,*) ' ***** ',ENTRY(4)
+C      ENTRY(5) = VTRACKING_UTIL()             ! TRACKING_UTIL version #
+C      WRITE (LOUT,*) ' ***** ',ENTRY(5)
+      ENTRY(5) = VCD_UTIL()                   ! CD_UTIL version #
+      WRITE (LOUT,*) ' ***** ',ENTRY(5)
+      ENTRY(6) = VCDC_UTIL()                  ! CDC_UTIL version #
+      WRITE (LOUT,*) ' ***** ',ENTRY(6)
+      ENTRY(7) = VTRD_UTIL()                  ! TRD_UTIL version #
+      WRITE (LOUT,*) ' ***** ',ENTRY(7)
+      ENTRY(8) = VFDC_UTIL()                  ! FDC_UTIL version #
+      WRITE (LOUT,*) ' ***** ',ENTRY(8)
+      ENTRY(9) = VVTX_UTIL()                  ! VTX_UTIL version #
+      WRITE (LOUT,*) ' ***** ',ENTRY(9)
+C
+C ****  SET RUN-TIME SWITCHES (Will use SRCP eventually)
+C
+      CALL DFFINI
+C
+C ***********************
+C ****  USER HOOK LURSWT :  Initialize run-time switches
+C ***********************
+      CALL LURSWT
+C
+      WRITE (LOUT,*) ' ===> Enter your Detector switches'
+      WRITE (LOUT,*) ' ===> Last switch must be STOP'
+      CALL GFFGO          ! Read run-time switches
+C
+C ***********************
+C ****  USER HOOK LUESWT :  Edit run-time switches
+C ***********************
+      CALL LUESWT
+C
+C ****  Convert arguments of GGET call to character variables (V3.13 and >)
+C
+      DO I=1,20
+        CALL UHTOC(LGET(I),4,LGETC(I),4)
+        CALL UHTOC(LSAVE(I),4,LSAVEC(I),4)
+      ENDDO
+C
+      IF (NGET.GT.0) THEN
+        CALL GOPEN(1,'I',0,IER)
+        CALL GGET(1,LGETC,-NGET,IDENT,IER)
+C
+        IF (.NOT.( (IUCOMP(KINE,LGET,NGET).NE.0) .OR.
+     &     (IUCOMP(HITS,LGET,NGET).NE.0) .OR.
+     &     (IUCOMP(DIGI,LGET,NGET).NE.0) .OR.
+     &     (IUCOMP(JXYZ,LGET,NGET).NE.0))) THEN
+C
+C IF HERE ONLY GET INIT CHOSEN. SO NO NEED TO USE IT FURTHER. FREES UP
+C UNIT 1 FOR OTHER JOBS. R.RAJA.
+          CALL FZENDI(1,'T')
+          CLOSE(1)
+        ENDIF
+        CALL GTSWCH                     ! Get Switches from Saved structure
+      ENDIF
+C
+C ***********************
+C ****  USER HOOK LUBOOK:  Book User histograms
+C ***********************
+      CALL LUBOOK
+C
+C&IF VAXVMS,ETA10,UFFARM,SIUNIX,SUNOS,ALFOSF
+      IF(NHSTA.GT.0) CALL GBHSTA ! Standard GEANT histogams
+C&ENDIF
+C
+C ****  Define the path for the output banks
+C ****  ( bank on which the others hang)
+C
+      CALL PATHDF('GEAN')
+      CALL PATHRS
+C
+C ***********************
+C ****  USER HOOK LURGEO : Read geometry database into /ZEBSTP/
+C ***********************
+      CALL LURGEO
+C
+      IF ( PD0 .GE. 3 ) THEN
+        CALL DZSURV('  STATIC PARAMETERS ',IXSTP,LSTPH)
+      ENDIF
+C
+      IF(IDENT.NE.0)THEN ! Execute this section if NOT reading a GSAVE.DAT
+C
+        CALL GPART              ! Initialize PARTicle data bank
+C
+C ****  Rotation matrix: Normal orientation (PARALLEL TO MRS)
+C
+        CALL GSROTM(1,90.,0.,90.,90.,0.,0.)
+C
+C ****  Rotation matrix: Reversed orientation (+Z->-Z, +X->-X)
+C
+        CALL GSROTM(2,90.,180.,90.,90.,180.,0.)
+C
+        CALL DZEMAT             ! Set up D0 materials with correct ABSLENGTHS
+C
+C ***********************
+C ****  USER HOOK LUSGEO : Set up detector geometry for GEANT
+C ***********************
+C
+C ****  All of D0 Geometry is set up by routines called from LUSGEO (which
+C ****  is written by the program builder)
+C
+        CALL LUSGEO
+C
+        IF(DCAL.NE.0.OR.DCEN.NE.0) THEN
+          CALL GSORD('MCAL',3)    ! Order along the z axis
+        ENDIF
+        IF(DCEN.NE.0) THEN
+          CALL GSORD('MCEN',4)    ! Radially outwards
+        ENDIF
+        CALL GSORD('MVOL',3)
+
+      ENDIF
+C
+C       Call to GPHYSI moved outside the IF block for V3.14 - according
+C       to release notes, it must be called even if GET 'INIT' was
+C       used!!!
+C
+      CALL GPHYSI             ! Init Cross Sections
+C
+C       Clean up the geometry banks!! This should ALWAYS be done
+C       BEFORE the call to GSAVE.
+C
+      CALL GGCLOS
+C
+C       Clean up the other GEANT ZEBRA structures - JPART,JMATE, etc.!!
+C       This also must be done before the call to GSAVE.  This clean up
+C       is essential to run with V3.14; it is neater but not essential
+C       in earlier versions.
+C
+      CALL GZ_CLEAN
+C       
+C
+C
+      CALL GHEINI               ! Init Geisha
+C
+      CALL SVSWCH                       ! Save switches into RUNG bank; LQ(-1)
+      CALL FLD0RG(9,72,ENTRY)           ! Fill version numbers
+C
+      IF (NSAVE.GT.0) THEN
+        CALL GOPEN(2,'O',0,IER)
+        CALL GSAVE(2,LSAVEC,-NSAVE,0,IER)
+      ENDIF
+C
+C ****  Print out various GEANT banks.
+C
+      IF ( PD0.GE.2 ) THEN
+        CALL GPMATE(0)
+        CALL GPTMED(0)
+        CALL GPVOLU(0)
+        CALL GPROTM(0)
+        CALL GPSETS('*','*')
+      ENDIF
+      IF (DLAM.NE.0) CALL RRLAM
+C
+C
+C&IF VAXVMS,ETA10,SIUNIX,IBMAIX,ULTRIX,SUNOS,ALFOSF
+C
+C     Define a file to be used if there is an abort of the run:
+C
+      CALL GTUNIT(10,IUNIT,IER)
+      OPEN(UNIT=IUNIT,FILE='RUNSAVE',STATUS='UNKNOWN')
+      WRITE (IUNIT,9255)
+ 9255 FORMAT(3X,'GEANT RUNNING FILE, INITIALISATION PHASE')
+      CLOSE(UNIT=IUNIT,STATUS='KEEP')
+      CALL RLUNIT(10,IUNIT,IER)
+C&ENDIF
+C
+  999 RETURN
+      END

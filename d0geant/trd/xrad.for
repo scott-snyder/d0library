@@ -1,0 +1,107 @@
+      SUBROUTINE XRAD(STETA,GAMMA)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C  COMPUTE FOR A GIVEN STETA AND GAMMA THE INTEGRATED XRAY SPECTRUM
+C  BY INTERPOLATING IN THE ARRAY PROBX
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  19-SEP-1988   A. ZYLBERSTEJN
+C-   Updated   8-JUL-1989   A. Zylberstejn
+C-
+C----------------------------------------------------------------------
+C
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+      INCLUDE 'D0$INC:XSPECT.INC/LIST'
+      INCLUDE 'D0$INC:TABX.INC/LIST'
+      INCLUDE 'D0$INC:XRAY.INC/LIST'
+      INCLUDE 'D0$INC:D0LOG.INC/LIST'
+C
+      INTEGER I,IRS,JRS,IRG,JRG
+      REAL    STETA,GAMMA,STI,GAMI,ST1,ST2,GA1,GA2,DS,DG,Y1,Y2,S,Y
+      DATA STI,GAMI/2*0./
+C
+C  CHECK IF SAME PARTICLE
+C      WRITE(LOUT,*)'GAMMA ',GAMMA,' STETA',STETA,' DANS XRAD'
+      IF(ABS(STI/STETA-1.)  .LT.0.05 .AND.
+     &   ABS( GAMI/GAMMA-1.).LT.0.05 )RETURN
+      STI=STETA
+      GAMI=GAMMA
+      DO 10 I=1,NSTREF
+        IF(STETA.LE.STREF(I))GO TO 20
+   10 CONTINUE
+   20 CONTINUE
+      IRS=I-1
+      IRS=MIN0(IRS,NSTREF-1)
+      IRS=MAX0(1,IRS)
+      JRS=IRS+1
+      ST1=STREF(IRS)
+      ST2=STREF(JRS)
+      IF(GAMMA.GE.GAMREF(NGAREF))THEN
+        GA1=GAMREF(NGAREF)
+        GA2=GA1
+        IRG=NGAREF
+        JRG=IRG
+      ELSE
+        DO 30 I=1,NGAREF
+          IF(GAMMA.LE.GAMREF(I))GO TO 40
+   30   CONTINUE
+   40   CONTINUE
+        IRG=I-1
+        IRG=MIN0(IRG,NGAREF-1)
+        IRG=MAX0(IRG,1)
+        JRG=IRG+1
+        GA1=GAMREF(IRG)
+        GA2=GAMREF(JRG)
+      END IF
+      IF (PTRD.GE.8) THEN
+        WRITE(LOUT,*)'IN XRAD,IRS',IRS,'IRG',IRG
+        WRITE(LOUT,*)'GAMMA',GAMMA,' GA1,GA2',GA1,GA2
+        WRITE(LOUT,*)'STETA',STETA,' ST1,ST2',ST1,ST2
+      ENDIF
+C
+C     ST1/GA1         ST2/GA1
+C       X................X
+C..
+C.            X  .
+C.          ST/G .
+C..
+C..
+C       X................X
+C     ST1/GA2         ST2/GA2
+C
+C  LINEAR INTERPOLATION TO FIND PROBABILITY DISTRRIBUTION AT POINT ST/G
+      DS=0.
+      DG=0.
+      IF(ST2.NE.ST1)      DS=(STETA-ST1)/(ST2-ST1)
+      IF(GA1.NE.GA2)      DG=(GAMMA-GA1)/(GA2-GA1)
+C      WRITE(LOUT,*)'XNUMB(IRS,IRG),XNUMB(JRS,IRG)',XNUMB(IRS,IRG)
+C     +,XNUMB(JRS,IRG)
+C      WRITE(LOUT,*)'XNUMB(IRS,JRG),XNUMB(JRS,JRG)',XNUMB(IRS,JRG)
+C     +,XNUMB(JRS,JRG)
+      Y1=XNUMB(IRS,IRG)+DS*(XNUMB(JRS,IRG)-XNUMB(IRS,IRG))
+      Y2=XNUMB(IRS,JRG)+DS*(XNUMB(JRS,JRG)-XNUMB(IRS,JRG))
+      XNOBT=Y1+DG*(Y2-Y1)
+C      WRITE(LOUT,*)'DS ',DS,' Y1 ',Y1,'Y2 ',Y2,'XNOBT ',XNOBT
+      S=0.
+C      WRITE(LOUT,*)'NSTEP', NSTEP
+      DO 60 I=1,NSTEP
+        Y1=PROBX(I,IRS,IRG)+DS*(PROBX(I,JRS,IRG)-PROBX(I,IRS,IRG))
+        Y2=PROBX(I,IRS,JRG)+DS*(PROBX(I,JRS,JRG)-PROBX(I,IRS,JRG))
+        Y=Y1+DG*(Y2-Y1)
+        S=S+Y
+        XFONC(I)=S
+C        WRITE(LOUT,*)'I ',I,' Y1,Y2,Y,S',Y1,Y2,Y,S
+   60 CONTINUE
+C  TRANSFORM XFONC IN A INTEGRATED PROBABILITY
+      S=1./S
+      CALL VSCALE(XFONC,S,XFONC,NSTEP)
+C      IF(XFONC(NSTEP).NE.1.)WRITE(LOUT,*)' XFONC(NSTEP)-1',XFONC(NSTEP)-1.
+      XFONC(NSTEP)=1.
+ 6400 FORMAT(10F8.6)
+      RETURN
+      END

@@ -1,0 +1,113 @@
+      SUBROUTINE ANLLV0
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Analyse results - called after each event
+C-                                called by ===> GUOUT
+C-
+C-   Inputs  : Logical flags
+C-   Outputs : None now
+C-
+C-   Created   6-DEC-1988   A.M.Jonckheere
+C-   Updated  13-MAR-1989   Chip Stewart     does some analysis
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:D0LOG.INC/LIST'
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+      INCLUDE 'D0$INC:GCKINE.INC/LIST'
+      INCLUDE 'D0$INC:GCFLAG.INC/LIST'
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INTEGER LGLVH,GZGLVH
+      INTEGER POINT,NX,NY,NZ,NS
+C
+      INTEGER IS,LEN3,IDT
+      REAL ZPOS(2),VOLDAT(100)
+      CHARACTER*32 NAMVOL(2),NMVOL1
+      DATA NAMVOL/'LV0_MOTHER_VOLUME+1','LV0_MOTHER_VOLUME-1'/
+C
+C ****  POINTERS TO LOCATIONS IN GLVH BANK
+C
+      INTEGER EPNT, TPNT, NPNT, SPNT
+      PARAMETER (EPNT = 1)
+      PARAMETER (TPNT = 163)
+      PARAMETER (NPNT = 325)
+      PARAMETER (SPNT = 487)
+C
+      LOGICAL FIRST
+      INTEGER IX,IY,IZ,ID,IXM,IYM,IZM,MAXENG,NUM,TRK(10),IT
+      REAL E,T,X,TMIN(2),ZVERT,ES
+      DATA FIRST/.TRUE./
+      DATA NX,NY,NZ,NS/9,9,2,4/
+C----------------------------------------------------------------------
+C
+      LGLVH=GZGLVH()
+      IF(LGLVH.LE.0) GOTO 99
+      IF(FIRST)THEN
+        CALL EZPICK('SRCP_LV0')          ! Select REST bank
+        DO 20 IDT = 1,2
+C
+C ****  GET Z POSITIONS OF LV0 MOTHER VOLUMES FOR DETERMINING VERTEX Z
+C
+          CALL EZGSET(NAMVOL(IDT),VOLDAT(1),1)
+          ZPOS(IDT) = VOLDAT(10)
+   20   CONTINUE
+        CALL EZRSET                      ! Select previously selected bank
+        FIRST = .FALSE.
+      ENDIF
+C
+      DO IZ = 1, 2
+        TMIN(IZ) = 100.                 ! RESET TOF MINS
+        DO IX = 1, 9
+          DO IY = 1, 9
+            POINT = IX + NX*(IY-1) + NX*NY*(IZ-1)
+            E =  Q(LGLVH+EPNT+POINT)  !  ENGLV0(IX,IY,IZ) ENERGY IN TILE
+            T =  Q(LGLVH+TPNT+POINT)  !  TOFLV0(IX,IY,IZ) TOF IN TILE
+            IF(T.LT.TMIN(IZ) .AND. T.GT.0) TMIN(IZ) = T ! CHECK MINIMUM TOF
+            ID = 8050 + IZ
+            CALL HFILL(ID,IX+0.01,IY+0.01,E)
+            ID = 8060 + IZ
+            IF(E.GT.0) CALL HFILL(ID,IX+0.01,IY+0.01,1.0)
+            ID = 8052 + IZ
+            X = ALOG10(T+1.E-20)
+            CALL HF1(ID,X,1.)
+            ID = 8062 + IZ
+            CALL HF1(ID,X,E)
+          END DO
+        END DO
+      END DO
+C
+C ****  LV0 APPRX VERTEX POSITION
+C
+      ZVERT = ( 1./( 1+TMIN(1)/TMIN(2) ) - 0.5 )*( ZPOS(1)-ZPOS(2) )
+      CALL HF1(8090,ZVERT,1.0)
+C
+C ****  LV0 SUPPORT ENERGY LOST
+C
+      X = 0.
+      DO IS = 1, 4
+        DO IZ = 1, 2
+          POINT = NS*(IZ-1)
+          X =  X + Q(LGLVH+SPNT+POINT+IS)       ! ENGSUP(IS,IZ)
+        END DO
+      END DO
+      CALL HF1(8070,X,1.)
+C
+C ****  PRINT OUT CELLS WITH HITS
+C
+      IF(DHIT.EQ.1 .AND. PLV0.GT.0)THEN
+        WRITE(LOUT,40)IDEVT
+   40   FORMAT(1X,' EVENT NUMBER IDEVT ',I5)
+        IF(PLV0.GT.2)THEN
+          CALL PRGLVH (LOUT,0,1,0,1)
+        ELSE IF(PLV0.GT.0) THEN
+          CALL PRGLVH (LOUT,0,1,0,2)
+        END IF
+      ENDIF
+   98 RETURN
+   99 WRITE(LOUT,100)
+      WRITE(LOUT,101) LGLVH
+      RETURN
+  100 FORMAT(//X,57('*')/)
+  101 FORMAT(/,' ANLLV0 Wrong Address for a GLVH bank: LGLVH =',I8)
+  999 RETURN
+      END

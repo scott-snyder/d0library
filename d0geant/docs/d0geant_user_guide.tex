@@ -1,0 +1,438 @@
+% ****** Start of file apssamp.tex ******
+%
+%   This file is part of the APS files in the REVTeX 3.0 distribution.
+%   Version 3.0 of REVTeX, November 10, 1992.
+%
+%   Copyright (c) 1992 The American Physical Society.
+%
+%   See the REVTeX 3.0 README file for restrictions and more information.
+%
+%
+%
+\documentstyle[prd,eqsecnum,aps,floats]{revtex}
+\input psfig
+%\input feynman
+\def\D0{D\O}
+%
+\begin{document}
+%
+%\small
+\begin{flushright}
+
+\D0 NOTE 1373a
+
+K.Wyatt Merritt
+
+19-FEB-1992
+
+REV: 3-MAY-1995
+
+A.M.Jonckheere
+
+\end{flushright}
+\vspace{1.0in}
+\centerline{\D0GEANT CONDENSED USER's GUIDE}
+
+\begin{abstract}
+This is a condensed guide to using \D0GEANT, with pointers to help the
+new user avoid some common mistakes.  This guide is applicable to the Feb. 92
+and subsequent releases, which will be using CERN version 3.14 and above.
+For more detailed information on the operation of the program, see
+the other \D0\$\D0GEANT:*.MEM files, particularly \D0GEANT\_USER.MEM.
+\end{abstract}
+
+\section{introduction}
+\label{intro}
+
+There are three ways a user might choose to get an executable file for
+\D0GEANT:
+
+\begin{enumerate}
+
+\item Use the .EXE (and perhaps also the GSAVE.DAT) provided.
+
+\begin{quotation}
+\centerline{**** NOTE ****}
+ Currently the .EXE and GSAVE are only provided in the
+\D0\$BETA:[\D0GEANT] area on \D0SFT.  It has been suggested that the library
+release procedure should make .EXEs and GSAVEs on each cluster that subscribes
+to \D0GEANT.  This of course requires a considerable amount of space.  If it
+ever happens, I will try to update this guide in a timely fashion.  As of this
+date (2/19/92), however, this option is only available to users on \D0SFT or on
+systems with the \D0\$BETA disk DFS-mounted (e.g., FNAL\D0).
+
+To get the \D0SFT \D0\$BETA disk mounted using DFS (Thanks to Alan
+Jonckheere for this information; obviously you get your system manager to do
+this!) in SYS\$STARTUP:DFS\$SYSTARTUP.COM, add:
+
+\begin{verbatim}
+          $  DFSCP :== $DFS$CONTROL
+          $  DFSCP MOUNT/SYS .US.FNAL.D0.D0CMS_PRJ$HROOT D0SF$D0BETA /VOL=D0SF$D0BETA
+          $  DEFINE/SYS/EXEC D0$BETA D0SF$D0BETA
+\end{verbatim}
+\end{quotation}
+
+\item Create your own .EXE (optionally including some user code), using an
+ordinary link file.
+
+\item Create your own .EXE, including some user code, using MMS.  There are a
+number of procedures released in \D0\$BETA\_UTIL which make using CMS and MMS
+for code development easier.  For further details on the commands used in this
+cookbook, see \D0\$DOCS:LOCAL\_CMS.MEM.
+
+\end{enumerate}
+ 
+In Sections~\ref{provide}-\ref{mms}, this guide will present a complete list of
+commands for each option, using command files available in \D0\$\D0GEANT to get
+an exe and run it interactively or as a batch job. These sections assume that
+the user wants the standard full detector Monte Carlo, with all subdetectors
+included, and that the default sizes for the Zebra stores are adequate for his
+application. Section~\ref{pbd} deals with running the program builder to create
+a version including different subdetectors and/or different store sizes.
+
+Here are a few pointers for new users.
+
+\begin{enumerate}
+
+\item In general, the defaults for the GEANT flags and the \D0-specific flags
+are appropriate for generating physics samples.  The default is to use
+Linn-parameterized showers in the calorimeter and to turn on all physics
+processes in GEANT.  If you use the file provided for running batch jobs
+(\D0\$\D0GEANT:FULL\D0\_\D0GEANT.RUN), you will get an appropriate set of
+inputs for a batch job. For example, `LBAT T' is required to suppress excess
+printout. The default output will contain CAEP banks and CAD banks, but NOT GCAH
+banks. If you change the defaults, be aware of the effect on CPU time and output
+file size.
+
+\item The default input file in \D0\$\D0GEANT:\D0GEANT\_SETUP.COM is a sample of
+10 T-Tbar events.  This is the sample used for \D0GEANT verification; it is NOT
+what you should use to test that your .EXE is working to first order, because it
+takes many many hours of CPU time to run.  Try something simple like single
+tracks for your first attempt.  The sections below show you how to redefine the
+input files.
+
+\end{enumerate}
+
+\section{USING THE EXE PROVIDED}
+\label{provide}
+
+\begin{verbatim}
+    $ CREATE/DIR [your_geant_dir]
+    $ SET DEF [your_geant_dir]
+\end{verbatim}
+
+For an interactive session: (NOTE: check the beta area; the non-debug version
+and the debug version may not both be available.)
+
+\begin{verbatim}
+    $@D0$D0GEANT:D0GEANT_SETUP
+      { optionally redefine the logicals for the GSAVE.DAT (FOR001 and FOR002)
+        and input/output (FOR031 and FOR032 usually) files}
+
+    $RUN D0$BETA:[D0GEANT]D0GEANT.EXE or $RUN D0$BETA:[D0GEANT]DEB_D0GEANT.EXE
+\end{verbatim}
+
+For a batch job:
+
+\begin{verbatim}
+    $COPY D0$D0GEANT:FULLD0_D0GEANT.RUN *
+    $EVE FULLD0_D0GEANT.RUN
+     {Add a command at the beginning of this file "SET DEF [your_geant_dir]".
+      Change the default definition of USR$EXE to D0$BETA:[D0GEANT]. Edit
+      the symbol definition of D0GEANT to run USR$EXE:D0GEANT.EXE (or
+      DEB_D0GEANT.EXE, if that's what's available).}
+    $SUBMIT/Q=[batch_queue]/PAR=([# trig],[input file],[output file]) -
+            FULLD0_D0GEANT.RUN
+\end{verbatim}
+
+    Example:
+
+\begin{verbatim}
+     SUBMIT/Q=D0GS06_BATCH/PAR=(100,SINGLE_ELECTRONS.DAT,SINGLE_ELECTRONS.GEN) -
+       FULLD0_D0GEANT.RUN
+\end{verbatim}
+will process 100 events from the file SINGLE\_ELECTRONS.DAT in your default
+directory, and put the output events into SINGLE\_ELECTRONS.GEN.
+
+A convenient alternative for specifying input and output file names is to create
+a file \D0GEANT\_USER.COM in [your\_geant\_dir]:
+
+\begin{verbatim}
+    $EVE D0GEANT_USER.COM
+     Add lines similar to:
+
+       $DEFINE FOR031 SCRATCH:[SCRATCH.USER]SINGLE_ELECTRONS.DAT
+       $DEFINE FOR032 SCRATCH:[SCRATCH.USER]SINGLE_ELECTRONS.GEN
+
+     then
+
+    $SUBMIT/Q=D0GS06_BATCH/PAR=(100,NULL,NULL) FULLD0_D0GEANT.RUN
+       !input and output designations will come from D0GEANT_USER.COM
+\end{verbatim}
+
+\section{LINKING AN EXE WITH FULL\D0\_D0GEANT.LNK}
+\label{link}
+
+\begin{verbatim}
+    $ CREATE/DIR [your_geant_dir]
+    $ SET DEF [your_geant_dir]
+    $ COPY D0$D0GEANT:FULLD0_D0GEANT.LNK *
+    $ EVE FULLD0_D0GEANT.LNK
+      [Edit the LINK command to put the EXE in a scratch directory.
+       This is not strictly necessary, but be warned that the EXE
+       is about 6000 blocks (>10000 blocks for the debug version).]
+
+  $@FULLD0_D0GEANT.LNK or $@FULLD0_D0GEANT.LNK DEBUG
+\end{verbatim}
+
+For an interactive session:
+
+\begin{verbatim}
+  $@D0$D0GEANT:D0GEANT_SETUP
+      { optionally redefine the logicals for the GSAVE.DAT (FOR001 and FOR002)
+        and input/output (FOR031 and FOR032 usually) files}
+  $RUN [scratch_dir]FULLD0_D0GEANT.EXE or $RUN [scratch_dir]DEB_FULLD0_D0GEANT.EXE
+\end{verbatim}
+
+For a batch job:
+
+\begin{verbatim}
+    $COPY D0$D0GEANT:FULLD0_D0GEANT.RUN *
+    $EVE FULLD0_D0GEANT.RUN
+     {Add a command at the beginning of this file "SET DEF [your_geant_dir]".
+      Also, if you put the .EXE in [scratch_dir], change the default definition
+      of USR$EXE to [scratch_dir] instead of []. It expects to run the non-debug
+      .EXE, so if you want to run the debug version, you will have to edit
+      the symbol definition of D0GEANT appropriately.}
+    $SUBMIT/Q=[batch_queue]/PAR=([# trig],[input file],[output file]) -
+            FULLD0_D0GEANT.RUN
+\end{verbatim}
+
+    Example:
+
+\begin{verbatim}
+     SUBMIT/Q=D0GS06_BATCH/PAR=(100,SINGLE_ELECTRONS.DAT,SINGLE_ELECTRONS.GEN) -
+            FULLD0_D0GEANT.RUN
+\end{verbatim}
+will process 100 events from the file SINGLE\_ELECTRONS.DAT in your
+default directory, and put the output events into SINGLE\_ELECTRONS.GEN.
+
+A convenient alternative for specifying input and output file names is
+to create a file \D0GEANT\_USER.COM in [your\_geant\_dir]:
+
+\begin{verbatim}
+    $EVE D0GEANT_USER.COM
+     Add lines similar to:
+
+       $DEFINE FOR031 SCRATCH:[SCRATCH.USER]SINGLE_ELECTRONS.DAT
+       $DEFINE FOR032 SCRATCH:[SCRATCH.USER]SINGLE_ELECTRONS.GEN
+
+     then
+
+    $SUBMIT/Q=D0GS06_BATCH/PAR=(100,NULL,NULL) FULLD0_D0GEANT.RUN
+       !input and output designations will come from D0GEANT_USER.COM
+\end{verbatim}
+
+\section{USING MMS TO PRODUCE AN EXE}
+\label{mms}
+
+\begin{verbatim}
+    $ CREATE/DIR [your_geant_dir]
+    $ SET DEF [your_geant_dir]
+    $ SETUP_MMS     ! You will see the following questions:
+
+      Primary BETA-Area [TEST] : D0GEANT
+      Combined-Package : FULLD0
+      Link Object [USR$AREA:D0GEANT.OPT] :
+      Link Object :
+      USR$EXE [USR$ROOT1:[WYATT.TEST]] : USR$SCRATCH:[WYATT.TEST]
+      USR$OUT [USR$SCRATCH:[WYATT.TEST]] :
+      Program Name [/Task][/DI3000] [D0GEANT] :
+      Framework Name [D0GEANT] :
+
+                    ! SETUP_MMS will give this printout
+      Beta-Area              D0GEANT
+      Combined-Package       FULLD0
+      Link-Objects           USR$AREA:D0GEANT.OPT
+      USR$EXE                USR$SCRATCH:[WYATT.TEST]
+      USR$OUT                USR$SCRATCH:[WYATT.TEST]
+      Program-Name           D0GEANT
+      Framework-Name         D0GEANT
+
+                   ! + more printout about the files created:
+                   ! MMS.COM,DEFINE.COM,DESCRIP.MMS
+      {create the .FOR files in [your_geant_dir] that you want to link in}
+    $ SET_PREFIX == 1              ! to get the DEB_ prefix onto the EXE name
+    $ USERLIB
+    $ @MMS NODEBUG/NOCMS{/NOBETA}  ! to link a non-debug .EXE including
+                                   ! your code. The default is to include
+                                   ! code in D0$BETA:[D0GEANT]; you can
+                                   ! exclude that with the NOBETA switch.
+
+\end{verbatim}
+
+\begin{quote}
+\centerline{****NOTE****}
+The EXE will be USR\$EXE:\D0GEANT.EXE, *NOT* FULL\D0\_\D0GEANT.EXE, which is the
+name produced with FULL\D0\_\D0GEANT.LNK (see Section~\ref{link}). The symbol
+\D0GEANT to run this EXE is correctly defined when you execute DEFINE.COM.
+\end{quote}
+
+For an interactive session:
+
+\begin{verbatim}
+    $@D0$D0GEANT:D0GEANT_SETUP
+      { optionally redefine the logicals for the GSAVE.DAT (FOR001 and FOR002)
+        and input/output (FOR031 and FOR032 usually) files}
+    $RUN USR$EXE:D0GEANT.EXE or $RUN USR$EXE:DEB_D0GEANT.EXE
+\end{verbatim}
+
+For a batch job:
+
+\begin{verbatim}
+    $COPY D0$D0GEANT:FULLD0_D0GEANT.RUN *
+    $EVE FULLD0_D0GEANT.RUN
+     [Add a command at the beginning of this file "SET DEF [your_geant_dir]"]
+    $SUBMIT/Q=[batch_queue]/PAR=([# trig],[input file],[output file]) -
+            FULLD0_D0GEANT.RUN
+\end{verbatim}
+
+    Example:
+
+\begin{verbatim}
+     SUBMIT/Q=D0GS06_BATCH/PAR=(100,SINGLE_ELECTRONS.DAT,SINGLE_ELECTRONS.GEN) -
+            FULLD0_D0GEANT.RUN
+\end{verbatim}
+will process 100 events from the file SINGLE\_ELECTRONS.DAT in your
+default directory, and put the output events into SINGLE\_ELECTRONS.GEN.
+
+A convenient alternative for specifying input and output file names is
+to create a file D0GEANT\_USER.COM in [your\_geant\_dir]:
+
+\begin{verbatim}
+    $EVE D0GEANT_USER.COM
+     Add lines similar to:
+
+       $DEFINE FOR031 SCRATCH:[SCRATCH.USER]SINGLE_ELECTRONS.DAT
+       $DEFINE FOR032 SCRATCH:[SCRATCH.USER]SINGLE_ELECTRONS.GEN
+
+     then
+
+    $SUBMIT/Q=D0GS06_BATCH/PAR=(100,NULL,NULL) FULLD0_D0GEANT.RUN
+       !input and output designations will come from D0GEANT_USER.COM
+\end{verbatim}
+
+\section{USING THE PROGRAM BUILDER WITH D0GEANT}
+\label{pbd}
+
+The first example shows how to make a new program builder combined package
+with a different set of Zebra store sizes and/or a different subset of
+the standard \D0GEANT packages.
+
+\begin{verbatim}
+    $ CREATE/DIR [your_geant_dir.PBD]
+    $ SET DEF [your_geant_dir.PBD]
+    $ @D0$D0GEANT:D0GEANT_HOOKS.COM
+
+ Name of COMBINED package : MYPKG
+ NOTE: The package: D0 will be included automatically.
+
+ List all packages to be combined : GVTX,GCDC,GFDC,GTRD
+
+ ZEBCOM [1750000]
+ ZEBSTP [600000]
+ ZEBWRK [20000]
+ PAWC   [250000]
+ GCBANK [1500000]
+
+ Change common block sizes ? [N] : Y
+ ZEBCOM [1750000] : 1000000
+ ZEBSTP [600000] : 300000
+ ZEBWRD [20000] :
+ PAWC   [250000] :
+ GCBANK [1500000] : 1000000
+ Zebra_sizes : /ZEBCOM=1000000/ZEBSTP=300000/ZEBWRK=20000/PAWC=250000/GCBANK=1000000
+
+
+ Take a walk, I'm working..!
+
+$ PBD/FRAME=D0GEANT/NAME=MYPKG/PACKAGES=(D0,GVTX,GCDC,GFDC,GTRD)/ZEBCOM=1000000/
+ZEBSTP=300000/ZEBWRK=20000/PAWC=250000/GCBANK=1000000
+
+ Files created by PROGRAM BUILDER
+
+Directory USR$ROOT1:[WYATT.TEST.PBD]
+
+DEB_MYPKG_D0GEANT.OBJ;1
+                     25-FEB-1992 14:35:42.61
+DEB_MYPKG_D0GEANT.OPT;1
+                     25-FEB-1992 14:35:56.52
+MYPKG_D0GEANT.COM;1
+                     25-FEB-1992 14:36:00.99
+MYPKG_D0GEANT.FOR;1
+                     25-FEB-1992 14:35:15.59
+MYPKG_D0GEANT.LNK;1
+                     25-FEB-1992 14:35:55.35
+MYPKG_D0GEANT.OBJ;1
+                     25-FEB-1992 14:35:29.31
+MYPKG_D0GEANT.OPT;1
+                     25-FEB-1992 14:35:56.13
+
+Total of 7 files.
+
+ Check log file PBD.LOG for errors.
+\end{verbatim}
+
+Now you should relink using the program builder code just created.  If you
+are using the MMS utilities (Section~\ref{mms}), the search lists should
+already be correctly defined, and all you need to do is relink with @MMS.  If
+you are using FULL\D0\_\D0GEANT.LNK (Section~\ref{link}), you need to redefine 
+\D0\$\D0GEANT as a search list including [your\_geant\_dir.PBD], or to copy the
+.OBJ files up to [your\_geant\_dir], and edit FULL\D0\_D0GEANT.LNK to make the
+default TASK~=~MYPKG instead of FULL\D0.  Then relink with 
+@FULL\D0\_\D0GEANT.LNK. 
+
+The next example shows how to create a new program builder package for
+\D0GEANT, and link it in addition to the standard packages.
+
+\begin{verbatim}
+    $ CREATE/DIR [your_geant_dir.PBD]
+    $ SET DEF [your_geant_dir.PBD]
+    $ COPY D0$PBD:GCAL.PBD NEW_PKG.PBD
+    $ EVE NEW_PKG.PBD
+        { edit the list of hooks between .HOOKS and .END HOOKS to be the
+          appropriate hooks for NEW_PKG (not all hooks need be present)}
+    $ @D0$D0GEANT:D0GEANT_HOOKS.COM 
+
+ Name of COMBINED package : MYPKG
+ NOTE: The package: D0 will be included automatically.
+
+ List all packages to be combined : GVTX,GCDC,GFDC,GTRD,GLV0,GCAL,GMUO,GSAM,NEW_PKG
+
+ ZEBCOM [1750000]
+ ZEBSTP [600000]
+ ZEBWRK [20000]
+ PAWC   [250000]
+ GCBANK [1500000]
+
+ Change common block sizes ? [N] :
+ Zebra_sizes : /ZEBCOM=1750000/ZEBSTP=600000/ZEBWRK=20000/PAWC=250000/GCBANK=1500000
+
+
+ Take a walk, I'm working..!
+
+$ PBD/FRAME=D0GEANT/NAME=MYPKG/PACKAGES=(D0,GVTX,GCDC,GFDC,GTRD,GLV0,GCAL,GMUO,G
+SAM,NEW_PKG)/ZEBCOM=1750000/ZEBSTP=600000/ZEBWRK=20000/PAWC=250000/GCBANK=1500000
+%DCL-I-SUPERSEDE, previous value of D0$D0GEANT has been superseded
+%DCL-I-SUPERSEDE, previous value of D0$PBD has been superseded
+
+ Files created by PROGRAM BUILDER
+                .
+                .
+                .
+\end{verbatim}
+
+Follow the instructions from the first example to relink with the new program
+builder code.
+
+\end{document}

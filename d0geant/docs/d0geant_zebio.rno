@@ -1,0 +1,254 @@
+.literal
+             *******************************************
+             *      D0_GEANT I/O (Zebra version)       *
+             *                                         *
+             *        with interface to ISAJET         *
+             *                                         *
+             *           V2.00,   30-Nov-87            *
+             *******************************************
+
+       SECTION
+          0.  note on released version
+          1.  introduction
+          2.  bank format
+          3.  description of routines
+
+
+
+SECTION 0.  Note on released version
+
+     In addition to the usual D0Geant and Geant libraries, you must also
+link this with ISAJET5.OLB and ISAZEB.OLB.
+
+
+SECTION 1.  Introduction
+
+      This program package consists of two parts, I/O routines for the D0
+standard zebra bank structure supported under LHEAD in /ZEBCOM/ and interface
+routines for ISAJET events.
+
+      The input/ouput logical unit numbers are assigned in GEANT input data
+card with a special key, ZBIO.    The format of ZBIO card is
+
+      ZBIO input# output# opt1 opt2 opt3 opt4 opt5 opt6 opt7
+
+where,   input#  = input unit number (if 0, no input from LHEAD bank structure)
+         output# = output unit number (if 0, no output)
+         opt1    = number of events to skip on input file (0, do all)
+       --following options are for debugging.
+         opt2    = number of events to be printed out by opt3 and opt4.
+         opt3    = dump input data   \/ 0=no print        1=/ZEBCOM/ summary\
+         opt4    = dump output data  /\ 2=1+dump ISAE...  3=2+JVERTX,JKINE  /
+         opt5    = reset particle code for tracking. (if 0, no reset)
+                   particle code is Geant code.
+         opt6    = maximum number of tracks for each isajet vertex (0=all)
+         opt7    = >0 momentum to use to replace all isajet momenta
+                   <0 transverse momentum instead of momentum
+                   =0 no reset
+
+     [example]
+         ZBIO 31 32 0 1 2 2 5 0 50.
+               ! input from unit 31, output to unit 32,
+               ! skip no (0) input tracks.
+               ! print out Isajet banks for first event only (1 2 2)
+               ! Particles are set to mu+ (5)
+               ! use all tracks (0)
+               ! All tracks are reset to 50GeV
+
+      The output data include all banks under LHEAD.   One can create his own
+banks, hit bank etc, during tracking in Geant.   By specifing the output
+unit number those banks are automatically output with ISAJET banks.
+
+      The current program structure accepts only one set of data, i.e., one
+Begin run record - Event records - one End run records.    If Begin run record
+dose not exist, the program is aborted.   If the program dose not reach the
+to the End of Run record on the input stream, for example when reading only
+part of input data, it creates a fake end of run record.
+
+      The LHEAD bank structure is created in division 2 in the primary store.
+Other Geant internal banks are stored in the secondary store.
+
+
+
+      The interface routines to ISAJET consist of two parts.
+
+    1)  reading events and transfering vertex coordinates and particle momenta
+        to the Geant internal banks, JVERTX and JKINE.    This is done in
+        S/R ISKINE called by S/R GUKINE.
+    2)  after tracking, retrieve secondary particles newly generated in
+        Geant tracking process, create new banks -ISV2,ISP2,ISP3- under ISAE
+        which supports all other ISAJET banks under LHEAD.
+
+      In order to output new vertices and particles generated during tracking
+in Geant, one has to save these vertices and particles in JVERTX and JKINE with
+five user words in JKINE.    Then the interface routine, ISOUT, transfers them
+to ISV2, ISP2 and ISP3, if the user words are correctly set.   The user words
+are all floating point format,
+         NWUBUF  = 5
+         UBUF(1) = end vertex number ( ordinal in Geant)
+         UBUF(2) = Geant parent particle number
+         UBUF(3) = track type                          Geant KCASE
+                     1. = primary vertex from ISAJET
+                     2. = short decay from ISAJET
+                    11. = decay                           'DCAY'
+                    12. = hadronic interaction            'HADR'
+                    13. = muon/nuclear interaction        'HADR'
+                    14. = photo-fission                   'PFIS'
+                    15. = pair production                 'PAIR'
+                    16. = photo production                'PHOT'
+                    17. = annihilation                    'ANNI'
+                    21. = punchthroughs
+                    22. = brehmstrahlung                  'BREM'
+                    23. = delta ray electron              'DRAY'
+                   999. = end of stopping track
+         UBUF(4) = 0.
+         UBUF(5) = 0.
+
+To store vertices and particles one uses the following routines:
+
+         CALL GSVERT(VERT,NTBEAM,NTTARG,UBUF,NUBUF,NVTX*)
+             VERT      array of (x,y,z)
+             NTBEAM    (dummy)
+             NTTARG    (dummy)
+             UBUF      user array (floating point variable)
+             NUBUF     number of user words
+             NVTX*     new vertex number
+
+          CALL GSKINE(PLAB,IPART,NV,UBUF,NUBUF,NT*)
+              PLAB      array of (px,py,pz,E)
+              IPART     type of particle
+              NV        vertex number origin
+              UBUF      user array
+              NUBUF     number of words in user array
+              NT*       (output) track number
+
+Also one may use the following routine to overwrite one of the user words in
+the JKINE bank.
+
+          CALL ISUBUF(NT,U1,U2,U3,U4,U5)
+              NT        Geant track number of which user word will be
+                        overwritten
+              U1-U5     user word, #1 to #5
+                        if value is -1.0,  not changed.
+
+
+
+      Dump routines to print out bank contents are available.   For printing
+out all banks under ISAE, one may use CALL PRTEVZ(IPUNIT,0,LQ(LHEAD-17),0).
+IPUNIT is the logical unit number of the output unit.
+.end literal
+.page
+.literal
+
+
+SECTION 2.  Bank Formats
+
+                          ZEBRA STRUCTURE FOR ISAJET
+                          ==========================
+
+                         SEE D0$DOCS:ISA_ZEBANKS.MEM
+
+
+               ZEBRA STRUCTURE IN GEANT - JKINE AND JVERT BANKS
+               ================================================
+
+[JVERTEX].....vertex bank in GEANT
+
+         CALL GSVERT(VERT,NTBEAM,NTTARG,UBUF,NUBUF,NVTX*)
+             VERT      array of (x,y,z)
+             NTBEAM    (dummy)
+             NTTARG    (dummy)
+             UBUF      user array (floating point variable)
+             NUBUF     number of user words
+             NVTX*     new vertex number
+
+      LQ    Q/IQ
+  __________________________________________________________________________
+
+             L+1     F       x
+               2     F       y
+               3     F       z
+               4     F       (free: TOF)
+               5     I       (free: NTBEAM)
+               6     I       (free: NTTARG)
+
+  ___________________________________________________________________________
+
+
+
+[JKINE].....track bank in Geant
+          CALL GSKINE(PLAB,IPART,NV,UBUF,NUBUF,NT*)
+              PLAB      array of (px,py,pz,E)
+              IPART     type of particle
+              NV        vertex number origin
+              UBUF      user array
+              NUBUF     number of words in user array
+              NT*       (output) track number
+
+
+      LQ     Q/IQ
+  ___________________________________________________________________________
+             L+1     F       px
+               2     F       py
+               3     F       pz
+               4     F       energy
+               5     I       Geant particle type
+               6     I       vertex origin
+               7     I       number of following user words
+               8     F    1) end vertex number (ordinal in Geant)
+               9     F    2) Geant parent track number
+              10     F    3) track type
+                                1. = primary vertex from ISAJET
+                                2. = short decay from ISAJET
+                               11. = decay generated in Geant
+                               12. = nuclear interaction in Geant
+                               15. = e.m. interaction in Geant
+                                     (gamma conv., etc.)
+                               21. = puchthrough
+                               22. = Brem generated in Geant
+                               23. = knock-on electron
+                              999. = dummy marking stopping track endpoint
+              11     F    4) (interaction number)*1000+(vertex no)  in isajet
+              12     F    5) isajet track number in each isajet vertex
+                                 if 0, new particle generated in Geant
+  ___________________________________________________________________________
+
+.end literal
+.page
+.literal
+
+
+SECTION 3.  Discription of routines.
+
+      The flow of the program is as following:
+
+         (initialization)
+            UGINIT --> ISZEB
+
+         (for begin run record)
+            UGINIT --> ISBGN
+                           --> RDZEB   ! read begin run record
+                           --> WRZEB   ! write begin run record
+
+         (for event record)
+            GUKINE --> ISKINE
+                           --> RDZEB   ! read event record
+                           --> ISDROP  ! drop JVERTX and JKINE banks.
+                           --> GSVERT  ! fill vertex coord. in JVERTX bank.
+                           --> ISAGEA  ! convert particle code from Isajet
+                                       ! code to Geant code.
+                           --> GSKINE  ! fill momenta in JKINE bank.
+                         ( --> event dump, if opt2 is not zero )
+
+            GUOUT  --> ISOUT
+                           --> GFKINE  ! retrieve vertices and particles
+                           --> create banks for new vertices and particles
+                         ( --> event dump, if opt3 is not zero )
+                           --> WRZEB   ! write event record
+
+         (for end run record)
+            UGLAST --> ISEND
+                           --> create end run record if it dose not exist
+                           --> WRZEB   ! write end run record
+                           --> FZENDT  ! end procedure of FZ.
+.end literal

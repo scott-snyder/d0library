@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VD0USER()
+      VD0USER = ' D0USER'//
+     X                   '  OFFICIAL V5.44'//
+     X                   ' 31-JUL-1995 15:08:59.39'
+      Return
+      End

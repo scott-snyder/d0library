@@ -1,0 +1,200 @@
+                                                                R.Raja
+                                                                8-Nov-1990
+ 
+                    Running D0geant with showerlibrary
+ 
+This version of D0geant can be used with the showerlibrary. When this program is
+released from BNL, it will be generally available. At the moment it is available
+on D0SFT and D0GS.
+ 
+to run it, setup an Alpha_release area of your own.
+ 
+e.g. Usr$root:[user_name.d0geant].
+ 
+If you are on D0SFT, the temporary release area is on D0SF13$DKB0:[D0GEANT].
+If you are on D0GS, the temporary release area is on $7$DKB0:[D0GEANT]. Once
+this program is released from BNL, it will be available as part of regular
+D0GEANT.
+ 
+FROM YOUR ALPHA RELEASE AREA, Execute
+ 
+@D0sf13$dkb0:[d0geant]setup_d0geant Input_file Output_file FFread_file
+    where input_file is the Isajet file, and Output_file is the GEANT output.
+    FFREAD_FILE is the local input file (see below)
+ 
+On D0gs this command would be
+ 
+@$7$dkb0:[d0geant]setup_d0geant Input_file Output_file FFread_file
+
+ 
+The input_file , Output_file and FFread_file can be full VMS directory specifed
+if need be. If unspecified, they will default to some test files from the
+temporary release area.
+These three files can be define by hand by
+$DEFINE FOR031 input_file
+$DEFINE FOR032 output_file
+$DEFINE FOR004 ffread_file
+ 
+An Example FFREAD file is in the temporary release area. Its name is BAT1.DAT.
+ 
+You might wish to copy d0$shl:bat1.dat * and modify it locally.
+
+---------------------
+LIST
+LBAT TRUE
+ZBIO 31 32
+SHWG 3
+SCAL 1 0 0 0 .001 0
+DCEN 3
+DMUO 3
+PD0 0
+PCEN 0
+PMUO 0
+PCAL 0
+PLV0 0
+TRIG 10
+STOP
+-----------------------
+ 
+The file above does only 10 events (TRIG = 10).
+
+If more printout is needed, the user can increase the values of PD0,
+PCEN etc. SHWG = 3 is needed with the present showerlibrary.
+
+To speed things up, you may wish to:
+    for the FIRST run, add the line 
+SAVE 'INIT'
+    to save the geometry file locally, then 
+$DEFINE FOR001 GSAVE.DAT
+    and substitute the line
+GET 'INIT'
+    for the save in subsequent runs.
+
+To build your own version of GEANT, see d0$d0geant:d0geant_user.rno.  A simple
+one with only the calorimeter running might be done by
+$ PBD/NAME=my/PACK=(D0,CAL)/ZEBCOM=1000000/ZEBSTP=250000/GCBANK=1000000
+which produces a file my_d0geant.com and my_d0geant.lnk  Run the .com file and
+then link your .exe file.
+
+To run the job, one types
+ 
+$D0GEANTND   (or, you may run the .EXE file you linked directly)
+ 
+READ 4
+ 
+The FFREAD file is assigned to stream 4 (FOR004).
+ 
+BATCH JOB SUBMISSION.
+----------------------
+There exists a Queue called SHOWER on either cluster to which batch jobs
+may be submitted. The queue runs on the same node that owns the shower library
+disk. I have noticed that with reasonably high priority (priority =2), it
+is possible to run Shower library jobs on other nodes across the network
+without too much loss in network overhead .
+
+INTERNALS
+---------
+
+The program allows the user to track muons through full geant if their Pt
+exceeds a cut(5.0 geV) settable from the RCP file.
+ 
+There are 5 Keys in use. VTX, ETA, Momentum, Particle_type, Phi_id.
+ 
+Particle_type 1=Em, 2= Muon, 3= Hadron
+ 
+Phid=1 =Normal
+Phi_id=2 for Em if it goes in CC cracks
+Phi_id=2 for hadrons if they head towards Main ring beam pipe.
+
+WARNINGS, and a new feature
+--------
+                                                        J. Linnemann
+                                                        10-Sep-1991
+Warnings for use of shower library:
+
+1) The shower library looks at what cell a track points to, and chooses a random
+   shower of the same general particle type (em or hadron) which points to the
+   same cell.  Thus, the spatial resolution of a jet is blurred by the cell
+   size, .1 X .1 in the CC, and up the .4 X .4 at the very end of the EC
+
+2) The binning is in momentum, abs(eta) and vertex position.  This is meant to
+   control for the angle of incidence in the cell.  However, to do this fully,
+   the shower library will have to be rebuilt with the keys as abs(eta) and 
+   abs(vertex)*sgn(vertex)*sgn(eta).  Presently, the shower library would put in
+   the same bin z = -50, and eta = +5, or eta = -5.
+
+    The effect of the incorrect incidence angle is probably worst in the CC.
+
+3) If you look at older isajet events, you will find that their theta and eta 
+   do not match correctly at large eta.  There is no problem if you use the
+   4-momentum directly, or have freshly-generated isajet events.  It is 
+   possible that this caused some minor problems in the Isajet toy calorimeter 
+   (underpopulation of high-eta cells).  It caused no known problems in the 
+   shower library.
+
+4) There are some "surprising" showers in the shower library, in the sense that
+   one finds showers whose only hits are removed by several phi bins from the
+   calculated impact point of the primary track.  These need further
+   investigation.  They occur on the few-per-thousand level.
+
+5) There exists a new patch, in beta release, for helping problem 1.  Its
+   purpose is to force a match between the position of an ISAJET track and the
+   shower chosen for it.  It does this by the brutal mechanism of rotating the
+   ISAJET track to MATCH the position of the shower.  Since full information
+   about the showerlib track was not kept, it must be reconstructed.  This is
+   successful about 83% of the time.  The other 15-20%, the reconstructed
+   position does not fall near the bin in which the shower fell, so the track is
+   not rotated to a dubious position.  This option can be turned on via
+   modifying SHOWERLIBRARY.RCP to set
+
+ MOVE_TRACK_TO_SHOWER  TRUE    !ALTER ISAJET TRACK SO HITS CALORIMETER AT SHOWER
+
+    This option costs less than .5 sec/event on a 3100/38, at most 10% of the
+CPU time.  However, shower library is normally dominated by I/O, so this is
+probably not a major effect.
+
+6)  I saw some bugs in the routine ISAJET_GEANT_TRACK.FOR. I have patched them,
+    but it looks like this mattered only for hand-entry of debugging events.
+
+7) Dharma has noted that track cutoffs are quoted in terms of energy; they
+   should instead be done in terms of kinetic energy (eg, low energy neutrons
+   have of order 1 GeV of energy).
+
+Most of these problems are being addressed in a new version of shower library
+being written by Dharma.
+
+Comments on the shower-moving patch:
+---------
+83% of the shower ISAJET tracks were:
+    a) reconstructed as pointing to the same cell as claimed
+or  b) single GEANT tracks, which reconstructed within 1.5 cells in phi, and 2.2
+    cells in eta (abs(dphi) < .75cell, abs(deta) < 1.1 cell)
+
+For these 83% of all showers, those having well-understood showerlib positions,
+the ISAJET tracks are moved to have the came point of intersection at the
+calorimeter face as the showerlib track.  For the remaining 17% of all tracks,
+the position which was available in the showerlibrary was judged to be less
+reliable than simply keeping the random degree of matching (1 calorimeter cell).
+
+88% of events are within 2.2 X 2.2 cells of the expected cell center
+    this was the criterion chosen to rotate to a new position.
+(66% are within 1 X 1)
+    Point 2) above may lower the 88% and 66% figures, since it causes 
+differences among incidence angles; this causes wider deviations in eta. 
+
+82% of the shower ISAJET tracks were single GEANT tracks
+
+Suggestions for next round of shower library:
+---------------------------------------------
+
+1) keep somewhat more information:
+    In addition to what is now kept:
+    -the full vertex of the original event from which the track came
+    This would allow matching of the track which generated to the shower with
+the track from ISAJET whose showering is being simulated.  The shower matching
+routine SHLB_MOVE_TRACK would have to be rewritten, but would as a result be
+more accurate and reliable.
+
+2) do the binning with sgn(eta)*sgn(vertex)*abs(vertex) and Kinetic Energy
+   instead of vertex and total energy
+

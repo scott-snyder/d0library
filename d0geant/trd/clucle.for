@@ -1,0 +1,54 @@
+      SUBROUTINE CLUCLE(NX)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : REMOVE THE CLUSTERS WITH LOWEST ENERGY WHEN THE
+C-      NUMBER OF CLUSTERS HIT THE LIMIT
+C-
+C-   Inputs  : NX =NUMBER OF NEW HIGH ENERGY CLUSTERS TO BE ADDED
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  22-SEP-1988   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:CLUSM.INC/LIST'
+      INCLUDE 'D0$INC:CLUSTR.INC/LIST'
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+      INCLUDE 'D0$INC:D0LOG.INC/LIST'
+      REAL    MAT(LENGS,10)
+      INTEGER I,ID,IMAT(LENGS,10),IND(100),IUCOMP,J,K,LVMIN,MX,NX
+      EQUIVALENCE (MAT(1,1),IMAT(1,1),IWIRE(1))
+C
+      IF(NX.GE.100)THEN
+        WRITE(LOUT,*)' Problem_trd in CLUCLE: TOO MANY ADDITIONAL',
+     &    ' CLUSTERS'
+C        RETURN
+      END IF
+C  DETERMINE THE NX CLUSTERS WITH LOWEST ENERGIES
+      IF (PTRD.GE.10)
+     +  WRITE(LOUT,*)' ENTER CLUCLE WITH NSMEAR =',NSMEAR,' NX',NX
+      MX=MIN0(NX,LENGS)
+      DO 10 I =  1,  MX
+        IND(I)=LVMIN(ECLES,NSMEAR)
+        ECLES(IND(I))=10000.
+   10 CONTINUE
+C  DISCARD THE MX CLUSTERS WITH LOWEST ENERGIES
+      K=0
+      DO 20  I=  1,  NSMEAR
+        ID=IUCOMP(I,IND,MX)
+        IF(ID.NE.0)GO TO 20
+        K=K+1
+        DO 13 J =  1,  3
+          IMAT(K,J)=IMAT(I,J)
+   13   CONTINUE
+        DO 15 J =  4,  10
+          MAT(K,J)=MAT(I,J)
+   15   CONTINUE
+        ISTRIP(K) = ISTRIP(I)
+        DSTRIP(K) = DSTRIP(I) 
+   20 CONTINUE
+      NSMEAR=K
+      IF(PTRD.GE.10)WRITE(LOUT,*)' EXIT CLUCLE WITH NSMEAR=',NSMEAR
+  999 RETURN
+      END

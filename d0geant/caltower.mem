@@ -1,0 +1,358 @@
+
+
+
+                                                                  A.M.Jonckheere
+                                                                      8-Aug-1987
+                                                           Revised - 16-Feb-1989
+
+                                 ***** CALTOWER.MEM *****
+                                           V2.0
+
+          ____________          Introduction
+
+             This note briefly describes the operation of the routines contained
+          in  D0$D0GEANT's  Group  Caltower.  These routines calculate and store
+          Calorimeter energies in Cells  and  Towers.   We  also  describe  some
+          routines  in other libraries used by the Caltower routines that may be
+          used to extract the information from the /ZEBCOM/ banks for analysis.
+
+             When  turned  on,  the  Caltower  routines  accumulate  the  energy
+          deposited  in  each Calorimeter readout cell for a given primary track
+          in a large array in common /CTWRK/.  After a track  is  finished,  the
+          energies  in  /CTWRK/  are  smeared  and  added  to  any  energy  from
+          previously stored tracks in the Zebra banks CAEP  in  /ZEBCOM/.   Live
+          material  data is stored in one bank, dead material in another.  These
+          banks are tagged by the bank version number.  The dead material  banks
+          have  version  numbers above 1000.  When one uses GZCAEP() to find the
+          CAEP bank, one will normally find the live material bank.  If desired,
+          Idealised  HITS  (Banks JETS) may also be calculated.  The individual,
+          unsmeared track energies may be saved in  the  linear  bank  structure
+          GCAH.   The  banks  in  the GCAH structure are identified by it's bank
+          number set equal to the Geant track number.   If  they  are  saved  19
+          words of additional data, including ISAJET and GEANT data are saved as
+          well.  At the end of an event, the CAEP "hits" bank can  be  converted
+          into  the Raw Data format and stored in the CAD1/2 banks.  In addition
+          the ICD Hits information can be save in bank ICDH (under GHIT).   This
+          last,  does not depend on CALTOWERs, but if CALTOWERs is used a subset
+          of the information (Light output) is stored in CAEP and GCAH as well.
+
+          _______ __ _________          Control of Operation
+
+             The operation of the Caltower routines is controlled by the  values
+          given  to  various  members  of the user array SCAL during the initial
+          FFREAD Dialog.  The format of this command is:
+
+              SCAL a b c d e f    where a... are floating point numbers.
+
+          SCAL(1) = 0            No Caltowers,
+                  = 1 (default)  Use software Caltowers
+                  = 2            Create Shower library
+              (2) = 0 (default)  Drop individual Unsmeared Track energies in GCAH banks
+                  > 0            Save Unsmeared Track energies in GCAH
+                  > 1            Save Total & Hadron only energies separately
+              (3) = 0 (default)  Drop CAEP banks calculated in Caltowers
+                  > 0            Calculate and save summed, smeared energies in CAEP
+              (4) = 0            No JETS bank calculated
+                  > 0 (default)  Calculate Idealised hits, JETS banks
+              (5) > 0            Calculate Raw data banks (CAD1/2) with zero suppression
+                                 on cells with   ABS(ENERGY) < SCAL(5) in GeV.
+                                                                Page 2
+
+
+                      (default = 1.0E-3)
+                  = 0            Calculate FULL Raw data banks (CAD1/2)
+                  < 0            Do not calculate Raw data banks (CAD1/2)
+              (6) = 0 (default)  Drop ICD Hits bank (ICDH) before saving
+                  > 0            Keep ICD Hits bank (ICDH)
+
+             SCAL(1) MUST be equal to 1 for any  of  the  others  to  be  active
+          (except  SCAL(6)),  but any combination of the others is possible.  If
+          SCAL(5)>=0 and SCAL(3)=0, then the CAEP banks are created, but dropped
+          after  the CAD banks are formed.  SCAL(5) is used both as a switch and
+          as real number threshold for zero suppression in the CAD  banks.   For
+          example,   SCAL(5)=1.0E-3  would  create  zero  suppressed  CAD  banks
+          containing only cells with ABS(ENERGY) greater than 1 MeV.
+
+             The data is output with the rest of the /ZEBCOM/ data at the end of
+          each  event only if "ZEBIO n m" is specified in the initial dialog and
+          m is non-zero.
+                                                                Page 3
+
+
+          ____ _________          Data Retrieval
+
+             The major changes that are being made, effective with release  V2.0
+          of  D0Geant are that Readout Cells are now indexed by their Offline or
+          Physics indices and that the energies are now given in GeV in floating
+          point  form.   See  D0 NOTE 774  by  Jim  Linnemann for details on the
+          Physics indices.
+
+             The one exception to Jim's D0 Note is that for the Monte Carlo more
+          layers  have been added to store energy lost in various dead material.
+          The extra layers are listed graphically in Appendix A.  This  appendix
+          is the equivalent of Appendix A of the D0 Note.
+
+             The extraction of data from the appropriate banks for  analysis  is
+          not  complicated.   The  following code fragments illustrate the steps
+          needed.
+
+             To extract smeared data from the CAEP banks for analysis:
+
+                  INCLUDE 'D0$INC:ZEBCOM.INC'     ! Main D0 Data Store
+                  INTEGER LCAEP,GZCAEP            ! Zebra links and routines
+                  INTEGER NDATA,NCELL             ! Data lengths
+                  INTEGER IADDR                   ! Packed Cell Address
+                  INTEGER IETA,IPHI,LAYER,ITAG    ! Unpacked Cell Address
+                  REAL    EDATA                   ! Cell Energy
+                          . . .
+
+                  LCAEP = GZCAEP()                ! Get link to live material CAEP bank
+               10 IF ( LCAEP.LE.0 ) GOTO 200      ! Error - No data
+                  NDATA = IQ(LCAEP-1)             ! Number of data words
+                  NCELL = IQ(LCAEP+3)             ! Number of cells with data
+                  IF ( 2*NCELL+3.NE.NDATA ) GOTO 998      ! Error - lengths don't agree
+                  DO 100 I = 1, NCELL             ! Loop over cells
+          C
+                    IADDR = IQ(LCAEP+2*(I-1)+4)   ! Packed Addr in Physics Indices
+                    IETA  = IBITS(IADDR,24,8)     ! High order byte is IETA
+                    IF ( IETA.GE.128 ) THEN
+                      IETA = IETA - 256           ! extend sign
+                    ENDIF
+                    IPHI  = IBITS(IADDR,16,8)     ! Next byte is IPHI
+                    LAYER = IBITS(IADDR,8,8)      ! Next byte is LAYER
+                    ITAG  = IBITS(IADDR,0,8)      ! Low order is Tag bits
+          C
+                    EDATA =  Q(LCAEP+2*(I-1)+5    ! Smeared Energy in GeV
+                        . . .                     ! Process
+
+              100 CONTINUE
+          C
+          C **** Loop over 2d CAEP bank (dead material), this is present ONLY if data is
+          C ****    from Geant (obviously)
+          C
+                  LCAEP = LQ(LCAEP)               ! 2d bank in linear structure
+                  GOTO 10
+              200 CONTINUE
+                        . . .
+                                                                Page 4
+
+
+
+                                                                Page 5
+
+
+             The Unsmeared data is more complicated to extract, so routines  are
+          supplied  to  do  most  of  the  work.   The  following  code fragment
+          illustrates the necessary steps.
+
+                  ITRAK = 1                       ! Init the Track index
+          C  Get track data
+              100 CALL GTGCAH(ITRAK,ITRA,VERT,P,IDATA,TOTAL,NPOINT)
+                  IF ( ITRA.LT.0 ) GOTO 999       ! No more tracks
+                  ITRAK = ITRA                    ! Actual track found
+                          . . .                   ! Process Track totals data
+
+                  DO 200 I = 1, NPOINT            ! Loop over data points
+          C  Get energy and indices for ONE cell
+                    CALL GEGCAH(ITRAK,I,CELLE,IETA,IPHI,LAYER,ITAG)
+                    IF ( IETA.NE.0 ) THEN
+                          . . .                   ! Process
+                    ELSE
+                          . . .                   ! Error
+                    ENDIF
+              200 CONTINUE
+                  ITRAK = ITRAK + 1               ! Next track
+                  GOTO 100                        ! Get next track
+
+                                                                Page 6
+
+
+             The data returned from GTGCAH and GEGCAH are described below.
+
+                SUBROUTINE GTGCAH(ITRAK,ITRA,VERT,P,IDATA,TOTAL,NPOINT)
+          C----------------------------------------------------------------------
+          C-
+          C-   Purpose and Methods : Finds GCAH bank for first track number .GT. ITRAK
+          C-                              returns track data
+          C-
+          C-   Inputs  : ITRAK    = Lowest Geant track number to look for
+          C-   Outputs : ITRA     = Track actually found (-1) if no more available
+          C-             VERT(3)  = X,Y,Z of track vertex
+          C-             P(4)     = ISAJET track 4-momentum
+          C-             IDATA(1) = Geant track type
+          C-                  (2) = Geant origin vertex #
+          C-                  (3) = Geant parent vertex #
+          C-                  (4) = Geant parent track #
+          C-                  (5) = Reason for entry               Geant KCASE
+          C-                      = 1   -> ISAJET track                - -
+          C-                      = 11  -> decay product              'DCAY'
+          C-                      = 12  -> hadronic interaction       'HADR'
+          C-                      = 13  -> Muon-nuclear interaction   'MUNU'
+          C-                      = 14  -> Photo fission              'PFIS'
+          C-                      = 15  -> Pair production            'PAIR'
+          C-                      = 16  -> Compton scattering         'COMP'
+          C-                      = 17  -> Photo production           'PHOT'
+          C-                      = 18  -> Annihilation               'ANNI'
+          C-                      = 21  -> Punchthrough                - -
+          C-                      = 22  -> Bremstrahlung              'BREM'
+          C-                      = 23  -> Delta ray electron         'DRAY'
+          C-                      = 999 -> Stopping end vertex         - -
+          C-                  (6) = Isajet parent vertex #
+          C-                  (7) = Isajet track #
+          C-             TOTAL(1) = Calorimeter energy UCAL + ECAL
+          C-                  (2) = Energy in Massless Gaps
+          C-                  (3) = Scintillator Hit Total (GeV)
+          C-                  (4) = Energy in cracks + cryostat + end plates
+          C-             NPOINT   = Number of Two word data entries following
+          C- **** The Address and Energy data are NOT returned by this routine. ****
+          C-    For V0.10 and earlier versions of D0Geant:
+          C-              CALL GCELLE(ECELL,IZ,IE,IP,IL,EOD)
+          C-    to retrieve the energies - cycle through until EOD = .TRUE.
+          C-              ECELL is an INTEGER energy in KeV
+          C-
+          C-     For V0.11 to V1.7 use:
+          C-              CALL GTENXT(ITRAK,IPOINT,ECELL,IZ,IETA,IPHI,LAYER,EOD)
+          C-     to retrieve the IPOINT'th entry
+          C-              1 <= IPOINT <= NPOINT
+          C-              ECELL is an INTEGER energy in KeV
+          C-
+          C-      For V2.0 and later versions use:
+          C-              CALL GEGCAH(ITRAK,IPOINT,CELLE,IETA,IPHI,LAYER)
+          C-      to retrieve the IPOINT'th entry
+          C-              1 <= IPOINT <= NPOINT
+          C-              CELLE is an REAL energy in GeV
+          C-
+                                                                Page 7
+
+
+          C-   Created  12-MAY-1987   Alan M. Jonckheere
+          C-   Updated  16-FEB-1989   Alan M. Jonckheere
+          C-
+          C----------------------------------------------------------------------
+                                                                Page 8
+
+
+                SUBROUTINE GEGCAH(ITRAK,IPOINT,CELLE,IETA,IPHI,LAYER,ITAG)
+          C----------------------------------------------------------------------
+          C-
+          C-   Purpose and Methods : Return cell energy and unpacked Physics cell indices
+          C-                              for IPOINT'th cell of ITRAK track
+          C-           **** Valid for D0Geant V2.0 and above ****
+          C-
+          C-   Inputs  : ITRAK  = Bank (track) number to access
+          C-             IPOINT = Sequence number of cell to return
+          C-   Outputs : CELLE  = Cell energy (REAL) in GeV
+          C-             IETA   = Physics system Eta index (-37:37)
+          C-             IPHI   = Physics Phi index (1:64)
+          C-             LAYER  = Physics Layer index (augmented) (1:27)
+          C-             ITAG   = Tag bits
+          C-
+          C-   Created  16-FEB-1989   Alan M. Jonckheere
+          C-
+          C----------------------------------------------------------------------
+
+
+          __________ ________          Additional Routines
+
+             Additional routines that may be of interest are:
+
+          DSCHIT.FOR      Called in STPCAL and in GTNINO instead of GSCHIT
+          DCHIT.FOR       Calculates Crack hits - layers 18-27
+          DEHIT.FOR       Calculates EC hits
+          DSHIT.FOR       Calculates Scintillator (between CC and EC) hits - layer 9
+          DUHIT.FOR       Calculates UC hits
+          DHSTOR.FOR      Stores hits for all detectors into /CTWRK/
+
+          CALTRK.FOR      Called in GUSTEP after each track (including temp STAK tracks)
+          CALBLD.FOR      Called in CALTRK after each primary track - smears data and
+                              moves it into /ZEBCOM/
+
+          CACMPR.FOR      Calculates cell indices in region where .1 x .1 pads -> ?
+          SMRFAC.FOR      Function returns smearing factor
+
+          BKGCAH.FOR      Book GCAH banks
+          FLGCAH.FOR      Fill GCAH bank with Isajet + Geant data for each track
+          PRGCAH.FOR      Print GCAH bank
+          PRCAEP.FOR      Print CAEP banks
+
+          GTGCAH.FOR      Find track bank, return header data
+          GZGCAH.FOR      Return Zebra link to GCAH bank for track ITRAK
+          GEGCAH.FOR      Return Energy and Cell indices - unsmeared for one track
+          GZCAEP.FOR      Return Zebra link to the first (live) CAEP bank
+
+                                                                Page 9
+
+
+                                        ________ _                                        Appendix A
+
+              The layers in each eta bin in the OFFLINE system are listed below:
+
+
+           eta      IETAC           Layers included
+           range
+                               E             C I E F       C
+                               M             C C C H       H
+                                             M D M
+                                             G   G
+                                                 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2
+                               1-2-3-4-5-6-7-8-9-0-1-2-3-4-5-6-7-8-9-0-1-2-3-4-5-6-7
+                                                       <-CC |EC | Dead->
+             0   .1     1      x x x x x x x       x x x   x|   |d   d   d d d d
+            .1   .2     2      x x x x x x x       x x x   x|   |d   d   d d d d
+            .2   .3     3      x x x x x x x       x x x   x|   |d   d   d d d d
+            .3   .4     4      x x x x x x x       x x x   x|   |d   d   d d d d
+            .4   .5     5      x x x x x x x       x x x   x| O |d   d   d d d d d d
+            .5   .6     6      x x x x x x x       x x x   x| H |d d d d d d d d d d
+            .6   .7     7      x x x x x x x  _____x x x  __| | |d d d d d d d d d d
+            .7   .8     8      x x x x x x x x| |x|x x x  |x  v |d d d d d d d d d d
+            .8   .9     9      x x x x x x x x|x|x|x x    |x x  |d d d d d d d d d d
+            .9  1.0    10   ^  x x x x x x x x|x|x|x______|x x  |d d d d d d d d d d
+           1.0  1.1    11   |  x x x x x x x x|x|x/x\_     x x x|d d d d d d d d d d
+           1.1  1.2   +12*  C  x x x x       x|x/x x x\    x x x|d d d d d d d d d d
+          -1.1 -1.2   -12*  C  x x     x x   x|x|x x x \__ x x x|d d d d d d d d d d
+           1.2  1.3    13   _  _______________|x|x x x x x\_ x x|d d d d d d d d d d
+           1.3  1.4   +14*             x x x  |x|  x x x x x\  x|  d   d d   d   d d
+          -1.3 -1.4   -14*  E      x x     x  |x|  x x x x x \ x|  d   d d   d   d d
+           1.4  1.5    15   C  x x x x x x x  |_|\ x x x x x =\g|  d   d         d d
+           1.5  1.6    16   |  x x x x x x x      \x x x x x   \|  d   d         d d
+           1.6  1.7    17   v  x x x x x x x       x\x x x x    |  d   d         d d
+           1.7  1.8    18      x x x x x x x       x x\_ x x<-MH|  d   d         d d
+           1.8  1.9    19      x x x x x x x       x x x\_ x    |  d   d         d d
+           1.9  2.0    20      x x x x x x x       x x x x\x    |  d   d         d d
+           2.0  2.1    21      x x x x x x x       x x x x x\___|  d   d         d d
+           2.1  2.2    22      x x x x x x x       x x x x x    |  d   d         d d
+           2.2  2.3    23      x x x x x x x       x x x x x    |  d   d         d d
+           2.3  2.4    24      x x x x x x x       x x x x x    |  d   d         d d
+           2.4  2.5    25      x x x x x x x       x x x x x    |  d   d         d d
+           2.5  2.6    26      x x x x x x x       x x x x x<-IH|  d   d         d d
+           2.6  2.7    27      x x x       x       x x x x x    |  d   d         d d
+           2.7  2.8    28      x x x       x       x x x x x    |  d   d         d d
+           2.8  2.9    29      x x x       x       x x x x x    |  d   d         d d
+           2.9  3.0    30      x x x       x       x x x x x    |  d   d         d d
+           3.0  3.1    31      x x x       x       x x x x x    |  d   d         d d
+           3.1  3.2    32      x x x       x       x x x x x    |  d   d         d d
+           3.2  3.42   33      x x x       x       x x x x x    |  d   d         d d
+           3.42 3.7    34      x x x       x       x x x x x    |  d   d         d d
+           3.7  4.1    35      x x x       x       x x x x x    |  d   d         d d
+           4.1  4.45   36                          x x x x x    |  d   d         d d
+           4.45        37                              x x x       d   d         d d
+
+              * NOTE: These 2 IETAC bins are repeated for +-Z (+-eta)
+                                                               Page 10
+
+
+
+              From IETAC = 27 to 35, EM3 is not subdivided, thus only LAYERC = 3 exists.
+              From IETAC = 33 onwards, only odd values of IPHIC exist.
+
+               Dead Material:
+                Layer 18 = Module Cracks (CC)
+                      19 = Module Cracks (EC)
+                      20 = CC Endplates, includes CCEC front plate
+                      21 = EC Endplates
+                      22 = CC Warm Cryostat (inner tube)
+                      23 = CC Cold Cryostat (inner tube)
+                      24 = CC Warm Cryostat (end+outer tube)
+                      25 = CC Cold Cryostat (end+outer tube)
+                      26 = EC Warm Cryostat
+                      27 = EC Cold Cryostat

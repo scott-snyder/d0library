@@ -1,0 +1,590 @@
+
+
+
+
+                                                               D0 note 1023
+                                                       Qizhong Li-Demarteau
+                                                       26-JUL-1990         
+           (revised, updated and rewritten from G.Rahal's 8-DEC-87 version)
+
+
+
+
+                           _________________________                           CDC Simulation in D0GEANT
+
+
+
+     This note describes the routines used in the simulation of the Central
+     Drift  Chambers.   Most  of  the  routines are in D0$D0GEANT$CDC.  The
+     contents of this note include the main steps of D0GEANT when  running,
+     three  appendices  with  additional  details  and  five figures of CDC
+     geometry tree  and  views  (the  figures  are  not  available  in  the
+     documents on the computer):
+
+      -  Initialization
+
+      -  Geometry and Detector Definition
+
+      -  Tracking and Stepping
+
+      -  Digitization
+
+      -  Finishing Up
+
+      -  Interactive operation of D0GEANT
+
+      -  Appendix A - CDC Geometry File
+
+      -  Appendix B - CDC Pulse Shape Parameters
+
+      -  Appendix C - CDC Zero Suppression Parameters
+
+      -  Figure 1, 2 and 3 - CDC geometry trees
+
+      -  Figure 4 - CDC geometry X-Y view in D0geant
+
+      -  Figure 5 - CDC geometry Y-Z view in D0geant
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 1 -
+                                                                          Page 2
+
+
+
+     1.  INITIALIZATION:
+
+         The  initilizations  specific  to  the  CDC  are  handled  by  the
+         following routines.
+
+          -  FFICDC initializes the run-time switches DCDC (to 1), PCDC (to
+             1),  and SCDC(1-10) (all to -1.) using FFREAD.  These switches
+             can be changed at run time.  Currently, the  default  settings
+             are   changed   to  DCDC=3,  PCDC=1,  SCDC(1)=1.,  SCDC(2)=0.,
+             SCDC(3)=0., SCDC(4)=1., SCDC(5)=0., SCDC(6-10)=-1.   by  cards
+             submitted at run time.  See Digitization part in this note and
+             D0GEANT_USER.MEM for the meaning of the various  switches  and
+             other  details.   FFICDC  has  an entry point PRT_FFICDC which
+             will print out the values of all the switches to unit LOUT  as
+             stored in the GCUNIT common block.
+
+          -  CLNCDC edits the run-time switches but currently  only  checks
+             to make sure that the DCDC switch is =< DCEN switch.
+
+          -  BOKCDC books CDC HBOOK histograms for ANLCDC (ANLCDC is called
+             after  each event).  CDC histograms can use reserved histogram
+             ID numbers 8000-8999.  Currently a dummy.
+
+          -  INICDC, called by INICEN, reads in the geometry  constants  of
+             the CDC by calling CDISTP.  All the geometry constants are put
+             in Zebra banks in ZEBSTP described in the ZEB file located  in
+             D0$ZEB$CDCCON.   For  details,  see  Appendix  A.  INICDC also
+             initializes   the   pulse    shape    parameters    and    the
+             zero-suppression  parameters.   The pulse shape parameters are
+             put into the ZPULPR common block and are described in Appendix
+             B.  The constants for zero_suppression are put into the CDZERO
+             common block and are listed in Appendix C.
+
+
+     2.  GEOMETRY AND DETECTOR DEFINITION:
+
+         The geometry definition and the detector definition  are  part  of
+         the  initialization  too.   Since  it is one of the major parts in
+         D0GEANT CDC, we describe it as  a  separate  item  including  more
+         details.   The  geometry  of the experimental setup for the CDC is
+         described rather accurately through the definition  of  a  set  of
+         simple  VOLUMEs.   Each  VOLUME  is  defined through a call to the
+         GEANT routine GSVOLU by giving the  name,  shape,  dimensions  and
+         materials  of the volume.  The volume is then positioned through a
+         call to the GEANT routine GSPOS (or GSPOSP) by giving the name  of
+         the  mother  volume  and  the  precise  positions.   The  detector
+         response  is  defined  by  declaring  the  sensitive  volumes  and
+         defining the "information" to be recorded at tracking time to keep
+         track  of  the  interaction  between  one  particle  and  a  given
+         detector.
+
+
+
+
+                                     - 2 -
+                                                                          Page 3
+
+
+
+          -  GEOCDC sets up the geometry in D0GEANT.   The  description  in
+             terms  of volumes is done in the template of this routine; all
+             the positions and the dimensions are taken from  the  CDC  STP
+             geometry banks.
+
+              .  The mother volume in the experiment is the Box MVOL.
+
+              .  The main volume for the central detector is MCEN :  it  is
+                 a TUBE ( delimited by an inner and an outer cylinder).
+
+              .  The CDC volume is a TUBE inside MCEN ;  It  contains  air.
+                 It  is  limited by the TUBES DCWI and DCWO which represent
+                 respectively  the  Rohacell+Carbon  inner  wall  and   the
+                 Aluminium outer wall.  DCCE is the volume representing the
+                 two Aluminium end caps of the container MCDC.
+
+              .  The sensitive volume is the TUBE  DRFT  between  DCWI  and
+                 DCWO.  It is limited by the two end plates DCDE.
+
+              .  The four layers in DRFT are represented  by  the  POLYGONS
+                 DRF1, DRF2, DRF3, DRF4.
+
+              .  each DRFi (i=1,4)  contains  32  TRAPEZOIDS  DFSi  (i=1,4)
+                 which simulate the sectors.
+
+              .  Each sector is in turn  divided  into  seven  cells  which
+                 represent  the  volume  in  Gas (Argon) seen by each sense
+                 wire.  As the spacing between the sense wires is  not  the
+                 same  ,  this  is  done  by first dividing DRFi into three
+                 trapezoids DFi1, DFi2, DFi3; DFi1 and  DFi3  are  the  two
+                 outer  cells  (sense wires) with equal thickness (.71 cm).
+                 Then DFi2 is divided in  five  equal  trapezoids  (.6  cm)
+                 which are the five inner sense wire cells .
+
+              .  All CDC parts are ordered to GEANT  to  minimize  tracking
+                 time.
+
+              .  All CDC material  and  media  can  use  reserved  material
+                 identifier  numbers  80-89.   The CDC currently uses 80 to
+                 85.
+
+              .  All CDC rotation  matrices  can  use  reserved  identifier
+                 numbers  8000-8999.  The CDC currently uses 8000, 8100 and
+                 8200.
+
+              .  see figures 1, 2 and 3.
+
+
+          -  DETCDC is called by GEOCDC when DCDC >= 2.  DETCDC defines the
+             detector   response   by  declaring  sensitive  detectors  and
+             defining the amount and kind of data the user chooses to store
+             for  this  detector.   For  the CDC, the sensitive detector is
+             gas.  This routine calls GSDET to assign a label chain to each
+
+                                     - 3 -
+                                                                          Page 4
+
+
+
+             volume  so  that  it  has  a  unique location in JHITS.  GEANT
+             stores all hit information in Integer format so  DETCDC  calls
+             GSDETH  to load in multipliers and offsets to convert the Real
+             hit data into Integer format.
+
+             For each hit in a sensitive volume, we save in the GEANT  bank
+             JHITS:
+
+              .  X-GLOBAL point of entry of track
+
+              .  Y-GLOBAL
+
+              .  Z-GLOBAL
+
+              .  X-GLOBAL point of exit of track
+
+              .  Y-GLOBAL
+
+              .  Z-GLOBAL
+
+              .  PULSE HEIGHT ( Integrated charge)
+
+              .  Track length in the cell ( dx**2 + dy**2 + dz**2)
+
+              .  Track id = 2**11*Secondary track# + Primary track#.
+                 CAUTION :  This track number is the  one  given  by  GEANT
+                 instead of the one in ISAJET.
+
+
+
+     3.  TRACKING AND STEPPING:
+
+         Tracking is  performed  for  every  particle  in  every  event  by
+         stepping  along  its  path,  determining  the volume it is in, and
+         generating hits if necessary.
+
+          -  TEVCDC is called before each EVENT.  Currently a dummy.
+
+          -  STPCDC is called for  each  STEP  along  a  TRACK  when  in  a
+             sensitive  medium  (  gas volumes in the drift cells).  STPCDC
+             obtains the X,Y,Z data from the GCTRAK common block  for  each
+             sensitive  volume  and  calls  LOCGEO  to  convert it to local
+             coordinates.  Drift distances and  delay  line  positions  are
+             then  calculated  from  these  results.   The  pulse  area  is
+             calculated in the routine CLANDA.  It is proportionnal to  the
+             track  length,  and takes into account the Landau effects.  It
+             must be used with the GEANT flags IDRAY=1  and  ILOSS=1.   For
+             each hit in a sense wire volume, GSAHIT is called to store the
+             data in the GEANT bank JHITS.
+
+          -  TRKCDC is called after each TRACK.  Currently a dummy.
+
+
+
+                                     - 4 -
+                                                                          Page 5
+
+
+
+     4.  DIGITIZATION:
+
+         After all the tracking has been  performed,  one  has  to  do  the
+         digitization.   At  this  level,  three  kinds  of  outputs can be
+         obtained depending on the values  on  the  SCDC  data  card  whose
+         default values are set in FFICDC :
+
+          -  SCDC(1) = 1.  :  Build the Zebra bank CDD2 which contains  the
+             raw  Flash  ADC data as written in the experiment.  It follows
+             the version 2 format and uses only a  single  crate.   See  D0
+             Note  #883  for  CDD2  format details.  (SCDC(1)=0.  -> do not
+             build the CDD2 bank.) Default SCDC(1)=1.
+
+          -  SCDC(2) = 1.  :  Build the Zebra bank DSEC which contains  the
+             information  on  the  "idealized" hits:  positive and negative
+             drift distance solutions and errors, the delay  line  position
+             and error, ionization of the hit and error, a status word, and
+             the GEANT track number of the hit.   (SCDC(2)=0.   ->  do  not
+             build the DSEC bank.) Default SCDC(2)=0.
+
+          -  SCDC(3) = 1.  :  Build the Zebra bank DCDA which contains  the
+             information  about  the pulses:  drift time, pulse area, pulse
+             width, pulse heigth, errors, a status word,  and  GEANT  track
+             number.   (SCDC(3)=0.   ->  do  not build the DCDA bank, or if
+             built  for  use  with  the  CDD2  bank,  drop  them.)  Default
+             SCDC(3)=0.
+
+         There are also two switches to modify the FADC raw data output.
+
+          -  SCDC(4) = 1.  :  Bilinear  conversion  is  performed  on  each
+             pulse bin in the raw FADC output.  Bilinear conversion is done
+             by the ZCNVRT routine.  It contains the conversion parameters.
+             (SCDC(4)=0.   ->  do  not perform bilinear conversion) Default
+             SCDC(4)=1.
+
+          -  SCDC(5) = 0.  :  Perform  zero_suppression  on  the  FADC  raw
+             channel output.  Reduces A whole channel output to clusters of
+             pulses   that   satisfy   the   zero_suppression   parameters.
+             Performed  by  the  ZERSUP  routine  with parameters loaded by
+             INICDC  into  the  CDZERO  common  block  (see  Appendix   C).
+             (SCDC(5)=1.   ->  do  not  perform  zero_suppression)  Default
+             SCDC(5)=0.
+
+         Five additional switches exist and available.
+
+          -  SCDC(6)-SCDC(10) = -1.  :  This indicates that  they  are  not
+             currently  used.   Future  versions  may  make  use  of  these
+             switches.  Default SCDC(6-10)=-1.
+
+
+
+
+
+
+                                     - 5 -
+                                                                          Page 6
+
+
+
+         DIGCDC is the main digitization routine.  It handles  the  booking
+         and filling of all the banks in the CDC Hits bank structure.  Bank
+         details are given in the structure chart in D0$ZEB$CDCHITS.
+
+          -  First, a temporary Zebra link area is  formed.   The  top  CDC
+             Hits Zebra bank CDCH is booked by a call to BKCDCH.
+
+          -  MKDCDC is called for every layer and every  sector.   The  CDC
+             defaults  used  are  4  layers,  32 sectors per layer, 7 sense
+             wires and two delay line (two ends per delay line) per sector.
+
+              .  Calls to GFHITS get the hit  information  for  each  sense
+                 wire  (defined  by a layer, sector, wire number) as stored
+                 in the GEANT structure JHITS.
+
+              .  BLDSEC  builds  the  structure  CDCH-DLYR-DSEC  for   each
+                 sector.   The  informations  to  be  stored  in  DSEC  are
+                 prepared in the routine CDHITS;  Then,  FIDSEC  fills  the
+                 banks after it has booked it via BKDSEC.
+
+              .  BLDCDA builds the structure CDCH-DLYR-DSEC (if it has  not
+                 been  already done)-DCDA.  The information to be stored is
+                 prepared in CDATSW and CDATDL, respectively for the  sense
+                 wires  and  for  the  delay  lines.  CDRIFT and CDELAY are
+                 called to compute , one the drift  time  on  the  SW,  the
+                 other the time for the pulse to reach both ends of the DL.
+                 The default gas drift velocity  used  is  40  microns  per
+                 nanosecond.   The  default  sense  wire  stagger  used  is
+                 +/-0.02 cm where the even-numbered sense  wires  (0,2,4,6)
+                 use  -0.02 cm.  The signal in the delay line is induced by
+                 the outer sense wire and its adjacent  inner  sense  wire.
+                 The  ratio  of  the contributions to the delay line signal
+                 from the outer sense wire and  its  adjacent  inner  sense
+                 wire  is  1  :   0.11  .   The bank DCDA is filled via the
+                 routines DVECDA, and FIDCDA  which  itself  can  call  the
+                 booking of the banks (in BKDCDA).
+
+              .  When finished with a sector, PUDSEC and PUDCDA are  called
+                 to  reduce  the Zebra banks DSEC and DCDA to their minimum
+                 possible size.
+
+
+          -  BLCDD2 builds the banks CDD2 of the raw FADC data ;  It  takes
+             all  the  informations  needed  from the previously built DCDA
+             banks which are built before.  One uses  the  utility  routine
+             ZGDCDA  which  gives  the  pointer  to DCDA, and the number of
+             hits.  FICDD2 books and fills CDD2.  FICDD2 prepares the  hits
+             of  each  channel for FADC digitization, makes the conversion,
+             and then calls CDCWRT.  CDCWRT books and calls CDD2FL to  fill
+             the  crate  header for the CDD2 bank.  CDCWRT enlarges CDD2 if
+             necessary and  fills  the  bank  for  each  hit.   Preparation
+             includes  pulse  simulation  for  each  hit (SIMPUL), bilinear
+             conversion (ZCNVRT) if requested (SCDC(4)=1.),  adjustment  by
+
+                                     - 6 -
+                                                                          Page 7
+
+
+
+             pedestal   level   and   noise   (ZADPED),  and  reduction  by
+             zero_suppression (ZERSUP) if  requested  (SCDC(5)=0.).   After
+             all  FADC data has been filled into the CDD2 bank, the routine
+             CDD2FL is called again to fill the crate trailer words.
+
+          -  The DCDA banks are dropped if they  had  not  been  requested.
+             (SCDC(3)<>1.)
+
+          -  PRxxxx (PRDSEC, PRDCDA, PRCDD2) are the routines  which  print
+             the  content  of the xxxx banks.  Different levels of printout
+             are  output,  depending  on  the  data  card   PCDC   (0=none,
+             1=minimal, 2=more, 3=full).
+
+          -  The CDC Hits temporary link area is disabled.
+
+         ANLCDC is called after each EVENT and can be used for analysis and
+         output  including  the  filling  of  histograms  booked in BOKCDC.
+         Currently a dummy.
+
+     5.  FINISHING UP:
+
+         LSTCDC is called at the end of run and can  store  histograms  via
+         HSTOR, etc.
+
+     6.  INTERACTIVE OPERATION OF D0GEANT:
+
+          -  Call  INTCDC  to   initialize   interactive   user   commands.
+             Currently  calls GUICDC (if DCDC >= 2) which should initialize
+             the CDC ZCEDEX menu but is a dummy.
+
+          -  Call HLPCDC to print interactive help information.   Currently
+             a dummy.
+
+          -  Call MENCDC as a switching routine  for  an  interactive  user
+             menu.  Currently a dummy.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 7 -
+                                                                          Page 8
+
+
+
+                     ________ _ _        ___ ________ ____                     APPENDIX A :        CDC Geometry File
+
+
+
+        A geometry file is needed to run with the CDC detector.   The  file
+     is  already  available  as  D0$STP:CDC_STPFILE.DAT.   The file must be
+     assigned to the  logical  CDC_STPFILE  for  D0GEANT.   To  assign  the
+     logical,  do  an @D0$D0GEANT:D0GEANT_SETUP.  To make your own geometry
+     file or change the other STP parameters :
+
+     1.  Edit the CDC STP-building Fortran files in D0$STP$CDC and  compile
+         them.
+
+     2.  Define CDC_STPFILE disk:[...]filename.
+
+     3.  Modify the linking and running command file CDWSTP.COM to  include
+         your changes.
+
+     4.  Do an @CDWSTP and the resulting CDC STP file should appear in  the
+         area defined in 2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 8 -
+                                                                          Page 9
+
+
+
+                    ________ _ _ ___ _____ _____ __________                    APPENDIX B : CDC Pulse Shape Parameters
+
+
+
+        The CDC pulse shape parameters are located  in  the  ZPULPR  common
+     block,  filled  by  INICDC,  and  used  by  SIMPUL.   Below is a brief
+     description and the current default values.  For the CDC, x=1.
+
+
+     PARTR and PARTW are fitted parameters from real data.
+
+      Rise time   = PARTR(1,x) * SQRT(Tdrift) + PARTR(2,x)
+                    (for uniform drift region: Tdrift > TRLIMT)
+                  = PARTR(3,x) * Tdrift ** 2 + PARTR(4,x) * Tdrift + PARTR(5,x)
+                    (for the non-uniform drift region: 0 < Tdrift < TRLIMT)
+
+      Total width = PARTW(1,x) * SQRT(Tdrift) + PARTW(2,x)
+                    (for uniform drift region: Tdrift > TWLIMT)
+                  = PARTW(3,x) * Tdrift ** 2 + PARTW(4,x) * Tdrift + PARTW(5,x)
+                    (for the non-uniform drift region: 0 < Tdrift < TWLIMT)
+
+           PARTR(1,1) = 0.476
+           PARTR(2,1) = 31.9
+           PARTR(3,1) = -0.00097
+           PARTR(4,1) = 0.45
+           PARTR(5,1) = -7.39
+
+           PARTW(1,1) = 0.029
+           PARTW(2,1) = 11.3
+           PARTW(3,1) = -0.000097
+           PARTW(4,1) = 0.083
+           PARTW(5,1) = -2.2
+
+           TRLIMT(1) = 300.0                 ! ns
+           TWLIMT(1) = 220.0                 ! ns
+           MINRS(1)  = 20.0                  ! minimum rise time (ns)
+           MINWID(1) = 10.0                  ! minimum width (FADC channels)
+           PULWEI(1) = 1.2                   ! weight for center of gravity
+           SCALE(1)  = 3.0                   ! Scale of pulse height
+           DLSCAL(1) = 1.2                   ! Delay line / Sense wire (width)
+
+
+
+         See note CD_PULSE_SHAPE_SIMULATION.RNO in D0$D0GEANT$DOCS for details 
+      of the pulse shape simulation for the Central Detector.
+
+
+
+
+
+
+
+
+
+                                     - 9 -
+                                                                         Page 10
+
+
+
+                  ________ _ _ ___ ____ ___________ __________                  APPENDIX C : CDC Zero Suppression Parameters
+
+
+
+        Zero suppression is chosen for the CDC by setting SCDC(5)=0.0  (the
+     default).  If zero suppression is not chosen, all parameter values are
+     set to 0.  The zero suppression parameters are given below and  stored
+     in the ZZEROP common block.  For the CDC, x=1.
+
+
+
+       Leading Edge is found if one of two conditions is met :
+
+         Three consecutive FADC bins >= BINTH2(x)     or,
+
+         Three consecutive FADC bins >  BINTH1(x)  AND
+         the two consecutive differences > DIFTH1(x)
+
+       Trailing Edge is found if one of two conditions is met :
+
+         Three consecutive FADC bins < BINTH4(x)     or,
+
+         Three consecutive FADC bins <  BINTH3(x)  AND
+         DIFTH2(x) < the two consecutive differences < DIFTH3(x)
+
+
+       For the CDC :
+
+             DIFTH1(1) = 5           Difference Thresholds
+             DIFTH2(1) = 5
+             DIFTH3(1) = 5
+             BINTH1(1) = 25          Bin Height Thresholds
+             BINTH2(1) = 25
+             BINTH3(1) = 25
+             BINTH4(1) = 25
+
+
+
+
+     Details of what the zero suppression values mean can be obtained  from
+     D0  note 1013:  "D0 Central Tracking Zero Suppression Chip Description
+     23-AUG-88 D.Degroot"
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 10 -

@@ -1,0 +1,126 @@
+C SAMPL2.FOR
+      SUBROUTINE ANLCAL
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Analyse Calorimeter Data
+C-                         Look at individual unsmeared tracks 
+C-                         Valid for V0.11 and greater D0geant
+C-
+C-   Inputs  : GCAH banks in /ZEBCOM/
+C-   Outputs : Sample Histograms
+C-
+C-   Created  27-JUL-1987   A.M.Jonckkhere
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+C----------------------------------------------------------------------
+C
+C
+C  S/R PARAMETERS
+       REAL VERT(3),P(4),TOTAL(4)
+       INTEGER ITRA,IDATA(12),NPOINT
+       LOGICAL EOD
+C
+       REAL ECELL,ETA,PHI
+       INTEGER IZ,IE,IP,IL,IPOINT
+C
+       CALL CALLNK                        ! INIT FOR THIS EVENT
+C
+C ****  Find individual unsmeared tracks
+C
+       ITRA = 1           ! Start with track 1
+C
+100    CALL GTGCAH(ITRA,VERT,P,IDATA,TOTAL,NPOINT,EOD)    ! FIND TRACK
+       IF ( EOD ) GOTO 500           ! EOD found
+C
+C ****  Loop over points in track
+       IPOINT = 1
+C
+ 200   CONTINUE                                  ! Get next cell's energy
+       CALL GTENXT(IPOINT,ECELL,IZ,IE,IP,IL,EOD) ! V0.11 and later D0Geant
+C
+C ****  CALL GCELLE(ECELL,IZ,IE,IP,IL,EOD)       ! V0.10 or earlier D0Geant
+C
+       IF ( EOD ) GOTO 400                       ! Done with track
+C
+C ****  Process track
+C
+       CALL ETAPHI(IZ,IE,IP,IL,ETA,PHI)          ! Get ETA/PHI
+C
+       IF ( IE.LE.12.AND.IL.LE.11 ) THEN         ! CC Cal
+C
+         IF ( IL.LE.1 ) THEN
+C **** Process                                   ! CC EM layers 1-2
+         ELSEIF ( IL.LE.5 ) THEN
+C **** Process                                   ! CC EM layer 3
+         ELSEIF ( IL.LE.6 ) THEN
+C **** Process                                   ! CC EM layer 4
+         ELSEIF ( IL.LE.9 ) THEN
+C **** Process                                   ! CC FH
+         ELSE
+C **** Process                                   ! CC CH
+         ENDIF
+C
+       ELSEIF ( IL.LE.19 ) THEN                  ! EC CAL
+         IF ( IL.LE.1 ) THEN
+C **** Process                                   ! EC EM layers 1-2
+         ELSEIF ( IL.LE.5 ) THEN
+C **** Process                                   ! EC EM layer 3
+         ELSEIF ( IL.LE.6 ) THEN
+C **** Process                                   ! EC EM layer 4
+         ELSEIF ( IL.LE.10 ) THEN
+C **** Process                                   ! EC IPFH
+         ELSEIF ( IL.LE.11 ) THEN
+C **** Process                                   ! EC IPCH
+         ELSEIF ( IL.LE.15 ) THEN
+C **** Process                                   ! EC MFH
+         ELSEIF ( IL.LE.16 ) THEN
+C **** Process                                   ! EC MCH
+         ELSE
+C **** Process                                   ! EC OCH
+         ENDIF
+C
+       ELSE                                      ! Other stuff
+         IF ( IL.LE.20 ) THEN
+C **** Process                                   ! Scintillator
+         ELSEIF ( IL.LE.21 ) THEN
+C **** Process                                   ! EC Massless Gaps
+         ELSEIF ( IL.LE.22 ) THEN
+C **** Process                                   ! Cracks btwn Mod
+         ELSEIF ( IL.LE.23 ) THEN
+C **** Process                                   ! CC Cryostat
+         ELSEIF ( IL.LE.24 ) THEN
+C **** Process                                   ! EC Cryostat
+         ELSEIF ( IL.LE.25 ) THEN
+C **** Process                                   ! CC End Plates
+         ELSE
+C **** Process                                   ! EC End Plates
+         ENDIF
+       ENDIF
+C
+C ****  Next data point
+       IPOINT = IPOINT + 1
+       GOTO 200
+C
+C ****  Done with track
+C
+  400  CONTINUE
+       IF ( IPOINT.GT.1 ) THEN       ! Was there ANY data?
+C
+C ****  Fill Histograms
+C
+C         CALL ANALFL(...)
+       ENDIF
+C
+C ****  Bump track # and go look for it
+       ITRA = ITRA + 1
+       GOTO 100
+C
+C ****  Done with last track
+C
+  500  CONTINUE
+C       
+  999 RETURN
+      END

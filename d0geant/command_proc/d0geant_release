@@ -1,0 +1,111 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : d0geant_release
+#
+# Purpose   : Get d0geant ZEBRA data files.
+#
+# Usage     :
+#
+# % d0geant_release [-got] [-h rhost]
+#
+# Options   :
+#
+# -g   - Gamma release.
+# -o   - Official release (default).
+# -t   - Test release.
+# -h   - Specify remote host (default $ZFTP_NODE or $VAXLIB_NODE if 
+#        ZFTP_NODE is undefined).
+#
+# Created 30-JUL-1992  Michael Diesburg   
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set rhost = ''
+set gamma = 0
+set official = 0
+set test = 0
+set argv = (`getoptc h:got $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -g:
+    set gamma = 1
+    shift
+    breaksw
+  case -o:
+    set official = 1
+    shift
+    breaksw
+  case -t:
+    set test = 1
+    shift
+    breaksw
+  case -h:
+    set rhost = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop -- 
+#
+# Make sure options are proper.  Supply defaults.
+#
+if( ! $test && ! $gamma )set official = 1
+@ total = $gamma + $test + $official
+if( $total != 1 )then
+  echo "Supply exacly one option from -o -t -g:
+  exit 1
+endif
+if( $rhost == '' && $?ZFTP_NODE)then
+  set rhost = $ZFTP_NODE
+endif
+if( $rhost == '' )then
+  echo "ZFTP_NODE undefined."
+  exit 1
+endif
+#
+# Set VMS directory to fetch from
+#
+if( $official )then
+  set vms_dir = 'd0$disk:[d0library.d0geant.data]'
+endif
+if( $test )then
+  set vms_dir = 'd0$disk:[d0library.test.d0geant.data]'
+endif
+if( $gamma )then
+  set vms_dir = 'd0$gamma:[d0geant.data]'
+endif
+#
+# Temporary filename
+#
+set temp = /usr/tmp/d0geant_release$$
+#
+# Get list of files to fetch
+#
+echo "cd $vms_dir:q" >! ${temp}.zftp1
+echo 'ls ttb_140.dat' >> ${temp}.zftp1
+echo 'ls pulse_param.dat' >> ${temp}.zftp1
+echo 'quit' >> ${temp}.zftp1
+zftp $rhost < ${temp}.zftp1 | \
+  tr '[A-Z]\011' '[a-z] ' | \
+  sed -n 's/^.*\[.*\]\(.*\);.*$/\1/p' > ${temp}.files
+#
+# Fetch files
+#
+echo "cd $vms_dir:q" >! ${temp}.zftp2
+foreach file ( `cat ${temp}.files` )
+  echo FETCHING FILE $file
+  rm -f ./data/$file >& /dev/null
+  if ( $file == 'ttb_140.dat' ) then
+    echo "getfz ttb_140.dat ./data/ttb_140.dat LFORM=Z LRECL=2044" >> ${temp}.zftp2
+  endif
+  if ( $file == 'pulse_param.dat' ) then
+    echo "getrz pulse_param.dat ./data/pulse_param.dat" >> ${temp}.zftp2
+  endif
+end
+echo 'quit' >> ${temp}.zftp2
+zftp $rhost < ${temp}.zftp2
+echo
+rm -f ${temp}.*

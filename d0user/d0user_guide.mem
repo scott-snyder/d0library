@@ -1,0 +1,791 @@
+
+
+
+
+
+
+
+                                                        D0 NOTE#476 (v5.41)
+                                                        March 12,1990
+                                                        Revised March 20, 1991
+                                                        H.B.Prosper
+                                                        Revised March 18, 1992
+                                                        S. D. Protopopescu
+
+                    USER'S GUIDE TO THE D0USER PROGRAM 
+                    ===================================
+                     Author: S. D. Protopopescu
+                     version 5.41
+
+
+
+
+
+             I. INTRODUCTION       
+
+         
+            II. GENERAL DESCRIPTION
+
+
+            III. UTILITY FUNCTIONS
+
+
+             IV. EXECUTING D0USER
+    
+
+              V. APPLICATIONS LIBRARIES AND PACKAGES
+
+
+             VI. EXAMPLE OF A RUN WITH DST_D0USER
+
+
+            VII. WARNINGS
+                                                                Page 2
+
+
+   I. INTRODUCTION       
+
+
+         The   program  D0USER  is  intended  as an   offline  tool,  for code
+   development and data analysis. It  provides a framework with many interface
+   subroutines    (user  hooks)  to  give a  great  deal  of   flexibility and
+   interactive capability. Users can request a data input file and also define
+   and select  multiple output streams  for writing data  in standard D0 Zebra
+   format.  The D0 command  interpreter  package  COMPACK  is used for
+   choosing alternative  options and D0HPLT for examining HBOOK
+   histograms interactively. The D0  Program Builder (PROGRAM_BUILDER) must be
+   used to generate  the user  interfaces for a new  application package. This
+   makes it possible  to combine  packages if so desired.  The user interfaces
+   call user supplied  driving subroutines, these  subroutines must be logical
+   functions  with  no  arguments (see  the    D0$DOCS:PROGRAM_BUILDER.DOC and
+   USERS_GUIDE.MEM  in  D0$PROGRAM_BUILDER).  Although there  are many options
+   available   interactively,  which  can be  exploited by   supplying driving
+   subroutines, the  user is free to  ignore them, none of  them are required.
+   When modifying  existing packages  the user will  probably rarely modify an
+   interface or need to interact with  the PROGRAM_BUILDER (see section VI for
+   examples). The  PROGRAM_BUILDER will also  generate a link file and a setup
+   command file. The hooks available in D0USER are given in D0$PBD:
+   D0USER_FRAME.PBD, for a description of the hooks see D0$PBD:MASTER_HOOK.PBD
+
+       D0USER version  5.0 has  incorporated the event dump  facility and uses
+   the    FLAGS    facility      extensively   (see       FLAGS_GUIDE.DOC  and
+   EVENT_DUMP_GUIDE.DOC  in  D0$OFFLINE_UTIL).  The dump  facility generates a
+   file E_run#_event_id.DUMP for every event dump request (one file/event). If
+   one  asks  to  have  the  event   dump on  the   screen  EVEDT  is  invoked
+   interactively (read-only mode) and accesses the file.
+
+       D0USER    works   with   HBOOK4  and   stores    histograms  to a  file
+   D0USER_run#.HST4 where run# is the last run# seen. If no directory has been
+   specified  by  the user  the  histograms  will be  in the   package default
+   directory (if none then in the top  directory //PAWC). 
+
+       The utility (in EVENT_UTIL library) EVTWOS is used for output files and
+   character strings  are used to  specify output streams.  It is  possible to
+   drop (or add) banks to any output streams when requesting an output stream.
+   The output  streams STA and  DST are the  standard streams  (STA will write
+   everything unless  otherwise  requested, DST will only  write the PROC bank
+   plus support and dependents). 
+
+       Output streams are also handled via flags, an event is written to ouput
+   stream  XXX  if  flag    WRITE_STREAM_XXX is  true,  they  are set  to true
+   automatically when user defines this  output streams chosing option 'Output
+   Data files'  (see next  section).  User can  define his own  output stream,
+   D0USER has 3 names reserved: STA, DST and EDS. The last is used for writing
+   to on request with the event display.
+
+       Wild cards  are allowed  for data input  files if one  does not specify
+   that the file  comes from  tape. If one  tells the program  files come from
+   tape the wild card option is  disabled. When using 'Auto Process' all files
+   satisfying string with  wild card will be  processed. With 'Manual Process'
+   program will go through all files  until the number of events requested has
+                                                                Page 3
+
+
+   been reached. There is also an option to supply a list of input files to be
+   processed. The list has to be an ASCII file with one line per file and must
+   be assigned to the logical FILE_NAMES. The list cannot contain wild cards.
+
+         The .OLB's and needed  command files are in  D0$D0USER, the structure
+   charts   and   menu  STD in      D0$D0USER$STRUC  and  the  menu   files in
+   D0$D0USER$MENU.   The menu  state  transition  diagram   D0USER_MENUS.STDIA
+   provides a  quick overview of  the menu  organization. In  addition to menu
+   commands  and dialog  the user  interacts  with the  program  via interface
+   subroutines. The  D0USER programs  are build from at  least 2 OLB's (and of
+   course utility libraries): FRAME.OLB with the subroutines for the framework
+   and one or more task.OLBs which are  application dependent. The sources for
+   the FRAME olb are in D0$D0USER$FRAME. 
+
+
+                                                                Page 4
+
+
+
+   II. GENERAL DESCRIPTION
+
+
+         The program is organized into  three nested levels: job level, run
+   level  and  event  level.  For  details  on the   interface  subroutines
+   mentioned below see section III.
+
+   JOB  LEVEL:   Initialization  of  input and  output   files, and  histogram
+   definitions are done at  the job level. There are  two menus at this level,
+   one for selecting files  and defining levels of  output and another for the
+   dynamic histogram  package. If input or output  data files are not provided
+   it assumes user doesn't need any. Up to 8 output streams are allowed during
+   a given job. At this  level the user can select  various options which will
+   cause       the         following         interfaces   to   be      called:
+   USDIAL,USRSSM,USUSM,USETSS,USETUS    and USZERO.  Before any  dialogues and
+   menus  USRINI  is  called.  Two  summary  output  files are   available for
+   printouts:D0USER_run#.OUT   (standard) and  USER.OUT.  D0USER_run#.OUT will
+   automatically  contain all defined  histograms unless  otherwise requested.
+   USER.OUT normally has no  histograms unless  otherwise requested. Users can
+   contribute   to  the  standard   summary  output  file   supplying  driving
+   subroutines to be called  by USRSSM. There are  two ways of contributing to
+   USER.OUT, one is via driving  subroutines to be called by USRUSM, the other
+   is directly  by writing  to  unit=USUNIT().  USUNIT is an  integer function
+   supplying the unit number of USER.OUT. Interface  USETSS is called when set
+   summary options is requested, they  are provided to give users some control
+   interactively over the level of output. A job can be terminated at any time
+   by giving the command QUIT in any of the menus . The job will not terminate
+   unless   specifically  instructed or  the  option 'Auto   Process' has been
+   chosen.  Run and  event  processing  starts  by  requesting  option 'Manual
+   Process' or 'Auto  Process' in the  SETUP menu. The  command 'Auto Process'
+   assumes the user  wishes to process  all runs and  events on a file without
+   any parameter  changes and then  quit, bypassing all  other dialog. One can
+   still   have  an   interrupt  mode   with  'Auto   Process'  but  the  menu
+   DONE_WITH_DATA  will not be  accessible (i.e. request  'Stop Processing' at
+   INTERRUPT menu causes program to terminate). Menus available at Setup stage
+   are: 
+
+   Menu: D0USER SETUP 
+
+      1: Manual Process                      2: Auto Process
+      3: Input Data File                     4: Output Data Files
+      5: Set Interrupt Menu                  6: User Dialog
+      7: Event Displays                      8: Define dumps
+      9: Zero Summaries                     10: D0HPLT package
+     11: QUIT                               12: Start Logging to File
+     13: Stop Logging to File               14: Run Command File
+     15: Switches                           16: Control Menu
+            
+   Options 1 or 2 start event  processing, 1 will process as many events as
+   requested in dialog, 2  assumes user wants to  process all events on all
+   files, generate standard output and quit.
+
+   Option 3 asks for input data file, 4 to define output data files.
+
+                                                                Page 5
+
+
+   Option 6 calls the JOB_DIALOG  hook. User may use this hook to supply
+   his own setup dialog and menus.
+
+   Option 7 allows user to define and request event dsiplays before starting
+   event processing.
+
+   Option 8 allows user to define and request event dumps before starting
+   event processing.
+
+   Option 9 clears all histograms and calls user hook USZERO. This hook
+   should be used for zeroing user summaries.
+
+   Option 12 will start logging in all commands to a command file, user
+   is asked for a name, the resulting file is called SETUP$name.INP
+   This file can be edited.
+
+   Option 13 will stop logging commands and close the command file.
+
+   Option 14 will read commands from a logging file (SETUP$name.INP)
+
+   Option 15 will give access to run-time switches
+   to turn on or off packages (see section III).
+
+   Requesting option 10 gives the following menu:
+   SUB_LEVEL: D0H OPTIONS (SETUP) 
+
+      1: Plot a Histogram                    2: Index of histograms
+      3: Change directory                    4: Laser Plot
+      5: Show Histogram Title                6: Type Histogram
+      7: Print Histogram                     8: Store Histogram
+      9: Preceding Plot                     10: Same Plot
+     11: Next Plot                          12: User Dialog
+     13: QUIT                               14: Control of Menu
+    
+   Command 5 only works properly in line mode. Line mode should be
+   used for histograms if the plotting is sharing the screen with
+   COMPACK.
+
+   RUN LEVEL: A file may contain more  than one run, parameter definitions are
+   assumed  to be  needed at the  run level,  if all  runs are  expected to be
+   treated   equally a   switch is   provided to  bypass  run  dialog  for all
+   subsequent runs.  No menu is setup  at this level but  there is some dialog
+   before a run  starts which can be  bypassed after the  first run. Among the
+   questions is  whether you  want to store  histograms, if  the answer is yes
+   histograms   will be  stored  in  standard  HBOOK  format  in a  file named
+   D0USER_run#.HST.    Individual   histograms can  be  stored at  any time by
+   requesting option 'Store Histogram'  in the D0H OPTIONS menus or (see EVENT
+   LEVEL) the HISPAK menu. At this  level the following interfaces are called:
+   USRPAR for reading user run  parameters, USRWRT before begin- or end-of-run
+   record  is  written, this  gives a  chance to  the user  to  modify what is
+   written  out to  output  streams. If the  user  interface  called by USRWRT
+   returns with value false the record will not be written. USENDR gets called
+   at  the end  of  each run,   should be  used  by user  for  any  end-of-run
+   summaries.  At  the  end of  each  run a  menu   DONE_WITH_DATA  appears if
+   processing was started  by a 'Manual Process'  request. It provides options
+                                                                Page 6
+
+
+   for continuing, going  back to setup, finishing,  calling SUMMARIES menu or
+   the D0H  OPTIONS  menu. The  command  'Finish' will  generate  the standard
+   summary output file D0USER_run#.OUT  with all histograms (unless redefined)
+   and exit the program. The command  'QUIT' will exit program without writing
+   any sumary output files. 
+
+   SUB_LEVEL: DONE_WITH_DATA    
+
+        1:    Continue processing        2:    Finish              
+        3:    Status Report              4:    Examine histograms  
+        5:    Setup                      6:    QUIT                
+        7:    Summaries                  8:    Control Menu        
+
+   Option 1 goes back to the processing loop
+   Option 2 ends job producing summary output files
+   Option 4 brings back the D0H OPTIONS menu
+   Option 5 brings back the Setup menu
+   Option 7 leads to the following menu:
+
+   SUB_LEVEL: SUMMARIES (DONE_W_DATA)    
+
+       1:    D0HPLT package             2:    User output 
+       3:    Standard output            4:    Status Report 
+       5:    Set user output            6:    Set standard output 
+       7:    User Dialog                8:    Setup 
+       9:    QUIT                      10:    Control Of Menu
+
+   This menu can also be reached from the event level if the interrupt
+   option has been chosen at Setup time.
+   Option 2 issues a call to interface USRUSM and generates summary
+   ouput file USER.OUT. Unless modified by requesting option 5  it
+   contains no histograms.
+   Option 3 issues a call to interace USRSSM and generates summary
+   output file D0USER_run#.OUT. Unless modified by requesting option 6
+   it contains all histograms.
+   Option 5 issues a call to interface USETUS and a dialog for adding
+   or removing histograms from user summary output file USER.OUT
+   Option 6 issues a call to interface USETSS and a dialog for adding
+   or removing histograms from standard summary output file D0USER_run#.OUT
+   Option 7 issues a call to USDIAL, this option permits user to go
+   through his setup dialog without returning to Setup.
+
+   EVENT LEVEL:     For  every event the subroutine  USREVT is called after
+   an event record is read  in. The user has the  option of running with an
+   interrupt menu (one of  the options in the main  job menu). If he choses
+   that option  an AST  will setup a  menu on the  screen  while events are
+   being processed. The interrupt menu  provides 11 commands: 
+
+   In INTERRUPT mode: D0USER INTERRUPT (DATA) 
+    
+       1:    Status Report              2:    Pause or Process 
+       3:    Examine histograms         4:    User Pause
+       5:    Define Dumps               6:    Dump Event                 
+       7:    Write Event                8:    Display Event              
+       9:    Summaries                  10:   Stop Processing           
+                                                                Page 7
+
+
+      11:    Control Menu
+
+
+   Status Report: 
+       The program will send a status  report and call USRPST which in turn
+   calls the users contribution to a status report.
+
+   Pause or Process: 
+       The program remains in the event loop but no new events are read and
+   USREVT is not called. This pause has been implemented in anticipation of
+   the  time when  a  facility  will be  available  for  using the  dynamic
+   histogramming  package with control over event processing.
+
+   User Pause: 
+       logical  function EVPAUS  returns  true and the  AST controlling the
+   screen  for  INTERRUPT menu  is turned  off. The  user can  set menus or
+   dialogs of his own during one event processing. EVPAUS is reset to false
+   for the next event.
+
+   Define Dump: 
+       see D0$OFFLINE_UTIL:EVENT_DUMP_GUIDE.DOC
+
+   Dump Event:              
+       see D0$OFFLINE_UTIL:EVENT_DUMP_GUIDE.DOC
+
+   Display Event: 
+       PIXIE interface will be called to generate an event display.
+
+   Write Event: 
+   the  Zebra  bank  information  for one  event  will be   written to file
+   E_run#_id#.DAT. Each request  generates a new file.  The user can do the same
+   thing by CALL   FLGSET('WRITE_EVENT',.TRUE.). The  flag WRITE_EVENT gets
+   automatically reset to .FALSE. after the event is written out.
+
+   Summaries: 
+       calls Summaries menu.  This menu provides  options for defining what
+   goes to D0USER_run#.OUT and USER.OUT and whether one wishes any of those
+   files generated. One can also access the D0HPLT menu.
+
+   Examine Histograms:
+       This  replaces the  DATA  INTERRUPT menu  with the  HISPAK INTERRUPT
+   menu. All D0HPLT options are available.
+
+   Stop Processing: 
+       will cause exit from event loop.
+
+
+
+   chosing option 3 leads to the HISPAK interrupt menu
+   In INTERRUPT mode:  D0USER HISPAK INTRPT (DATA) 
+    
+       1:    Status Report              2:    End Hispak Menu  
+       3:    Plot a histogram           4:    Change directory     
+       5:    Laser Plot                 6:    Index of Histograms  
+       6:    Type Histogram             7:    Show Histogram Title 
+                                                                Page 8
+
+
+       9:    Store Histogram           10:    Print Histogram      
+      11:    Same Plot                 12:    Preceding Plot       
+      13:    Pause or Process          14:    Next Plot            
+      15:    Control of Menu
+
+   From any menu with an option 'Control of Menu' one can
+   access a menu with special COMPACK facilities:
+
+   SUB_LEVEL: Control of Menu    
+
+       1:    Spawn subprocess           2:    Change Columns in Menu 
+       3:    Run Command File           4:    Set up Command File 
+       5:    Start Logging to File      6:    Stop Logging to File 
+       7:    Add Menu Item              8:    Split Screen 
+       9:    Single Screen             10:    Top Level Menu 
+      11:    Refresh Screen 
+                                                                Page 9
+
+
+
+
+   III. UTILITY FUNCTIONS
+
+
+       A number of utility functions and subroutines can be used with D0USER
+   to facilitate communications, for details see:
+   D0$EVENT_UTIL$DUMP:EVENT_DUMP_GUIDE.DOC
+   D0$EVENT_UTIL$EVENT_IO:EVENT_IO_GUIDE.DOC
+   in addition there are some utilities specific to D0USER, those not
+   in the above documents are listed below:
+
+
+   EVTPAUS (logical function): if true there has been a request for user 
+           pause. The interrupt menu has been cancelled and user has control
+           of the screen. 
+
+   FINISH (subroutine): at any time user may call FINISH to terminate
+          program and generate output files (D0USER_run#.OUT and
+          USER.OUT)
+
+   MTISTA (character*8 function): menu title status, this should
+          be used for menu titles if there is need to display
+          status of program on a title (i.e. PAUSED or DATA)
+
+   INPUT_F_INFO(FILE_NAME,XOPT) (subroutine): returns the name of the input file
+            from which event was read, XOPT='X' or 'G' for exchange modes.
+
+   STNRVN(NEVRUN): can be used to override number of events requested for 
+          run. Note that if NEVRUN<0 program assumes all events in file
+          are to be processed.
+
+   SETSTR(FLAG): if FLAG is true histograms will be stored at the end of
+          the run. This is used when user choses option to store histograms.
+          The user could turn on or off the storing by calling SETSTR any time
+          during event processing.
+
+   USNRVN (integer function): returns number of events requested for run.
+
+   QUITS  (subroutine): a call to QUITS will terminate program gracefully
+          without generating output files. This should be used rather than
+          a STOP or CALL EXIT statement. If running interactively and
+          user does not terminate with QUITS screen may be left in
+          a bizarre state.
+
+       In addition D0USER uses the following flags:
+   'CANCEL_EXAMINE','CANCEL_INTER','EVENT_DISPLAY','EXAMINE','STATUS',
+   'SUMMARIES', and all flags in the event dump facility. These flags
+   should NOT be set or booked by the user. The flag 'DUMPU_REQ' is
+   set to true whenever there is a user dump request and it is up to the
+   user to check its value and decide what to do (see EVENT_DUMP_GUIDE.DOC).
+
+   There are also flags used by the EVENT_IO facility:
+   'WRITE_STREAM_XXX' if true write to output stream XXX
+   'WRITE_EVENT' if true write a file EVENT.DAT with one event if no output
+                                                               Page 10
+
+
+   stream EDS has been defined. If EDS has been defined then write to EDS
+   output stream.
+                                                               Page 11
+
+
+
+   IV. EXECUTING D0USER
+
+       The  first  time  user  wants to   generate an  .EXE  for a  particular
+   application he  must run the  PROGRAM_BUILDER. Users  not familiar with the
+   program builder should read D0$DOCS:PROGRAM_BUILDER.DOC. To use an existing
+   package he simply needs to:
+
+   $ PBD/FRAME=D0USER/PACKAGES=DST
+
+   this will generate  files:
+   DST_D0USER.FOR, DST_D0USER.LNK,  DST_D0USER.COM,  DST_D0USER.OPT
+   DEB_DST_D0USER.OPT, DST_D0USER.OBJ and DEB_DST_D0USER.OBJ
+
+   The user can take the DST package from the library (D0$PBD:DST.PBD)
+   and edit it to add additional hooks. When the program builder is
+   invoked it will first look for the PBD file in the user directory
+   and then in the library.
+
+   After running PBD user should edit (DEB_)DST_D0USER.OPT if he wishes to add
+   subroutines of  his own to the  program and is ready   to link. There are 2
+   options: DEBUG and DI3000 which can be given in any order. For example:
+
+   $ @DST_D0USER.LNK 
+
+   will generate a non-DI3000 version of DST_D0USER.EXE
+
+   $ @DST_D0USER.LNK DI3000 DEBUG
+
+   will generate a DI3000 version of DST_DEB_D0USER.EXE.
+
+   Before running DST_D0USER.EXE it is necessary to execute the
+   command file,i.e.:
+   $ @DST_D0USER
+   this assigns all files needed by the program to the appropriate
+   logical names. It also defines the symbols D0USER and DEB_D0USER
+   so that to execute the program one can:
+
+   $ D0USER/FULL
+   to start in full screen mode
+
+   $ DEB_D0USER/NOSMG
+   to disable the menu screen mamagement when using the debugger
+
+       A combined package can also be easily generated from library
+   packages:
+
+   $ PBD/FRAME=D0USER/NAME=ISAJET/PACKAGES=(ISAGEN,ISANALYZE)
+
+       will generate  the appropriate  ISAJET_D0USER files  for a program that
+   combines ISAJET event generation and analysis. One's own package can easily
+   be mixed with a library one by:
+
+   $ PBD/FRAME=D0USER/NAME=mine/PACKAGES=(ISAGEN,mine)
+
+                                                               Page 12
+
+
+   this generates mine_D0USER files. Note that the program builder always
+   looks in the user area for a package before searching for it in D0$PBD
+   directory.
+
+       It is also possible to combine packages with combined-packages. For
+   example, ALL_DISPLAY is actually a combined-package:
+
+       ALL_DISPLAY_COMBINED.PBD
+
+   made up from ALL_DISPLAY,COMBDIS,VTXDIS,TRDDIS,FDCDIS,CDCDIS,CALDIS and
+   MUODIS. To combine ALL_DISPLAY_COMBINED with another package do:
+
+   $ PBD/FRAME=D0USER/NAME=mine/PACKAGES=(mine,ALL_DISPLAY%)
+
+   The % symbol at the end of a name denotes a combined-package.
+
+       To  generate a command  file at  any menu  level the user  must request
+   option 'Start Logging'. This puts  program in logging mode and all requests
+   from then on will be  stored into a command file,  the logging may be ended
+   at any level by requesting option  'Stop Logging' . Note that commands from
+   an  interrupt menu are  not logged.  To read a  command  file the user must
+   request   option  'Run  Command  File'.  The  command  files  generated are
+   identified by  having the menu  title as part of  their name, for example a
+   command file named TEST made starting in the SETUP menu  will appear in the
+   user area as SETUP$TEST.INP. This file can be edited and useful when one is
+   running the same commands over and  over with small variations. To run with
+   a command file bypassing all dialog:
+
+   $ D0USER/COMMAND=SETUP$TEST.INP
+   this is also useful when submitting a batch job. The batch command file
+   should have the line:
+   $ D0USER/NOSMG/COMMAND=SETUP$TEST.INP
+   when running batch jobs is best to disable the screen management.
+
+       COMPACK provides  a help facility  with menu  instructions, user should
+   familiarize himself with  all the options by  hitting PF2 (help) with every
+   menu  command. When the  user knows  exactly  what he wants  it may be more
+   convenient  to use  COMPACK in line  mode  rather than full  screen. In all
+   menus there is an item 'Control Menu' which will put up a menu with COMPACK
+   facilities such as 'Split Screen', 'Spawn', etc. 
+
+                                                               Page 13
+
+
+
+   V. APPLICATIONS LIBRARIES AND PACKAGES
+
+
+           Standard   versions for   applications can  be  maintained with the
+   D0LIBRARY. To  generate an  application  library one needs  to create a CMS
+   group in [D0CMS.D0USER] with the  name of the application, at present there
+   is only one application  library PHYSICS. The  interfaces FOR most applications
+   reside in  other libraries.  It is also  expected that  users will generate
+   USER PACKAGES with the Program Builder for each application. Those packages
+   which are intended for more than  personal use are converted to LIBRARY
+   PACKAGES and kept in the D0 library. D0USER has at present the following
+   library packages:
+
+
+       CALORIMETER PACKAGES:
+
+   CAHITS:         calorimeter hit finding
+   CAJETS:         find jets 
+   CALOR:          calorimeter overall initialization, must be used with every
+                   calorimeter package except CANALYSIS
+   CAPHEL:         find electrons and photons
+   ISA_CAEP:       generate a CAEP (packed calorimeter hits) bank directly
+                   from ISAJET data. This bank hangs from FAKE (not RECO).
+
+
+       CENTRAL TRACKING PACKAGES:
+
+   DTRAKS:         central drift chamber tracking
+   FTRAKS:         forward  "      "       "
+   TRD   :         unpack TRD hits and initialize TRD 
+   VTRAKS:         vertex  drift chamber tracking
+   VERTEX:         find primary vertex 
+   ZTRAKS:         central tracking, equivalent to combining all tracking packages
+
+
+       MUON PACKAGES:
+
+   MURECO:         muon reconstruction
+   MUONS:          muon fitting with central tracking
+
+
+       ISAJET PACKAGES:
+
+   ISAGEN:         ISAJET event generation
+   ISANALYZE:      ISAJET event analysis
+
+
+       PIXIE DISPLAY PACKAGES:
+
+   VTXDIS:         VerTeX DISplay
+   TRDDIS:         Transition Radiation Detector DISplay
+   FDCDIS:         Forward Drift Chamber DISplay
+   CDCDIS:         Central Drift Chamber DISplay
+   CALDIS:         CALorimeter DISplay
+                                                               Page 14
+
+
+   MUODIS:         MUOn DISplay
+   COMBDIS:        COMBined-views DISplay
+   ZTRAKSDIS:      ZTRAKS DISplay
+
+   Consult the document D0$PIXIE:PIXIE_GUIDE.MEM for more details.
+
+
+       MISCELLANEOUS PACKAGES:
+
+   ALL_DUMP:       do full event dumps for any input file.
+   MCDATA :        provide options for FAKE and GEAN paths, drop MC banks
+   DST    :        example DST analysis
+
+       COMBINED PACKAGES:
+
+   ALL_DISPLAY_COMBINED:  do full event display using as input an event 
+                                   reconstruction file
+
+   FAKE_COMBINED :         generate FAKE events (now only combines MCDATA
+                                   and ISA_CAEP)
+   RECO_COMBINED:         full event reconstruction
+
+
+
+                                                               Page 15
+
+
+
+
+   VII. EXAMPLE OF A RUN WITH DST_D0USER
+
+
+   First you must run program builder
+    $ PBD/FRAME=D0USER/PACKAGE=DST
+
+     To generate DST_D0USER.EXE:
+    $ DST_D0USER.LNK  
+      
+      To setup symbols:
+    $ @DST_D0USER
+
+      To run:
+    $ D0USER/FULL    ! to start with full screen menus
+
+   The SETUP menu will appear
+
+   Below each option is an example of dialog:
+   --------------------------------------------------------------
+
+   Option: Set Interrupt Menu
+   ---------------------------
+
+    You want an interrupt menu? [Y]:         ! yes turns on interrupt menu
+   Interrupt menu turned ON                  ! information on your screen
+
+    Cancel interrupt menu for each begin run? [Y]:   ! answer N only if your
+                                                     ! package has a menu for
+                                                     ! each run
+     
+   Option:  Input Data File          
+   --------------------------
+   Will you be reading files from tape? [N]>         ! Y disables wild card
+                                                     ! feature  
+   If you give wild card all files with given string are processed !             
+   but option Manual Process will stop after N events requested.   !             
+   If you give generic name no wild card will be allowed           ! information 
+   If generic name points to a tape stage will be invoked          ! that will   
+   If name of input file is NONE no file will be open.             ! appear on   
+   If name of input file is FILE_NAMES expect logical FILE_NAMES   ! your screen 
+   to be assigned to an ASCII file with lists of files.            !             
+
+   Input File Name> DST.DAT              ! answer with name of file
+   Input file modes are X (exchange), G (special X), or N (native) ! information
+
+    File mode X,G or N ? [N]:>       ! normal exchange mode is X
+
+
+   Option: Output Data File          ! select output stream
+   ------------------------
+                                                                   !             
+    DST default: drop GEAN, HITS and raw data                      !             
+   Give STA or DST to select Standard or DST output stream.        ! information 
+                                                               Page 16
+
+
+   Give EDS for Write Event option to write to EDS output stream.  ! that will   
+   If ALL then all output streams will be dropped.                 ! appear on   
+   Any other (CHARACTER*3) for your own.                           ! your screen 
+                                                                   !             
+    Output stream, 3 CHARACTERS,<cr> exit >STA
+
+   If name of an output file is NONE no file will be open     ! information
+   and output stream will be dropped.                         ! on screen
+
+    Name for output file >MY_STUFF
+   Output file modes are X (exchange), G (special X), or N (native)
+
+    File mode X,G or N ? [N]:>
+
+    Write only event records(no b-o-r or e-o-r)? [N]>Y
+   Banks dropped from STA stream:
+   ...
+
+    Want to add or remove from list? [N]>Y         ! you want to drop banks
+
+    Add to drop list, end with <cr> >ISP2
+
+    Add to drop list, end with <cr> >ISP1
+
+    Add to drop list, end with <cr> >               ! you are done dropping
+
+    Remove from drop list, end with <cr> >          ! you don't want to remove
+
+   Banks dropped from STA stream:          ! information
+   ...ISP1...ISP2...                       ! on screen
+
+                 
+   Option:  Manual Process           ! start processing, user decides         
+   ------------------------          ! how many events to process and to skip 
+                                     ! you can use 'Auto Proces' instead      
+                                     ! to process all events on file          
+                                                                              
+
+   Store histograms ? 0=NO, 1=after each run, 2=end of job only >2
+
+   Processing :DST.DAT                  ! information on screen
+
+    Process all events for remaining runs? Y/N >N
+
+   Give cumulative number of events to be processed  ! information
+   including skips and already processed events.     ! on screen
+   -1 will process all events in file.               !
+
+    Number of events >100                            ! pick  numbers
+
+    Number of events to skip from beginning of file. Default is 0. >
+
+   -------------------------------------------------------------------
+
+       After the above dialog processing of events start. An interrupt menu
+                                                               Page 17
+
+
+   will  appear  which  allows  user  to ask  for  status   report, examine
+   histograms, display events (active only with DI3000 load) or dump events
+   while  processing.  When finished following message will appear
+
+   Run 90011 Event 152                       Total read =  100 
+                                                               
+   and the menu DONE_WITH_DATA will appear. 
+   At this point:
+
+   If you pick 'Continue' you can ask for another file or more events. 
+
+   If you pick  'Finish'  outputfiles will be  generated:  D0USER_run#.OUT for
+   printout  of  histograms  and your  own  contributions  to job  summary and
+   D0USER_run#.HST4 an RZ file with histograms to use with PAW.
+
+   If you pick QUIT program will terminate without generating output files. 
+
+   You can  process all  data on a  file, generate  output files  and skip the
+   DONE_WITH_DATA  menu by  picking  option 'Auto  Proces'  instead of 'Manual
+   Proces'. This  option is usually  more convenient for  batch jobs. Also the
+   use of a FILE_NAMES file is more  convenient for processing many files with
+   a batch job. To prepare for a batch job you should first generate a command
+   file by picking option 'Start Logging to File'. You will be asked:
+
+    Enter name of file to save commands in > MINE
+
+   The go through the steps needed to run your job and exit D0USER.
+   You will now have a file SETUP$MINE.INP. This file can be edited to
+   change the answers.
+
+   To run a batch job all you need is a command file with the following
+   instructions:
+
+   $ SET DEF [directory_of_your_job]
+   $ @DST_D0USER
+   $ D0USER/NOSMG/COMMAND=SETUP$MINE.INP
+    
+
+                                                               Page 18
+
+
+
+
+
+   VIII. WARNINGS
+
+   1) Event Display  option only works  if the .EXE has  been created using
+      the DI3000 option.
+
+   2) If the same  screen is  used for  histograms and menu  commands it is
+      best to use line mode.
+
+   3) Compack command file is disabled after an Interrupt Menu appears.

@@ -1,0 +1,91 @@
+$!========================================================================
+$!
+$! Name      : FULLD0_D0GEANT.RUN
+$!
+$! Purpose   : Run D0GEANT V3.14 as a VMS batch job
+$!
+$! Arguments : P1    # triggers requested [default = 100]
+$!             P2    Input file [default in D0$D0GEANT:D0GEANT_SETUP.COM]
+$!             P3    Output file [default in D0$D0GEANT:D0GEANT_SETUP.COM]
+$!
+$! Created  28-FEB-1991   K. Wyatt Merritt
+$!
+$!========================================================================
+$   ON ERROR     THEN $ GOTO EXIT
+$   ON CONTROL_Y THEN $ GOTO EXIT
+$   WR :== WRITE SYS$OUTPUT
+$   WF :== WRITE file
+$!
+$ NODE = F$GETSYI("NODENAME")
+$ CPU_TYPE = F$GETSYI("NODE_HWTYPE")
+$!
+$ IF F$SEARCH("DEFINE.COM") .NES. "" THEN @DEFINE
+$ @D0$D0GEANT:D0GEANT_SETUP       ! MAKES STANDARD ASSIGNMENTS
+$ IF F$SEARCH("D0GEANT_USER.COM") .NES. "" THEN @D0GEANT_USER
+$!
+$ IF P1 .EQS. "" THEN P1 = 100
+$ IF P2 .NES. "" THEN DEFINE FOR031 'P2'
+$ IF P3 .NES. "" THEN DEFINE FOR032 'P3'
+$!
+$ IF F$TRNLNM("USR$EXE") .EQ. "" THEN DEFINE USR$EXE []
+$ IF "''D0GEANT'" .EQS. "" THEN D0GEANT :== "RUN USR$EXE:FULLD0_D0GEANT.EXE"
+$ SHOW TIME
+$!
+$ SHOW SYMBOL D0GEANT
+$ SHOW LOGICAL D0$STP
+$ SHOW LOGICAL USR$EXE
+$ SHOW LOGICAL FOR001
+$ SHOW LOGICAL FOR002
+$ SHOW LOGICAL FOR031
+$ SHOW LOGICAL FOR032
+$ WR ""
+$ WR " Running on "+NODE+", CPU is a "+CPU_TYPE
+$ WR ""
+$!
+$! If GSAVE.DAT doesn't exist, make a special run to save it.
+$!
+$ IF F$SEARCH("FOR001") .NES. "" THEN GOTO REALRUN
+$ D0GEANT
+0
+LIST
+SAVE 'INIT'
+PD0   2
+LBAT T
+ZBIO  31 32
+SHWG   1
+SCAL   1. 0. 1. 0. .001 0. 999. 0. 0. 0.
+STOP
+EXIT
+$!
+$! NOW RUN IT FOR REAL IN BATCH MODE
+$REALRUN:
+$!
+$!  Create a KUIP macro to pass the number of triggers requested to GEANT
+$!
+$   WR "  "
+$   WR "Creating file: INCOM.KUMAC..."
+$   WR "  "
+$   COPY NL: INCOM.KUMAC
+$   OPEN/APPEND file INCOM.KUMAC
+$!
+$ WF "TRIG ''p1'"
+$!
+$   CLOSE file
+$ D0GEANT
+0
+LIST
+GET 'INIT'
+LBAT T
+ZBIO  31 32
+SHWG   1
+SCAL   1. 0. 1. 0. .001 0. 999. 0. 0. 0.
+STOP
+SET/BREAK OFF
+EXEC INCOM
+EXIT
+$!
+$EXIT:
+$ SHOW TIME
+$ DELETE/NOCONF/LOG INCOM.KUMAC;*
+$EXIT:
+$   EXIT

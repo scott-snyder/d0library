@@ -1,0 +1,85 @@
+      SUBROUTINE CLUMRG
+C----------------------------------------------------------------------
+C-
+C-   PURPOSE AND METHODS :  MERGE THE TRD CLUSTERS WHICH ARE
+C      CLOSER THAN 'CLOSE' FROM ONE ANOTHER
+C-
+C-   INPUTS  :
+C-   OUTPUTS :
+C-
+C-   CREATED                A. ZYLBERSTEJN
+C-   Updated  12-SEP-1988   A. ZYLBERSTEJN
+C-   Updated  19-SEP-1988   J.R.HUBBARD/A. ZYLBERSTEJN
+C-   Updated  11-OCT-1988   J.R.HUBBARD     Include Cathodes
+C-
+C----------------------------------------------------------------------
+C
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:CLUSM.INC/LIST'
+      INCLUDE 'D0$INC:CLUSTR.INC/LIST'
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+      INCLUDE 'D0$INC:INFO.INC'
+C      INCLUDE 'D0$INC:WORKSP.INC/LIST'
+C
+      INTEGER I,II,J,K,NS,IMAT(LENGS,10)
+      REAL CLOSE,DCL,DE1,DE2,EX,MAT(LENGS,10)
+      EQUIVALENCE (MAT(1,1),IMAT(1,1),IWIRE(1))
+C
+      DATA CLOSE/5./
+C
+      NS =NSMEAR
+   12 CONTINUE
+      K=0
+      I=0
+   23 I=I+1
+      IF(I.EQ.NSMEAR)GO TO 80
+      IF(I.GT.NSMEAR)GO TO 104
+C  MAKE ONE CLUSTER WITH 2 CLUSTERS WHICH ARE CLOSER THEN "CLOSE"
+C  IF THEY ARE ON THE SAME WIRE
+      IF(IWIRE(I).NE.IWIRE(I+1))GO TO 80
+      IF (ISTRIP(I).NE.ISTRIP(I+1)) GO TO 80 
+      DCL=ABS(TIMEC(I)-TIMEC(I+1))
+      IF(DCL.GT.CLOSE)GO TO 80
+      K=K+1
+      EX=ECLES(I)+ECLES(I+1)
+      IF(EX.LE.ECLMIN)THEN
+        WRITE(LOUT,*)' PROBLEM_TRD IN CLUMRG,EX=',EX
+        WRITE(LOUT,*)'I,J',I,J,'ECLES(I),ECLES(J)',  ECLES(I),ECLES(J)
+        K = K-1
+        GO TO  23
+      END IF
+      DE1=ECLES(I  )/EX
+      DE2=ECLES(I+1)/EX
+      DO 33 II =  5,  10
+        MAT(K,II)=MAT(I,II)*DE1+MAT(I+1,II)*DE2
+   33 CONTINUE
+      IWIRE(K)=IWIRE(I)
+      IESCAP(K)=IESCAP(I)
+      NATCLU(K)=NATCLU(I)
+      ECLES(K)=EX
+      ISTRIP(K) = ISTRIP(I)
+      DSTRIP(K) = DSTRIP(I)*DE1 + DSTRIP(I+1)*DE2
+C      WRITE(LOUT,*)' CLUSTERS MERGES :',I,I+1,' K ',K,' DCL',DCL
+C      WRITE(LOUT,*)XCLES(I),XCLES(I+1),XCLES(K)
+      I=I+1
+      GO TO 23
+   80 CONTINUE
+      K=K+1
+      DO 85 II=1,3
+        IMAT(K,II)=IMAT(I,II)
+   85 CONTINUE
+      DO 90 II=4,10
+        MAT(K,II)=MAT(I,II)
+   90 CONTINUE
+      ISTRIP(K) = ISTRIP(I)
+      DSTRIP(K) = DSTRIP(I) 
+      GO TO 23
+  104 CONTINUE
+      IF(NSMEAR.GT.K)THEN
+        NSMEAR=K
+        GO TO 12
+C      ELSE
+C        NSMEAR=K
+      END IF
+      RETURN
+      END

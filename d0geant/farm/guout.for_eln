@@ -1,0 +1,79 @@
+      SUBROUTINE GUOUT
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : GEANT3 USER ROUTINE CALLED AT THE END OF EACH
+C-              EVENT. Fills GEANT histograms, writes out banks, and
+C-              optionally aborts the run, check the existance of the
+C-              file RUN$SAVE, if the file has been deleted by the user while
+C-              this program is running, the end of this run will be ended.
+C-
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created  11-JAN-1986   SL,AJ,SK,DH
+C-   Updated   6-MAR-1986   A.M.Jonckheere   Put in CALTOWER calls
+C-   Updated   6-DEC-1988   A.M.Jonckheere   Added LV0 and made in standard
+C-                              form.
+C-   Updated   5-JUN-1989   Harrison B. Prosper
+C-   Added hook LUOUT.
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$INC:GCFLAG.INC/LIST'
+      INCLUDE 'D0$INC:GCLIST.INC/LIST'
+      INCLUDE 'D0$INC:GCNUM.INC/LIST'
+      INCLUDE 'D0$INC:D0LOG.INC/LIST'
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+C
+      LOGICAL EXISTR
+C
+      INTEGER IDENT,IER
+      INTEGER IUNIT
+C
+      CHARACTER*4 LSAVEC(20)
+      CHARACTER*4 LGETC(20)
+C----------------------------------------------------------------------
+C
+C ****  GTIMER after tracking, before output (another is in GUTREV)
+      IF ( DTRK.NE.2 .AND. PD0.GT.0 ) THEN
+        CALL GTIMER('Event Tracking TIME')
+C ****  Reset GTIMER
+        CALL RGTIMER('START OF OUTPUT SECTION')
+      ENDIF
+C
+C ***********************
+C ****  USER HOOK LUOUT
+C ***********************
+      CALL LUOUT
+C
+C ****  Output Zebra structures...
+      CALL ZEBOUT
+C
+C&IF VAXVMS,ETA10,UFFARM,SIUNIX,ULTRIX,IBMAIX,SUNOS,ALFOSF
+C&      CALL GFHSTA      ! Fill GEANT histograms
+C&ENDIF
+C
+      IF(NSAVE.GE.2)THEN
+        CALL UHTOC(LSAVE(2),4,LSAVEC(2),4)
+        CALL GSAVE(2,LSAVE(2),NSAVE-1,IDENT,IER)   ! Save banks on SAVE card
+      ENDIF
+C
+C&IF VAXVMS,ETA10,SIUNIX,ULTRIX,IBMAIX,SUNOS,ALFOSF
+C&      INQUIRE(FILE='RUNSAVE',EXIST=EXISTR)
+C&      IF(EXISTR) THEN
+C&        CALL GTUNIT(10,IUNIT,IER)
+C&        OPEN(UNIT=IUNIT,FILE='RUNSAVE',STATUS='OLD') ! Dump to file
+C&        WRITE (IUNIT,9255) IEVENT,NRNDM,NTRACK
+C& 9255   FORMAT(3X,'EVT.NUM, NRNDM AND NTRACK',4I10)
+C&        CLOSE(UNIT=IUNIT,STATUS='KEEP')
+C&        CALL RLUNIT(10,IUNIT,IER)
+C&      ELSE
+C&        CALL UGLAST       ! signal for abort,file has been deleted
+C&        STOP
+C&      END IF
+C&ENDIF
+C
+  999 RETURN
+      END

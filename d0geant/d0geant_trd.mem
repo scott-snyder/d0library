@@ -1,0 +1,1681 @@
+
+
+
+***********************************************************************
+*                                                                     *
+*   DESCRIPTION OF THE TRD MONTE-CARLO PROGRAM FLOW CHART AND LIST    *
+*  OF THE TRD ROUTINES WITH THEIR HEADER (PROVISIONAL)                *
+*                                                                     *
+*                      A.ZYLBERSTEJN  6-APR-87                        *
+*      Modified        A.ZYLBERSTEJN 14-JAN-87      VERSION 1.1       *
+*                                                                     *
+***********************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+                              CHAPTER 1
+
+
+
+
+
+                          INITIALIATION CONSTANTS
+                          -----------------------
++------+                  
+|UGINIT|                  
++------+                  
+    |--                   
+       |                  
+    +------+              
+    |INICEN|              
+    +------+              
+        |        +------+ 
+        |--------|INITRD| 
+                 +------+ 
+                    | |           +------+
+                      +-----------|TRDCON|
+                    |             +------+
+                    |                 |           +------+
+                    |                 +-----------|TRDSTP|
+                    |                             +------+
+                    |
+                  TTRD<2     :DEAL WITH CLUSTERS
+                    |           +------+
+                    +-----------|INITAB|
+                    |           +------+    +------+
+                    |               |-------|TRDFMY|
+                    |                       +------+
+                    |                           |      +------+
+                    |                           +------|TRABSL|
+                    |                                  +------+
+                    +--DTRD GE 3--+
+                    |             |            + ------------------------+
+                    |             + -----------| open and read SHAPE_TRD |
+                    |             |            +-------------------------+
+                    |             |           +------+
+                    |             +- ---------|TRDCAL|
+                    |                         +------+
+                    |                            |       +------+
+                    |                            +-------|TRDSHP|
+                    |                            |       +------+
+                    |                            |       +------+
+                                                              Page 1-2
+                                                          11 July 1997
+
+
+                    |                            +-------|TRCLUF|
+                    |                            |       +------+
+                    |                            |       +------+
+                    |                            +-------|DRAWPT|
+                    |                                    +------+
+                    |
+                    +-- TTRD=0     :CREATE AND WRITE TABLES FOR CLUSTERS
+                    |         +-----+
+                    +---------|TRTABL|
+                    |         +------+              
+                    |             |        +------+ 
+                    |             +--------|TRDYLD|              
+                                           +------+ 
+                    |                          | 
+                    |                          +----+            
+                    |                               |   +------+ 
+                    |         +---------+           +---|TRDWDE| 
+                    +---------|RWXSPC(1)|               +------+ 
+                    |         +---------+
+                    +--TTRD=1     :READ TABLES FOR CLUSTERS
+                    |         +---------+
+                    +---------|RWXSPC(2)|
+                    |         +---------+
+                    +--TTRD=2     :DEAL WITH TOTAL DEPOSITED ENERGY
+                    |         +-------------------------------+
+                    +---------|open and read file XRAYDIST.DAT| 
+                    |         +-------------------------------+
+                    |         +-------------------------------+
+                    +---------|open and read file DELDIST.DAT |
+                              +-------------------------------+
+                                                              Page 1-3
+                                                          11 July 1997
+
+
+
+
+                      INITIALIZATION GEOMETRY                     
+                      -----------------------
+
++------+                  
+|UGINIT|                  
++------+                  
+    |--                   
+       |                  
+    +------+              
+    |GEODEF|              
+    +------+              
+        |        +------+ 
+        |--------|GEOTRD|              
+                 +------+ 
+                     + ------------+ 
+                     |             |
+                     |          +------+
+                     |          |GSROTM|
+                     |          +------+
+                     +-------------+
+                     |             |
+                     |          +------+
+                     |          |GSMATE|
+                     |          +------+
+                     +-------------+
+                     |             |
+                     |          +------+
+                     |          |GSTMED|
+                     |          +------+
+                     +-------------+
+                     |             |
+                     |          +------+
+                     |          |GSVOLU|
+                     |          +------+
+                     +--------------+
+                     |              |     
+                     |          +------+
+                     |          |GSATT |
+                     |          +------+
+                      
+
+                                                              Page 1-4
+                                                          11 July 1997
+
+
+
+                                  STEPPING
+                                  --------           
+
+
+
+
+
+
+
++------+
+|GUSTEP|
++------+
+    |-+
+      |
+   +------+
+   |GTVOL |
+   +------+
+      |
+      |
+      +---+
+          |
+      +------+    
+      |STPCEN| 
+      +------+ 
+          |
+          |
+          +------------+
+                       |
+                   +------+ 
+                   |STPTRD| 
+                   +------+ 
+                       |            +-------+
+                       +------------| ENTRD |
+                                    +-------+
+                                        |
+                                       STRD<2   
+                                        |          +------+
+                                        +----------|CLUDEL|
+                                        |          +------+
+                                        |             |        +------+
+                                        |             +--------|CLUMIX|
+                                        |                      +------+
+                                        |           +------+
+                                        | IF ELEC:--|CLURAD|
+                                        |           +------+           
+                                        |               |       +----+ 
+                                        |               +-------|XRAD|
+                                        |               |       +----+   
+                                        |               |       +-------+            
+                                        |               +-------|POISSON|            
+                                        |               |       +-------+            
+                                        |               |                      
+                                        |               -------LOOP ON X RAYS  
+                                                              Page 1-5
+                                                          11 July 1997
+
+
+                                        |               |        +------+ 
+                                        |               +--------|INTERP| 
+                                        |               |        +------+ 
+                                        |               |        +------+ 
+                                        |               +--------|CLSMEN| 
+                                        |               |        +------+ 
+                                        |               |
+                                        |               --------END LOOP  ON X RAYS
+                                        | 
+                                        | 
+                                        |          +------+
+                                        +----------|CLUPOS|
+                                        |          +------+
+                                        |             |                       
+                                        |             -------LOOP ON CLUSTERS 
+                                        |             |        +----+ 
+                                        |             +--------|XLUM| 
+                                        |             |        +----+ 
+                                        |             |        +------+
+                                        |             +--------|TRHIGH|
+                                        |             |        +-----+ 
+                                        |             |        +------+
+                                        |             +--------|TRDTIM|
+                                        |             |        +------+
+                                        |             |                      
+                                        |             -------END LOOP ON CLUSTERS
+                                        |          +------+ 
+                                        +----------|CLUSOR| 
+                                        |          +------+ 
+                                        |             |        +------+
+                                        |             +--------|SORTZV|
+                                        |                      +-----+ 
+                                        |          +------+
+                                        +----------|CLUMRG|
+                                        |          +------+
+                                        |          +------+
+                                        +----------|CLUSMR|
+                                        |          +------+
+                                        |          +------+ 
+                                        +----------|CLUDIG| 
+                                        |          +------+ 
+                                        |               ------LOOP ON CLUSTERS 
+                                        |              |
+                                        |              |          +------+ 
+                                        |              +----------|TRDSHP| 
+                                        |              |          +------+ 
+                                        |                -------END LOOP ON CLUSTERS 
+                                        |              |          +------+ 
+                                        |              +----------|BKHTLY| 
+                                        |              |          +------+ 
+                                        |              |          +------+ 
+                                        |              +----------|MINZFE| 
+                                        |              |          +------+ 
+                                        |                                
+                                                              Page 1-6
+                                                          11 July 1997
+
+
+                                        |                                
+                                      TTRD=2       +-------+
+                                        +----------| EDEGEN|
+                                        |          +-------+
+                                        |               |       +-------+
+                                        |               +-------|HISRAN |
+                                        |          +-------+    +-------+
+                                        +----------| EXRGEN|
+                                                   +-------+    +-------+
+                                                            +---|HISRAN |
+                                                                +-------+
+                                                              Page 1-7
+                                                          11 July 1997
+
+
+
+
+                                    DIGITZATION
+                                    -----------
+ +-------+  
+ |GUDIGI |  
+ +-------+  
+     |
+     +-+
+       | 
+   +-------+ 
+   |DIGCEN | 
+   +-------+
+        |
+        |      +-------+ 
+        +------| DIGTRD| 
+               +-------+ 
+                   | -------LOOP ON 3 LAYERS
+                   |        +------+
+                   +--------|MZBOOK|
+                   |        +------+
+                   |        +------+
+                   +--------|TRDUNP|
+                   |        +------+
+                   |        +------+
+                   +--------|BKCDD4|
+                   |        +------+
+                   |        +------+
+                   +--------|MZDROP|
+                   |        +------+
+                   | -------END LOOP ON 3 LAYERS
+                                                              Page 1-8
+                                                          11 July 1997
+
+
+                             END OF EVENT
+                             -----------
+              
++-------+ 
+|GUOUT  | 
++-------+   
+    |-----+ 
+          |
+     +-------+
+     | ANLCEN|
+     +-------+
+         |     +-------+
+         +-----| ANLTRD|
+               +-------+
+                   |        +------+
+                   +--------|PRGTRH|
+                   |        +------+
+                   |        +------+
+                   +--------|PRTRDH|
+                   |        +------+
+                   |        +------+
+                   +--------|PRCDD4|
+                   |        +------+
+
+
+
+
+
+
+
+
+
+
+
+
+                              CHAPTER 2
+
+                         LIST OF TRD ROUTINES
+
+
+
+LIST OF TRD ROUTINES                                          Page 2-2
+                                                          11 July 1997
+
+
+       +------------------+
+       | SUBROUTINE ANLCEN
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :  DUMMY ANALYSIS ROUTINE CALLED AT THE END OF
+C-   EACH EVENT
+C-
+C-   Inputs  : 
+C-   Outputs : 
+C-
+C-   Created  
+C-   Updated  13-JAN-1988   A. ZYLBERSTEJN  :CALL TO TRD ROUTINES 
+C-
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                          Page 2-3
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE ANLTRD |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : TRD POST_EVENT ANALYSIS CALLED AT THE END OF
+C-                          EACH EVENT BY ANLCEN CALLED BY GUOUT
+C-
+C-
+C-   Inputs  : GTLY ZEBRA BANK (TRD USER'S BANKS)
+C-   Outputs :QUANTITIES IN COMMON /TRHITW/
+C-
+C-   Created  13-JAN-1988   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                          Page 2-4
+                                                          11 July 1997
+
+
+       +------------------+
+       | FUNCTION APHASA  |
+       +------------------+
+C     ---------======
+C  RANDOM NUMBER BETWEEN X AND Y
+C
+LIST OF TRD ROUTINES                                          Page 2-5
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE BKCDD4 |
+       +------------------+
+C======================================================================
+C
+C   Purpose and Methods :  Books the bank "CDD4" containing Flash ADC
+C                          raw data for the TRD
+C
+C-  Inputs : None
+C-  Output :
+C-
+C-   Created  12-JAN-1988   A. ZYLBERSTEJN   
+C
+C======================================================================
+LIST OF TRD ROUTINES                                          Page 2-6
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE BKGTLY |
+       +------------------+
+C======================================================================
+C-
+C-   Purpose and Methods :  Books the trd banks down to LAYER for
+C-                           GTRH (under GHITS)
+C-
+C-
+C-
+C-
+C-   Created   6-NOV-1987   A. ZYLBERSTEJN
+C-
+C======================================================================
+LIST OF TRD ROUTINES                                          Page 2-7
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE BKGTRH |
+       +------------------+
+C======================================================================
+C
+C   Purpose and Methods :  Books the /ZEBCOM/ event data structure down
+C                          through the level of GTRH in preparation for
+C                          adding TRD hits
+C    OUTPUT: LGEANT--->LGHIT--->LGTRH ARE CREATED (IF NEEDED)
+C-
+C-   Created   6-NOV-1987   A. ZYLBERSTEJN
+C
+C======================================================================
+LIST OF TRD ROUTINES                                          Page 2-8
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE BKHTLY |
+       +------------------+
+C======================================================================
+C-
+C-   Purpose and Methods :  Books the TRD banks down to LAYER for 
+C-                           TRDH (under HITS)
+C-                          
+C-   OUTPUT:      LMHTLY(1-2-3)  [<-----LTRDH]                
+C-
+C-
+C-   Created   6-NOV-1987   A. ZYLBERSTEJN
+C-
+C======================================================================
+LIST OF TRD ROUTINES                                          Page 2-9
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE BKTRDH |
+       +------------------+
+C======================================================================
+C
+C   Purpose and Methods :  Books the /ZEBCOM/ event data structure down
+C                          through the level of TRDH in preparation for
+C                          adding TRD M.C. idealized hits (under HITS)
+C
+C-
+C-   Created   6-NOV-1987   A. ZYLBERSTEJN
+C-   Updated  25-NOV-1987   A. ZYLBERSTEJN   
+C
+C======================================================================
+LIST OF TRD ROUTINES                                         Page 2-10
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE BOKCEN |
+       +------------------+
+C---------------------------------------------------------------------- 
+C- 
+C-   PURPOSE AND METHODS : BOOK HISTOGRAMS FOR CENTRAL DETECTOR 
+C- 
+C-   INPUTS  :  
+C-   OUTPUTS :  
+C- 
+C-   UPDATED   8-JAN-1988   A. ZYLBERSTEJN  CALL TO BOKTRD  
+C- 
+C---------------------------------------------------------------------- 
+LIST OF TRD ROUTINES                                         Page 2-11
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE BOKTRD |
+       +------------------+
+C---------------------------------------------------------------------- 
+C- 
+C-   PURPOSE AND METHODS : BOOK TRD HISTOGRAMMS 
+C- 
+C-   INPUTS  :  
+C-   OUTPUTS :  
+C- 
+C-   CREATED   8-JAN-1988   A. ZYLBERSTEJN 
+C- 
+C---------------------------------------------------------------------- 
+LIST OF TRD ROUTINES                                         Page 2-12
+                                                          11 July 1997
+
+
+       +------------------+
+       | FUNCTION CLSMEN  |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Smearing of the TRD clusters energies
+C-                         Smear with a Gaussian or a Poissonian law       
+C-                         according to the number of detected electrons
+C-                         determined from the dS/S measured during
+C-                         calibration.     
+C-   Inputs  : E       = ENERGY OF THE CLUSTER
+C            : DELOE   =dE/E
+C-   Outputs : CLSMEN  =SMEARD ENERGY
+C-
+C-   Created  11-DEC-1987   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-13
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE CLUDEL |
+       +------------------+
+C      -----------===== 
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :   GENERATES DELTA RAYS CLUSTERS 
+C-
+C-   Inputs  : GAMMA OF THE PARTICLE,LENGTH=TOTAL PATH IN THE TEC
+C-   Outputs : ENERGY,X INT FOR THE DELTA RAYS
+C-
+C-   Created   3-DEC-1987   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+C
+C  
+LIST OF TRD ROUTINES                                         Page 2-14
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE CLUDIG |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   PURPOSE AND METHODS :    Build the trd detected clusters.
+C-                            energy  ----->digital
+C-                            Store dE/dT as ZEBRA bank HTLY after
+C-                              normalisation and packing
+C-                            Compute deposited energy on hit wires
+C-   INPUTS  : -TRD clusters (energies and drift time)
+C-             -Cluster shapes
+C-   OUTPUTS : -TRD hits=dE/dT distribution
+C-
+C-   CREATED  26-MAY-1987   A. ZYLBERSTEJN
+C-   Updated  11-DEC-1987   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+C
+C
+LIST OF TRD ROUTINES                                         Page 2-15
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE CLUMIX |
+       +------------------+
+C---------------------------------------------------------------------- 
+C- 
+C-   PURPOSE AND METHODS : FIRST AND FAST MERGING OF THE TRD CLUSTERS 
+C-  DIVIDE THE DRIFT DISTANCE IN BINS 'BINCM' WIDE AND LOOK FOR THE BIN 
+C-  IN WHICH THE NEW DELTA RAY LIES 
+C- 
+C-   INPUTS  :  
+C-   OUTPUTS :  
+C- 
+C-   CREATED                A. ZYLBERSTEJN 
+C- 
+C---------------------------------------------------------------------- 
+LIST OF TRD ROUTINES                                         Page 2-16
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE CLUMRG |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   PURPOSE AND METHODS :  MERGE THE TRD CLUSTERS WHICH ARE
+C      CLOSER THAN 'CLOSE' FROM ONE ANOTHER
+C-
+C-   INPUTS  :
+C-   OUTPUTS :
+C-
+C-   CREATED                A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+C
+LIST OF TRD ROUTINES                                         Page 2-17
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE CLUPOS |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Compute interaction point coordinates of
+C-          X rays and Delta rays  in the general system .
+C-         Drift distances , hit wires  and drift times are calculated.
+C-
+C-    INPUT: ISTACK =ISTACK: TRD stack number
+C-           VIN    =7 vector defining the entrance point
+C-           VOUT   =7 vector    ""     "  exit      "
+C-
+C-   Outputs : XCLES(I)   =POSITION ALONG    THE RADIUS FOR CLUSTER I
+C-             YCLES(I)   =   ""    PERP. TO THE   ""         ""
+C-             CLUDIS(I,1)=DRIFT DISTANCE IN DRIFT ZONE
+C-             CLUDIS(I,2)=  ""    ""        AMPL   "
+C-             -IWIRE(I)=HIT WIRE FOR CLUSTER #I
+C-             -TIMEC(I)=DRIFT TIME
+C-
+C-
+C-
+C-   Created                A. ZYLBERSTEJN
+C-   Updated  22-DEC-1987   A. ZYLBERSTEJN
+C----------------------------------------------------------------------
+C
+C
+LIST OF TRD ROUTINES                                         Page 2-18
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE CLUPRN |
+       +------------------+
+C     -----------=======----
+C  PRINT THE TRD CLUSTERS
+C
+LIST OF TRD ROUTINES                                         Page 2-19
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE CLURAD |
+       +------------------+
+C----------------------------------------------------
+C-                                                  -
+C   GENERATION OF X RAYS CLUSTERS  IN THE TRD       -
+C-                                                  -
+C-  INPUTS:  GAMMA = E/M of the particle            -    
+C-           LENGTH= range in the tec               -   
+C-                                                  -
+C-   NCLX clusters are created with                 -
+C- 1)energy ECLES according to the spectrum stored  -
+C-    in /XSPECT/                                   -
+C- 2)interaction point in the tec XCLES             -    
+C-                                                  -   
+C- 3)NATCLU=1                                       -   
+C-                                                  -   
+C- THE PROBALITY OF LUMINESCENCE IS TAKEN INTO      -   
+C- ACCOUNT AND A NEW CLUSTER IS CREATED IF THE X RAY-   
+C- ESCAPES                                          -   
+C-                                                  -   
+C----------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-20
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE CLUSMR |
+       +------------------+
+C      -----------=====
+C ----------------------------------------------------------------------
+C-
+C-   PURPOSE AND METHODS : SMEARING OF THE ENERGY OF THE TRD CLUSTERS
+C-
+C-   INPUTS  :
+C-   OUTPUTS :
+C-
+C-   CREATED  11-MAY-1987   A. ZYLBERSTEJN
+C-   UPDATED  11-DEC-1987   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+C
+C
+C
+LIST OF TRD ROUTINES                                         Page 2-21
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE CLUSOR |
+       +------------------+
+C---------------------------------------------------------------------
+C- SORT THE TRD CLUSTERS IN ASCENDING ORDER W.R.T. TIME              -
+C- RE-ORDERING OF THE VARIABLES IN THE COMMON BLOCK "CLUSM"          -
+C---------------------------------------------------------------------
+C  
+C
+LIST OF TRD ROUTINES                                         Page 2-22
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE CLUSTF |
+       +------------------+
+C     -----------=======-----
+C
+C  RECHERCHE DE CLUSTERS(SEPT. 86)
+C
+LIST OF TRD ROUTINES                                         Page 2-23
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE DATIM  |
+       +------------------+
+
+C     IMPRIME LA DATE ET L'HEURE
+      INCLUDE 'D0$INC:GCUNIT.INC/LIST'
+      CHARACTER*8 NT
+      CHARACTER *9 ND
+      WRITE(LOUT,*)'  ---------------------------'
+      CALL DATE(ND)
+      CALL TIME(NT)
+      WRITE(LOUT,*)'I DATE: ',ND,'  HEURE:  ',nt,' I'
+      WRITE(LOUT,*)'  ---------------------------'
+      RETURN
+      end
+
+******************************
+DKS:[D0.D0LIBRARY.D0GEANT.V1.TMP]DESSIN.FOR;1
+
+LIST OF TRD ROUTINES                                         Page 2-24
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE DESSIN |
+       +------------------+
+C     -----------=====
+C  PRINT IN A 'HBOOK TYPE ' HISTO "N' DIMENSIONNAL ARRAY "Y"
+C      WITH :IFIX=1  FREE SCALE
+C            IFIX=2  FIX  SCALE
+C
+C
+LIST OF TRD ROUTINES                                         Page 2-25
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE DETTRD |
+       +------------------+
+C
+C     ******************************************************************
+C     *
+C     *     DEFINITION OF TRD DETECTORS AND HITS
+C     *     SLL 18 JUN 1986
+C-          UPDATED   8-JAN-1988   A. ZYLBERSTEJN   :NOT USED BUT KEPT
+C-                  BECAUSE   I DON't know how to make the TRD to be
+C-                  sensitive.
+C     *
+C     ******************************************************************
+LIST OF TRD ROUTINES                                         Page 2-26
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE DIGTRD |
+       +------------------+
+C ----------------------------------------------------------------------
+C -
+C -   PURPOSE AND METHODS : TRD DIGITIZATION.GOES FROM dE/dT to dQ/dT
+C -                         TAKING INTO ACCOUNT THE WIRE GAIN
+C -             THE BANK CDD4 (RAW DATA)IS FILLED AFTER HAVING ADDED
+C -             PEDESTALS AND ELECTRONIC NOISE
+C -
+C -   INPUTS  :dE/dT
+C -            ENORM=WIRE GAINS(SIMILAR FOR ALL THE WIRES FOR THE TIME BEING)
+C -   OUTPUTS :FADC INFORMATION IN PACKED FORM
+C -
+C -   CREATED :19-JUN-1986   S.L.L.
+C -   MODIFIED: 3-NOV-1987   A. ZYLBERSTEJN FOR FLASH ADC'S
+C -
+C ----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-27
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE DRAWPT |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : DRAW A "HBOOK TYPE HISTOGRAMM
+C-
+C-   Inputs  : YPP    =ARRAY OF BIN CONTENTS
+C-             NPOINT =NB. OF BINS
+C-             IFIX   =1   FREE SCALE
+C-                    =2   FIXED "
+C-   Outputs :
+C-
+C-   Created   A LONG TIME AGO AT SACLAY
+C-   Updated  19-JAN-1988   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-28
+                                                          11 July 1997
+
+
+       +------------------+
+       | FUNCTION DSIN1   |
+       +------------------+
+C       ---------=====
+C HYPERBOLIC SINE
+C
+  .end literal
+.page
+.literal
+       +------------------+
+       |SUBROUTINE DZEMAT |
+       +------------------+
+C
+C  DEFINE STANDARD MATERIALS AND MEDIA
+C
+C EDEGEN
+LIST OF TRD ROUTINES                                         Page 2-29
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE EDEGEN |
+       +------------------+
+C
+C  GENERATE A RANDOM IONISATION ENERGY LOSS FROM PRE-CALCULATED TABLES
+C
+
+LIST OF TRD ROUTINES                                         Page 2-30
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE ENTRD  |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods :
+C
+C  STEERING ROUTINE FOR ENERGY DEPOSITED IN TRD
+C-
+C-   Inputs  :
+C  AMASS      = MASS OF PARTICLE
+C  GETOT      = CURRENT TRACK TOTAL ENERGY
+C  VECT   (I) = TRACK PARAMETERS (X,Y,Z,PX/P,PY/P,PZ/P,P) AT THE EXIT
+C  VECTIN (I) = TRACK PARAMETERS (X,Y,Z,PX/P,PY/P,PZ/P,P) AT THE ENTRANCE
+C-   Outputs :
+C-
+C-   Created  AZ  6/19/86   A.Z. 20/10/86 MODIF TO INCLUDE CLUSTERS
+C-   Updated  22-DEC-1987   A. ZYLBERSTEJN  TAKE PROPERLY INTO ACCOUNT
+C-                                           ENTRANCE POINT
+C-
+C*********************************************************************
+C
+C EXRGEN
+LIST OF TRD ROUTINES                                         Page 2-31
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE EXRGEN |
+       +------------------+
+C     ---------- ------
+C
+C  GENERATE A RANDOM  ENERGY DEPOSITION FOR X RAYS
+C    FROM PRE-CALCULATED TABLES
+C
+LIST OF TRD ROUTINES                                         Page 2-32
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE EXTRAP |
+       +------------------+
+C     -----------======------------------
+C  LINEAR INTER(EXTRA)POLATION
+C
+LIST OF TRD ROUTINES                                         Page 2-33
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE GEOTRD |
+       +------------------+
+C
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : 
+C
+C     Geometry definition of the 'TRD ' detector volume:
+C       Position the elementary volumes defined in TRDCON
+C
+C           If TRD geometry banks are present, then:
+C           Take positioning from them
+C               (FOR THE TIME BEING ONLY TRANSLATIONS IMPLEMENTED)
+C           If TRD geometry banks are absent,everything is given
+C           by DATA statements as in previous versions.
+C
+C     Define as a 'TUBE' positioned in NMCEN
+C     Volume identifiers start with 'T'
+C     Material, Media US 70-79
+C       and Rotations use 7000-7999
+C
+C     The structure of TRD geometory is following:
+C     TRD_ : TRD mother volume
+C       --> TRD1 : first module (inside)
+C             --> TWI1 : inside wall (carbon fibers)
+C             --> TRC1 : radiator cell (polypropylene + nitrogen)
+C             --> TGC1 : gap cell (mylar + nitrogen)
+C             --> TXC1 : X-ray detector cell (xenon + CH4 + wires)
+C                 --> CEL1 : Drift cell       -OBSOLETE(23/12/87)
+C             --> TWA1 : inner coating (G10)
+C             --> TWO1 : outside wall (honeycomb)
+C             --> TWB1 : external coating (G10)
+C             --> TUG1 : upstream end cap G10
+C             --> TUA1 : upstream end cap Aluminum in radiator
+C             --> TUF1 : upstream end cap foam
+C             --> TUK1 : upstream end cap Kevlar
+C             --> TUH1 : upstream end cap honeycomb
+C             --> TUI1 : upstream end cap inserts in honeycomb (aluminum)
+C             --> TDG1 : downstream end cap G10
+C             --> TDA1 : downstream end cap Aluminum in radiator
+C             --> TDF1 : downstream end cap foam
+C             --> TDK1 : downstream end cap Kevlar
+C             --> TDH1 : downstream end cap honeycomb
+C             --> TDI1 : downstream end cap inserts in honeycomb (aluminum)
+C       --> TRD2 : second module
+C             --> TWI2,TRC2,TWM2,TXC2,TWA2,TWO2,TWB2,
+C                 TUG2,TUA2,TUF2,TUK2,TUH2,TUI2
+C                 TDG2,TDA2,TDF2,TDK2,TDH2,TDI2
+C       --> TRD3 : third module (most outside)
+C             --> TWI3,TRC3,TWM3,TXC3,TWA3,TWO3,TWB3,
+C                 TUG3,TUA3,TUF3,TUK3,TUH3,TUI3
+C                 TDG3,TDA3,TDF3,TDK3,TDH3,TDI3
+C
+LIST OF TRD ROUTINES                                         Page 2-34
+                                                          11 July 1997
+
+
+C-
+C-   Inputs  : 
+C-   Outputs : 
+C-
+C-   Created :       SK, KN, SLL 19 Jun 1986
+C-   Updated         MANSOULIE  06-NOV-1987
+C-
+C-   Updated  23-DEC-1987   A. ZYLBERSTEJN  SUPPRESS THE CELL DIVISION 
+C-
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-35
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE GETSTP |
+       +------------------+
+C----------------------------------------------------------------------
+C-    S/R GETSTP reads in STP bank structure.   If Zebra store for
+C- this has not yet initialized, create the store first.
+C-                                    
+C- Input:
+C-    LWRIT      logical unit number of printer
+C-    LUNIN      logical unit number of STP constant file.
+C-    FILEIN     input file name (32 chracters maximum)
+C-
+C- Output:
+C-    IERR       error code
+C-    STP-bank sturcture
+C-
+C-  N.Oshima    20-Apr-1987
+C-  S.Kunori    04-May-1987   modified
+C-  B.Mansoulie 27-Nov-1987   modified
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-36
+                                                          11 July 1997
+
+
+       +------------------+
+       | FUNCTION IADRES  |
+       +------------------+
+C      ================================================
+C
+C      Data packing routine
+C      Puts data+address into 32 bit word
+C
+C      ================================================
+LIST OF TRD ROUTINES                                         Page 2-37
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE INITAB |
+       +------------------+
+C     -----------=====
+C  COMPUTE TABLES FOR ABSORPTION LENGTHS FOR ALL THE TRD MATERIALS AS A
+C  FUCTION OF THE ENERGY
+C
+C      ED : ENERGY IN KEV
+C      XSTEP : BIN WIDTH
+C      NSTEP : NB. IF BINS
+C --------------------------------------------------------------
+C       CHARACTER*3 MAT,FOI,GAP,FOA,RO3,GAS,PAN,SO1,SO2,SO3,SGA,SAL
+C      CHARACTER*3,FKA
+C
+C INITRD.FOR
+LIST OF TRD ROUTINES                                         Page 2-38
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE INITRD |
+       +------------------+
+C-----------------------------------------------------------------------
+C-  INITIALISATION ROUTINE FOR TRD
+C-       STRD(1) = 0,1  VERSION WITH FULL CLUSTERISATION
+C-               = 2    "          TOTAL DEPOSITED ENERGY
+C-  READ IN INTEGRATED ENERGY DISTRIBUTIONS FOR DELTA RAYS AND X RAYS
+C-  THE TABLES ARE STORED ON DISK IN XRAYDIST.DAT AND DELDIST.DAT
+C-  WHICH ARE  READ ON LOGICAL UNITS FOR023 AND FOR023.THE TABLES ARE WRI
+C-  IN COMMON BLOCKS "TABX" AND "DISDEL" .
+C-
+C-  19 JUN 1986    SLL, AZ/20 OCT 86 AZ
+C-----------------------------------------------------------------------
+C
+LIST OF TRD ROUTINES                                         Page 2-39
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE INTERP |
+       +------------------+
+C-------------------------------------------------------------------------
+C                                                                         -
+C- GIVEN A SET OF 'N' POINTS DEFINED BY THEIR COORDINATES "X(I)" AND "Y(  -
+C- COMPUTE ,BY LINEAR INTERPOLATION, THE ORDINATE "Y0" WHEN THE ABSCISSA  -
+C- "X0" IS GIVEN                                                          -
+C-                                                                        -
+C-                                                                        -
+C--------------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-40
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE JADRES |
+       +------------------+
+C     ==============================================
+C
+C      jadres does the inverse of iadres
+C
+C     ==============================================
+LIST OF TRD ROUTINES                                         Page 2-41
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE PRGTLY |
+       +------------------+
+C ----------------------------------------------------------------------
+C -
+C -   PURPOSE AND METHODS : PRINT OF TRD ZEBRA BANK GTLY(USER'S HITS
+C-                          IN LAYER ILAY)
+C -
+C -   INPUTS  :
+C -   OUTPUTS :
+C -
+C-   Created  11-JAN-1988   A. ZYLBERSTEJN
+C-
+C-
+C ----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-42
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE PRGTRH |
+       +------------------+
+C ----------------------------------------------------------------------
+C -
+C -   PURPOSE AND METHODS : PRINT OF TRD ZEBRA BANK GTRH
+C -
+C -   INPUTS  :
+C -   OUTPUTS :
+C -
+C-   Created  11-JAN-1988   A. ZYLBERSTEJN
+C-
+C-
+C ----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-43
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE PRHTLY |
+       +------------------+
+C ----------------------------------------------------------------------
+C -
+C -   PURPOSE AND METHODS : PRINT OF TRD ZEBRA BANK HTLY (IDEALIZED HITS
+C-                          IN TRD LAYER ILAY)
+C -
+C -   INPUTS  :  ILAY=TRD LAYER NUMBER
+C -   OUTPUTS :
+C -
+C-   Created  11-JAN-1988   A. ZYLBERSTEJN
+C-
+C-
+C ----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-44
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE PRTRDH |
+       +------------------+
+C ----------------------------------------------------------------------
+C -
+C -   PURPOSE AND METHODS : PRINT OF TRD ZEBRA BANK TRDH
+C -
+C -   INPUTS  :
+C -   OUTPUTS :
+C -
+C-   Created  11-JAN-1988   A. ZYLBERSTEJN
+C-
+C-
+C ----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-45
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE RWXSPC |
+       +------------------+
+C     -----------======----
+C READ OR WRITE TANSITION X RAYS DIFFERENTIAL ENERGY SPECTRUM
+C
+LIST OF TRD ROUTINES                                         Page 2-46
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE STPTRD |
+       +------------------+
+C ----------------------------------------------------------------------
+C-
+C-   PURPOSE AND METHODS : Compute the total range in the T.E.C.
+C-                         Call ENTRD when leaving the TEC volume
+C                          Called when IUSET = TRD from GUSTEP
+C-                         ZEBRA banks 'GTRH'  and 'GTLY' are filled
+C-
+C-   INPUTS  :
+C-   OUTPUTS :
+C-
+C-   Created   18 JUN  1986  SLL, AZ
+C-   Rewritten 21-DEC-1987   A. ZYLBERSTEJN
+C-
+C ----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-47
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE TLAYER |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : DETERMINE THE TRD STACK NUMBER
+C-
+C-   Inputs  : IUSET,IUDET
+C-   Outputs : TSTACK(IN COMMON BLOCK /POSIT/)
+C-
+C-   Created  26-NOV-1987   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+      INCLUDE 'D0$INC:POSIT.INC/LIST'
+      INCLUDE 'D0$INC:GCSETS.INC/LIST'
+C----------------------------------------------------------------------
+      INTEGER CEL(3),IUCOMP
+      DATA CEL/'TXC1','TXC2','TXC3'/
+C
+      TSTACK = IUCOMP(IUDET,CEL,3)
+  999 RETURN
+      END
+
+******************************
+DKS:[D0.D0LIBRARY.D0GEANT.V1.TMP]TRABSL.FOR;1
+
+C DEC/CMS REPLACEMENT HISTORY, Element TRABSL.FOR
+C *2    20-FEB-1987 12:45:00 A.Z. CHANGED THE SUBROUTINE NAME FROM ABKUR
+C *1    15-JAN-1987 12:30:41 JONCKHEERE "New TRD routines"
+C DEC/CMS REPLACEMENT HISTORY, Element TRABSL.FOR
+LIST OF TRD ROUTINES                                         Page 2-48
+                                                          11 July 1997
+
+
+       +------------------+
+       | FUNCTION TRABSL  |
+       +------------------+
+C     ---------=====
+C  COMPUTATION OF ABSORPTION LENGTHS FOR X RAYS BY INTERPOLATION
+C  IN ARRAY GAS (TABULATED IN TRDFMY)
+C
+LIST OF TRD ROUTINES                                         Page 2-49
+                                                          11 July 1997
+
+
+      BLOCK DATA TRDBLK
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : BLOCK DATA FOR THE TRD
+C-   Created   3-DEC-1986   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-50
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE TRDCAL |
+       +------------------+
+C      -----------======
+C ----------------------------------------------------------------------
+C -
+C -   PURPOSE AND METHODS : CALIBRATION OF THE FADC (ENERGY ---> CLUSTERS
+C -
+C -   INPUTS  :EREF   :ENERGY OF THE REFERENCE X SOURCE
+C -            DOLOE  :RESOLUTION ON THE ABOVE
+C -            SURCAL :AREA OF THE CALIBRATION CLUSTER
+C -            ATTACH :ATTACHEMENT ON THE DRIFT ZONE
+C -  ---        THESE ABOVE QUANTITIES HAVE BEEN DEFINED IN TRDBLK
+C -   OUTPUTS : RNORM=NB. OF FADC COUNTS PER KEV
+C -             ECAL =NB. OF KEV PER FADC COUNTS
+C -
+C -   CREATED   9-NOV-1986   A. ZYLBERSTEJN
+C -   MODIFIED  9-NOV-1987        ""
+C ----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-51
+                                                          11 July 1997
+
+
+       +------------------+
+       |FUNCTION TRDCHAN  |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : DETERMINE CHANNEL NUMBER FOR FADC DIGITIZATION
+C-                         FOR THE TRD
+C-
+C-   Inputs  : ILAYER= TRD LAYER  ,  IWIRE= HIT WIRE
+C-   Outputs :
+C-
+C-   Created  12-JAN-1988   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+C DEC/CMS REPLACEMENT HISTORY, Element TRDCON.FOR
+C
+C TRDCON.FOR
+LIST OF TRD ROUTINES                                         Page 2-52
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE TRDCON |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : 
+C     Geometry definition of the 'TRD ' detector volume:
+C      Define the elementary volumes (to be positioned in GEOTRD)
+C
+C-
+C-   Inputs  : 
+C-   Outputs : 
+C-
+C-   Created                        A. ZYLBERSTEJN
+C    Modified  05-DEC-1986          HUBBARD "END CAPS AND MODIFIED CENTRAL"
+C    Modified  06-NOV-1987          MANSOULIE  "MAJOR REVISION,SEE COMMENT"
+C           If TRD geometry banks are present, then:
+C           The radiator and end flanges data are given in DATA
+C           statements ,and are not allowed to vary. The chamber RADIAL
+C           data (i.e.) window radius, wire positions,cathode radius,
+C           AND CONSEQUENTLY  chamber outer shell position, are
+C           taken from TRD geometry banks.
+C           Z-length of chamber volume for GEANT is fixed (by DATA)
+C           but Z - active-length ZACT(I) is taken from TRGE.            
+C           If TRD geometry banks are absent,everything is given
+C           by DATA statements as in previous versions.
+
+C----------------------------------------------------------------------
+C DEC/CMS REPLACEMENT HISTORY, Element TRDFMY.FOR
+C *1    19-FEB-1987 19:00:00 A.Z. CHANGED NAME FROM 'DFMY'
+C *1    15-JAN-1987 13:17:32 JONCKHEERE "New TRD routines"
+C DEC/CMS REPLACEMENT HISTORY, Element TRDFMY.FOR
+LIST OF TRD ROUTINES                                         Page 2-53
+                                                          11 July 1997
+
+
+       +------------------+
+       |FUNCTION TRDFMY   |
+       +------------------+
+C     ---------=====
+C
+C   CALCULATION OF ABSORPTION LENGTH FOR AN X RAY OF ENERGY E
+C   IN MATERIAL 'MAT'
+C
+C       COMPILATION OF X-RAY CROSSSECTION , MCMASTER ET AL
+C       UNI OF CALIF , LIVERMORE  ,  UC-34...
+C
+LIST OF TRD ROUTINES                                         Page 2-54
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE TRDSHP |
+       +------------------+
+C      -----------======--------------------
+C ----------------------------------------------------------------------
+C -
+C -   PURPOSE AND METHODS : SHAPE OF TRD CLUSTERS (TAKEN FROM PROTOTYPE
+C -                              TEST AT CERN- JULY 86)
+C -   INPUTS  :
+C -             ICENT=CLUSTER CENTRAL DRIFT TIME(IN NS)
+C -             IAMP =1 IF AMPLIFICATION ZONE,=0 IF DRIFT ZONE
+C -
+C -   OUTPUTS : YSHAP(I)=CHARGE IN BIN NB. I
+C -             K       =NB. OF SIGNIFICANT BINS
+C -
+C - THE ARRAY YSHAP IS NORMALIZED SUCH THAT THE SUM IS EQUAL TO 1
+C -
+C -   CREATED   9-NOV-1986   A. ZYLBERSTEJN
+C -   MODIFIED  9-NOV-1987   A.ZYLBERSTEJN
+C ----------------------------------------------------------------------
+C
+LIST OF TRD ROUTINES                                         Page 2-55
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE TRDSTP |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Read static parameter banks and set up
+C                          TRD permanent links.
+C-
+C-   Inputs  : LWRIT print unit,LUNIN read unit,FILEIN file name
+C-   Outputs : IERR error flag (0 OK , 1 read problem)
+C-
+C-   Created  13-NOV-1987   MANSOULIE
+C-
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-56
+                                                          11 July 1997
+
+
+       +------------------+
+       | FUNCTION TRDTIM  |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : COMPUTE DRIFT TIME FOR TRD CLUSTERS.
+C-   PARAMETRIAZTION FOR ISOCHRONES ARE TAKEN FROM TEST CHAMBER FILLED 
+C-   X2/CH4
+C-
+C-   Inputs  : 
+C  VALABLE POUR X ET Y POSITIFS ET L'ORIGINE A L'ANODE
+C X=Y=0 A L'ANODE. EN FAIT XJFD=YAZ,YJFD=(XAZ-XANOD)
+C DANS LES DONNES Y =YJFD-YANO
+C-   Outputs : 
+C-
+C-   Created                J.F. DETOEUF  ESQ.
+C Y DANS LA DIRECTION DE DRIFT
+C UNITES: Longueurs: CM , Temps: NANOSECONDES
+C
+C                                  ---- READ  DATA TAP0
+C LES VALEURS DU TEMPS DE DRIFT A L'ANODE SONT DONNEES POUR
+C N points (N<50)  regulierement repartis sur une demi-droite
+C issu de (X0D,Y0D). A droite de cette demi-droite les temps de
+C drift a l'anode ne dependent que du rayon. a gauche la vitesse
+C est dans la direction OY et egale a VD.
+C
+C-
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-57
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE TRDUNP |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Unpack the TRD information laying in ZEBRA banks
+c-                         TRDH and HTLY
+C-
+C-   Inputs  :LL =Address of the bank in HTLY
+C-   Outputs :YAUX(I)=dE/dT in bin I,I from 1 to NFADC
+C-
+C-   Created  14-DEC-1987   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+C DEC/CMS REPLACEMENT HISTORY, Element TRDWDE.FOR
+C *2    19-FEB-1987 19:00:00 A.Z. CHANGED THE NAME FROM 'DWDE'
+C *1    15-JAN-1987 13:23:09 JONCKHEERE "New TRD routines"
+C DEC/CMS REPLACEMENT HISTORY, Element TRDWDE.FOR
+LIST OF TRD ROUTINES                                         Page 2-58
+                                                          11 July 1997
+
+
+       +------------------+
+       |FUNCTION TRDWDE   |
+       +------------------+
+C
+C  ANALYTICAL FORMULA FOR RADIATION TRANSITION PRODUCTION
+C  FROM:C.W. FABJAN AND W. STRUCZINKSKI;PHYS. LETT. 57B,483 (1975)
+C
+LIST OF TRD ROUTINES                                         Page 2-59
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE TRDYLD |
+       +------------------+
+C     -----------======
+C  CALCULATE THE X RAY YIELD FOR A RADIATOR WITH 'NFOIL' OF MATERIAL 'FO
+C  REGULARLY SEPARATED BY THE DISTANCE 'XGAP' FILLED WITH GAS 'GAP'
+C
+C      ED : ENERGY IN KEV
+C      XSTEP : BIN WIDTH
+C      NSTEP : NB. IF BINS
+C --------------------------------------------------------------
+C
+LIST OF TRD ROUTINES                                         Page 2-60
+                                                          11 July 1997
+
+
+      SUBROUTINE TRHIGH(ECL,X0,Y0,Z0,NNEW,ENEW,XNEW,YNEW,ZNEW)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Anaylse high energy phot_electrons in the TEC
+C-
+C-   Inputs  : -TRD CLUSTER ENERGY,X0,Y0,Z0
+C-             -BETA PRACTICAL RANGE  FORMULA (FROM J.R.H.)
+C-   Outputs :
+C-
+C-   Created  15-JAN-1988   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+.page
+.literal
+       +------------------+
+       |SUBROUTINE TRKTRD |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : TRD - Handle any procedures needed after a 
+C-   full track is finished - DUMMY for now.
+C-
+C-   Inputs  : NONE
+C-   Outputs : NONE
+C-
+C-   Created  13-JUL-1987   A.M.Jonckkhere
+C-
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-61
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE TRNUMB |
+       +------------------+
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : DETERMINE ISAJET TRACK AND VERTX NUMBER
+C-                         FOR THE CURRENT TRACK
+C-
+C-   Inputs  : ZEBCOM
+C-   Outputs : 
+C-
+C-   Created   1-DEC-1987   A. ZYLBERSTEJN
+C-
+C----------------------------------------------------------------------
+LIST OF TRD ROUTINES                                         Page 2-62
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE TRTABL |
+       +------------------+
+C     --------=======
+C  COMPUTE THE TABLES FOR X RAY YIELD IN NSTREF BINS IN THETA
+C  AND NGAREF IN GAMMA (=E PART./M PART.).
+C  FILL THE ARRAY FOR ENERGY SPECTRUM PROBX(I,J,K) AND THE ABSOLUTE
+C  YIELD XNOBT(J,K) WITH I= ENERGY BIN,J= BIN IN THETA,K=BIN IN GAMMA
+C
+C
+LIST OF TRD ROUTINES                                         Page 2-63
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE XLUM   |
+       +------------------+
+C     -----------====----------------------
+C
+C  ANALYSE THE X RAY RESULTING FROM LUMINESCENCE OF TRANSITION X RAYS
+C
+LIST OF TRD ROUTINES                                         Page 2-64
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE XRAD   |
+       +------------------+
+C     -----------====------------
+C
+C  COMPUTE FOR A GIVEN STETA AND GAMMA THE INTEGRATED XRAY SPECTRUM
+C  BY INTERPOLATING IN THE ARRAY PROBX
+C
+LIST OF TRD ROUTINES                                         Page 2-65
+                                                          11 July 1997
+
+
+       +------------------+
+       |SUBROUTINE XRINT  |
+       +------------------+
+C
+C  ANALYSE LUMINESCENCE IN THE XENON OF THE TEC
+C
+
+
+
+
+
+
+
+
+
+
+
+
+                              CHAPTER 3
+
+              LIST OF WORK STILL TO BE DONE (15-JAN-88)
+
+
+
+
+     1.  X ray spectrum for irregular stack
+
+     2.  Iso-chrones for TEC in final arrangement (H.V.  and Geometry)
+
+     3.  Cluster shapes "" ""
+
+     4.  Take into account space charge
+
+     5.  Take into account sharing  of  clusters  between  2  adjacent
+         wires
+
+     6.  Take into account gain and pedestals for each wire
+
+     7.  Information on the TEC cathodes
+
+     8.  Geometrical transformation from Main frame to TRD frame  (and
+         vice versa)
+
+     9.  Analyse high energy photoelectrons in the TEC
+
+    10.  Define complete set of histograms for TRD
+
+    11.  TRD graphics
+
+    12.  Define coherant printing flags (PTRD)
+
+    13.  Overall check of TRD routines with high statistics
+
+    14.  ????????????
+
+
+
+
+
+
+
+
+
+
+
+
+
+                              CHAPTER 4
+
+
+
+
+
+
+                                                                +---------------------------+
+                                                      +-------->|           INITIALIZATION  |
+                                                      |         +---------------------------+
+                                                      |                         ^
+                                                      |                         |
+                    /  NEW   -------------------------+                         |
+                   /  PART.                                                     |
+                  /                                                             |
+    ENTERING     /                                                              |
+----------------|             / DIFFERENT LAYER --------------------------------+
+                 \           /
+                  \         /
+                   \ SAME  |
+                     PART   \
+                             \
+                              \ SAME     LAYER  -------------------------------+
+                                                                               |
+                                                                               |
+                                                                               V
+    STEPPING                                                   +----------------------------+
+------------------------------------------------------------- >|         STEPPING           |
+                                                               +----------------------------+
+                                                                               ^
+                                                                               |
+                                                                               |
+                                                                               |
+                                                                               |
+                        /  VOUT  IN    ----------------------------------------+
+                       /  SAME VOLUME
+                      /
+                     /
+--------------------|
+                     \
+                      \
+                       \  VOUT IN                              +----------------------------+
+                        \DIFF. VOLUME   ---------------------->|         ENTRD              |
+                                                               +----------------------------+

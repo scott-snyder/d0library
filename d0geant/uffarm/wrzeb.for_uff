@@ -1,0 +1,121 @@
+      SUBROUTINE WRZEB(ISTATS)
+C-----------------------------------------------------------------------
+C-    This program outputs LHEAD zebra bank structure to the output
+C-  file specified by common block /ZEBIO/.    An input variable
+C-  through arguments is specify the Begin run record,  Event record
+C-  and End run record.
+C-
+C-  INPUT(A):   IOHEAD =  user record header word.
+C-                             =1  Begin run record
+C-                             =2  End run record
+C-                             =3  Event record
+C-  INPUT(C):   logical unit number of the output file.  from /ZEBIO/
+C-  INPUT(B):   LHEAD bank structure to be output in this program.
+C-
+C-  OUTPUT(A):  ISTATS =  status word for output,
+C-                             =0  normal output
+C-                             =1  write error
+C-
+C-  S.Kunori     Mar.,1986
+C-----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:QUEST.INC'
+      INCLUDE 'D0$INC:GCFLAG.INC'
+      INCLUDE 'D0$INC:ZEBCOM.INC'
+      INCLUDE 'D0$INC:ZEBIO.INC'
+      INCLUDE 'D0$INC:ZEBIOG.INC'
+C&IF UFFARM
+      INCLUDE 'D0$INC:GCUNIT.INC'                         ! Multi
+      INCLUDE 'D0$INC:MIOFLG.INC'                         ! Multi
+      INTEGER ID, MLT_SEE_UNIQUEID,I                      ! Multi
+      INTEGER IWWREC                                      ! Multi
+      CHARACTER*60 FILIN, FILOUT, TABLE                   ! Multi
+      LOGICAL LERROR                                      ! Multi
+      DATA IWWREC/0/,IWRCHR/'O'/                          ! Multi
+C&ENDIF
+C&IF VAXELN
+C&      INCLUDE 'D0$INC:GETCOM.INC'
+C&ENDIF
+      INTEGER IOHEAD(14),NUHEAD,ISTATS,IWREC
+      CHARACTER*10 CHOPT
+      LOGICAL FIRST,OK
+      DATA FIRST/.TRUE./
+C-----------------------------------------------------------------------
+C
+      IF(IWRUNI.EQ.0) GO TO 999
+C&IF VAXELN
+C&C Farm version: Open file for IWRUNI
+C&      ISANUM = IQ(LHEAD+7)            ! Fill ISAJET event #
+C&      CALL FARM_OUT(IWRUNI)
+C&ENDIF
+      IF ( FIRST ) THEN
+        IF(IWRFLN.EQ.' ') THEN
+C&IF VAXVMS
+C&          WRITE(IWRFLN,201) IWRUNI
+C&201       FORMAT('FOR',I3.3)
+C&ELSE
+          IF(IWRUNI.LT.10) WRITE(IWRFLN,202) IWRUNI
+          IF(IWRUNI.GE.10) WRITE(IWRFLN,203) IWRUNI
+202       FORMAT('fort.',I1.1)
+203       FORMAT('fort.',I2.2)
+C&ENDIF
+        ENDIF
+C&IF VAXVMS,ETA10,VAXELN,SIUNIX,ULTRIX,IBMAIX,SUNOS,ALFOSF
+C&          CALL D0OPEN(IWRUNI,IWRFLN,IWRCHR,OK)
+C&          CALL XZRECL(IWREC,CHOPT)
+C&          CALL FZFILE(IWRUNI,IWREC,CHOPT)
+C&ENDIF
+          FIRST = .FALSE.
+      ENDIF
+C&IF UFFARM
+C                                                         ! Multi
+C--- CHECK IF THIS IS 1ST EVENT TO BE WRITTEN FOR         ! Multi
+C--- 1ST INPUT FILE OR AT END OF CURRENT INPUT FILE.      ! Multi
+C                                                         ! Multi
+      WRITE(LOUT,101) (MFLAG(I),I=1,3)                    ! Multi
+  101 FORMAT(1X,'WRZEB MFLAG(1-3) ',3I5)                  ! Multi
+      IF(MFLAG(1).NE.0) THEN                              ! Multi
+C--- CREATE OUTPUT FILENAME FROM INPUT FILENAME           ! Multi
+        ID = MLT_SEE_UNIQUEID(0)                          ! Multi
+        TABLE='LNM$JOB'                                   ! Multi
+        CALL MLB_SEELOGICAL('FOR031',TABLE, FILIN, LERROR)! Multi
+        IF(LERROR) THEN                                   ! Multi
+          WRITE(LOUT,*) 'WRZEB ERROR SEELOGICAL'          ! Multi
+        ENDIF                                             ! Multi
+        WRITE(LOUT,102) FILIN                             ! Multi
+  102   FORMAT(1X,'WRZEB SEELOGICAL FILIN ',A60)          ! Multi
+        CALL MLB_FILECVT(FILIN, ID, FILOUT)               ! Multi
+        WRITE(LOUT,104) FILOUT                            ! Multi
+  104   FORMAT(1X,'WRZEB FILECVT FILOUT ',A60)            ! Multi
+        CALL MLB_SETLOGICAL('FOR032',TABLE, FILOUT, LERROR)! Multi
+        IF(LERROR) THEN                                   ! Multi
+          WRITE(LOUT,*) ' WRZEB ERROR SETLOGICAL'         ! Multi
+        ENDIF                                             ! Multi
+C        CALL MLT_STORE_OUTFILE(FILOUT, 1, FILIN)         ! Multi
+C--- CLOSE THE CURRENT OUTPUT FILE                        ! Multi
+        IF(MFLAG(1).EQ.2) THEN                            ! Multi
+          CLOSE(IWRUNI)                                   ! Multi
+          CALL FZENDT(IWRUNI,'T')                         ! Multi
+        ENDIF                                             ! Multi
+C--- OPEN THE NEW OUTPUT FILE                              ! Multi
+        OPEN(UNIT=IWRUNI, FILE=FILOUT, STATUS='NEW',      ! Multi
+     *         FORM='UNFORMATTED')                        ! Multi
+C--- DECLARE TO ZEBRA                                     ! Multi
+        CALL FZFILE(IWRUNI,IWRREC,IWRCHR)                 ! Multi
+        MFLAG(1)=0                                        ! Multi
+      ENDIF                                               ! Multi
+C&ENDIF
+C
+C  write out LHEAD banks...
+      NUHEAD = 0
+      CALL FZOUT(IWRUNI,IXMAIN,LHEAD,1,' ',2,NUHEAD,IOHEAD)
+C&IF VAXELN
+C&      CLOSE(IWRUNI)
+C&ENDIF
+C
+C  wipe out all banks in store IXCOM
+  999 CALL MZWIPE(IXCOM+21)
+      ISTATS=0
+C
+      RETURN
+      END

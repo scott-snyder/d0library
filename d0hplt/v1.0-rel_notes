@@ -1,0 +1,116 @@
+
+
+
+
+       Description of routines in D0HPLT - D0 Interactive Histogram 
+                             Plotting Package
+     ================================================================ 
+
+
+D0HPLT - Interprets D0HPLT commands.  The commands handled by this 
+routine are listed below.  The item that appears in the menu is
+first and the routine that gets called as a result is listed below it.
+
+END HISPAK  ends the HISPAK menu and DI3000 (this can move back up 
+           to HISPAK.FOR, if necessary)
+
+PLOT        plots a histogram on the screen (initializes DI3000 if it's
+(D0HPID)    the first command issued in D0HPLT)
+
+LASER PLOT  Plots a histogram to the printer driver file, and 
+(D0HLAS)    sends it to queue SYS$PRINT.  Uses subroutine
+            QUEUE_PRINT from OFFLINE_UTIL.  Called Laser Plot in menu
+            list, LPLOT is the command received in D0HPLT.
+
+INDEX       Gives a list of the histograms in blank common and the number
+(D0HINX)    of entries in each.  Uses COMPACK routine INTMSG.
+
+CLEAR       Resets one or all histograms using HRESET(IDNUM)
+(D0HCLR)
+
+SHOW        Shows the title of 1 histogram.
+(D0HSHW)
+
+TYPE        Types one or all histograms to the terminal screen.  
+(D0HTYP)    
+
+PRINT       Prints one or all histograms to queue SYS$PRINT (also
+(D0HPRT)    uses QUEUE_PRINT from ONLINE_UTIL).
+
+STORE       Stores one or all histograms in file HSTSTORE.DAT.
+(D0HSTR)
+
+Preceding Plot   Plots the histogram preceding the current one in memory.
+(D0HPID)          (this is called BPLOT in D0HPLT and Preceding Plot in
+                  the menu).
+
+Same Plot        Plots the current histogram on the terminal screen.
+(D0HPID)          (this is called SPLOT in D0HPLT and Same Plot in the
+                   menu).
+
+Next Plot        Plots the histogram after the current one in memory.
+(D0HPID)          (this is called NPLOT in D0HPLT and Next Plot in the
+                   menu).
+
+All of the commands that require something to be plotted call HPL_INIT
+to initialize DI-3000 if it is the first time that something will be
+plotted.  I didn't call this in the beginning as a default, because it
+messes up the screen, and if user is just doing commands like TYPE,
+SHOW, INDEX, STORE, and PRINT, he doesn't need to have graphics initialized.
+Some of the routines call COMPACK function I=LIBREP to repair the screen
+if DI-3000 output has been used, and might have messed up the screen.  
+With the flags facility, this can probably be done more accurately, so 
+that LIBREP never gets called unnecessarily.
+
+The following routines are called from routine D0HPLT (underneath, I 
+have put the corresponding command returned from the menu):
+
+D0HCLR - Resets one or all histograms.  I think the command CLEAR/RESET
+(Clear)  used to CLEAR DAQ too, but right now, I just call HRESET for
+         one or all histograms.  IDNUM is either a histogram number,
+         or 0 for all.
+D0HCOM - This routine resets the terminal to alpha mode so that it
+(none)   may execute COMPACK commands.  First it calls D0HDRV which
+(not     determines what kind of driver the user has set, and issues
+seen by  the appropriate CTRL sequence to set the terminal back to
+ user)   alpha mode.  Calling JDEND to end the device would also set
+         the terminal back to alpha mode, but on vaxstations it deletes  
+         the graphics window, so I just want to set the terminal back
+         to alpha mode temporarily to take the COMPACK command for the
+         next plot.  This calls device dependent subroutine D0HDRV to
+         translate the logical name of the device driver.
+
+D0HINX - Calls HBOOK routines to get a list of all histograms in memory
+(INDEX)  their titles and number of entries, and outputs this to the 
+         upper screen using COMPACK routine INTMSG.
+
+D0HLAS - Sends a plot to queue SYS$PRINT.  Uses routine QUEUE_PRINT
+(LPLOT)  from ONLINE_UTIL.  This routine is Laser Plot in the menu,
+         and the command that comes into D0HPLT is LPLOT.
+
+D0HPID - Plots the histogram to one's terminal screen.  Calls HPLDI3000
+(PLOT)   routines.
+
+D0HPRT - Calls HBOOK routines to write all or one histograms to a file,
+(PRINT)  and then print and delete that file.  Uses QUEUE_PRINT from
+         ONLINE_UTIL.
+
+D0HSHW - Shows the histogram title associated with the ID number given
+(SHOW)   by the user.  Calls COMPACK routine INTMSG to output the title.
+
+D0HSTR - Stores one or all histograms in file HSTSTORE.DAT. 
+(STORE)
+
+D0HTYP - Types one or all histograms to user's terminal screen.
+(TYPE)
+
+Other routines in D0HPLT, that aren't called directly from routine D0HPLT.
+
+D0HDRV - Calls device dependent routine D0HLNM to translate the 
+         logical name of the DI3000 device driver one is using.
+         Called from D0HCOM and D0HLAS.
+
+D0HLNM - Device dependent routine which translates a logical name from
+         the LNM$PROCESS_TABLE or the LNM$SYSTEM_TABLE.
+
+

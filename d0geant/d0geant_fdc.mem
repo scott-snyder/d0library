@@ -1,0 +1,961 @@
+
+
+
+
+                                                             D0 NOTE #996  
+                                                             Jeffrey Bantly
+                                                             6-JUL-1990    
+
+                           _________________________                           FDC Simulation in D0GEANT
+
+     This note describes the routines used in the simulation of the Forward
+     Drift  Chambers.   Most  of  the  routines are in D0$D0GEANT$FDC.  The
+     contents of this note include the main steps of D0GEANT  when  running
+     and four appendices of additional details:
+
+      -  Initialization
+
+      -  Create Geometry
+
+      -  Tracking
+
+      -  Digitization
+
+      -  Finishing Up
+
+      -  Interactive Only
+
+      -  Appendix A - FDC Geometry File
+
+      -  Appendix B - FDC Pulse Shape Parameters
+
+      -  Appendix C - FDC Zero Suppression Parameters
+
+      -  Appendix D - FDC Geometry Description
+
+      -  Appendix E - FDC Geometry Parts Trees and Drawings
+
+
+
+     1.  INITIALIZATION:   The  initilizations  specific  to  the  FDC  are
+         handled by three routines.
+
+          -  FFIFDC initializes the run-time switches DFDC (to 1), PFDC (to
+             1),  and SFDC(1-10) (all to -1.) using FFREAD.  These switches
+             can be changed at run time.  Currently, the  default  settings
+             are   changed   to  DFDC=3,  PFDC=1,  SFDC(1)=1.,  SFDC(2)=0.,
+             SFDC(3)=0., SFDC(4)=1., SFDC(5)=0., SFDC(6-10)=-1.   by  cards
+             submitted  at  run  time.   See  D0GEANT_USER.MEM for details.
+             FFIFDC has an entry point PRT_FFIFDC which will print out  the
+             values  of  all  the  switches  to  unit LOUT as stored in the
+             GCUNIT common block.
+
+          -  CLNFDC edits the run-time switches but currently  only  checks
+             to make sure that the DFDC switch is =< DCEN switch.
+
+          -  BOKFDC books FDC HBOOK histograms for ANLFDC.  FDC  histograms
+             can use reserved numbers 9000-9999.  Currently a dummy.
+
+
+                                     - 1 -
+                                                                          Page 2
+
+
+
+     2.  CREATE GEOMETRY:  Three routines are used  to  read  the  geometry
+         from a file, put it in place in D0GEANT, and set the gas detection
+         and output parameters.
+
+          -  INIFDC, called by INICEN, reads in the geometry of the FDC  by
+             calling  FDISTP.   All the geometry constants are put in Zebra
+             banks in ZEBSTP described in files located  in  D0$ZEB$FDCCON.
+             For  details,  see Appendix A.  The pulse shape parameters are
+             put into the ZPULPR common block and are described in Appendix
+             B.  The constants for zero_suppression are put into the CDZERO
+             common block and are listed in Appendix C.
+
+          -  GEOFDC sets up the geometry in D0GEANT.   The  description  in
+             terms  of volumes is done in the template of this routine; all
+             the positions and the dimensions are taken from  the  FDC  STP
+             geometry  banks.   Here is a brief summary (see Appendix D for
+             details):
+
+              .  The mother volume in the experiment is the Box MVOL.
+
+              .  The main volume for the central detector is MCEN :  it  is
+                 a TUBE ( delimited by an inner and an outer cylinder).
+
+              .  The FDC volumes are  two  TUBEs  inside  MCEN.   They  are
+                 vacuum.
+
+              .  Each FDC volume is divided along Z into two  'Theta'  TUBE
+                 volumes FTH and one 'Phi' TUBE volume FPH with FPH between
+                 the two FTH's.  All are vacuum.
+
+              .  The sensitive volumes in FTH are Boxes which  are  sectors
+                 in  quadrants.   FPH  has  sectors  which are wedge-shaped
+                 divisions in the angle phi.  All volumes contain argon+etc
+                 (FDC_GAS).
+
+              .  All sectors are divided into sub-volumes, one per wire.
+
+              .  All FDC parts are ordered to GEANT  to  minimize  tracking
+                 time.
+
+              .  All FDC material and media can use reserved numbers 90-99.
+                 The FDC currently uses 91 to 98.
+
+              .  All  FDC  rotation  matrices  can  use  reserved   numbers
+                 9000-9999.  The FDC currently uses 9001 to 9008.
+
+
+
+
+
+
+
+
+
+
+                                     - 2 -
+                                                                          Page 3
+
+
+
+          -  DETFDC is called by GEOFDC if digitization is chosen (DFDC  >=
+             2).   DETFDC  defines  the  amount  and  kind of data the user
+             chooses to store for this detector.  This routine calls  GSDET
+             to assign a label chain to each volume so that it has a unique
+             location in  JHITS.   GEANT  stores  all  hit  information  in
+             Integer  format  so DETFDC calls GSDETH to load in multipliers
+             and offsets to convert the Real hit data into Integer format.
+
+             For each hit in a sensitive volume, we save in the GEANT  bank
+             JHITS:
+
+              .  X-GLOBAL incoming track
+
+              .  Y-GLOBAL
+
+              .  Z-GLOBAL
+
+              .  X-GLOBAL outgoing track
+
+              .  Y-GLOBAL
+
+              .  Z-GLOBAL
+
+              .  PULSE HEIGHT ( Integrated charge)
+
+              .  Track length in the cell ( dx**2 + dy**2 + dz**2)
+
+              .  Track id.=2**11*Secondary track #+Primary track#.
+                 CAUTION :  This track number is the  one  given  by  GEANT
+                 instead of the one in ISAJET.
+
+
+
+     3.  TRACKING:  Tracking is performed for every particle in every event
+         by  stepping  along its path, determining the volume it is in, and
+         generating hits if necessary.
+
+          -  TEVFDC is called before each EVENT.  Currently a dummy.
+
+          -  STPFDC is called for  each  STEP  along  a  TRACK  when  in  a
+             sensitive  medium ( gas volumes in the drift sectors).  STPFDC
+             obtains the X,Y,Z data from the GCTRAK common block  for  each
+             sensitive  volume  and  calls  LOCGEO  to  convert it to local
+             coordinates.  Drift distances and  delay  line  positions  are
+             then  calculated  from  these  results.   The  pulse height is
+             calculated in the routine CLANDA.  It is proportionnal to  the
+             track  length,  and takes into account the Landau effects.  It
+             must be used with the GEANT flags IDRAY=1  and  ILOSS=1.   For
+             each hit in a sense wire volume, GSAHIT is called to store the
+             data in the GEANT bank JHITS.
+
+          -  TRKFDC is called after each TRACK.  Currently a dummy.
+
+
+
+                                     - 3 -
+                                                                          Page 4
+
+
+
+     4.  DIGITIZATION:  After all the tracking has been performed, one  has
+         to do the digitization.  At this level, three kinds of outputs can
+         be obtained depending on the values on the SFDC  data  card  whose
+         default values are set in FFIFDC :
+
+          -  SFDC(1) = 1.  :  Build the Zebra bank CDD3 which contains  the
+             raw  Flash  ADC data as written in the experiment.  It follows
+             the version 2 format and uses only a  single  crate.   See  D0
+             Note  #883  for  CDD3  format details.  (SFDC(1)=0.  -> do not
+             build the CDD3 bank.) Default SFDC(1)=1.
+
+          -  SFDC(2) = 1.  :  Build the Zebra banks FPSC,FTSC which contain
+             the   information  on  the  "idealized"  hits:   positive  and
+             negative drift distance solutions and errors, the  delay  line
+             position  and error, ionization of the hit and error, a status
+             word, and the GEANT track number of the hit.  (SFDC(2)=0.   ->
+             do not build the FPSC and FTSC banks.) Default SFDC(2)=0.
+
+          -  SFDC(3) = 1.  :  Build the Zebra banks FPDA,FTDA which contain
+             the  information  about  the  pulses:  drift time, pulse area,
+             pulse width, pulse heigth, errors, a status  word,  and  GEANT
+             track  number.  (SFDC(3)=0.  -> do not build the FPDA and FTDA
+             banks, or if built for use with the  CDD3  bank,  drop  them.)
+             Default SFDC(3)=0.
+
+         There are also two switches to modify the FADC raw data output.
+
+          -  SFDC(4) = 1.  :  Bilinear  conversion  is  performed  on  each
+             pulse bin in the raw FADC output.  Bilinear conversion is done
+             by the ZCNVRT routine.  It contains the conversion parameters.
+             (SFDC(4)=0.   ->  do  not perform bilinear conversion) Default
+             SFDC(4)=1.
+
+          -  SFDC(5) = 0.  :  Perform  zero_suppression  on  the  FADC  raw
+             channel output.  Reduces whole channel's output to clusters of
+             pulses   that   satisfy   the   zero_suppression   parameters.
+             Performed  by  the  ZERSUP  routine  with parameters loaded by
+             INIFDC  into  the  CDZERO  common  block  (see  Appendix   C).
+             (SFDC(5)=1.   ->  do  not  perform  zero_suppression)  Default
+             SFDC(5)=0.
+
+         Five additional switches exist and are available.
+
+          -  SFDC(6)-SFDC(10) = -1.  :  This indicates that  they  are  not
+             currently  used.   Future  versions  may  make  use  of  these
+             switches.  Default SFDC(6-10)=-1.
+
+
+
+
+
+
+
+
+
+                                     - 4 -
+                                                                          Page 5
+
+
+
+            DIGFDC is  the  main  digitization  routine.   It  handles  the
+         booking  and  filling  of  all  the  banks  in  the  FDC Hits bank
+         structure.  Bank details are  given  in  the  structure  chart  in
+         D0$ZEB$FDCHITS.
+
+          -  First, a temporary Zebra link area is  formed.   The  top  FDC
+             Hits Zebra bank FDCH is booked by a call to BKFDCH.
+
+          -  MKFTHE is called for every Theta  sector.   The  FDC  defaults
+             used are two Halves, eight Quadrants per Half, six Sectors per
+             Quadrant, and eight sense wires and one delay  line(two  ends)
+             per Sector.
+
+              .  Calls to GFHITS get the hit  information  for  each  sense
+                 wire ( defined by a half, unit, quadrant, sector, and wire
+                 number ) as stored in the GEANT structure JHITS.
+
+              .  This information is passed on to FTHITS to make  the  FTSC
+                 banks ( SFDC(2)=1.).  In FTHITS the hits are time-ordered,
+                 required to have a minimum pulse height (>0.0),  and  then
+                 loaded into the correct FTSC Zebra bank by LDFTSC.  LDFTSC
+                 books the FTSC Zebra bank if necessary and increments  the
+                 total  hit counts in all the FDC Hits banks above the FTSC
+                 bank.  The default gas drift velocity used is  33  microns
+                 per  nanosecond.   The  default sense wire stagger used is
+                 +/-0.02 cm where the even-numbered sense  wires  (0,2,4,6)
+                 use  -0.02 cm.  Sense wires in sectors 0, 1, and 2 are NOT
+                 staggered and those in sectors 3, 4, and 5 are staggered.
+
+              .  FTDATA also receives the GHITS  information  to  make  the
+                 FTDA  banks ( SFDC(1)=1.  or SFDC(3)=1.  ).  The hits have
+                 T0's added in  and  are  time-ordered.   Hits  are  looped
+                 through  in time to create 'pulses' which must then have a
+                 minimum pulse height (>0.0).   If  the  current  sensitive
+                 volume  represents  a  Theta  sense wire 0, information is
+                 saved by SVDLAY to make delay line hits.  LDFTDA is called
+                 to book the FTDA bank if necessary and load in the 'pulse'
+                 information for each hit.   FTDATA  uses  the  same  drift
+                 velocity  and staggering as FTHITS.  It also uses 2.466 cm
+                 as the displacement from  the  sector  centerline  of  the
+                 sense  wire plane for sectors 0, 1, and 2.  See Appendix D
+                 for details.  FTDATA also calls FTDLDA which  handles  the
+                 delay  line  hits.   FTDLDA  time-orders  the  hits, calls
+                 DELDIG  for  a  threshold  check  (>0.0)  and  merging  of
+                 overlapping pulses and then calls LDFTDA to load the delay
+                 line pulses into the FTDA bank.  SVDLAY uses a delay  line
+                 velocity   of   0.22 cm  per  nsec,  a  pulse  attenuation
+                 coefficient of -0.0019 per cm, and  an  amplitude  of  the
+                 delay  line  signal to sense wire signal of 1.5.  The high
+                 amplitude ratio reflects the real FDC Theta sense wire 0's
+                 whose sense wire voltage is greater than that of the other
+                 wires specifically to boost the delay line signal.
+
+
+
+                                     - 5 -
+                                                                          Page 6
+
+
+
+              .  When finished with a sector, PUFTSC and PUFTDA are  called
+                 to  reduce  the Zebra FTSC and FTDA banks to their minimum
+                 possible size.  MKFTHE builds  the  Zebra  bank  structure
+                 FDCH-FHLF-FTHE-FTQD-FTSC-FTDA as necessary.
+
+
+          -  MKFPHI is called for every  'Phi'  sector.   Like  MKFTHE,  it
+             calls  GFHITS and passes the information to FPHITS and FPDATA.
+             It reduces the FPSC and  FPDA  banks  by  calling  PUFPSC  and
+             PUFPDA.     MKFPHI    builds    the   Zebra   bank   structure
+             FDCH-FHLF-FPHI-FPSC-FPDA as necessary.   There  are  NO  delay
+             lines in the Phi chambers.
+
+          -  BLCDD3 builds the bank CDD3 of the raw FADC data (SFDC(1)=1.).
+             It  takes  all  the  information needed from the FPDA and FTDA
+             banks which have been built.   It  uses  the  utility  routine
+             ZGFTDA  which  returns  the number of hits and the pointers to
+             the first hits on each FADC channel(ie  sense  wire  or  delay
+             line  end)  in  an FTDA bank.  FICDD3 is sent the drift times,
+             pulse areas, and the number of hits per FADC channel.   FICDD3
+             prepares the hits of each channel for FADC digitization, makes
+             the conversion, and then calls FDCWRT.  FDCWRT books and calls
+             CDD3FL  to  fill  the  crate header for the CDD3 bank.  FDCWRT
+             enlarges CDD3 if necessary and fills the bank  for  each  hit.
+             Preparation  includes  pulse simulation for each hit (SIMPUL),
+             bilinear  conversion  (ZCNVRT)  if   requested   (SFDC(4)=1.),
+             adjustment by pedestal level and noise (ZADPED), and reduction
+             by zero_suppression (ZERSUP) if  requested  (SFDC(5)=0.).   It
+             then  uses  the  utility  routine  ZGFPDA  which  returns  the
+             pointers and number  of  hits  on  each  'Phi'  FADC  channel.
+             FICDD3  also  performs  the  same  functions as above for each
+             'Phi' hit.  Finally, BLCDD3 minimizes the size of the bank and
+             calls  CDD3FL  to  put  in  the CDD3 bank crate trailer words.
+             FICDD3 uses 256 FADC bins per channel with a  maximum  allowed
+             drift  time  of  2600  nsec.   Pedestal levels are set at 20.0
+             counts and pedestal sigma are set at 1.5 counts in a FADC  bin
+             for  all  channels.   FDC  delay  lines are noisier than sense
+             wires and a future Monte Carlo improvement will  reflect  this
+             difference.
+
+          -  The FTDA and FPDA banks are  dropped  if  they  had  not  been
+             requested.  (SFDC(3)<>1.)
+
+          -  PRxxxx (PRFDC,  PRCDD3)  are  the  routines  which  print  the
+             contents  of  the  banks.   Different  levels  of printout are
+             output, set by the data card PFDC (0=none, 1=minimal,  2=more,
+             3=full).   PRFDC  calls  many other PRFxxx routines that print
+             out the Zebra bank structures as listed in MKFTHE and MKFPHI.
+
+          -  The FDC Hits temporary link area is disabled.
+
+         ANLFDC is called after each EVENT and can be used for analysis and
+         output  including  the  filling  of  histograms  booked in BOKFDC.
+         Currently a dummy.
+
+                                     - 6 -
+                                                                          Page 7
+
+
+
+     5.  FINISHING UP:  LSTFDC is called at the end of a run and can  store
+         histograms via HSTOR, etc.
+
+     6.  INTERACTIVE ONLY:
+
+          -  Call  INTFDC  to   initialize   interactive   user   commands.
+             Currently  calls GUIFDC (if DFDC >= 2) which should initialize
+             the FDC ZCEDEX menu but is a dummy.
+
+          -  Call HLPFDC to print interactive help information.   Currently
+             a dummy.
+
+          -  Call MENFDC as a switching routine  for  an  interactive  user
+             menu.  Currently a dummy.
+
+
+
+
+
+
+
+
+        Please send comments and questions to NUHEP::BANTLY so that  I  can
+     make  this document more understandable to those who have not actually
+     seen the inside of the FDC or the FDC itself!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 7 -
+                                                                          Page 8
+
+
+
+                     ________ _ _        ___ ________ ____                     APPENDIX A :        FDC Geometry File
+
+
+
+        A geometry file is needed to run with the FDC detector.   The  file
+     is  already  available  as  D0$STP:FDC_STPFILE.DAT.   The file must be
+     assigned to the  logical  FDC_STPFILE  for  D0GEANT.   To  assign  the
+     logical,  do  an @D0$D0GEANT:D0GEANT_SETUP.  To make your own geometry
+     file or change the other STP parameters :
+
+     1.  Edit the FDC STP-building Fortran files in D0$STP$FDC and  compile
+         them.
+
+     2.  Define FDC_STPFILE disk:[...]filename.
+
+     3.  Modify the linking and running command file FDWSTP.COM to  include
+         your changes.
+
+     4.  Do an @FDWSTP and the resulting FDC STP file should appear in  the
+         area defined in 2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 8 -
+                                                                          Page 9
+
+
+
+                    ________ _ _ ___ _____ _____ __________                    APPENDIX B : FDC Pulse Shape Parameters
+
+
+
+        The FDC pulse shape parameters are located  in  the  ZPULPR  common
+     block,  filled  by  INIFDC,  and  used  by  SIMPUL.   Below is a brief
+     description and the current default values.  For the FDC, x=2.
+
+
+     PARTR and PARTW are fitted parameters from real data.  Currently,  the
+     FDC uses values obtained from CDC data.
+
+      Rise time   = PARTR(1,x) * SQRT(Tdrift) + PARTR(2,x)
+                    (for uniform drift region: Tdrift > TRLIMT)
+                  = PARTR(3,x) * Tdrift ** 2 + PARTR(4,x) * Tdrift + PARTR(5,x)
+                    (for the non-uniform drift region: 0 < Tdrift < TRLIMT)
+
+      Total width = PARTW(1,x) * SQRT(Tdrift) + PARTW(2,x)
+                    (for uniform drift region: Tdrift > TWLIMT)
+                  = PARTW(3,x) * Tdrift ** 2 + PARTW(4,x) * Tdrift + PARTW(5,x)
+                    (for the non-uniform drift region: 0 < Tdrift < TWLIMT)
+
+           PARTR(1,2) = 0.476
+           PARTR(2,2) = 31.9
+           PARTR(3,2) = -0.00097
+           PARTR(4,2) = 0.45
+           PARTR(5,2) = -7.39
+
+           PARTW(1,2) = 0.029
+           PARTW(2,2) = 11.3
+           PARTW(3,2) = -0.000097
+           PARTW(4,2) = 0.083
+           PARTW(5,2) = -2.2
+
+           TRLIMT(2) = 300.0                 ! ns
+           TWLIMT(2) = 220.0                 ! ns
+           MINRS(2)  = 20.0                  ! minimum rise time (ns)
+           MINWID(2) = 10.0                  ! minimun width (FADC channels)
+           PULWEI(2) = 1.2                   ! weight for center of gravity
+           SCALE(2)  = 3.0                   ! Scale of pulse height
+           DLSCAL(2) = 1.2                   ! Delay line / Sense wire (width)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 9 -
+                                                                         Page 10
+
+
+
+                  ________ _ _ ___ ____ ___________ __________                  APPENDIX C : FDC Zero Suppression Parameters
+
+
+
+        Zero suppression is chosen for the FDC by setting SFDC(5)=0.0  (the
+     default).  If zero suppression is not chosen, all parameter values are
+     set to 0.  The zero suppression parameters are given below and  stored
+     in the ZZEROP common block.  For the FDC, x=2.
+
+
+
+       Leading Edge is found if one of two conditions is met :
+
+         Three consecutive FADC bins >= BINTH2(x)     or,
+
+         Three consecutive FADC bins >  BINTH1(x)  AND
+         the two consecutive differences > DIFTH1(x)
+
+         It is strongly suggested that BINTH1(x) < BINTH2(x).
+
+
+
+       Trailing Edge is found if one of two conditions is met :
+
+         Three consecutive FADC bins < BINTH4(x)     or,
+
+         Three consecutive FADC bins <  BINTH3(x)  AND
+         DIFTH2(x) < the two consecutive differences < DIFTH3(x)
+
+         It is strongly suggested that BINTH3(x) > BINTH4(x).
+
+
+
+       For the FDC :
+
+             DIFTH1(2) = 5           Difference Thresholds
+             DIFTH2(2) = 5
+             DIFTH3(2) = 5
+             BINTH1(2) = 25          Bin Height Thresholds
+             BINTH2(2) = 25
+             BINTH3(2) = 25
+             BINTH4(2) = 25
+
+     Notice that the BINTH values violate the  suggested  inequalities  but
+     for the current Monte Carlo they are adequate.
+
+
+
+     Details of what the zero suppression values mean can be obtained  from
+     a  future D0 Note to be released for Don DeGroot, "D0 Central Tracking
+     Zero Suppression Chip Description (23-Aug-1988)".  The old version  as
+     in D0 Note #500 will be superseded.
+
+
+
+                                     - 10 -
+                                                                         Page 11
+
+
+
+                    ________ _ _        ___ ________ _______                    APPENDIX D :        FDC Geometry Details
+
+
+
+        This  appendix  describes  the  Forward  Drift  Chamber  as  it  is
+     recreated   in   the   Monte   Carlo   routine   GEOFDC  which  is  in
+     D0$D0GEANT$FDC.  More parts than are actually recreated are  mentioned
+     in  the  description so as to give a more complete picture of the FDC.
+     A correlation from the real chambers to the GEOFDC routine is provided
+     by  putting  D0GEANT  part label names in () after each real part that
+     actually appears in the Monte Carlo.  Some  FDC  label  names  do  not
+     start  with 'F' because of the four letter length limit to part names.
+     All radii given are from the D0 Detector Z-axis  and  in  the  D0  X-Y
+     plane.   All part types in the Phi layers are 'TUBE's unless otherwise
+     noted.  All  part  types  in  the  Theta  layers  are  'BOX'es  unless
+     otherwise noted.
+
+        The two Forward Drift Chambers (FDC) are located at the ends of the
+     Central  Detector.  Each FDC has the shape of a large, thick disk with
+     a hole in the center for the beam line.  Each  chamber,  or  Half,  is
+     actually  a  sandwich  of three detectors; a Theta layer, a Phi layer,
+     and a second Theta layer.  The main support for the chamber is the Phi
+     layer (FPH).  The two Theta layers (FTH) are bolted onto the Phi layer
+     with their backs flush against the walls of the Phi, therefore the two
+     Thetas  face  in  opposite  directions.  The two Thetas are rotated 45
+     degrees with respect to each other to provide better track finding  by
+     resolving left-right ambiguities.
+
+        A Phi layer contains within it a sensitive  volume  (FDPH)  divided
+     into  sets  of  sub-volumes.   The  first  sub-division  is  into  six
+     'super-wedges'  (FPC0-FPC5)  of  60  degree  angles  in   phi.    Each
+     'super-wedge'  is  a  TUBS type volume and is divided into six sectors
+     (FPP0-FPP5) which are the actual drift  regions  and  also  TUBS  type
+     volumes.   The  'super-wedges' are an artifice to minimize the running
+     time of D0GEANT and do not have counterparts in  the  actual  chamber.
+     High-voltage  septums separate the sectors and are held in place under
+     tension.  These sheets are not included in GEOFDC as they are  only  7
+     mils  thick (5 mils of G10 and a mil of aluminium on each side).  Each
+     gas detection volume (FPPi) has an inner radius of 11.00 cm, an  outer
+     radius  of  61.29 cm,  and is 14.06 cm thick.  The sixteen sense wires
+     and fifteen guard wires are located radially down  the  centerline  of
+     each sector and equally spaced 0.40 cm apart.  The 6.4 mil thick guard
+     wires made of gold-plated aluminum lie exactly along radial lines down
+     the  centerline  of  each  sector  and  act  as seperators of each gas
+     subvolume (FPZ0-FPZ5).  However, the 1.2 mil thick sense wires made of
+     gold-plated  tungsten  are  located  parallel  to  the guard wires and
+     staggered about  the  centerline.   The  first  sense  wire  from  the
+     interaction direction is staggered in the clockwise direction and they
+     alternate every sense wire.   Details  on  wire  placement  are  given
+     below.
+
+        Two 66.04 cm radius, 1.07 cm thick honeycomb  supports  (FHS0,FHS1)
+     sandwich  the sensitive volume and its 36 drift sectors (FPPi) between
+     them.   Each  support  has  an  inner  radius  of  8.00 cm   and   has
+
+                                     - 11 -
+                                                                         Page 12
+
+
+
+     field-shaping electrodes along its inner surface.  The inner hub (FIW)
+     is an aluminum wall containing slots for the  septums  with  an  inner
+     radius  of  10.36 cm,  an  outer radius of 11.00 cm and a thickness of
+     14.06 cm.  Attached to each end of the inner hub is an  aluminum  ring
+     (FIR0,FIR1)  of  inner  radius  8.00 cm,  outer  radius  10.36 cm, and
+     thickness 0.64 cm.  These fit just inside the ends of the hub and help
+     secure  the  inner hub to the honeycomb supports.  The outer hub (FOW)
+     of the phi has an  inner  radius  of  61.29 cm,  an  outer  radius  of
+     61.93 cm,  and  a  thickness of 14.06 cm.  Attached to each end of the
+     outer hub  is  an  aluminum  ring  (FOR0,FOR1)  similar  to  the  ones
+     mentioned  for  the  inner  hub  but its inner radius is 61.93 cm, its
+     outer radius is 66.04 cm, and its thickness is 0.64 cm.   These  slide
+     on the outside of the outer hub, helping to attach it to the honeycomb
+     supports and harboring the electronics for the layer.  There are  also
+     small  G10  cards that carry the high voltage in for the field-shaping
+     electrodes which are located on the inside  of  the  outer  hub.   The
+     cards  are  not  currently included in GEOFDC.  The above represents a
+     complete Phi layer to at least the detail limits of GEOFDC.
+
+        A Theta layer is much more complex than a Phi  layer  in  terms  of
+     numbers  of  pieces  and  the  way  they  fit together.  Each layer is
+     composed of 4 quadrants types A (FWTA) and B  (FWTB).   Each  quadrant
+     occupies  roughly  a  quarter  circle  with  the A quadrants occupying
+     slightly larger areas.  There are two A quadrants opposite each  other
+     and two B quadrants opposite each other and they come together with an
+     eighth-inch clearance between all the side  surfaces.   The  quadrants
+     are considered as overlapping volumes in GEOFDC.
+
+     DIAGRAM 1 : Sample Theta Quadrant
+
+                    /--------------\
+                    |       5      |      <-
+                    |              |       |
+                ------------------------   |
+                |     Theta   Sector   | <-= Full-sized
+                |           4          |   | Sectors
+                ------------------------   |
+                 |                    |    |
+                 |          3         |   <-
+                 ----------------------
+                     |      2     |       <-
+                     --------------        |
+                       |    1   |        <-= Half-sized
+                       ----------          | Sectors
+                         |  0 |           <-
+                         ------
+                          Beam-
+                          pipe
+
+
+        An A quadrant is composed of  six  rectangular  boxes  (FWA0-FWA5).
+     See Diagram 1.  The boxes get longer as the radius goes out except for
+     the outermost box which is shortened with slanted outer edges  because
+     of  the  limiting  radius.   The inner three are half-width with their
+
+                                     - 12 -
+                                                                         Page 13
+
+
+
+     wires along one side while the outer three are full-width  with  their
+     wires down the centerline.  Each half-width box contains one sensitive
+     detection volume (FDY0-FDY2)  with  eight  sense  wires,  eight  guard
+     wires, and a delay line embedded in the bottom piece.  Each full-width
+     box contains one sensitive detection  volume  (FDY3-FDY5)  with  eight
+     sense wires, fifteen guard wires arrayed along both sides of the sense
+     wires, and a delay line embedded in the bottom piece.  Details on wire
+     placement  are  given below.  A detection volume is divided into eight
+     parts each with the same name (FYZ0-FYZ5)  and  containing  one  sense
+     wire.   A  box  is  5.60 cm  thick  and  starts with a Rohacell bottom
+     (FBY1-FBY6), 0.68 cm thick, then comes the  sensitive  volumes  (FDYi)
+     and  a  Rohacell/honeycomb  lid  (FHY1-FHY6),  0.32 cm  thick.  Field-
+     shaping electrodes are attached to the inner surfaces of the  Rohacell
+     layers.   Above  the  lid  is  a  layer  of  internal  signal  cabling
+     (FCY1-FCY6) and an aluminum cover (FAY1-FAY6).
+
+        On the outside and between each pair of boxes  are  intercell  wall
+     volumes  (FIA0-FIA6) which contain many pieces.  The walls between the
+     boxes are made of aluminum (FGY2-6), 0.22 cm wide.  These are glued to
+     the  edges of the bottom Rohacell layers and snug up against the edges
+     of the Rohacell lids.  The six  lid  pieces  are  glued  to  a  common
+     honeycomb lid (HGY2-HGY6), 0.36 cm thick, completely enclosing the gas
+     volume.  There is a space between the honeycomb  lid  and  an  overall
+     aluminum  lid  (AGY2-6)  for  electronics  including  the pre-amps and
+     signal cables.  The outer walls of the innermost and  outermost  boxes
+     (GY1,GY7-GY11)  are  made  of G10 and are 0.66 cm thick except for the
+     two ends (GY8,GY9) of the innermost  wall  which  are  0.22 cm  thick.
+     Thus the innermost piece is three parts (GY1,8,9) and the outermost is
+     three parts  (GY7,10,11).   The  center  part  of  each  (GY1,GY7)  is
+     slightly  lower than the rest as the aluminum cover rests here.  Also,
+     where the aluminum walls protude past the ends of the shorter  of  the
+     two    boxes   they   separate,   there   are   G10   build-up   walls
+     (ULY2-ULY6,URY2-URY6) to bring them up  to  the  full  height  of  the
+     layer.   The  outside intercell wall volumes have been given some zero
+     thickness      parts      for      symmetry      purposes       (ULY1,
+     ULY7,URY1,URY7,HGY1,HGY7,AGY1,AGY7).    Two   G10   wings  (WGY1,WGY2)
+     located on outer corners.  Three  G10  tabs  (TBY1-TBY3)  are  located
+     along the inner and outer edges to help secure the quadrant to the phi
+     chamber.  These tabs are the only Theta unit pieces that are trapezoid
+     TRD1-shaped.   Three  G10  pieces  are attached to the inner and outer
+     faces for gas intakes (SIY1,SIY2,RIY).  The ends or side-walls of  the
+     sector  boxes  are made of G10 (SLY1-SLY6,SRY1-SRY6), one at each end.
+     A Theta B quadrant's parts are labelled the same  as  the  A  quadrant
+     parts  except label letter A->B and letter Y->X.  The Y,X letters were
+     a naming convention used early in the Monte Carlo effort  and  may  be
+     done away with in some future version.
+
+        The wiring for the Theta and Phi sectors  is  somewhat  complicated
+     but  the  summary  below  with  Diagrams  2 and 3 may help.  The Theta
+     sector wires are located differently in the three  half-sized  sectors
+     and  the  three  full-sized  sectors.   The half-sized ones (0-2) have
+     their wires along an edge.  The upper seven guard wires  in  each  box
+     sector   are  located  0.800 cm  from  the  near  wall  and  start  at
+     z=-1.462 cm.  They are spaced 0.800 cm apart.   The  sense  wires  are
+
+                                     - 13 -
+                                                                         Page 14
+
+
+
+     located  0.400 cm from the near wall, starting at z=-1.862 cm, and are
+     spaced 0.800 cm apart vertically.  There is an 8th guard wire  located
+     in  the  plane  of the sense wires at z=-1.462 cm.  This and the first
+     guard wire in the guard wire column are the division between the upper
+     seven  sense  wires  and  sense  wire  0.   Sense  wire  0  is  placed
+     asymmetrically in its volume so that it may be closer to the bottom of
+     the  chamber  where  the  delay  line is located.  A larger delay line
+     pulse is expected as a result.  Sense wire 0 is located 0.400 cm  from
+     the near wall and at z=-0.911 cm.  See Diagram 2 below.  The near wall
+     for sectors 0 and 2 in Diagram 1 is the wall nearer the beampipe.  For
+     sector 1, the near wall is away from the beampipe.  The sense wires in
+     the half-sized sectors are not staggered.  The full-sized sectors have
+     their  wires  going  along  their length but in the middle.  The guard
+     wires are  in  two  columns  displaced  +-0.400 cm  from  each  sector
+     centerline  starting  at  z=-1.462 cm and spaced 0.800 cm apart (seven
+     wires) vertically.  There is  an  extra  guard  wire  located  on  the
+     centerline  at  z=-1.462 cm  to  reduce problems associated with sense
+     wire 0 being out of symmetry with the other seven.   The  upper  seven
+     sense wires are located on the centerline, starting at z=-1.862 cm and
+     are spaced 0.800 cm apart vertically.  Sense wire 0 is located on  the
+     centerline but at z=-0.911 cm.  The sense wires in these three sectors
+     are staggered slightly from the centerline.  Sense wire 0  is  shifted
+     towards   the   half-sized  sectors  by  0.02 cm.   The  wire  stagger
+     alternates up the line of wires.  See Diagram 2 below.
+
+     DIAGRAM 2 : Samples of Theta Sector Wiring
+
+         Half-sized Sector                  Full-sized Sector
+             0,1, or 2                          3,4, or 5
+        --------------------      ------------------------------------
+        |   s              |      |                  s               |
+        |      g           |      |              g      g            |
+        |   s              |      |                 s                |
+        |      g           |      |              g      g            |
+        |   s              |      |                  s               |
+        |      g           |      |              g      g            |
+        |   s              |      |                 s                |
+        |      g           |      |              g      g            |
+        |   s              |      |                  s               |
+        |      g           |      |              g      g            |
+        |   s              |      |                 s                |
+        |      g           |      |              g      g            |
+        |   s              |      |                  s          z=-1.862 cm
+        |   g  g           |      |              g   g  g       z=-1.462 cm
+        |                  |      |                                  |
+        |   s              |      |                 s           z=-0.911 cm
+        |                  |      |                                  |
+        --------------------      ----------------------------- z= 0.000 cm
+
+
+     The wire situation for the Phi is different because  the  sense  wires
+     and  guard wires are in a nearly vertical column.  The guard wires are
+     perfectly radial in the center of each 10 degree slice and the fifteen
+     guard  wires divide the volume into sixteen equal parts.  In each part
+
+                                     - 14 -
+                                                                         Page 15
+
+
+
+     is one sense wire which is staggered from the centerline  by  0.02 cm.
+     They  remain  parallel  to  the  guard  wires which means they are not
+     exactly radial.  The first sense  wire  at  z=+1.034 cm  is  displaced
+     clockwise and the next is displaced counterclockwise, etc.  Sense wire
+     to sense wire spacing is 0.800 cm and the guard wires are  exactly  in
+     between.  See Diagram 3 below.
+
+     DIAGRAM 3 : Sample Phi Sector Wiring
+
+              ----------------------------
+              |                          |
+              |            s             |
+              |             g            |
+              |              s           |
+              |             g            |
+              |            s             |
+              |             g            |
+              |              s           |
+              |             g            |
+              |            s             |
+              |             g            |
+              |              s           |
+              |             g            |
+              |            s             |
+              |             g            |
+              |              s           |
+              |             g            |
+              |            s             |
+              |             g            |
+              |              s           |
+              |             g            |
+              |            s             |
+              |             g            |
+              |              s           |
+              |             g            |
+              |            s             |
+              |             g            |
+              |              s       z= z + 0.800 cm, etc
+              |             g            |
+              |            s         z=+1.834 cm
+              |             g            |
+              |              s       z=+1.034 cm
+              |                          |
+              -----------------------z= 0.000 cm
+
+
+        This description represents the FDC to the  detail  limits  of  the
+     program.  It includes every major part.  Some parts, like the aluminum
+     cover of a Theta quadrant, are really just one piece  but  of  such  a
+     complicated shape that it was easier to break it up into many smaller,
+     more simple pieces.  All dimensions were taken from technical drawings
+     and  represent  design  perfection.  The actual sectors were made with
+     great precision and should  be  accurately  portrayed  by  this  Monte
+     Carlo.
+
+                                     - 15 -
+                                                                         Page 16
+
+
+
+                 ________ _ _   ___ ________ _____ ___ ________                 APPENDIX E :   FDC Geometry Trees and Drawings
+
+
+        The following pages are diagrams made  by  D0GEANT  using  the  FDC
+     geometry as it is in FDC_STPFILE.DAT.  Below is a list of the diagrams
+     and where possible, the D0GEANT command  used  to  draw  them  on  the
+     screen.  This appendix is not available in the D0Library document.
+
+     1.  Central Detector top level tree.  'DTREE MCEN 2 111111'
+
+     2.  Forward Drift Chamber with its  two  Units  FTH  (Theta)  and  FPH
+         (Phi).   FTH  has two FWTA parts and two FWTB parts.  FPH has only
+         FWPH.  All of  these  parts  are  unseen  on  a  D0GEANT  drawing.
+         'DTREE FDC 3 111111'
+
+     3.  FDC Phi Chamber and  all  of  its  parts.   The  active  detection
+         volumes are the FPZns with the double boxes.  'DTREE FPH 6 111111'
+
+     4.  FDC Phi Chamber cut away view  showing  the  sectors.   'DCUT FPH 
+         3 0 10 10 .07 .07'
+
+     5.  FDC Phi Chamber angled so that all  the  parts  show.   Parts  are
+         labelled and partially shaded to help identify them.
+
+     6.  FDC Theta Chamber and all of its parts.  Obviously  illegible  but
+         it  just  shows the complexity of these chambers.  Enlargements of
+         parts of this tree are shown on later pages.  'DTREE FTH 4 111111'
+
+     7.  FDC Theta Chamber cut  away  view  showing  how  the  sectors  and
+         quadrants   fit   together   as   tight   as   a   jigsaw  puzzle.
+         'DCUT FTH 3 0 10 10 .07 .07'
+
+     8.  FDC Sector box with its  many  pieces  and  the  active  detection
+         volumes FYZn.  'DTREE FWA4 3 111111'
+
+     9.  FDC intercell wall volume with its pieces.   The  intercell  walls
+         are    between    adjacent   sectors   in   the   same   quadrant.
+         'DTREE FIA4 2 111111'
+
+    10.  FDC Theta Quadrant 'A' Type shown with all its parts.  Some of the
+         parts are labelled and partly shaded to help identify them.
+
+    11.  FDC Theta Quadrant 'B' Type shown with all its parts.  Some of the
+         parts are labelled and partly shaded to help identify them.
+
+    12.  FDC Half 0 when assembled.  This drawing was made on  a  Macintosh
+         and  is  not  from  D0GEANT.  It has the sector labels as they are
+         used in D0GEANT.
+
+    13.  FDC Half 1 when assembled.  This drawing was made on  a  Macintosh
+         and  is  not  from  D0GEANT.  It has the sector labels as they are
+         used in D0GEANT.  Due to small assembly problem, the  inner  Theta
+         Quadrants  for this Half will be rotated by 90 degrees in the real
+         D0 detector.  This will be modified in D0GEANT in a future effort.
+
+                                     - 16 -
+

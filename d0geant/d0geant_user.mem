@@ -1,0 +1,1566 @@
+
+
+
+
+                                                               D0 NOTE 969      
+                                                               A.M.Jonckheere   
+                                                               15-May-1986      
+                                                               Rev: 30-May-1990 
+                                                               Rev: 21-Sep-1990 
+                                                               Rev: 20-Jan-1992 
+                                                                     K.W.Merritt
+                                                               Rev:  4-May-1995 
+
+
+
+                                   _______ ______ _____                                   D0GEANT USER's GUIDE
+
+
+
+          Chapter 1 - Introduction
+
+          Chapter 2 - Sample Batch Job
+
+          Chapter 3 - Linking Full_D0Geant
+
+          Chapter 4 - Creating a Customised xxx_D0Geant (PBD)
+
+          Chapter 5 - Using Local CMS to link a personal version
+
+          Chapter 6 - Data Files
+
+          Chapter 7 - Running Full_D0Geant
+
+          Chapter 8 - Switches and Commands
+
+          Chapter 9 - Program Structure
+
+          Chapter 10 - Naming/Numbering Conventions
+
+          Chapter 11 - Maintaining the Code
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 1 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 1
+
+                                  INTRODUCTION
+
+
+
+   This is the user's guide to DOGEANT, the D0 implementation of CERN's general
+High Energy Physics event Monte Carlo, GEANT3.  Any comments, good or bad,
+corrections, additions etc.  should be addressed to Mike Diesburg via DECMAIL at
+D0SFT::DIESBURG (DIESBURG@D0SFT.FNAL.GOV via INTERNET).
+
+   D0GEANT is currently implemented using the CERN version GEANT 3.15.  We have
+taken the CERN PAM files and regenerated the object libraries and .FOR files in
+the D0$CERNLIB area.  GEANT 3.15 differs from 3.14 only in improved low energy
+behavior and required no changes to D0GEANT.  Prior to the 1/92 test release of
+D0GEANT corresponding to the use of GEANT 3.14, the implementation used GEANT
+3.11.
+
+   GEANT 3.14 and 3.15 differ from V3.11 in several major ways which affect
+D0GEANT.  The new GEANT uses the KUIP command interface instead of ZCEDEX.  The
+menus contain an expanded functionality, and the interactive mode now allows the
+specification of more than one trigger, eliminating the need for a separate
+'batch' mode.  The graphics views will now be provided with KUIP macros, instead
+of Fortran routines.  The tracking routines have been completely recoded.
+(Note:  The option of parallel tracking, widely deemed not to work, is turned
+off by default in 3.14 and 3.15, and will not be discussed here.) This requires
+changes in the way the secondary tracks are handled in D0GEANT.  Also, by
+default, the new GEANT will recompute the tracking parameters for the different
+tracking media and use those instead of the parameters specified in the STP
+files (or hard-coded, depending on the subdetector).  Work is still underway to
+determine whether it is best to run in this mode, or to turn off the automatic
+feature using the input card "AUTO 0".  In addition, many improvements (or at
+least changes) have been made to the coding of the physics processes.  This last
+difference is the primary reason for making the upgrade, but requires no code
+changes in D0GEANT.
+
+   Minor technical changes include changes in a number of the GEANT commons and
+changes to some subroutine calling sequences.  These of course force the
+recompilation of a number of D0GEANT routines which have no substantive changes.
+
+   Another change dating from the 1/92 test release is the use of the new
+version of the D0 Program Builder, which uses a common hook template for all the
+D0 program frameworks, including D0GEANT.  This has required that the names of
+the detector packages and of the standard combined package change, to avoid
+
+                                - 2 -
+INTRODUCTION                                                  Page 1-2
+
+
+
+conflicts with packages designed for the offline software.  The .PBD files for
+D0GEANT packages are released in the area D0$PBD, in accordance with the new
+program builder Zeitgeist.
+
+        Old PBD package             New PBD package
+        --- --- -------             --- --- -------
+        FULL                        FULLD0   (combined package with all subdetectors)
+        CAL                         GCAL     (calorimeter)
+        CDC                         GCDC     (central drift chamber)
+        FDC                         GFDC     (forward drift chamber)
+        LV0                         GLV0     (level 0 trigger counters)
+        MUO                         GMUO     (wide angle muon chambers)
+        SAM                         GSAM     (SAMUS chambers)
+        TRD                         GTRD     (transition radiation detector)
+        VTX                         GVTX     (vertex detector)
+        TBM                         GTBM     (test beam calorimeter)
+See Chapter 4 for more details on using the Program Builder with D0GEANT.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 3 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 2
+
+                                SAMPLE BATCH JOB
+
+
+
+   For a sample batch job to run D0GEANT.EXE in your default directory see:
+
+        D0$D0GEANT:FULLD0_D0GEANT.RUN
+
+   This command file makes all necessary assignments.  It then runs the EXE
+twice from your default directory.  During the first run the geometry and
+necessary runtime tables are created and saved (USR$EXE:GSAVE.DAT).  The second
+run reads the saved geometry and runs the program on the input file specified
+(default is the standard 10 TTB events, which will take days of CPU time!).
+
+   The command file invokes two other command files:
+
+        DEFINE.COM             : To locate the .EXE and GSAVE in USR$EXE
+        D0GEANT_SETUP.COM      : To make D0Geant specific assignments
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 4 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 3
+
+                              LINKING FULL_D0GEANT
+
+
+
+   To link the "standard" version of FULLD0_D0GEANT all you need to do is:
+
+        $ @D0$D0GEANT:FULLD0_D0GEANT.LNK
+
+   The command file puts the current release version of FULL_D0GEANT.EXE into
+your default directory.  If you want a "debug" version, add the parameter:
+"DEBUG" to the above command.  In this case the .EXE file will be
+DEB_FULLD0_D0GEANT.EXE.  If you have any new routines to add, or have made
+changes to any existing routines, compile them in your default directory and
+write a file:  D0NEW.OPT on your default directory.  D0NEW.OPT is a standard
+linker option file.  The routines listed will be linked *before* anything else.
+For example:
+
+        ! D0NEW.OPT this is an example
+        !
+        File1,file2,file3, -
+        File4,file5/lib
+        !
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 5 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 4
+
+                    CREATING A CUSTOMISED XXX_D0GEANT (PBD)
+
+
+
+   There are a number of reasons why you may wish to customise D0Geant to your
+specific needs.  The most obvious is to "tune" the sizes of the three main Zebra
+stores used in the program.  The default sizes in FULLD0_D0Geant are large
+enough that almost any Tevatron event will run.  It also contains all of the
+code needed to run the full detector.  However, because of this, it is huge.  It
+loads in just about 35 MegaBytes.  It may be impossible for some users to load
+the program.  This size typically requires changes both to individual process
+quotas and to system parameters.
+
+   If the full program is not needed, all one needs to do is run Program
+Builder, specifying only those parts of the program one needs and/or reduced
+sizes for some of the stores.  It'll take some experimentation to determine the
+minimum sizes for the stores.  A command file D0GEANTHOOKS.COM is provided to
+run the Program Builder and make a new combined package with different detector
+packages and/or store sizes.  The example below shows how to run this file.  For
+more details on ProgramBuilder see:  D0$PROGRAM_BUILDER:USER_GUIDE.MEM.
+
+      $ @D0$D0GEANT:D0GEANT_HOOKS
+
+ Name of COMBINED package : TESTMC
+ NOTE: The package: D0 will be included automatically.
+
+ List all packages to be combined : GVTX,GCDC,GFDC,GTRD,GLV0,GCAL,GMUO,GSAM
+
+ ZEBCOM [1750000]
+ ZEBSTP [600000]
+ ZEBWRK [20000]
+ PAWC   [250000]
+ GCBANK [1500000]
+
+ Change common block sizes ? [N] : Y
+ ZEBCOM [1750000] : 2000000
+ ZEBSTP [600000] :
+ ZEBWRK [20000] :
+ PAWC   [250000] : 150000
+ GCBANK [1500000] :
+ Zebra_sizes : /ZEBCOM=2000000/ZEBSTP=600000/ZEBWRK=20000/PAWC=150000/GCBANK=1500000
+
+
+                                - 6 -
+CREATING A CUSTOMISED XXX_D0GEANT (PBD)                       Page 4-2
+
+
+
+ Take a walk, I'm working..!
+
+$ PBD/FRAME=D0GEANT/NAME=TESTMC/PACKAGES=(D0,GVTX,GCDC,GFDC,GTRD,GLV0,GCAL,GMUO,
+GSAM)/ZEBCOM=2000000/ZEBSTP=600000/ZEBWRK=20000/PAWC=150000/GCBANK=1500000
+
+ Files created by PROGRAM BUILDER
+
+Directory USR$ROOT1:[WYATT.V314.PBD]
+
+DEB_TESTMC_D0GEANT.OBJ;1
+                     20-JAN-1992 13:49:01.51
+DEB_TESTMC_D0GEANT.OPT;1
+                     20-JAN-1992 13:49:18.17
+TESTMC_D0GEANT.COM;1
+                     20-JAN-1992 13:49:19.27
+TESTMC_D0GEANT.FOR;1
+                     20-JAN-1992 13:48:24.32
+TESTMC_D0GEANT.LNK;1
+                     20-JAN-1992 13:49:17.26
+TESTMC_D0GEANT.OBJ;1
+                     20-JAN-1992 13:48:44.89
+TESTMC_D0GEANT.OPT;1
+                     20-JAN-1992 13:49:17.70
+
+Total of 7 files.
+
+ Check log file PBD.LOG for errors.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 7 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 5
+
+                   USING LOCAL CMS TO LINK A PERSONAL VERSION
+
+
+
+   The D0 Local CMS system can be used to maintain and link a personal version
+of D0GEANT in which changes to your code are automatically compiled and linked.
+For a general introduction, see D0$DOCS:LOCAL_CMS.MEM.  This section details the
+specific use of this system for the beta release of D0GEANT.
+
+    Step 1.   In your working directory, 
+              
+ $ SETUP_MMS
+
+ Primary BETA-Area [SCRATCH] : D0GEANT
+ Combined-Package : FULLD0
+ Link Object [USR$AREA:D0GEANT.OPT] :
+ Link Object :
+ USR$EXE [USR$ROOT1:[WYATT.SCRATCH]] : USR$SCRATCH:[WYATT]
+ USR$OUT [USR$SCRATCH:[WYATT]] :
+ Program Name [/Task][/DI3000] [D0GEANT] :
+ Framework Name [D0GEANT] :
+
+ Beta-Area              D0GEANT
+ Combined-Package       FULLD0
+ Link-Objects           USR$AREA:D0GEANT.OPT
+ USR$EXE                USR$SCRATCH:[WYATT]
+ USR$OUT                USR$SCRATCH:[WYATT]
+ Program-Name           D0GEANT
+ Framework-Name         D0GEANT
+
+
+CMMS ---- Build standard MMS.COM file for D0 code development
+          V3.3 10-Sep-1991
+
+
+Beta release area  : D0$BETA:[D0GEANT]
+
+Creating file: MMS.COM..
+
+%CMMS-I-SUCCESS, built MMS.COM
+
+
+
+                                - 8 -
+USING LOCAL CMS TO LINK A PERSONAL VERSION                    Page 5-2
+
+
+
+CDEFINE ---- Build standard DEFINE.COM file for D0 code development
+             V2.9 14-Dec-1991
+
+
+Creating file: DEFINE.COM..
+
+
+CDEFINE ---- End
+
+                                                                                
+
+CDESCRIP ---- Build standard description file for D0 code development
+              V3.6 16-Sep-1991
+
+
+Descrip      : DESCRIP.MMS
+Program      : D0GEANT
+User library : USERLIB
+Option       : NODI3000
+
+
+Creating file: DESCRIP.MMS
+
+%CDESCRIP-I-SUCCESS, built DESCRIP.MMS
+
+$
+
+   The three files created are DEFINE.COM, MMS.COM, and DESCRIP.MMS.  You should
+execute DEFINE.COM to get all the logical search lists defined properly.  The
+file MMS.COM will recompile as necessary the code you put in your area as in
+Step 2, and link D0GEANT.  DESCRIP.MMS is used by MMS when you link.
+
+    Step 2.   Place in your working directory the code you want to add or 
+              change. Then 
+
+$userlib    ! Makes a list of your code and its dependencies (on INC's, etc.)
+$@mms [no]debug/nocms/skip fulld0  
+            ! Compiles your code and links D0GEANT.
+            ! The .EXE will be [DEB_]D0GEANT.EXE and will reside in USR$EXE
+            ! which is defined in DEFINE.COM.
+
+   When you change your code, just re-execute the mms.com.  You do not need to
+use the userlib command again unless you add another routine (or delete one).
+
+
+
+
+
+
+
+
+
+
+                                - 9 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 6
+
+                                   DATA FILES
+
+
+
+   Before D0GEANT can be executed a number of data files need to be defined.
+
+        @D0$D0GEANT:D0GEANT_SETUP.COM
+
+defines the "standard" files.  Any of these may be redefined as you wish.
+
+   The Standard definitions are:  (The first name is the logical name, the
+second is the default file)
+
+-- FOR001.DAT          USR$EXE:GSAVE.DAT
+   = Input file for the Geant GET command, must previously have been SAVE'd.
+
+-- FOR002.DAT          USR$EXE:GSAVE.DAT
+   = Output file for the Geant SAVE command.  This SAVE/GET sequence can save
+     a very large amount of time for repetitive tasks. Note that the GSAVE.DAT
+     is a very large file (over 5000 blocks if the FULLD0 package is used),
+     so you should redefine this logical to point to a scratch area
+     if your own quota might not accommodate it.
+
+-- xxx_STPFILE         D0$STP:xxx_STPFILE.DAT                  (READONLY)
+   = Zebra format Static Parameters Banks for detector xxx
+
+-- yyyyyyy             D0$D0GEANT$DATA:yyyyyyy.DAT             (READONLY)
+   = where yyyyyyy are a number of TRD data files, including:
+        XRAYDIST   = TRD x-ray distributions
+        DELDIST    = TRD delta ray distributions
+        SHAPE_TRD  = TRD geometry constants
+        XRSPECT    = TRD x-ray spectrum, written and/or read by TRD routines
+                        See D0$D0GEANT:D0GEANT_TRD.MEM
+        TRD_STRIPS = TRD Z strip geometry constants
+
+-- FOR031              D0$D0GEANT$DATA:TTB_140.DAT
+   = Event input file (output of ISAZEB, Zebra version of ISAJET)
+
+-- FOR032              TTB_140.GEN
+   = Event output file (ISAJET + Geant output)
+       invoke with:  ZBIO 31 32 in the initial dialogue.
+       See D0$D0GEANT:D0GEANT_ZEBIO.MEM
+
+                                - 10 -
+DATA FILES                                                    Page 6-2
+
+
+
+-- RUNSAVE.DAT     = Output file that Geant uses to save its place in a run.
+       Using this file it is possible to restart/continue a run that
+       bombed partway through. It contains the current event number plus the
+       random number seed at the start of the current event. If you *delete*
+       this file while a run is in progress, the program will exit gracefully,
+       just as if it had finished.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 11 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 7
+
+                  RUNNING FULLD0_D0GEANT OR DEB_FULLD0_D0GEANT
+
+
+
+   After you have linked FULLd0\D0GEANT.EXE and have defined the appropriate
+data files (defaults defined with @d0$d0GEANT:d0GEANTSETUP.COM):
+
+        $ RUN FULLD0_D0GEANT or $ RUN/NODEBUG DEB_FULLD0_D0GEANT
+
+        ***NOTE*** If you use SETUP_MMS to link, the exe will be
+        called D0GEANT.EXE or DEB_D0GEANT.EXE.
+
+   You will be answered by a fair amount of printout related to ZEBRA and the
+versions of Zebra, Geant and D0Geant that you are using.  Then you will see:
+
+----------------------------------------------------------------------
+ **** GEANT FREE FORMAT SWITCH PROCESSOR ****
+LBAT  F                (BATCH IF TRUE)
+SHWG  1                (GHEISHA=0, SHOWER PARAM=1, FROZEN SHOWER=2,SHOWERLIB=3)
+SSEC .200              (SAVE SECONDARYS>=0, DON'T SAVE<0)
+     SD0   0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00  0.00
+DTRK  0 DHIT  1 DDIG  1 (0=OFF,1=PRINT,2=DRAW)
+RKIN  0                (.GT.0: EVENT FROM ASCII FILE)
+ZBIO  0  0             (ZEBCOM INPUT/OUTPUT UNIT #'S (0=OFF))
+PD0   1                (PRINT LEVEL)
+DLAM  0                (1->BLUE BOOK ABSORPTION LENGTHS)
+ **** Package Specific Switches ****
+DCEN  3 DCAL  3 DMUO  3 DLV0  3 (0=OFF,1=DEAD,2=HITS,3=DIG,4=ANALY)
+PCEN  1 PCAL  1 PMUO  1 PLV0  1
+FFIVTX ** DVTX   3 PVTX   1
+          SVTX    1.0   0.0   0.0   1.0   0.0  -1.0  -1.0  -1.0  -1.0  -1.0
+FFICDC ** DCDC   3 PCDC   1
+          SCDC    1.0   0.0   0.0   1.0   0.0  -1.0  -1.0  -1.0  -1.0  -1.0
+FFITRD ** DTRD   3 PTRD   1
+          STRD    0.0   0.0   0.0   0.0   0.0  10.0   0.0   0.0   0.0   0.0
+FFIFDC ** DFDC   3 PFDC   1
+          SFDC    1.0   0.0   0.0   1.0   0.0  -1.0  -1.0  -1.0  -1.0  -1.0
+FFILV0 ** SLV0    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+FFICAL ** DECA   3 DUCA   3 DCRY   3 DEAD   3
+          LOECUT 0.010000 HIECUT 0.200000 X0STEP    1.000
+          SCAL(1:10):  1.0 0.0 0.0 0.0  0.0010 0.0 0.0 0.0 0.0 0.0
+FFIMUO ** SMUO    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+
+                                - 12 -
+RUNNING FULLD0_D0GEANT OR DEB_FULLD0_D0GEANT                  Page 7-2
+
+
+
+ ===> Enter your Detector switches
+ ===> Last switch must be STOP
+----------------------------------------------------------------------
+
+   This is a list of switches that control the D0 version of Geant.  The default
+values are listed after the relevant parameter.  GEANT will next invoke the
+FFREAD package which allows the user to change the above switches particular to
+D0, plus a number of others used by generic GEANT, before the initialization of
+the detector geometry and the physics process cross sections.  A list of FFREAD
+cards terminated by STOP is mandatory both for an interactive and a batch job;
+it can consist only of the card STOP if defaults are desired for everything.
+All or some of the FFREAD commands can be put into a file of the form of a
+Fortran unit number, e.g.  FOR009.DAT, and then read with the FFREAD command
+READ 9.  The commands given to FFREAD determine how the detector geometry is
+generated; there are three options:
+
+    No SAVE or GET card     The geometry banks and cross sections are generated
+                            from the information in the STP files, and no 
+                            GSAVE.DAT is created
+    
+    SAVE 'INIT'             The geometry banks and cross sections are generated
+                            from the information in the STP files, then the 
+                            banks are written to the file specified by FOR002
+                            (default: GSAVE.DAT)
+                            
+    GET  'INIT'             The geometry banks and cross sections are retrieved
+                            from the file specified by FOR001 (default: 
+                            GSAVE.DAT)
+
+    *** WARNING *** 
+    A potential conflict exists between the use of GET 'INIT' and the
+    specification of some of the D0 or GEANT parameters.  For example, if
+    you create a GSAVE.DAT with a given set of physics processes turned on,
+    then try to use GET 'INIT' and turn off one of those processes, it will
+    not work.  The cross section and geometry banks will still have that 
+    process turned on.  Similarly, if you create a GSAVE containing only the
+    D0 calorimeter, you cannot later try to turn on the central detector
+    switches and use that GSAVE, because the volumes for the central detector
+    are not present.
+
+   The next Chapter details the actions and allowed values of each of the
+switches.
+
+   After the FFREAD cards are processed, control is given to the KUIP command
+processor, which may be familiar to the user as the same processor used for PAW.
+The best current resource for the large array of GEANT commands available
+interactively is the interactive HELP facility, because the GEANT documentation
+is so out-of-date that it still claims to use ZCEDEX.  At present, there are no
+D0-specific KUIP commands.  For a batch job, the KUIP commands can be reduced to
+the following set:
+
+    GEANT>  SET/BREAK OFF   ! Disables KUIP'S interception of breaks so that
+
+                                - 13 -
+RUNNING FULLD0_D0GEANT OR DEB_FULLD0_D0GEANT                  Page 7-3
+
+
+
+                            ! error tracebacks are available in case of crashes
+    GEANT>  TRIG  n         ! n = number of events to be generated
+    GEANT>  EXIT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 14 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 8
+
+                             SWITCHES AND COMMANDS
+
+
+
+   The FFREAD switches used by the D0 version of Geant were listed in the sample
+printout in the preceding Chapter.  This chapter lists the current switches,
+their functions and allowed values.  For "production" running, the default
+values are used, except for:
+
+        LIST
+        LBAT TRUE
+        GET 'INIT'
+        ZBIO 31 32
+        STOP
+                          _____ _____ ________ ________                          FIRST LEVEL (SYSTEM) SWITCHES
+
+LBAT -> chooses BATCH or INTERACTIVE running  (LBAT TRUE or just LBAT => BATCH)
+                (default = .FALSE.)  In the 3.15 version, the only effect of
+                this switch is to reduce to printout per event so that batch
+                log files are manageable.  With LBAT .FALSE., there will be
+                a print out call for each primary track, which in complex 
+                events is far too much.
+
+SHWG -> chooses shower program to use  (SHWG n) (default = 1)
+                0 = Gheisha - track all particles down to the GEANT cutoffs
+                1 = Shower Parameterization (Linn parametrization) - 
+                        Parameterize EM tracks below
+                        HIECUT (see LOECUT/HIECUT/X0STEP below)
+                        for particles with Pt < SCAL(7) (default SCAL(7)=999.)
+                2 = OBSOLETE - Do not use
+                3 = Shower library - use library of pretracked showers
+
+           SHWG 0 sets LOECUT=HIECUT=X0STEP=0
+           SHWG 1 sets LOECUT etc. to nonzero values.
+               
+                LOECUT is the lowest energy tracked.
+                HIECUT is the energy at which parameterization starts
+                X0STEP is the number of radiation lengths between steps
+
+SSEC -> Save Secondaries produced in MCEN on temporary STAK (SSEC < 0) or in
+        permanent JTRAK/JVERT structures (SSEC >= 0). In addition if the track
+        momentum is GREATER than SSEC, the tracks will be saved as ISAJET
+
+                                - 15 -
+SWITCHES AND COMMANDS                                         Page 8-2
+
+
+
+        tracks in ISP2/ISP3 and ISV2 banks on the output in the /ZEBCOM/
+        output. (Default = 0.200)
+
+
+DTRK,DHIT,DDIG -> control printing and drawing of Tracks, Hits and
+       Digitization respectively. (default = 0 1 1)
+        0 -> NO PRINTING/DRAWING
+        1 -> print data
+        2 -> draw data
+
+RKIN -> specifies source of input data. (OVERRIDDEN BY ZEBIO see below)
+       if greater than zero (ie RKIN n) will read input data from an ASCII
+       file, see below. If equal to 0 will obtain data from the KINE card, one
+       track at a time using the KUIP commands. The KINE command:
+
+         KINE ipart pl pt phi x0 y0 z0    
+
+     where ipart = the GEANT particle ID
+           pl    = longitudinal momentum (GeV)
+           pt    = perpendicular momentum (GeV)
+           phi   = particle phi angle (in degrees from the x axis)
+           x0,y0,z0 = vertex position in the master frame of reference (cm)
+
+     [ IPART  for some common particles:  Electron     3
+                                          Positron     2
+                                          Muon (-)     6
+                                          Pi Minus     9 ]
+
+       RKIN n    n not equal to 0 reads from file Fortran unit n (FOR00n.DAT)
+           This file is a formatted ASCII file read by:
+
+        READ n,*,nptcl,x0,y0,z0
+        READ n,*,(ident(I),px(I),py(I),pz(I),I=1,nptcl)
+
+     where NPTCL = number of "primary" particles in the event
+           X0,Y0,Z0 = vertex posistion in the Geant_detector master system (cm)
+           IDENT = the ISAJET particle ID ************** NOTE THIS *******
+           PX,PY,PZ = the particle 3 momentum (GeV)
+                (default = 0)
+
+ZBIO inunit outunit nskip -> turns on Zebra I/O in the D0 format.  If omitted,
+    the RKIN switch is used to determine the input device. If outunit is
+    omitted no data will be output.  nskip specifies the number of events on
+    the input file to be skipped, defaults to 0. Data comes from/goes to file
+    FOR0xx.DAT where xx=inunit or outunit.  See discussion above. Additional
+    parameters can be added for debugging. See D0GEANT:D0GEANT_ZBIO.MEM.
+                (default = 0 0 0)
+
+PD0 n   -> provides levels of printout for the top level routines.
+                0 -> None, 1 -> Minimal,..... as desired
+                (default = 1)
+
+
+                                - 16 -
+SWITCHES AND COMMANDS                                         Page 8-3
+
+
+
+SD0     -> general switch array (REAL SD0(10)) that can be used to perform
+           special functions within the framework of the program. Only two of
+           these are currently in use:
+                SD0(1) <> 0 - store drawing hits rather than drawing them. These
+                              may be saved (SAVE 'JXYZ') and then retrieved 
+                              (GET 'JXYZ') to replay an event
+                SD0(2) <> 0 - DROP ALL ZEBCOM output banks except the RAW data
+                              banks. This gives mimimum output.
+
+DLAM -> specifies special interaction length computation.
+        0 -> use energy dependent interaction lengths - normal
+        1 -> calculate "Blue Book" interaction lengths - no showering
+                (default = 0)
+
+DCEN/DCAL/DMUO/DLV0 -> controls detector processing level:
+     0 => Off,  do not call geometry routines, the detector is not there
+     1 => On,   Detector is present as material only, not an active element
+     2 => Hits, Accumulate hits only for detector
+     3 => Digi, Digitize detector
+     4 => Anal, Analyse detector
+        DCEN = Central tracker
+        DCAL = Calorimeter
+        DMUO = Muon system
+        DLV0 = Level 0 system
+                (default = 3)
+
+PCEN/PCAL/PMUO/PLV0 -> provides levels of printout for the
+        appropiate detector. 0 -> None, 1 -> Minimal,..... as desired
+                (default = 1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 17 -
+SWITCHES AND COMMANDS                                         Page 8-4
+
+
+
+                     ______ _____ ___________ _____ ________                     SECOND LEVEL (PREDEFINED USER) SWITCHES
+
+   In addition to the "global" switches above, user (detector specific) switches
+have been defined for each detector.  These include:
+
+DVTX/DCDC/DFDC/DTRD - same as DCEN etc. The upper limit on their value is 
+                      given by DCEN.
+                        DVTX -> Vertex Chamber
+                        DCDC -> Central Drift Chamber
+                        DFDC -> Forward Drift Chamber
+                        DTRD -> Transition Radiation Detector
+
+PVTX/PCDC/PFDC/PTRD - same as PCEN etc.
+
+SVTX/SCDC/SFDC/STRD - user arrays of length 10, REAL values.
+
+DECA/DUCA/DCRY/DEAD - same as DCAL etc. The upper limit on their value is
+                      given by DCAL.
+                        DUCA -> Central Calorimeter
+                        DECA -> End Cap Calorimeter
+                        DCRY -> Cryostat (DCRY 0 or 1 only)
+                        DEAD -> Dead Material, includes cracks.
+
+SCAL                - user array of length 10, REAL values.
+
+SMUO                - user array of length 10, REAL values.
+
+SLV0                - user array of length 10, REAL values.
+
+   At the moment I am aware of only a few of the user words (Sxxx) that are
+being used.  These are used to determine the type of digitization to be done and
+the specific banks to be output.
+
+SCAL(1) = 0            No Caltowers,
+    (1) = 1 (default)  Use software Caltowers
+    (2) = 0 (default)  Drop individual Unsmeared Track energies in GCAH banks
+    (2) = 1            Save Unsmeared Track energies in GCAH
+    (3) = 0 (default)  Drop CAEP bank calculated in Caltowers
+    (3) = 1            Calculate and save summed, smeared energies in CAEP
+    (4) = 0 (default)  No JETS bank calculated
+    (4) = 1            Calculate Idealised JETS banks
+    (5) < 0            Do not calculate Raw data banks (CAD1/2)
+    (5) = 0            Calculate FULL Raw data banks (CAD1/2)
+    (5) > 0            Calculate Raw data banks (CAD1/2) with zero suppression
+                       on cells with   ABS(ENERGY) < SCAL(5) in GeV.
+            (default = 1.0E-3 ie 1 ADC count in all cells)
+    (6) = 0 (default)  Do not save ICD Hits
+        = 1            Save ICD Hits banks
+    (7) = 999. (default)Use the default SHWG value all EM primary particles 
+                       with PT below this value. 
+        = 10.0 (e.g)   Force SHWG = 0 for all EM particles with Pt > 10 Gev
+
+
+                                - 18 -
+SWITCHES AND COMMANDS                                         Page 8-5
+
+
+
+STRD(1) -> Chooses the type of TRD digitization to be done.
+        = 0.  Reads distributions from XRSPECT
+        = 1.  Calculates distributions (and writes them onto XRSPECT)
+        = 2.  Does total energies only. Reads data from:
+               XRAYDIST and DELDIST
+                (default = 0)
+STRD(2), STRD(3), STRD(4) control the banks output in the store /ZEBCOM/
+
+STRD(2) = 0. (default) cathode + anode are output : The kind of output is
+            defined by STRD(3)
+        = 1. No treatment of the cathodes
+STRD(3) = 0. ( default) Digitization ( CDD4 ) + Geant specific banks GTLY
+        = 1. CDD4 only
+STRD(4) = 0. (default) No hits banks written
+        = 1. Hits banks TRDH written in the output
+
+SCDC(1:3) -> controls which banks are output in /ZEBCOM/ for CDC.
+SCDC(1) = 0. No raw FADC bank CDD2 is output
+        = 1. (default) CDD2 is output
+SCDC(2) = 0. (default) No hits banks CDCH-DLYR-DSEC are output
+        = 1. Hits banks output
+SCDC(3) = 0. (default) No data banks DCDA are output
+        = 1. Data banks output
+
+SCDC(4:5) -> modify the FADC raw data output in the CDD2 bank.
+SCDC(4) = 0. do not perform bilinear conversion for each FADC bin
+        = 1. (default) Bilinear conversion is performed for each FADC bin in
+             the raw data bank CDD2.
+SCDC(5) = 0. (default) Perform zero_suppression on FADC raw data
+        = 1. no zero_suppression on FADC raw data
+
+
+SFDC(1:3) -> controls which banks are output in /ZEBCOM/ for FDC.
+SFDC(1) = 0. No raw FADC bank CDD3 is output
+        = 1. ( default) CDD3 is output
+SFDC(2) = 0. (default) No hits banks are output
+        = 1. Hits banks output
+SFDC(3) = 0. (default) No data banks are output
+        = 1. Data banks output
+
+SFDC(4:5) -> modify the FADC raw data output in the CDD3 bank.
+SFDC(4) = 0. do not perform bilinear conversion for each FADC bin
+        = 1. (default) Bilinear conversion is performed for each FADC bin in
+             the raw data bank CDD3.
+SFDC(5) = 0. (default) Perform zero_suppression on FADC raw data
+        = 1. no zero_suppression on FADC raw data
+
+
+SVTX(1:3) -> controls which banks are output in /ZEBCOM/ for VTX.
+SVTX(1) = 0. No raw FADC bank CDD1 is output
+        = 1. ( default) CDD1 is output
+SVTX(2) = 0. (default) No hits banks VTXH-VLAY-VSEC are output
+
+                                - 19 -
+SWITCHES AND COMMANDS                                         Page 8-6
+
+
+
+        = 1. Hits banks output
+SVTX(3) = 0. (default) No data banks VWDA are output
+        = 1. Data banks output
+
+SVTX(4:5) -> modify the FADC raw data output in the CDD1 bank.
+SVTX(4) = 0. do not perform bilinear conversion for each FADC bin
+        = 1. (default) Bilinear conversion is performed for each FADC bin in
+             the raw data bank CDD1.
+SVTX(5) = 0. (default) Perform zero_suppression on FADC raw data
+        = 1. no zero_suppression on FADC raw data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 20 -
+SWITCHES AND COMMANDS                                         Page 8-7
+
+
+
+                       _____ _____ _____ ________ ________                       THIRD LEVEL (USER DEFINED) SWITCHES
+
+   The switches above are defined for the user and are stored in COMMON /D0LOG/
+(D0LOG.INC).  In addition the user may define his own switches and store them in
+/DxxLOG/ (DxxLOG.INC).  The switches of this type that currently exist are:
+
+LOECUT/HIECUT/X0STEP - controls shower parameterization  (in DCALOG.INC)
+    LOECUT - minimum energy to parameterize, dumps remainder at end point
+                (default 0.010 GEV)
+    HIECUT - maximum energy to parameterize, Geant tracking above this energy
+                (default 0.200 GEV)
+    X0STEP - step size in radiation lengths for parameterization
+                (default 1.00 X0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 21 -
+SWITCHES AND COMMANDS                                         Page 8-8
+
+
+
+                                 _____ ________                                 GEANT COMMANDS
+
+   In addition to the switches there are a number of commands that have been
+provided by GEANT's authors.  These are standard Geant switches and are
+described in some detail in the Geant manual.
+
+LIST   turn on echoing and checking of data cards.
+
+SAVE 'INIT' ['KINE' ['HITS' ['DIGI']]]   save Geant Init, Kinematic, Hits
+       and Digi banks, the [] indicate optional additions.  Output goes to
+       file FOR002.DAT. NOTE: One might save DIGI and not HITS but it makes
+                        no sense to save either without both INIT and KINE.
+
+       INIT   saves the initialization banks, Geometry, Materials, Media etc.
+              once per run, initialization takes a great deal of time if you
+              are running with a complicated geometry. So doing this once and
+              then GETting the results for additional runs can save a lot of
+              time.
+
+       KINE   saves the initial event banks, JVERT and JTRACK, saves reading in
+              complicated ISAJET events for example.
+
+       HITS   saves the Hit banks, useful if you want to redo digitization for
+              different smearing etc.
+
+       DIGI   saves the digitization banks, useful if you want to redo the
+              analysis portion of the run.
+
+GET 'INIT' ['HITS' ['DIGI']] inverse of SAVE.  Files are read from FOR001.DAT
+
+
+HSTA 'TIME' ...  enable Geant built in (system type) histograms.
+
+ ...   See Geant manual for more.
+
+       Input is terminated by:
+
+STOP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 22 -
+SWITCHES AND COMMANDS                                         Page 8-9
+
+
+
+                              ___________ ________                              INTERACTIVE COMMANDS
+
+   In interactive mode there are a large number of commands available to you.
+Some are provided by the KUIP system itself and some by GEANT.  Below you will
+find a short list of useful interactive commands.  This list is by no means
+complete.  See the GXINT section of the Geant manual for more.
+
+*** GEANT Commands ***
+
+QUIT         Exit GEANT without the normal exit processing
+EXIT         Exit GEANT with the normal exit processing      
+
+ZOOM x y     allows one to zoom in on any portion of the detector.  One must
+             first have drawn a view (DVIEW2 for example).  If one has a cursor
+             equiped terminal, the cursor will now appear.  On a VT240 as with
+             most of our other terminals, one moves the cursor with the "arrow"
+             keys or the mouse.  You "mark" the desired center of the new
+             drawing by hitting the SPACE BAR then RETURN, or with the left
+             mouse button.  Follow this by reissueing your drawing command (ie.
+             DVIEW2).  x and y are the zoom factors for the x and y axes
+             respectively. If y is omitted ZOOM x x is assumed. If both are
+             omitted a factor of 2 is used. ZOOM 1 1 allows you to pan the
+             view.  ZOOM 0 resets the view to its original scale.
+
+MEASURE      allows one to measure linear distances on a drawing.  Mark both
+             ends of the line you want to measure. The distance between the
+             points is printed after the second point is marked.
+
+KINE ipart pl pt phi x0 y0 z0    active ONLY if RKIN 0 and no ZBIO was given
+             in the first dialog.  Allows one to debug the program and to
+             obtain single tracks (drawing or printing as desired).  See
+             discussion of RKIN above.
+
+DTREE vol    plots the geometry tree under vol, where vol is any given volume
+             name.
+
+DFSPC vol    draws the specs for all volumes under vol, produces 3 views of
+             each volume and the immediate daughters with parameters and
+             scales.  After it is done with one it will ask if you want the
+             next one.  Try it you'll like it.
+
+DSPEC vol    Same as above, but does only one volume.
+
+DCUT vol iaxis cutval u0 v0 su sv    draws a cut view of vol and all daughters
+             in plane perpendicular to axis iaxis (1=x etc.) cutting at cutval
+             cm from the origin.  u0, v0 are the desired screen coordinates of
+             the origin (10. 10. will put the interaction point at the center
+             of the screen).  su, sv are the scale factors to be used
+             (.015 .015 will display most of the detector).
+
+MANY-MANY-MORE see the GXINT section of the Manual.
+
+
+                                - 23 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 9
+
+                               PROGRAM STRUCTURE
+
+
+
+   Geant is structured as both a framework and a library of utility routines.
+The framework is not a "pure" framework however.  It calls user routines at
+strategic points.  But the user routines must call other parts of the framework.
+For example, while tracking an event, the user routine GUTRAK is called for each
+track.  GUTRAK *must* call GTRACK, a Geant routine to actually track each track.
+
+   The D0 version of Geant has cleaned up this situation somewhat by providing
+routines to do all of the common functions, like calling GTRACK above, creating
+the overall Mother Volumes, saving and writing out track banks created within
+D0Geant, reading and writing the input and output banks etc.  In addition, to
+minimize conflicts between groups developing code independently, each detector
+is treated as a separate, independent Program Builder package.  The general
+functions are performed by a separate package, called D0.
+
+   From a users point of view, D0Geant, with the "master" package D0 is a
+framework that calls user hooks and a library of routines that allow access to
+the track and geometry parameters.  It also contains routines that allow one to
+calculate and store detector dependent quantities for later use or output.
+
+   There are one or more user hooks into the program at each point that Geant
+allows them.  Some of these are for use only by the master package.  The Geant
+user routines, the Program Builder hooks and the user interface routines are
+listed below.
+
+\GEANT \\PBD   \\User  \\ Description \
+----------------------------------------------------
+
+Initialization:
+\UGINIT\\LURSWT\\FFIxxx\\ Init run-time switches (FFREAD)\
+\UGINIT\\LUESWT\\CLNxxx\\ Edit run-time switches\
+\UGINIT\\LUBOOK\\BOKxxx\\ Book HBOOK histograms for ANLxxx\
+
+Create Geometry:
+\UGINIT\\LURGEO\\INIxxx\\ Read Geometry Data\
+\UGINIT\\LUSGEO\\GEOxxx\\ Create Geometry\
+
+Tracking:
+\GUKINE\\LUKINE\\KIND0 \\ Definition of event kinematics, D0 package only\
+
+                                - 24 -
+PROGRAM STRUCTURE                                             Page 9-2
+
+
+
+\GUTREV\\LUTREV\\TEVxxx\\ Called BEFORE each event\
+\GUSTEP\\LUSTEP\\STPxxx\\ Called at each step, Store HIT data\
+\GUTRAK\\LUTRAK\\TRKxxx\\ Called AFTER each track\
+
+Digitization and output:
+\GUDIGI\\LUDIGI\\DIGxxx\\ Digitization after each event\
+\GUOUT \\LUOUT \\ANLxxx\\ Analysis and output, after each event\
+
+Finish up after run:
+\UGLAST\\LULAST\\LSTxxx\\ Termination, HSTOR etc\
+
+Interactive only:  (THESE ARE NOT CURRENTLY USED IN THE 3.15 VERSION)
+\GUINTI\\LUINTI\\INTxxx\\ Initialize interactive user commands\
+\GUIGET\\LUHELP\\HLPxxx\\ Print interactive help information\
+\GUIGET\\LUMENU\\MENxxx\\ Switching routine for interactive user menu\
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 25 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 10
+
+                          NAMING/NUMBERING CONVENTIONS
+
+
+
+   A number of conventions for naming and numbering various entities have been
+defined to help prevent conflicts between detector packages.  Reserved names for
+volumes, detector sets and digitization quantities should start with the
+letters:
+
+     U,E,P,Q - Calorimeters
+     A,B,C,M - Muon System
+     V,T,F,D - Central Detectors
+
+Reserved numbers for materials and media are:
+
+     1-19  MVOL (Master volume) and pure materials
+    20-29  MUON (Muon System)
+    30-39  UCAL (Central Calorimeter)
+    40-54  ECAL (End Cap Calorimeter)
+    55-59  LEV0 (Level 0 system)
+    60-69  VTX  (Vertex Detector)
+    70-79  TRD  (TRD system)
+    80-89  CDC  (Central Drift Chamber)
+    90-99  FDC  (Forward Drift Chamber)
+
+Rotation matrices  are 100 times these.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                - 26 -
+
+
+
+
+
+
+
+
+
+
+
+
+                                   CHAPTER 11
+
+                              MAINTAINING THE CODE
+
+
+
+   The DZERO version of GEANT is maintained on FNALD0 using DEC's CMS (Code
+Management System) by the authors of the code.  See D0$DOCS:CMS_USER.DOC for
+information on the CMS procedures.  The libraries are formed from the CMS
+libraries using MMS (Module Management System) by the D0 librarian (logical
+D0$LIBRARIAN on all D0 clusters).
+
+   A new release (version) of the program can be declared at any time by the
+D0Geant Librarian (Mike Diesburg).  In general when a user wishes a release to
+be made, s/he should request it from the detector coordinator.  The librarian
+then declares a new CMS class, does some simple checks to make sure it runs and
+requests the release from FNALD0.  A release may (usually does) involve more
+than releasing D0Geant.  All of the libraries that Geant uses must also be
+updated.  So the process can take a while.
+
+   An FNALD0 release results in several libraries plus source code for one being
+put into the D0Library under the rooted directory D0$D0GEANT$ROOT:.  The OLBs,
+MEMs, etc.  are in D0$D0GEANT.  The source code can be found in D0$D0GEANT$xxx.
+For more details on the organization of the D0GEANT portions of D0LIBRARY see:
+
+        D0$D0GEANT:D0GEANT_LIB.MEM.
+
+   For more details on the method of updating and the directory protocols, see:
+
+        D0$DOCS:PROTOCOL.MEM.
+
+   For details on the current, and earlier releases see:
+
+        D0$D0GEANT:D0GEANT_REL.MEM       old releases
+     or D0$D0GEANT:Vn.mm-REL_NOTES       newer ones
+
+   For details on specific detectors/subsystems see the various .MEM's in
+D0$D0GEANT:.
+
+
+
+
+
+
+
+                                - 27 -
