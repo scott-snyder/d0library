@@ -1,0 +1,74 @@
+$!------------------------------------------------
+$!
+$! Name      : DBXINT.LNK
+$!
+$! Purpose   : Link DBXINT.EXE
+$!
+$! Arguments : P1 - "DEBUG" to create DEB_DBXINT.EXE
+$!                - "PCA"   to create DEB_DBXINT.EXE with PCA
+$!
+$! Arguments : P2 - "DI3000" to link with DI3000        (Default)
+$!                  "GKS"    to link with DECGKS
+$!
+$! Created  30-APR-1991   SHAHRIAR ABACHI
+$!
+$!------------------------------------------------
+$   ON ERROR     Then Goto EXIT
+$   ON CONTROL_Y Then Goto EXIT
+$!
+$ IF P2 .eqs. "GKS"
+$ THEN
+$   GRF  = "_DECGKS"
+$   LINKOP = "GKS"
+$ ELSE
+$   GRF  = "_DI3000"
+$   LINKOP = "DI3"
+$ ENDIF
+$!
+$ IF P1 .eqs. "DEBUG"
+$ THEN
+$   SWIT  = "/DEBUG"
+$   DEB   =  "DEB_"
+$ ELSE
+$     SWIT  = ""
+$     DEB   = ""
+$ ENDIF
+$ IF P1 .eqs. "PCA"
+$ THEN
+$   SWIT  = "/DEBUG=SYS$LIBRARY:PCA$OBJ.OBJ"
+$   DEB   = "DEB_"
+$ ENDIF
+$!
+$ IF LINKOP .EQS. "DI3" THEN GOTO DI3L
+$!
+$ WRITE SYS$OUTPUT "Linking ''DEB'DBXINT''GRF'"
+$ WRITE SYS$OUTPUT " "
+$  LINK'SWIT'/NOMAP/EXE='DEB'DBXINT'GRF' -
+ d0$dbl3:'DEB'DBXINT/include=DBMAIN/LIB,-
+ d0$dbl3:'DEB'DBL3/LIB,-
+ d0$dbl3:'DEB'CPC/LIB,-
+ D0$CERNLIB:PAWLIB_DECGKS/LIB,-
+ GRAFLIB_DECGKS/LIB,-
+ PACKLIB/LIB,-
+ MATHLIB/LIB,-
+ KERNLIB/LIB,-
+    SYS$LIBRARY:GKSFORBND/LIB
+$!
+$GOTO EXIT
+$!
+$DI3L:
+$ WRITE SYS$OUTPUT "Linking ''DEB'DBXINT''GRF'"
+$ WRITE SYS$OUTPUT " "
+$  DI3LOAD -
+d0$dbl3:'DEB'DBXINT/include=DBMAIN/LIB,-
+d0$dbl3:'DEB'DBL3/LIB,-
+d0$dbl3:'DEB'CPC/LIB,-
+D0$CERNLIB:PAWLIB_DI3000/LIB,-
+GRAFLIB_DI3000/LIB,-
+PACKLIB/LIB,-
+MATHLIB/LIB,-
+KERNLIB/LIB -
+ SHARE 'SWIT'/NOMAP/EXE='DEB'DBXINT'GRF'.EXE
+$!
+$EXIT:
+$   EXIT

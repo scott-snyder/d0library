@@ -1,0 +1,111 @@
+      SUBROUTINE CPC_DUMMY
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Contains dummy entries for all CPC routines. 
+C-                         Used primarily for RECO.
+C-
+C-   Inputs  : 
+C-   Outputs : 
+C-   Controls: 
+C-
+C-   Created  30-JAN-1992   SHAHRIAR ABACHI
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      ENTRY CCF_CREATE
+      ENTRY CCF_OPEN
+      ENTRY CC_CHR_NUM
+      ENTRY CC_CLOSE
+      ENTRY CC_FLUSH
+      ENTRY CC_FLUSHC
+      ENTRY CC_FLUSHV
+      ENTRY CC_FLUSH_I
+      ENTRY CC_ID_NUM
+      ENTRY CC_LIST
+      ENTRY CC_LOCKMAKE
+      ENTRY CC_LOCKUP
+      ENTRY CC_LOCKUP_A
+      ENTRY CC_LOCKUP_N
+      ENTRY CC_MAPCOM
+      ENTRY CC_READ
+      ENTRY CC_RELEASE
+      ENTRY CC_RELEASEC
+      ENTRY CC_RELEASEV
+      ENTRY CC_RELEASE_I
+      ENTRY CC_SAVE
+      ENTRY CC_SAVEC
+      ENTRY CC_SAVEV
+      ENTRY CC_SETUP
+      ENTRY CC_SET_LAST
+      ENTRY CC_UPDATE
+      ENTRY CC_UPDATEC
+      ENTRY CC_UPDATEV
+      ENTRY CC_UPDATE_I
+      ENTRY CC_VAR_NUM
+      ENTRY CC_WRITE
+      ENTRY CC_WRITELOCK
+      ENTRY CC_WRITELOCKC
+      ENTRY CC_WRITELOCKV
+      ENTRY CC_WRITELOCK_I
+      ENTRY CPC_FINISH
+      ENTRY CPC_INIT
+      ENTRY CPC_UCOPY
+      ENTRY GBL_CREATE
+      ENTRY GBL_OPEN
+      ENTRY IC_ALARM
+      ENTRY IC_ASSOCIATE
+      ENTRY IC_BOOK
+      ENTRY IC_BOOKED
+      ENTRY IC_BROADCAST
+      ENTRY IC_BROADCAST_A
+      ENTRY IC_BROADCAST_N
+      ENTRY IC_CALL_UAST
+      ENTRY IC_CHECK_LOCK
+      ENTRY IC_CRASH_UAST
+      ENTRY IC_DELIVER
+      ENTRY IC_DROP_LOCK
+      ENTRY IC_EXIST
+      ENTRY IC_EXISTX
+      ENTRY IC_FINISH
+      ENTRY IC_GETBC
+      ENTRY IC_GET_CACHE
+      ENTRY IC_GET_CACHE_I
+      ENTRY IC_ID_NUM
+      ENTRY IC_ID_NUM_A
+      ENTRY IC_ID_NUM_N
+      ENTRY IC_INFO
+      ENTRY IC_INFO_I
+      ENTRY IC_LIST_CACHES
+      ENTRY IC_LKWAIT
+      ENTRY IC_LOCKUP
+      ENTRY IC_LOCKUP_A
+      ENTRY IC_LOCKUP_N
+      ENTRY IC_MATCH
+      ENTRY IC_MODE
+      ENTRY IC_NUM_ID
+      ENTRY IC_NUM_ID_A
+      ENTRY IC_NUM_ID_N
+      ENTRY IC_READ
+      ENTRY IC_RELEASE
+      ENTRY IC_SEND
+      ENTRY IC_SIGAST
+      ENTRY IC_SIGNAL
+      ENTRY IC_STATUS
+      ENTRY IC_TAKE_LOCK
+      ENTRY IC_TMPLOCK
+      ENTRY IC_WAIT
+      ENTRY IC_WATCH
+      ENTRY IC_WKAST
+      ENTRY IC_WRITE
+      ENTRY IC_WTAST
+      ENTRY L3_CANWAIT
+      ENTRY L3_WAIT
+      ENTRY L3_WAIT_A
+      ENTRY L3_WAIT_N
+      ENTRY LST
+      ENTRY DBCLB_SET_JOURNAL
+      ENTRY DBCLB_END_JOURNAL
+C----------------------------------------------------------------------
+  999 RETURN
+      END

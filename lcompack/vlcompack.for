@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VLCOMPACK()
+      VLCOMPACK = ' LCOMPACK'//
+     X                   '  OFFICIAL V0.08'//
+     X                   '  6-MAR-1996 16:50:01.83'
+      Return
+      End

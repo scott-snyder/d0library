@@ -1,0 +1,1000 @@
+\input{[abachi.tex]arteuro}             %article style with A4 format
+\input{[abachi.tex]verb}
+%\newcommand{\showcode}[1]{\type{#1}}
+\def\showcode#1{\type{#1}}
+\newenvironment{code}{\begin{verbatim}}{\end{verbatim}}
+% see also tabbing, p. 62   and verbatim, p 65
+% loading fonts, p. 200
+
+\newcommand{\eg}{{\em eg. }}
+\newcommand{\ie}{{\em ie. }}
+\newcommand{\mailbox}{ {\bf mailbox }}
+\newcommand{\info}{{\bf infocache }}
+\newcommand{\alarm}{{\bf alarm }}
+\newcommand{\broadcast}{{\bf broadcast }}
+\newcommand{\watcher}{{\bf process watcher }}
+\newcommand{\reslock}{{\bf resource lock }}
+
+
+%\pagestyle{empty}          %no page numbering
+\begin{document}           % Beginning of text
+\large                     % standard \large and 11 points
+
+\begin{center}
+{\LARGE The L3 Cluster Process Communication Facility (CPC)}\\
+\vspace*{.7cm}
+Torre Wenaus \ \ MIT\\ 
+{\tt L3ONCL::WENAUS \ \ WENAUS@CERNVM.BITNET}
+\\ \vspace*{.7cm}
+\today
+\\ \vspace*{.7cm}
+Version 1.3
+\end{center}
+     
+%=========================================
+\begin{abstract}
+\normalsize \em
+This document describes the Cluster Process Communication (CPC)
+package of routines written to
+provide interprocess communication facilities for the online data acquisition
+VAXcluster of the L3 experiment.
+
+CPC currently consists of two components, CLUSCOM and INFOCACHE.
+They provide, respectively, interprocess information sharing across
+the cluster (FORTRAN common blocks shared cluster-wide) and
+fast interprocess signalling (mailbox-like message handling with a
+reply to the sender, broadcasts, process status monitoring and
+crash signalling, alarm distribution, resource locking).
+
+The first part introduces CPC and provides an
+overview of what CPC provides and how it can be used. The second
+part provides a more technical description of how the
+components of CPC are implemented. Subsequent parts document in detail
+all CPC routines callable from application programs.
+
+Please tell me of problems or curious behaviour.
+\end{abstract}
+
+\newpage
+\tableofcontents
+
+\newpage
+
+%=========================================
+\part{Overview of CPC}
+
+The L3 Cluster Process Communication package (CPC) enables fast interprocess
+information exchange and signalling within a VAXcluster.
+
+CPC was designed for the L3 online data acquisition system. The L3 online
+computer system consists
+of a single large mixed VAXcluster of about 30 nodes.
+CPC aims to provide the communication
+tools needed to handle interaction and
+information exchange between the  processes of the L3 DAQ
+which will be distributed across all nodes of the cluster. 
+Some of the requirements are listed below.
+
+\begin{itemize}
+
+\item{ \bf Cluster-wide databases: }
+Processes must be able to concurrently access
+information pools (databases) from any node in the cluster,
+with maximum efficiency
+and, for the programmer, in as transparent a way as possible.
+
+\item{\bf Interprocess signalling: }
+Processes must be able to define signals (with associated symbolic names)
+which are
+known across the cluster so that messages can be exchanged between
+processes on arbitrary nodes in the cluster (\eg for alarm handling,
+command delivery, interprocess synchronisation). Signalling must be
+fast to accommodate potentially high signalling rates. A handshake mode
+in which an acknowledge is received by the sender should be available
+for maximum safety.
+
+\item{\bf Speed and efficiency: }
+All communication tools should be as fast and efficient as possible,
+in order to make full use of available resources.
+The single-cluster environment makes possible the use of highly efficient
+VMS tools which work only within a cluster, rather than more common
+(but slower) tools based on DECnet.
+
+\item{\bf Node independence: }
+All communication tools should be node independent. That is, no
+communication package should ever need to know what node a process is
+running on. 
+This makes possible a flexible and, if needed, a dynamically changing
+configuration, and simplifies failover when a node goes down.
+
+
+\end{itemize}
+
+CPC has been designed with these requirements in mind.
+CPC currently consists of two components, CLUSCOM and INFOCACHE.
+They provide, respectively, interprocess information sharing across
+the cluster (FORTRAN common blocks shared cluster-wide) and
+fast interprocess signalling (mailbox-like message handling with a
+reply to the sender, broadcasts, process status monitoring and
+crash signalling, alarm distribution).
+
+%=========================================
+\section{Changes, New features}
+
+Changes and additions are described in more detail in the appropriate
+sections.
+
+\begin{itemize}
+
+\item{ \bf Infocache: new 'resource lock' usage mode}
+
+\item{ \bf Infocache: {\tt IC\_INFO} cache list output improved}
+
+\item{ \bf Cluscom: new, faster QIO-based I/O from Mike Capell. }
+In the 1.3 release all I/O
+is done using QIOs. The next release will include an improved, faster
+global section mode.
+
+\item{ \bf Cluscom: {\tt CC\_SET\_LAST} routine for partial section updating}
+
+\item{ \bf Timeouts: built-in default timeouts increased}
+In both CLUSCOM and INFOCACHE, timeouts were increased to accommodate the
+slowness of VAXstations. Also, the timeout error message was changed to
+make it more comprehensible, and the timeout error was changed from
+ERROR level to WARNING level. Some bugs were fixed.
+
+\item{ \bf AST level execution: protections}
+Protections were incorporated against the CPC lock routines being entered
+at AST level while executing at normal level. Now separate routines
+are used for the two levels, preventing corruption of
+parameters at normal level by the AST execution.
+
+\end{itemize}
+
+%=========================================
+\section{CLUSCOM}
+
+\subsection{CLUSCOM overview}
+CLUSCOM is a set of routines which implement cluster-wide databases
+in shared FORTRAN common blocks (sometimes referred to as CLUSCOM
+sections or mapped commons).
+Processes anywhere in the cluster
+can obtain read/write access to a CLUSCOM section, which resides on
+a disk file, through which a common block
+within the program is shared with all other processes also mapped to
+that section. Routines provide the interlocking necessary to ensure
+data integrity in read/write operations.
+
+Cluscom has two components, the data sharing mechanism and the interlock
+mechanism. Two modes of data sharing are available: one based on 
+sections, and one based on QIOs, added by Mike Capell
+(RMS block I/O in earlier CLUSCOM versions). The two modes are
+functionally equivalent; they differ in their speed and in when disk updates
+take place (which can be very important, as discussed below).
+More information on the two modes is in the technical section.
+
+There always exist two representations of a CLUSCOM section: one on the
+disk file, and one in memory. Routines are provided to keep both these
+representations up to date, by flushing memory to disk after making
+changes and updating memory from disk to obtain the changes of
+other processes. Routines also coordinate access to the disk file so that
+when one process is writing to disk, all other processes are locked out.
+The interlocking is achieved using the Distributed Lock Manager. More
+details are given in the technical section.
+
+\subsection{Using CLUSCOM}
+
+To create a shared database with CLUSCOM, the data to be shared must
+first be gathered into a FORTRAN common block. Several CLUSCOM sections
+can be created within a single program; each must be associated with
+a separate common block. 
+
+ The first and last words of the common are
+used to delineate the beginning and end of the shared memory region,
+as follows:
+
+\begin{verbatim}
+   COMMON /MYCOM/ IFIRST, ... ,MY_VARIABLES, ... ,ILAST(128)
+CDEC$ PSECT /MYCOM/ ALIGN=9
+\end{verbatim}
+
+Note that the final word ILAST is actually an array of length 128
+(512 bytes, or one VMS page). This array must be present and must
+not be used for data storage. Its purpose is explained in the
+technical section.
+
+The \verb|CDEC$| declaration page aligns the common. This is essential.
+
+The CLUSCOM section is created (or an existing section created by
+another process is mapped to) by a call to \verb|CC_SETUP|:
+
+\begin{verbatim}
+   CALL CC_SETUP(COMID,FNAME,IFIRST,ILAST,CHOPT,IERR)
+\end{verbatim}
+
+\noindent
+where COMID is the name associated with the section (often, but not
+necessarily, the name of the common block), FNAME is the filename
+of the disk file which contains the shared data, IFIRST and
+ILAST are the first and last variables of the common (they should
+be INTEGER or REAL), and CHOPT specifies options (\eg the data sharing
+mechanism is selected via an option). Any error condition
+is returned in IERR. If no errors occurred, IERR=0 upon return.
+For more detailed information on \verb|CC_SETUP| see the reference section.
+
+Note that \verb|CC_SETUP| options and options on all other CPC routines
+{\em must be in upper case}.
+
+Once the call to \verb|CC_SETUP| has been made, routines to update memory from
+disk, flush memory to disk, write lock and unlock the common, and
+modify individual variables can be called. These calls are summarised
+below and are discussed in more detail in the reference section.
+
+\begin{verbatim}
+   CALL CC_SAVE(VARNAME,VALUE,CHOPT,IERR)
+\end{verbatim}
+   to save a new value VALUE of the variable VARNAME, where
+   VARNAME is a REAL*4 or INTEGER*4 (non-array) value in any
+   common currently mapped. Similar routines \verb|CC_SAVEV|,
+   \verb|CC_SAVEC| save arrays and character strings respectively.
+
+\begin{verbatim}
+   CALL CC_WRITELOCK(COMID,CHOPT,IERR)
+\end{verbatim}
+   to lock the common COMID in WRITE mode. If you are changing
+   more than one variable in the common it is more efficient
+   to use this routine than \verb|CC_SAVE| calls.
+   Following this call no other process will have any access to
+   the common until \verb|CC_RELEASE| is called. Changes made to the
+   common will not take effect until \verb|CC_RELEASE|
+   or \verb|CC_FLUSH| is
+   called, and will be lost if \verb|CC_UPDATE|
+   or \verb|CC_SAVE| is called
+   before \verb|CC_RELEASE| or \verb|CC_FLUSH|.
+   Similar routines \verb|CC_WRITELOCKC| (for character strings),
+   \verb|CC_WRITELOCKV| (for all non-string variables) permit one to
+   specify a variable or character string within the common
+   rather than the common identifier.
+
+
+\begin{verbatim}
+   CALL CC_RELEASE(COMID,CHOPT,IERR)
+\end{verbatim}
+   to release the write lock on common COMID. NO OTHER PROCESS
+   CAN READ FROM OR WRITE TO THE COMMON WHILE YOU HAVE IT IN
+   WRITE LOCK. So always use \verb|IC_WRITELOCK/IC_RELEASE| as follows, to
+   minimise the time the common is held with a write lock:
+\begin{verbatim}
+   !   obtain a write lock
+   CALL CC_WRITELOCK(...)
+   !   set new values with normal assignment statements
+   VARIABLE = NEWVAL
+   !   immediately update the disk and release the write lock
+   CALL CC_RELEASE(...)
+\end{verbatim}
+   Routines \verb|CC_RELEASEV|, \verb|CC_RELEASEC| also available.
+
+\begin{verbatim}
+   CALL CC_UPDATE(COMID,CHOPT,IERR)
+\end{verbatim}
+   to update the common from disk (ie get any modifications made
+   by other processes since the last update). A read
+   from disk is done only if the common has been changed by
+   another process since the last update, so this is an
+   inexpensive call.
+   Routines \verb|CC_UPDATEV|, \verb|CC_UPDATEC| also available.
+
+\begin{verbatim}
+   CALL CC_FLUSH(COMID,CHOPT,IERR)
+\end{verbatim}
+   to flush memory to disk. Can only be used if there is a
+   {\em single\/} process which writes to the common.
+   This routine must be used with care
+   if global section mode is used. See the technical section.
+   Routines \verb|CC_FLUSHV|, \verb|CC_FLUSHC| also available.
+
+
+When you change the size of a common block that is mapped by CLUSCOM,
+you must delete the old section file or use the
+{\tt C} option of \verb|CC_SETUP| to ensure a new copy is created.
+
+%=========================================
+\section{INFOCACHE}
+
+\subsection{INFOCACHE overview}
+The INFOCACHE package provides communication facilities complementary
+to those of CLUSCOM: fast data sharing and various types of
+interprocess signalling.
+
+INFOCACHE is based on the {\sl cache\/},
+an entity associated with a symbolic
+name and accessible across the cluster, which can store information and
+act as a signalling mechanism.
+This basic entity is used in INFOCACHE to implement several
+distinct utilities.
+The different facilities, or usage modes, are outlined below:
+
+\begin{itemize}
+\item{\bf Information exchange: }
+Referred to as \info mode.
+A cache can be used to make a small (16 byte) packet of information
+available read/write to processes clusterwide. This is similar to a
+small CLUSCOM section, but has a much faster access time.
+This is especially
+appropriate for frequently changing information (\eg a current event number)
+or information which must be checked frequently.
+No interprocess signalling is involved.
+
+\item{\bf Broadcast messages: }
+    Referred to as \broadcast mode.
+    Within a group of processes each of which has a given broadcast
+    cache booked, any process can broadcast a message to
+    all other processes in the group via the cache, without
+    needing to know what other processes are in the group, where they
+    are running, etc.
+
+\item{\bf Master/client interprocess signalling: }
+    Referred to as \mailbox mode.
+    A `master' process receives signals from any number of `client'
+    processes and sends replies.
+    The cache is similar to a mailbox for the master process.
+    Each signal transaction, initiated
+    by a single subroutine call by the client, proceeds as follows:
+     \begin{itemize}
+     \item
+       client sends a message to the master
+     \item
+       master receives the message via an interrupt,
+       interprets it and acts on it, and
+       then sends a message back to the client
+     \item
+       control is returned to the client process when the master's reply
+       is received or a timeout expires.
+     \end{itemize}
+    The master's reply to the client sender provides acknowledgement
+    handshaking that makes this a secure form of communication.
+       
+\item{\bf Process status watching and crash alarm: }
+    Referred to as \watcher mode.
+    A fast and reliable way of making available cluster-wide status
+    information for a process. If the watched
+    process crashes, notification is
+    available cluster-wide, and a mechanism exists whereby a new copy of
+    the program can be started automatically, possibly on another node.
+    This crash alarm works even
+    if the process crash was due to the crash of the node; no local server
+    (which would of course also crash if the node crashed)
+    is used to disseminate the alarm
+    to processes on other nodes in the cluster.
+
+\item{\bf Alarm distribution system: }
+    Referred to as \alarm mode.
+    A flexible and simple way of distributing alarms from any number of
+    alarm-generating tasks (monitors, producers, etc.) to a dynamically
+    variable assortment of alarm-receiving tasks (alarm loggers,
+    display programs, etc.)
+
+    An alarm generating program routes its alarms through one or more
+    alarm channels identified by symbolic names (\eg a high voltage
+    monitor might create an alarm channel 'HV' for its alarms), where each
+    alarm channel corresponds to a cache.
+    Any other process may declare that it wants to receive the alarms 
+    of one or more alarm channels (\eg a status display program books
+    the `HV' channel and displays HV alarms). These `alarm server'
+    processes receive an interrupt and a message when an alarm
+    generating task logs an alarm. 
+    
+\item{\bf Resource locks: }
+    Referred to as \reslock mode.
+    A means of controlling access to 'resources' defined by the user. A
+    resource might be a subdetector Fastbus system, a communication channel,
+    anything which should only be accessed by one user at a time. A
+    processing trying to take out a resource lock will succeed only if the
+    lock is not held by another process on the cluster. If the lock is
+    held, the identity of the holder is available. To use a resource, the
+    resource lock is taken out, the resource is used, and the resource lock
+    is released when the resource is no longer needed.
+
+
+\end{itemize}
+
+The different INFOCACHE facilities are implemented as usage modes,
+with each cache associated with a particular usage mode at booking time via
+an option selection.
+
+INFOCACHE utilises the Distributed Lock Manager. A cache is a lock, and
+the information repository is the lock value block. More details are given
+in the technical section.
+
+\subsection{Using INFOCACHE}
+
+A guide to how INFOCACHE is used in its various usage modes is given
+here. For more information on the individual routines, their usage and
+their calling parameters, see the reference section.
+
+To use a cache, a program first books it with a call to \verb|IC_BOOK|.
+The cache may already exist through a previous booking by another
+process or may be created by the booking call; the user sees no
+difference. The booking call is the same for all usage modes:
+
+\begin{verbatim}
+   CALL IC_BOOK(NAME,CACHE,CHOPT,IERR)
+\end{verbatim}
+where NAME is the name the user assigns to the cache, CACHE is
+16 bytes of storage (can be I*4 CACHE(4), I*2 CACHE(8), REAL CACHE(4),
+etc.) for the cache, CHOPT is an options string, and IERR is
+a returned error code. The usage mode is determined by the option
+string.
+
+Note that \verb|IC_BOOK| options and options on all other CPC routines
+{\em must be in upper case}.
+
+After the \verb|IC_BOOK| call, the available calls depend on the usage
+mode. The routines available for each mode are summarised below.
+
+\subsubsection{Infocache mode}
+   This is the default usage mode. The 16 byte data store of the cache
+   can be read (\verb|IC_READ|) or written (\verb|IC_WRITE|)
+   at any time by any process that has it booked.
+   No signalling is involved.
+   Reads/writes are very fast (.5 millisec up, depending on CPU speed
+   and network access).
+
+\subsubsection{Broadcast mode}
+  Any process that has a broadcast cache booked can
+  \begin{itemize}
+     \item broadcast a message to all other processes that have
+       the cache booked by calling \verb|IC_BROADCAST|
+     \item wait until another process has sent out a broadcast, by calling
+       \verb|IC_WAIT| (with a timeout if desired), and then read the message
+     \item associate an AST-routine with the cache by calling
+       \verb|IC_ASSOCIATE|;
+       the AST routine is called when a broadcast is received (sent by
+       another process).
+       Inside the AST routine, \verb|IC_DELIVER| {\em must\/}
+       be called to receive the broadcast message.
+   \end{itemize}
+   A process that has booked a broadcast cache {\em must\/} call either
+   \verb|IC_ASSOCIATE| or \verb|IC_WAIT| immediately after the booking call.
+   A process which fails to do so will be unable to receive broadcasts.
+
+\subsubsection{Process watcher mode}
+   For program crash detection and status monitoring.
+   The process to be watched books a cache in `lock' mode when it starts up.
+   The process can maintain in the cache information on its status by
+   calling \verb|IC_STATUS|.
+
+   Other processes by booking the cache in `watcher' mode and calling
+   \verb|IC_WATCH| can detect if the lock-holder crashes or
+   drops the lock.
+   Watcher processes can call \verb|IC_WATCH| to
+     \begin{itemize}
+     \item
+       hibernate until the lock is released, \ie until the process holding
+       the lock crashes. For example, a backup copy of a critical program
+       running on node $A$
+       could be started on node $B$. The node $B$ copy would watch a
+       lock taken out
+       by the primary copy running on node $A$; if the node $A$ copy ever
+       crashed, the lock would be released and the copy on node $B$
+       could take over instantly. If the primary copy exits normally, it
+       can inform the backup via a flag in the cache, which the backup
+       program can check before taking over.
+     \item
+       establish an AST routine which is called if the lock is released.
+       This way one process can watch the locks of any number of other
+       processes and take action if any program crashes.
+     \end{itemize}
+
+     The lock-holder process can store status information in the
+     cache associated with its lock by calling \verb|IC_STATUS|.
+     Any other process (including but not limited to `watcher' processes)
+     can read this status information
+     from the cache by a call to \verb|IC_INFO|.
+
+A lockholder can use the \verb|IC_RELEASE| routine in order to release
+the lock in an orderly manner when the program exits normally without
+crashing; the {\tt W} option can be used to write to the cache a
+code indicating to watchers that the lock was released as a result of a
+normal exit and not a crash.
+
+\subsubsection{Mailbox mode}
+  One process books a
+  cache in `master' mode and receives signals from and sends replies
+  to any number of
+  other processes which book the same cache in `client' mode.
+
+  The master process services client signals in an AST routine
+  defined by a call to \verb|IC_ASSOCIATE|, which should be called
+  immediately after booking the cache.
+  The AST routine must call \verb|IC_DELIVER|
+  to receive the message from the client, followed
+  (after formulating a reply) by a call to
+  \verb|IC_SEND| to send the response.
+
+  The client calls \verb|IC_SIGNAL| to initiate the communication. This
+  triggers the master's AST routine. The AST routine
+  receives the message the client has stored in the cache, interprets
+  it and formulates a reply, and sends the reply to the client.
+  The client process returns from \verb|IC_SIGNAL| when the reply is
+  received or when a timeout expires (optional).
+
+  The cache in this case acts much like a mailbox for the master
+  process. It has several advantages with respect to VMS mailboxes:
+  it works cluster-wide, it is faster, and it permits the master (mailbox
+  holder) to send an acknowledgement/reply containing information
+  to the sender as part of the message transaction. Its limitation
+  is the 16-byte maximum on the information sent as a message and
+  returned as a reply. This can be overcome by using a CLUSCOM section
+  to pass additional information.
+
+\subsubsection{Alarm mode}
+Alarms are divided into channels, with each channel corresponding to a
+cache. One channel can be used for a whole class of alarms, \eg high
+voltage alarms. The cache contents can contain a code for the particular
+alarm being sent plus supplementary information (such as an identification
+of the alarm sender). The VMS MESSAGE utility provides a convenient means of
+defining alarms which can be identified by a 4 byte word. This leaves
+12 bytes of the 16-byte cache remaining for supplementary information.
+
+A task wishing to send alarms through a channel MYALARMS calls
+\verb|IC_BOOK| with MYALARMS as cache name and the {\tt T} option.
+Alarms are then sent by calls to \verb|IC_ALARM|.
+An `alarm server' task wishing to receive alarms from a particular channel
+calls \verb|IC_BOOK| with the {\tt S} option. 
+Receipt of alarms works identically to receipt of broadcasts, \ie 
+\verb|IC_ASSOCIATE| (or \verb|IC_WAIT|) must be called. See the
+discussion on \broadcast mode.
+
+\subsubsection{Resource lock mode}
+A 'resource' can be anything to which access must be controlled; anything
+which can accommodate only one user at a time. For example, in the online
+database server application, the server can only process requests from one
+client at a time. Other clients must not be permitted to interrupt a
+'request in progress'. A client wishing to communicate with the server first
+takes out a resource lock (\verb|IC_TAKE_LOCK|),
+giving the client exclusive access. The client
+communicates its request to the server, then drops the resource lock
+(\verb|IC_DROP_LOCK|) to
+let other clients communicate. Another example is the Fastbus local mode/
+global mode interlock. One resource lock can be allocated to each subdetector.
+When run control wants to enter global mode, it takes out the resource locks
+on all the subdetectors. When the muon chambers want to enter local mode,
+the MUCH server takes out the MUCH resource lock (which is only available
+if global mode is not in effect). If the lock is held by someone else, the
+\verb|IC_CHECK_LOCK| routine can tell the requesting process who the current
+holder is.
+
+%=========================================
+\newpage
+\part{Technical Information on CPC}
+
+This section should be read by anyone writing applications using CPC.
+It is assumed that application writers reading this
+are knowledgeable about VMS,
+and know a bit about (or are willing to read up on) the
+Distributed Lock Manager. Chapter 12 of {\sl VAX/VMS Introduction to
+System Services} describes the lock manager in detail.
+
+CPC requires VAX/VMS version 5.
+
+%=========================================
+\section{CLUSCOM}
+
+\subsection{The 512 byte ILAST array}
+When CLUSCOM maps a common block to a disk file, it must map an exact
+multiple of 512 bytes (1 page) of memory to the file. Because of this,
+there will in general be a piece of memory {\em beyond\/} the end of the last
+word of the common ILAST which is mapped to the common. This space
+should be occupied by {\em unused\/} space, because information there can be
+overwritten by garbage from the mapped file. For this reason, the word
+ILAST of the common which is passed to \verb|CC_SETUP| as the last word of
+the common should be followed by 512 bytes (128 I*4 or R*4 words) of
+unused space. Most simply, just declare ILAST as a 128 element array.
+
+\subsection{Disk to memory mapping: global sections vs QIOs}
+In this section the operation of the two modes of CLUSCOM operation,
+QIOs and global sections, are discussed in more detail.
+Some cautionary advice is given.
+
+In QIO mode, the two representations of the common, one on disk
+and one in memory, are completely independent. There is no communication
+between the two except when CLUSCOM calls are made to update memory
+from disk or vice versa. When a program modifies a variable in
+a mapped common, no other process sees the change at the time of the
+modification. If the next CLUSCOM call is a memory-to-disk update,
+other processes will see the change after this call; if it is a
+disk-to-memory update, the change will be obliterated when it is
+overwritten by the disk copy of the common.
+
+In global section mode, the situation is very different. On a single
+machine, the VMS operating system ensures that all processes mapped to
+a global section see exactly the same data at all times. If one process
+changes a variable, all other processes on that machine 
+see the change immediately.
+Processes on other machines will see the change the next time memory
+is flushed to disk, which is under the control of VMS and
+may happen at any time.
+
+An application which uses the routines \verb|CC_SAVE|, \verb|CC_UPDATE|,
+\verb|CC_WRITELOCK| and
+\verb|CC_RELEASE| properly will work reliably and in exactly the same
+manner in either global section mode or QIO mode.
+
+{\em Note that the SYSGBL privilege is required to use global section mode.}
+
+\subsubsection{{\tt CC\_FLUSH}  usage}
+The \verb|CC_FLUSH| routine must however be treated much more carefully in
+global section mode. In either mode, this routine can only be used
+for commons with only a single writing program.
+In QIO mode, reader processes see the changes
+of the writer only when \verb|CC_FLUSH| is called, ie when the changes are
+completed. In global section mode, changes are visible as they are
+made (or at an indeterminate time, for readers running on machines other
+than the writer's machine). To avoid the danger of a reader trying to
+interpret a partially updated common, the writer should use flags as
+follows:
+\begin{verbatim}
+         CHANGES_IN_PROGRESS = .TRUE.
+         <writer makes the necessary changes to common variables>
+         CHANGES_IN_PROGRESS = .FALSE.
+         CALL CC_FLUSH(...)
+\end{verbatim}
+Readers must test \verb|CHANGES_IN_PROGRESS|, and must also lock out the writer
+when they are reading with another flag. Clearly, it is easier just to use
+QIO mode if \verb|CC_FLUSH| is to be used.
+
+\subsection{The Distributed Lock Manager in CLUSCOM}
+CLUSCOM uses the VMS Distributed Lock Manager to coordinate access
+to the section file and maintain the revision number (kept in the first
+word of the lock value block). One lock is used per section. It is
+normally held in NL mode. When a write lock is obtained on the file,
+the lock is converted to EX mode. EX is dropped when the write lock is
+released, and a new revision number is written to the LVB.
+The lock name is the cache name prefixed by `\verb|L3%CC_|'.
+
+
+\subsection{The Revision Number}
+A revision number is maintained in the CCOM structure
+(a structure internal to the program containing information for each
+section) and in the cache
+associated with a particular common. When a common is updated to disk,
+the revision number is incremented in the cache and CCOM. When an update
+from disk is requested, first the revision number is read from the cache.
+If it matches the revision number in CCOM, no changes have been made by
+other processes since the last update, so no read from disk is performed
+(unless the FORCE option 'F' is in effect). If the cache revision number
+is different (better be greater!) then the read is performed and the internal
+CCOM rev number is set to the cache value.
+
+\subsection{Page alignment}
+CLUSCOM sections must be page aligned. To achieve this, the \verb|CDEC$|
+directive in VAX Fortran version 5 can be used. See the CLUSCOM example
+near the end of this document.
+
+%=========================================
+\section{INFOCACHE}
+
+
+\subsection{The Distributed Lock Manager in INFOCACHE}
+Infocache is built over the VMS Distributed Lock Manager.
+Two locks are used for each cache in all usage modes except \info
+mode, which uses one lock. One lock, the primary lock, is named
+with the name of the cache prefixed by `\verb|L3%c|' where {\tt c} is
+a character identifying the usage mode. The other lock, the system
+lock, has the prefix `\verb|L3%cS_|'. The two-lock scheme is essential
+for modes involving signalling in order to ensure that there is no
+interference between different process attempting a signalling
+operation at nearly the same time. Generally, one of the locks is
+held in EX mode throughout the transaction to lock out all other
+would-be signallers, while the other lock is used for the signalling.
+
+The signalling mechanism is the BAST, triggered by the signaller
+attempting to take out a lock blocked by the signal receivers. The
+receivers drop the blocking lock -- inside the \verb|IC_DELIVER| routine
+called within the user's AST routine if \verb|IC_ASSOCIATE| is used --
+thus enabling the sender to obtain the lock and load the message in
+the cache, which is why it is essential that \verb|IC_DELIVER| is called.
+
+\subsection{INFOCACHE usage mode parameters}
+
+In the file INFOCACHE.PARS parameters are defined which identify each
+of the \info usage modes (\verb|IC_INFO| can be used to obtain the usage
+mode code of a cache). The parameter names are
+\begin{verbatim}
+   IC__MAILBOX
+   IC__BROADCAST
+   IC__WATCHER
+   IC__ALARM
+   IC__INFOCACHE
+\end{verbatim}
+
+\section{Scope of CPC -- system-wide or UIC-wide}
+
+The Distributed Lock Manager used by both CLUSCOM and INFOCACHE can
+create either system locks or less privileged locks which operate
+only within a UIC group. By default, CLUSCOM and INFOCACHE use the
+less privileged locks so that special privileges are not required
+to use CPC. {\em In this mode, the CLUSCOM sections and caches are
+visible only to processes running in the same UIC group.} (On the
+L3 cluster, all users are under the same UIC group.) In both 
+INFOCACHE and CLUSCOM the option {\tt Y} is available to create a
+section or cache which is system-wide, accessible under all UICs. This
+mode requires the SYSLCK privilege.
+
+\input{cpcref}
+
+%=========================================
+\newpage
+\part{Error Handling in CPC}
+
+All CPC routines have as their last call parameter an error code IERR
+which is returned from the routine. If zero is returned, there were
+no errors. A non-zero value indicates an error. The error codes come
+from two sources:
+\begin{itemize}
+  \item errors defined within CPC are generated by the VMS message
+  utility. A FORTRAN include file CPCERR.FOR contains these error
+  codes.
+  \item error codes from VMS services used within CPC routines are
+  propagated up to the IERR parameter.
+
+\end{itemize}
+
+For all serious errors CPC itself gives an error message and traceback
+before returning to the user code.
+
+In the reference section of this document, only the CPC specific error
+messages which originate within the routine in question. Any errors arising
+from system utilities or deeper levels of CPC are reported with a traceback
+and an explanatory message. If you get a message number and no message,
+you may not be linking properly (you need to include the CPC module in the
+library) or it may be a typo or oversight on my part.
+
+%=========================================
+\newpage
+\part{CPC speed}
+INFOCACHE timings for one signal exchange (client sends signal, master reads
+and sends reply, client receives reply) in \mailbox mode:
+
+\begin{tabbing}
+\hspace*{3.5cm} \= \hspace*{7.0cm} \= \hspace*{2.5cm} \= \kill 
+master and client \> both on 8800:                 \>   4.2 msec \\
+\>                   both on same VS3200:          \>   10 msec  \\
+\>                   both on same VS2000:          \>   33 msec  \\
+\>                   both on same VAX750:          \>   38 msec  \\
+\>                   on 8800 and on VAX750:        \>   32 msec  \\
+\>                   on 8800 and on VS3200:        \>   32 msec  \\
+\>                   on 8800 and on VS2000:        \>   40 msec  \\
+\end{tabbing}
+
+The speed of \info mode ranges from about 0.4 msec for a read or
+write on the 8800 to 12 (27) msec for read (write) over Ethernet (lock
+resident on 8800, and read/written from a VAXstation).
+
+The speed of \broadcast and \alarm modes are intermediate between
+those of \mailbox and \info, except that at present there is
+a delay of about 100 msec hardwired in {\tt IC\_BROADCAST} and
+{\tt IC\_ALARM}. This delay will be removed or reduced in a future
+version. % $$$
+
+For CLUSCOM, the time for an update check with no read from disk is
+the same as an \info mode read; about .4 msec on the 8800.
+A disk read/write currently takes about 17 msec for 1 block and 50 msec
+for 64 blocks on the 8800.
+% $$$ timings with Mike's IO
+
+%=========================================
+\newpage
+\part{Building CPC Applications}
+
+The CPC material on the L3 online cluster is maintained in a directory
+pointed to by the logical name \verb|CPC$DIR|. This directory contains:
+
+\newcommand{\cpcfile}[2]{ \tt #1 \> \begin{minipage}[t]{9.7cm}{\rm #2}
+  \end{minipage} \\ \\ }
+\begin{tabbing}
+\hspace*{5.0cm} \= \hspace*{5.0cm} \= \hspace*{2.5cm} \= \kill 
+
+\noindent
+\cpcfile{CPC.OLB}{a library containing all CPC routines 
+  (CLUSCOM and INFOCACHE)}
+\cpcfile{CPCERR.MSG}{VMS MESSAGE source file for CPC error messages}
+\cpcfile{CPCERR.FOR}{error message include file}
+\cpcfile{CLUSCOM.FOR}{CLUSCOM source}
+\cpcfile{CLUSCOM.INC}{CLUSCOM include file. Used in the source; not to
+  be used by user code.}
+\cpcfile{INFOCACHE.FOR}{INFOCACHE source}
+\cpcfile{INFOCACHE.INC}{INFOCACHE include file. Used in the source; not to
+  be used by user code.}
+\cpcfile{INFOCACHE.PARS}{INFOCACHE parameters. Discussed in the technical
+  section.}
+\cpcfile{CPCUTIL.FOR}{CPC common routines and utility routines}
+\end{tabbing}
+
+To link a CPC application which uses either INFOCACHE or CLUSCOM (or both),
+use
+\begin{verbatim}
+   $ LINK <mycode>,CPC$DIR:CPC/LIB/INCL=CPC
+\end{verbatim}
+
+The \verb|"/INCL=CPC"| is necessary to include the error messages.
+
+The library \verb|CPC.OLB| always contains the current version. Older versions
+are maintained (for a while) as, for example, \verb|CPC10.OLB| for
+version 1.0.
+
+Please report quickly to the author any problems with CPC. Suggestions
+for changes or additions are very welcome.
+
+If you want to be informed of CPC news, bugs, documentation oversights, etc.,
+please send me a computer message at
+{\tt VXL3ON::WENAUS}.
+
+%=========================================
+\newpage
+\part{Programming examples}
+\section{CLUSCOM example}
+
+\begin{verbatim}
+        COMMON /CCTEST/ IFIRST, IARRAY(10), STRING, ILAST
+*         force page alignment
+CDEC$ PSECT /CCTEST/ ALIGN=9
+        CHARACTER COMID*6 /'CCTEST'/, FNAME*60, STRING*10
+*
+        FNAME = 'CCTEST.MAPCOM'
+*         set up the CLUSCOM section, using global section mode
+        CALL CC_SETUP(COMID,FNAME,IFIRST,ILAST,'G',IERR)
+        IF (IERR.NE.0) GOTO 999
+        TYPE '(10I8)',IARRAY
+*         get write lock, make changes to common, and release
+        CALL CC_WRITELOCK(COMID,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        DO I=1,10
+          IARRAY(I)=IARRAY(I)+I
+        ENDDO
+        CALL CC_RELEASE(COMID,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+*         routines to change a single parameter
+        CALL CC_SAVEC(STRING,'TEST',' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL CC_SAVE(IARRAY(3),999+IARRAY(1),' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+*         force an update from disk
+        CALL CC_UPDATE(COMID,'F',IERR)
+        IF (IERR.NE.0) GOTO 999
+        TYPE *,'STRING: "',STRING,'"'
+        TYPE '(10I8)',IARRAY
+*         retrieve info in the common periodically, eg. to refresh
+*         a screen display. Note that in CC_UPDATE the disk file is
+*         read only if a change has been made, so it is not
+*         inefficient to call CC_UPDATE within a loop like this.
+        DO I=1,10
+          CALL CC_UPDATE(COMID,' ',IERR)
+          IF (IERR.NE.0) GOTO 999
+          !<refresh display or whatever>
+          CALL LIB$WAIT(5.)
+        ENDDO
+*         mandatory closeout routine
+999     CALL CPC_FINISH
+        END
+\end{verbatim}
+
+
+\section{INFOCACHE example}
+\begin{verbatim}
+*
+*       'receiver' test program. Run this first, as a subprocess.
+*
+        EXTERNAL MYAST
+        INTEGER LVB(4)
+*         information cache
+        CALL IC_BOOK('INFO',LVB,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL IC_READ('INFO',LVB,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        DO I=1,4
+          LVB(I)=LVB(I)+I**2
+        ENDDO
+        CALL IC_WRITE('INFO',LVB,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+*         alarm cache
+        CALL IC_BOOK('ALARM',LVB,'S',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL IC_ASSOCIATE('ALARM',LVB,MYAST,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+*         broadcast cache
+        CALL IC_BOOK('BCAST',LVB,'B',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL IC_ASSOCIATE('BCAST',LVB,MYAST,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+*         mailbox cache
+        CALL IC_BOOK('MBX',LVB,'M',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL IC_ASSOCIATE('MBX',LVB,MYAST,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        type *,'receiver waiting'
+        CALL LIB$WAIT(999.)
+999     CALL CPC_FINISH
+        END
+*
+        SUBROUTINE MYAST(NUM)
+        INCLUDE 'INFOCACHE.PARS'
+        INTEGER LVB(4)
+        CHARACTER NAME*20
+        CALL IC_NUM_ID(NUM,NAME,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL IC_DELIVER(NAME,LVB,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        TYPE *,'RECEIVER: CACHE '//NAME//' RECEIVED',LVB
+        CALL IC_INFO(NAME,IMODE,IDUM,'M',IERR)
+        IF (IERR.NE.0) GOTO 999
+        IF (IMODE.EQ.IC__MAILBOX) THEN
+          TYPE *,'MAILBOX CACHE '//NAME//' -- SENDING REPLY'
+          DO I=1,4
+            LVB(I)=-I
+          ENDDO
+          CALL IC_SEND(NAME,LVB,' ',IERR)
+          IF (IERR.NE.0) GOTO 999
+        ENDIF
+999     END
+************************************************************************
+*
+*       'sender' test program. Run this after starting the receiver.
+*
+        EXTERNAL MYAST
+        INTEGER LVB(4)
+*         information cache
+        CALL IC_BOOK('INFO',LVB,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        TYPE *,'READ FROM INFO CACHE:',LVB
+        DO I=1,4
+          LVB(I)=LVB(I)+I**2
+        ENDDO
+        CALL IC_WRITE('INFO',LVB,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+*         alarm cache
+        CALL IC_BOOK('ALARM',LVB,'T',IERR)
+        IF (IERR.NE.0) GOTO 999
+        TYPE *,LVB
+        DO I=1,4
+          LVB(I)=LVB(I)+I**2
+        ENDDO
+        CALL IC_ALARM('ALARM',LVB,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+*         broadcast cache
+        CALL IC_BOOK('BCAST',LVB,'B',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL IC_ASSOCIATE('BCAST',LVB,MYAST,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        TYPE *,LVB
+        DO I=1,4
+          LVB(I)=LVB(I)+I**2
+        ENDDO
+        CALL IC_BROADCAST('BCAST',LVB,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+*         mailbox cache
+        CALL IC_BOOK('MBX',LVB,'C',IERR)
+        IF (IERR.NE.0) GOTO 999
+        DO I=1,4
+          LVB(I)=LVB(I)+I**2
+        ENDDO
+        CALL IC_SIGNAL('MBX',LVB,1.,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+	TYPE *,'Reply from signal = ',LVB
+999     CALL CPC_FINISH
+        END
+*
+        SUBROUTINE MYAST(NUM)
+        INTEGER LVB*4
+        CHARACTER NAME*20
+        CALL IC_NUM_ID(NUM,NAME,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL IC_DELIVER(NAME,LVB,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        TYPE *,'SENDER CACHE '//NAME//' RECEIVED',LVB
+999     END
+\end{verbatim}
+
+\end{document}
+\bye

@@ -1,0 +1,395 @@
+\newpage
+\part{CPC CLUSCOM Routines Reference}
+\vspace*{1cm}
+\begin{verbatim}
+  List of CLUSCOM routines documented in this section:
+
+  CC_SETUP      to initially set up the CLUSCOM section
+
+  CC_SAVE       to save individual variables in a section
+                + CC_SAVEV, CC_SAVEC
+
+  CC_WRITELOCK  to write lock a section
+                + CC_WRITELOCKV, CC_WRITELOCKC
+  CC_RELEASE    to release a write lock
+                + CC_RELEASEV, CC_RELEASEC
+
+  CC_UPDATE     to update memory from disk
+                + CC_UPDATEV, CC_UPDATEC
+
+  CC_FLUSH      to flush memory to disk
+                + CC_FLUSHV, CC_FLUSHC
+
+  CC_SET_LAST   to control partial read/write of the section     NEW
+\end{verbatim}
+
+\begin{routine} %RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+\subroutine
+   {SUBROUTINE}{CC\_FLUSH}{(COMID, CHOPT, IERR)}
+\begin{overview}
+Flushes the common in memory to disk.
+\end{overview}
+\begin{argdeflist}
+\argitem{COMID}{character/readonly}{The name of the CLUSCOM section}
+\argitem{CHOPT}{character/readonly}{Option string, upper case}
+\argitem{IERR}{integer/modify}{Error code. Error if nonzero}
+\end{argdeflist}
+\begin{describe}
+
+This routine flushes memory to disk. If a write lock is in place, it remains in
+place. If there is no write lock on the common on entry, the
+common is write locked during the flush and then unlocked
+again. This keeps to a minimum the time during which the common is write
+locked and inaccessible to other processes.
+
+This routine is only safe to use when there is only one process which writes
+to the common. See the discussion on \verb|CC_FLUSH| in the technical section.
+
+Related routines are \verb|SUBROUTINE CC_FLUSHV(VARNAME,CHOPT,IERR)|
+and \verb|SUBROUTINE CC_FLUSHC(STRING,CHOPT,IERR)| for specifying
+variable or string names instead of the section name.
+
+\end{describe}
+\begin{options}
+\opt{none}{}
+\end{options}
+\begin{returncodes}
+\rcode{no error return codes originate from this routine}{}
+\end{returncodes}
+\begin{examplecode}\begin{verbatim}
+*
+        COMMON /CCTEST/ IFIRST, <variables>, ILAST(128)
+        CHARACTER STRING*10
+* ...
+        CALL CC_SETUP('CCTEST','CCTEST.MAPCOM',IFIRST,ILAST,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+* ...
+        DO WHILE (.TRUE.)
+          <assignment statements which load the common>
+          CALL CC_FLUSH('CCTEST',' ',IERR)
+          IF (IERR.NE.0) GOTO 999
+          CALL LIB$WAIT(UPDATE_INTERVAL)
+        ENDDO
+\end{verbatim}\end{examplecode}
+\end{routine}
+
+
+\begin{routine} %RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+\subroutine
+   {SUBROUTINE}{CC\_RELEASE}{(COMID, CHOPT, IERR)}
+\begin{overview}
+Releases a write locked section.
+\end{overview}
+\begin{argdeflist}
+\argitem{COMID}{character/readonly}{The name of the CLUSCOM section}
+\argitem{CHOPT}{character/readonly}{Option string, upper case}
+\argitem{IERR}{integer/modify}{Error code. Error if nonzero}
+\end{argdeflist}
+\begin{describe}
+This routine releases the write lock on a section, after flushing
+memory to disk to save any changes. The revision number of the
+section is incremented.
+
+If the section is not write locked when this routine is called, it
+does nothing.
+
+This routine should always be used after \verb!CC_WRITELOCK!.
+
+Related routines are \verb|SUBROUTINE CC_RELEASEV(VARNAME,CHOPT,IERR)|
+and \verb|SUBROUTINE CC_RELEASEC(STRING,CHOPT,IERR)| for specifying
+variable or string names instead of the section name.
+
+\end{describe}
+\begin{options}
+\opt{none}{}
+\end{options}
+\begin{returncodes}
+\rcode{no error return codes originate from this routine}{}
+\end{returncodes}
+\begin{examplecode}\begin{verbatim}
+*
+*   see the example for CC_WRITELOCK
+*
+\end{verbatim}\end{examplecode}
+\end{routine}
+
+
+\begin{routine} %RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+\subroutine
+   {SUBROUTINE}{CC\_SAVE}{(VARNAM, VALUE, CHOPT, IERR)}
+\begin{overview}
+A new value VALUE for a variable VARNAM in a mapped common is written
+to the section on disk
+\end{overview}
+\begin{argdeflist}
+\argitem{VARNAM}{non-char/readonly}{Variable to be updated}
+\argitem{VALUE}{non-char/readonly}{New value of variable}
+\argitem{CHOPT}{character/readonly}{Option string, upper case}
+\argitem{IERR}{integer/modify}{Error code. Error if nonzero}
+\end{argdeflist}
+\begin{describe}
+This routine finds which mapped common VARNAM is contained in, updates
+the common from disk if necessary, writes the new value VALUE into VARNAM and
+flushes the common to disk. The revision number is incremented.
+
+Related routines are \verb|SUBROUTINE CC_SAVEV(ANAME,AVAL,LNG,CHOPT,IERR)|
+which saves new values AVAL in a vector (array) ANAME of length LNG,
+and \verb|SUBROUTINE CC_SAVEC(STRNAM,STRVAL,CHOPT,IERR)| to save a new
+value STRVAL in a string STRNAM.
+
+If several variables in a given section have to be updated at the same
+time, it is more efficient to use \verb|CC_WRITELOCK| and \verb|CC_RELEASE|.
+
+\end{describe}
+\begin{options}
+\opt{F}{ Force the update from disk to take place, even if the
+revision number is unchanged.}
+\end{options}
+\begin{returncodes}
+\rcode{no error return codes originate from this routine}{}
+\end{returncodes}
+\begin{examplecode}\begin{verbatim}
+*
+        COMMON /CCTEST/ IFIRST, X, IARRAY(10), STRING, ILAST(128)
+        CHARACTER STRING*10
+* ...
+        CALL CC_SETUP('CCTEST','CCTEST.MAPCOM',IFIRST,ILAST,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+* ...
+        CALL CC_SAVE(X,7.,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL CC_SAVEC(STRING,'NEWSTRING',' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+\end{verbatim}\end{examplecode}
+\end{routine}
+
+\begin{routine} %RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+\subroutine
+   {SUBROUTINE}{CC\_SETUP}{(COMID, FNAME, IFIRST, ILAST, CHOPT, IERR)}
+\begin{overview}
+This procedure is called to set up the mapping of a
+CLUSCOM section. It creates the
+mapping between a common block in memory and a disk file.
+\end{overview}
+\begin{argdeflist}
+\argitem{COMID}{character/readonly}{The name assigned to the CLUSCOM
+section by the user. Maximum length is 20 characters.}
+\argitem{FNAME}{character/readonly}{The filename to contain the mapped
+section. The filename convention is {\tt <comid>.MAPCOM} }
+\argitem{IFIRST}{integer/readonly}{The first word of the common block
+to be mapped}
+\argitem{ILAST}{integer/readonly}{The last word of the common block to
+be mapped}
+\argitem{CHOPT}{character/readonly}{Option string, upper case}
+\argitem{IERR}{integer/modify}{Error code. Error if nonzero}
+\end{argdeflist}
+\begin{describe}
+This routine sets up the mapping between a common block in memory and
+a disk file (referred to as a CLUSCOM section).
+The specified file (referred to as a section file)
+is opened and mapped to the memory
+region IFIRST to ILAST. If the file already exists, it is opened and
+mapped; if it does not exist it is created. Section files are always
+created with group and world write access, so that privileges are
+not needed to map them.
+
+There are two modes of access -- using QIOs (block I/O in earlier
+CLUSCOM versions) or global sections.
+These two modes are discussed in the technical section.
+They are functionally equivalent from the user's point of view (but see
+the technical section).
+The default mode is QIOs. Global section mode is usually faster,
+but {\em the SYSGBL privilege is required to use the global section
+ mode}. No special privileges are required to use QIO mode.
+
+Note that the ILAST location should mark the beginning of 512 bytes
+of unused space. This is most easily achieved by making ILAST a 128 element
+array. See the discussion in the technical part.
+
+\end{describe}
+\begin{options}
+\opt{G}{ Use global section (rather than the default QIO) mode.}
+\opt{R}{ File is opened READONLY. The file is opened with only read
+access required. Attempts to write to the file are refused.}
+\opt{W}{ File is opened with a write lock. This option should be used
+carefully. No other process can gain read or write access to the file until the
+file is released by the write lock holder.}
+\opt{C}{ Force creation of a new map file, even if a version exists.}
+\opt{O}{ Open old map file. If no file exists, an error is returned.}
+\opt{M}{ by default, when an existing map file is opened,
+memory is initialized from disk rather than vice
+versa. To initialize disk from memory, use this
+option. NOTE that in global section mode, this option has
+the effect of {\em zeroing} both memory and disk.}
+\opt{Y}{ system mode. Cache is recognised across all UICs. See the
+  technical section. }
+\end{options}
+\begin{returncodes}
+\rcode{CC\_E\_BADNAME}{ identifier string too long}
+\rcode{CC\_E\_BADFILE}{ filename too long}
+\rcode{CC\_E\_MAXEX}{ maximum number of mapped commons exceeded}
+\rcode{CC\_E\_NOFILE}{ specified section file does not exist}
+\end{returncodes}
+\begin{examplecode}\begin{verbatim}
+*
+**        the common to map
+        COMMON /CCTEST/ IFIRST, IARRAY(10), STRING, ILAST(128)
+        CHARACTER STRING*10
+*
+        CALL CC_SETUP('CCTEST','CCTEST.MAPCOM',IFIRST,ILAST,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+* ...
+\end{verbatim}\end{examplecode}
+\end{routine}
+
+
+\begin{routine} %RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+\subroutine
+   {SUBROUTINE}{CC\_SET\_LAST}{(COMID, ILAST, CHOPT, IERR)}
+\begin{overview}
+This procedure tells CLUSCOM to read/write only part of the section.
+
+\end{overview}
+\begin{argdeflist}
+\argitem{COMID}{character/readonly}{The name assigned to the CLUSCOM
+section by the user. Maximum length is 20 characters.}
+\argitem{ILAST}{integer/readonly}{The last word of the common block to
+read/write}
+\argitem{CHOPT}{character/readonly}{Option string, upper case}
+\argitem{IERR}{integer/modify}{Error code. Error if nonzero}
+\end{argdeflist}
+\begin{describe}
+This procedure sets the final word of a mapped common to 
+be written to or read from the section file. It tells CLUSCOM to
+to write/read only part of a common, to save time when only a small part
+of a large common, the region up to ILAST, is used.
+
+To reset reading/writing to use the entire section, call this routine with
+the {\tt R} option.
+
+Note that no I/O is actually performed by this routine.
+\end{describe}
+\begin{options}
+\opt{R}{Reset to read/write the entire common. ILAST ignored.}
+\end{options}
+\begin{returncodes}
+\rcode{CC\_E\_MISMATCH}{ name/variable mismatch. The ILAST location is not
+   in the indicated section.}
+\end{returncodes}
+\begin{examplecode}\begin{verbatim}
+*
+*       eg. if the mapped common is
+   COMMON /MY/ IFIRST, IARRAY(10000), ILAST(128)
+* ...
+*       then
+   CALL CC_SET_LAST(COMID,IARRAY(100),' ',IERR)
+*       will cause /MY/ to be read/written only up to the first page
+*       boundary past IARRAY(100).
+\end{verbatim}\end{examplecode}
+\end{routine}
+
+
+\begin{routine} %RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+\subroutine
+   {SUBROUTINE}{CC\_UPDATE}{(COMID, CHOPT, IERR)}
+\begin{overview}
+Updates the common block in memory from the disk file.
+\end{overview}
+\begin{argdeflist}
+\argitem{COMID}{character/readonly}{The name of the CLUSCOM section}
+\argitem{CHOPT}{character/readonly}{Option string, upper case}
+\argitem{IERR}{integer/modify}{Error code. Error if nonzero}
+\end{argdeflist}
+\begin{describe}
+This routine checks the revision number
+\footnote{see the discussion on revision numbers in the technical section}
+of the section and
+updates from disk if and only if changes have been made by other
+processes since the last update. Checking the revision number is very
+fast, so that it is not inefficient to use \verb|CC_UPDATE| frequently,
+for example in a loop which refreshes a screen display every few
+seconds based on information in a CLUSCOM section.
+
+Related routines are \verb|SUBROUTINE CC_UPDATEV(VARNAME,CHOPT,IERR)|
+and \verb|SUBROUTINE CC_UPDATEC(STRING,CHOPT,IERR)| to update a
+variable VARNAME or character string STRING respectively, where
+VARNAME or STRING are contained in mapped commons. Note that the
+whole common is updated, not just the specified variable; these
+routines just provide a means of identifying a mapped common by a variable
+contained within it rather than by its name.
+
+\end{describe}
+\begin{options}
+\opt{F}{ Force the update from disk to take place, even if the
+revision number is unchanged.}
+\end{options}
+\begin{returncodes}
+\rcode{no error return codes originate from this routine}{}
+\end{returncodes}
+\begin{examplecode}\begin{verbatim}
+*
+        COMMON /CCTEST/ IFIRST, IARRAY(10), STRING, ILAST(128)
+        CHARACTER STRING*10
+* ...
+        CALL CC_SETUP('CCTEST','CCTEST.MAPCOM',IFIRST,ILAST,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+* ...
+        CALL CC_UPDATE('CCTEST',' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL CC_UPDATEV(IARRAY(3),' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        CALL CC_UPDATEC(STRING,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+\end{verbatim}\end{examplecode}
+\end{routine}
+
+\begin{routine} %RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+\subroutine
+   {SUBROUTINE}{CC\_WRITELOCK}{(COMID, CHOPT, IERR)}
+\begin{overview}
+Locks a section in write mode.
+\end{overview}
+\begin{argdeflist}
+\argitem{COMID}{character/readonly}{The name of the CLUSCOM section}
+\argitem{CHOPT}{character/readonly}{Option string, upper case}
+\argitem{IERR}{integer/modify}{Error code. Error if nonzero}
+\end{argdeflist}
+\begin{describe}
+This routine updates a section from disk (if necessary) and locks it
+in write mode, so that {\em no other process has any access to the
+section -- read or write --
+until the write lock is released with \verb|CC_RELEASE|}.
+It should always be used in conjunction with \verb|CC_RELEASE|
+as in the example below.
+
+It updates from disk if and only if changes have been made by other
+processes since the last update.
+
+Related routines are \verb|SUBROUTINE CC_WRITELOCKV(VARNAME,CHOPT,IERR)|
+and \verb|SUBROUTINE CC_WRITELOCKC(STRING,CHOPT,IERR)| for specifying
+variable or string names instead of the section name.
+
+\end{describe}
+\begin{options}
+\opt{F}{ Force the update from disk to take place, even if the
+revision number is unchanged.}
+\end{options}
+\begin{returncodes}
+\rcode{CC\_E\_NOWRTLOCK}{ attempt to write lock a readonly section}
+\end{returncodes}
+\begin{examplecode}\begin{verbatim}
+*
+        COMMON /CCTEST/ IFIRST, X, IARRAY(10), STRING, ILAST(128)
+        CHARACTER STRING*10
+* ...
+        CALL CC_SETUP('CCTEST','CCTEST.MAPCOM',IFIRST,ILAST,' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+* ...
+        CALL CC_WRITELOCK('CCTEST',' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+        X=X+2.
+        STRING='NEWSTRING'
+        CALL CC_RELEASE('CCTEST',' ',IERR)
+        IF (IERR.NE.0) GOTO 999
+\end{verbatim}\end{examplecode}
+\end{routine}

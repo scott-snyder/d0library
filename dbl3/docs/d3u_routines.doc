@@ -1,0 +1,380 @@
+                                                         Lars Rasmussen
+                                                         4-Sep-1991
+
+               -----------------------------------------------
+              |                    D3U                        |
+              |                                               |
+              |   A LITTLE ABOUT SOME GENERAL DBL3 ROUTINES   |
+               -----------------------------------------------
+
+      This sample of routines, is a try to make few routines, which can
+be used by all monitoring programs, using DBL3. All of the originaly codes
+are from the Calib DBL3 routines, made by S. Abachi, Jan Guida and
+S. Rajagopalan. The D3U routines are independent of the user keys and the
+Zebra store.
+There is no reason that currently working programs should be changed, but
+there was enough of new project to justify to make something general.
+
+      A little about how to use :
+The DBL3 database is created by a call D3U_CREATE, this should only be done 
+each time a new DBL3 file has to be made.
+A DBL3 session will have one call to D3U_INI. The database is open between
+D3U_START and D3U_END. Calls to D3U_FETC, D3U_INSRT or D3U_INSRN can be done
+when the database is open.
+
+      D3U Routines :
+         D3U_CREATE     To create a new database
+         D3U_INI        To initialise dbl3 parameters
+         D3U_START      To open database
+         D3U_INSRT      To insert one element into database
+         D3U_INSRN      To ineret many elements into database
+         D3U_FETCH      To fetch an element from the database
+         D3U_END        To close database
+      
+      Speciel DBL3 routines
+         DBUKY          To return key paramters in an array
+         DBRENB         To change many key elemets
+
+      ps. examples is at the end
+
+C----------------------------------------------------------------------
+      SUBROUTINE D3U_CREATE(PATH,KYNAM,DESC,NKYNAM,IRET)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Create a new path (after call to
+C-   D3U_START with 'Z' option
+C-   
+C-   Input
+C-             PATH   (C)  Path name
+C-             KYNAM  (C)  Array of tags for user keys 7:N
+C-             DESC   (C)  String of desciptors for user keys
+C-             NKYNAM (I)  Number user keys
+C-
+C-   Return  : IRET   (I)  0=ok
+C-   Controls: 
+C-
+C-   Created  10-JAN-1990   Jan Guida, Srini Rajagopalan
+C-   Stolen   01-DEC-1990   Lars Rasmussen
+C-
+C----------------------------------------------------------------------
+      SUBROUTINE D3U_INI (IDIV,PATH,FOPT,IOPT,IRET)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : To initialise DBL3 parameters
+C-
+C-   Inputs  : IDIV (I)     Users Zebra division
+C-             PATH (C)     Path name (max 24 characters)
+C-             FOPT (C)     Options to fetch elements (argument in DBUSE)
+C-             IOPT (C)     Options for inserting elements (argument in 
+C-                          DBENTR)
+C-
+C-   Outputs : IRET         0=OK
+C-   Controls: 
+C-
+C-   Created  26-NOV-1990   Lars O. Rasmussen
+C-
+C----------------------------------------------------------------------
+      SUBROUTINE D3U_START (DBFILE,CHOPT,IRET)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : To start/open DBL3
+C-
+C-   Inputs  :   DBFILE (C*)    DBL3 file name    
+C-               CHOPT  (C*)   
+C-          ' '  Read only. Changes by other processes not visible.
+C-          'S'  Read only. Changes by other processes visible to the user
+C-          'U'  for Exclusive Update privileges.
+C-          'SU' for Shared Update pivileges.
+C-          'Z'  Will create a new data base, D3U_CREATE has to be called
+C-               after.
+C-
+C-   Outputs : IRET          0=OK
+C-   Controls: 
+C-
+C-   Created  26-NOV-1990   Lars O. Rasmussen
+C-
+C----------------------------------------------------------------------
+      SUBROUTINE D3U_FETCH (KEY,NLNK,LNK,IRET)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Will fetch elements from the data base,
+C-   corresponding to KEYS, and insert it into memory
+C-   P.S. CURRENT VERSION ONLY PASS ONE LINK.
+C-
+C-   Inputs  : KEY           Array of keys for the search.
+C-             NLNK          Length of passed array LNK
+C-   Outputs : LNK           Array of links to data elements
+C-             IRET          Number of elements found
+C-             
+C-   Controls: 
+C-
+C-   Created  26-JUN-1991   Lars O. Rasmussen
+C-
+C----------------------------------------------------------------------
+      SUBROUTINE D3U_INSRT (LNK,KEY,IRET)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Will insert a new element into DBL3, specifyed
+C-   by the link, LNK. KEY(3) and KEY(4) is the validity range (can be 
+C-   time or run number). There is three different cases :
+C-   1) There is no previous element of same type (same type is elements
+C-      with same user keys (7:N)). Then there will be created a dummy
+C-      very first element with validity range from 1 to key(3)-1 of the
+C-      new element (keyc(3) is start validity, time or run number) and
+C-      key(4) of the new element will be forced to 999999999.
+C-   2) There is a previous element, with key(3) different from the new
+C-      elements key(3). Then the previous element will have the end 
+C-      validity, key(4), modifyed to key(3)-1 of the new element, and
+C-      the new element will have key(4) modifyed to the previous elements 
+C-      key(4) (normaly that would be 999999999).
+C-   3) There is a previous element, with key(3) equal to the new
+C-      elements key(3) (this should be a rare situation). Then the 
+C-      previous element will have the end validity changed to the its 
+C-      start validity, and the end validity of the new element will
+C-      be changed to the end validity of the previous element.
+C-
+C-   Inputs  : LNK           Link to bank or bank structure to be inserted
+C-             KEYS          Keys for that element
+C-   Outputs : IRET          0 = ok
+C-   Controls: 
+C-
+C-   Created  18-NOV-1989   S. Abachi, Jan Guida, S. Rajagopalan
+C-   Updated  28-FEB-1990   J. Guida - Add KEY(11) as Run number
+C-   Stolen   26-NOV-1990   Lor
+C-
+C----------------------------------------------------------------------
+      SUBROUTINE D3U_INSRN (LNK,KEY,NELM,IRET)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Will insert new elements into DBL3, specifyed
+C-   by the links, LNK. KEY(3) and KEY(4) is the validity range (can be 
+C-   time or run number). There is three different cases :
+C-   1) There is no previous element of same type (same type is elements
+C-      with same user keys (7:N)). Then there will be created a dummy
+C-      very first element with validity range from 1 to key(3)-1 of the
+C-      new element (keyc(3) is start validity, time or run number) and
+C-      key(4) of the new element will be forced to 999999999.
+C-   2) There is a previous element, with key(3) different from the new
+C-      elements key(3). Then the previous element will have the end 
+C-      validity, key(4), modifyed to key(3)-1 of the new element, and
+C-      the new element will have key(4) modifyed to the previous elements 
+C-      key(4) (normaly that would be 999999999).
+C-   3) There is a previous element, with key(3) equal to the new
+C-      elements key(3) (this should be a rare situation). Then the 
+C-      previous element will have the end validity changed to the its 
+C-      start validity, and the end validity of the new element will
+C-      be changed to the end validity of the previous element.
+C-
+C-   Inputs  : LNK           Link to banks or bank structures to be inserted
+C-             KEY           Keys for the elements
+C-             NELM          Number of elements to insert
+C-   Outputs : IRET          >0 = number of elements inserted into dbl3
+C-                           <0 = error
+C-   Controls: 
+C-
+C-   Created  18-NOV-1989   S. Abachi, Jan Guida, S. Rajagopalan
+C-   Updated  28-FEB-1990   J. Guida - Add KEY(11) as Run number
+C-   Stolen   26-NOV-1990   Lor
+C-
+C----------------------------------------------------------------------
+      SUBROUTINE D3U_END
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : DBL3 - wrap up and go home
+C-
+C-   Inputs  : 
+C-   Outputs : 
+C-   Controls: 
+C-
+C-   Created  17-NOV-1989   S. Abachi, Jan Guida, S. Rajagopalan
+C-   Stolen   25-NOV-1990   Lor
+C----------------------------------------------------------------------
+      SUBROUTINE DBUKY (PATHN, KY, NKY, KEYS, CHOPT)    
+*     ======================================================    
+*   
+************************************************************************    
+*                                                                      *    
+*        SUBR. DBUKY (PATHN, KY*, NKY*, KEYS, CHOPT)                   *    
+*                                                                      *
+*   (This is code is mainly a copy of the first part of DBUSE)         *
+*   Prepares the database key structure in memory for any required     *    
+*   Pathname and set of Keys, unless already done.                     *    
+*   Returns the key values for the corresponding Key banks after       *
+*   checking their validity for the given time and keys.               *    
+*   ps. Keys are returned as integers                                  *
+*                                                                      *    
+*   Arguments :                                                        *    
+*                                                                      *    
+*     PATHN    Character string describing the pathname                *    
+*     KY(*)    Values of Keys bank(s) KYDB   (INPUT or OUTPUT)         *    
+*              For option 'S' it is the support address of the linear  *    
+*              structure                                               *    
+*              For option 'M' with selection on user keys 8 and 9,     *    
+*              LBK(k) is the address corresponding to the ith Key-8    *    
+*              and the jth Key-9 value, where k = KEYS(8) * (j-1) + i  *    
+*     NKY(*)   Array length of KY                                      *
+*     KEYS     Vector of keys. Only the elements declared in CHOPT are *    
+*              assumed to contain useful information.                  *    
+*              When option 'M' is declared KEYS(n) (when user Key n    *    
+*              is selected should contain the number of data objects   *    
+*              to be retrieved according to the KEYS(n) values and     *    
+*              the values of the key elements for Key-n to be matched  *    
+*              should be stored in successive KEYS(i) elements, with   *    
+*              i starting from NWKEY+1 (NWKEY is the number of key     *    
+*              elements for this directory)                            *    
+*     CHOPT    Character string with any of the following characters   *    
+*          A   trust LBK address(es) if non-zero                       *    
+*          K   read only the keys (no data is required)                *    
+*          M   expect multiple Key banks to be returned (only up to    *    
+*              a maximum of 5 user keys)                               *    
+*          S   expect multiple Key banks satisfying selection on a     *    
+*              number of keys (Options S and M are mutually exclusive) *    
+*          V   declare the Data as being different in size to what is  *    
+*              already resident in memory                              *    
+*          3   selects objects with start validity time < KEYS(3)      *    
+*              (with option S)                                         *    
+*          4   selects objects with end validity time > KEYS(4)        *    
+*              (with option S)                                         *    
+*          5   specific Program version number required                *    
+*          7   select objects with insertion time < KEYS(7)            *    
+*          n   consider user key n (where 7 < n < 29 )                 *    
+*                                                                      *    
+*   Called by user
+*                                                                      *    
+*   Error Condition :                                                  *    
+*                                                                      *    
+*     IQUEST(1) =  0 : No error                                        *    
+*               =  1 : Illegal character option                        *    
+*               =  2 : Illegal path name                               *    
+*               =  3 : Data base structure in memory clobbered         *    
+*               =  4 : Illegal key option                              *    
+*                                                                      *    
+*     If IQUEST(1) =0, IQUEST(2) carries information whether data      *    
+*     part had been actually read from the disk or not                 *    
+*     IQUEST(2) =  0 : No disk i/o has been performed                  *    
+*               =  1 : Data have been refreshed from the disk          *    
+*                                                                      *    
+************************************************************************    
+C----------------------------------------------------------------------
+      SUBROUTINE DBRENB (PATHN, KEYO, KEYN, NWDIM, NTKEY) 
+*     ===================================== 
+*   
+************************************************************************    
+*                                                                      *    
+*        SUBR. DBRENB (PATHN, KEYO, KEYN, NTKEY)                       *    
+*                                                                      *    
+*   (This is code is mainly a copy of DBRENK)                          *
+*   Changes the key elements of an existing object to new values.      *    
+*   Stolen from DBRENK. RZLOCK and RZFREE has been taken outside       *    
+*   the loop and NWDIM is checked.                                     *    
+*                                                                      *    
+*   Arguments :                                                        *    
+*                                                                      *    
+*     PATHN    Character string describing the pathname                *    
+*     KEYO     Array containing the old key elements                   *    
+*     KEYN     Array containing the new key elements                   *
+*     NWDIM    First dimension of the array KEYO and KEYN              *    
+*     NTKEY    Number of key objects to be changed                     *    
+*                                                                      *    
+*   Called by user,   DBFZUP                                           *    
+*                                                                      *    
+*   Error Condition :                                                  *    
+*                                                                      *    
+*     IQUEST(1) =  0 : No error                                        *    
+*               =061 : Illegal number of keys                          *    
+*               =191 : Illegal path name                               *    
+*               =192 : Illegal KEYO values (no matching object)        *    
+*               =193 : No top directory found                          *    
+*               =194 : Error in getting the IO descriptor              *    
+*               =195 : Error in FZOUT in saving the journal file       *    
+*               =196 : Error in RZRENK in renaming key values          *    
+*                                                                      *    
+************************************************************************    
+
+ EXAMPLES OF HOW TO USE D3U ROUTINES.
+ (warning: this code has never been compiled)
+
+  
+ A program to create a database :
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBSTP.INC'
+      INCLUDE 'D0$INC:QUEST.INC'
+C
+      CHARACTER*8 KEYN(6) /'P1','P2,'P3','P4','P5','P6'/
+      INTEGER     IRET
+C----------------------------------------------------------------------
+      CALL INZBRA   ! Initialise Zebra
+      CALL INZSTP   ! Choose the STP store
+C
+C- Specify IDVSTP division and path name //BUMME/GUM/HEAD
+      CALL D3U_INI (IDVSTP,'//BUMME/GUM/HEAD',' ',' ',' ',IRET)
+C
+C- Open a new file DBFILE 
+      CALL D3U_START ('DBFILE','ZU',IRET)
+C
+C- Create database with 6 user keys, all integers and with tags KEYN(1:6).
+      CALL D3U_CREATE ('//BUMME/GUM/HEAD',KEYN,'IIIIII',6,IRET)
+C
+C- Wrap up and close database
+      CALL D3U_END
+C
+999   CONTINUE
+      END
+    
+ A program to fetch/fill database
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBSTP.INC'
+      INCLUDE 'D0$INC:QUEST.INC'
+      INTEGER NLNK,LNK(10)
+      INTEGER KEYU(9) 
+C----------------------------------------------------------------------
+      CALL INZBRA   ! Initialise Zebra
+      CALL INZSTP   ! Choose the STP store
+C
+C- Specify IDVSTP division and path name //BUMME/GUM/HEAD. Fetch elements
+C- using option S and key(3) (start validity time/run < key(3)), key(4) 
+C- (end validity time/run > key(4)), and consider user key(8) and key(9).
+C- See DBUSE for more information.
+C- Insert elements with option R, store the hole Zebra structure from 
+C- specified link and below. If you only wants to store single Zebra 
+C- banks then use a blank as a option. 
+C- See DBENTR for more information.
+      CALL D3U_INI (IDVSTP,'//BUMME/GUM/HEAD','S3489 ','R',' ',IRET)
+C
+C- Open database DBFILE 
+      CALL D3U_START ('DBFILE','SU',IRET)
+C
+C- Fetch last element
+      KEYU(3) = 999999999
+      KEYU(4) = 999999999
+      KEYU(8) = whatever (e.g a crate number)
+      KEYU(9) = another_whatever (e.g a card in a crate)
+      NLNK = 1
+C
+      CALL D3U_FETCH (KEYU,NLNK,LNK)
+      IF (NLNK .LE. 0) THEN
+         PRINT *,' OH OH, no last element'
+         GOTO 991
+      END IF
+C
+C- We now has the last element in IC(LNK(1)+1) to IC(LNK(1)+IC(LNK(1)-1))
+C- and we could e.g modify that element
+      IC(LNK(1)+3) = current_time
+      IC(LNK(1)+4) = something_else
+C
+C- And store it as a new element
+      KEYU(3) = current_time  ! use DBPKTS and DBUPTS to convert to and from
+                              ! dbl3 packed time.
+      KEYU(4) = 999999999     
+      CALL D3U_INSRT (LNK(1),KEYU,IRET)
+C
+      IF (IRET .NE. 0) THEN
+         PRINT *,' Another OH OH'
+         GOTO 991
+      END IF
+C
+991   CALL D3U_END
+C
+      END

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VDBL3()
+      VDBL3 = ' DBL3'//
+     X                   '  OFFICIAL V1.21'//
+     X                   ' 16-JUL-1997 10:52:02.08'
+      Return
+      End

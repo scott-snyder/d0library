@@ -1,0 +1,124 @@
+#! /bin/csh -f
+###############################################################################
+#
+# Name:  dbl3_pre_release
+#
+# Purpose: UNIX release script for dbl3 d0library section.  This script 
+#          performs the following actions:
+#
+#          1.  Deletes dbl3.mms to inhibit normal library building.
+#
+#          2.  Generates source files from dbl3.car or dbl3.pam using
+#              patchy.
+#
+#          3.  Generates and executes makefiles to build only those libraries 
+#              that are needed in UNIX.
+#
+# Usage Notes:
+#
+# 1.  This script should be executed from the top directory of the dbl3
+#     library section.
+#
+# 2.  This script should be released via the VMS d0library release procedures
+#     so that is gets to the top directory of the dbl3 library section.
+#
+# 3.  An appropriate version of cernlib (or equivalent) must be setup external 
+#     to this script.  In particular, the following must be true:
+#
+#     a)  The ypatchy executable must appear somewhere in PATH.
+#
+#     b)  The file zebra.pam or zebra.car must exist in one of the following
+#         directories:  $d0cernlib/pam or $CERN_DIR/pam.  The latter 
+#         is the standard location for the Fermi version of cernlib.
+#
+# Created 20-Apr-1992  Herbert Greenlee
+#
+##############################################################################
+#
+# Remember the current working directory (should be top release directory)
+#
+set top_dir = $cwd
+#
+# Delete dbl3.mms to disable usual build phase.  This scipt supersedes.
+#
+rm -f dbl3.mms >& /dev/null
+#
+# Find zebra pam.  First look in d0library, then in fermi library.
+#
+set zebra_pam = `uff '$d0cernlib/*/zebra.pam' '$CERN_DIR/*/zebra.pam' '$CERN_DIR/*/*/zebra.pam'`
+set zebra_opt = ''
+if( $zebra_pam == '' )then
+  set zebra_pam = `uff '$d0cernlib/*/zebra.car' '$CERN_DIR/*/zebra.car' '$CERN_DIR/*/*/zebra.car'`
+  set zebra_opt = ', t=c'
+endif
+if( $zebra_pam == '' )then
+  echo "Zebra pam file not found."
+endif
+#
+# Look for dbl3 pam.  
+#
+set dbl3_pam = `uff $top_dir/dbl3/dbl3.pam`
+set opt = ''
+if( $dbl3_pam == '' )then
+  set dbl3_pam = `uff $top_dir/dbl3/dbl3.car`
+  set dbl3_opt = ', t=c'
+endif
+if( $zebra_pam != '' && $dbl3_pam != '' )then
+  set patchy = 1
+else
+  set patchy = 0
+endif
+#
+# Generate dbl3.f file.
+#
+if( $patchy )then
+  set dbl3_f = ${dbl3_pam:r}.f
+  ypatchy << end_ypatchy
+ - $dbl3_f tty tty .go
++exe.
++use, unix, *zsgi.
++use, *dblib.       
++pam, 11, r=qcde, t=a $zebra_opt . $zebra_pam
++pam, 12, t=a $dbl3_opt . $dbl3_pam
++quit.
+end_ypatchy
+#
+# Split source file into separate routines.  Modify labeled END first
+# statements because they confuse fsplit.
+#
+  set src_dir = $dbl3_pam:h
+  cd $src_dir
+  awk '/^ *[0-9][0-9]* *[eE][nN][dD] *$/{printf "%s     CONTINUE\n      END\n",$1;next}{print $0}' \
+    $dbl3_f >! dbl3.fx
+  rm $dbl3_f
+  fsplit dbl3.fx
+  rm dbl3.fx
+#
+# Convert filenames to lower case.
+#
+  foreach f_file ( *.f )
+    set lc_file = `echo $f_file | tr '[A-Z]' '[a-z]'`
+    mv -f $f_file $lc_file >& /dev/null
+  end
+endif
+#
+# Generate makefiles
+#
+cd $top_dir
+setenv d0root $d0library/scratch
+mkdirp $d0root
+set dbl3_files = `uff $d0dbl3/command_proc/dbl3.files`
+set d0dbl3_files = `uff $d0dbl3/command_proc/d0dbl3.files`
+cat $dbl3_files | ufl | userlib -c $d0root -l dbl3.a -o dbl3.makefile -
+cat $d0dbl3_files | ufl | userlib -c $d0root -l d0dbl3.a -o d0dbl3.makefile -
+#
+# Build libraries.  Remove dbl3.o module from previous official release (if 
+# any).
+#
+ar d dbl3.a dbl3.o >& /dev/null
+ar d deb_dbl3.a dbl3.o >& /dev/null
+foreach makefile ( *.makefile )
+  make -f $makefile pre
+  make -f $makefile debug
+  make -f $makefile opt
+end

@@ -1,0 +1,91 @@
+      SUBROUTINE DBENDF (TOPN)  
+*     ========================  
+*   
+************************************************************************    
+*                                                                      *    
+*        SUBR. DBENDF (TOPN)                                           *    
+*                                                                      *    
+*   Closes one data base file given by the top directory name          *    
+*                                                                      *    
+*   Arguments :                                                        *    
+*                                                                      *    
+*     TOPN     Name of the top directory                               *    
+*                                                                      *    
+*   Called by user                                                     *    
+*                                                                      *    
+*   Error Condition :                                                  *    
+*                                                                      *    
+*     IQUEST(1) =  0 : No error                                        *    
+*  Modified  FEB-1993   D0 correction
+*                                                                      *    
+************************************************************************    
+*   
+      COMMON /GCBANK/ FENCDB(22), LQ(9) 
+      DIMENSION       IQ(2), Q(2)   
+      EQUIVALENCE     (IQ(1),Q(1),LQ(9))    
+*   
+      COMMON /QUEST/  IQUEST(100)   
+*   
+      PARAMETER       (IKTYDB=33, KNSDDB=23, KLSDDB=26, NWNODB=16)  
+      PARAMETER       (NWITDB=25, NPUSDB=50, MAXLDB=80) 
+      PARAMETER       (JRZUDB=1, JIGNDB=2, JPRTDB=3, JASFDB=4)  
+      PARAMETER       (KLKYDB=0, KLDADB=1, KLNODB=2, KLUPDB=3, KLDICT=2)    
+      PARAMETER       (KLFZDB=3, MFZTOP=1, MFZDIR=5, MXLWDB=20) 
+      PARAMETER       (MUPLUN=1, MUPFLG=2, MUPJFL=3, MUPBAK=4, MUPDIC=5)    
+      PARAMETER       (MUPNCH=6, MUPSRV=7, MUPKY7=8, MUPNAM=9)  
+      PARAMETER       (MNDNWK=1, MNDNWD=2, MNDNCH=3, MNDDIC=4)  
+      PARAMETER       (MNDIOF=5, MNDNAM=NWNODB+5, NLKYDB=3, NSKYDB=1)   
+      PARAMETER       (MKYRID=-4, MKYCEV=-3, MKYCRU=-2, MKYPRE=-1)  
+      PARAMETER       (MKYFRI=0, NLUPDB=3, NSUPDB=2, NDUPDB=MUPNAM+3)   
+      PARAMETER       (MDCNTM=1, MDCITM=1, MDCNCH=2, MDCLUP=3)  
+      PARAMETER       (MDCALI=4, MDCNAM=6)  
+      PARAMETER       (NARGDB=20)   
+      PARAMETER       (LUFMDB=999)  
+      PARAMETER       (MSERDB=1, MUPNDB=2, MBVRDB=3, MEVRDB=4, MPVSDB=5,    
+     +                 MFLGDB=6, MITMDB=7)  
+      PARAMETER       (MPSRDB=1, MXKPDB=2, MOBJDB=5)    
+      PARAMETER       (MHFMDB=3, MLEVDB=3, MNAMDB=7, MNCHDB=5, MNDWDB=4)    
+      PARAMETER       (MNFNDB=3, MNLVDB=2, MNNUDB=2, MNODDB=4, MPNNDB=2)    
+      PARAMETER       (MPNLDB=1, MPPLDB=8, MXOFDB=5, MXWDDB=6, MYFLDB=7)    
+      PARAMETER       (MYFNDB=6)    
+      COMMON /DBSTOR/ LCDRDB, LJNKDB, IBIGDB, INSRDB, IODIDB, IOFDDB    
+     +              , IOFZDB, IOVRDB, KY4MDB, KY7MDB, IOKYDB(NWNODB)    
+     +              , IARGDB(NARGDB)    
+      COMMON /DBUSER/ IDEBDB, IDISDB, IDIVDB, IHKYDB, IKDRDB, IONODB    
+     +              , KOFSDB, KOFUDB, LBADDB, LBAFDB, LBDADB, LBFXDB    
+     +              , LBFYDB, LBKYDB, LBNODB, LFIXDB, LREFDB(7) 
+     +              , LSAVDB, LTOPDB, LPRTDB, NTOPDB    
+      PARAMETER       (NDMXDB=25000)    
+*   
+      COMMON /DINITL/ TOPLDI, TOPNDI    
+      CHARACTER       TOPNDI*16, TOPLDI*16  
+*   
+      CHARACTER       TOP*16, TOPN*(*), PATH*20 
+*   
+*     ------------------------------------------------------------------    
+*   
+      CALL DBSBLC (TOPN, TOPNDI, NCHR)  
+      IER    = 0    
+*   
+* *** Make appropriate RZEND call   
+*   
+      LFIXDB = LTOPDB   
+   10 IF (LFIXDB.EQ.0)  GO TO 20    
+      NCH    = IQ(KOFUDB+LFIXDB+MUPNCH) 
+      IF (NCH.EQ.NCHR) THEN 
+        CALL UHTOC (IQ(KOFUDB+LFIXDB+MUPNAM), 4, TOP, NCH)  
+        IF (TOP(1:NCH).EQ.TOPNDI(1:NCH)) THEN   
+           PATH   = '//'//TOPNDI    
+           CALL RZCDIR (PATH, ' ')  
+          CALL RZEND (TOPNDI)   
+          IF (LTOPDB.EQ.LFIXDB) LTOPDB = LQ(KOFUDB+LFIXDB)  
+          CALL MZDROP (IDIVDB, LFIXDB, ' ') 
+          GO TO 20  
+        ENDIF   
+      ENDIF 
+      LFIXDB = LQ(KOFUDB+LFIXDB)  
+      GO TO 10    
+*   
+   20 IQUEST(1) = IER   
+*                                                             END DBENDF    
+      END   
