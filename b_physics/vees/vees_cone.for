@@ -5,6 +5,7 @@ C  Find all vee's (K0 or Lambda decays) in given cone;
 C  Store them in banks VERT and PVES.
 C 
 C  Daria Zieminska 13-DEC-1991
+C  Updated 24-MAR-2004 sss - compile with g77.
 C                            
 C------------------------------------------------------------------
       IMPLICIT NONE 
@@ -185,7 +186,7 @@ C         EPHI1 = Q(LFDC1 + 23)
           IF ( EPHI1 .LT. 0. ) THEN
             EPHI1 = 0.
             WRITE(PRUNIT,312) 
-            TYPE 312 
+            write (*,312 )
           ENDIF
           EPHI1 = SQRT(EPHI1)
 C         ETHE1 = Q(LFDC1+24)
@@ -267,7 +268,7 @@ C           EPHI2=Q(LFDC2+23)
             IF ( EPHI2 .LT. 0. ) THEN
               EPHI2 = 0.
               WRITE(PRUNIT,314) 
-              TYPE 314
+              write (*,314)
             ENDIF
             EPHI2 = SQRT(EPHI2)
 C           ETHE2=Q(LFDC2+24)
@@ -366,14 +367,14 @@ C           ETHE2=Q(LFDC2+24)
                 WRITE(PRUNIT,777) ETA,ETADEC,THE,THEDEC,PHI,PHIDEC,
      &                            PDEC,PART,(XYZI(I),I=1,3)
                 WRITE(PRUNIT,778) (VX(I),I=1,3)
-                TYPE 887,NUM
-                TYPE 888, N1,IZTRK1,NISA1(I1,1),WISA1(I1),NHIT1,
+                write (*,887),NUM
+                write (*,888), N1,IZTRK1,NISA1(I1,1),WISA1(I1),NHIT1,
      &          ETA1,ETAI(1),THE1,THEI(1),PHI1,PHII(1),EI(1),MI(1)
-                TYPE 888, N2,IZTRK2,NISA2(I2,1),WISA2(I2),NHIT2,
+                write (*,888), N2,IZTRK2,NISA2(I2,1),WISA2(I2),NHIT2,
      &          ETA2,ETAI(2),THE2,THEI(2),PHI2,PHII(2),EI(2),MI(2)
-                TYPE 777, ETA,ETADEC,THE,THEDEC,PHI,PHIDEC,
+                write (*,777), ETA,ETADEC,THE,THEDEC,PHI,PHIDEC,
      &                            PDEC,PART,(XYZI(I),I=1,3)
-                TYPE 778, (VX(I),I=1,3)
+                write (*,778), (VX(I),I=1,3)
                 NP1 = NP + 1
                 NP2 = NP + 2
                 NP3 = NP/2 + 1
@@ -455,7 +456,7 @@ C           ETHE2=Q(LFDC2+24)
           ENDIF
   300   CONTINUE 
         WRITE(PRUNIT,334) (NIZT(N), N=1,NP)
-        TYPE 334, (NIZT(N), N=1,NP)
+        write (*,334), (NIZT(N), N=1,NP)
       ENDIF
       IF(NP .GT. 0) THEN
         DO 500 I1 = 1, NP/2
