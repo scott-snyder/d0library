@@ -1,0 +1,169 @@
+                               COPY_FZ.DOC
+
+                          *** SIMPLE COPIES ***
+
+        Copy_FZ is a general utility to COPY FZ (Zebra) data files use
+    FZIN/FZOUT with it's possibility of working on individual events. In
+    normal operation, it can:
+
+        1) Copy one data file to another
+        2) Split one data file into several
+        3) Concatenate several data files into one
+
+        These operations can be directed either interactively, for terminal
+    input, or from an RCP file. If an RCP file exists, and has a FILE_LIST
+    defined, then the RCP data is used. If not, input is requested from the
+    terminal.
+
+        COPY_FZ first looks for a file pointed to by the logical name
+    COPY_FZ_RCP. If it doesn't find one, it looks for COPY_FZ.RCP in your
+    default directory. If that doesn't exist, then it will take it's input
+    from the terminal.
+
+        In either case, four pieces of information are required for the
+    default operation:
+
+        1) Input file name
+        2) Output file name
+        3) Number of events to skip
+        4) Maximum number of events to copy
+
+    COPY_FZ will copy the requested input events to the output, skipping
+    events if requested. It will then loop back to ask for (or read from
+    RCP) a new set of the four elements. The END of input, is signaled by
+    an input file named END (or QUIT).
+
+        IF you do not change the Input and/or Output files, it will
+    continue from where it left off. Files are *never* rewound. They are
+    only opened and closed.
+
+        *** Splitting data files is done by repeating the same input file
+            name with several output file names and whatever nskip/ncopy
+            values required.
+
+        *** Concatenating files is done by specifying several input files,
+            and repeating the output file spec.
+
+        *** When entering values from the terminal, a NULL entry (<CR>)
+            leaves the last value entered for that field unchanged.
+
+        For example, to split a file containing 30 events, into three
+    files, each containing 10 events, the interactive input might look
+    like:
+
+    $RUN COPY_FZ
+      Could not open RCP file COPY_FZ_RCP: try COPY_FZ.RCP
+      Could not open RCP file COPY_FZ.RCP: using all defaults
+
+      Input Data File [ ]                    ! No previous file specified
+    mc_data$hroot:[single_tracks]n_elec_50gev.gen_i
+      Input: MC_DATA$HROOT:[SINGLE_TRACKS]N_ELEC_50GEV.GEN_I
+      Output Data File [ ]                   ! No previous file specified
+    temp1.gen_i                              ! Output file
+      Output: TEMP1.GEN_I
+      Events to skip/copy [ ]                ! No previous values
+    0 10                                     ! Skip 0, copy 10 events
+      Events: skip/copy            0          10
+
+            .   .   .                        ! Printout during copy
+
+      Input: MC_DATA$HROOT:[SINGLE_TRACKS]N_ELEC_50GEV.GEN_I ! Old value
+                                             ! <cr> => use previous input file
+      Output Data File [TEMP1.GEN_I]
+    temp2.gen_i                              ! different output
+      Output: TEMP2.GEN_I
+      Events to skip/copy [0 10]
+                                             ! <cr> => use previous values
+      Events: skip/copy            0          10
+
+            .   .   .                        ! Printout during copy
+
+      Input Data File [MC_DATA$HROOT:[SINGLE_TRACKS]N_ELEC_50GEV.GEN_I]
+                                             ! <cr> => use previous input file
+      Input: MC_DATA$HROOT:[SINGLE_TRACKS]N_ELEC_50GEV.GEN_I
+      Output Data File [TEMP2.GEN_I]
+    temp3_gen_i                              ! new output file
+      Output: TEMP3_GEN_I
+      Events to skip/copy [0 10]
+                                             ! <cr> => use previous values
+      Events: skip/copy            0          10
+
+            .   .   .                        ! Printout during copy
+
+      Input Data File [MC_DATA$HROOT:[SINGLE_TRACKS]N_ELEC_50GEV.GEN_I]
+    end                                      ! Quit
+      Input: END
+
+        The RCP file to do this would look like:
+
+    \START    COPY_FZ_RCP
+    \array file_list            ! List of input_files, output_files,
+    'mc_data$hroot:[single_tracks]n_elec_50gev.gen_i'
+    'temp1.gen_i'
+    0 10
+    'mc_data$hroot:[single_tracks]n_elec_50gev.gen_i'
+    'temp2.gen_i'
+    0 10
+    'mc_data$hroot:[single_tracks]n_elec_50gev.gen_i'
+    'temp3.gen_i'
+    0 10
+    'end'
+    \end
+    \STOP    !   COPY_FZ_RCP
+
+        Concatenation is done the same way except that input file names
+    change, but not output.
+
+
+                     *** ADDITIONAL FUNCTIONALITY ***
+
+        In practice, I've found that one often has to "fix" FZ files in one
+    way or another. Several of these can be done using COPY_FZ. All of
+    these optional (non-default) operations can only be specified via an
+    RCP file and can only be set once. Therefore, normally, only one file
+    can be processed at a time.
+
+        A sample RCP file is D0$UTIL:COPY_FZ.RCP. It is fairly well
+    commented so should be used as a short guide to COPY_FZ. The various
+    parameters and their effects are: 
+
+        COPY_FZ_LOG [C] A file to use to log the same printout that goes to
+                        the screen for long term documentation. 
+                         DEFAULT NL:
+
+        PRINT_DO    [I] Print a single line dump of PRINT_DO events
+        PRINT_SKIP  [I] every PRINT_SKIP events. 
+                         DEFAULTs 5 and 100.
+
+        DROP_LINKS  [I] Array of LHEAD links to drop. Can be used as a
+                        crude bank filter. ie) drop ISAJET banks etc.
+                        DEFAULT none
+
+        KEEP_BRR    [L] Keep all Begin Run and End Run Records. Set to
+                        FALSE when concatenating many small files, each of
+                        which has a BRR. 
+                         DEFAULT .TRUE.
+
+        FIX_BRR     [L] Fix Begin Run Record. Can be used to ADD a Begin
+                        Run Record to a file, or change a normal event
+                        record into a Begin Run Record. 
+                         DEFAULT .FALSE.
+          MAKE_BRR  [L] Make 1st record into BRR. ONLY if FIX_BRR=.TRUE.
+                         DEFAULT .FALSE.
+          ADD_BRR   [L] Add Begin Run Record from a seperate file. 
+                         ONLY if FIX_BRR=.TRUE. AND MAKE_BRR=.FALSE.
+                         DEFAULT .FALSE.
+            BRR_FILE[C] File from which BRR record is obtained.
+                         ONLY if ADD_BRR=.TRUE.
+
+        RENUM_RUN   [I] Set Run number to value, < 0 => leave as is.
+                         DEFAULT -1
+
+        RENUM_EVT   [I] Renumber Event numbers, starting with value,
+                         < 0 => leave as is.
+                         DEFAULT -1
+
+        INP_FORM    [C] Input Format,  NATIVE (default) or EXCHANGE
+        OUTP_FORM   [C] Output Format, NATIVE (default) or EXCHANGE
+                        ** NOTE: If you are getting a Begin Run Record from an
+                        auxilary file, it *must* be in NATIVE format.

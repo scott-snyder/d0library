@@ -1,0 +1,241 @@
+                              TAPE_UTIL.DOC
+
+        This document describes some useful "tape" handling command
+    procedures. These procedures allow one to use the same command
+    procedures to process files on both Tape and Disk, usually explicitely 
+    specifying file names, but allowing wild card access where the program
+    called allows. 
+
+        The procedures can be data driven, that is IO devices, file names
+    etc can be entered from a data file. Thus once a command procedure is
+    written (a sample is provided) for a particular application, only a
+    data file containing specific IO devices/directories and file names
+    need be supplied for each run. 
+
+        The procedures described are:
+
+        PARSE_INCMD.COM         ! Parse the input command file
+        ALLOCATE_TAPE.COM       ! Allocate a "tape drive"
+        MOUNT_TAPE.COM          ! Mount a "tape"
+        DEALLOCATE_TAPE.COM     ! Deallocate a "tape drive"
+        SIMPLE_COPY.COM         ! Demo that puts all of the above together
+                                !  with some other things
+
+$!========================================================================
+$!
+$! Name      : PARSE_INCMD
+$!
+$! Purpose   : Read and decode Input Command File (header part only)
+$!
+$!   Commands recognized by the procedure. Values are returned
+$!     in global symbols of the same name.
+$!
+$!   Format:    COMMAND: value !comment
+$!              END:
+$!   See SAMPLE_*.CMD
+$!
+$!   INDEV/OUTDEV: specify input and output devices
+$!      TA81   => Generic 8mm drive on FNAL
+$!      Mxxx   => Physical tape on other clusters
+$!      DISK   => read/write to disk 
+$!      NL     => write to NULL device
+$!   INVSN/OUTVSN: are input/output tape VISUAL labels, TAPE ONLY
+$!      INVSN is used as the process name and to label the various flag files
+$!   INLABEL/OUTLABEL: are tape labels or directory spec as appropriate
+$!   INIT_OUT: flags whether to init the output tape or not
+$!      INIT   => Init the tape
+$!      NOINIT => Add output file to end of tape
+$!   END: ends command section
+$!
+$! Arguments : P1 = File_spec of command file
+$!
+$! Created  24-SEP-1991   A.M.Jonckheere
+$!
+$!========================================================================
+
+
+$!========================================================================
+$!
+$! Name      : ALLOCATE_TAPE
+$!
+$! Purpose   : Allocate tape drive, if appropriate
+$!
+$! Arguments : P1 - Device name to allocate
+$!                  Txxx => Generic tape device
+$!                  DISK => IO to/from DISK
+$!                  NL   => IO to/from NULL device
+$!                  NONE => Not using, exit
+$!                  other=> using tape drive
+$!             P2 - IN/OUT - specify direction
+$!                  Determines logical and symbol return
+$!                  IN  -> TAPE_INPUT  (logical)/IN_TAPE (symbol)
+$!                  OUT -> TAPE_OUTPUT (logical)/OUT_TAPE (symbol)
+$!             P3 - If P1="DISK" then this is the directory spec
+$!
+$! Created  25-SEP-1991   A.M.Jonckheere
+$!
+$!========================================================================
+
+
+$!========================================================================
+$!
+$! Name      : MOUNT_TAPE
+$!
+$! Purpose   : Allocate and mount input or output tapes
+$!
+$! Arguments : P1 - IN/OUTDEV    = device name, can be a logical name,
+$!                                  or a real *physical* drive.
+$!                                  DISK, NL or "" causes an exit
+$!             P2 - IN/OUT       = direction of IO
+$!             P3 - IN/OUTVSN    = tape visual label
+$!             P4 - IN/OUTLABEL  = tape label or disk directory 
+$!             P5 - INIT_OUT     = init flag for tapes
+$!
+$! NOTE: If Logical device TAPE_INPUT or TAPE_OUTPUT is not define 
+$!       (via ALLOCATE for example), it is *assumed* that P1 is a real 
+$!       physical device that can be mounted/inited etc.
+$!
+$! Created  24-SEP-1991   A.M.Jonckheere
+$!
+$!========================================================================
+
+
+$!========================================================================
+$!
+$! Name      : DEALLOCATE_TAPE
+$!
+$! Purpose   : Dismount and deallocate tape drive
+$!
+$! Arguments : P1 = logical name of tape drive
+$!             P2 = NOUNLOAD/[UNLOAD]
+$!
+$! Created  13-NOV-1991   Alan M. Jonckheere
+$!
+$!========================================================================
+
+
+$!========================================================================
+$!
+$! Name      : SIMPLE_COPY
+$!
+$! Purpose   : Simple copy procedure. Uses all the TAPE_UTIL procedures.
+$!              Just does a simple DCL copy. Use as a template for more
+$!              complicated procedures.
+$!
+$! Arguments : P1 - Input list file (.CMD assumed)
+$!
+$! Created  13-NOV-1991   Alan M. Jonckheere 
+$!
+$!========================================================================
+$   ON ERROR     THEN $ GOTO EXIT
+$   ON CONTROL_Y THEN $ GOTO EXIT
+$!
+$!   set default sys$login      ! or wherever
+$!
+$!================================================
+$!   Set RMS_DEFAULT to improve tape throughput
+$!================================================
+$   set rms_default/seq/buffer_count=10 
+$   show rms_default
+$!
+$!================================================
+$!   Get input command file and parse header protion
+$!================================================
+$vp1:
+$   IF p1 .eqs. ""
+$   THEN
+$       inquire p1 "Input list file"
+$       goto vp1
+$   ENDIF
+$   @d0$util:parse_incmd 'p1'
+$!
+$!================================================
+$!   Name process to meaningful name
+$!================================================
+$   set proc/name=d_'invsn'
+$!
+$!================================================
+$!   Allocate and mount "tapes", if IO is to disk
+$!   this will do the correct thing.
+$!================================================
+$   @d0$util:allocate_tape 'indev' IN 'inlabel'
+$   @d0$util:allocate_tape 'outdev' OUT 'outlabel'
+$   @d0$util:mount_tape 'indev' IN 'invsn' 'inlabel' NOINIT
+$   @d0$util:mount_tape 'outdev' OUT 'outvsn' 'outlabel' 'init_out'
+$!
+$!================================================
+$!   Main Processing Loop:
+$!      Read rest of .CMD file for file names. 
+$!      Process one file at a time.
+$!   Put non-file specific setups here
+$!================================================
+$file_loop:
+$   gosub chk_fin               ! Check if we should quit now
+$   read/end=end_file inlist incmd
+$   incmd = f$edit(incmd,"UNCOMMENT,COLLAPSE,UPCASE")
+$   if f$length(incmd) .eq. 0 then goto file_loop
+$   WRITE SYS$OUTPUT "      ''in_tape'''incmd'"
+$!
+$!================================================
+$!   Put File specific setup here and run your program.
+$!     The following symbols may be useful
+$!       IN_TAPE  = input directory (tape or disk)
+$!       OUT_TAPE = Output directory (tape or disk)
+$!       INCMD    = Input file name
+$!================================================
+$   copy 'in_tape''incmd' 'out_tape'
+$   goto file_loop
+$!
+$!================================================
+$!   Wait for "Flag" file. Used to synchronize between
+$!   processing job and any input/output servers
+$!================================================
+$wait_for_go:
+$   file = f$search("do_''invsn'.flg")
+$   IF file .eqs. ""
+$   THEN
+$       wait 0:1:0
+$       goto wait_for_go
+$   ELSE
+$       del/log 'file'
+$       file = f$search("junk.flg")
+$   ENDIF
+$   goto file_loop
+$!
+$!================================================
+$!   Check for FIN_'invsn'.FLG
+$!   If found quit gracefully.
+$!================================================
+$chk_fin:
+$   IF f$search("FIN_''invsn'.FLG") .nes. ""
+$   THEN
+$       del/log FIN_'invsn'.FLG;*
+$       goto end_file
+$   ENDIF
+$   return
+$!
+$!================================================
+$!   Graceful finish
+$!================================================
+$end_file:
+$   IF outdev .nes. "DISK" .AND. outdev .nes. "NL" THEN  -
+        dir/siz=all/date/output='outlabel'.lis tape_output
+$   goto exit
+$!
+$!================================================
+$!   Premature EOF error exit
+$!================================================
+$end_list_err:
+$   WRITE SYS$OUTPUT -
+        "**-F-** Premature end of file on input list file - ABORT"
+$   goto exit
+$!
+$!================================================
+$!   Normal exit, do some cleanup
+$!================================================
+$EXIT:
+$   if f$trnlnm("inlist") .nes. "" then close inlist
+$   @d0$util:deallocate_tape tape_input nounload
+$   @d0$util:deallocate_tape tape_output nounload
+$   if f$mode() .eqs. "BATCH" then logout
+$   EXIT

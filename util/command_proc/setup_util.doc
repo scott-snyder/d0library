@@ -1,0 +1,146 @@
+                                                            J. Linnemann et al
+                                                            27 January 1994
+                            D0$UTIL commands
+New items:
+    see MAC.DOC for automated histogram comparisons (R. Genik)
+    see DZSUM.DOC for report on number and size of Zebra banks in 
+        a file (Harrison Prosper)
+
+Some useful things set up by D0SETUP UTIL UTIL ( or @D0$UTIL:SETUP_UTIL)
+    
+    - DOMAP     modify your link file(s) to make a (huge) load map
+    - NOMAP     modify them back to the default, no map
+
+    - MAKE_TREE linkfile    [option]
+    or MAKE_TREE yours.MAP  [option]
+        makes a call tree, given a VMS .lnk file: shows what routines call which
+        The order is alphabetical, not the static order in the original code.
+        See d0$util$util:chart2.doc and d0$util:make_tree.com for details or to
+        use on your own.  Chart2 works from a .map file [PBD_TEST has been
+        extended to make maps or trees as well.  The most useful option is
+        NOLINE (supress line numbers, so you can compare two trees to see what
+        has been added), but any option in chart2.doc is legal.
+
+    - LOOK, a fast ascii file viewer (not editor)
+            see d0$util:LOOK.DOC
+
+- D0LGO, link and run a Fortran file: $D0LGO myfile [DEBUG]
+        durin execution, INC,LINKS, and PARAMS point locally then to whatever
+        they had been; after execution they are reset.  (Only one private 
+        directory beyond those managed by libtest/libprod are remembered.)
+
+    - DEFINE_HERE   logname   
+    defines a logical Logname to the directory you are in at the moment
+
+    - a new version of PIPE: add the qualifier FNAME which specifies that the
+        directory information is stripped off, but the file type retained.
+        A useful application:
+        PIPE "cms fetch/nohis" *.for FNAME
+        compare with PIPE D0FLAVOR/CHECK *.for NAME where the extension is
+            dropped.
+
+        also has PIPE SET SPACE (default)
+                 PIPE SET NOSPACE (for applications where you do not want a
+                 space between thee filename and the command) eg
+                PIPE SET SPACE then
+                PIPE "COPY D0$ZEBLST:" *.ZEB FNAME [.sdir]
+            where D0$ZEBLST has been defined as as D0$ZEB$ROOT:[000000...]
+            copy the currently released versions of any .ZEB files in the
+            default directory, and put them in a subdirectory.
+
+    - TYPE_SPACE    type a file with a space inserted in column 1
+        Particularly handy for typing .INP files
+
+    - PBD_TEST  package_name [MAP or TREE]
+        test-link a .PBD file to see if its link order is OK.  Any PBD package
+     should be able to link by itself. Test-link and delete the resulting files.
+        If MAP is specified, make and leave around a load map.
+        If TREE is specified, also make and leave around a call tree.
+        
+Directory and file manipulation:
+
+    DELDIR  (Al Jonckheere) delete the whole subdirectory tree starting in the
+                default directory
+    PROT*ECT    filename
+            set the protection of a file so GROUP, WORLD can't see it
+    UNPR*OTECT  filename
+            give GROUP, WORLD   read, execute priveleges on a file; remove ACL
+            protection back to default (often necessary for deleting a DIR file)
+    MAKE_SDIR   top     lower
+            make a top level and subdirectory (can be reused to create several
+            subdirectories)
+    MOVE    dir1    dir2
+            copy all files in the subdirectory tree starting down from dir1 to
+            the equivalent tree in dir2
+            the tree under dir2 must ALREADY exist (see MAKE_SDIR);
+            subdirectories which don't exist in dir2 won't get copied
+
+maintenance of .OLBs
+
+    REMOVE  module
+            remove the module from any .OLB's in the default directory
+    INSERT  module
+            insert the .OBJ into any .OLB's in the default directory
+
+    see also FAKE_GAMMA in D0$BETA_UTIL
+            set up a library area such that is recognized by libtest/gamma
+
+file comparison:
+
+    CMSD    file/GEN
+            compare file with version in currently selected CMS library
+            (ignores spaces and cms headers)
+            without /GEN does a diff with 2nd-oldest version in subdir, still
+            ignoring spaces and headers
+    SAME    file1 file2
+            return a status saying whether file1 is the same as file2
+            mainly for use with compare_xxx below; writes into older.lis or
+            newer.lis if not same age or contents, or same.lis if they are
+            If the global symbol SAME_WRITE_WILD == "TRUE", the same.lis file
+            will have entries like A.FOR;* instead of A.FOR;17
+
+mass file comparison: (these require write privelege in the areas scanned)
+
+    COMPARE_RELEASED dir1 dir2
+            run SAME to compare files found in dir1 with files of same name
+            found in dir2.  Usually dir2 is a release subdirectory, as
+            COMPARE_RELEASED d0$l2beta:[level2.source] d0$level2$source
+            any files which are different or not found are listed in
+                NEWER.LIS and OLDER.LIS; makes SAME.LIS as well 
+    COMPARE_CMS dir1 cmslib
+            run SAME but this time on a [.CMS] directory.  Create the [.CMS]
+            directory and fetch/nohist anything found in dir1 from the cms
+            library d0$cms:[cmslib].
+            any files which are different or not found are listed in
+                NEWER.LIS and OLDER.LIS; makes SAME.LIS as well
+[higher level comparisons built on the above:]
+  [these require values for the global symbols:
+        compare_mode  ""    default, set up by setup_l2beta
+                      "CMS" compare with cms instead of test release
+        process_sdir :== @D0$BETA_UTIL$COMMAND_PROC:COMPARE_SDIR
+                            default processing of each subdirectory: it uses
+                            the above comparison utilities: COMPARE_RELEASED or
+                            COMPARE_CMS, and SAME.  If you redefine this symbol
+                            you can use CHECK_LOCAL_LIB or CHECK_AREA to do a
+                            different form of processing on a directory tree
+                            COMPARE_SDIR compares agains the current TEST
+                            release.
+
+    CHECK_LOCAL_LIB  libname
+                invoked from directory supporting a gamma library:
+                    check this library against the test release, or d0$cms
+    CHECK_AREA
+                invoked from directory supporting gamma libraries; check whole
+                tree against the current release, or d0$cms
+                report results in ALL_OLDER.LIS, ALL_NEWER.LIS and ALL_SAME.LIS
+                or if COMPARE_MODE == "CMS", ALL_OLDER_CMS.LIS, 
+                    ALL_NEWER_CMS.LIS and ALL_SAME_CMS.LIS
+
+    The call tree is:
+        CHECK_AREA calls
+            CHECK_LOCAL_LIB calls
+                PROCESS_SDIR = COMPARE_SDIR calls
+                    COMPARE_FILES or COMPARE_CMS    calls
+                                    SAME
+
+

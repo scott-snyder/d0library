@@ -1,0 +1,50 @@
+$!------------------------------------------------
+$!
+$! Name      : COPY_FZ.LNK
+$!
+$! Purpose   : Compile and link COPY_FZ
+$!
+$! Arguments :
+$!
+$! Created  25-AUG-1989   Alan M. Jonckheere
+$!
+$!------------------------------------------------
+$   ON ERROR     THEN $ GOTO EXIT
+$   ON CONTROL_Y THEN $ GOTO EXIT
+$!
+$   define/nolog d0$util [],d0$util$root:[000000]
+$   define/nolog d0$inc [],d0$inc$root:[000000]
+$   define/nolog d0$links [],d0$links$root:[000000]
+$   define/nolog d0$params [],d0$params$root:[000000]
+$   define/nolog d0$zeblst [],d0$zeb$root:[000000.*]
+$!
+$ IF p1 .eqs. "DEBUG"
+$ THEN
+$     deb_     = "DEB_"
+$     for_swit = "/deb=all/noopt"
+$     lnk_swit = "/deb"
+$     dbnk     = "/include=dbank"
+$ ELSE
+$     deb_     = ""
+$     for_swit = ""
+$     lnk_swit = ""
+$     dbnk     = ""
+$ ENDIF
+$!
+$!?$ for'for_swit' copy_fz
+$!?$ for'for_swit' get_str
+$!?$ for'for_swit'/nolis d0$zebra_util$source:inzcom
+$!
+$ LINK'lnk_swit'/nomap/exe='deb_'copy_fz -
+        d0$util:'deb_'util/lib/incl=(copy_fz), -
+        d0$physics_util:'deb_'physics_util.olb'dbnk'/lib, -
+        d0$compack:'deb_'compack.olb/lib, -
+        d0$general:'deb_'general.olb/lib, -
+        'cernp'
+$EXIT:
+$   deass d0$util
+$   deass d0$inc
+$   deass d0$links
+$   deass d0$params
+$   deass d0$zeblst
+$   EXIT

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VUTIL()
+      VUTIL = ' UTIL'//
+     X                   '  OFFICIAL V3.61'//
+     X                   ' 11-JUL-1997 18:46:01.23'
+      Return
+      End

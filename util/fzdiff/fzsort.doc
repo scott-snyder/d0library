@@ -1,0 +1,68 @@
+                 
+
+                                                    A. Lyon
+                                                    H. Greenlee
+                                                    Mar. 30, 1995
+
+
+                             SORT/SCRAMBLE Utility
+
+         The SORT/SCRAMBLE utilities (D0$UTIL:FZSORT.EXE and 
+         D0$UTIL:FZSCRAMBLE.EXE) can be used to sort or otherwise change
+         the order of events in D0 exchange mode FZ data files.  For
+         example, scrambled events from the reconstruction farms may be
+         sorted into increasing event order.  There are three steps in
+         using the SORT/SCRAMBLE utility:
+
+         1.  Run FZSORT to create an event list file, LIST.DAT,
+             containing information about each event in an input file,
+             one line per event.  Each line of LIST.DAT contains the
+             following five fields: 
+
+             <run#> <event#> <random#> <record#> <record offset>
+
+             VMS usage:
+
+             $ d0setup fzsort
+             $ def for$print list.dat
+             $ fzsort <input-file>
+             $ deas for$print
+
+             UNIX usage:
+
+             % fzsort.x <input-file> > list.dat
+
+         2.  Create a sorted event list file, SORT.DAT, from the
+             original event list file.  The system sort utility may be
+             used.  The simplest usage will sort LIST.DAT into
+             increasing run/event order.  More complicated ordering are
+             possible.
+
+             VMS example:
+
+             $ sort list.dat sort.dat       ! Increaseing order
+
+             UNIX examples:
+
+             % sort list.dat > sort.dat     # Increasing order
+             % sort -r list.dat > sort.dat  # Decreasing order
+             % sort +2 list.dat > sort.dat  # Random order
+
+         3.  Run FZSCRAMBLE, which copies events in the order specified
+             by the sorted list file, SORT.DAT.
+
+             VMS usage:
+
+             $ fzscramble <input-file> <output-file> sort.dat
+
+             UNIX usage:
+
+             % fzscramble <input-file> <output-file> sort.dat
+
+         The input file specified to FZSCRAMBLE must be the same one
+         that was originally specified to FZSORT, and must be in
+         exchange mode.  On UNIX, the output of FZSORT may be piped to
+         FZSCRAMBLE:
+
+         % fzsort <in> | sort | fzscramble <in> <out> -
+

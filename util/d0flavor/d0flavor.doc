@@ -1,0 +1,284 @@
+                                                                Olivier Callot
+                                                 Version 1.0  December 8, 1988
+                                                                  Rich Mueller
+                                                    Version 2.0  March 6, 1992
+
+                               D0FLAVOR utility
+                               ================
+
+    This utility is  intended to produce different  'FLAVOR's of the D0 software
+for adaptation to  different target  machines and/or  different graphic systems,
+mostly for GEANT use. This utility processes a source file given as an argument,
+and creates a new file with the requested flavor, in the same directory and with
+an  extension   depending on  the  flavor. The   available  machine and  graphic
+qualifier choices are: 
+
+
+    Machine     Extension  Prc  Description
+    -------     ---------  ---  -----------
+    VAXVMS      .FOR        N   VAX/VMS systems ( standard D0 environment )
+    VAXELN      .FOR_ELN    N   VAX/VAXELN systems ( Level 2, Farms )
+    IBM3090     .FORTRAN    Y   IBM 3090 with VM/XA system
+    AMDAHL      .FORTRAN    Y   Amdahl computer with VM/XA
+    ETA10       .FOR_ETA    Y   Eta-10 vector computer
+    SIUNIX      .F          Y   Silicon Graphics IRIX UNIX
+    IBMAIX      .F          Y   IBM AIX UNIX
+    ULTRIX      .F          Y   DEC ULTRIX UNIX
+    UFFARM      .FOR_UFF    N
+    HPUX        .F          Y   Hewlett Packard UNIX
+    SUNOS       .F          Y   Sun UNIX
+    ALFOSF      .F          Y   DEC UNIX (ALPHA OSF)
+
+    CHECK       .CHECK      Y   Check for nonstandard Fortran code
+
+ * Under the 'Prc' heading, is an indication (yes/no) of whether the /PROCESS
+   qualifier is present by default for a particular machine qualifier.
+
+** The machine qualifier names double as machine argument names in the source
+   code, except for "CHECK" which is only used as a qualifier.
+
+
+    Graphic                     Description
+    -------                     -----------
+    DI3000                      Standard graphic system for D0
+    MGKS                        Used by the CERN software, e.g. GEANT
+
+ * The graphic qualifier names double as graphic argument names in the source
+   code.
+
+
+    In order for the  utility to know when one wants  some lines to be different
+for different  machines and/or graphic  system, one has to  follow the following
+rules: 
+
+    1) The machine dependent section starts with a line whose first 5 characters
+       are "C&IF  ", and  are  followed by the  name of  the machine  and/or the
+       graphic  system for which  the next  statements are to be  valid. For the
+       different  machines and graphic  systems, the  argument names used in the
+       source code are the same as the  qualifier names, except for /CHECK which
+       has no source code argument and can  only be used as a qualifier. After a
+       "C&IF" (or "C&ELSEIF")  statement, the  programmer can place one argument
+       name, or many argument names,  separated by commas. The arguments are not
+       case dependent and neither are the  "C&xxxx" command statements. There is
+       also no space dependence for lists  of arguments separated by commas. The
+       only requirement is  that there be at least one  space between a "C&xxxx"
+       command  statement and  the  following  argument(s). The  validity of any
+       argument name  is checked  against the  list of valid  machines/graphics.
+       D0FLAVOR performs an OR  of the various  machines, an OR of the graphics,
+       and an AND between machine and  graphic if both are present. For example,
+       in the statement
+
+            C&IF VAXVMS, VAXELN, AMDAHL, DI3000, MGKS
+    
+       the names are checked as follows,
+
+            if (vaxvms or vaxeln or amdahl) and (di3000 or mgks).
+
+    2) A  "C&IF"  section ends  either  with a line   starting with  "C&ELSEIF",
+       "C&ELSE",  or with  "C&ENDIF",  and the  scheme in  which  statements are
+       selected in a C&IF...C&ENDIF block  is the same as that for an IF...ENDIF
+       block in fortran. Note that unlike with fortran IF...ENDIF blocks, nested
+       C&IF statements are NOT ALLOWED in C&IF...C&ENDIF blocks.
+
+    3) For any line  selected, D0FLAVOR  suppresses the  first two characters if
+       they are  "C&", and  it adds  these two  characters  to the  beginning of
+       unselected lines that do not start  with "C&". This means that the result
+       is independent of the previous state of the file. The "C&IF", "C&ELSEIF",
+       "C&ELSE"  and  "C&ENDIF" lines  are  written to  output  without changes.
+       Remember,   D0FLAVOR   suppresses  the  "C&" if  needed,  so any  Fortran
+       statement should start on or after column 9 if the line starts with "C&".
+       One may just type statements without the "C&"s in front, and then process
+       them thru  D0FLAVOR/VAXVMS to  comment the unwanted  parts. Valid comment
+       statement lines  within a  C&IF...C&ENDIF block start  with "C&C" or with
+       the first character "C" and the second character anything but "&".
+
+
+    Depending on the selected machine, D0FLAVOR also process the source lines to
+remove the D0 allowed Vax extensions, this means that: 
+
+    1) If the /EXPAND qualifier is used,  the "INCLUDE 'D0$xxxx'" statements are
+       processed (i.e. the  statement is commented and  the include file becomes
+       the current source file. When  encountering the end of the file, D0FLAVOR
+       reverts  to the  previous  level and  adds a  comment). The  "D0$" at the
+       beginning of the file name is MANDATORY. If absent, the include statement
+       is not processed, and this may give a compiler warning later. The /EXPAND
+       qualifier is not present by default for any machine.
+
+    2) If the  /PROCESS   qualifier is  used or the  machine   qualifier implies
+       /PROCESS   by   default,  then  if an   inline  comment  ( !   xxxxx ) is
+       encountered, it  is placed as a  standard comment on  a new line starting
+       with a "C<<", and it keeps its same  position in the new lines unless the
+       "!" is one of the first 3  characters in the original line. In this case,
+       the  section of  line starting  at the  "!" and  extending to  the end is
+       concatenated  to  "C<<" to  form the new  line. In  the list  of machines
+       above,  the  column  with  the  heading  'Prc'  indicates  which  machine
+       qualifiers have /PROCESS present by default. The /NOPROCESS qualifier can
+       be used  to  inhibit the   processing of  inline  comments  regardless of
+       whether /PROCESS is the default for a particular machine or not.
+
+    3) If the /INSERT qualifier is used or the machine qualifier implies /INSERT
+       by default, then D0FLAVOR will insert %VAL(0) dummy arguments in place of
+       missing  arguments in  function and  subroutine calls. If  no argument is
+       found between a  "(" and a ",", a  "," and a ",", or  a "," and a ")", of
+       which none are within a quote or comment, then D0FLAVOR will consider the
+       argument to be missing and will  insert a %VAL(0) dummy argument. A dummy
+       argument will not be inserted, however, if no argument is found between a
+       "(" and a ")". The  /INSERT qualifer is present  by default only when the
+       /IBMAIX   qualifier is   specified. For  this  case,  the dummy  argument
+       insertion can be disabled by using the /NOINSERT qualifier.
+
+If  /PROCESS,  /EXPAND or,  /INSERT is  used in   conjunction with  /VAXVMS, the
+resulting output file  will have the extension  .FOR_VMS. This can be overridden
+by explicitly specifying the output file name with the /OUTPUT={name} qualifier.
+
+    There is  a special  MACHINE  qualifier  called  /CHECK, which  has /PROCESS
+present by  default.  With this  qualifier,  all line  statements  controlled by
+machine name arguments in  sections of  C&IF...C&ENDIF blocks will be suppressed
+by adding  "C&" to  the beginning  of the  line, if it  is not  there already. A
+graphic qualifier  may be used in  conjunction with /CHECK,  and if so, then the
+processing of lines in  sections of C&IF...C&ENDIF  blocks controlled by graphic
+name arguments  will be done  normally. The  output file  created when /CHECK is
+used will have the  extension .CHECK, and after the  file is completed, D0FLAVOR
+will run  D0CHECK on it  to check, as  far a  possible, for  nonstandard fortran
+code. D0CHECK does this by running the Vax Fortran compiler on the file with the
+qualifiers /STANDARD=ALL/WARNING=ALL.
+
+    In addition to the  machine argument names, there  are also generic argument
+names  that one  can use  in the  source  code to  represent  groups  of machine
+argument names.  The following is a list of valid generic machine names and what
+they represent:
+
+        VAX     == VAXVMS, VAXELN
+        VMS     == VAXVMS
+        UNIX    == SIUNIX, IBMAIX, ULTRIX, HPUX, SUNOS, ALFOSF
+        VMXA    == AMDAHL, IBM3090
+        LITTLE  == VAXVMS, VAXELN, ULTRIX, ALFOSF
+        BIG     == SIUNIX, IBMAIX, AMDAHL, IBM3090, HPUX, SUNOS
+        ONLINE  == VAXVMS
+        OFFLINE == VAXVMS, SIUNIX, IBMAIX, ULTRIX, ALFOSF
+        LEVEL2  == VAXELN
+        ANY     == All valid machine argument names
+
+An example of a statement using a generic flavor is
+
+            C&IF UNIX
+
+which is equivalent to
+
+            C&IF SIUNIX, IBMAIX, ULTRIX, HPUX, SUNOS
+
+There are no generic graphic names,  and there are no generic machine qualifiers
+that can be used in place of regular machine qualifiers.
+
+    There are, however, /ONLINE, /OFFLINE, and /LEVEL2 qualifiers, and depending
+on which of these three  qualifiers is used,  determines the minimum requirement
+of machines that should be accounted  for in a C&IF...C&ENDIF block. The minimum
+requirement imposed by  each of the /ONLINE,  /OFFLINE, and LEVEL2 qualifiers is
+defined to be  the group of  machine argument  names  represented by each of the
+ONLINE, OFFLINE, and LEVEL2 generic machine names, respectively.
+
+
+                         Minimum requirement of machines that should
+         Qualifier       be accounted for in a C&IF...C&ENDIF block
+         ---------       --------------------------------------------
+         /ONLINE         VAXVMS
+         /OFFLINE        VAXVMS, SIUNIX, IBMAIX, ULTRIX, ALFOSF
+         /LEVEL2         VAXELN
+
+ * For the /CHECK qualifier, /OFFLINE is present by default, and for the other
+   machine qualifiers, there is no default and one of these qualifiers may be
+   used optionally.
+
+
+These minimum requirement qualifiers may be used in conjunction with the machine
+qualifiers, but  only one at a time is  allowed. For all  the machine qualifiers
+except  /CHECK,  none of  the  minimum  requirement   qualifiers are  present by
+default, nor is one  required. For the /CHECK  qualifier, /OFFLINE is present by
+default. When a  minimum requirement  qualifier is present  and a C&IF...C&ENDIF
+block  does not  meet  the  minimum   requirement of  machines  imposed  by that
+qualifier, then a warning message will be displayed.
+
+    If the /CHECK qualifier  is used, then D0FLAVOR  will also display a warning
+message  whenever an "OPEN"  statement is  found. In general,  "OPEN" statements
+should not be used in D0 Fortran code, but instead, one should call the "D0OPEN"
+and D0OPEN_TEXT subroutines.
+
+===============================================================================
+
+    In order to use this utility, one just has to type the command
+
+    $ D0FLAVOR/{machine}/{graphic}/{min_requirement}
+                  {/DEBUG}{/PROCESS}{/EXPAND}{/INSERT}{/OUTPUT=}  {file_name}
+
+D0FLAVOR  is a symbol  defined  in  D0PROSYMCOM that  will execute  the D0FLAVOR
+utility program.
+
+/{machine} is one of the  previously described  machine qualifiers, which may be
+the special /CHECK qualifier. One and  only one name must be given. Execution is
+aborted if this is not true.
+
+/{graphic} is one of the optional graphic qualifiers. Only one name is allowed.
+
+/{min_requirement}  is  one of the  optional minimum  requirement  qualifiers of
+which  only one may  be used.  If the  /CHECK  machine  qualifier is  used, then
+/OFFLINE is present by default. Otherwise, there is no default.
+
+/DEBUG is  an  optional  qualifier that will  cause  informative  messages to be
+produced  on how  various   statements,  including  C&IF,  C&ELSEIF,  and C&ELSE
+statements, are processed (intended for debugging).
+
+/PROCESS is an  optional qualifier  that causes inline  comments to be separated
+from executable statement lines and  placed on separate comment lines. Depending
+on which machine  qualifier is used, determines if  this qualifier is present by
+default.
+
+/EXPAND is an optional  qualifier that causes  include statements to be expanded
+into source code in the output file.
+
+/INSERT  is an  optional  qualifier that  causes  %VAL(0) dummy  arguments to be
+inserted in place of missing arguments  in function and subroutine calls. If the
+/IBMAIX qualifier is selected, then /INSERT is present by default.
+
+/OUTPUT= is an  optional  qualifier that one  can use to  explicitly specify the
+output file  name and/or path.  If this  qualifier is expressed  without a value
+(e.g. "/OUTPUT"), then the output will be sent to the standard output device.
+
+{file_name} is the  name of the  fortran file to be  processed. A default ".FOR"
+extension is added to the end of the name if no extension is present. If no file
+name is  specified,  then the  input  will be  read in from  the  standard input
+device.
+
+
+The output  file is written in  the same  directory, with the  machine dependent
+extension given earlier, unless the /OUTPUT=  qualifiler is used to override the
+default. The /CHECK  option doesn't  produce a .OBJ file,  but it does produce a
+.lis file in the current directory. 
+
+    When D0FLAVOR successfully processes an input file, it displays a line count
+summary for that file. The first summary line displays the total number of lines
+contained in the input  file. The second line  displays the number of executable
+lines not found in any C&IF...C&ENDIF blocks. The third line displays the number
+of executable lines that are  continuation lines. This number is a subset of the
+number  given  in the  second  line.  The  fourth line   displays the  number of
+non-blank lines  that make up  any  C&IF...C&ENDIF blocks. This  number includes
+executable lines as well as comment lines. The fifth line displays the number of
+comment lines that are  not part of any  C&IF...C&ENDIF blocks. And finally, the
+sixth line displays the  number of blank lines found  in the input file, whether
+they are within a C&IF...C&ENDIF block or not.
+
+    Any blank line that D0FLAVOR finds  in an input file will be replaced with a
+"C<<" comment line in the output file.
+
+    All status, warning, and error messages produced by D0FLAVOR are sent to the
+standard  error  device. This  allows  one to  redirect the  output  messages to
+different devices, such as to disk.
+
+    D0FLAVOR is capable of  running on different  machines. On the unix machines
+the "/" at the beginning of a qualifier  name should be replaced by a "-", and a
+space  must precede  the "-"  in  addition. Aside  from  this, the  command line
+formats should be  the same as that for  D0FLAVOR on the  VAX/VMS system. On the
+machines that  require local  translation of  include file  names, D0FLAVOR will
+replace the names  beginning with "D0$" by their  corresponding names (including
+paths) on  the local  machines. When  the /CHECK  qualifier is  used on machines
+other than the VAX/VMS system, D0CHECK  will not be run, because it uses the Vax
+Fortran compiler.

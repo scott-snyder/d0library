@@ -1,0 +1,240 @@
+
+
+
+                                                           Michael Diesburg
+                                                                21-JUL-1993
+
+
+
+                            _____ ______ ___ ________                            Batch Daemon and Hardware
+                              _____________ _______                              Configuration Utility
+
+
+
+
+
+     1  INTRODUCTION
+
+        This utility returns information on the  current  configuration  of
+     the  batch  daemon, the project assignments of nodes, and the hardware
+     configuration of nodes on FNALD0.
+
+        The utility reads the  batch  daemon  configuration  file  for  any
+     information   related   to   the  batch  queues.   Consequently,  this
+     information is always up to date and accurately reflects  the  current
+     operating   characteristics   of   the  batch  daemon.   The  hardware
+     information is read from an auxiliary file that is  updated  once  per
+     day.   As  a  result, the hardware information may not reflect changes
+     made within the last 24 hours.
+
+
+
+     2  USAGE
+
+     Setup the symbols for the batch daemon utility with the command:
+
+
+         $ @D0$UTIL:SETUP_BSTAT
+
+     This will define the symbol "BSTAT" used to invoke the utility.
+
+        The format of the BSTAT command is:
+
+
+         $ BSTAT char1,char2,...  [output_file]
+
+     where char1,char...   is  a  comma  separated  list  of  batch  daemon
+     characteristics.   These may consist of any valid characteristics used
+     with the SUBMIT command, or any of the special values:
+
+         ALL_NODES
+
+         ALL_CLASSES
+
+         SYS$BATCH
+
+
+
+
+
+                                     - 1 -
+                                                                          Page 2
+
+
+     Wild cards are not allowed in the characteristic list.  Output of  the
+     command  is  normally  to  standard  out  (the  terminal).   It may be
+     redirected  to  a  file  by  specifying  the  optional   "output_file"
+     argument.
+
+
+
+     3  EXAMPLES
+
+        Information about a particular node may be obtained  by  specifying
+     the node name in the characteristic list:
+
+
+       $BSTAT  D0SB15
+       Node   : D0SB15  VUPS : 33.0  Execution Slots :  3  NEW_PRJ  LONG_JOB
+       CPU/Mem: 4000-90        80Mb
+       Disks  : 0.59 of 6.73 Gbytes free on 4 disks
+       Tapes  : 0
+
+     where:
+
+       Node            = Node name
+       VUPS            = Vax Units of Performance.  This is the relative CPU 
+                         power used by the batch daemon to do load balancing.
+       Execution Slots = Maximum number of batch jobs of all classes which may
+                         be executing simultaneously on the node.
+       NEW_PRJ...      = A list of classes which have batch queue reservations
+                         on this node.  LONG_JOB is the generic, zero-priority
+                         batch queue to which all users have access.
+       CPU/Mem         = CPU type and total memory installed on the node
+       Disks           = Amount of free space, total space, and number disks 
+                         installed on the node.  This only counts disks mounted
+                         as DK disks.
+       Tapes           = Number of tape drives installed on the system.  This
+                         only counts tapes mounted as MK tapes.
+
+        If the argument "ALL_NODES" is given to BSTAT, then a list like the
+     one above is output for each node in the cluster.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 2 -
+                                                                          Page 3
+
+
+        Information about a particular project queue  may  be  obtained  by
+     specifying the project class in the characteristic list:
+
+
+       $BSTAT NEW_PRJ
+
+       Class         : NEW_PRJ
+       Base Priority :   1
+       User Job Limit:   6
+       Total nodes   :   7     Total CPU (VUPS):  76.3
+       Max Execution Slots:  14
+                           Memory   Job     Disk    Free
+        Node    CPU Type    (Mb)   Slots   Blocks  Blocks  Disks  Tapes
+       ------------------------------------------------------------------
+       D0SB09     3100-M76  32.00    2      0.97    0.21     1      0
+       D0SB15      4000-90  80.00    3      6.73    0.59     4      0
+       D0TAM1 3100-M76/GPX  32.00    2      0.97    0.07     1      2
+       D0FSU1         3100  32.00    2      1.37    0.14     2      0
+       D0FSU5         3100  32.00    2      0.97    0.01     1      0
+       D0UM03      4000-60  32.00    2      2.13    0.53     3      0
+       D0UMI1 3100-M76/SPX  24.00    1      3.33    0.73     2      1
+
+        Disks  : 2.28 of 16.47 Gbytes free on 14 disks
+        Tapes  : 3
+
+     where:
+
+       Class          = Queue characteristic for this class of job.
+       Base Priority  = Priority at which batch jobs will run under this class.
+       User Job Limit = Maximum number of jobs a single user may have executing
+                        simultaneously in this class.
+       Total Nodes    = Total number of nodes that have batch queue reservations
+                        in this class.
+       Total VUPS     = Total CPU power (Vax Units of Performance) for all nodes
+                        with reservations in this class.
+       Max Exec Slots = Maximum number of jobs from all users that may be 
+                        executing simultaneously in this class.
+
+        The information for the individual nodes in the class is  the  same
+     as  that  described  above  for a single node with one exception:  the
+     "Job Slots" value is the maximum number of jobs from  all  users  that
+     may  be  simultaneously executing on the node of the given class.  The
+     "Disks" and "Tapes" values are the totals for all nodes in the class.
+
+        If the argument "ALL_CLASSES" is given to BSTAT, then a  list  like
+     the one above is output for each class known to the batch daemon.
+
+
+
+
+
+
+
+
+
+
+                                     - 3 -
+                                                                          Page 4
+
+
+        If the argument "SYS$BATCH" is given to BSTAT, then an  abbreviated
+     list is produced containing information about the overall system:
+
+       $BSTAT SYS$BATCH
+
+       Class         : SYS$BATCH
+       User Job Limit:   6
+       Total nodes   :  87     Total CPU (VUPS): 954.7
+       Max Execution Slots: 182
+
+     where:
+
+       User Job Limit = Maximum number of batch jobs a single user may have
+                        executing simultaneously of all classes.
+       Total Nodes    = Total number of nodes on which the batch daemon controls
+                        batch queues.
+       Total CPU      = Total CPU power of nodes in the batch daemons queues.
+       Max Exec Slots = Maximum number of batch jobs which may be simultaneously
+                        executing on all nodes in the batch daemons queues.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                     - 4 -

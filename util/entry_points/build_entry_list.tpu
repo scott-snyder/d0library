@@ -1,0 +1,71 @@
+!==================================================================
+!  Olivier Callot    19-JUL-1988
+!  Updated 03-Mar-1992  H. Kehayias
+!
+!
+PROCEDURE build_entry_list
+
+LOCAL    file_name, inp_file, in_buf, out_buf, tag_string, entry_name, file_title;  
+
+ON_ERROR         ! error processing. suppress warning messages
+ENDON_ERROR;
+
+out_buf := create_buffer("entry_list");
+inp_file := file_search(" ");
+Loop
+   inp_file := file_search("d0$root:[*...]entry_points.txt");
+   Exitif inp_file = "" ;
+   in_buf  := create_buffer("file_list",inp_file);
+   position( in_buf );
+   Loop
+      separ := search(line_begin & '******************************',forward);
+      exitif separ = 0;
+      position(end_of( separ ) ); 
+      position( search( line_begin, forward ) );
+      file_name := current_line;
+      file_title := substr( file_name, 1, index( file_name, ';')-1);
+      move_vertical(2);
+      Loop
+         tag_string := search( anchor & span(' ') & ('subroutine' | 'function' | 'entry' | 'program' ) & span(' '), forward );
+         If tag_string = 0 Then
+            tag_string := search( anchor & span(' ') & ('integer'|'logical'|'real' )&span(' ')&'function' & span(' '),forward);
+         Endif;
+         if tag_string <> 0 Then
+            position( end_of( tag_string ) );
+            move_horizontal(1);
+            entry_name := search( anchor &( scan(' (') | remain), forward);
+            entry_name := substr( entry_name, 1, 16 );
+            change_case( entry_name, upper );
+            entry_name := substr( entry_name + '                    ', 1, 20 );
+            position( out_buf );
+            copy_text( entry_name +file_title); split_line;
+            position( in_buf );
+         Else
+            move_horizontal(1);
+         Endif;
+         position( search(line_begin,forward) );
+         exitif current_line = "";
+      Endloop;
+   Endloop;
+   delete( in_buf );
+Endloop;
+
+write_file( out_buf, "ENTRY_LIST.TMP" );
+
+ENDPROCEDURE;
+
+PROCEDURE sort_entry_list
+
+ON_ERROR         ! error processing. suppress warning messages
+ENDON_ERROR;
+
+edf$dcl("CREATE/DIRE/NOLOG D0$ROOT:[DOCS]");
+edf$dcl("SORT/NODUPLICATE ENTRY_LIST.TMP D0$ROOT:[DOCS]ENTRY_POINT.LIS");
+edf$dcl("DELETE/NOLOG ENTRY_LIST.TMP;*");
+edf$dcl("PURGE/NOLOG D0$DISK:[D0LIBRARY.DOCS]ENTRY_POINT.LIS");
+
+ENDPROCEDURE;
+
+build_entry_list;
+sort_entry_list;
+quit;

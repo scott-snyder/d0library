@@ -1,0 +1,52 @@
+$ sav_ver = f$verify(0)
+$!------------------------------------------------
+$!
+$! Name      : EVNT_LIST
+$!
+$! Purpose   : Compile and link EVNT_LIST.EXE
+$!
+$! Arguments : P1 = DEBUG or ""
+$!
+$! Created   3-NOV-1989   Alan M. Jonckheere
+$!
+$!------------------------------------------------
+$   ON ERROR     THEN $ GOTO EXIT
+$   ON CONTROL_Y THEN $ GOTO EXIT
+$!
+$   define/nolog d0$util [],d0$util$root:[000000]
+$   define/nolog d0$inc [],d0$root:[inc]
+$   define/nolog d0$links [],d0$root:[links]
+$   define/nolog d0$params [],d0$root:[params]
+$   define/nolog d0$zeblst [],d0$root:[zeb.*]
+$!
+$   IF p1 .eqs. "DEBUG"
+$   THEN
+$       deb_     = "deb_"
+$       for_swit = "/debug=all/noopt/nolist"
+$       lnk_swit = "/debug/nomap"
+$       dbnk = "/include=dbank"
+$   ELSE
+$       deb_     = ""
+$       for_swit = "/nolist"
+$       lnk_swit = "/nomap"
+$       dbnk = ""
+$   ENDIF
+$!
+$!?$   for'for_swit' evnt_list
+$!?$   for'for_swit' get_str
+$!?$   for'for_swit' d0$zebra_util$source:inzcom
+$!
+$   LINK'lnk_swit'/exe='deb_'evnt_list -
+        d0$util:'deb_'util/lib/incl=(EVNT_LIST), -
+!        d0$calor_util:'deb_'calor_util/lib,-
+        d0$general:'deb_'general/lib'dbnk', -
+        'cernp'
+$!
+$EXIT:
+$   deass d0$util
+$   deass d0$inc
+$   deass d0$links
+$   deass d0$params
+$   deass d0$zeblst
+$   sav_ver = f$verify(sav_ver)
+$   EXIT

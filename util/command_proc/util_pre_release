@@ -1,0 +1,65 @@
+#! /bin/csh -f
+###############################################################################
+#
+# Name:  util_pre_release
+#
+# Purpose: UNIX release script for util d0library section.  This 
+#          script performs the following actions:
+#
+#          1.  Deletes util.mms
+#
+#          2.  Builds util.a libraries.
+#
+#          3.  Link copy_fz ane evnt_list.
+#
+#          3.  Builds d0flavor library and executable.
+#
+#          4.  Builds fzdiff library and executable.
+#
+#          5.  Builds fzbrowse (map) executable.
+#
+# Usage Notes:
+#
+# 1.  This script should be executed from the top directory of the 
+#     util library section.
+#
+# 2.  This script should be released via the VMS d0library release procedures
+#     so that is gets to the top directory of the util library 
+#     section.
+#
+# Created 25-Jun-1992  Herbert Greenlee
+#
+##############################################################################
+#
+# Delete util.mms to disable usual build phase.  This scipt 
+# supersedes.
+#
+rm -f util.mms >& /dev/null
+#
+# Build util.a library.
+#
+ufl '$d0util/files/*.for' | \
+  userlib -c $d0root -l util.a -o util.makefile -
+make -f util.makefile for
+make -f util.makefile pre
+make -f util.makefile debug
+make -f util.makefile opt
+#
+# Execute scripts to link copy_fz and evnt_list executables
+#
+eval `uff $d0util/files/evnt_list_lnk.csh` debug
+eval `uff $d0util/files/evnt_list_lnk.csh`
+eval `uff $d0util/files/copy_fz_lnk.csh` debug
+eval `uff $d0util/files/copy_fz_lnk.csh`
+#
+# Execute script to build d0flavor library and executable.
+#
+eval `uff $d0util/d0flavor/build_d0flavor.csh`
+#
+# Execute script to build fzdiff library and executable.
+#
+eval `uff $d0util/fzdiff/build_fzdiff.csh`
+#
+# Execute script to build fzbrowse (map) executable.
+#
+eval `uff $d0util/files/build_fzbrowse.csh`

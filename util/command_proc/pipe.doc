@@ -1,0 +1,344 @@
+                                                                29-Jun-1994
+                                                            James T. Linnemann
+                                                                MSU
+
+                           The PIPE commands
+                              Version 2.3
+
+Version 2.1 News: Added SET SCREEN option
+Version 2.2 News: add SET DEFAULT
+Version 2.3 News: add pattern matching of * to ? and DRY_RUN option; 
+                  remove need for triple quotes on input arguments
+
+    The PIPE commands allow any VMS command, or command procedure, to be
+executed on a series of files selected with full wildcarding, even if the
+command  normally uses only one  file at a time. For example
+
+    PIPE FORTRAN/LIST *.FOR
+
+    This document describes how PIPE is used.  After the introduction, it
+contains a series of examples (including useful ideas), a detailed syntax 
+description, and a short note on the implementation.
+
+                                Introduction
+
+    The PIPE commands allow any VMS command, or command procedure, to be
+executed on a series of files, even if the command normally used only one  file
+at a time. It can also add a CONFIRM feature to any command or command
+procedure.  Your can choose if you want all output to go to a .LIS file, and
+whether to stop after the first error or not.
+
+    There are 3 ways of specifying the files to run the command with,
+corresponding to the different PIPE comands: PIPE, PIPER, and PIPES. In
+addition, PIPE SET sets default operating modes.
+
+a) PIPE  allows you to use full wildcarding, plus any extra selection allowed by
+the DIR command.  For example 
+    PIPE DIFF *.FOR/SINCE     sees what changes you made today.
+b) PIPES allows full wildcarding, plus any extra selection allowed by the SEARCH
+command.  Only files which meet the search criteria are processed.  For example
+    PIPES FORTRAN/LIST D*.FOR new_include_name
+        recompiles only .FOR starting with D, and containing the 
+            string new_include_name
+c) PIPER allows reading from a list of files, one to a line.  For example,
+    PIPER FORTRAN/LIST filenames.dat
+In fact, PIPER  is not really restricted to acting on files: it simply reads
+from the file and supplies what it finds on each successive line to the
+specified command.  
+
+Changing default behavior with PIPE SET:
+    (note: the SET options described here can be abbreviated)
+
+    PIPE sends output to the screen.  Other output files produced by the PIPEed
+command go to the current default subdirectory unless redirected by command
+qualifiers (eg. /OUTPUT=). PIPE SET LIST changes this default so there is a 
+.LIS file.  You can go back to the default by PIPE SET NOLIST.  (You can get 
+back to ALL settings default by PIPE SET DEFAULT.)
+
+    After PIPE SET LIST, PIPE sends any screen output to a file PIPE.LIS in the
+current default directory, but sends to the screen a message as it processes
+each individual file, so you can follow its progress. Error messages go to both
+PIPE.LIS and the screen.  The PIPE.LIS file starts with  the original command,
+and the list of files on which it intends to operate. 
+
+    PIPE can be sent into "dry run" mode where it merely displays the action it
+would take by PIPE SET DRY_RUN .  It will then warn you of how to get back to
+really executing commands.
+
+    PIPE execution continues even if an error is encountered in executing the
+command on a file.  PIPE SET NOCONTINUE changes this so PIPE stops after the
+first error. PIPE SET CONTINUE goes back to the default.
+
+    PIPE normally leaves a blank between the command and the file it operates
+on.  You can change this with PIPE SET NOSPACE, or set it back to the default
+with PIPE SET SPACE.
+
+    PIPE normally processes all selected files without any user intervention
+(except perhaps a frantic CONTROL-Y or two, which will stop PIPE).  Executing
+PIPE SET CONFIRM means that PIPE will prompt you to ask whether each selected
+file should actually be processed, and also gives you a reliable place to do a
+control-Y and regain control if you made a mistake.  PIPE SET NOCONFIRM goes
+back to automatic operation.
+
+    PIPE normally assumes that any input to commands comes from inside the
+command files.  This can be overridden by PIPE SET SCREEN_INPUT.  This allows
+you to do nice things such as 
+
+PIPE EVE *.FOR/SINCE.  
+    which will EVE the next file in the list upon exiting the editor.
+
+    However, it CAN hang you up if a command file you invoke was used to getting
+data internally.  If you do hang up, type CONTROL-Y.  Then give up and go back
+to the default with PIPE SET NOSCREEN_INPUT.
+
+Other features:
+
+    PIPE can determine what was substituted for * in a filespec and match it to
+a ? in the command.   There should be a single * in either the file name or
+type.  The ? is assumed to be in the matching part of the filespec. You may wish
+to PIPE SET DRY before letting it run.
+
+    There is a NAME mode that removes directory specifications and extension
+from the file.  This allows the facility to be used for checking in commands
+which must avoid the full directory path, such as D0ENTRY; see the syntax or
+examples for details. This can't be set as a default.  There is also a FNAME
+mode which is the same except that it leaves in the extension.
+
+    Internally, PIPE and PIPES use PIPE.TMP to hold the list of selected files,
+but delete this file before exit.  PIPE can be called from inside command
+procedures, and may even call itself (see examples!).
+
+    Some hints: 
+
+  Search qualifiers like /SINCE which are used by DIR (with PIPE) or SEARCH
+(with PIPES) must be part of the filespec with no intervening spaces.
+
+  The command you give to PIPE can include command qualifiers (but don't put
+spaces between them).
+
+   As with any powerful command, you can get in lots of trouble with PIPE if
+you're careless!  Do PIPE SET CONFIRM or PIPE SET DRY_RUN, or do a DIR or 
+SEARCH beforehand to be sure you like which files you select.  
+Or take a look at PIPER.  
+  
+   If your command wants input from the screen, you may need to do 
+PIPE SET NOLIST before starting. If you had set PIPE SET LIST earlier in the
+session, you might be missing some of your usual prompts  if they are redirected
+to the list file.  
+
+                                EXAMPLES
+
+PIPE:
+
+      PIPE FORTRAN/LIST *.FOR  
+              compile *.FOR in current default subdirectory
+      PIPE FORTRAN/LIST *.FOR;7  
+              compile version 7 of any .FOR in current default subdirectory
+      PIPE FORTRAN/LIST *.FOR;* 
+              compile ALL versions of *.FOR in current default subdirectory
+      PIPE FORTRAN/LIST *.FOR/SINCE=TODAY
+              compile *.FOR recently created in current default subdirectory
+      PIPE FORTRAN/LIST=[onesubdir] [othersubdir]*.FOR
+             compile [othersubdir]*.FOR   Listing goes to [onesubdir], 
+                .OBJ goes to current default directory
+      PIPE DIFF *.FOR [othersubdir]
+              compare *.FOR in this subdir to othersubdir
+      PIPE DIFF [LINNEMANN]*.FOR
+              compare *.FOR in subdir [LINNEMANN] with lower cycles
+      PIPE D0FLAVOR/CHECK CH*T.FOR
+              check D0 standards on CH*T.FOR
+      PIPE D0ENTRY   *.FOR  NAME
+              check *.FOR in this subdirectory to see if routines 
+                      of same name exist in D0 LIBRARY
+      PIPE "CMS RESERVE/NOOUT" *.FOR FNAME
+              reserve all .FOR files in your area, but don't fetch old copies
+      PIPE MY_COM *.FOR NAME MYLIB
+              where MY_COM is used to unscramble order of arguments, as
+                      FOR 'P1'
+                      LIBRARY/INSERT 'P2' 'P1'
+        could also be done with PIPE DEL *.OBJ;*
+                                PIPE FOR *.FOR
+                                PIPE "LIBRARY/INSERT MYLIB" *.OBJ
+      PIPE FORTRAN/DEBUG=ALL/NOOPT *.FOR /OBJ=DEB_?
+            give obj files a DEB_ prefix
+      PIPE RENAME DEB_*.OBJ ?.OBJ
+            back to the default names
+      PIPE RENAME M*.FOR M?.FORT     
+                (PIPE RENAME M*.FOR .FORT would the same)
+            (PIPE RENAME M*.FOR ?.FORT will mess up the names because the ? is
+            pattern-matched as the name with the M removed)
+      PIPE "@PIPE DIFF *901*.D0HALL" *901*.PAS
+              the recursive call works as follows:
+                1st level: PIPE xxxx *901*.PAS sets up to process all
+                selected .PAS files (say M of them) with the command xxxx
+                2nd level: xxxx turns out to be pipe DIF *901*.D0HALL
+                so each of the .PAS files is compared in turn with each of the
+                .D0HALL files (N), for a total of M x N comparisons (instead of
+                perhaps N comparisons as you hoped.  You probably want to do
+                this after PIPE SET LIST.  You will get M + 1 PIPE.LIS files.
+       PIPE SET SPACE then
+       PIPE "COPY D0$ZEBLST:" *.ZEB FNAME [.sdir] 
+            where D0$ZEBLST has been defined as as D0$ZEB$ROOT:[000000...]
+            copy the currently released versions of any .ZEB files in the
+            default directory, and put them in a subdirectory.
+        ------------------------------------------------------
+
+PIPES:
+
+      PIPES FOR/LIST *.FOR/SINCE  new_inc_file
+              compile *.FOR in current default subdirectory if contains 
+                      string "new_inc_file", and created today
+      PIPES FORTRAN/LIST *.FOR  new_inc_file,linn
+              either with "new_inc_file", or "linn" anywhere in the file
+      PIPES FORTRAN/LIST *.FOR  new_inc_file,"T. Linn"
+                      either "new_inc_file" or "T. Linn" anywhere in file
+      PIPES FORTRAN/LIST *.FOR/match=AND  new_inc_file,linn
+                      requires BOTH of them on the SAME line
+           ----------------------------------------------------
+
+PIPER:
+
+      PIPER FORTRAN/LIST my_special_list.dat 
+              compile files listed in one per line in my_special_list.dat
+      PIPER type/nopage foo.lis
+              type a selected list of files
+
+Where foo.lis contained:
+
+ABC.FOR
+CDE.PAS
+EFGH_IJK.COM
+NEWNODE::USR$DISK7:[OTHERDIR]SECRET.DAT
+
+                        PIPE COMMAND SYNTAX
+
+    The four forms PIPE, PIPE SET, PIPES, and PIPER are discussed separately:
+
+PIPE cmd dirspec [P3 [P4 [P5 [P6 [P7 [P8]]]]]]
+
+                ( the [ ] indicate that arguments 3-8 are optional)
+
+    cmd         the command to be done iteratively (may include qualifiers)
+
+   dirspec     file specification you might give to DIR (may include subdir 
+                spec, or wildcards) may include any qualifiers used by DIR
+                which pertain to file selection, such as /SINCE or /EXCLUDE
+                PIPE operates only on the top version of the file unless the 
+                dirspec contains a ;  In that case, whatever is specified is
+                used.
+
+    P3          second part of command (optional)
+                              OR
+                      NAME  to process on NAMEs of the files only, deleting
+                            information about their subdirectory and extension
+                              OR
+                      FNAME as above, but leave in the extension
+
+    any additional parameters are passed along
+                        -------------------------------
+PIPE SET option
+    this form is used to set the default operating mode of PIPE--
+
+    options:
+
+SET L*IST               send output to list file 
+SET NOL*IST             no list file (DEFAULT)
+SET NOCONT*INUE         don't continue after first error encountered
+SET CONT*INUE           keep going even if an error occurs in executing 
+                                the command (DEFAULT)
+SET NOCONF*IRM          process files unconditionally (DEFAULT)
+SET CONF*IRM            inquire for each file whether to process
+SET SCR*EEN_INPUT       get all input from screen
+SET NOSC*REEN_INPUT     get most input from inside command procedure (DEFAULT)
+SET D*EFAULT            go back to DEFAULT settings for all of above options
+SET DRY*_RUN            don't execute the command, just show it
+SET NODRY*_RUN          go back to really executing the command
+    (the * indicates that the options may be abbreviated)
+                        -------------------------------
+ 
+PIPES*EARCH cmd searchfilspec searchstrings [P4 [P5 [P6 [P7]]]] 
+    
+                (the * indicates that PIPESEARCH may be abbreviated to PIPES)
+    
+    cmd         the command to be done iteratively (may include qualifiers)
+searchfilespec  (may include subdir spec, or wildcards)
+                may include any qualifiers used by SEARCH
+                which pertain to file selection, such as /SINCE,
+                /EXCLUDE, or even /MATCH
+
+searchstrings   a single string in the simplest case; 
+                If none of the strings need to be surrounded by quotes,
+                      they can be simply separated by commas (but NOT spaces):
+                              new_inc   or   created,linne
+                      If the string or strings contain embedded punctuation,
+                      then you are in the quote business:
+                          "T. Linn"  or "T. Linn",created
+
+    P4          second part of command (optional)
+                              OR
+                      NAME  to process on NAMEs of the files only, deleting
+                            information about their subdirectory
+                              OR
+                      FNAME as above, but leave in the extension
+
+    any additional parameters are passed along
+                ------------------------------------------
+
+PIPER*EAD cmd argfile [P3 [P4 [P5 [P6 [P7]]]]]
+
+    cmd         the command to be done iteratively (may include qualifiers)
+    argfile     filespec of the file with the list of arguments, one to a line
+
+    P3          second part of command (optional)
+                              OR
+                      NAME  to process on NAMEs of the files only, deleting
+                            information about their subdirectory
+                              OR
+                      FNAME as above, but leave in the extension
+
+    any additional parameters are passed along
+
+      The argument list file need not have files as its entries (it might be a
+list of nodes in a distribution procedure, for example).  If it does contain
+a list of files, you might want to start from PIPE or PIPES and then edit the
+resulting output, e.g. first do
+
+      PIPE SET LIST
+      PIPE NULL *.FOR/SINCE  and editing the resulting PIPE.LIS
+
+    Since DCL is reading the argument file, avoid ending a line with -
+
+                   -------------------------------
+
+                        IMPLEMENTATION NOTES
+
+    PIPE is set up as a single file PIPE.COM, which contains suroutines to
+handle the different cases.
+
+    The file is accessed by defining symbols as follows:
+
+    PIPE :== @PIPE.COM
+    PIPER*EAD :== @PIPE PIPE_READ
+    PIPES*EARCH :== @PIPE PIPE_SEARCH
+
+For D0, this is done as part of the D0 symbol definition.
+
+The defaults are controlled by whether or not the global symbols  PIPE_CONFIRM,
+PIPE_CONTINUE_ON_ERROR, PIPE_SCREEN, PIPE_SPACE, PIPE_DRY, PIPE_LIST,
+and PIPE_OPTIONS_SET, are defined.
+
+PIPE.LIS and PIPE.TMP are ignored by DIR and SEARCH; PIPE.TMP is DELETED 
+by PIPE.
+
+PIPE tries to correct the stripping of quotes from input command arguments
+without forcing the user to use triple qoutes.  The primary command does not
+have quotes added back, as a quoted string is not a good DCL command.  But later
+arguments which are passed in as quoted strings containing spaces have quotes
+added back, so that a search string such as "Created by" will still have the
+quotes when it appears as a DCL command.
+
+The default file search uses /VERSION=1.  A ; in the filespec removes this.  The
+user can choose to add /VERSION=n if desired to the command.
+
+DCL afficianados might enjoy looking at PIPE to see how abbreviation of the 
+SET options is handled and how the quotes are added back into symbols.
