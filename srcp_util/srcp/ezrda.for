@@ -1,5 +1,4 @@
       SUBROUTINE EZRDA (RECORD)
-      ENTRY RASRCP (RECORD)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Read a character array containing parameters
@@ -24,6 +23,7 @@ C-                         2 --- Maximum bank size reached.
 C-                        -4 --- FATAL ERROR. IZSCPH link already occupied
 C-
 C-   Created  10-JAN-1989   Harrison B. Prosper
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       CHARACTER*(*) RECORD(*)
@@ -32,6 +32,8 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$LINKS:IZSRCP.LINK'
       INCLUDE 'D0$PARAMS:SRCP.DEF'
       INCLUDE 'D0$INC:ZEBSTP.INC'
+C----------------------------------------------------------------------
+      ENTRY RASRCP (RECORD)
 C----------------------------------------------------------------------
 C
 C ****  Create Static Run Control Parameters bank hanging off SCPH

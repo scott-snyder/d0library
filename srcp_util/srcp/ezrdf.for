@@ -1,5 +1,4 @@
       SUBROUTINE EZRDF (LUN)
-      ENTRY RDSRCP (LUN)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : Read a TEXT file containing parameters and
@@ -52,6 +51,7 @@ C-
 C-   Modified  9-NOV-1988   Harrison B. Prosper
 C-                          Now calls EZREAD which contains the original
 C-                          EZRDF  code.
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INTEGER LUN,LSCPH
@@ -59,6 +59,8 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$LINKS:IZSRCP.LINK'
       INCLUDE 'D0$PARAMS:SRCP.DEF'
       INCLUDE 'D0$INC:ZEBSTP.INC'
+C----------------------------------------------------------------------
+      ENTRY RDSRCP (LUN)
 C----------------------------------------------------------------------
 C
 C ****  Create Static Run Control Parameters bank hanging off SCPH

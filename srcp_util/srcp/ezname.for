@@ -1,5 +1,4 @@
       SUBROUTINE EZNAME (BKNAME,LSUPP,IZLINK)
-      ENTRY      NASRCP (BKNAME,LSUPP,IZLINK)
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods :
@@ -44,6 +43,7 @@ C-   Updated  13-JUN-1992   Chip Stewart   - CHECK for ASCII RCP bank (CRCP)
 C-   Updated   3-AUG-1992   Chip Stewart   - redo \START line, VAXELN block
 C-   Updated   4-Sep-1993   Herbert Greenlee
 C-    Added memory-to-memory option (EZ_PUT_FIFO/EZ_GET_FIFO).
+C-   Updated   3-Jan-1996   sss - Compile with g77.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -69,6 +69,8 @@ C
       INCLUDE 'D0$INC:LKSRCP.INC'
       INCLUDE 'D0$INC:NMSRCP.INC'
       INCLUDE 'D0$INC:ZEBSTP.INC'
+C----------------------------------------------------------------------
+      ENTRY      NASRCP (BKNAME,LSUPP,IZLINK)
 C----------------------------------------------------------------------
 C
 C ****  Clear error flag
