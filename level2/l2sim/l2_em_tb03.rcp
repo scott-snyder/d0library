@@ -1,0 +1,408 @@
+\START        L2_EM_RCP
+\SIZE        654       313
+!-----------------------------------------------------------------
+!    ELECTRON SRCP bank for ELECTRON analysis.
+!    Created 28-NOV-1991 by Yi Xia
+!    Updated 10-AUG-1992 by James T. McKinley, Mirek Fatyga,
+!                           Peter Grudberg, & James T. Linnemann
+!
+! THIS IS L2_EM_TB03.RCP
+!
+!   CUTS TUNED FROM TEST BEAM DATA TO BE 99%
+!   EFFICIENT FOR "GOOD" ELECTRONS, WHERE "GOOD" IS DEFINED
+!   BELOW.  (M. Fatyga, P. Grudberg)
+!
+!   the upper and lower limits on EM3 should remove single-channel noise hits.
+!
+!   Cuts used:
+!
+!PRIMARY CUTS:
+! EM3       cuts set to .1 .9 (lo hi)
+! FH1       cuts set to 1.5*99% value
+! SIGMA5-SIGMA3 or 5x5-3x3 as main        cuts set to 99% value (after TB selection cuts!!)
+!       for IETAC=31,32 use Yi Xia's value of cut on 7x7-5x5
+!
+! secondary cuts:
+!   chosen at "100% values"
+!       EC: 100% = 99% * 1.25
+!           added cuts for the EC: EM1(high), EM12(high),
+!           EM4(low, high), and SIG5M3 (for ieta<26)
+!           as secondary transverse variables in
+!           regions where not already cut on
+!
+!       CC: 100% = 99% + (99%-90%)
+!           added cuts for the CC: EM1(high), EM1+2(high),
+!           EM4(low,high) and SIGMA5-SIGMA3
+!           as secondary transverse variables in
+!           regions where not already cut on
+!
+! All other cuts turned off by setting cuts to +-10000
+!
+!
+!***     Description of L2_EM filter shower shape cuts from load 1 ECEM data ***
+!
+! Load 1 Test Beam analysis done by Peter Grudberg
+!
+! DATA USED:
+!
+!     Ntuples of the L2_EM cut variables were made (old CAHITS, but sampling
+! fractions used by TB90_CALOR_UNPACK have been changed to match the new CAHITS)
+! on one eta scan and two energy scans.  Zero suppression was applied in
+! software at the 2 sigma level.
+!
+!     ETA scan: (ECEM eta scan # 2)
+!         ENERGY = 100 GeV
+!         ETA = 1.55, 1.65, 1.75, 1.85, 1.95, 2.05, 2.25, 2.55, 2.65, 2.86, 3.05
+!         PHI = 61
+!
+!     ENERGY scan # 1 (ECEM E scan # 5)
+!         ENERGY = 25, 50, 75, 100, 125, 150 GeV
+!         ETA = 1.95
+!         PHI = 61
+!
+!     ENERGY scan # 2 (ECEM E scan # 7)
+!         ENERGY = 25, 50, 100, 150
+!         ETA = 2.55
+!         PHI = 61
+!
+! Note: For one run, the new version of the ntuple package was used (new
+! CAHITS),  and the results were the same as for the old package with correct
+! sampling fractions.
+!
+!     ANALYSIS:
+!
+! Tables of efficiency vs cut value for all L2_EM variables were made from
+! the  ntuples using PAW macros written by Mike Tartaglia (with small
+! modifications).  Several tables for each variable/ntuple combination were
+! made, in order to study the effects of several technical cuts and try to get a
+! clean electron sample.  The technical cuts tried were:
+!
+!     TRK: at least on PWC track in all views
+!     CRY: 1.le.ncryox.le.4 .and. 1.le.ncryoy.le.4
+!           (ie, require not too many hits in cryo pwcs)
+!     ETA: Require ieta of max EM3 tower (L2_ETA) equal to selected ieta
+!           (some runs cover more than one ieta tower, depending on pad size)
+!     PHI: Require iphi of max EM3 tower (L2_PHI) equal to 31 (benchmark phi)
+!     TAG: BIT 5,6 and 8 in TAG_WORD set (cerenkov bits)
+!
+! The combinations tried were:
+!     NOCUTS, CRY+ETA, TRK+CRY+ETA, CRY+ETA+TAG, CRY+ETA+PHI, CRY+ETA+PHI+TAG
+!
+!     The combination used was CRY+ETA+PHI, which seemed to give the best
+! signal/noise (further cuts seemed to just reduce the statistics without
+! significant cleaning of the signal).  For one run (E=125, ETA=1.95),
+! CRY+ETA+TAG+PHI was used, as there seemed to be unusually large pion
+! contamination (confirmed by private communication with A. Spadafora).
+!
+!     The energy and eta dependence of the four primary cuts was parametrized
+! for each efficiency  value using simple functions based on the data in the
+! efficiency tables.   The cut values for FH1(high) and 5x5-3x3(high) were
+! obtained using these parametrizations   For each bin in (energy,eta), the
+! least restrictive point of the parametrization was used.   For the FH1 cut,
+! the numbers below are 1.5 times the 99% parametrization value; for the
+! 5X5-3X3 cut,  an additional safety factor of 0.25% ! was added (ie, the
+! numbers below are 99%+0.25(99%-98%)).
+!
+!
+!***    Description of L2_EM filter shower shape cuts from Load 2 CCEM data   ***
+!
+!  Load 2 Test Beam Analysis done by Mirek Fatyga
+!
+! 1. Require a good track (one track upstream of the bending magnet, one track
+!    downstream of the bending magnet).
+!
+! 2. Require that the calculated beam momentum is within 20% of the nominal
+!    value.
+!
+! 3. Require at least one upstream cerenkov.
+!
+! 4. No hits closer than (approx.) 2cm from the CCEM crack.
+!
+!
+! ADDITIONAL TESTS PERFORMED:
+!
+! -  require one and only one cluster in each plane of the cryo-pwc.
+!    NO EFFECT ON RESULTS
+!
+! -  veto on mip and muon counters
+!    NO EFFECT ON RESULTS
+!
+!
+! DATA SETS USED:
+!
+! - Three fine energy scans in the 7.5 - 100GeV energy range.
+!   eta = 0.05, 0.45, 1.05
+!   phi = 31.6 (corresponding to the benchmark point. approx. 4.5cm from the
+!               CCEM crack)
+!
+! - Energy dependence of cut limits obtained at three eta values on the basis
+!   of these three energy scans. Simple functional fits to energy dependence
+!   were obtained at each eta. Linear interpolation of fit parameters was used
+!   to set limits in prescribed (eta x energy) bins.
+!
+! -  NOTE: The typical test beam run does not iluminate the calorimeter
+!    surface uniformly. Potentially, this can cause an error in the
+!    determination of transverse cuts (based on transverse energy sharing).
+!    To assess this error we analyzed two sets of runs which were taken to
+!    study the position resolution in the CC. In these sets, one readout
+!    tower (eta=0.05, eta=0.55) was carefuly scanned with the beam (both in
+!    eta and phi) to effectively create a uniform ilumination of a single
+!    readout tower. We analyzed these runs in the same manner as the three
+!    energy scans used to establish cut values. We then compared all results,
+!    searching for significant deviations due to the change in the position of
+!    the beam. Based on this analysis, we believe that the error on
+!    sigma5-sigma3 is no larger than 2% off the nominal efficiency value.
+!    A similar argument can be made concerning the influence of vertex
+!    smearing on longitudinal cuts. We analyzed a set of test beam runs which
+!    were dedicated to the scanning of the vertex position. Using the same
+!    principle, we conclude that the vertex smearing does not introduce
+!    significant errors in our cuts. IN ADDITION, all longitudinal cuts
+!    were opened beyond their 99% values to increase the safety margin.
+!    We found that most of these cuts can be opened without damaging
+!    the background rejection in a significant way.
+!
+! -  NOTE: The cuts below are based on test beam data. No effect of
+!    an underlying event, pileup, etc. were taken into account.
+!
+! Order of binned cuts in EXXXXX arrays (except ELECT3 which uses unbinned cuts)
+!
+! EM1(min) EM1(max) EM12(min) EM12(max) EM3(min) EM3(max)
+! EM4(min) EM4(max) FH1(max) SIG5M3(max) 5X5-3X3/3X3(max)
+!-----------------------------------------------------------------
+!Format version (old format is implicitly version 0)
+L2EM_VERSION    1
+!   Divider of eta bins
+\ARRAY       ETA_BOUNDS     8
+     2     6    12    13    15    19    25    32
+\END
+!
+!   Divider of energy bins
+\ARRAY       E_BOUNDS     6
+      15.000      35.000      65.000      15.000      35.000      65.000
+\END
+!    SIGMA3 cut
+S3A2                    2.1408
+S3B1                   -2.07643
+S3C0                   -0.01391
+SSIG3               10000.000
+!
+!    EM3MAX cut
+!
+EP3                -10000.000
+!
+LO_GAMMA_FLOOR    1
+HI_GAMMA_FLOOR    4       !4 for EM4; 5 for FH1; 6 for all FH; 7for CH; 8 for ICDMG
+!
+LO_CONE_LAYER     1
+HI_CONE_LAYER     17      !7 for EM4  11 for FH1  14 for FH 17 fo  CH
+CONE_USE_ICD    .FALSE.     !include ICD/MG in CONE ?
+!   warning: CONE_USE_ICD is not fully implemented
+!
+!   For unpacking
+ET_IN_CAEP              .TRUE.
+!
+!   Divider of energy bins
+ETH1                          15.000
+ETH2                          35.000
+ETH3                          65.000
+!
+! CCEM E < ETH1  GEV    0.0 - 0.2
+\ARRAY       ELCCL1     11
+  0.0              0.42        0.000       0.76        0.100       0.900
+  0.000            0.59        0.069       0.098       0.052
+\END
+!
+! CCEM E < ETH1  GEV    0.3 - 0.6
+\ARRAY       ELCCL2     11
+       0.0         0.56        0.0         0.89        0.100       0.900
+       0.000       0.51        0.068       0.11        0.061
+\END
+!
+! CCEM E < ETH1  GEV    0.7 - 1.2
+\ARRAY       ELCCL3     11
+       0.000       0.85        0.000       1.000       0.100       0.900
+       0.000       0.33        0.057       0.131       0.093
+\END
+!
+! CCEM E < ETH1  GEV    1.3
+\ARRAY       E12LCT     11
+  -10000.000   10000.000  -10000.000   10000.000  -10000.000   10000.000
+  -10000.000   10000.000   10000.000   10000.000   10000.000
+\END
+!
+! CCEM ETH1 < E < ETH2 GEV  0.0 - 0.2
+\ARRAY       ELCCM1     11
+       0.000       0.24        0.000       0.51        0.100       0.900
+       0.000       0.66        0.062       0.082       0.026
+\END
+!
+! CCEM ETH1 < E < ETH2 GEV  0.3 - 0.6
+\ARRAY       ELCCM2     11
+       0.000       0.34        0.000       0.63        0.100       0.900
+       0.000       0.57        0.054       0.0915      0.037
+\END
+!
+! CCEM ETH1 < E < ETH2 GEV  0.7 - 1.2
+\ARRAY       ELCCM3     11
+       0.000       0.6         0.000       1.000       0.100       0.900
+       0.000       0.38        0.04        0.105       0.055
+\END
+!
+! CCEM ETH1 < E < ETH2 GEV  1.3
+\ARRAY       E12MCT     11
+  -10000.000   10000.000  -10000.000   10000.000  -10000.000   10000.000
+  -10000.000   10000.000   10000.000   10000.000   10000.000
+\END
+!
+! CCEM ETH2 < E < ETH3 GEV    0.0 - 0.2
+\ARRAY       ELCCH1     11
+       0.0         0.16        0.000       0.39        0.100       0.900
+       0.000       0.72        0.069       0.063       0.021
+\END
+!
+! CCEM ETH2 < E < ETH3 GEV    0.3 - 0.6
+\ARRAY       ELCCH2     11
+       0.0       0.24          0.0         0.51        0.100       0.900
+       0.000     0.62          0.05        0.068       0.029
+\END
+!
+! CCEM ETH2 < E < ETH3 GEV    0.7 - 1.2
+\ARRAY       ELCCH3     11
+       0.0         0.44        0.00        0.8         0.100       0.900
+       0.000       0.41        0.0225      0.075       0.046
+\END
+!
+! CCEM E > ETH3  GEV    1.3
+\ARRAY       E12HCT     11
+  -10000.000   10000.000  -10000.000   10000.000  -10000.000   10000.000
+  -10000.000   10000.000   10000.000   10000.000   10000.000
+\END
+!
+! CCEM E > ETH3  GEV    0.0 - 0.2
+\ARRAY       ELCCX1     11
+       0.000       0.11        0.00       0.33        0.100       0.900
+       0.000       0.79        0.11       0.057       0.017
+\END
+!
+! CCEM E > ETH3  GEV    0.3 - 0.6
+\ARRAY       ELCCX2     11
+       0.000       0.185       0.000       0.45       0.100       0.900
+       0.000       0.68        0.072       0.061       0.027
+\END
+!
+! CCEM E > ETH3  GEV    0.7 - 1.2
+\ARRAY       ELCCX3     11
+       0.000       0.38        0.00        0.75        0.100       0.900
+       0.000       0.45        0.015       0.065       0.044
+\END
+!
+! CCEM E > ETH3  GEV    1.3
+\ARRAY       E12XCT     11
+  -10000.000   10000.000  -10000.000   10000.000  -10000.000   10000.000
+  -10000.000   10000.000   10000.000   10000.000   10000.000
+\END
+!
+! ECEM E < ETH1  GEV    1.4 - 1.5
+\ARRAY       E15LCT     11
+  -10000.000   0.360      -10000.000   0.765           0.100       0.900
+   0.000       0.275           0.042   0.225           0.131
+\END
+!
+! ECEM E < ETH1  GEV    1.6 - 1.9
+\ARRAY       ELECL1     11
+  -10000.000   0.360      -10000.000   0.765           0.100       0.900
+   0.010       0.325           0.042   0.225           0.130
+\END
+!
+! ECEM E < ETH1  GEV    2.0 - 2.5
+\ARRAY       ELECL2     11
+  -10000.000   0.360      -10000.000   0.765           0.100       0.900
+   0.010       0.400           0.042   0.300           0.477
+\END
+!
+! ECEM E < ETH1  GEV    2.6 - 3.2
+\ARRAY       ELECL3     11
+  -10000.000   0.360      -10000.000   0.765           0.100       0.900
+   0.005       0.325           0.042   10000.000       0.234
+\END
+!
+! ECEM ETH1 < E < ETH2 GEV  1.4 - 1.5
+\ARRAY       E15MCT     11
+  -10000.000   0.340      -10000.000   0.715           0.100       0.900
+   0.005       0.325           0.034   0.175           0.100
+\END
+!
+! ECEM ETH1 < E < ETH2 GEV  1.6 - 1.9
+\ARRAY       ELECM1     11
+  -10000.000   0.340      -10000.000   0.715           0.100       0.900
+   0.020       0.375           0.034   0.175           0.100
+\END
+!
+! ECEM ETH1 < E < ETH2 GEV  2.0 - 2.5
+\ARRAY       ELECM2     11
+  -10000.000   0.340      -10000.000   0.715           0.100       0.900
+   0.020       0.450           0.034   0.250           0.327
+\END
+!
+! ECEM ETH1 < E < ETH2 GEV  2.6 - 3.2
+\ARRAY       ELECM3     11
+  -10000.000   0.340      -10000.000   0.715           0.100       0.900
+   0.010       0.375           0.034   10000.000       0.177
+\END
+!
+! ECEM ETH2 < E < ETH3 GEV    1.4 - 1.5
+\ARRAY       E15HCT     11
+  -10000.000   0.270      -10000.000   0.600           0.100       0.900
+   0.010       0.425           0.039   0.150           0.068
+\END
+!
+! ECEM ETH2 < E < ETH3 GEV    1.6 - 1.9
+\ARRAY       ELECH1     11
+  -10000.000   0.270      -10000.000   0.600           0.100       0.900
+   0.025       0.475           0.039   0.150           0.067
+\END
+!
+! ECEM ETH2 < E < ETH3 GEV    2.0 - 2.5
+\ARRAY       ELECH2     11
+  -10000.000   0.270      -10000.000   0.600           0.100       0.900
+   0.025       0.550           0.039   0.225           0.167
+\END
+!
+! ECEM ETH2 < E < ETH3 GEV    2.6 - 3.2
+\ARRAY       ELECH3     11
+  -10000.000   0.270      -10000.000   0.600           0.100       0.900
+   0.020       0.475           0.039   10000.000       0.117
+\END
+!
+! ECEM E > ETH3  GEV   1.4 - 1.5
+\ARRAY       E15XCT     11
+  -10000.000   0.230      -10000.000   0.500           0.100       0.900
+   0.025       0.600           0.093   0.175           0.063
+\END
+!
+! ECEM E > ETH3  GEV   1.6 - 1.9
+\ARRAY       ELECX1     11
+  -10000.000   0.230      -10000.000   0.500           0.100       0.900
+   0.040       0.650           0.093   0.175           0.063
+\END
+!
+! ECEM E > ETH3  GEV   2.0 - 2.5
+\ARRAY       ELECX2     11
+  -10000.000   0.230      -10000.000   0.500           0.100       0.900
+   0.040       0.725           0.093   0.250           0.148
+\END
+!
+! ECEM E > ETH3  GEV   2.6 - 3.2
+\ARRAY       ELECX3     11
+  -10000.000   0.230      -10000.000   0.500           0.100       0.900
+   0.030       0.650           0.093   10000.000       0.126
+\END
+!
+!    SPARE (EM3CUT)
+\ARRAY       ELECT3     10
+  -10000.000   10000.000  -10000.000   10000.000  -10000.000   .08
+   10000.000   10000.000  -10000.000   10000.000
+\END
+!CC5L--CC5H--EC5L--E35--EC7L--EC7H--S3--S5--4L--4H---------
+!the .08 cut on 7x7-5x5 HI is from Yi Xia's tuning
+\STOP

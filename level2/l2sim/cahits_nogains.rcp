@@ -1,0 +1,130 @@
+\START          CAHITS_RCP  ! control file for CAHITS package
+\SIZE        181       110
+!------------------------------------------------------------------------------
+!   Name:       CAHITS.RCP
+!   Purpose:    Control file for CAHITS package
+!   Created:     9-May-1989     Serban D. Protopopescu
+!   Modified    17-SEP-1992     Chip Stewart
+!    Updated:    28-NOV-1992   James T. Linnemann   L2 version w/o gains corr
+!           [ The ONLY purpose of this version is for STP building ]
+!   Version:    V4.4-1
+!------------------------------------------------------------------------------
+!   Constants for package CAHITS
+!------------------------------------------------------------------------------
+     DO_CAEPFL        T       ! create CAEP banks from raw CAD1, CAD2 banks.
+     DO_CAEHFL        T       ! create CAEH banks from CAEP and primary vertex
+     DO_CATEFL        T       ! create CATE tower bank from CAEH cells
+     DO_C1PMET        T       ! create PNUT1 bank (missing Et w/o ICD/MG info)
+     DO_C2PMET        T       ! create PNUT2 bank (missing Et with ICD/MG info)
+     DO_ANALYSIS      F       ! SKIP CHTANL IF DO_ANALYSIS IS FALSE
+     FILL_PTCAEP      T       ! FILL PTCAEP in CAEPFL with hit cells
+!------------------------------------------------------------------------------
+!   Constants for subroutine CAEPFL
+!------------------------------------------------------------------------------
+    CAD_STPFILE 'D0$STP:CAD_STPFILE.DAT' ! use CAD_STPFILE for addressing
+    CSF_STPFILE 'D0$STP:CSF_STPFILE.DAT' ! use CSF_STPFILE for energy conversion
+    CAHITS_ERROR_LOG 'CAHITS_ERROR.LOG'  ! file to store bad channels
+    NEED_CAD1        T                   ! no CAEP created if CAD1 -
+    NEED_CAD2        T                   ! - or CAD2 are not in raw data.
+    DO_ADDR_CHECK    T
+      CAD_ADDR_CHECK_PRESCALE      1
+      ERRMSG_LIMIT_PDGN            0
+    DO_ZERO_SUPRESS  F        ! zero suppress even if already done in hardware
+      ENERGY_CUTOFF  0.0      ! cutoff for zero suppresion in CAEP energy units
+      SIGMA_CUTOFF   0.0      ! cutoff in multiples of pedestal sigma.
+    DO_GNSCOR        F
+      GAINS_FILE               'DBL3'
+      GAIN_NORMALIZATION        6000.    ! Convention at D0
+      GAIN_NORMALIZATION_NWA    1900.    ! Convention at NWA
+      EM_GAIN        1.9091     ! EM  LYR 3-7 10.5 pf factor for DO_GNSCOR FALSE
+      ICD_GAIN       0.2683     ! ICD LYR 9   20.5 pf factor when DO_GNSCOR TRUE
+    DO_PEDSUB        F
+      PEDESTAL_FILE            'DBL3'
+      PEDESTAL_SIGMAS  T      ! Fetch pedestal sigmas even when DO_PEDSUB FALSE
+    DO_ADC_TO_GEV      T      ! If TRUE use A*W from CSFW bank; If F use A*W=1
+      CSF_CORRECTIONS  T      ! IF TRUE use C from CSFC bank. IF F use C=1
+      BUILD_CSF        F      ! Build sampling weights from user CSF_RCP
+      DROP_CALIB_BANKS T      ! DROP CPDH,CGNH tree after CGEVFL
+!------------------------------------------------------------------------------
+!   Name of the DBL3 default file for CALIB data
+!------------------------------------------------------------------------------
+    DBCALIB$CAL  'DBL3$CAL:DBCALIB$CAL.DAT'
+!----------------------------------------------------------------------
+!   Data driven sampling weights from word 4 of CAD bank crate header
+!       If TB data then bit 2**30=1; If MC data bit 2**29=1
+!----------------------------------------------------------------------
+      DATA_DRIVE_CSF   T
+        CSF_RCP_D0_MIX 'D0$CALOR_OFF:MIX_CSF.RCP'
+        CSF_RCP_D0_PLT 'D0$CALOR_OFF:PLT_CSF.RCP'
+        CSF_RCP_TB_MIX 'D0$CALOR_OFF:MIX_CSF.RCP'
+        CSF_RCP_TB_PLT 'D0$CALOR_OFF:PLT_CSF.RCP'
+        CSF_RCP_TB     'D0$CALOR_OFF:TB_CSF.RCP'
+!----------------------------------------------------------------------
+!  CAEPFL: Processing existing CAEP banks:
+!  0=If input already has CAEP bank then skip CAEPFL
+!  1=FORCE new CAEP bank from CAD banks even when CAEP already exists in data.
+!  2=FORCE new CAEP bank from existing CAEP bank: convert energy units
+!          (CAEP in ADC counts, live GeV, or Total GeV) - NEEDS OLD_CAEP_CSF_RCP
+!----------------------------------------------------------------------
+      OLD_CAEP       0
+      OLD_CAEP_CSF_RCP 'D0$CALOR_OFF:UNIT_CSF.RCP'
+!----------------------------------------------------------------------
+!  CAEPFL: BAD CHANNEL CONTROL:
+!  Relevant CALIB bad channel bits
+!  bit  meaning
+!    3   Way too many over/underflows
+!    6   Zero entries inside window
+!    7   Peak of histogram above limit
+!    8   Peak of histogram below limit
+!    13  Mean value far away from limits
+!    14  Sigma value very large (noisy channel)
+!    15  Channel has been suppressed (peds) / x8 mean .ne. x1 mean (pulser)
+!
+!----------------------------------------------------------------------
+    \ARRAY  BAD_CHANNEL_CPB8_BITS   ! x1 bad pedestal bits
+       3  6  13  14 ! 7  8          ! bit>0 = suppress channel in CAEP
+    \END
+    \ARRAY  BAD_CHANNEL_CPB1_BITS   ! x1 bad pedestal bits
+       3  6  13  14 ! 7  8          ! bit>0 = suppress channel in CAEP
+    \END
+    \ARRAY  BAD_CHANNEL_CGB8_BITS   ! x8 bad gain bits
+      -3  -6  -13  -14  -15         ! bit<0 = Ignore CALIB gain (use nominal)
+    \END
+    \ARRAY  BAD_CHANNEL_CGB1_BITS   ! x1 bad gain bits
+      -3  -6  -13  -14  -15         ! bit<0 = Ignore CALIB gain (use nominal)
+    \END
+    \ARRAY  KEEP_CHANNELS  !override CALIB bad channel bits for these cells
+!       ETA PHI LYR
+!       -12  34   6
+    \END
+    \ARRAY  BAD_CHANNELS   !set these channels to zero even if CALIB bits OK
+!       ETA PHI LYR
+!       -12  31   2
+    \END
+!------------------------------------------------------------------------------
+!   Constants for subroutine CAEHFL
+!------------------------------------------------------------------------------
+    ALPHA               12.0        !   Sigma(R) = dr^2/alpha etc.
+    \ARRAY  SIGMA_EM                !   Sigma = A*E^2 + K*B*E + K^2*Sigma(Ped)
+      0.0                         !   A
+      5.0                         !   B
+    \END
+    \ARRAY  SIGMA_HAD
+        0.0  5.0
+    \END
+    \ARRAY  SIGMA_ICD
+        0.0  5.0
+    \END
+    \ARRAY  SIGMA_MSG
+        0.0  5.0
+    \END
+    CELL_WEIGHT             1.0    ! Phase space weight of cell
+    USE_MONTE_CARLO_VERTEX    F    ! If TRUE get ISV1 vtx - else use VERT vtx
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+\ARRAY HBOOK_DIRECTORY
+     'CALORIMETER'
+     'CAHITS'
+\END
+\STOP

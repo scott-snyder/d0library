@@ -1,0 +1,66 @@
+\START  L2SIM_RCP
+\SIZE         79        69
+!----------------------------------------------------------------------
+!    Name:       L2SIM.RCP
+!    Package:
+!    Library:
+!    Purpose:    Control for level 2 simulation
+!    Version
+!    Created:     7-MAR-1992   James T. Linnemann
+!----------------------------------------------------------------------
+FILTER_EVENT_TRUE  FALSE! TRUE force FILTER_EVENT to true event if event fails:
+                        !   this will insure every event is passed on to
+                        !   succeeding packages, and written to output files
+APPLY_L2_PRESCALE  TRUE
+                        ! TRUE use "natural" l2 prescale result, OR, copy
+                        ! from existing data (see L2_PRESCALE_FROM_DATA below)
+                        ! FALSE   prescaling off: L2_PRESCALE always passes
+L2_PRESCALE_FROM_DATA TRUE
+                        ! TRUE: [NO EFFECT UNLESS APPLY_L2_PRESCALE IS TRUE]
+                        !   if possible, get value from online
+                        !   running, for purposes of verification on real data
+                        !   (if online can't be found, or trigger script was
+                        !   different, reverts to actual L2_PRESCALE)
+MARK_AND_PASS     FALSE
+                        ! if TRUE, leave on WRITE bits and fill in TSUM bank
+                        !   for every filter attempted
+                        !   check PASS bits with L2BIT_PASSED or L2NAME_PASSED
+OVERRIDE_LUM_SET   TRUE
+                        ! Override  LUMINOSITY_SET  fixed in RUN_FILTER.DAT
+                        ! (from COOR/COOR_SIM) with the value that follows.
+                        ! Set false if trying to  duplicate  run conditions
+                        ! by using archived RUN_FILTER_xxxxxxxx.DAT file.
+LUMINOSITY_SET     9
+                        ! Selects the L2_VERT and CD_TO_HITFIND conditions.
+                        ! See L2_VERT_RCP and CD_HITFIND_RCP (in the STP)
+ERRMSG_LOG         3
+                        ! if nonzero, it's the logging unit for error messages
+                        ! this sends a copy to the zebra log file
+ERRMSG_REPEAT      10
+                        !if > 1, allow this many repetitions of error messages
+                        ! default in d0user is 1
+DUMP_RCP   'REQUESTED'
+                        ! = ALL dump ALL known RCP files in the .OUT file
+                        !    REQUESTED plus all named in REQUESTED array
+                        !    NONE don't dump RCP's
+WRITE_FSUM     TRUE
+                    ! if TRUE, write out FSUM files to make multirun summary:
+                    !   use the package GRAND_FSUM to sum them
+SUMMARY_DETAIL 2
+                    ! how much to put in the summary: 1= minimal 2= std summary
+                    ! 3 = add statistics on WRITE/UNBIASED/PASSED per script
+BY_L1_BIT      TRUE
+                    ! if TRUE, order the filter summary by L1 bit;
+                    ! if false, order by L2 bit
+WRITE_CUTS     TRUE
+                    ! if TRUE write out a summary of the cuts used in each bit
+!
+! the following banks are those specifically downloaded to L2 STPH
+! they will be dumped by 'ALL' or 'REQUESTED'
+\ARRAY  REQUESTED
+'L2SIM_RCP' 'CD_HITFIND_RCP' 'L2_VERT'
+!'L2TRAK_RCP' 'L2_EM_RCP'
+!'MUON_L2_TRGR' 'MUON_L2_CONTROL' 'MUON_UTIL_L2_PARAMS'
+!'L2JETS_CONTROL'
+\END
+\STOP    !     L2SIM_RCP

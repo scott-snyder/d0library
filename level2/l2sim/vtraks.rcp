@@ -1,0 +1,131 @@
+\START     VTRAKS_RCP        ! Name of VTRAKS package control file
+\SIZE        160       118
+!------------------------------------------------------------------------------
+!   Name:       VTRAKS.RCP
+!   Purpose:    Control file for VTRAKS package
+!------------------------------------------------------------------------------
+!   HBOOK DIRECTORY structure
+!------------------------------------------------------------------------------
+\ARRAY HBOOK_DIRECTORY
+       'VTRAKS'
+\END
+!------------------------------------------------------------------------------
+!   Banks to dump
+!------------------------------------------------------------------------------
+NUM_DUMPS     3
+\ARRAY DUMP_BANKS
+  'VTXH'
+  'VSEC'
+  'VTXT'
+\END
+!------------------------------------------------------------------------------
+!   Banks to drop from standard output stream
+!------------------------------------------------------------------------------
+NUM_DROPS_STA     1
+\ARRAY DROPS_STA_BANKS
+  'GEAN'
+\END
+! Default STP file
+\ARRAY VTX_STPFILE
+    'D0$STP:VTX_STPFILE.DAT'        ! MC data
+    'D0$STP:VTX_D0STPFILE.DAT'      ! real data
+\END
+! Alignment control parameters
+ VDSURV                       0
+ VDNSTP                    2000
+! Processing control parameters
+ MXLAY                        2
+ MXSECT                      31
+ MXWIRE                       7
+! Pulse parameters
+ \ARRAY PULTH1      2
+            2            2
+ \END
+ \ARRAY PULTH2      2
+            6            6
+ \END
+ \ARRAY PULTH3      2
+            6            6
+ \END
+ \ARRAY PULMAX      2
+           10           10
+ \END
+ \ARRAY PULWEI      2
+       0.5000       0.5000
+ \END
+! Parameters for combining pulses into hits
+ VERTX                -0.3000   ! X BEAM POSITION
+ VERTY                 0.2000   ! Y BEAM POSITION
+ VERTXMC               0.0000   ! X BEAM POSITION in MC
+ VERTYMC               0.0000   ! Y BEAM POSITION in MC
+ OFSETW                0.0000   ! Time offset between wire ends
+ OFSETZ                0.0000   ! Time offset between strips
+ WINDOW                30.0000  ! Time window for matching wire hits
+ MINPHT                0.00000  ! Pulse height cut (FADC counts)
+ ECONST                0.02600  ! Error constant for charge division
+ WINDOZ                30.0000  ! Time window for combining strip pulses
+ MNMULT                6        ! Min. # of strips in cluster to cause mult. hit
+ FRQNCY                106.0    ! FADC digitization frequency
+ BILIRT                 11.0    ! bilinear gain ratio (MC data)
+ BILIPT                192.0    ! bilinear break point
+ MAXCNT                255      ! Max fadc output
+ RPERCM                18.0     ! wire resistance (ohms/cm) - 25 micron Nicotin
+ RINPUT               180.0     ! input impedance as measured by q div studies (
+ RINPUT_MC            400.      ! input impedance used by monte carlo
+ TRGCHN               6260      ! Trigger channel number
+                                ! 6260 = Pad lay 4, strip 58.  Used for Cosmic r
+ TRGOFF             -230.0      ! Trigger offset (global)
+                                ! This number about right for collider running
+                                ! after the CT_OFFSET was changed (run ~ 41820)
+ DRIFT_ERROR          0.008     ! Drift error for real data
+ USE_DEFAULT           T
+! If USE_DEFAULT is true, then the follwing values are used:
+!   Real data (collider run):  BILFLG = F, TBLFLG = T, TRGFLG = F
+!   Monte Carlo: BILFLG = T, TBLFLG = F, TRGFLG = F
+! For use with cosmic data, set USE_DEF to F and use
+!               BILFLG = F, TBLFLG = T, TRGFLG = T
+! If USE_DEFAULT is false, the following values are picked up from the RCP bank:
+ BILFLG                T        ! bilinear conversion flag (T for MC, F for real
+ TBLFLG                F        ! Use bilinear conversion table? (true for real
+ TRGFLG                F        ! Subtract trigger time? (for cosmic or tb, set
+! Bilinear conversion table (from M. Martin):
+!----------------------------------------------------------------------------------
+! Parameters needed for accessing DBL3:
+! DBL3$VTX is a logical pointing to the appropriate area on D0 or FNALD0
+! Calib methods (used for PD_METH, GN_METH< TM_METH):
+!           0: Just use the contents of the STP file directly
+!           1: Use values from online calibration in DBL3 file
+!           2: Use values from offline calibration in DBL3 file
+!           3: Read calibration from ZEBRA file containing whole
+!                   (VPDH,VGNH,VTMH) structure
+! To use a ZEBRA file as the input for calibration, just change the appropriate
+! calibration method to 3 and put the filename in the appropriate place
+! (eg, VPDHFILE for pedestals)
+! For backwards compatibility, the old parameters PD_INI, GN_INI and TM_INI are
+! kept.  They are now used to enable the _METH parameters; that is, if XX_INI is
+! true, XX_METH is taken to be the value listed below, but if XX_INI is false,
+! then XX_METH = 0 is used.
+!----------------------------------------------------------------------------------
+!
+ BYPASS_DBL3_ERROR  FALSE ! FALSE: crash the job if DBL3 access fails
+ PD_INI         T
+ GN_INI         T
+ TM_INI         T
+ DBCALIB$VTX    'DBL3$VTX:DBCALIB$VTX.DAT'  ! database file
+ PD_METH        1       ! See above
+ GN_METH        2       ! for the meaning
+ TM_METH        0       ! of these numbers
+ VPDHFILE   'DISK:[AREA]VPDH_RUNNO.DAT'
+ VGNHFILE   'DISK:[AREA]VGNH_RUNNO.DAT'
+ VTMHFILE   'DISK:[AREA]VTMH_RUNNO.DAT'
+ MAX_VTXCRT     9       ! Maximum vtx crate number, counting from 0
+ DEF_TZERO      325.    ! These are about right for D0 hall
+ DEF_TSIGMA       1.    ! These are used if TM_INI is false
+! Default numbers to use when access to DBL3 datavase fails
+ DFLT_PD        8.5
+ DFLT_PD_SIG    1.25
+ DFLT_TM        325.
+ DFLT_TM_SIG    0.5
+ DFLT_GN        1.0
+ DFLT_GN_SIG    0.1
+\STOP

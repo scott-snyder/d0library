@@ -1,0 +1,2971 @@
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page   1
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001          SUBROUTINE PBDINI                                                         
+00002    C-                                                                              
+00003    C-                                                                              
+00004    C-    Purposes and Methods:                                                     
+00005    C-    --------------------                                                      
+00006    C-    This routine must be called by the FrameWork to initialize                
+00007    C-    the run time switches associated with the packages                        
+00008    C-    Created by the PROGRAM BUILDER                                            
+00009    C-     4-DEC-92 05:48:43                                                        
+00010    C-                                                                              
+00011    C-                                                                              
+00012    C-                                                                              
+00013          LOGICAL WRNGOK                                                            
+00014          INTEGER LOGUNT,MAXLOG,MAXWRN                                              
+00015          CHARACTER*32 STRGLG                                                       
+00016          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00017          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00018          INTEGER PBD_FLAG_MAX                                                      
+00019    C-                                                                              
+00020          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00021    C-                                                                              
+00022          LOGUNT = 0                                                                
+00023          WRNGOK = .TRUE.                                                           
+00024          CALL ERRINI(LOGUNT,WRNGOK)                                                
+00025          MAXLOG = 1                                                                
+00026          MAXWRN = 1                                                                
+00027          STRGLG = ' '                                                              
+00028          CALL ERRMAX(STRGLG,MAXLOG,MAXWRN)                                         
+00029    C-                                                                              
+00030          PBD_FLAG_MAX =  6                                                         
+00031    C-                                                                              
+00032          PBD_FLAG_VALUE( 1) = .TRUE.                                               
+00033          PBD_FLAG_NAME( 1) = 'CALOR'                                               
+00034          PBD_FLAG_VALUE( 2) = .TRUE.                                               
+00035          PBD_FLAG_NAME( 2) = 'CADMAKE'                                             
+00036          PBD_FLAG_VALUE( 3) = .TRUE.                                               
+00037          PBD_FLAG_NAME( 3) = 'RERUN_L12'                                           
+00038          PBD_FLAG_VALUE( 4) = .TRUE.                                               
+00039          PBD_FLAG_NAME( 4) = 'L1SIM'                                               
+00040          PBD_FLAG_VALUE( 5) = .TRUE.                                               
+00041          PBD_FLAG_NAME( 5) = 'RECDDN'                                              
+00042          PBD_FLAG_VALUE( 6) = .TRUE.                                               
+00043          PBD_FLAG_NAME( 6) = 'VMS_FILTER'                                          
+00044          RETURN                                                                    
+00045          END                                                                       
+
+PBDINI                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page   2
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  180   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  42   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                  84   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  526
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000       PBDINI        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000024  I*4  LOGUNT          2-00000028  I*4  MAXLOG          2-0000002C  I*4  MAXWRN          3-000000D8  I*4  PBD_FLAG_MAX  
+  2-00000000  CHAR STRGLG          2-00000020  L*4  WRNGOK        
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name          
+
+        ERRINI                ERRMAX        
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page   3
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-    The following routine has been generated by the Program Builder           
+00004    C-    because the size of the common blocks has been modified                   
+00005    C-    by the user.                                                              
+00006    C-                                                                              
+00007    C-    Created by the PROGRAM BUILDER                                            
+00008    C-     4-DEC-92 05:48:43                                                        
+00009    C-                                                                              
+00010    C-                                                                              
+00011          SUBROUTINE INZCOM(I)                                                      
+00012    C----------------------------------------------------------------------         
+00013    C-                                                                              
+00014    C-   Purpose and Methods :                                                      
+00015    C-       Initialize ZEBCOM (event data Zebra common)                            
+00016    C-                                                                              
+00017    C-   Inputs  : I = 1 data in division 1, otherwise in division 2                
+00018    C-   Outputs : NONE                                                             
+00019    C-                                                                              
+00020    C-   Created  28-OCT-1988   Serban D. Protopopescu                              
+00021    C-                                                                              
+00022    C----------------------------------------------------------------------         
+00023          IMPLICIT NONE                                                             
+00024    C-                                                                              
+00025    C     INCLUDE 'D0$INC:ZEBCOM.INC'                                               
+00026    C-                                                                              
+00027    C-                                                                              
+00028    C DEC/CMS REPLACEMENT HISTORY, Element ZEBCOM.INC                               
+00029    C *12   19-DEC-1988 11:45:39 D0LIBRARY "added IXCOM, removed IXDIV"             
+00030    C *11   29-NOV-1988 16:25:17 D0LIBRARY "added comments"                         
+00031    C *10   29-NOV-1988 16:21:03 D0LIBRARY "added IXDIV and IXDVR"                  
+00032    C *9    22-SEP-1986 11:26:53 JONCKHEERE "Increase ZEBCOM size for GEANT"        
+00033    C *8     2-SEP-1986 13:45:57 SERBAN "links are now in .LINKS files"             
+00034    C *7    15-JUL-1986 16:00:14 JONCKHEERE "PARAMETER FOR MUHT,CAHT,CDHT ADDED (MUH
+00035    C *6    27-MAY-1986 13:10:11 SERBAN "parameter NNQ changed from 50000 to 100000"
+00036    C *5    15-MAY-1986 16:51:11 SERBAN "added more pointers for ISAJET"            
+00037    C *4    12-MAY-1986 18:41:24 HEDIN "Put in Muon Zebra Links"                    
+00038    C *3    12-MAY-1986 16:46:40 SERBAN "added parameters for link pointers"        
+00039    C *2     7-MAY-1986 21:41:19 KUNORI "convert to standard 77 (drop *4)"          
+00040    C *1    14-JAN-1986 17:22:30 PROTOPOPESCU "Zebra common block for event data"   
+00041    C DEC/CMS REPLACEMENT HISTORY, Element ZEBCOM.INC                               
+00042    C                                                                               
+00043    C  ZEBCOM is the main zebra common block for event data storage                 
+00044    C                                                                               
+00045          INTEGER NNQ,NREF                                                          
+00046    C     PARAMETER (NNQ=200000)                                                    
+00047    C-                                                                              
+00048    C-    The following is the new parameter value                                  
+00049    C-                                                                              
+00050          PARAMETER (NNQ=800000 )                                                   
+00051    C-                                                                              
+00052          PARAMETER (NREF=9)                                                        
+00053          COMMON/ZEBCOM/IXCOM,IXMAIN,IXDVR,FENCE,LHEAD,LHEADR,LREF,                 
+00054         &  ZSTOR,ENDZS                                                             
+00055          INTEGER IXCOM    ! store number                                           
+00056         &       ,IXMAIN   ! event division number                                  
+00057         &       ,IXDVR    ! run division number                                    
+
+INZCOM                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page   4
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058          INTEGER FENCE(8),LREF(NREF),ZSTOR(NNQ),ENDZS                              
+00059          INTEGER LHEAD     ! pointer to event HEAD bank                            
+00060          INTEGER LHEADR    ! pointer to begin run HEAD bank                        
+00061          REAL Q(NNQ)                                                               
+00062          INTEGER IQ(NNQ),LQ(NNQ)                                                   
+00063          EQUIVALENCE (LHEAD,LQ(1)),(LQ(9),IQ(1),Q(1))                              
+00064    C                                                                               
+00065    C-                                                                              
+00066    C-                                                                              
+00067          INTEGER I                                                                 
+00068          LOGICAL FIRST                                                             
+00069          SAVE FIRST                                                                
+00070          DATA FIRST/.TRUE./                                                        
+00071    C----------------------------------------------------------------------         
+00072    C                                                                               
+00073          IF(FIRST) THEN                                                            
+00074    C                                                                               
+00075    C **** Initialize store in /ZEBCOM/ common (store 0)                            
+00076    C                                                                               
+00077            IXCOM=0                                                                 
+00078            CALL MZSTOR (IXCOM,'/ZEBCOM/','Q',FENCE,LHEAD,LREF(1),ZSTOR(1),         
+00079         &   ZSTOR(40000),ENDZS)                                                    
+00080    C                                                                               
+00081    C **** Use division IXMAIN for event data                                       
+00082    C                                                                               
+00083            IXMAIN=IXCOM+2                                                          
+00084            IF(I.EQ.1) IXMAIN=IXCOM+1                                               
+00085    C                                                                               
+00086    C **** Create a division for run header (3rd division)                          
+00087    C                                                                               
+00088            CALL MZDIV(IXCOM,IXDVR,'RUN DIV',100,40000,'L')                         
+00089            FIRST=.FALSE.                                                           
+00090          ENDIF                                                                     
+00091      999 RETURN                                                                    
+00092          END                                                                       
+
+INZCOM                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page   5
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   67   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  29   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 104   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 ZEBCOM                             3200092   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated              3200292
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000       INZCOM        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  3-0030D458  I*4  ENDZS           2-00000000  L*4  FIRST          AP-00000004@ I*4  I               3-00000000  I*4  IXCOM         
+  3-00000008  I*4  IXDVR           3-00000004  I*4  IXMAIN          3-0000002C  I*4  LHEAD           3-00000030  I*4  LHEADR        
+
+
+ARRAYS
+
+    Address  Type  Name                Bytes  Dimensions
+
+  3-0000000C  I*4  FENCE                  32  (8)
+  3-0000004C  I*4  IQ                3200000  (800000)
+  3-0000002C  I*4  LQ                3200000  (800000)
+  3-00000034  I*4  LREF                   36  (9)
+  3-0000004C  R*4  Q                 3200000  (800000)
+  3-00000058  I*4  ZSTOR             3200000  (800000)
+
+
+
+
+LABELS
+
+    Address   Label   
+
+  0-00000042  999     
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name          
+
+        MZDIV                 MZSTOR        
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page   6
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004    C-                                                                              
+00005    C-    The following routine has been generated by the Program Builder           
+00006    C-    because the size of the common blocks has been modified                   
+00007    C-    by the user.                                                              
+00008    C-                                                                              
+00009    C-    Created by the PROGRAM BUILDER                                            
+00010    C-     4-DEC-92 05:48:43                                                        
+00011    C-                                                                              
+00012    C-                                                                              
+00013          SUBROUTINE INZSTP                                                         
+00014    C----------------------------------------------------------------------         
+00015    C-                                                                              
+00016    C-   Purpose and Methods :                                                      
+00017    C-       Initialize ZEBSTP (Zebra common for static parameters)                 
+00018    C-                                                                              
+00019    C-   Created  28-OCT-1988   Serban D. Protopopescu                              
+00020    C-                                                                              
+00021    C----------------------------------------------------------------------         
+00022          IMPLICIT NONE                                                             
+00023    C-                                                                              
+00024    C     INCLUDE 'D0$INC:ZEBSTP.INC'                                               
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C ZEBSTP.INC                                                                    
+00028          INTEGER NNC                                                               
+00029    C     PARAMETER (NNC=200000)                                                    
+00030    C-                                                                              
+00031    C-    The following is the new parameter value                                  
+00032    C-                                                                              
+00033          PARAMETER (NNC=1000000 )                                                  
+00034    C-                                                                              
+00035          COMMON/ZEBSTP/IXSTP,IDVSTP,IDVSUM,FENSTP,LSTPH,LZSUM,                     
+00036         1 LSLV0,LLPDH,LLGNH,LLTMH,LLGEH,LLV,   ! level 0 links                     
+00037         2 LSMUO,LMPDH,LMGNH,LMTMH,LMGEH,LMU,   ! muon links                        
+00038         3 LSVTX,LVPDH,LVGNH,LVTMH,LVGEH,LVT,   ! vertex chamber links              
+00039         4 LSCDC,LDPDH,LDGNH,LDTMH,LDGEH,LDALH,LDC,   ! cdc links                   
+00040         5 LSTRD,LTPDH,LTGAI,LTGEN,LTGEO,LTR,   ! trd links                         
+00041         6 LSFDC,LFPDH,LFGNH,LFTMH,LFGEH,LFD,   ! fdc links                         
+00042         7 LSCAL,LCPDH,LCGNH,LCGEH,LCA,         ! calorimeter links                 
+00043         8 ZCONS,ENDZC                                                              
+00044          INTEGER IXSTP,IDVSTP,IDVSUM,FENSTP(10),LZSUM,ZCONS(NNC),ENDZC             
+00045          REAL C(NNC)                                                               
+00046          INTEGER IC(NNC),LC(NNC)                                                   
+00047          EQUIVALENCE (LSTPH,LC(1)),(LC(9),IC(1),C(1))                              
+00048          INTEGER LSTPH     ! static parameter header                               
+00049         $,  LSLV0      ! level 0 constants header                                  
+00050         $,  LLPDH      ! level 0 pedestal header                                   
+00051         $,  LLGNH      ! level 0 gain header                                       
+00052         $,  LLTMH      ! level 0 time constants header                             
+00053         $,  LLGEH      ! level 0 geometry constants header                         
+00054         $,  LLV(10)    ! available                                                 
+00055    C                                                                               
+00056          INTEGER LSMUO      ! Muon constants header                                
+00057         $,  LMPDH      ! Muon pedestal header                                      
+
+INZSTP                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page   7
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058         $,  LMGNH      ! Muon gain header                                          
+00059         $,  LMTMH      ! Muon time constants header                                
+00060         $,  LMGEH      ! Muon geometry constants header                            
+00061         $,  LMU(10)    ! available                                                 
+00062    C                                                                               
+00063          INTEGER LSVTX      ! Vertex chamber constants header                      
+00064         $,  LVPDH      ! Vertex chamber pedestal header                            
+00065         $,  LVGNH      ! Vertex chamber gain header                                
+00066         $,  LVTMH      ! Vertex chamber time constants header                      
+00067         $,  LVGEH      ! Vertex chamber geometry constants header                  
+00068         $,  LVT(10)    ! available                                                 
+00069    C                                                                               
+00070          INTEGER LSCDC      ! CDC constants header                                 
+00071         $,  LDPDH      ! CDC pedestal header                                       
+00072         $,  LDGNH      ! CDC gain header                                           
+00073         $,  LDTMH      ! CDC time constants header                                 
+00074         $,  LDGEH      ! CDC geometry constants header                             
+00075         $,  LDALH      ! CDC wire alignment constants header                       
+00076         $,  LDC(9)     ! available                                                 
+00077    C                                                                               
+00078          INTEGER LSTRD      ! TRD constants header                                 
+00079         $,  LTPDH      ! TRD pedestal header                                       
+00080         $,  LTGAI      ! TRD gains header                                          
+00081         $,  LTGEN      ! TRD general header                                        
+00082         $,  LTGEO      ! TRD geometry constants header                             
+00083         $,  LTR(10)    ! available                                                 
+00084    C                                                                               
+00085          INTEGER LSFDC      ! FDC constants header                                 
+00086         $,  LFPDH      ! FDC pedestal header                                       
+00087         $,  LFGNH      ! FDC gain header                                           
+00088         $,  LFTMH      ! FDC time constants header                                 
+00089         $,  LFGEH      ! FDC geometry constants header                             
+00090         $,  LFD(10)    ! available                                                 
+00091    C                                                                               
+00092          INTEGER LSCAL      ! Calorimeter constants header                         
+00093         $,  LCPDH      ! Calorimeter pedestal header                               
+00094         $,  LCGNH      ! Calorimeter gain header                                   
+00095         $,  LCGEH      ! Calorimeter geometry constants header                     
+00096         $,  LCA(11)    ! available                                                 
+00097    C                                                                               
+00098    C-                                                                              
+00099    C-                                                                              
+00100          LOGICAL FIRST                                                             
+00101          SAVE FIRST                                                                
+00102          DATA FIRST/.TRUE./                                                        
+00103    C----------------------------------------------------------------------         
+00104    C                                                                               
+00105          IF(FIRST) THEN                                                            
+00106    C                                                                               
+00107    C          Note that 10 words are set aside for reference links                 
+00108    C          but are not specifically named in the common block                   
+00109    C                                                                               
+00110            CALL MZSTOR (IXSTP,'/ZEBSTP/','C',FENSTP,LSTPH,ZCONS,ZCONS(10),         
+00111         &   ZCONS(10000),ENDZC)                                                    
+00112    C                                                                               
+00113    C **** IDVSTP is the 2nd division in the ZEBSTP store.                          
+00114    C                                                                               
+
+INZSTP                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page   8
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00115            IDVSTP=IXSTP+2                                                          
+00116            CALL CONSTP                 ! construct STP headers                     
+00117            FIRST=.FALSE.                                                           
+00118          ENDIF                                                                     
+00119      999 RETURN                                                                    
+00120          END                                                                       
+
+
+
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   42   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  11   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                  60   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 ZEBSTP                             4000484   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated              4000597
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000       INZSTP        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  3-003D0AE0  I*4  ENDZC           2-00000000  L*4  FIRST           3-00000004  I*4  IDVSTP          3-00000008  I*4  IDVSUM        
+  3-00000000  I*4  IXSTP           3-000001B0  I*4  LCGEH           3-000001AC  I*4  LCGNH           3-000001A8  I*4  LCPDH         
+  3-00000104  I*4  LDALH           3-00000100  I*4  LDGEH           3-000000F8  I*4  LDGNH           3-000000F4  I*4  LDPDH         
+  3-000000FC  I*4  LDTMH           3-00000178  I*4  LFGEH           3-00000170  I*4  LFGNH           3-0000016C  I*4  LFPDH         
+  3-00000174  I*4  LFTMH           3-0000004C  I*4  LLGEH           3-00000044  I*4  LLGNH           3-00000040  I*4  LLPDH         
+  3-00000048  I*4  LLTMH           3-00000088  I*4  LMGEH           3-00000080  I*4  LMGNH           3-0000007C  I*4  LMPDH         
+  3-00000084  I*4  LMTMH           3-000001A4  I*4  LSCAL           3-000000F0  I*4  LSCDC           3-00000168  I*4  LSFDC         
+  3-0000003C  I*4  LSLV0           3-00000078  I*4  LSMUO           3-00000034  I*4  LSTPH           3-0000012C  I*4  LSTRD         
+  3-000000B4  I*4  LSVTX           3-00000134  I*4  LTGAI           3-00000138  I*4  LTGEN           3-0000013C  I*4  LTGEO         
+  3-00000130  I*4  LTPDH           3-000000C4  I*4  LVGEH           3-000000BC  I*4  LVGNH           3-000000B8  I*4  LVPDH         
+  3-000000C0  I*4  LVTMH           3-00000038  I*4  LZSUM         
+
+
+ARRAYS
+
+    Address  Type  Name                Bytes  Dimensions
+
+  3-00000054  R*4  C                 4000000  (1000000)
+  3-0000000C  I*4  FENSTP                 40  (10)
+  3-00000054  I*4  IC                4000000  (1000000)
+  3-00000034  I*4  LC                4000000  (1000000)
+  3-000001B4  I*4  LCA                    44  (11)
+  3-00000108  I*4  LDC                    36  (9)
+  3-0000017C  I*4  LFD                    40  (10)
+
+INZSTP                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page   9
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+  3-00000050  I*4  LLV                    40  (10)
+  3-0000008C  I*4  LMU                    40  (10)
+  3-00000140  I*4  LTR                    40  (10)
+  3-000000C8  I*4  LVT                    40  (10)
+  3-000001E0  I*4  ZCONS             4000000  (1000000)
+
+
+
+
+LABELS
+
+    Address   Label   
+
+  0-00000029  999     
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name          
+
+        CONSTP                MZSTOR        
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  10
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004    C-                                                                              
+00005    C-    The following routine has been generated by the Program Builder           
+00006    C-    because the size of the common blocks has been modified                   
+00007    C-    by the user.                                                              
+00008    C-                                                                              
+00009    C-    Created by the PROGRAM BUILDER                                            
+00010    C-     4-DEC-92 05:48:43                                                        
+00011    C-                                                                              
+00012    C-                                                                              
+00013          SUBROUTINE INZWRK                                                         
+00014    C----------------------------------------------------------------------         
+00015    C-                                                                              
+00016    C-   Purpose and Methods :                                                      
+00017    C-      Initialize /ZEBWRK/, working area not written out                       
+00018    C-                                                                              
+00019    C-   Created  28-OCT-1988   Serban D. Protopopescu                              
+00020    C-                                                                              
+00021    C----------------------------------------------------------------------         
+00022          IMPLICIT NONE                                                             
+00023    C-                                                                              
+00024    C     INCLUDE 'D0$INC:ZEBWRK.INC'                                               
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C                                                                               
+00028    C--     Zebra working space; Banks WRKH; STEP; ADCS;                            
+00029    C                                                                               
+00030          INTEGER NNW,NWR                                                           
+00031    C     PARAMETER (NNW=20000)                                                     
+00032    C-                                                                              
+00033    C-    The following is the new parameter value                                  
+00034    C-                                                                              
+00035          PARAMETER (NNW=40000 )                                                    
+00036    C-                                                                              
+00037          PARAMETER (NWR=9)                                                         
+00038          COMMON/ZEBWRK/IXWRK,IDVWRK,FENWRK,LWRKH,LRWRK,LSTEP,                      
+00039         2 ZWORK,ENDZW                                                              
+00040    C                                                                               
+00041          INTEGER IXWRK,IDVWRK,LSTEP,FENWRK(10),ZWORK(NNW),ENDZW                    
+00042          REAL W(NNW)                                                               
+00043          INTEGER IW(NNW),LW(NNW)                                                   
+00044          INTEGER*2 KW(2*NNW)                                                       
+00045          EQUIVALENCE (LWRKH,LW(1)),(LW(9),IW(1),W(1),KW(1))                        
+00046          INTEGER LWRKH               ! working space header                        
+00047         $,  LRWRK(NWR)                                                             
+00048    C                                                                               
+00049    C-                                                                              
+00050    C-                                                                              
+00051          LOGICAL FIRST                                                             
+00052          SAVE FIRST                                                                
+00053          DATA FIRST/.TRUE./                                                        
+00054    C----------------------------------------------------------------------         
+00055    C                                                                               
+00056          IF(FIRST) THEN                                                            
+00057            CALL MZSTOR (IXWRK,'/ZEBWRK/','Q',FENWRK,LWRKH,LRWRK,ZWORK(1),          
+
+INZWRK                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  11
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058         &   ZWORK(10000),ENDZW)                                                    
+00059            IDVWRK=IXWRK+2                                                          
+00060            FIRST=.FALSE.                                                           
+00061          ENDIF                                                                     
+00062      999 RETURN                                                                    
+00063          END                                                                       
+
+
+
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   35   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  11   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                  60   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 ZEBWRK                              160096   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated               160202
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000       INZWRK        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  3-0002715C  I*4  ENDZW           2-00000000  L*4  FIRST           3-00000004  I*4  IDVWRK          3-00000000  I*4  IXWRK         
+  3-00000058  I*4  LSTEP           3-00000030  I*4  LWRKH         
+
+
+ARRAYS
+
+    Address  Type  Name                Bytes  Dimensions
+
+  3-00000008  I*4  FENWRK                 40  (10)
+  3-00000050  I*4  IW                 160000  (40000)
+  3-00000050  I*2  KW                 160000  (80000)
+  3-00000034  I*4  LRWRK                  36  (9)
+  3-00000030  I*4  LW                 160000  (40000)
+  3-00000050  R*4  W                  160000  (40000)
+  3-0000005C  I*4  ZWORK              160000  (40000)
+
+
+
+INZWRK                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  12
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+LABELS
+
+    Address   Label   
+
+  0-00000022  999     
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name          
+
+        MZSTOR        
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  13
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004    C-                                                                              
+00005    C-    The following routine has been generated by the Program Builder           
+00006    C-    because the size of the common blocks has been modified                   
+00007    C-    by the user.                                                              
+00008    C-                                                                              
+00009    C-    Created by the PROGRAM BUILDER                                            
+00010    C-     4-DEC-92 05:48:43                                                        
+00011    C-                                                                              
+00012    C-                                                                              
+00013          SUBROUTINE INPAWC                                                         
+00014    C----------------------------------------------------------------------         
+00015    C-                                                                              
+00016    C-   Purpose and Methods :                                                      
+00017    C-       Initialize PAWC common for HBOOK4                                      
+00018    C-                                                                              
+00019    C-   Created  27-MAR-1989   Serban D. Protopopescu                              
+00020    C-   Updated  17-APR-1991   Rajendran Raja  Updated to have Global sections     
+00021    C-   Updated   3-MAR-1992   K. Wyatt Merritt  Put global sections in machine    
+00022    C-                           block for unix compatibility                       
+00023    C-                                                                              
+00024    C----------------------------------------------------------------------         
+00025          IMPLICIT NONE                                                             
+00026    C-                                                                              
+00027    C     INCLUDE 'D0$INC:PAWC.INC'                                                 
+00028    C-                                                                              
+00029    C-                                                                              
+00030    C----------------------------------------------------------------------         
+00031    C-                                                                              
+00032    C-   Created  16-MAY-1989   Serban D. Protopopescu                              
+00033    C-   Updated   1-JUN-1991   Rajendran Raja                                      
+00034    C-                                                                              
+00035    C----------------------------------------------------------------------         
+00036          INTEGER NPAWC                                                             
+00037    C     PARAMETER (NPAWC=100000)                                                  
+00038    C-                                                                              
+00039    C-    The following is the new parameter value                                  
+00040    C-                                                                              
+00041          PARAMETER (NPAWC=200000 )                                                 
+00042    C-                                                                              
+00043          INTEGER PAGELEN                                                           
+00044          PARAMETER( PAGELEN = 128 )        ! LENGTH OF PAGE                        
+00045          INTEGER MAXPAGES                                                          
+00046          PARAMETER( MAXPAGES = NPAWC/PAGELEN )                                     
+00047          CHARACTER*32 GNAME                                                        
+00048    C                                                                               
+00049          COMMON/PAWC/NWPAW,IXPAWC,IHDIV,IXHIGZ,IXKU,FENC(5),LPMAIN,                
+00050         &  HCV(9989)                                                               
+00051    C                                                                               
+00052          REAL HMEMOR(PAGELEN*MAXPAGES)                                             
+00053          INTEGER NWPAW,IXPAWC,IHDIV,IXHIGZ,IXKU,FENC,LPMAIN,HCV                    
+00054          EQUIVALENCE(NWPAW,HMEMOR(1))                                              
+00055          INTEGER IP(2),LP(8000)                                                    
+00056          REAL    P(2)                                                              
+00057          EQUIVALENCE (LP(1),LPMAIN),(IP(1),LP(9)),(P(1),IP(1))                     
+
+INPAWC                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  14
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058    C-                                                                              
+00059    C-                                                                              
+00060          INTEGER NPAGES,HCREATEG                                                   
+00061          INTEGER TRNLNM,STATUS,LENG                                                
+00062          INTEGER TRULEN                                                            
+00063    C----------------------------------------------------------------------         
+00064    C                                                                               
+00065          STATUS = TRNLNM('GLOBAL$PAWC',GNAME,LENG)                                 
+00066          IF ( GNAME(1:LENG).EQ.'GLOBAL$PAWC' ) THEN          ! NO GLOBAL SECTION   
+00067            CALL HLIMIT(-PAGELEN*MAXPAGES)                                          
+00068          ELSE                                                                      
+00069    C&IF VAXVMS                                                                     
+00070            NPAGES = HCREATEG(GNAME(1:LENG),HMEMOR,PAGELEN*MAXPAGES)                
+00071            IF ( NPAGES.GT.0 ) THEN                                                 
+00072              CALL ERRMSG(' INPAWC ','INPAWC',                                      
+00073         &    ' GLOBAL SECTION: '//GNAME(1:LENG)//' CREATED ','S')                  
+00074              CALL HLIMIT(-PAGELEN*MAXPAGES)                                        
+00075            ELSE                                                                    
+00076              CALL ERRMSG(' INPAWC ','INPAWC ',                                     
+00077         &    ' GLOBAL SECTION ERROR ','S')                                         
+00078            ENDIF                                                                   
+00079    C&ELSE                                                                          
+00080    C&        CALL HLIMIT(-PAGELEN*MAXPAGES)                                        
+00081    C&        CALL ERRMSG(' INPAWC ','INPAWC ',                                     
+00082    C&     &    'Global section not created on non-VMS system','S')                 
+00083    C&ENDIF                                                                         
+00084          ENDIF                                                                     
+00085    C                                                                               
+00086      999 RETURN                                                                    
+00087          END                                                                       
+
+INPAWC                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  15
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  158   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  95   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 224   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PAWC                                799744   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated               800221
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000       INPAWC        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000000  CHAR GNAME           3-00000008  I*4  IHDIV           3-0000000C  I*4  IXHIGZ          3-00000010  I*4  IXKU          
+  3-00000004  I*4  IXPAWC          2-00000028  I*4  LENG            3-00000028  I*4  LPMAIN          2-00000020  I*4  NPAGES        
+  3-00000000  I*4  NWPAW           2-00000024  I*4  STATUS          2-0000002C  I*4  TRULEN        
+
+
+ARRAYS
+
+    Address  Type  Name                Bytes  Dimensions
+
+  3-00000014  I*4  FENC                   20  (5)
+  3-0000002C  I*4  HCV                 39956  (9989)
+  3-00000000  R*4  HMEMOR             799744  (199936)
+  3-00000048  I*4  IP                      8  (2)
+  3-00000028  I*4  LP                  32000  (8000)
+  3-00000048  R*4  P                       8  (2)
+
+
+
+
+LABELS
+
+    Address   Label   
+
+  0-0000009D  999     
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name            Type  Name            Type  Name          
+
+        ERRMSG           I*4  HCREATEG              HLIMIT           I*4  TRNLNM        
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  16
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003          LOGICAL FUNCTION STSWCH()                                                 
+00004    C-                                                                              
+00005    C-                                                                              
+00006    C-    Purposes and Methods:                                                     
+00007    C-    --------------------                                                      
+00008    C-    This routine allows the Program Builder user to set                       
+00009    C-    and reset(ON/OFF) the run time switches associated                        
+00010    C-    with the packages.                                                        
+00011    C-    Created by the PROGRAM BUILDER                                            
+00012    C-     4-DEC-92 05:48:43                                                        
+00013    C-                                                                              
+00014    C-                                                                              
+00015          LOGICAL PRODUC                                                            
+00016          LOGICAL LCALOR                                                            
+00017          LOGICAL LCADMAKE                                                          
+00018          LOGICAL LRERUN_L12                                                        
+00019          LOGICAL LL1SIM                                                            
+00020          LOGICAL LRECDDN                                                           
+00021          LOGICAL LVMS_FILTER                                                       
+00022          INTEGER NUMPAR                                                            
+00023          CHARACTER*30 LABELS( 6)                                                   
+00024          CHARACTER TYPARR( 6)                                                      
+00025          INTEGER LIMITS(2, 6)                                                      
+00026          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00027          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00028          INTEGER PBD_FLAG_MAX                                                      
+00029          EXTERNAL PRODUC                                                           
+00030          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00031    C-                                                                              
+00032          DATA NUMPAR / 6/                                                          
+00033          DATA LABELS /                                                             
+00034         &          'CALOR Selected'                                                
+00035         &         ,'CADMAKE Selected'                                              
+00036         &         ,'RERUN_L12 Selected'                                            
+00037         &         ,'L1SIM Selected'                                                
+00038         &         ,'RECDDN Selected'                                               
+00039         &         ,'VMS_FILTER Selected'                                           
+00040         &       /                                                                  
+00041          DATA TYPARR /                                                             
+00042         &           'L'                                                            
+00043         &          ,'L'                                                            
+00044         &          ,'L'                                                            
+00045         &          ,'L'                                                            
+00046         &          ,'L'                                                            
+00047         &          ,'L'                                                            
+00048         &       /                                                                  
+00049    C-                                                                              
+00050          IF (.NOT. PRODUC()) THEN                                                  
+00051             LCALOR = PBD_FLAG_VALUE( 1)                                            
+00052             LCADMAKE = PBD_FLAG_VALUE( 2)                                          
+00053             LRERUN_L12 = PBD_FLAG_VALUE( 3)                                        
+00054             LL1SIM = PBD_FLAG_VALUE( 4)                                            
+00055             LRECDDN = PBD_FLAG_VALUE( 5)                                           
+00056             LVMS_FILTER = PBD_FLAG_VALUE( 6)                                       
+00057             CALL GETDIS(NUMPAR,LABELS,TYPARR,LIMITS                                
+
+STSWCH                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  17
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058         &              ,LCALOR                                                     
+00059         &              ,LCADMAKE                                                   
+00060         &              ,LRERUN_L12                                                 
+00061         &              ,LL1SIM                                                     
+00062         &              ,LRECDDN                                                    
+00063         &              ,LVMS_FILTER                                                
+00064         &                                          )                               
+00065    C-                                                                              
+00066             PBD_FLAG_VALUE( 1) = LCALOR                                            
+00067             PBD_FLAG_VALUE( 2) = LCADMAKE                                          
+00068             PBD_FLAG_VALUE( 3) = LRERUN_L12                                        
+00069             PBD_FLAG_VALUE( 4) = LL1SIM                                            
+00070             PBD_FLAG_VALUE( 5) = LRECDDN                                           
+00071             PBD_FLAG_VALUE( 6) = LVMS_FILTER                                       
+00072          END IF                                                                    
+00073    C-                                                                              
+00074          RETURN                                                                    
+00075          END                                                                       
+
+
+
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  127   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 384   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  731
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  STSWCH        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-000000F4  L*4  LCADMAKE        2-000000F0  L*4  LCALOR          2-000000FC  L*4  LL1SIM          2-00000100  L*4  LRECDDN       
+  2-000000F8  L*4  LRERUN_L12      2-00000104  L*4  LVMS_FILTER     2-00000108  I*4  NUMPAR          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  2-00000030  CHAR LABELS                                  180  (6)
+  2-00000000  I*4  LIMITS                                   48  (2, 6)
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+  2-000000E4  CHAR TYPARR                                    6  (6)
+
+STSWCH                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  18
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name          
+
+        GETDIS           L*4  PRODUC        
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  19
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004    C-                                                                              
+00005    C-                                                                              
+00006          LOGICAL FUNCTION PBD_SET_FLAG(FLAG_NAME,VALUE)                            
+00007    C-                                                                              
+00008          IMPLICIT NONE                                                             
+00009    C-                                                                              
+00010          CHARACTER*(*) FLAG_NAME                                                   
+00011          CHARACTER*80 TMP_FLAG_NAME                                                
+00012          INTEGER I                                                                 
+00013          LOGICAL DONE,VALUE                                                        
+00014          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00015          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00016          INTEGER PBD_FLAG_MAX                                                      
+00017          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00018    C-                                                                              
+00019    C-                                                                              
+00020          I = 1                                                                     
+00021          DONE = .FALSE.                                                            
+00022          CALL PBD_UPCASE(FLAG_NAME,TMP_FLAG_NAME)                                  
+00023          DO WHILE ((I.LE.PBD_FLAG_MAX).AND.(.NOT.DONE))                            
+00024            IF (TMP_FLAG_NAME(1:LEN(FLAG_NAME)).EQ.                                 
+00025         &      PBD_FLAG_NAME(I)(1:LEN(FLAG_NAME))) THEN                            
+00026              PBD_FLAG_VALUE(i) = VALUE                                             
+00027              DONE = .TRUE.                                                         
+00028            END IF                                                                  
+00029            I = I + 1                                                               
+00030          END DO                                                                    
+00031          PBD_SET_FLAG = DONE                                                       
+00032          RETURN                                                                    
+00033          END                                                                       
+
+PBD_SET_FLAG                                                     2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  20
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  104   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 120   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  444
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  PBD_SET_FLAG  
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000058  L*4  DONE           AP-00000004@ CHAR FLAG_NAME       2-00000054  I*4  I               3-000000D8  I*4  PBD_FLAG_MAX  
+  2-00000000  CHAR TMP_FLAG_NAME  AP-00000008@ L*4  VALUE         
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name          
+
+   I*4  LEN                   PBD_UPCASE    
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  21
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION PBD_GET_FLAG(FLAG_NAME,VALUE)                            
+00005    C-                                                                              
+00006          IMPLICIT NONE                                                             
+00007    C-                                                                              
+00008          CHARACTER*(*) FLAG_NAME                                                   
+00009          CHARACTER*80 TMP_FLAG_NAME                                                
+00010          INTEGER I                                                                 
+00011          LOGICAL DONE,VALUE                                                        
+00012    C-                                                                              
+00013          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00014          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00015          INTEGER PBD_FLAG_MAX                                                      
+00016          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00017    C-                                                                              
+00018          I = 1                                                                     
+00019          DONE = .FALSE.                                                            
+00020          CALL PBD_UPCASE(FLAG_NAME,TMP_FLAG_NAME)                                  
+00021          DO WHILE ((I.LE.PBD_FLAG_MAX).AND.(.NOT.DONE))                            
+00022            IF (TMP_FLAG_NAME(1:LEN(FLAG_NAME)).EQ.                                 
+00023         &      PBD_FLAG_NAME(I)(1:LEN(FLAG_NAME))) THEN                            
+00024              VALUE = PBD_FLAG_VALUE(I)                                             
+00025              DONE = .TRUE.                                                         
+00026            END IF                                                                  
+00027            I = I + 1                                                               
+00028          END DO                                                                    
+00029          PBD_GET_FLAG = DONE                                                       
+00030          RETURN                                                                    
+00031          END                                                                       
+
+PBD_GET_FLAG                                                     2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  22
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  104   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 120   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  444
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  PBD_GET_FLAG  
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000058  L*4  DONE           AP-00000004@ CHAR FLAG_NAME       2-00000054  I*4  I               3-000000D8  I*4  PBD_FLAG_MAX  
+  2-00000000  CHAR TMP_FLAG_NAME  AP-00000008@ L*4  VALUE         
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name          
+
+   I*4  LEN                   PBD_UPCASE    
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  23
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          SUBROUTINE PBD_DUMP_FLAGS                                                 
+00005    C-                                                                              
+00006          IMPLICIT NONE                                                             
+00007    C-                                                                              
+00008          INTEGER I                                                                 
+00009    C-                                                                              
+00010          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00011          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00012          INTEGER PBD_FLAG_MAX                                                      
+00013          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00014          DO I = 1, PBD_FLAG_MAX                                                    
+00015            WRITE (6,'('' '',A,'' : '',L)') PBD_FLAG_NAME(I)(1:32),                 
+00016         &PBD_FLAG_VALUE(I)                                                         
+00017          END DO                                                                    
+00018    C-                                                                              
+00019          RETURN                                                                    
+00020          END                                                                       
+
+
+
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   93   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  11   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                  16   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  340
+
+
+ENTRY POINTS
+
+    Address  Type  Name                            
+
+  0-00000000       PBD_DUMP_FLAGS                  
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name          
+
+  2-00000000  I*4  I               3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  24
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          SUBROUTINE PBD_UPCASE(IN_STRING,OUT_STRING)                               
+00005          IMPLICIT NONE                                                             
+00006          CHARACTER*(*) IN_STRING,OUT_STRING                                        
+00007          INTEGER I,OFFSET                                                          
+00008    C-                                                                              
+00009    C-                                                                              
+00010    C-                                                                              
+00011          OFFSET = ICHAR('A') - ICHAR('a')                                          
+00012          DO I = 1, LEN(IN_STRING)                                                  
+00013            IF ((IN_STRING(I:I).GE.'a').AND.(IN_STRING(I:I).LE.'z')) THEN           
+00014              OUT_STRING(I:I) = CHAR(ICHAR(IN_STRING(I:I)) + OFFSET)                
+00015            ELSE                                                                    
+00016              OUT_STRING(I:I) = IN_STRING(I:I)                                      
+00017            END IF                                                                  
+00018          END DO                                                                    
+00019          RETURN                                                                    
+00020          END                                                                       
+
+
+
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  122   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                  28   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  150
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000       PBD_UPCASE    
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000000  I*4  I              AP-00000004@ CHAR IN_STRING       2-00000004  I*4  OFFSET         AP-00000008@ CHAR OUT_STRING    
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name            Type  Name          
+
+   CHAR CHAR             I*4  ICHAR            I*4  LEN           
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  25
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION EVENT_READ_OK()                                          
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00017          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00018          INTEGER PBD_FLAG_MAX                                                      
+00019          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00020    C-                                                                              
+00021          EVENT_READ_OK = .TRUE.                                                    
+00022    C-                                                                              
+00023    C-                                                                              
+00024    C-    No routine was provided for the package: CALOR                            
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C-    No routine was provided for the package: CADMAKE                          
+00028    C-                                                                              
+00029    C-                                                                              
+00030    C-    No routine was provided for the package: RERUN_L12                        
+00031    C-                                                                              
+00032    C-                                                                              
+00033    C-    No routine was provided for the package: L1SIM                            
+00034    C-                                                                              
+00035    C-                                                                              
+00036    C-    No routine was provided for the package: RECDDN                           
+00037    C-                                                                              
+00038    C-                                                                              
+00039    C-    No routine was provided for the package: VMS_FILTER                       
+00040    C-                                                                              
+00041          RETURN                                                                    
+00042          END                                                                       
+
+EVENT_READ_OK                                                    2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  26
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   18   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 148   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  386
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  EVENT_READ_OK 
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  27
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USREVT()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL CADMAKE                                                           
+00017          EXTERNAL CADMAKE                                                          
+00018          LOGICAL RERUN_L12                                                         
+00019          EXTERNAL RERUN_L12                                                        
+00020          LOGICAL L1SIM_EVENT                                                       
+00021          EXTERNAL L1SIM_EVENT                                                      
+00022          LOGICAL RECDDN                                                            
+00023          EXTERNAL RECDDN                                                           
+00024          LOGICAL FILTER_EVENT                                                      
+00025          EXTERNAL FILTER_EVENT                                                     
+00026          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00027          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00028          INTEGER PBD_FLAG_MAX                                                      
+00029          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00030    C-                                                                              
+00031          USREVT = .TRUE.                                                           
+00032    C-                                                                              
+00033    C-                                                                              
+00034    C-    No routine was provided for the package: CALOR                            
+00035    C-                                                                              
+00036    C-                                                                              
+00037          IF ( (PBD_FLAG_VALUE( 2))                                                 
+00038         &    ) THEN                                                                
+00039             IF (.NOT. CADMAKE()) THEN                                              
+00040                USREVT = .FALSE.                                                    
+00041                MESSID = '!CADMAKE is false.'                                       
+00042                CALLER = 'CADMAKE'                                                  
+00043                MESSAG = 'Further processing is skipped'                            
+00044                CALL ERRMSG(MESSID,CALLER,MESSAG,'W')                               
+00045                RETURN                                                              
+00046             END IF                                                                 
+00047          END IF                                                                    
+00048    C-                                                                              
+00049          IF ( (PBD_FLAG_VALUE( 3))                                                 
+00050         &    ) THEN                                                                
+00051             IF (.NOT. RERUN_L12()) THEN                                            
+00052                USREVT = .FALSE.                                                    
+00053                MESSID = '!RERUN_L12 is false.'                                     
+00054                CALLER = 'RERUN_L12'                                                
+00055                MESSAG = 'Further processing is skipped'                            
+00056                CALL ERRMSG(MESSID,CALLER,MESSAG,'W')                               
+00057                RETURN                                                              
+
+USREVT                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  28
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058             END IF                                                                 
+00059          END IF                                                                    
+00060    C-                                                                              
+00061          IF ( (PBD_FLAG_VALUE( 4))                                                 
+00062         &    ) THEN                                                                
+00063             IF (.NOT. L1SIM_EVENT()) THEN                                          
+00064                USREVT = .FALSE.                                                    
+00065                MESSID = '!L1SIM_EVENT is false.'                                   
+00066                CALLER = 'L1SIM_EVENT'                                              
+00067                MESSAG = 'Further processing is skipped'                            
+00068                CALL ERRMSG(MESSID,CALLER,MESSAG,'W')                               
+00069                RETURN                                                              
+00070             END IF                                                                 
+00071          END IF                                                                    
+00072    C-                                                                              
+00073          IF ( (PBD_FLAG_VALUE( 5))                                                 
+00074         &    ) THEN                                                                
+00075             IF (.NOT. RECDDN()) THEN                                               
+00076                USREVT = .FALSE.                                                    
+00077                MESSID = '!RECDDN is false.'                                        
+00078                CALLER = 'RECDDN'                                                   
+00079                MESSAG = 'Further processing is skipped'                            
+00080                CALL ERRMSG(MESSID,CALLER,MESSAG,'W')                               
+00081                RETURN                                                              
+00082             END IF                                                                 
+00083          END IF                                                                    
+00084    C-                                                                              
+00085          IF ( (PBD_FLAG_VALUE( 6))                                                 
+00086         &    ) THEN                                                                
+00087             IF (.NOT. FILTER_EVENT()) THEN                                         
+00088                USREVT = .FALSE.                                                    
+00089                MESSID = '!FILTER_EVENT is false.'                                  
+00090                CALLER = 'FILTER_EVENT'                                             
+00091                MESSAG = 'Further processing is skipped'                            
+00092                CALL ERRMSG(MESSID,CALLER,MESSAG,'W')                               
+00093                RETURN                                                              
+00094             END IF                                                                 
+00095          END IF                                                                    
+00096          RETURN                                                                    
+00097          END                                                                       
+
+USREVT                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  29
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  372   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                 176   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 352   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                 1120
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USREVT        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name            Type  Name            Type  Name            Type  Name            Type  Name          
+
+   L*4  CADMAKE               ERRMSG           L*4  FILTER_EVENT     L*4  L1SIM_EVENT      L*4  RECDDN           L*4  RERUN_L12     
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  30
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USRINI()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL CALOR_INI                                                         
+00017          EXTERNAL CALOR_INI                                                        
+00018          LOGICAL CHTINI                                                            
+00019          EXTERNAL CHTINI                                                           
+00020          LOGICAL L1SIM_INI                                                         
+00021          EXTERNAL L1SIM_INI                                                        
+00022          LOGICAL FILTER_INITIALIZ                                                  
+00023          EXTERNAL FILTER_INITIALIZ                                                 
+00024          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00025          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00026          INTEGER PBD_FLAG_MAX                                                      
+00027          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00028    C-                                                                              
+00029          USRINI = .TRUE.                                                           
+00030    C-                                                                              
+00031    C-                                                                              
+00032          IF ( (PBD_FLAG_VALUE( 1))                                                 
+00033         &    ) THEN                                                                
+00034             IF (.NOT. CALOR_INI()) THEN                                            
+00035                USRINI = .FALSE.                                                    
+00036                MESSID = '!CALOR_INI is false.'                                     
+00037                CALLER = 'CALOR_INI'                                                
+00038                MESSAG = 'Program execution is aborted'                             
+00039                CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+00040    C-                                                                              
+00041    C-          ERRMSG will trigger error messages printing                         
+00042    C-          and will abort the execution.                                       
+00043    C-          The following RETURN statement is only there                        
+00044    C-          to satisfy the FORTRAN compiler.                                    
+00045    C-                                                                              
+00046                RETURN                                                              
+00047             END IF                                                                 
+00048          END IF                                                                    
+00049    C-                                                                              
+00050          IF ( (PBD_FLAG_VALUE( 2))                                                 
+00051         &    ) THEN                                                                
+00052             IF (.NOT. CHTINI()) THEN                                               
+00053                USRINI = .FALSE.                                                    
+00054                MESSID = '!CHTINI is false.'                                        
+00055                CALLER = 'CHTINI'                                                   
+00056                MESSAG = 'Program execution is aborted'                             
+00057                CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+
+USRINI                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  31
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058    C-                                                                              
+00059    C-          ERRMSG will trigger error messages printing                         
+00060    C-          and will abort the execution.                                       
+00061    C-          The following RETURN statement is only there                        
+00062    C-          to satisfy the FORTRAN compiler.                                    
+00063    C-                                                                              
+00064                RETURN                                                              
+00065             END IF                                                                 
+00066          END IF                                                                    
+00067    C-                                                                              
+00068    C-    No routine was provided for the package: RERUN_L12                        
+00069    C-                                                                              
+00070    C-                                                                              
+00071          IF ( (PBD_FLAG_VALUE( 4))                                                 
+00072         &    ) THEN                                                                
+00073             IF (.NOT. L1SIM_INI()) THEN                                            
+00074                USRINI = .FALSE.                                                    
+00075                MESSID = '!L1SIM_INI is false.'                                     
+00076                CALLER = 'L1SIM_INI'                                                
+00077                MESSAG = 'Program execution is aborted'                             
+00078                CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+00079    C-                                                                              
+00080    C-          ERRMSG will trigger error messages printing                         
+00081    C-          and will abort the execution.                                       
+00082    C-          The following RETURN statement is only there                        
+00083    C-          to satisfy the FORTRAN compiler.                                    
+00084    C-                                                                              
+00085                RETURN                                                              
+00086             END IF                                                                 
+00087          END IF                                                                    
+00088    C-                                                                              
+00089    C-    No routine was provided for the package: RECDDN                           
+00090    C-                                                                              
+00091    C-                                                                              
+00092          IF ( (PBD_FLAG_VALUE( 6))                                                 
+00093         &    ) THEN                                                                
+00094             IF (.NOT. FILTER_INITIALIZ()) THEN                                     
+00095                USRINI = .FALSE.                                                    
+00096                MESSID = '!FILTER_INITIALIZ is false.'                              
+00097                CALLER = 'FILTER_INITIALIZ'                                         
+00098                MESSAG = 'Program execution is aborted'                             
+00099                CALL ERRMSG(MESSID,CALLER,MESSAG,'F')                               
+00100    C-                                                                              
+00101    C-          ERRMSG will trigger error messages printing                         
+00102    C-          and will abort the execution.                                       
+00103    C-          The following RETURN statement is only there                        
+00104    C-          to satisfy the FORTRAN compiler.                                    
+00105    C-                                                                              
+00106                RETURN                                                              
+00107             END IF                                                                 
+00108          END IF                                                                    
+00109          RETURN                                                                    
+00110          END                                                                       
+
+USRINI                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  32
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  300   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                 154   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 316   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  990
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USRINI        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name                              Type  Name                              Type  Name                            
+
+   L*4  CALOR_INI                          L*4  CHTINI                                  ERRMSG                          
+   L*4  FILTER_INITIALIZ                   L*4  L1SIM_INI                       
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  33
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USDIAL()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL L1SIM_DIALOG                                                      
+00017          EXTERNAL L1SIM_DIALOG                                                     
+00018          LOGICAL FILTER_SETUP                                                      
+00019          EXTERNAL FILTER_SETUP                                                     
+00020          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00021          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00022          INTEGER PBD_FLAG_MAX                                                      
+00023          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00024    C-                                                                              
+00025          USDIAL = .TRUE.                                                           
+00026    C-                                                                              
+00027    C-                                                                              
+00028    C-    No routine was provided for the package: CALOR                            
+00029    C-                                                                              
+00030    C-                                                                              
+00031    C-    No routine was provided for the package: CADMAKE                          
+00032    C-                                                                              
+00033    C-                                                                              
+00034    C-    No routine was provided for the package: RERUN_L12                        
+00035    C-                                                                              
+00036    C-                                                                              
+00037          IF ( (PBD_FLAG_VALUE( 4))                                                 
+00038         &    ) THEN                                                                
+00039             IF (.NOT. L1SIM_DIALOG()) THEN                                         
+00040                USDIAL = .FALSE.                                                    
+00041                CALLER = 'L1SIM_DIALOG'                                             
+00042                MESSAG = 'This error is ignored'                                    
+00043                CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+00044             END IF                                                                 
+00045          END IF                                                                    
+00046    C-                                                                              
+00047    C-    No routine was provided for the package: RECDDN                           
+00048    C-                                                                              
+00049    C-                                                                              
+00050          IF ( (PBD_FLAG_VALUE( 6))                                                 
+00051         &    ) THEN                                                                
+00052             IF (.NOT. FILTER_SETUP()) THEN                                         
+00053                USDIAL = .FALSE.                                                    
+00054                CALLER = 'FILTER_SETUP'                                             
+00055                MESSAG = 'This error is ignored'                                    
+00056                CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+00057             END IF                                                                 
+
+USDIAL                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  34
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058          END IF                                                                    
+00059          RETURN                                                                    
+00060          END                                                                       
+
+
+
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  124   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  47   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 244   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  635
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USDIAL        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name            Type  Name          
+
+        ERRMSG           L*4  FILTER_SETUP     L*4  L1SIM_DIALOG  
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  35
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USENDR()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00017          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00018          INTEGER PBD_FLAG_MAX                                                      
+00019          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00020    C-                                                                              
+00021          USENDR = .TRUE.                                                           
+00022    C-                                                                              
+00023    C-                                                                              
+00024    C-    No routine was provided for the package: CALOR                            
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C-    No routine was provided for the package: CADMAKE                          
+00028    C-                                                                              
+00029    C-                                                                              
+00030    C-    No routine was provided for the package: RERUN_L12                        
+00031    C-                                                                              
+00032    C-                                                                              
+00033    C-    No routine was provided for the package: L1SIM                            
+00034    C-                                                                              
+00035    C-                                                                              
+00036    C-    No routine was provided for the package: RECDDN                           
+00037    C-                                                                              
+00038    C-                                                                              
+00039    C-    No routine was provided for the package: VMS_FILTER                       
+00040    C-                                                                              
+00041          RETURN                                                                    
+00042          END                                                                       
+
+USENDR                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  36
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   18   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 148   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  386
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USENDR        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  37
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USRPAR()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL CHTRUN                                                            
+00017          EXTERNAL CHTRUN                                                           
+00018          LOGICAL FILTER_RUN                                                        
+00019          EXTERNAL FILTER_RUN                                                       
+00020          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00021          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00022          INTEGER PBD_FLAG_MAX                                                      
+00023          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00024    C-                                                                              
+00025          USRPAR = .TRUE.                                                           
+00026    C-                                                                              
+00027    C-                                                                              
+00028    C-    No routine was provided for the package: CALOR                            
+00029    C-                                                                              
+00030    C-                                                                              
+00031          IF ( (PBD_FLAG_VALUE( 2))                                                 
+00032         &    ) THEN                                                                
+00033             IF (.NOT. CHTRUN()) THEN                                               
+00034                USRPAR = .FALSE.                                                    
+00035                MESSID = '!CHTRUN is false.'                                        
+00036                CALLER = 'CHTRUN'                                                   
+00037                MESSAG = 'Further processing is skipped'                            
+00038                CALL ERRMSG(MESSID,CALLER,MESSAG,'W')                               
+00039                RETURN                                                              
+00040             END IF                                                                 
+00041          END IF                                                                    
+00042    C-                                                                              
+00043    C-    No routine was provided for the package: RERUN_L12                        
+00044    C-                                                                              
+00045    C-                                                                              
+00046    C-    No routine was provided for the package: L1SIM                            
+00047    C-                                                                              
+00048    C-                                                                              
+00049    C-    No routine was provided for the package: RECDDN                           
+00050    C-                                                                              
+00051    C-                                                                              
+00052          IF ( (PBD_FLAG_VALUE( 6))                                                 
+00053         &    ) THEN                                                                
+00054             IF (.NOT. FILTER_RUN()) THEN                                           
+00055                USRPAR = .FALSE.                                                    
+00056                MESSID = '!FILTER_RUN is false.'                                    
+00057                CALLER = 'FILTER_RUN'                                               
+
+USRPAR                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  38
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058                MESSAG = 'Further processing is skipped'                            
+00059                CALL ERRMSG(MESSID,CALLER,MESSAG,'W')                               
+00060                RETURN                                                              
+00061             END IF                                                                 
+00062          END IF                                                                    
+00063          RETURN                                                                    
+00064          END                                                                       
+
+
+
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  158   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  85   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 244   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  707
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USRPAR        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name            Type  Name          
+
+   L*4  CHTRUN                ERRMSG           L*4  FILTER_RUN    
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  39
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USRPST()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL FILTER_STATUS                                                     
+00017          EXTERNAL FILTER_STATUS                                                    
+00018          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00019          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00020          INTEGER PBD_FLAG_MAX                                                      
+00021          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00022    C-                                                                              
+00023          USRPST = .TRUE.                                                           
+00024    C-                                                                              
+00025    C-                                                                              
+00026    C-    No routine was provided for the package: CALOR                            
+00027    C-                                                                              
+00028    C-                                                                              
+00029    C-    No routine was provided for the package: CADMAKE                          
+00030    C-                                                                              
+00031    C-                                                                              
+00032    C-    No routine was provided for the package: RERUN_L12                        
+00033    C-                                                                              
+00034    C-                                                                              
+00035    C-    No routine was provided for the package: L1SIM                            
+00036    C-                                                                              
+00037    C-                                                                              
+00038    C-    No routine was provided for the package: RECDDN                           
+00039    C-                                                                              
+00040    C-                                                                              
+00041          IF ( (PBD_FLAG_VALUE( 6))                                                 
+00042         &    ) THEN                                                                
+00043             IF (.NOT. FILTER_STATUS()) THEN                                        
+00044                USRPST = .FALSE.                                                    
+00045                CALLER = 'FILTER_STATUS'                                            
+00046                MESSAG = 'This error is ignored'                                    
+00047                CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+00048             END IF                                                                 
+00049          END IF                                                                    
+00050          RETURN                                                                    
+00051          END                                                                       
+
+USRPST                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  40
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   71   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  36   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 208   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  535
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USRPST        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name          
+
+        ERRMSG           L*4  FILTER_STATUS 
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  41
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USETSS()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00017          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00018          INTEGER PBD_FLAG_MAX                                                      
+00019          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00020    C-                                                                              
+00021          USETSS = .TRUE.                                                           
+00022    C-                                                                              
+00023    C-                                                                              
+00024    C-    No routine was provided for the package: CALOR                            
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C-    No routine was provided for the package: CADMAKE                          
+00028    C-                                                                              
+00029    C-                                                                              
+00030    C-    No routine was provided for the package: RERUN_L12                        
+00031    C-                                                                              
+00032    C-                                                                              
+00033    C-    No routine was provided for the package: L1SIM                            
+00034    C-                                                                              
+00035    C-                                                                              
+00036    C-    No routine was provided for the package: RECDDN                           
+00037    C-                                                                              
+00038    C-                                                                              
+00039    C-    No routine was provided for the package: VMS_FILTER                       
+00040    C-                                                                              
+00041          RETURN                                                                    
+00042          END                                                                       
+
+USETSS                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  42
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   18   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 148   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  386
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USETSS        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  43
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION EVT_DSTDROP()                                            
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00017          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00018          INTEGER PBD_FLAG_MAX                                                      
+00019          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00020    C-                                                                              
+00021          EVT_DSTDROP = .TRUE.                                                      
+00022    C-                                                                              
+00023    C-                                                                              
+00024    C-    No routine was provided for the package: CALOR                            
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C-    No routine was provided for the package: CADMAKE                          
+00028    C-                                                                              
+00029    C-                                                                              
+00030    C-    No routine was provided for the package: RERUN_L12                        
+00031    C-                                                                              
+00032    C-                                                                              
+00033    C-    No routine was provided for the package: L1SIM                            
+00034    C-                                                                              
+00035    C-                                                                              
+00036    C-    No routine was provided for the package: RECDDN                           
+00037    C-                                                                              
+00038    C-                                                                              
+00039    C-    No routine was provided for the package: VMS_FILTER                       
+00040    C-                                                                              
+00041          RETURN                                                                    
+00042          END                                                                       
+
+EVT_DSTDROP                                                      2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  44
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   18   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 148   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  386
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  EVT_DSTDROP   
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  45
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION PXEXEC()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00017          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00018          INTEGER PBD_FLAG_MAX                                                      
+00019          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00020    C-                                                                              
+00021          PXEXEC = .TRUE.                                                           
+00022    C-                                                                              
+00023    C-                                                                              
+00024    C-    No routine was provided for the package: CALOR                            
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C-    No routine was provided for the package: CADMAKE                          
+00028    C-                                                                              
+00029    C-                                                                              
+00030    C-    No routine was provided for the package: RERUN_L12                        
+00031    C-                                                                              
+00032    C-                                                                              
+00033    C-    No routine was provided for the package: L1SIM                            
+00034    C-                                                                              
+00035    C-                                                                              
+00036    C-    No routine was provided for the package: RECDDN                           
+00037    C-                                                                              
+00038    C-                                                                              
+00039    C-    No routine was provided for the package: VMS_FILTER                       
+00040    C-                                                                              
+00041          RETURN                                                                    
+00042          END                                                                       
+
+PXEXEC                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  46
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   18   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 148   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  386
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  PXEXEC        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  47
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USRSSM()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL L1SIM_SSUM                                                        
+00017          EXTERNAL L1SIM_SSUM                                                       
+00018          LOGICAL FILTER_SUMMARY                                                    
+00019          EXTERNAL FILTER_SUMMARY                                                   
+00020          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00021          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00022          INTEGER PBD_FLAG_MAX                                                      
+00023          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00024    C-                                                                              
+00025          USRSSM = .TRUE.                                                           
+00026    C-                                                                              
+00027    C-                                                                              
+00028    C-    No routine was provided for the package: CALOR                            
+00029    C-                                                                              
+00030    C-                                                                              
+00031    C-    No routine was provided for the package: CADMAKE                          
+00032    C-                                                                              
+00033    C-                                                                              
+00034    C-    No routine was provided for the package: RERUN_L12                        
+00035    C-                                                                              
+00036    C-                                                                              
+00037          IF ( (PBD_FLAG_VALUE( 4))                                                 
+00038         &    ) THEN                                                                
+00039             IF (.NOT. L1SIM_SSUM()) THEN                                           
+00040                USRSSM = .FALSE.                                                    
+00041                CALLER = 'L1SIM_SSUM'                                               
+00042                MESSAG = 'This error is ignored'                                    
+00043                CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+00044             END IF                                                                 
+00045          END IF                                                                    
+00046    C-                                                                              
+00047    C-    No routine was provided for the package: RECDDN                           
+00048    C-                                                                              
+00049    C-                                                                              
+00050          IF ( (PBD_FLAG_VALUE( 6))                                                 
+00051         &    ) THEN                                                                
+00052             IF (.NOT. FILTER_SUMMARY()) THEN                                       
+00053                USRSSM = .FALSE.                                                    
+00054                CALLER = 'FILTER_SUMMARY'                                           
+00055                MESSAG = 'This error is ignored'                                    
+00056                CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+00057             END IF                                                                 
+
+USRSSM                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  48
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058          END IF                                                                    
+00059          RETURN                                                                    
+00060          END                                                                       
+
+
+
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  124   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  47   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 244   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  635
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USRSSM        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name                              Type  Name                              Type  Name                            
+
+        ERRMSG                             L*4  FILTER_SUMMARY                     L*4  L1SIM_SSUM                      
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  49
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USRUSM()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00017          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00018          INTEGER PBD_FLAG_MAX                                                      
+00019          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00020    C-                                                                              
+00021          USRUSM = .TRUE.                                                           
+00022    C-                                                                              
+00023    C-                                                                              
+00024    C-    No routine was provided for the package: CALOR                            
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C-    No routine was provided for the package: CADMAKE                          
+00028    C-                                                                              
+00029    C-                                                                              
+00030    C-    No routine was provided for the package: RERUN_L12                        
+00031    C-                                                                              
+00032    C-                                                                              
+00033    C-    No routine was provided for the package: L1SIM                            
+00034    C-                                                                              
+00035    C-                                                                              
+00036    C-    No routine was provided for the package: RECDDN                           
+00037    C-                                                                              
+00038    C-                                                                              
+00039    C-    No routine was provided for the package: VMS_FILTER                       
+00040    C-                                                                              
+00041          RETURN                                                                    
+00042          END                                                                       
+
+USRUSM                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  50
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   18   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 148   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  386
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USRUSM        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  51
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USRWRT()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00017          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00018          INTEGER PBD_FLAG_MAX                                                      
+00019          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00020    C-                                                                              
+00021          USRWRT = .TRUE.                                                           
+00022    C-                                                                              
+00023    C-                                                                              
+00024    C-    No routine was provided for the package: CALOR                            
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C-    No routine was provided for the package: CADMAKE                          
+00028    C-                                                                              
+00029    C-                                                                              
+00030    C-    No routine was provided for the package: RERUN_L12                        
+00031    C-                                                                              
+00032    C-                                                                              
+00033    C-    No routine was provided for the package: L1SIM                            
+00034    C-                                                                              
+00035    C-                                                                              
+00036    C-    No routine was provided for the package: RECDDN                           
+00037    C-                                                                              
+00038    C-                                                                              
+00039    C-    No routine was provided for the package: VMS_FILTER                       
+00040    C-                                                                              
+00041          RETURN                                                                    
+00042          END                                                                       
+
+USRWRT                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  52
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   18   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 148   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  386
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USRWRT        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  53
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USRZEV()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL CALEVZ                                                            
+00017          EXTERNAL CALEVZ                                                           
+00018          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00019          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00020          INTEGER PBD_FLAG_MAX                                                      
+00021          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00022    C-                                                                              
+00023          USRZEV = .TRUE.                                                           
+00024    C-                                                                              
+00025    C-                                                                              
+00026          IF ( (PBD_FLAG_VALUE( 1))                                                 
+00027         &    ) THEN                                                                
+00028             IF (.NOT. CALEVZ()) THEN                                               
+00029                USRZEV = .FALSE.                                                    
+00030                CALLER = 'CALEVZ'                                                   
+00031                MESSAG = 'This error is ignored'                                    
+00032                CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+00033             END IF                                                                 
+00034          END IF                                                                    
+00035    C-                                                                              
+00036    C-    No routine was provided for the package: CADMAKE                          
+00037    C-                                                                              
+00038    C-                                                                              
+00039    C-    No routine was provided for the package: RERUN_L12                        
+00040    C-                                                                              
+00041    C-                                                                              
+00042    C-    No routine was provided for the package: L1SIM                            
+00043    C-                                                                              
+00044    C-                                                                              
+00045    C-    No routine was provided for the package: RECDDN                           
+00046    C-                                                                              
+00047    C-                                                                              
+00048    C-    No routine was provided for the package: VMS_FILTER                       
+00049    C-                                                                              
+00050          RETURN                                                                    
+00051          END                                                                       
+
+USRZEV                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  54
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   71   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  29   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 208   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  528
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USRZEV        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name          
+
+   L*4  CALEVZ                ERRMSG        
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  55
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION USZERO()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00017          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00018          INTEGER PBD_FLAG_MAX                                                      
+00019          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00020    C-                                                                              
+00021          USZERO = .TRUE.                                                           
+00022    C-                                                                              
+00023    C-                                                                              
+00024    C-    No routine was provided for the package: CALOR                            
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C-    No routine was provided for the package: CADMAKE                          
+00028    C-                                                                              
+00029    C-                                                                              
+00030    C-    No routine was provided for the package: RERUN_L12                        
+00031    C-                                                                              
+00032    C-                                                                              
+00033    C-    No routine was provided for the package: L1SIM                            
+00034    C-                                                                              
+00035    C-                                                                              
+00036    C-    No routine was provided for the package: RECDDN                           
+00037    C-                                                                              
+00038    C-                                                                              
+00039    C-    No routine was provided for the package: VMS_FILTER                       
+00040    C-                                                                              
+00041          RETURN                                                                    
+00042          END                                                                       
+
+USZERO                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  56
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   18   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 148   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  386
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  USZERO        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  57
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION DMPUDF()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL L1SIM_DEFDUMP                                                     
+00017          EXTERNAL L1SIM_DEFDUMP                                                    
+00018          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00019          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00020          INTEGER PBD_FLAG_MAX                                                      
+00021          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00022    C-                                                                              
+00023          DMPUDF = .TRUE.                                                           
+00024    C-                                                                              
+00025    C-                                                                              
+00026    C-    No routine was provided for the package: CALOR                            
+00027    C-                                                                              
+00028    C-                                                                              
+00029    C-    No routine was provided for the package: CADMAKE                          
+00030    C-                                                                              
+00031    C-                                                                              
+00032    C-    No routine was provided for the package: RERUN_L12                        
+00033    C-                                                                              
+00034    C-                                                                              
+00035          IF ( (PBD_FLAG_VALUE( 4))                                                 
+00036         &    ) THEN                                                                
+00037             IF (.NOT. L1SIM_DEFDUMP()) THEN                                        
+00038                DMPUDF = .FALSE.                                                    
+00039                CALLER = 'L1SIM_DEFDUMP'                                            
+00040                MESSAG = 'This error is ignored'                                    
+00041                CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+00042             END IF                                                                 
+00043          END IF                                                                    
+00044    C-                                                                              
+00045    C-    No routine was provided for the package: RECDDN                           
+00046    C-                                                                              
+00047    C-                                                                              
+00048    C-    No routine was provided for the package: VMS_FILTER                       
+00049    C-                                                                              
+00050          RETURN                                                                    
+00051          END                                                                       
+
+DMPUDF                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  58
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   71   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  36   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 208   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  535
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  DMPUDF        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name          
+
+        ERRMSG           L*4  L1SIM_DEFDUMP 
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  59
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION DMPUSR()                                                 
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL CALDMP                                                            
+00017          EXTERNAL CALDMP                                                           
+00018          LOGICAL L1SIM_DUMP                                                        
+00019          EXTERNAL L1SIM_DUMP                                                       
+00020          LOGICAL FILTER_DUMP                                                       
+00021          EXTERNAL FILTER_DUMP                                                      
+00022          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00023          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00024          INTEGER PBD_FLAG_MAX                                                      
+00025          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00026    C-                                                                              
+00027          DMPUSR = .TRUE.                                                           
+00028    C-                                                                              
+00029    C-                                                                              
+00030          IF ( (PBD_FLAG_VALUE( 1))                                                 
+00031         &    ) THEN                                                                
+00032             IF (.NOT. CALDMP()) THEN                                               
+00033                DMPUSR = .FALSE.                                                    
+00034                CALLER = 'CALDMP'                                                   
+00035                MESSAG = 'This error is ignored'                                    
+00036                CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+00037             END IF                                                                 
+00038          END IF                                                                    
+00039    C-                                                                              
+00040    C-    No routine was provided for the package: CADMAKE                          
+00041    C-                                                                              
+00042    C-                                                                              
+00043    C-    No routine was provided for the package: RERUN_L12                        
+00044    C-                                                                              
+00045    C-                                                                              
+00046          IF ( (PBD_FLAG_VALUE( 4))                                                 
+00047         &    ) THEN                                                                
+00048             IF (.NOT. L1SIM_DUMP()) THEN                                           
+00049                DMPUSR = .FALSE.                                                    
+00050                CALLER = 'L1SIM_DUMP'                                               
+00051                MESSAG = 'This error is ignored'                                    
+00052                CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+00053             END IF                                                                 
+00054          END IF                                                                    
+00055    C-                                                                              
+00056    C-    No routine was provided for the package: RECDDN                           
+00057    C-                                                                              
+
+DMPUSR                                                           2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  60
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00058    C-                                                                              
+00059          IF ( (PBD_FLAG_VALUE( 6))                                                 
+00060         &    ) THEN                                                                
+00061             IF (.NOT. FILTER_DUMP()) THEN                                          
+00062                DMPUSR = .FALSE.                                                    
+00063                CALLER = 'FILTER_DUMP'                                              
+00064                MESSAG = 'This error is ignored'                                    
+00065                CALL ERRMSG(MESSID,CALLER,MESSAG,'I')                               
+00066             END IF                                                                 
+00067          END IF                                                                    
+00068          RETURN                                                                    
+00069          END                                                                       
+
+
+
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                  177   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  1 $PDATA                                  50   PIC CON REL LCL   SHR NOEXE   RD NOWRT QUAD
+  2 $LOCAL                                 280   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  727
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  DMPUSR        
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+
+FUNCTIONS AND SUBROUTINES REFERENCED
+
+  Type  Name            Type  Name            Type  Name            Type  Name          
+
+   L*4  CALDMP                ERRMSG           L*4  FILTER_DUMP      L*4  L1SIM_DUMP    
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  61
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+00004          LOGICAL FUNCTION UQUIT()                                                  
+00005    C-                                                                              
+00006    C-                                                                              
+00007    C-    Purposes and Methods:                                                     
+00008    C-    --------------------                                                      
+00009    C-                                                                              
+00010    C-    Created by the PROGRAM BUILDER Release                                    
+00011    C-     4-DEC-92 05:48:43                                                        
+00012    C-                                                                              
+00013    C-                                                                              
+00014          CHARACTER*32 MESSID,CALLER                                                
+00015          CHARACTER*80 MESSAG                                                       
+00016          LOGICAL PBD_FLAG_VALUE( 6)                                                
+00017          CHARACTER*32 PBD_FLAG_NAME( 6)                                            
+00018          INTEGER PBD_FLAG_MAX                                                      
+00019          COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+00020    C-                                                                              
+00021          UQUIT = .TRUE.                                                            
+00022    C-                                                                              
+00023    C-                                                                              
+00024    C-    No routine was provided for the package: CALOR                            
+00025    C-                                                                              
+00026    C-                                                                              
+00027    C-    No routine was provided for the package: CADMAKE                          
+00028    C-                                                                              
+00029    C-                                                                              
+00030    C-    No routine was provided for the package: RERUN_L12                        
+00031    C-                                                                              
+00032    C-                                                                              
+00033    C-    No routine was provided for the package: L1SIM                            
+00034    C-                                                                              
+00035    C-                                                                              
+00036    C-    No routine was provided for the package: RECDDN                           
+00037    C-                                                                              
+00038    C-                                                                              
+00039    C-    No routine was provided for the package: VMS_FILTER                       
+00040    C-                                                                              
+00041          RETURN                                                                    
+00042          END                                                                       
+
+UQUIT                                                            2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  62
+01                                                               4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+PROGRAM SECTIONS
+
+    Name				 Bytes   Attributes
+
+  0 $CODE                                   18   PIC CON REL LCL   SHR   EXE   RD NOWRT QUAD
+  2 $LOCAL                                 148   PIC CON REL LCL NOSHR NOEXE   RD   WRT QUAD
+  3 PBD_COMMON                             220   PIC OVR REL GBL   SHR NOEXE   RD   WRT QUAD
+
+    Total Space Allocated                  386
+
+
+ENTRY POINTS
+
+    Address  Type  Name          
+
+  0-00000000  L*4  UQUIT         
+
+
+VARIABLES
+
+    Address  Type  Name              Address  Type  Name              Address  Type  Name              Address  Type  Name          
+
+  2-00000020  CHAR CALLER          2-00000040  CHAR MESSAG          2-00000000  CHAR MESSID          3-000000D8  I*4  PBD_FLAG_MAX  
+
+
+ARRAYS
+
+    Address  Type  Name                                  Bytes  Dimensions
+
+  3-00000018  CHAR PBD_FLAG_NAME                           192  (6)
+  3-00000000  L*4  PBD_FLAG_VALUE                           24  (6)
+
+                                                                 2-Feb-1993 15:31:27	VAX FORTRAN V5.7-133                Page  63
+                                                                 4-Dec-1992 05:48:43	VMS_FILTER_D0USER.FOR;1                     
+
+00001    C-                                                                              
+00002    C-                                                                              
+00003    C-                                                                              
+
+
+COMMAND QUALIFIERS
+
+  FORT/DEB/NOOPT/OBJ=DEB_VMS_FILTER_D0USER.OBJ VMS_FILTER_D0USER.FOR
+
+  /CHECK=(NOBOUNDS,OVERFLOW,NOUNDERFLOW)
+  /DEBUG=(SYMBOLS,TRACEBACK)
+  /DESIGN=(NOCOMMENTS,NOPLACEHOLDERS)
+  /SHOW=(NODICTIONARY,NOINCLUDE,MAP,NOPREPROCESSOR,SINGLE)
+  /STANDARD=(NOSEMANTIC,NOSOURCE_FORM,NOSYNTAX)
+  /WARNINGS=(NODECLARATIONS,GENERAL,NOULTRIX,NOVAXELN)
+  /CONTINUATIONS=19  /NOCROSS_REFERENCE  /NOD_LINES  /NOEXTEND_SOURCE
+  /F77  /NOG_FLOATING  /I4  /NOMACHINE_CODE  /NOOPTIMIZE  /NOPARALLEL
+  /NOANALYSIS_DATA
+  /NODIAGNOSTICS
+  /LIST=D0GSLB$DKB0:[D0LIBRARY.BUILD_RELEASE.LEVEL2.L2SIM]VMS_FILTER_D0USER.LIS;2                           
+  /OBJECT=D0GSLB$DKB0:[D0LIBRARY.BUILD_RELEASE.LEVEL2.L2SIM]DEB_VMS_FILTER_D0USER.OBJ;1                       
+
+
+COMPILATION STATISTICS
+
+  Run Time:           3.33 seconds
+  Elapsed Time:       8.57 seconds
+  Page Faults:        314
+  Dynamic Memory:     488 pages

@@ -1,0 +1,260 @@
+\START     L1SIM_RCP            ! Name of SRCP bank
+\SIZE        352       129
+!------------------------------------------------------------------------------
+!   Name:       L1SIM.RCP
+!------------------------------------------------------------------------------
+!   Purpose:    Define RCP parameters for location of programming files and
+!               default values of run parameters.
+!
+!   Created:     9-SEP-1991 Philippe Laurens, Steven Klocek
+!                              L1C -> L1SIM
+!   Modified:    5-FEB-1992 PL, SK add ability to force lookup to center page
+!               10-MAR-1992 PL, SK add ability to ignore Level 0,
+!                                  and to select input calorimter trigger bank
+!                                 (input form TRGR now available)
+!                25-SEP-1992   Philippe Laurens, Steven Klocek
+!                                  add arrays describing Andor Terms to force
+!                                  and Trigger Tower saturation.
+!                10-DEC-1992   Philippe Laurens, Steven Klocek
+!                                  add padding spaces after all strings to allow
+!                                  L1SIM_RCPE to overwrite with longer string
+!    Updated:     3-JUN-1993   Philippe Laurens - MSU L1 Trigger
+!                                  add array of copied andor term
+!                                  add switch for copied L0 Crate
+!                                  add saturation values for Run Ib
+!    Updated:    12-JUL-1993   Philippe Laurens - MSU L1 Trigger
+!                                  add switch to turn off EM and Tot Jet Lists
+!    Updated:    28-JUL-1994   Nikos Varelas - Add the switch
+!                                  PRESCALER_USE_EVENT_DATA needed for
+!                                  the simulatation of the prescaler mode
+!                                  in L1SIM - Philippe Laurens
+!
+!   Version:     L2 default version for L2SIM   (J. Linnemann)
+!                   use local copies of full l1 trigger setup
+!                   turn on saturation
+!------------------------------------------------------------------------------
+!   PROM LOOK_UP file name
+!------------------------------------------------------------------------------
+ \ARRAY LOOKUP_TABLE_FILE
+!    use for jet gap and inclusive jet triggers
+!    'D0$LEVEL1$DATA:CALORIMETER_TRIGGER.LSO                                   '
+!   use for triggers involving missing et
+    'D0$LEVEL1$DATA:L1SIM_COVERAGE_THRU_ETA_16.LSO                             '
+ \END
+!------------------------------------------------------------------------------
+!   Trigger Programming File Names (from COOR_sim)
+!------------------------------------------------------------------------------
+!   Calorimeter Trigger and Framework
+!-----------------------------------
+ \ARRAY PROGRAMMING_FILE
+    'FILTER_DEFAULT:TRIGGER.INFO'
+ \END
+!---------------
+!   Muon Trigger
+!---------------
+ \ARRAY MU_PROGRAMMING_FILE
+   'FILTER_DEFAULT:MU_TRIGGER.INFO'
+ \END
+!--------------------
+!   Trigger Resources
+!--------------------
+ \ARRAY RESOURCE_FILE
+   'FILTER_DEFAULT:TRIGGER.RES'
+ \END
+!----------------------------------------------------------------------
+!   BLS Gain Correction file
+!----------------------------------------------------------------------
+ \ARRAY BLS_GAIN_CORRECTION_FILE
+    'D0$LEVEL1$DATA:BLS.DAT                                                   '
+ \END
+!----------------------------------------------------------------------
+!   Source for ADC bytes. One of ANY, TRGR, CAD, CAEP, NONE.
+!    'ANY' implies a search order of TRGR, CAD, CAEP.
+!    'NONE' implies the Cal Trigger Tower Energies are not simulated.
+!----------------------------------------------------------------------
+ \ARRAY L1SIM_INPUT_SOURCE_DEFAULT
+    'ANY '      ! use 4 characters for L1SIM_RCPE to overwrite
+ \END
+!------------------------------------------------------------------------------
+!   Path Specification to CAEP banks.
+!------------------------------------------------------------------------------
+ \ARRAY PATH_DEFAULT
+    'RECO'
+ \END
+!------------------------------------------------------------------------------
+!   List Control parameters (cf. D0$LEVEL1:L1SIM.DOC)
+!------------------------------------------------------------------------------
+ PROGRAMMING_LISTING_DEFAULT    .TRUE.  !Include Configuration File Listing in
+                                        ! summary file
+ FAST_DEFAULT                   .FALSE. !Use fast version of program.
+                                        !WARNING: the TRGR bank is not filled
+                                        ! by the fast version
+ NOISE_DEFAULT                  .FALSE.  !Add noise the Calorimeter Trigger input
+                                        ! energies.
+ APPLY_PRESCALER_DEFAULT        .FALSE. !Apply the programmed prescaler ratio
+                                        ! to each Sp. Trigger.
+                                        !Note: .FALSE. corresponds to forcing
+                                        ! a prescale ration of 1.
+ PRESCALER_USE_EVENT_DATA       .FALSE. !Override the Prescaler operation and
+                                        ! follow the Final SpTrg Fired Decision
+                                        ! as read from the input event.
+                                        !.TRUE.  implies following event data
+                                        !.FALSE. implies using the ratios
+                                        !        programmed by COOR
+                                        !(APPLY_PRESCALER_DEFAULT must be TRUE)
+ BLS_GAIN_CORRECTION_DEFAULT    .FALSE. !If TRUE, the BLS Gain Correction
+                                        ! Coeffecient is taken into account
+ FORCE_VERTEX_CENTER            .TRUE.  !If TRUE, always use the center
+                                        ! Lookup Page in Calorimeter Trigger
+                                        ! Energy Lookup, this does NOT affect
+                                        ! Andor Terms.
+ L15_CERTIFIED_DEFAULT          .FALSE. !If TRUE, always completely calculate
+                                        ! the states of the Level 1.5 Triggers.
+                                        !WARNING: This mode does NOT correspond
+                                        ! to actual hardware operation
+ COPY_L0_CRATE                  .TRUE.  !If TRUE, copy the Level 0 crate found
+                                        ! in the input event to the output event
+ CREATE_JET_LISTS               .FALSE. !If TRUE, generate and write the EM Et
+                                        ! and Tot Et Jet Lists in the Level 1
+                                        ! Data Block inthe TRGR bank.
+                                        ! The default for run Ib and beyond is
+                                        ! to NOT write the Jet Lists in the raw
+                                        ! data but use L1UTIL_JET_LIST_BUILDER
+                                        ! to recreate them as needed. The raw
+                                        ! data has all the information needed,
+                                        ! no further context is required.
+!----------------------------------------------------------------------
+!   AndOr Terms which need to have a constant state assigned.
+!----------------------------------------------------------------------
+ \ARRAY FORCED_ANDOR_TERMS
+!    1234567890123456   use the maximum length of 16 characters for overwriting
+     'CALNE_PLS       '  FALSE   ! andor term 28
+!    'SCINT_COSMIC    '  FALSE   ! andor term 94
+!    'SC_VETO_CNFM_BAR'  FALSE   ! andor term 95
+    'LV1_DBL_BUFFERED'  FALSE   ! andor term 104
+    'SKIP_ONE_BEAMX  '  TRUE    ! andor term 107
+    'MR_VETO_HIGH    '  FALSE   ! andor term 115
+    'MR_VETO_LOW      '  FALSE   ! andor term 119
+!    'MRBS_AND_MICROBL'   FALSE   ! andor term 121
+    'MRBS_LOSS       '  FALSE   ! andor term 124
+!    'MICRO_BLANK     '  FALSE   ! andor term 125
+!    'MIN_BIAS        '  TRUE    ! andor term 126
+    '                '  TRUE    ! 10 spares for L1SISM_RCPE to overwrite
+    '                '  TRUE    !
+    '                '  TRUE    !
+    '                '  TRUE    !
+    '                '  TRUE    !
+    '                '  TRUE    !
+    '                '  TRUE    !
+    '                '  TRUE    !
+ \END
+!----------------------------------------------------------------------
+!   AndOr Terms which need to be copied from input event
+!----------------------------------------------------------------------
+ \ARRAY COPIED_ANDOR_TERMS
+!    1234567890123456   use the maximum length of 16 characters for overwriting
+!   'CALNE_PLS       '          ! andor term 28
+!    'SCINT_COSMIC    '          ! andor term 94
+    'SC_VETO_CNFM_BAR'          ! andor term 95
+!    'MR_VETO_HIGH    '  FALSE   ! andor term 115
+!    'MR_VETO_LOW      '  FALSE   ! andor term 119
+    'MRBS_AND_MICROBL'           ! andor term 121
+!    'MRBS_LOSS       '          ! andor term 124
+    'MICRO_BLANK     '          ! andor term 125
+    'MIN_BIAS        '          ! andor term 126
+    'L0_SLOW_INTER   '          ! 10 spares for L1SIM_RCPE to overwrite
+    'L0_MI_FLAG_0    '
+    'L0_MI_FLAG_1    '
+    'L0_MI_FLAG_2    '
+    'L0_MI_FLAG_3    '
+    'BUNCH_P1        '
+    'BUNCH_P2        '
+    'BUNCH_P3        '
+    'BUNCH_P4        '
+    'BUNCH_P5        '
+    'BUNCH_P6        '
+ \END
+!----------------------------------------------------------------------
+!   Level 1 Trigger Tower Energy Saturation by ETA
+!----------------------------------------------------------------------
+ \ARRAY TRIGGER_TOWER_SATURATION
+!
+!   These are the saturation values for run Ia out to |ETA|=16.
+!   (cf. Kathy Streets, Dan Owen)
+!   The Calorimeter Trigger was not used during Run Ia out to |ETA|=20.
+!   Unspecified values should be given a value of 1000 GeV so that L1SIM_RCPE
+!   can overwrite them (which is larger than the range of the ADC converters).
+!
+!
+!        EM Saturation in GeV   HD Saturation in GeV   |ETA|
+!
+                62.                     62.             ! 1
+                62.                     62.             ! 2
+                62.                     62.             ! 3
+                62.                     62.             ! 4
+                55.                     62.             ! 5
+                48.                     62.             ! 6
+                38.                     46.             ! 7
+                29.                     40.             ! 8
+                23.                     30.             ! 9
+                19.                     28.             !10
+                16.                     22.             !11
+                12.                     18.             !12
+                10.                     13.             !13
+                 8.                     11.             !14
+                 7.                      9.             !15
+                 6.                      7.             !16
+              1000.                   1000.             !17
+              1000.                   1000.             !18
+              1000.                   1000.             !19
+              1000.                   1000.             !20
+!
+!        EM Saturation in GeV   HD Saturation in GeV   |ETA|
+!
+!              1000.                   1000.             ! 1
+!              1000.                   1000.             ! 2
+!              1000.                   1000.             ! 3
+!              1000.                   1000.             ! 4
+!              1000.                   1000.             ! 5
+!              1000.                   1000.             ! 6
+!              1000.                   1000.             ! 7
+!              1000.                   1000.             ! 8
+!              1000.                   1000.             ! 9
+!              1000.                   1000.             !10
+!              1000.                   1000.             !11
+!              1000.                   1000.             !12
+!              1000.                   1000.             !13
+!              1000.                   1000.             !14
+!              1000.                   1000.             !15
+!              1000.                   1000.             !16
+!              1000.                   1000.             !17
+!              1000.                   1000.             !18
+!              1000.                   1000.             !19
+!              1000.                   1000.             !20
+!
+!   These are the saturation values estimated for run Ib (cf. D0 Note 1707)
+!
+!        EM Saturation in GeV   HD Saturation in GeV   |ETA|
+!
+!                62.                     62.             ! 1
+!                62.                     62.             ! 2
+!                62.                     62.             ! 3
+!                62.                     62.             ! 4
+!                62.                     62.             ! 5
+!                62.                     62.             ! 6
+!                62.                     62.             ! 7
+!                62.                     62.             ! 8
+!                62.                     62.             ! 9
+!                62.                     62.             !10
+!                62.                     62.             !11
+!                62.                     62.             !12
+!                62.                     52.5            !13
+!                48.5                    43.             !14
+!                39.                     35.             !15
+!                31.5                    27.5            !16
+!                29.                     29.             !17
+!                23.                     23.             !18
+!                16.                     16.             !19
+!                 0.                     11.             !20
+ \END
+\STOP
