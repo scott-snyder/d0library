@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <errno.h>
+#include <time.h>
 
 /* Fortran wrappers for C library functions */
 
@@ -9,7 +10,7 @@ void cperror_(char *string)
 }
 cctime_(long int n, char *pc)
 {
-	strcpy(pc, ctime(n));
+	strcpy(pc, ctime((const time_t*)n));
 }
 time_(long int n)
 {
