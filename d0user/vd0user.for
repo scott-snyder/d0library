@@ -6,7 +6,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       Character*72 Function VD0USER()
       VD0USER = ' D0USER'//
-     X                   '  OFFICIAL V5.44'//
-     X                   ' 31-JUL-1995 15:08:59.39'
+     X                   '  TEST V5.45_02'//
+     X                   ' 14-AUG-1997 08:32:55.02'
       Return
       End

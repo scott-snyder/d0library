@@ -6,7 +6,7 @@ C-    --------------------
 C-    This routine must be called by the FrameWork to initialize                
 C-    the run time switches associated with the packages                        
 C-    Created by the PROGRAM BUILDER                                            
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
 C-                                                                              
@@ -64,7 +64,7 @@ C-    because the size of the common blocks has been modified
 C-    by the user.                                                              
 C-                                                                              
 C-    Created by the PROGRAM BUILDER                                            
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       SUBROUTINE INZCOM(I)                                                      
@@ -144,7 +144,7 @@ C-    because the size of the common blocks has been modified
 C-    by the user.                                                              
 C-                                                                              
 C-    Created by the PROGRAM BUILDER                                            
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       SUBROUTINE INZSTP                                                         
@@ -269,7 +269,7 @@ C-    because the size of the common blocks has been modified
 C-    by the user.                                                              
 C-                                                                              
 C-    Created by the PROGRAM BUILDER                                            
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       SUBROUTINE INZWRK                                                         
@@ -332,7 +332,7 @@ C-    because the size of the common blocks has been modified
 C-    by the user.                                                              
 C-                                                                              
 C-    Created by the PROGRAM BUILDER                                            
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       SUBROUTINE INPAWC                                                         
@@ -419,7 +419,7 @@ C-    because the size of the common blocks has been modified
 C-    by the user.                                                              
 C-                                                                              
 C-    Created by the PROGRAM BUILDER                                            
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       SUBROUTINE INZGCB                                                         
@@ -482,7 +482,7 @@ C-    This routine allows the Program Builder user to set
 C-    and reset(ON/OFF) the run time switches associated                        
 C-    with the packages.                                                        
 C-    Created by the PROGRAM BUILDER                                            
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
 C-    A dummy routine becuase no SWITCH
@@ -632,7 +632,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -695,7 +695,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -769,7 +769,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1053,7 +1053,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1116,7 +1116,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1179,7 +1179,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1253,7 +1253,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1316,7 +1316,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1379,7 +1379,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1435,6 +1435,69 @@ C-
 C-                                                                              
 C-                                                                              
 C-                                                                              
+      LOGICAL FUNCTION EVENT_UDST()                                             
+C-                                                                              
+C-                                                                              
+C-    Purposes and Methods:                                                     
+C-    --------------------                                                      
+C-                                                                              
+C-    Created by the PROGRAM BUILDER Release                                    
+C-    14-AUG-97 08:46:42                                                        
+C-                                                                              
+C-                                                                              
+      CHARACTER*32 MESSID,CALLER                                                
+      CHARACTER*80 MESSAG                                                       
+      LOGICAL PBD_FLAG_VALUE(13)                                                
+      CHARACTER*32 PBD_FLAG_NAME(13)                                            
+      INTEGER PBD_FLAG_MAX                                                      
+      COMMON /PBD_COMMON/ PBD_FLAG_VALUE,PBD_FLAG_NAME,PBD_FLAG_MAX             
+C-                                                                              
+      EVENT_UDST = .TRUE.                                                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ALL_DISPLAY                      
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: COMBDIS                          
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: ZTRAKSDIS                        
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: VTXDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: TRDDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: FDCDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: CALDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUTRAKSDIS                       
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: MUODIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: SAMDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: PHYDIS                           
+C-                                                                              
+C-                                                                              
+C-    No routine was provided for the package: LV0DIS                           
+C-                                                                              
+      RETURN                                                                    
+      END                                                                       
+C-                                                                              
+C-                                                                              
+C-                                                                              
       LOGICAL FUNCTION PXEXEC()                                                 
 C-                                                                              
 C-                                                                              
@@ -1442,7 +1505,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1553,7 +1616,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1616,7 +1679,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1679,7 +1742,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1742,7 +1805,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1814,7 +1877,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1877,7 +1940,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -1949,7 +2012,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                
@@ -2021,7 +2084,7 @@ C-    Purposes and Methods:
 C-    --------------------                                                      
 C-                                                                              
 C-    Created by the PROGRAM BUILDER Release                                    
-C-     4-AUG-95 14:12:39                                                        
+C-    14-AUG-97 08:46:42                                                        
 C-                                                                              
 C-                                                                              
       CHARACTER*32 MESSID,CALLER                                                

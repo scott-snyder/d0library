@@ -1,0 +1,127 @@
+
+                      PBD FILES
+                                                 Harrison Prosper
+                                                 Serban Protopopescu
+                                                 v1.0
+                                                 22-OCT-1991
+
+
+[1] Introduction:
+-----------------
+
+    Files with  extension PBD are the  files that give  the instructions to
+the PROGRAM_BUILDER program. See D0$DOCS:PROGRAM_BUILDER.DOC for details on
+how to  use the   PROGRAM_BUILDER.  All  official PBD  files  reside in one
+library D0$PBD, there are 3 types of files:
+
+package_name.PBD      for individual packages
+                      lists interfaces, RCP files and link objects
+                      needed to create a program using this package
+                      It also lists frames which can use this package
+
+name_COMBINED.PBD     for combined packages
+                      lists a set of packages in appropriate order
+                      to use together                       
+
+frame_name_FRAME.PBD  for framework description
+                      list all hooks available in frame_name
+
+
+All PBD files are self-documented and follow the same syntax:
+
+!          indicates beginning of comment, 
+           strings after it are not read by program
+           can be put on any line after any (or no) instruction.
+
+.XXXX      indicates an instruction
+           lines below are part of the instruction until 
+
+.END XXXX  indicates end of instructions part of XXXX
+           some instructions are in one line, then this
+           instruction does not follow.
+
+
+[2]Package PBD:
+_______________
+
+   Any existing package PBD can be used as a template. The recognized
+instructions are:
+.FRAMES           to list frames that can use this package
+.END FRAMES       
+
+.HOOKS            to list hooks
+.END HOOKS        
+
+.INPUT_BANKS      to list input Zebra banks
+.END INPUT_BANKS  
+
+.OUTPUT_BANKS     to list output Zebra banks
+.END OUTPUT_BANKS 
+
+.OBJECTS          to list link objects
+.END OBJECTS      
+
+.RCP              to list RCP files
+.END RCP
+
+
+To find out what hooks are in frame xxxx look at xxxx_FRAME.PBD
+To find out all existing hooks look at MASTER_HOOK.PBD
+A package requesting a HOOK not listed in MASTER_HOOK.PBD is
+rejected as in error by the PROGRAM_BUILDER.
+
+
+
+[3] Combined Package PBD:
+________________________
+
+A combined package name_COMBINED.PBD has the simple form:
+
+.NAME name
+
+.PACKAGES      list of packages
+.END PACKAGES
+
+.ZEBCOM 1000000
+.ZEBSTP 500000
+.PAWC   80000
+.ZEBWRK 20000
+.GCBANK 100000
+
+The number  indicates the sizes that  should be  allocated for a particular
+Zebra  common  block. If  for  instance  .GCBANK does  not  appear it means
+default    will  be  used.  A   combined   package  is    generated  by the
+PROGRAM_BUILDER   automatically when  combining packages  but it is clearly
+easy for users to make their own if they so wish.
+
+
+[4]Frame PBD:
+_____________
+
+The format for these PBD files is  quite simple: the instruction is now the
+universal hook name and following it is the action + alias (name of hook in
+frame). If alias is missing frame uses the universal name:
+
+
+!------------------------------------------------------------------------------
+!   Framework Name:     EXAMPLE
+!   Purpose:    This frame doesn't do much
+!               see D0$EXAMPLE:EXAMPLE_GUIDE.DOC for details
+!
+!   Created:    30-FEB-1889     Jack-the-Ripper
+!
+!------------------------------------------------------------------------------
+!
+!Hook Name         Action          Alias Hook Name
+!---------         ------          ----------------
+.BEGIN_PROGRAM     abort           INI_EXAMPLE 
+.PROCESS_EVENT     skip            EXAMPLE_PROCESS 
+.JOB_SUMMARY       ignore          END_EXAMPLE 
+
+The PROGRAM_BUILDER will only  construct the hooks on this list. All others
+found in a  package PBD will  be ignored if  it is on the  list of hooks in
+MASTER_HOOK.PBD, otherwise it is  considered an error. If the line contains
+no alias it is assumed that the the frame uses the universal hook name.
+
+
+

@@ -19,6 +19,7 @@ set util_libs = ( \
     `uff $d0lcompack/${pfx}compack.a`          \
     `uff $d0general/${pfx}general.a`           \
     `uff $d0tpmfarm/${pfx}tpmfarm.a`           \
+    `uff $d0srcp_util/${pfx}srcp_util.a`       \
     `uff $d0unix/${pfx}unix.a`                 )
 
 set cern_libs = ( \
