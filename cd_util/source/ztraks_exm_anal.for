@@ -10,6 +10,7 @@ C-   Outputs :
 C-   Controls: 
 C-
 C-   Created  25-APR-1991   Susan K. Blessing
+C-   Updated  20-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -21,7 +22,7 @@ C
       LOGICAL OK,DAQ
       LOGICAL ZTRPAR, VTRPAR
       LOGICAL CDCON,FDCON,VTXON,TRDON
-      LOGICAL VTRAKS,DTREVT,FTRAKS,TTRAKS
+      LOGICAL VTRAKS,DTREVT,FTRAKS
       LOGICAL CALL_VERTEX, VERTEX
       LOGICAL CALL_TRD
       LOGICAL FIRST

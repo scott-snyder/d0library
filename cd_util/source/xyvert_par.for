@@ -14,6 +14,7 @@ C-   Updated  25-FEB-1994   Liang-Ping Chen move CALL VTRPAR to
 C-                                          VTX_DYNADJ, similar to ZTRPAR
 C-   Updated   7-MAR-1994   Susan Blessing  Reverse order of setting memory
 C-    and RZ directory before booking.
+C-   Updated  20-MAR-2004   sss - use idate2k instead of idate.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -68,7 +69,7 @@ C
         CALL HBOOKN(3,'LAYER 2 SEGMENTS',6,'AAABBB',1000,VARS)
         CALL HBOOKN(4,'TRACKS          ',6,'AAABBB',1000,VARS)
       ENDIF
-      CALL IDATE(MONTH,JDATE,IYEAR)
+      CALL IDATE2k(MONTH,JDATE,IYEAR)
       WRITE(CDATE(1:2),'(I2.2)') MONTH
       WRITE(CDATE(4:5),'(I2.2)') JDATE
       WRITE(CDATE(7:8),'(I2.2)') IYEAR

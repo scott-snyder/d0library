@@ -1,7 +1,7 @@
 C CMS REPLACEMENT HISTORY, Element FIX_SHOWERLIB_VERTEX.FOR
 C *1    13-OCT-1995 11:57:32 DHIMAN "by Scott Snyder"
 C CMS REPLACEMENT HISTORY, Element FIX_SHOWERLIB_VERTEX.FOR
-      logical function fix_showerlib_vertex
+      logical function fix_showerlib_vertex()
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods :
@@ -42,6 +42,7 @@ C-   to look at what the primary version was before this package
 C-   screwed with it.
 C-
 C-   Created  26-SEP-1995   scott snyder
+C-   Updated  20-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE

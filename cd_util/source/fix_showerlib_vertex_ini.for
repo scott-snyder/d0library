@@ -1,7 +1,7 @@
 C CMS REPLACEMENT HISTORY, Element FIX_SHOWERLIB_VERTEX_INI.FOR
 C *1    13-OCT-1995 11:58:08 DHIMAN "by Scott Snyder"
 C CMS REPLACEMENT HISTORY, Element FIX_SHOWERLIB_VERTEX_INI.FOR
-      logical function fix_showerlib_vertex_ini
+      logical function fix_showerlib_vertex_ini()
 C----------------------------------------------------------------------
 C-
 C-   Purpose and Methods : 
@@ -12,6 +12,7 @@ C-     Create the flag FIX_SHLIB_VERTEX, and set it to match
 C-     the RCP parameter.
 C-
 C-   Created  26-SEP-1995   scott snyder
+C-   Updated  20-MAR-2004   sss - compile with g77
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE

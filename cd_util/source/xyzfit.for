@@ -15,6 +15,7 @@ C-                          tion into file for all runs
 C-   Updated  08-MAR-1993   A. Zinchenko - add time, some service
 C-   Updated  22-APR-1993   A. Zinchenko - new fit for beam position and
 C-                          slope (fit of constrained histogram area)
+C-   Updated  20-MAR-2004   sss - use idate2k instead of idate.
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
@@ -270,7 +271,7 @@ C
         IF (INTU.EQ.4.AND.
      &      .NOT.(NRUN.EQ.NRUNO.AND.BEAMXY(2).LT.1.E-3
      &      .AND.BEAMXY(5).LT.1.E-3)) THEN
-          CALL IDATE(MONTH,JDATE,IYEAR)
+          CALL IDATE2k(MONTH,JDATE,IYEAR)
           WRITE(CDATE(1:2),'(I2.2)') MONTH
           WRITE(CDATE(4:5),'(I2.2)') JDATE
           WRITE(CDATE(7:8),'(I2.2)') IYEAR
@@ -300,7 +301,7 @@ C----------------------------------------------------------------------
  1001 FORMAT(I4,I4,'   Gaussian parameters: peak value = ',E15.6,/
      &       10X,'                      mean value = ',E15.6,/
      &       10X,'                      sigma      = ',E15.6)
- 1002 FORMAT(10x' Beam slope (mrad) = ',E15.6,'+-',E15.6)
+ 1002 FORMAT(10x,' Beam slope (mrad) = ',E15.6,'+-',E15.6)
  1003 FORMAT(1X,71(1H*))
  1005 FORMAT(' Run',I6,', Store',I5,', Lay',I1,', Beg. time ',A8,
      &       1X,A5,', End time ',A8,1X,A5)
