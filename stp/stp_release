@@ -1,0 +1,121 @@
+#! /bin/csh -f
+#------------------------------------------------------------------------------
+#
+# Name      : Stp_release
+#
+# Purpose   : Get or build STP files at STP library release time.
+#
+# Usage     :
+#
+# % stp_release [-got] [-h rhost]
+#
+# Options   :
+#
+# -g   - Gamma release.
+# -o   - Official release (default).
+# -t   - Test release.
+# -h   - Specify remote host (default $ZFTP_NODE or $VAXLIB_NODE if 
+#        ZFTP_NODE is undefined).
+#
+# Created 7-FEB-1992   Herbert B. Greenlee
+#
+#------------------------------------------------------------------------------
+#
+# Scan options
+#
+set rhost = ''
+set gamma = 0
+set official = 0
+set test = 0
+set argv = (`getopt h:got $argv`)
+while("$argv[1]" != '--')
+  switch($argv[1])
+  case -g:
+    set gamma = 1
+    shift
+    breaksw
+  case -o:
+    set official = 1
+    shift
+    breaksw
+  case -t:
+    set test = 1
+    shift
+    breaksw
+  case -h:
+    set rhost = $argv[2]
+    repeat 2 shift
+    breaksw
+  endsw
+end
+shift    # drop -- 
+#
+# Make sure options are proper.  Supply defaults.
+#
+if( ! $test && ! $gamma )set official = 1
+@ total = $gamma + $test + $official
+if( $total != 1 )then
+  echo "Supply exacly one option from -o -t -g:
+  exit 1
+endif
+if( $rhost == '' && $?ZFTP_NODE)then
+  set rhost = $ZFTP_NODE
+endif
+if( $rhost == '' )then
+  echo "ZFTP_NODE undefined."
+  exit 1
+endif
+#
+# Set VMS directory to fetch from
+#
+if( $official )then
+  set vms_dir = 'd0$disk:[d0library.stp]'
+endif
+if( $test )then
+  set vms_dir = 'd0$disk:[d0library.test.stp]'
+endif
+if( $gamma )then
+  set vms_dir = 'd0$gamma:[stp]'
+endif
+#
+# Temporary filename
+#
+set temp = /usr/tmp/stp_release$$
+#
+# Get list of files to fetch
+#
+echo "cd $vms_dir:q" >! ${temp}.zftp1
+echo 'ls muo*stpfile*.dat' >> ${temp}.zftp1
+echo 'ls *gsave*.dat' >> ${temp}.zftp1
+echo 'quit' >> ${temp}.zftp1
+zftp $rhost < ${temp}.zftp1 | \
+  tr '[A-Z]\011' '[a-z] ' | \
+  sed -n 's/^.*\[.*\]\(.*\);.*$/\1/p' > ${temp}.files
+#
+# Fetch files
+#
+echo "cd $vms_dir:q" >! ${temp}.zftp2
+foreach file ( `cat ${temp}.files` )
+  rm -f $file >& /dev/null
+  echo "getfz $file:q" >> ${temp}.zftp2
+end
+echo 'quit' >> ${temp}.zftp2
+zftp $rhost < ${temp}.zftp2
+echo
+rm -f ${temp}.*
+#
+# Now build and execute various main programs to build stp files
+#
+eval `uff $d0stp/cdc/cdwstp.csh`
+eval `uff $d0stp/fdc/fdwstp.csh`
+eval `uff $d0stp/trd/trwstp.csh`
+eval `uff $d0stp/vtx/vtwstp.csh`
+eval `uff $d0stp/geocal/cawstp.csh`
+eval `uff $d0stp/geocal/csfmake.csh`
+eval `uff $d0stp/geogen/gnwstp.csh`
+eval `uff $d0stp/samus/sawstp.csh`
+#eval `uff $d0stp/muon/mugstp.csh`
+#
+# Remove all symbolic links
+#
+find . -type l -exec rm {} \;

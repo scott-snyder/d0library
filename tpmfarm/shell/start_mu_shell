@@ -1,0 +1,113 @@
+#!/bin/csh
+#"start_mu_shell"
+#A script that prepares and submits actual shell script to be executed
+#K.Denisenko
+#Created 12/16/92
+#Last modified
+#Arguments: node project 
+
+set nonomatch
+
+#File definitions
+set TMP    = ${PRODIR}/resources/tmp/$1.stjn."$$"
+set ENVRM  = ${PRODIR}/resources/env.$1
+
+#Get current environment ( set by the outspooler )
+set pdb_dir = `cat $ENVRM`
+
+#Check whether this a parallel or sequential machine
+set PRL = `nawk ' /MODE/ { print $2 } ' $PRODIR/resources/resource.$FMLNODE `
+
+if ( $FMLPHYS == "fnsfd" ) then
+  set PRODSK = /fnsfg/proman
+else
+  set PRODSK = /proman
+endif
+
+if ( $PRL == "SEQUENTIAL" ) then
+
+
+#Create a shell to submit d0reco.csh
+set fdate = ` date '+%y%m%d%H' | nawk ' { print substr($0,2) }' `
+set shlfl = shelldb/$pdb_dir/"$2"_"$1"_$fdate.CSH
+set SHLFL = $PRODIR/$shlfl
+echo "#\!/bin/csh"                               > $SHLFL
+echo 'setenv prod ~/production'                 >> $SHLFL
+echo 'source ~/d0library/unix/d0local.login'    >> $SHLFL
+echo 'source ~/d0library/unix/d0local.cshrc'    >> $SHLFL
+echo 'libtest unix'                             >> $SHLFL
+echo "setenv PROJECT $2"                        >> $SHLFL
+echo "setenv PRODSK $PRODSK"                    >> $SHLFL
+echo 'setenv LOG_AREA $PRODIR'"/logdb/$pdb_dir" >> $SHLFL
+echo "setenv PRODAT $PRODAT"                    >> $SHLFL
+echo "setenv FMLNODE $FMLNODE"                  >> $SHLFL
+echo "setenv FMLPHYS $FMLPHYS"                  >> $SHLFL
+echo "setenv pdb_dir $pdb_dir"                  >> $SHLFL
+echo 'ln -sf $PRODIR/exe/inspool_l.x \'         >> $SHLFL
+echo '$PRODIR/exe/inspool_'"${FMLPHYS}_${inspool_idx}"  \
+                                                >> $SHLFL
+echo 'ln -sf $PRODIR/exe/outspool_mu.x \'       >> $SHLFL
+echo '$PRODIR/exe/outspool_'"$1"                >> $SHLFL
+echo 'setenv STA_AREA $PRODAT/$FMLNODE/proman/sta'   >> $SHLFL
+echo 'setenv DST_AREA $PRODAT/$FMLNODE/proman/dst'   >> $SHLFL
+echo 'ln -sf $PRODIR/tpm/d0reco_mnf.csh \'           >> $SHLFL
+echo '$PRODAT/$FMLNODE/d0reco_mnf_'"$1"              >> $SHLFL
+echo '$PRODAT/$FMLNODE/d0reco_mnf_'"$1 >&! \"        >> $SHLFL
+echo '$LOG_AREA/'"MNF_"$2"_"$1"_$fdate.log &"        >> $SHLFL
+
+else
+
+#if a parallel shell
+#Create a shell to submit d0reco_mnf.csh
+set fdate = ` date '+%y%m%d%H' | nawk ' { print substr($0,2) }' `
+set shlfl = shelldb/$pdb_dir/"$2"_"$1"_$fdate.CSH
+set SHLFL = $PRODIR/$shlfl
+echo "#\!/bin/csh"                                          > $SHLFL
+echo 'setenv LOG_AREA $PRODIR'"/logdb/$pdb_dir"            >> $SHLFL
+echo "setenv PROJECT $2"                                   >> $SHLFL
+echo 'setenv PRODSK /proman'                               >> $SHLFL
+echo "setenv PRODAT $PRODAT"                               >> $SHLFL
+echo "setenv FMLNODE $FMLNODE"                             >> $SHLFL
+echo 'ln -sf $PRODIR/exe/inspool_l.x \'                    >> $SHLFL
+echo '$PRODIR/exe/inspool_'"${FMLPHYS}_${inspool_idx}"     >> $SHLFL
+echo 'ln -sf $PRODIR/exe/outspool_mu.x \'                  >> $SHLFL
+echo '$PRODIR/exe/outspool_'"$1"                           >> $SHLFL
+echo 'setenv STA_AREA $PRODAT/$FMLNODE/proman/sta'         >> $SHLFL
+echo 'setenv DST_AREA $PRODAT/$FMLNODE/proman/dst'         >> $SHLFL
+echo 'setenv OUTPRJ STADST'                                >> $SHLFL
+
+#Do a project dependent setup
+
+#First check that a corresponding project file really exists
+if ( ! -e $PRODIR/project/PROJECT.$2 ) then
+  echo "$0 - No file defining this project $2, check resource" | /usr/sbin/Mail
+ -s "Wrong Project" unix-proman
+  exit 4
+endif
+set PRJFIL = $PRODIR/project/PROJECT.$2
+
+eval setenv VRSN `nawk ' /VRSN/ { print $2 } ' $PRJFIL`
+echo "setenv VRSN $VRSN"                                   >> $SHLFL
+eval setenv PASS `nawk ' /PASS/ { print $2 } ' $PRJFIL`
+echo "setenv PASS $PASS"                                   >> $SHLFL
+eval setenv reu  `nawk ' /PRC/  { print $2 } ' $PRJFIL`
+echo "setenv reu $reu"                                     >> $SHLFL
+
+#Here is a project independent part again
+echo 'ln -sf $PRODIR/tpm/d0reco_prl.csh \'                 >> $SHLFL
+echo '$PRODIR/tpm/d0reco_prl_'"$1"                         >> $SHLFL
+echo '$PRODIR/tpm/d0reco_prl_'"$1 >&! \"     >> $SHLFL
+echo '$LOG_AREA/'"PRL_"$2"_"$1"_$fdate.log &"              >> $SHLFL
+
+endif
+
+#Execute this remote file on node $1
+chmod u+x $SHLFL
+rsh $FMLPHYS -n 'source $PRODIR/'"$shlfl"
+if ( $status == 0 ) then
+   echo "MNF shell submitted to system $1 on " `date`
+else
+   echo "MNF shell failed on submission to system $1"
+endif
+#That is about it
+exit

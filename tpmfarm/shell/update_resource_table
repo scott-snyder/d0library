@@ -1,0 +1,176 @@
+#!/bin/csh
+#A shell script to update the resource table
+#It first check for the project script running; then
+#it looks for the inspooler and outspooler; the last thing
+#it checks is the status of the tape drives;
+#It has one argument: node name.
+#K.Denisenko, FNAL
+#Created 9/1/92
+#Last modified:
+
+#to prevent "No match messages"
+set nonomatch
+
+#Some file definitions
+set RESORC =  $PRODIR/resources/resource
+set RESFIL =  $PRODIR/resources/tmp/"$1".tmp."$$"
+set TMPRSC =  $PRODIR/resources/tmp/tmp.rsrc."$$"
+set DRVTMP =  $PRODIR/resources/tmp/vrd.rsrc."$$"
+
+#Parse the resource table for "UNAVAILABLE"; just exit if it is there
+set AVL = `nawk '( $2 ~ "UNAVAILABLE" ) && ( $1 ~ "'$1'" ) {print $1}' $RESORC`
+if ($AVL != "") then
+  goto finish
+endif
+
+#Get the process table from the node in question
+rsh $1 -n "ps -ef | grep dzero" > $RESFIL &; set bkgr = $child
+$PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+
+if ($status != 0) then
+nodedown:
+#Node is currently down; mark it as "DOWN"
+  nawk '{p=1}; $1 ~ "'$1'" { p=0; print $1 " DOWN " $3 }; {if(p) print}'  \
+  $RESORC > $TMPRSC
+  mv $TMPRSC $RESORC
+  goto finish
+endif
+
+#Check whether RECO is running
+set reco_pid = `nawk '/d0reco_std.csh/ { print $2 }' $RESFIL`
+if ( ! ( $reco_pid == "") ) then
+#RECO is running; node is obviously busy; mark it as busy
+   nawk '{p=1}; $1 ~ "'$1'" { p=0; print $1 " BUSY " $3 }; {if(p) print}'  \
+   $RESORC > $TMPRSC
+   mv $TMPRSC $RESORC
+   goto finish
+else
+#check for the inspool or outspool still hanging around
+   set inspool_pid  = `nawk '/inspool/  { print $2 }' $RESFIL`
+   set outspool_pid = `nawk '/outspool/ { print $2 }' $RESFIL`
+   if ( ! ( $inspool_pid == "" && $outspool_pid == "" ) ) then
+#One of spoolers is hanging around; mark node with SPOOLER
+   nawk '{p=1}; $1 ~ "'$1'" { p=0; print $1 " SPOOLER " $3 }; {if(p) print}'  \
+   $RESORC > $TMPRSC
+   mv $TMPRSC $RESORC
+   goto finish
+   endif
+endif
+
+#If everything is OK with processes, check the drive allocation
+rsh $1 -n "cps_tape -lC" > $DRVTMP &; set bkgr = $child
+$PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+if ( $status == 0 ) then
+  set DRIVES = `cat $DRVTMP`
+else
+  goto nodedown
+endif
+
+switch ( $1 )
+case fnsfd :
+
+if ($DRIVES[16] == 'allocated') then
+  rsh $1 -n "cps_deallocate $DRIVES[13] $1" &; set bkgr = $child
+  $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+  if ( $status != 0 ) then
+    goto nodedown
+  endif
+  rsh $1 -n "mt -t /usr/cpsdev/"$DRIVES[13]"_nrnsv unload" &; set bkgr = $child
+  $PRODIR/tpm/check_rsh.csh $0 $bkgr 900 10
+  if ( $status != 0 ) then
+    goto nodedown
+  endif
+
+endif
+
+if ($DRIVES[20] == 'allocated') then
+  rsh $1 -n "cps_deallocate $DRIVES[17] $1" &; set bkgr = $child
+  $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+  if ( $status != 0 ) then
+    goto nodedown
+  endif
+
+  rsh $1 -n "mt -t /usr/cpsdev/"$DRIVES[17]"_nrnsv unload" &; set bkgr = $child
+  $PRODIR/tpm/check_rsh.csh $0 $bkgr 900 10
+  if ( $status != 0 ) then
+    goto nodedown
+  endif
+
+endif
+
+breaksw
+
+default:
+if ($DRIVES[4] == 'allocated') then
+  rsh $1 -n "cps_deallocate $DRIVES[1] $1" &; set bkgr = $child
+  $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+  if ( $status != 0 ) then
+    goto nodedown
+  endif
+
+  rsh $1 -n "mt -t /usr/cpsdev/"$DRIVES[1]"_nrnsv unload" &; set bkgr = $child
+  $PRODIR/tpm/check_rsh.csh $0 $bkgr 900 10
+  if ( $status != 0 ) then
+    goto nodedown
+  endif
+
+endif
+
+if ($DRIVES[8] == 'allocated') then
+  rsh $1 -n "cps_deallocate $DRIVES[5] $1" &; set bkgr = $child
+  $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+  if ( $status != 0 ) then
+    goto nodedown
+  endif
+
+  rsh $1 -n "mt -t /usr/cpsdev/"$DRIVES[5]"_nrnsv unload" &; set bkgr = $child
+  $PRODIR/tpm/check_rsh.csh $0 $bkgr 900 10
+  if ( $status != 0 ) then
+    goto nodedown
+  endif
+
+endif
+
+endsw
+
+#Before marking the node "READY" clean the production areas
+rsh $1 -n "rm /local/$1/proman/inspool/* >& /dev/null" &; set bkgr = $child
+$PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+if ( $status != 0 ) then
+  goto nodedown
+endif
+
+rsh $1 -n "rm /local/$1/proman/raw/* >& /dev/null" &; set bkgr = $child
+$PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+if ( $status != 0 ) then
+  goto nodedown
+endif
+
+#rsh $1 -n "rm /local/$1/proman/sta/* >& /dev/null" &; set bkgr = $child
+#$PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+#if ( $status != 0 ) then
+#  goto nodedown
+#endif
+
+if ( -e $PRODIR/run/$1/core ) then
+  rm $PRODIR/run/$1/core
+endif
+
+#Now mark the node as "READY"
+nawk '{p=1}; $1 ~ "'$1'" { p=0; print $1 " READY " $3 }; {if(p) print}'  \
+$RESORC > $TMPRSC
+mv $TMPRSC $RESORC
+
+
+finish:
+if (-e $RESFIL) then
+  rm $RESFIL
+endif
+if (-e $TMPRSC) then
+  rm $TMPRSC
+endif
+if (-e $DRVTMP) then
+  rm $DRVTMP
+endif
+
+exit 

@@ -1,0 +1,194 @@
+#!/bin/csh 
+#A TPM-script that tries to submit a job 
+#It utilizes a)the list of jobs to be processed (defined by the tape
+#and project; b) the list of blank tapes; c) the resource list
+#K.Denisenko
+#Created 9/2/92
+#Last Modified:
+# 09/09/92 Kirill Denisenko
+#   - Updates of the job status file will be done in chronological order
+# 09/10/92 Kirill Denisenko
+#   - Now correctly handles the updates in case of no available nodes
+# 09/30/92 Kirill Denisenko
+#   - Updates the status for all of the nodes every awakening
+# 10/16/92 Kirill Denisenko
+#   - The sleep period changed to 800 sec from 600 sec
+# 11/10/93 Kirill Denisenko
+#   - updates for injobs and blanks files
+
+
+#Check that another copy of the same script is not already running
+set running = `ps -ef | grep tpm_submit_job | nawk ' ( $0 !~ "grep" && $0 !~ "'$$'" ) { print }' `
+if ( $#running != 0 ) then
+  echo "tpm_submit_job already running, don't try to start it..." | /usr/sbin/Mail -s "tpm_submit_job already running" unix_operator
+  exit 1
+endif
+
+#File definitions
+set TPMDIR = $PRODIR/tpm
+set IJOBS  = $PRODIR/resources/injobs
+set RSRC   = $PRODIR/resources/resource
+set HSTD   = $PRODIR/history
+set HST    = $HSTD/jobs.log
+set UPDJBS = $HSTD/injobs.update
+set UPDRPR = $HSTD/injobs.repro
+set TMP    = $PRODIR/resources/tmp/tpm.tmp."$$"
+
+#Set sleeping period
+set SLP    = 800
+
+#Server start date
+echo 'The tpm-server has been started at ' `date`
+
+#Clean the tmp area
+set rmv = `ls $PRODIR/resources/tmp`
+if ( $#rmv != 0 ) then
+  rm $PRODIR/resources/tmp/*
+endif
+
+#Here is a start of a production loop
+findnode:
+#Look for a file with job updates; if job already submitted - change the status
+if ( -e $UPDJBS ) then
+  cat $UPDJBS >> $PRODIR/resources/injobs
+  rm $UPDJBS
+endif
+if ( -e $UPDRPR) then
+  cat $UPDRPR >> $PRODIR/resources/injobs
+  rm $UPDRPR
+endif
+
+#Update the injobs file with tapes returned to WAITING from SUBMITTED
+set UPDINJOBS = `ls $PRODIR/resources/injobs_upd.*`
+if ( $#UPDINJOBS != 0 ) then
+  foreach injobsupd ( $UPDINJOBS[*] )
+    set UPDLINE = `cat $injobsupd`
+    if ( $#UPDLINE != 0 ) then
+      nawk ' {p=1}; $1 ~ "'$UPDLINE[1]'" { p=0; getline < "'$injobsupd'"; print }; {if(p) print} ' $PRODIR/resources/injobs > $PRODIR/resources/injobs.$$ 
+      if ( -e $PRODIR/resources/injobs.$$ ) then
+        mv $PRODIR/resources/injobs.$$ $PRODIR/resources/injobs
+        rm $injobsupd
+      endif
+    endif
+    unset UPDLINE
+  end
+endif
+
+#Update the blanks file with tapes returned to READY from USED
+set UPDBLANKS = `ls $PRODIR/resources/blanks_upd.*`
+if ( $#UPDBLANKS != 0 ) then
+  foreach blanksupd ( $UPDBLANKS[*] )
+    set UPDLINE = `cat $blanksupd`
+    if ( $#UPDLINE != 0 ) then
+      nawk ' {p=1}; $1 ~ "'$UPDLINE[1]'" { p=0; getline < "'$blanksupd'"; print }; {if(p) print} ' $PRODIR/resources/blanks > $PRODIR/resources/blanks.$$ 
+      if ( -e $PRODIR/resources/blanks.$$ ) then
+        mv $PRODIR/resources/blanks.$$ $PRODIR/resources/blanks
+        rm $blanksupd
+      endif
+    endif
+    unset UPDLINE
+  end
+endif
+
+#check all stand alone nodes for SPOOLER status 
+#$PRODIR/exe/fix_spooler_status
+
+#Check the filter job; submit a new one if necessary
+#$PRODIR/tpm/start_filter_job
+
+#Now goto resource table to see whether there are any available nodes
+set ALLNDS = `nawk ' $1 ~ "fn" { if ( $2 != "UNAVAILABLE" ) print $1 }' $RSRC `
+if ( $#ALLNDS == 0 ) then
+  goto hybern
+endif
+
+#update the status for all nodes
+foreach node ( $ALLNDS[*] )
+  set NDRD = ` nawk ' $1 ~ "'$node'" { print $2 } ' $RSRC `
+  if ( $NDRD != "READY" && $NDRD != "FARMLET" ) then 
+    $TPMDIR/update_resource_table $node
+  else
+    if ( $NDRD == "FARMLET" ) then
+      set PRJF = ` nawk ' $1 ~ "'$node'" { print $3 } ' $RSRC `
+      $TPMDIR/update_farmlet_table $node $PRJF
+    endif
+  endif
+end
+set RDYNDS = `nawk '/READY/ { print $1 }; /FARMLET/ { print $1 } ' $RSRC ` 
+if ( $#RDYNDS == 0 ) then
+  goto hybern
+endif
+set RDYPRJ = `nawk '/READY/ { print $3 }; /FARMLET/ { print $3 } ' $RSRC `
+
+#Have a loop over the READY nodes now
+set NRDY = $#RDYNDS
+while ( $NRDY >= 1 )
+  
+#Get an entry from injobs (VSN PROJECT STATUS)
+  nawk ' /WAITING/ { if ( $2 == "'$RDYPRJ[$NRDY]'") { print $1; exit } } '  \
+  $IJOBS > $TMP
+  set INGET = `cat $TMP`
+
+#Check if this job is matching the node
+  if ( $INGET != "" ) then
+    set FMLT = ` nawk ' $1 ~ "'$RDYNDS[$NRDY]'" { print $2 } ' $RSRC `
+    if ( $FMLT == "FARMLET" ) then
+      $TPMDIR/update_farmlet_table $RDYNDS[$NRDY] $RDYPRJ[$NRDY] $INGET
+      goto next
+    else
+      $TPMDIR/update_resource_table $RDYNDS[$NRDY]
+      set STS = `nawk '/'$RDYNDS[$NRDY]'/ { if ( $2 == "READY" ) print $1}' $RSRC`
+      if ( $STS == "" ) then
+        goto next
+      else
+        $TPMDIR/start_job_now $RDYNDS[$NRDY] $RDYPRJ[$NRDY] $INGET
+        $TPMDIR/update_resource_table $RDYNDS[$NRDY]
+      endif
+    endif
+  else
+    goto next
+  endif
+
+next:
+  @ NRDY = ($NRDY - 1)
+#end for while-loop over the ready nodes
+end
+
+#Here we update the job status
+#Look into update area and update the jobs.log file
+set UPF = `ls -rt $HSTD/update*`
+if ( $#UPF != 0 ) then
+foreach upfile ( $UPF[*] )
+  set US = `cat $upfile`
+  set UP = `echo $US | sed 's/ /-/g' `
+  if ( $#US != 0 ) then
+    nawk '{lin=$0}; $1 == "'$US[1]'" { lin = "'$UP'"; gsub(/-/," ",lin) }; { print lin }'  \
+    $HST > $TMP
+    mv $TMP $HST
+  endif
+  rm $upfile
+end
+endif
+
+
+hybern:
+#Look into update area and update the jobs.log file
+set UPF = `ls -rt $HSTD/update*`
+if ( $#UPF != 0 ) then
+foreach upfile ( $UPF[*] )
+  set US = `cat $upfile`
+  set UP = `echo $US | sed 's/ /-/g' `
+  if ( $#US != 0 ) then
+    nawk '{lin=$0}; $1 == "'$US[1]'" { lin = "'$UP'"; gsub(/-/," ",lin) }; { print lin }'  \
+    $HST > $TMP
+    mv $TMP $HST
+  endif
+  rm $upfile
+end
+endif
+
+sleep $SLP
+goto findnode
+
+#That is all, folks...
+exit

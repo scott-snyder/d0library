@@ -1,0 +1,107 @@
+      SUBROUTINE CMSGEC
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Creates Module Banks for EC massless gap
+C-
+C-   Inputs  : 
+C-   Outputs : 
+C-   Controls: 
+C-   Zebra Banks Created :   CMSG, CSHA
+C-
+C-   Created  20-OCT-1989   Stephen Kahn
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      INCLUDE 'D0$INC:ZEBSTP.INC'
+      INCLUDE 'D0$INC:CLINKS.INC'
+      INCLUDE 'D0$INC:REGION.DEF'
+      INCLUDE 'D0$INC:PI.DEF'
+      INCLUDE 'D0$PARAMS:CLGA.PARAMS'
+      INCLUDE 'D0$LINKS:IZCMAT.LINK'
+      INCLUDE 'D0$LINKS:IZCMSG.LINK'
+      INCLUDE 'D0$LINKS:IZCREG.LINK'
+      INCLUDE 'D0$LINKS:IZCSHA.LINK'
+      INCLUDE 'D0$LINKS:IZCLNK.LINK'
+C
+      INTEGER MCMSG(5), MCSHA(5), MCLNK(5), LZFIND, LQCMSG
+      EQUIVALENCE (LQCLGA, LQCMSG)
+C
+      CHARACTER*4 CHAR4,CHAS4,CHAL4
+      INTEGER ICHARR
+      CHARACTER*4 CHARR
+      EQUIVALENCE (ICHARR,CHARR)
+      EQUIVALENCE (CHAR4,MCMSG(1))
+      EQUIVALENCE (CHAS4,MCSHA(1))
+      EQUIVALENCE (CHAL4,MCLNK(1))
+      DATA MCMSG / 0, 6, 1, 18, 9 /
+      DATA MCSHA / 0, 0, 0, 13, 9 /
+      DATA MCLNK / 0, 1, 0,  4, 2 /
+      DATA CHAR4 / 'CMSG'/
+      DATA CHAS4 / 'CSHA'/
+      DATA CHAL4 / 'CLNK'/
+C
+      LQCREG = LZFIND( IDVSTP, LC(LCGEH-IZCREG), ISECAL, IGREGN)
+C
+      MCMSG(5) = IOCLGA
+C
+C     SOUTH MH MASSLESS GAP
+C
+      CALL MZLIFT(IDVSTP, LQCLNK, LQCREG, -IZCLNK, MCLNK, 0)
+      IC(LQCLNK + IGIDEN) = ICMHMG
+      IC(LQCLNK + IGNSEG) = 1
+      IC(LQCLNK + IGJPHI) = 1
+      IC(LQCLNK + IGN1 ) = 0
+      CALL MZLIFT(IDVSTP, LQCMSG, LQCREG, -IZCMSG, MCMSG, 0)
+      IC(LQCMSG+IGIDEN) = ICMHMG        ! massless gap code
+      IC(LQCMSG+IGNLAY) = 1
+      CHARR= 'MHMG'
+      IC(LQCMSG+IGNAM)  = ICHARR
+      IC(LQCMSG+IGCOOR) = 123
+      IC(LQCMSG+IGPERP) = 3
+      CALL CLGSRC(LQCMSG,'EC_MHG+1','NONE')
+      CALL SBIT1(IC(LQCMSG),IBZRFL)
+C
+C     PUT IN SHAPE INFORMATION
+C
+      MCSHA(5) = IOCSHA
+      CALL MZLIFT(IDVSTP, LQCSHA, LCGEH, -IZCSHA, MCSHA, 0)
+      CALL SHPSRC(LQCSHA, 'EC_MHG+1')
+C
+C     CONNECT REFERENCE LINKS
+C
+      LC(LQCMSG-IXCMAT) = LQCMAT       ! ref link to CMAT
+      LC(LQCMSG-IXCSHA) = LQCSHA       ! ref link to CSHA
+      LC(LQCLNK-1) = LQCMSG            ! ref link to CMSG
+C
+C     SOUTH OH MASSLESS GAP
+C
+      CALL MZLIFT(IDVSTP, LQCLNK, LQCREG, -IZCLNK, MCLNK, 0)
+      IC(LQCLNK + IGIDEN) = ICOHMG
+      IC(LQCLNK + IGNSEG) = 1
+      IC(LQCLNK + IGJPHI) = 1
+      IC(LQCLNK + IGN1 ) = 0
+      CALL MZLIFT(IDVSTP, LQCMSG, LQCREG, -IZCMSG, MCMSG, 0)
+      IC(LQCMSG+IGIDEN) = ICOHMG       ! massless gap code
+      IC(LQCMSG+IGNLAY) = 1
+      CHARR= 'OHMG'
+      IC(LQCMSG+IGNAM)  = ICHARR
+      IC(LQCMSG+IGCOOR) = 123
+      IC(LQCMSG+IGPERP) = 3
+      CALL CLGSRC(LQCMSG,'EC_OHG+1','NONE')
+      CALL SBIT1(IC(LQCMSG),IBZRFL)
+C
+C     PUT IN SHAPE INFORMATION
+C
+      MCSHA(5) = IOCSHA
+      CALL MZLIFT(IDVSTP, LQCSHA, LCGEH, -IZCSHA, MCSHA, 0)
+      CALL SHPSRC(LQCSHA, 'EC_OHG+1')
+C
+C     CONNECT REFERENCE LINKS
+C
+      LC(LQCMSG-IXCMAT) = LQCMAT       ! ref link to CMAT
+      LC(LQCMSG-IXCSHA) = LQCSHA       ! ref link to CSHA
+      LC(LQCLNK-1) = LQCMSG            ! ref link to CMSG
+C
+C----------------------------------------------------------------------
+  999 RETURN
+      END

@@ -1,0 +1,152 @@
+      SUBROUTINE MAKE_LV0_TILE(INCH_CM,ZEE,LUN)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : WRITE OUT TILE PARAMETERS FOR GEOLV0
+C-
+C-   Inputs  : INCH TO CM CONVERSION FACTOR, +/- Z,
+C-             LUN [I] UNIT NUMBER TO WRITE OUT SRCP FILE
+C-
+C-   Outputs : NONE
+C-   Controls: SRCP_RAW_LV0.DAT
+C-
+C-   Created  23-FEB-1992   Freedy Nang
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+      REAL    INCH_CM, TILE(3), XSLAT(9)
+      REAL    ENCLOSURE(10), LV0XYZ(3)
+      REAL    TI_XC(5), TI_YC(5), TI_ZC(5), PAR(3)
+      INTEGER I, X, Y, Z, Q, R, S, IZ, IS, LVAL, IER, NSLAT
+      INTEGER J, L, M, N, P, SLAT_NP, IP, VAL, IVAL, TYPE
+      INTEGER SLAT_MED, SLAT_RM, SLAT_CN, LUN, SHIFT
+      INTEGER TILE_MED, TILE_RM, TILE_CN, TILE_NP, NAXIS, IDIV
+      CHARACTER*32 PARAM, NAME
+      CHARACTER*1 ZEE(2)
+      CHARACTER*4 CVAL
+      CHARACTER*4 SLAT_SHAPE, SLAT_MOTH, SLAT_PTYP
+      CHARACTER*4 TILE_SHAPE, TILE_MOTH, TILE_PTYP
+      EQUIVALENCE (VAL,IVAL)
+C----------------------------------------------------------------------
+      CALL EZGET('TILE',TILE,IER)
+      CALL EZGET('XSLAT',XSLAT,IER)
+      CALL EZGET('ENCLOSURE',ENCLOSURE,IER)
+      CALL EZGET('LV0XYZ',LV0XYZ,IER)
+      SHIFT=1
+      IP=1
+      DO WHILE (IP.LT.12)
+        CALL EZGET_NEXT_VALUE_TYPE('PLASTIC',VAL,CVAL,TYPE,LVAL,IER,IP)
+        IF(IP.EQ.2)  SLAT_SHAPE = CVAL(1:LVAL)
+        IF(IP.EQ.3)  SLAT_MED   = IVAL
+        IF(IP.EQ.4)  SLAT_MOTH  = CVAL(1:LVAL)
+        IF(IP.EQ.5)  SLAT_PTYP  = CVAL(1:LVAL)
+        IF(IP.EQ.6)  TILE_PTYP  = CVAL(1:LVAL)
+        IF(IP.EQ.7)  SLAT_RM    = IVAL
+        IF(IP.EQ.8)  SLAT_CN    = IVAL
+        IF(IP.EQ.9)  SLAT_NP    = IVAL
+        IF(IP.EQ.10)  TILE_NP    = IVAL
+        IF(IP.EQ.11)  NSLAT      = IVAL
+        IF(IP.EQ.12)  NAXIS      = IVAL
+      ENDDO
+      TILE_SHAPE = SLAT_SHAPE
+      TILE_MED   = SLAT_MED
+      TILE_RM    = SLAT_RM
+      TILE_CN    = SLAT_CN
+C
+C ****  CONVERT FROM ENGLISH TO METRIC
+C
+      DO I = 1 ,3
+        TILE(I) = TILE(I)*INCH_CM
+        LV0XYZ(I)=LV0XYZ(I)*INCH_CM
+      END DO
+      DO I = 1 ,NSLAT
+        XSLAT(I)= XSLAT(I)*INCH_CM
+      END DO
+      DO I = 1 ,10
+        ENCLOSURE(I)=ENCLOSURE(I)*INCH_CM
+      ENDDO
+C
+C ****  LOOP OVER PLUS AND MINUS Z
+C
+      CALL SWORDS(SLAT_MOTH,X,Y,Z)
+      DO IZ = 1,2   !+/- Z
+C
+C ****   LOOP OVER SLATS IN Y
+C
+C
+C ****  SLAT NEXT TO THE BEAM PIPE
+C
+        IS= 1
+        IDIV = (NSLAT-1)/2
+        TI_XC(IS)=5.*TILE(1)+2.*ENCLOSURE(1)
+        TI_YC(IS)=XSLAT(IS)-2.*ENCLOSURE(1)
+        TI_ZC(IS)=ENCLOSURE(8)
+C
+C ****  THERE IS AN OFFSET OF .125" FOR AN ALUMINUM PIECE THAT
+C ****     SURROUNDS THE BEAM PIPE.
+C
+        CALL EZGETS('SLAT_TYPE',IS,PARAM,LVAL,IER)
+        PARAM=PARAM(1:LVAL)
+        CALL SWORDS(PARAM,I,J,L)
+        CALL EZGETS('SLAT_NAME',IS,NAME,LVAL,IER)
+        NAME=NAME(1:LVAL)
+        CALL SWORDS(NAME,M,N,P)
+        PAR(1)=IDIV*TILE(1)
+        PAR(2)=TILE(2)
+        PAR(3)=TILE(3)
+        CALL MAKE_LV0_WRITE(LUN,PARAM(1:J)//ZEE(IZ)//'1',
+     &    NAME(M:N)//ZEE(IZ),
+     &    SLAT_SHAPE,SLAT_MED,SLAT_MOTH(X:Y)//ZEE(IZ),SLAT_PTYP,
+     &    SLAT_RM,SLAT_CN,TI_XC(IS),TI_YC(IS),TI_ZC(IS),SLAT_NP,
+     &    PAR,SHIFT)
+        CALL EZGETS('TILE_TYPE',IS,PARAM,LVAL,IER)
+        PARAM=PARAM(1:LVAL)
+        CALL SWORDS(PARAM,I,J,L)
+        CALL EZGETS('TILE_NAME',IS,NAME,LVAL,IER)
+        NAME=NAME(1:LVAL)
+        CALL SWORDS(NAME,M,N,P)
+        CALL EZGETS('SLAT_NAME',IS,TILE_MOTH,LVAL,IER)
+        TILE_MOTH=TILE_MOTH(1:LVAL)
+        CALL SWORDS(TILE_MOTH,Q,R,S)
+        CALL MAKE_LV0_WRITE2(LUN,PARAM(I:J)//ZEE(IZ)//'1',
+     &    NAME(M:N)//ZEE(IZ),
+     &    TILE_SHAPE,TILE_MED,TILE_MOTH(Q:R)//ZEE(IZ)//'1',TILE_PTYP,
+     &    IDIV,NAXIS)
+C
+C ****  Do the other slats
+C
+        PAR(1)=NSLAT*TILE(1)
+        PAR(2)=TILE(2)
+        PAR(3)=TILE(3)
+        DO IS = 1, 4
+          TI_XC(IS+1)=LV0XYZ(1)
+          TI_YC(IS+1)=XSLAT(IS+1)-2.*ENCLOSURE(1)
+          TI_ZC(IS+1)=ENCLOSURE(8)
+          CALL EZGETS('SLAT_TYPE',IS+1,PARAM,LVAL,IER)
+          PARAM=PARAM(1:LVAL)
+          CALL SWORDS(PARAM,I,J,L)
+          CALL EZGETS('SLAT_NAME',IS+1,NAME,LVAL,IER)
+          NAME=NAME(1:LVAL)
+          CALL SWORDS(NAME,M,N,P)
+          CALL MAKE_LV0_WRITE(LUN,PARAM(I:J)//ZEE(IZ)//'1',
+     &      NAME(M:N)//ZEE(IZ),
+     &      SLAT_SHAPE,SLAT_MED,SLAT_MOTH(X:Y)//ZEE(IZ),SLAT_PTYP,
+     &      SLAT_RM,SLAT_CN,TI_XC(IS+1),TI_YC(IS+1),TI_ZC(IS+1),SLAT_NP,
+     &      PAR,SHIFT)
+          CALL EZGETS('TILE_TYPE',IS+1,PARAM,LVAL,IER)
+          PARAM=PARAM(1:LVAL)
+          CALL SWORDS(PARAM,I,J,L)
+          CALL EZGETS('TILE_NAME',IS+1,NAME,LVAL,IER)
+          NAME=NAME(1:LVAL)
+          CALL SWORDS(NAME,M,N,P)
+          CALL EZGETS('SLAT_NAME',IS+1,TILE_MOTH,LVAL,IER)
+          TILE_MOTH=TILE_MOTH(1:LVAL)
+          CALL SWORDS(TILE_MOTH,Q,R,S)
+          CALL MAKE_LV0_WRITE2(LUN,PARAM(I:J)//ZEE(IZ)//'1',
+     &        NAME(M:N)//ZEE(IZ),
+     &        TILE_SHAPE,TILE_MED,TILE_MOTH(Q:R)//ZEE(IZ)//'1',
+     &        TILE_PTYP,
+     &        NSLAT,NAXIS)
+        ENDDO
+      END DO
+  999 RETURN
+      END

@@ -1,0 +1,349 @@
+K. Denisenko. How-To Operator's Guide to TPM                    Page 1
+
+
+         1  INTRODUCTION
+
+         The following is supposed to give a brief overview  of  the  TPM  -  a
+         production  manager  system running on the D0 SGI Reconstruction Farm.
+         The purpose of this system is  to  submit,  monitor,  and  report  the
+         status  of  the  reconstruction  jobs,  also  to  communicate with the
+         outside world by spooling the DSTs to the DST area  on  the  D0FS  and
+         preparing  the  RCP-files  to  make  the  corresponding entries in the
+         FATMEN  catalogue.   TPM  allows   for   handling   of   the   several
+         reconstruction  projects ( the number is limited only by the number of
+         available cpu-nodes ).  The operator actions  consist  of  adding  new
+         jobs description to the job description file and periodically checking
+         the system status.  TPM will automatically recover from  the  majority
+         of  error  conditions including, but not limited to, spooler hang-ups,
+         reconstruction code failures, bad input and/or output tapes, etc.
+
+         TPM is written in c-shell instructions.  Awk programming language  was
+         also widely used.
+
+         This is not intended to be a complete technical manual on  TPM.   This
+         document  is  a how-to manual for the operator and doesn't require any
+         knowledge of Unix, c-shell, or awk-language.
+
+
+
+         2  HOW TO LOG INTO THE D0 SGI FARM.
+
+         From any available computer type
+
+             telnet fnsfd
+
+         Answer dzero at login:  prompt.  The password is .........
+
+
+
+         3  HOW TO CHECK WHAT THE SYSTEM IS DOING.
+
+         Type tpm_disp at fnsfd% prompt.  This command will also work on all of
+         the  rest  of the nodes of the D0 SGI farm ( currently fnstf(a-k), and
+         fnsfd ).  The resulting display will  show  the  status  of  the  last
+         twenty  one jobs.  If you want to get the status for more jobs ( going
+         farther into the past ) supply the  command  with  an  argument,  e.g.
+         tpm_disp 40.  This will display a status for the last 40 jobs.
+
+         The format of the table includes the job queue ID number  -  a  unique
+         number  for  any  job,  the  farm  node  on  which  the job was ( is )
+         executed, the reconstruction project name, the input  and  the  output
+         tape  volume  label,  the date this job was submitted, and the current
+         status of the job.
+
+         The status field for the running job may be:
+
+         1.   SUBMITTED  -  a  job  has  been  submitted  by   the   TPM.    No
+         communications with the job have been made.
+K. Denisenko. How-To Operator's Guide to TPM                    Page 2
+
+
+         2.  RUNNING - the recently submitted job has started successfully on a
+         given node.  Both in- and out-spoolers are running.
+
+         3.  NEXT_DS_OK - next input dataset was  processed  successfully,  the
+         job is still running since there is another dataset on the input tape.
+
+         4.   RUN_DS_FAIL  -  next  input  dataset  failed  to   be   processed
+         successfully.   No  harm  to  the  job itself was done and no operator
+         action is required.  It is prudent though to look into the  causes  of
+         the failure (see the diagnostics section).
+
+         The status field for the finished job may be:
+
+         1.  SUCCESS - all the input datasets for the job have  been  processed
+         successfully.  This is the most common situation.
+
+         2.  FINISHED - at least  one  of  the  input  datasets  failed  to  be
+         processed successfully.  Look at the log files to find which and why (
+         see the diagnostics section ).
+
+         3.  FAILED_ON_SP - an input or output spooler failure.   Happens  when
+         there  are  problems with input and/or output tapes, or the tape drive
+         hardware.  Look into the log files for details ( see  the  diagnostics
+         section ).
+
+         4.   INTAPE_IN_USE  -  an  input  tape  you  want  to  use   for   the
+         reconstruction  is  already used on D0FS.  One important caveat - make
+         sure that it is not you who are "using" this tape.  If the node  fails
+         due  to  the  local power outage or the hardware malfunction it cannot
+         communicate to the D0FS that the tape in question has  been  released.
+         You have to check it yourself - see "Communicating with D0FS" section.
+
+         5.  There may be non-standard status messages ( put in by hand by  the
+         farm manager ), which are usually self-explanatory, e.g.  POWER_OUTAGE
+         would mean that the job in question failed due to the power outage.
+
+         Another command, tpm_wide, has been added recently.   In  addition  to
+         the  goodies  that tpmdisp provides, it also gives you the finish time
+         of the job.  tpmwide requires 132 column output device.
+
+
+
+         4  HOW TO ADD NEW BLANK TAPES TO THE SYSTEM.
+
+         All  the  following  commands  are  valid  in  the  ~/proman/resources
+         directory.  After logging into fnsfd type
+
+             cd ~/proman/resources
+
+         To add tapes to the pool of available tapes do the following:
+
+             cp blanks blanks.tmp
+             add_blanks SERIES FIRST END >> blanks.tmp
+             mv blanks.tmp blanks
+
+K. Denisenko. How-To Operator's Guide to TPM                    Page 3
+
+
+         Here SERIES is a two  letter  series  code  (e.g.,  WN),  FIRST  is  a
+         starting tape number, and LAST is an inclusive ending tape number.  So
+         the real command will look like
+
+             cp blanks blanks.tmp
+             add_blanks WN 123 234 >> blanks.tmp
+             mv blanks.tmp blanks
+
+         and will add tapes WN0123 thru WN0234 to the pool of available tapes.
+
+                                      IMPORTANT !
+
+                 Please make sure that you typed >> rather than >.   If
+                 you did that please don't do the mv part.  Start again
+                 from cp.
+
+
+                                       CAUTION !
+
+                 This script will not check for duplicate  entries;  it
+                 is  your  responsibility to make sure that the tape in
+                 question  has  not  been  already  entered  into   the
+                 database.   To  check the last n tapes in the "blanks"
+                 database you can issue the following command:
+
+
+                 tail -n blanks
+
+
+
+
+         5  HOW TO ENTER NEW JOBS TO THE POOL  OF  THE  JOBS  WAITING  FOR  THE
+            EXECUTION.
+
+         All  the  following  commands  are  valid  in  the  ~/proman/resources
+         directory.  After logging into fnsfd type
+
+             cd ~/proman/resources
+
+         The unit job in our reconstruction model is an input tape.  Hence  "to
+         submit  a  job" means to let the system know that the particular input
+         tape is available for the reconstruction.  In order to do  this  issue
+         the following command:
+
+             injob_create
+
+         You will be prompted for  the  project  name  -  the  default  one  is
+         RECO_FULL_SGI,  just  type  <CR> to get it.  Then you will be prompted
+         for the input tapes labels.  Enter <CR> after each tape to  be  added;
+         enter  <CR><CR>  after  the  last one you want to add.  After that the
+         contents of your update will be displayed for  your  review.   If  you
+         like  it - type <CR> or Y at the prompt.  If you don't - type anything
+         except <CR> or Y.  The program will then  exit  without  updating  the
+         database.
+K. Denisenko. How-To Operator's Guide to TPM                    Page 4
+
+
+                                       CAUTION !
+
+                 No attempt is made to check for the duplicate entries.
+                 The  need  to  enter  any of the input tapes twice may
+                 arise only to reprocess some of  the  datasets  -  the
+                 operator  is  not  supposed  to  do this.  In order to
+                 check  which  n  jobs  were  entered  last  issue  the
+                 following command:
+
+
+                 tail -n injobs
+
+
+
+
+         6  REPORTS
+
+         The reports generators are in ~/proman/report area.  To get there type
+         the following command after logging to the farm:
+
+             cd ~/proman/report
+
+         These reports are currently available:
+
+         1.  Official farm report displays  the  output  tapes  available,  run
+         numbers  for  the  datasets  processed,  date  this job was submitted,
+         number of events on a tape and total number of events  processed.   To
+         obtain it type
+
+             official_report Mon STR
+
+
+         Here Mon is a three letter abbreviation for  the  month  you  want  to
+         obtain the report for ( e.g., Jan, Feb, Oct, etc.  Note that the first
+         letter should be capital ); STR is a stream name  (  e.g.,  ALL,  EXP,
+         etc.   Note  that  all  three letters should be capital ).  The stream
+         argument can be omitted in  which  case  processed  datasets  for  all
+         available streams will be reported.
+
+         The result can be found in the file
+
+               ~/proman/report/log/off__rep__STR.MM__DD__YY
+
+         where STR is a stream name and MM_DD_YY is the today's date.  It takes
+         from  5  to  30  minutes to process this report, depending on the node
+         load.
+
+         2.  An exhaustive  report  for  any  particular  output  tape  can  be
+         obtained by typing
+
+             evt_per_tape OUTVSN
+
+         where OUTVSN is the output  tape  volume  label.   You  will  also  be
+         prompted  for  the  queue ID for the particular job.  This queue ID is
+         readily available from  the  "tpm_disp"  output  (see  section  1  for
+K. Denisenko. How-To Operator's Guide to TPM                    Page 5
+
+
+         details).   For  example,  to  get  queue  ID for the output tape with
+         WN0211 label issue the following command:
+
+             tpm_disp 1000 | grep WN0211
+
+
+         3.  Just to get the number of events on  any  particular  output  tape
+         type
+
+          evt_only OUTVSN Mon
+
+
+
+
+         7  RECOVERING FROM THE SYSTEM CRASH.
+
+         If the whole farm went down you have to:
+
+         a) make sure that all farm nodes are up.  Ask system operators in  FCC
+         (x2746).
+
+         b) Issue a "tpm_disp" command and log the queue ID number of the  last
+         job.
+
+         c) Send a mail to the unix production  manager  D0SF15::PROMAN  noting
+         the fact and detailing the circumstances of the crash.
+
+         d)  Restart  the  production  manager.   Change  your   directory   to
+         ~/proman/tpm by typing
+
+             cd ~/proman/tpm
+
+         Restart the production manager by
+
+             tpm_submit_job >>& tpm.log &
+
+
+
+
+         8  COMMUNICATING WITH D0FS.
+
+         In order to avoid the conflicts with the user requests for  the  tapes
+         on   the   D0FS   side,   a   fake   job   is  submitted  on  D0FS  to
+         STAGE_IN_USE_ON_UNIX_FARM queue.  The jobs are remotely submitted from
+         DZERO account on the D0FS, password ..........  After the farm crash (
+         either for the whole farm or for the individual nodes ) make sure that
+         the jobs that crashed are removed from STAGE_IN_USE_ON_UNIX_FARM queue
+         on D0FS.  Log in to D0FS, then type
+
+             sh entry
+
+         Look for the job with the name YYYYYY_YYYYYY_XX_UNIX, where YYYYYY  is
+         the volume label of the tape in question.
+K. Denisenko. How-To Operator's Guide to TPM                    Page 6
+
+
+         For example, the output may look like
+
+         D0FSA$ sh entry
+           Entry  Jobname         Username     Blocks  Status
+           -----  -------         --------     ------  ------
+             69  WM0874_WM0874_XX_UNIX
+                                  DZERO                Executing
+                 On available batch queue STAGE_IN_USE_ON_UNIX_FARM
+
+         After finding it remove the corresponding entry :
+
+         DELETE/ENTRY=ENTRYNUMBER
+
+         where ENTRYNUMBER is the entry number, 69 in the above example.
+
+
+
+         9  DIAGNOSTICS.
+
+         There are several levels of diagnostics.  None  of  them  require  the
+         operator  involvement.  Just in case the location of several important
+         log files is outlined below:
+
+         1.  Communications with D0FS.
+
+         ~/proman/logdb/1992/oct/19-24/copy_results_log.OUTVSN
+
+         where OUTVSN is the output tape volume label.   Here  substitute  1992
+         for  a  current  year,  oct  for  the  current month and 19-24 for the
+         current date.  Available date ranges are 1-6, 7-12, 13-18, 19-24,  and
+         25-31.   Reports  the  status  of  the copying of the DSTs and RCPs to
+         D0FS.  If some problem occurs during the transmission the mail will be
+         sent also to unix_proman mailing alias as defined in .mailrc .
+
+         ~/proman/report/COPIED_DST.LOG
+
+         contains a list of the output tapes  for  which  the  DSTs  have  been
+         copied as well as the date of the transaction.
+
+         ~/proman/report/FMRCP_COPIED.LOG
+
+         contains a list of the output tapes for which  the  FATMEN  RCPs  were
+         produced and shipped to D0FS as well as the date of the transaction.
+
+         2.  RECO log files can be found in ~/proman/logdb area.  The name  has
+         the following format:
+
+         PROJECT_QUEID.log
+
+         For example, RECO_FULL_SGI_604.log
+
+         3.  Spooler log files are also in ~/proman/logdb area.  The names have
+         the following format:
+
+         inspool_QUEID.log
+K. Denisenko. How-To Operator's Guide to TPM                    Page 7
+
+
+         outspool_QUEID.log
+

@@ -1,0 +1,83 @@
+#!/bin/csh -f
+#To check whether proper number of the server shells is running
+#One argument - project name
+#K.D. - changed awk-pattern search from mnf to ... to incorporate
+#parallel shell d0reco_prl.csh, 04/02/93
+
+#Set PRJ to $1
+set PRJ = $1
+
+#File to hold the resource table
+set RESFIL = $PRODIR/resources/tmp/tmp_${FMLNODE}.log_$$
+
+#Get the process table
+rsh $FMLPHYS -n "ps -ef | grep dzero" > $RESFIL &; set bkgr = $child
+$PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+if ( $status != 0 ) then
+nodedown:
+  echo "The node $FMLNODE is down...check" | /usr/sbin/Mail -s "Node down" unix_proman
+  goto finish
+endif
+
+#Check whether RECO shell is running
+checkshell:
+set TMPMAIL = $PRODIR/resources/tmp/tmpmail."$$"
+set reco_pid = `nawk '/d0reco_..._'$FMLNODE'/ { print $3 }' $RESFIL`
+set num_mnf = $#reco_pid
+if ( $num_mnf == 0 ) then
+#The shell is not running ( we don't know or care why ) - start it anyway
+# $1=node $2=project
+  echo "Submitting a new shell to node $1 for project $2 " `date`
+  $PRODIR/tpm/start_mu_shell $FMLNODE $PRJ &
+else if ( $num_mnf  == 1 ) then
+#  echo "The minishell is running well on the farmlet $FMLNODE" 
+  goto finish
+else if ( $num_mnf == 2 ) then
+  set mnf_id1  = `nawk '/d0reco_..._'$FMLNODE'/ { if ( $3 == "1" ) print $2 } ' $RESFIL`
+  set mnf_pid2 = `nawk '/d0reco_..._'$FMLNODE'/ { if ( $3 != "1" ) print $3 } ' $RESFIL`
+  set mnf_id2  = `nawk '/d0reco_..._'$FMLNODE'/ { if ( $3 != "1" ) print $2 } ' $RESFIL`
+  if ( $#mnf_id1 == 0 ) then
+    echo "Two minishells are not hanging from the parent process with id equal to 1 on the farmlet $FMLNODE...check immediately" | \
+          /usr/sbin/Mail -s "Fatal minishell error" unix_proman
+  else if ( $#mnf_id1 == 1 ) then
+    if ( $mnf_id1 != $mnf_pid2 ) then
+      rsh $FMLPHYS -n "kill -9 $mnf_id2" &; set bkgr = $child
+      $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+      if ( $status != 0 ) then
+        echo "Two unrelated minishells with only one parent id = 1 on the farmlet $FMLNODE are running." > $TMPMAIL
+        echo "Killing the process with its parent id not equal to 1 was not successful...Check the farmlet" >> $TMPMAIL 
+        cat $TMPMAIL | /usr/sbin/Mail -s "Killing the minishell with its parent id not = 1 unsuccessful" unix_proman 
+        goto nodedown
+      endif
+      echo "Two unrelated minishells with only one parent id = 1 on the farmlet $FMLNODE are running." > $TMPMAIL
+      echo "Killing the process with its parent id not equal to 1 was successful." >> $TMPMAIL
+      cat $TMPMAIL | /usr/sbin/Mail -s "Successfully Killed the minishell with its parent id not = 1" unix_proman
+    endif
+  else
+    rsh $FMLPHYS -n "kill -9 $mnf_id1[1]" &; set bkgr = $child
+    $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+    if ( $status != 0 ) then
+      echo "Two unrelated minishells with both parent id = 1 on the farmlet $FMLNODE are running." > $TMPMAIL
+      echo "Killing one was not successful...Check the farmlet" >> $TMPMAIL
+      cat $TMPMAIL | /usr/sbin/Mail -s "Killing the minishell with its parent id = 1 unsuccessful" unix_proman
+      goto nodedown
+    endif
+    echo "Two unrelated minishells with both parent id = 1 on the farmlet $FMLNODE are running." > $TMPMAIL
+    echo "Killing one was successful." >> $TMPMAIL
+    cat $TMPMAIL | /usr/sbin/Mail -s "Successfully killed the minishell with its parent id = 1 " unix_proman
+  endif
+else 
+  echo "More than two minishells are running on the farmlet $FMLNODE...check" | \
+       /usr/sbin/Mail -s "More than two minishells running on the same node" unix_proman
+endif
+
+finish:
+if (-e $RESFIL) then
+  rm $RESFIL
+endif
+
+if ( -e $TMPMAIL ) then
+  rm $TMPMAIL
+endif
+
+exit  

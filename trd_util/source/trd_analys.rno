@@ -1,0 +1,139 @@
+
+.!   Created by A. Zylberstejn on  6-OCT-1989
+.!
+.PAGE SIZE  60,80     .LEFT MARGIN  5    .RIGHT MARGIN  75
+.LAYOUT  3,2
+.right;   Created by  A. Zylberstejn       APR-1989
+.right;   Modified by T. Trippe            APR-1989
+.right;   Modified by A. Zylberstejn on 25-SEP-1989
+.BLANK 3     !--- underlined title on next line
+.CENTER ; ^& TRD flow analysis \&
+.BLANK 2
+.ap
+.!------------ main text start here.
+ File name:  TRD_ANALYS.RNO
+  The flow of the analysis is:
+
+
+ 1)Calorimeter finds an electron candidate and sets a road for reconstruction.
+ 2)The tracks are reconstructed in this road (and also in the whole r-phi band).
+ 3)  The dE/dX is analysed.
+ 4)  If the dE/dX in VTX corresponds to a minimum ionizing track,
+ the TRD information is analysed .The hit cells in the TRD are computed
+ 5)  An electron efficiency is determined using the  the anodes information
+ 6)  If there is only one track contributing to the anodes, then a TRD flag is set to 1
+and the  the analysis is finished.
+ 7)  If more than one track is found which could contribute to the anode,
+then the cathodes hit by the candidate track are analyzed.
+ 8)  An electron efficiency is determined using the  the cathode information.
+ 9)  Full  tracking is done and tracks are sought along the cathodes hit by the
+candidate track.
+ 10)  If there is only one track contributing to the cathodes, then a TRD flag is set to 2
+and the  the analysis is finished.
+ 11)  If there are other tracks then try to compute electron/pi efficiency either with the
+cathodes or with the anodes. Set TRD flag to 3
+.BLANK 3
+.nap
+  At each step we can decide to stop the analysis on the basis that the electron efficiency
+is too high to correspond to any sensible hadron rejection.
+.page
+.lit
+                          +----------------------+
+                          |TRD off-line analysis |
+                          +----------------------+
+
+ +--------------+      +-------------------------+ 
+ | "Good track" |----->| Compute hit  anodes and |
+ |+ FADC info.  |      |   Cathodes              |                             
+ +--------------+      +-------------------------+  
+                                   |
+                    +--------------+ 
+                    |
+       +-----------------------+ 
+       | Use anode Information | 
+       +-----------------------+ 
+                    |
+       +--------------------------+
+       | Compute e "efficiencies" | * see note 0
+       +--------------------------+
+               |     |
+               |     +-- - - - - - - - - - - +
+               |                             |
+        +------------------+      +------------------------+
+        | Transmit e eff.  |      |     Look for           |
+        +------------------+      |  All tracks in road    |
+               |                  | defined by hit anodes  |
+               |                   +------------------------+
+               |                                |
+               |                   +-------------------------+
+               |                   | Check if another track  |
+               |                   | in same TRD anode cells |
+               |                   +-------------------------+
+               |                        one track in cell
+               |                               | |
+               |               +-- yes --------+ +---- no ----+
+               |               |                              |
+               |      +------------------+       +----------------------+
+               |      |   Set    Flag=1  |       | Use Cathode info.    |
+               |      +------------------+       +----------------------+
+               |              |                                |
+               |              |                  +--------------------------+
+               |              |                  | Compute e "efficiencies"|
+               |              |                  |    with cathodes only    |
+               |              |                  +--------------------------+
+               |              |                       |       |
+               |              |                +------+       |
+               |              |                |              +-----------+
+               |              |      +------------------+                 |
+               |              |      | Transmit e eff.  |    +------------------------+
+               |              |      +------------------+    |     Look for           |* see note 1
+               |              |                |             |  All tracks in road    |
+               |              |                |             | defined by hit cathodes|
+               |              |                |             +------------------------+
+               |              |                |                  one track in cell
+               |              |                |                        | |
+               |              |                |                +-- yes-+ +---- no ----+
+               |              |                |                |                      |
+               |              |                |      +------------------+    +----------------------+
+               |              |                |      |   Set    Flag=2  |    | If 2 tracks, compute |* see note 2
+               |              +------------+   |      +------------------+    |   e+pi "efficiency"  |
+               |                           |   |               |              |      Set Flag=3      |
+               |                           |   |               |              +----------------------+
+               |                           |   |  +------------+                         |
+               +----------------------+    |   |  | +------------------------------------+
+                                      |    |   |  | |
++-------------------+               +-----------------+ 
+| Choose an a priori|               |     Analysis    | *see note 3
+|   e  "efficiency" |-------------> |                 |
+|       Eff0(i)     |               +-----------------+
++-------------------+
+
+Note 0:  The "electron Efficiency " is a number X such that if you keep all the 
+------      events with X > x0 you'll have an electron efficiency of x0 %.
+  The hadron rejection power is not computed since it depends on the unknown
+hadron energy (more exactly on E/M). The effective hadron rejection has to be 
+computed with M.C.
+
+Note 1: This is questionnable since it requires a full track reconstruction.
+------ 
+Note 2: We compare  compare  the "probability" to have an electron + a pion versus
+------    the probability to have two pions using the anode or/and cathode info.
+          (to be implemented)
+Note 3: In ANALYS:
+------ 
+        - Take into account path to get to analysis (value of FLAG)
+        - Select events with Eff(i) > Eff0(i) for most efficient method i
+           i corresponds to the methods used for the test data analysis and
+            for which it's possible to build probability tables.
+           These methods are (in increasing hadron rejection power) are:
+             1) summ of Total energies
+             2) Truncated mean of Total energies
+             3) Likelihood on individual Total energies
+             4) Likelihood on individual Total energies and Nb. of recontructed clusters
+             5) likelihood on   ""          "     "          "        "          "       and
+                   likelihood on energy/position of the clusters
+        - Estimate hadron rejection (only as an indication )
+.end lit
+
+
+                                   A. Zylberstejn

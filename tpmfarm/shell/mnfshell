@@ -1,0 +1,82 @@
+#This is a worker-node independend part that
+#is appended to the node dependend part
+#Written by K. Denisenko, FNAL, 10/28/92
+
+#Set the dbl3 variable
+if ( $FMLPHYS == "fnsfd" ) then
+  setenv dbl3 /fnsfd/dbl3
+else
+  setenv dbl3 /dbl3
+endif
+
+#Define the environment file for this node
+set ENVRM  = ${PRODIR}/resources/env.$FMLNODE
+
+#Generate the time stamp for the logfile
+echo "For $INFILE processing started:" `date`
+
+#Setup env's ( libreco is an alias to libprod full_d0reco )
+source ~/d0library/unix/d0local.login
+source ~/d0library/unix/d0local.cshrc
+eval libprod $def_libprod
+
+# Run RECO
+d0reco.x
+
+# make the PDB rcp file here
+setenv RECOSTS $status
+echo "D0RECO Completion Status is $RECOSTS"
+
+#Set the correct filenames
+set fdate = ` date '+%y%m%d%H' | nawk ' { print substr($0,2) }' `
+set pass = `nawk '/PROGRAM PASS NUMBER/ { printf("%02d", $5 ) } ' pm_status_1`
+set vrsn = `nawk '/PROGRAM VERSION NUMBER/ { printf("%02d", $5 ) } ' pm_status_1`
+set vers = $vrsn$pass
+set STANEW = ` echo $STAFILE | sed "s/ZZZZ/$vers/1; s/YYYYYYY/$fdate/1" `
+set DSTNEW = ` echo $DSTFILE | sed "s/ZZZZ/$vers/1; s/YYYYYYY/$fdate/1" `
+mv $STA_AREA/$STAFILE $STA_AREA/$STANEW
+mv $DST_AREA/$DSTFILE $DST_AREA/$DSTNEW
+
+setenv STAFILE $STANEW
+setenv DSTFILE $DSTNEW
+
+#Before trying to create the RCP files define the PDB_AREA
+set pdb_dir = `cat $ENVRM`
+setenv PDB_AREA $PRODIR/pdbkd/$pdb_dir
+setenv CLF_AREA $PRODIR/clflog/$pdb_dir
+
+# create the RCP file
+$PRODIR/exe/dst_rcp_write.csh
+
+# Check the number of events; if 0 - don't write it anywhere
+set NOFE = `nawk ' /EVENTS PROCESSED/ {print $4} ' pm_status_1`
+echo "Events processed $NOFE"
+
+# If success copy the file to tape; else remove STA and DST
+rm $RAW_AREA/$INFILE
+if ( ( $RECOSTS == 0 ) && ( $NOFE >= 1 ) ) then
+  mv $RAW_AREA/$INFILE.done $STA_AREA/$STAFILE.done
+
+else
+  if ( $NOFE < 1 ) then
+    echo "Nevts = 0 for $DSTFILE" >> $PRODIR/history/zerolength
+  else
+  echo "RECO crashed at " `date` "for the dataset" $DSTFILE | /usr/sbin/Mail -s "Reco Crash" unix_proman
+    echo $DSTFILE >> $PRODIR/history/crashes
+  endif
+  rm $STA_AREA/$STAFILE
+  rm $DST_AREA/$DSTFILE
+  rm $RAW_AREA/$INFILE.done
+endif
+
+# Generate useful information for log file
+echo "For $INFILE processing ended:" `date`
+
+# Remove the busy flag
+rm node.busy
+
+# Waits for 20 seconds
+sleep 30
+
+#exit here
+exit

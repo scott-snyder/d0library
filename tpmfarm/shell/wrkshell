@@ -1,0 +1,268 @@
+#!/bin/csh
+#------------------------------------------------------
+#
+# A shell to run on each worker node; it looks for a 
+# project for a particular node; sets RECO appropriately
+# and starts an executable
+#Written by K. Denisenko, FNAL, 03/29/93
+#Execute RECO from /usr/dzero/bin (locally) 07/25/94 KD
+
+#Check that no other wrkshell is running or d0reco.x is running
+set running = `ps -ef | grep d0reco.x | nawk ' ( $0 !~ "grep" && $0 !~ "'$$'" ) { print }' `
+if ( $#running != 0 ) then
+#  echo "D0RECO.X is already running on this node, exiting..." | /usr/sbin/Mail -s "Wrong Wrkshell" unix_proman
+  set exit_code = -5
+  goto exit_here
+endif
+unset running
+set running = `ps -ef | grep wrkshell | nawk ' ( $0 !~ "grep" && $0 !~ "'$$'" ) { print }' `
+if ( $#running != 0 ) then
+#  echo "WRKSHELL is already running on this node, exiting..." | /usr/sbin/Mail -s "Wrong Wrkshell" unix_proman
+  set exit_code = -4
+  goto exit_here
+endif
+unset running
+
+#Set the prod variable
+setenv prod ~/production
+setenv d0library ~/d0library
+
+#Run the libprod script
+source ~/d0library/unix/d0local.login
+source ~/d0library/unix/d0local.cshrc
+
+#Set the dbl3 variable
+if ( -d /fnsfg/dbl3 ) then
+  setenv dbl3 /fnsfg/dbl3
+else
+  setenv dbl3 /dbl3
+endif
+
+#Remove coredumps from RECO
+limit coredumpsize 0
+
+#Set the initial value for server and project
+set project = NONE
+set FMLNODE = NONE
+
+prjloop:
+
+#Get the node name
+set NODE = $FERMICSHRC
+
+#Get a relevant info for this node
+set servers = `grep $NODE $PRODIR/resources/resource.* | nawk '{ split($0,a,"\:"); print a[1] } '`
+
+#If this node is not attached to any server - quit
+if ( $#servers == 0 ) then
+  echo "Time to rest a little bit..."; 
+  set exit_code = 0
+  goto exit_here
+endif
+
+foreach srv ( $servers[*] )
+  set mode = ` nawk ' /MODE/ { print $2 } ' $srv `
+  if ( $mode == 'PARALLEL' ) then
+    set server = $srv
+#Set the node name
+    set NFMLNODE = $server:e
+    set availb = `nawk ' /'$NFMLNODE'/ { print $2 } ' $PRODIR/resources/resource`
+    if ( $availb == "FARMLET" ) then
+      goto findserver
+    endif
+  endif
+end
+
+echo "No available I/O servers; exiting"
+set exit_code = 1
+goto exit_here
+
+findserver:
+
+#Get a PRODAT directory for this server
+setenv PRODAT ` nawk ' /PRODAT_DIRECTORY/ { print $2 } ' $server `
+
+#If nothing changed - just go ahead
+if ( $NFMLNODE == $FMLNODE ) then
+  goto nextarea
+endif
+
+#Set FMLNODE to NFMLNODE and project to nproject
+set FMLNODE = $NFMLNODE
+set FMLPHYS = ` echo $FMLNODE | nawk ' { us = index ( $1,"\_" ); if ( us == 0 ) { print $1 } else { print substr( $1, 1, us - 1 ) } } ' `
+
+#Get a PRODAT directory for this server
+setenv PRODAT ` nawk ' /PRODAT_DIRECTORY/ { print $2 } ' $server `
+
+#CD to a corresponding run directory
+cd $PRODAT/$FMLNODE/$NODE/run
+
+#Setup project independent part
+ln -sf $PRODAT/$FMLNODE/project/remote.rcp remote_rcp
+
+#Setup links to inreader.x and outwriter.x
+ln -sf $PRODIR/exe/inreader.x  inreader.x
+ln -sf $PRODIR/exe/outwriter.x outwriter.x
+
+#Set the home for temp file
+set PIDFILE = $PRODAT/$FMLNODE/tmp/in_pid.$$
+
+#Get the area to run
+nextarea:
+
+#Check that this shell hasn't been ordered to stop
+if ( -e $PRODAT/$FMLNODE/project/stop_it ) then
+  echo "Stop requested with stop_it"
+  set exit_code = 3
+  goto exit_here
+endif
+
+if( -e $PRODAT/$FMLNODE/project/current_area ) then
+  set WORKING_AREA = `cat $PRODAT/$FMLNODE/project/current_area`
+
+  set PIDIN = $PRODAT/$FMLNODE/project/$WORKING_AREA/pid_in
+#Check that the corresponding servers are running
+  if ( -e $PIDIN ) then
+    setenv INPID  `cat $PIDIN`
+    rsh $FMLPHYS -n "ps -p $INPID" > $PIDFILE &; set bkgr = $child
+    $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+    set PIDHERE = `nawk ' /'$INPID'/ { print } ' $PIDFILE `
+    if ( $#PIDHERE == 0 ) then
+      sleep 30
+      goto nextarea
+    endif
+  else
+#   echo "No in_pid file for area $WORKING_AREA"
+    sleep 10; goto nextarea
+  endif
+else
+# echo 'No current_area defined'; 
+  sleep 5; goto nextarea
+endif
+
+#Get ports to connect to
+setenv CLI_PORT_IN  `cat  $PRODAT/$FMLNODE/project/$WORKING_AREA/port_in`
+setenv CLI_PORT_OUT `cat  $PRODAT/$FMLNODE/project/$WORKING_AREA/port_out`
+
+#Get the queid
+setenv QUEID `cat  $PRODAT/$FMLNODE/project/$WORKING_AREA/queid`
+
+#Get the runno
+setenv RUNNO `cat  $PRODAT/$FMLNODE/project/$WORKING_AREA/runno`
+
+#Set the histogram and summary links
+#ln -sf $PRODAT/$FMLNODE/histograms/hst_${RUNNO}_${QUEID}_${NODE} histograms
+#ln -sf $PRODAT/$FMLNODE/summaries/sum_${RUNNO}_${QUEID}_${NODE} summary_output
+ln -sf /dev/null histograms
+ln -sf /dev/null summary_output
+
+#Get the project name
+set CURPRJ = $PRODAT/$FMLNODE/project/$WORKING_AREA/curprj
+if ( ! (-e $CURPRJ) ) then
+  $PRODIR/exe/shift_alarm.csh 000008
+  echo "No current project defined" | /usr/sbin/Mail -s "No Current Project" unix_proman
+  set exit_code = 6
+  goto exit_here
+endif
+set PROJECT = `cat $CURPRJ`
+if ( $PROJECT != $project ) then
+  set project = $PROJECT
+  set PRJFIL = $PRODIR/project/PROJECT.$project
+  if ( ! -e $PRJFIL ) then
+    echo "No file defining this project $project, check resource" | \ 
+    /usr/sbin/Mail -s "Wrong Project" unix_proman
+    echo "No PROJECT file for this $project, exiting..."
+    set exit_code = 4
+    goto exit_here
+  endif
+
+#Now scan the project file for keywords and do appropriate setups
+  eval libprod `nawk '/LIBPROD/ { print $2, $3, $4 }' $PRJFIL`
+  set SETRECO = `nawk ' /SETUP/ { print $2 }' $PRJFIL`
+  ln -sf `uff $SETRECO` setreco
+  set D0RECOX = `nawk ' /EXEC/  { print $2 }' $PRJFIL`
+  set XD0RECO = `uff $D0RECOX`
+  if ( ! -e $XD0RECO ) then
+    echo "$XD0RECO executable is not there, exiting..." | /usr/sbin/Mail -s "No Exec To Run" unix_proman
+    set exit_code = -12
+    goto exit_here
+  endif
+    
+copyexec:
+  if( ! -e /usr/dzero/bin/{$XD0RECO:t} ) then
+    cp $XD0RECO /usr/dzero/bin/{$XD0RECO:t}
+    if ( -e $XD0RECO.chksum ) then
+      cp $XD0RECO.chksum /usr/dzero/bin/{$XD0RECO:t}.chksum
+    else 
+      echo "No checksum file for $XD0RECO, check " | \ 
+      /usr/sbin/Mail -s "No Checksum" unix_proman
+      echo "No CHECKSUM file for this $XD0RECO, exiting..."
+      set exit_code = 9
+      goto exit_here
+    endif
+      
+  else
+    if ( ( -e $XD0RECO.chksum ) && ( -e /usr/dzero/bin/{$XD0RECO:t}.chksum ) ) then
+      set chk1 = `cat $XD0RECO.chksum`
+      set chk2 = `cat /usr/dzero/bin/{$XD0RECO:t}.chksum`
+      if ($chk1 != $chk2) then
+        if ( -e /usr/dzero/bin/{$XD0RECO:t} ) then
+          rm /usr/dzero/bin/{$XD0RECO:t}
+        endif
+        if ( -e /usr/dzero/bin/{$XD0RECO:t}.chksum ) then
+          rm /usr/dzero/bin/{$XD0RECO:t}.chksum
+        endif
+        goto copyexec
+      endif
+    else
+      if ( -e /usr/dzero/bin/{$XD0RECO:t} ) then
+        rm /usr/dzero/bin/{$XD0RECO:t}
+      endif
+      if ( -e /usr/dzero/bin/{$XD0RECO:t}.chksum ) then
+        rm /usr/dzero/bin/{$XD0RECO:t}.chksum
+      endif
+      goto copyexec
+    endif
+  endif
+
+  ln -sf /usr/dzero/bin/{$XD0RECO:t} d0reco.x
+  set D0RECORCP = `nawk ' /RCP_P/ { print $2 }' $PRJFIL`
+  ln -sf `uff $D0RECORCP` d0reco_rcp
+
+#Setup RECO
+  setreco
+
+endif
+
+#Echo queid and runno for the logfile
+echo "Run number $RUNNO"
+echo "Queid $QUEID"
+echo "Project $project"
+echo "Processing started:" `date`
+
+#Clean the shared memories
+$PRODIR/exe/cleaner.x 111
+$PRODIR/exe/cleaner.x 222
+$PRODIR/exe/cleaner.x 322
+
+#Run RECO
+d0reco.x
+
+#Time stamp
+echo "Processing finished:" `date`
+
+#If inreader.log and outwriter.log exist - rename them to log.old
+if ( -e inreader.log ) then
+  mv inreader.log inreader.log_old
+endif
+if ( -e outwriter.log ) then
+  mv outwriter.log outwriter.log_old
+endif
+
+#Back to prjloop
+goto prjloop
+
+#Exit here
+rm $PIDFILE
+exit_here:
+exit $exit_code

@@ -1,0 +1,110 @@
+        
+          TPM Production Manager Scripts List ( as of 2/1/93 )
+          ____________________________________________________
+
+                                                 02/02/93  K. Denisenko
+
+
+This description starts with the top level script and describes it in
+a tree level fashion; scripts for creating RCP-files are treated
+separately.
+
+1.  tpm_submit_job ( in $PRODIR/tpm )
+
+Top level scripts; handles the job submission to all the nodes; maintains
+process table; submits auxiliary scripts ( like start_filter_job ).
+
+1.1 start_filter_job ( in $PRODIR/tpm )
+
+Checks that the tape with filtered files is mounted on fnsfd; in case the
+tape is finished starts a script that creates RCP-files for the filtered
+datasets on tape and copied them to D0FS.
+
+1.1.1 copy_results_fl.csh ( in $PRODIR/exe )
+
+Handles creation of the RCP-files for the filtered datasets; copied the
+RCP-files to D0FS
+
+1.1.1.1 conv_prepare_flrcp ( in $PRODIR/report )
+
+Gets the datasets from the finished filtered tape STAT Rcp-file; call
+fm_flrcp.csh to create a FM-RCP file for each dataset.
+
+1.1.1.1.1 fm_flrcp.csh ( in $PRODIR/report )
+
+Actually creates FM-RCP files; using FLTS RCP-files to extract information.
+
+1.2 update_resource_table  ( in $PRODIR/tpm )
+
+Updates the resource table for standalone nodes; checks that either
+reconstruction is running or the node is ready for the next job; cleans
+up after the job has finished or crashed; finally changes the status 
+of the node in the resource table ( BUSY, READY, DOWN, or SPOOLER ).
+
+1.3 start_job_now  ( in $PRODIR/tpm )
+
+Submits a tape job to the standalone node; in this case tape mounting
+is handled by the standalone node itself.
+
+1.4 update_farmlet_table  ( in $PRODIR/tpm )
+
+Handles the job submission for farmlets ( I/O server nodes with worker
+nodes attached ). Makes disposition of available tape drives. Submits
+shells to the I/O servers; mounts input and output tapes on the I/O
+servers; copies and catalogues the results of the finished jobs. Handles
+interaction with FM via stage_in_use_on_unix_farm queue on D0FS.
+
+1.4.1 start_mu_shell  ( in $PRODIR/tpm )
+
+Starts a remote shell on a I/O server node of the farmlet; the shell is
+configured in correspondence with a project requested.
+
+1.4.2 copy_results.csh  ( in $PRODIR/tpm )
+
+Copies the DSTs for the finished tape; creates and copies to D0FS RCP-files
+for STAs and DSTs.
+
+1.4.3 copy_dst ( in $PRODIR/report )
+
+Copies the DSTs to D0FS according to the STAT RCP-file for the tape
+in question.
+
+1.4.3.1 uptest ( executable image in $PRODIR/exe; source available on fnsg01 )
+
+Checks that D0FS is up and running; also checks that FM and PRODDB
+areas are writable.
+
+1.4.3.2 check_buffer.csh ( in $PRODIR/exe ) 
+
+Checks that D0$DATA$BUFFER area on D0FS has an adequate space to accept
+DSTs. Currently set to 600 Mb.
+
+1.4.3.3 check_transfer.csh ( in $PRODIR/report )
+
+Checks the status of the DST transfer via zftp. Uses awk-scripts
+names_transfer.nawk and count_transfer.nawk.
+
+1.4.4 conv_prepare_rcp ( in $PRODIR/report )
+
+Creates and copies STA and DST RCP-files.
+
+1.4.4.1 fm_rcp.csh ( in $PRODIR/report )
+
+Creates FM RCP-file for a given DSN.
+
+1.4.4.2 check_transfer_rcp ( in $PRODIR/report )
+
+Checks the RCP-files transfer status. Also uses awk-script
+check_ftp.nawk
+
+1.4.3 start_farmlet_job  ( in $PRODIR/tpm )
+
+Mounts an input or output tape on a remote farmlet I/O server. Marks
+appropriate tape VSNs as used; updates process table.
+
+1.4.3.1 check_invol.csh  ( in $PRODIR/exe )
+
+Checks whether an input tape is already in use on D0FS; if yes returns -1.
+If no then submits a pseudo job to stage_in_use_on_unix_farm queue on
+D0FS to let FM know that the tape is in use on the farm. In the latter
+case it returns queue entry number.

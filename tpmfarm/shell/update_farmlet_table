@@ -1,0 +1,419 @@
+#!/bin/csh
+#A shell script to update the resource table on a farmlet
+#It first check for the project script running; then
+#it looks for the inspooler and outspooler; the last thing
+#it checks is the status of the tape drives;
+#It has three arguments: node name, project and available INVSN
+#K.Denisenko, FNAL
+#Created 9/1/92
+#Last modified:
+# -- K. Denisenko Modifications for use with diskless farmlets
+# -- K. Denisenko 1/29/93 Drive disposition rewritten
+# -- K. Denisenko 4/ 4/93 Input spoolers serve more than one logical
+#                         machine        
+# -- K. Denisenko 11/9/93 Error counts for the drives; return failed
+#                         input and output tapes back to queue
+# -- S. Kunori 6/01/94  Input/Output assigned separate bus fnsfe.
+
+#to prevent "No match messages"
+set nonomatch
+
+#Some file definitions
+set RESORC =  $PRODIR/resources/resource
+set RESFIL =  $PRODIR/resources/tmp/"$1".tmp."$$"
+set TMPRSC =  $PRODIR/resources/tmp/tmp.rsrc."$$"
+set DRVALL =  $PRODIR/resources/tmp/drv.rsrc."$$"
+set RESTAB =  $PRODIR/resources/resource.$1
+set HST    =  $PRODIR/history/jobs.log
+set UPD    =  $PRODIR/history/update_"$1"."$$"
+
+#Get the PRODAT directory name for the farmlet
+setenv PRODAT ` nawk ' /PRODAT_DIRECTORY/ { print $2 } ' $RESTAB `
+
+#Get the real node name ( in case of multisegment node )
+set FMLARRY = ` echo $1 | nawk ' { us = index ( $1,"\_" ); if ( us == 0 ) { print $1 } else { print substr( $1, 1, us - 1 ) } } ' `
+
+#Set the physical and logical node name
+setenv FMLNODE $1
+setenv FMLPHYS $FMLARRY
+
+#File with mt drives available on a physical machine
+set DRVSTS =  $PRODIR/resources/drives.$FMLPHYS
+rsh $FMLPHYS -n "cps_tape -ltC" >& $DRVALL &; set bkgr = $child
+$PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+if ( $status != 0 ) then
+  goto nodedown
+endif
+
+#Get the process table from the node in question
+begin:
+rsh $FMLPHYS -n "ps -ef | grep dzero" > $RESFIL &; set bkgr = $child
+$PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+
+if ($status != 0) then
+nodedown:
+#Node is currently down; send a mail about it
+  echo "Farmlet I/O server $FMLNODE is down; please investigate; DO NOT PAGE D0 if everything seems OK" | /usr/sbin/Mail -s "Server down" unix_operator
+  goto finish
+endif
+
+#Find the input spooler # for this logical machine
+setenv inspool_idx  `nawk ' /'$FMLNODE'/ { print $4 } ' $RESORC`
+
+#check for the inspool or outspool processes running
+set inspool_pid  = `nawk '/inspool_'$FMLPHYS'_'$inspool_idx'/  { print $2 }' $RESFIL`
+set outspool_pid = `nawk '/outspool_'$FMLNODE'/ { print $2 }' $RESFIL`
+if ( $inspool_pid != "" && $outspool_pid != "" ) then
+#spoolers are running; exit immediately
+  goto checkshell
+else
+
+#Get the drives status
+  set ERRCNT = ` nawk ' ( $0 ~ "READY" ) && ( $3 > 4 ) { print $1 } '  $DRVSTS ` 
+  if ( $#ERRCNT != 0 ) then
+    $PRODIR/exe/shift_alarm.csh 000003
+    echo "The following drives have their error counts exceeded: $ERRCNT; page D0" | /usr/sbin/Mail -s "Bad Tape Drives" unix_proman
+    nawk ' {p=1}; $3 > 3 { p = 0; gsub(/READY/, "UNAVAILABLE"); print };  {if(p) print} ' $PRODIR/resources/drives.$FMLPHYS > $PRODIR/resources/drives.$FMLPHYS.$$
+    set drvsize = `ls -l $PRODIR/resources/drives.$FMLPHYS.$$ | nawk ' { print $5 }'`
+    if ( ( -e $PRODIR/resources/drives.$FMLPHYS.$$ ) && ( $drvsize > 50 ) ) then
+      set DRL = `wc -l < $PRODIR/resources/drives.$FMLPHYS.$$`
+      if ( $DRL >= 2 ) then
+        mv $PRODIR/resources/drives.$FMLPHYS.$$ $PRODIR/resources/drives.$FMLPHYS
+      else
+        rm $PRODIR/resources/drives.$FMLPHYS.$$
+      endif
+    endif
+  endif
+  set DRIVES = ` nawk ' /READY/ { print $1 } ' $DRVSTS `
+  set DRUSED = ` cat $RESFIL | grep '\-dev' | cut -d'-' -f3 | cut -d' ' -f2 `
+  set drives_to_use
+  foreach mtready ( $DRIVES[*] )
+    set flag = 0
+    foreach mtused ( $DRUSED[*] )
+      if ( $mtused == $mtready ) then
+        @ flag = ( $flag + 1 ) 
+      endif
+    end
+    if ( $flag == 0 ) then
+      set drives_to_use = ( $drives_to_use $mtready )
+    endif
+  end
+  set DRIVES = ( $drives_to_use )
+  unset drives_to_use
+  unset DRUSED
+  if ( $#DRIVES == 0 ) then
+    $PRODIR/exe/shift_alarm.csh 000004
+    echo 'All drives are busy; fatal error submitting the spooler; page D0' $1 `date` | /usr/sbin/Mail -s "No tapedrive" unix_proman
+    goto checkshell
+  endif
+
+#An output tape is finished; mount a new tape
+checkout:
+  if ( $outspool_pid == "" ) then
+
+#Trying to find a drive to submit a job
+    foreach drive ( $DRIVES[*] )
+
+      if ( $drive == "sgi84" ) then
+        goto outskip
+      endif
+      if ( $drive == "sgi85" ) then
+        goto outskip
+      endif
+      if ( $drive == "sgi86" ) then
+        goto outskip
+      endif
+
+      rsh $FMLPHYS -n "mt -t /usr/cpsdev/"$drive"_nrnsv status" >& $TMPRSC &; set bkgr = $child
+      $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 10
+      if ( $status != 0 ) then
+        goto nodedown
+      endif
+
+      set RDYDR = `cat $TMPRSC | nawk '/busy/ { print "busy"} ' `
+      if ( $RDYDR != 'busy' ) then
+#Check the drive allocation; if the status is not mount pending - deallocate it
+        set DRVCPS = ` nawk ' /'$drive'/ { print $6_$7 } ' $DRVALL `
+        if ( $DRVCPS != "mountpending" ) then
+          rsh $FMLPHYS -n "cps_deallocate $drive $FMLPHYS" &; set bkgr = $child
+          $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+          if ( $status != 0 ) then
+            goto nodedown
+          endif
+          rsh $FMLPHYS -n "mt -t /usr/cpsdev/"$drive"_nrnsv unload" &; set bkgr = $child
+          $PRODIR/tpm/check_rsh.csh $0 $bkgr 900 10
+          if ( $status != 0 ) then
+            goto nodedown
+          endif
+
+          set driveout = $drive
+
+#Block this drive from being re-used
+          set drives
+          foreach av_drive ( $DRIVES[*] )
+            if ( $av_drive != $drive ) then
+              set drives = ( $drives $av_drive )
+            endif
+          end
+          set DRIVES = ( $drives )
+          goto mountout
+        endif
+      endif
+outskip:
+    end
+##    $PRODIR/exe/shift_alarm.csh 000005
+##    echo "All drives are busy; fatal error submitting outspooler; check drives.$FMLNODE and page D0"  $1 `date` | \
+##    /usr/sbin/Mail -s "No Tapedrive Available" unix_proman
+    goto checkshell
+
+#Mount the output tape
+mountout:
+    rcp $FMLPHYS\:$PRODAT/$FMLNODE/proman/sta/end $TMPRSC >& /dev/null 
+    if ( $status != 0 ) then
+      rcp $FMLPHYS\:$PRODAT/$FMLNODE/proman/sta/error $TMPRSC >& /dev/null
+      if ( $status == 0 ) then
+        echo 'The previous outtape job ended ABEND ' `cat $TMPRSC` $1 `date` | /usr/sbin/Mail -s "Outtape Abend" unix_proman
+        rsh $FMLPHYS -n "rm $PRODAT/$FMLNODE/proman/sta/error" >& /dev/null &; set bkgr = $child
+        $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+        if ( $status != 0 ) then
+          goto nodedown
+        endif
+
+        set OLDVSN = `cat $TMPRSC | nawk ' { print $2 } ' `
+        set OLDPDB = `cat $TMPRSC | nawk ' { print $5 } ' `
+        set OLDLOG = `echo $OLDPDB | sed 's/pdbkd/logdb/1' `
+        echo "Starting the results copy for node $FMLNODE tape $OLDVSN " `date`
+        rsh $FMLPHYS -n '$PRODIR'"/exe/copy_results.csh $OLDVSN $PRODAT/$FMLNODE/proman $OLDPDB >& $OLDLOG/copy_results_log.$OLDVSN &"
+
+#Update the fatal error count for the drive
+        set OLDDRV = `cat $TMPRSC | nawk ' { print $6 } ' `
+        nawk ' {p=1}; $1 ~ "'$OLDDRV'" { p=0; $3++; $4++; print}; {if(p) print} ' $PRODIR/resources/drives.$FMLPHYS > $PRODIR/resources/drives.$FMLPHYS.$$
+        if ( -e $PRODIR/resources/drives.$FMLPHYS.$$ ) then
+          set DRL = `wc -l < $PRODIR/resources/drives.$FMLPHYS.$$`
+          if ( $DRL >= 2 ) then
+            mv $PRODIR/resources/drives.$FMLPHYS.$$ $PRODIR/resources/drives.$FMLPHYS
+          else
+            rm $PRODIR/resources/drives.$FMLPHYS.$$
+          endif
+        endif
+        
+      endif
+    else
+      rsh $FMLPHYS -n "rm $PRODAT/$FMLNODE/proman/sta/end" >& /dev/null &; set bkgr = $child
+      $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+      if ( $status != 0 ) then
+        goto nodedown
+      endif
+
+      set OLDVSN = `cat $TMPRSC | nawk ' { print $2 } ' `
+      set OLDPDB = `cat $TMPRSC | nawk ' { print $5 } ' `
+      set OLDLOG = `echo $OLDPDB | sed 's/pdbkd/logdb/1' `
+      echo "Starting the results copy for node $FMLNODE tape $OLDVSN " `date`
+      rsh $FMLPHYS -n '$PRODIR'"/exe/copy_results.csh $OLDVSN $PRODAT/$FMLNODE/proman $OLDPDB >& $OLDLOG/copy_results_log.$OLDVSN &"
+
+#Reset the fatal error count for the drive
+      set OLDDRV = `cat $TMPRSC | nawk ' { print $6 } ' `
+      nawk ' {p=1}; $1 ~ "'$OLDDRV'" { p=0; $3 = 0; print}; {if(p) print} ' $PRODIR/resources/drives.$FMLPHYS > $PRODIR/resources/drives.$FMLPHYS.$$
+      if ( -e $PRODIR/resources/drives.$FMLPHYS.$$ ) then
+        set DRL = `wc -l < $PRODIR/resources/drives.$FMLPHYS.$$`
+        if ( $DRL >= 2 ) then
+          mv $PRODIR/resources/drives.$FMLPHYS.$$ $PRODIR/resources/drives.$FMLPHYS
+        else
+          rm $PRODIR/resources/drives.$FMLPHYS.$$
+        endif
+      endif
+
+    endif
+
+#Start a new output tape; Change all the db definitions
+    echo "Mounting a new output tape for node $1 " `date`
+    $PRODIR/tpm/start_farmlet_job $FMLNODE $2 YY out $driveout
+    sleep 20
+    
+#If only one argument given - exit here
+    if ( $#argv == 2 ) then
+      goto checkshell
+    endif
+
+    goto begin
+  endif
+
+
+#If only one argument given - exit here
+  if ( $#argv == 2 ) then
+    goto  checkshell
+  endif
+
+#An input tape is finished; start a new job
+  if ( $inspool_pid == "" ) then
+
+#Trying to find a drive to submit a job
+    foreach drive ( $DRIVES[*] )
+
+      if ( $drive == "sgi80" ) then
+         goto inskip
+      endif
+      if ( $drive == "sgi81" ) then
+         goto inskip
+      endif
+      if ( $drive == "sgi82") then
+         goto inskip
+      endif
+      if ( $drive == "sgi83") then
+         goto inskip
+      endif
+
+      rsh $FMLPHYS -n "mt -t /usr/cpsdev/"$drive"_nrnsv status" >& $TMPRSC &; set bkgr = $child
+      $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+      if ( $status != 0 ) then
+        goto nodedown
+      endif
+
+      set RDYDR = `cat $TMPRSC | nawk '/busy/ { print "busy"} ' `
+      if ( $RDYDR != 'busy' ) then
+#Check the drive allocation; if the status is not mount pending - deallocate it
+        set DRVCPS = ` nawk ' /'$drive'/ { print $6_$7 } ' $DRVALL `
+        if ( $DRVCPS != "mountpending" ) then
+          rsh $FMLPHYS -n "cps_deallocate $drive $FMLPHYS" &; set bkgr = $child
+          $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+          if ( $status != 0 ) then
+            goto nodedown
+          endif
+
+          rsh $FMLPHYS -n "mt -t /usr/cpsdev/"$drive"_nrnsv unload" &; set bkgr = $child
+          $PRODIR/tpm/check_rsh.csh $0 $bkgr 900 10
+          if ( $status != 0 ) then
+            goto nodedown
+          endif
+
+          set drivein = $drive
+
+#Block this drive from being re-used
+          set drives
+          foreach av_drive ( $DRIVES[*] )
+            if ( $av_drive != $drive ) then
+              set drives = ( $drives $av_drive )
+            endif
+          end
+          set DRIVES = ( $drives )
+          goto mountin
+        endif
+      endif
+inskip:
+    end
+##    $PRODIR/exe/shift_alarm.csh 000006
+##    echo 'All drives are busy; fatal error submitting inspooler'  $1 `date` | /usr/sbin/Mail -s "No tape drives" unix_proman
+    goto checkshell
+
+mountin:
+#Get the list of areas to spool for this input server
+set spool_list = `cat $PRODIR/resources/inspool_list_${inspool_idx}.$FMLPHYS`
+
+#Check for the previous tapejob
+    rcp $FMLPHYS\:${spool_list[1]}/end $TMPRSC >& /dev/null
+    if ( $status == 0 ) then
+      set queold = `nawk ' { print $1 } ' $TMPRSC`
+      set fmqold = `nawk ' { if ( NF == 7 ) { print $6 } else { print "0" } } ' $TMPRSC`
+      if ( `echo $fmqold | nawk ' /[A-z]+/ { print $1 } ' ` != "" ) then
+        set fmqold = 0
+      endif
+      if ( $fmqold >= 1 ) then
+        rsh d0fsa -n -l dzero "delete/entry=$fmqold" >& /dev/null &; set bkgr = $child
+        $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 10
+      endif
+      foreach area ( $spool_list[*] )
+        rsh $FMLPHYS -n "rm $area/end" >& /dev/null &
+      end
+
+#Mark the finished job as ended; we don't make any claims about the success
+      set dtm = `date`
+      set owd = ` echo $dtm | sed 's/ /_/g' `
+      nawk '$1 ~ "'$queold'" { $7 = "ENDED"; dat = "'$owd'"; gsub(/_/," ",dat); print $0, dat }'  $HST > $UPD
+
+#Reset the fatal error count for the drive
+      set OLDDRV = `nawk ' { if ( NF == 7 ) { print $7 } else { print $6 } } ' $TMPRSC`
+      nawk ' {p=1}; $1 ~ "'$OLDDRV'" { p=0; $3 = 0; print}; {if(p) print} ' $PRODIR/resources/drives.$FMLPHYS > $PRODIR/resources/drives.$FMLPHYS.$$
+      if ( -e $PRODIR/resources/drives.$FMLPHYS.$$ ) then
+        mv  $PRODIR/resources/drives.$FMLPHYS.$$  $PRODIR/resources/drives.$FMLPHYS
+      endif
+
+    else
+      rcp $FMLPHYS\:${spool_list[1]}/error $TMPRSC >& /dev/null
+      if ( $status == 0 ) then
+        set fmqold = -1
+        set fmqold = `nawk ' { if (NF == 7) { print $6 } } ' $TMPRSC`
+        if ( `echo $fmqold | nawk ' /[A-z]+/ { print $1 } ' ` != "" ) then
+          set fmqold = -1
+        endif
+        if ( $fmqold >= 1 ) then
+          rsh d0fsa -n -l dzero "delete/entry=$fmqold" >& /dev/null &; set bkgr = $child
+          $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 10
+        endif
+        echo 'The previous intape job ended ABEND ' `cat $TMPRSC` $1 `date` | /usr/sbin/Mail -s "Intape Abend" unix_proman
+
+#If no files were spooled - return the tape to injobs with fail count
+        set FSNR = ` nawk ' { if ( NF == 7 ) { print $4 } } ' $TMPRSC `
+        if ( $#FSNR != 0 ) then
+          if ( $FSNR < 1 ) then
+            set VSNF = ` nawk ' { if ( NF == 7 ) { print $3 } } ' $TMPRSC `
+            if ( $#VSNF != 0 ) then
+              set tapeinfo = `nawk ' $1 ~ "'$VSNF'" { print $0; exit } ' $PRODIR/resources/injobs`
+              if ( $#tapeinfo != 0 ) then
+                if ( $#tapeinfo >= 4 ) then
+                  if ( $tapeinfo[4]  > 1 ) then
+                    echo $tapeinfo | nawk ' { gsub(/SUBMITTED/,"BADTAPE"); print } ' > $PRODIR/resources/injobs_upd.$VSNF
+                  else
+                    echo $tapeinfo | nawk ' { gsub(/SUBMITTED/,"WAITING"); $4++; print } '  > $PRODIR/resources/injobs_upd.$VSNF
+                  endif
+                else
+                  echo $tapeinfo | nawk ' { gsub(/SUBMITTED/,"WAITING"); print $0, 1 } '  > $PRODIR/resources/injobs_upd.$VSNF
+                endif
+            endif
+          endif
+        endif
+
+#Update the fatal error count for the drive
+        set OLDDRV = `nawk ' { if ( NF == 7 ) { print $7 } else { print $6 } } ' $TMPRSC`
+        nawk ' {p=1}; $1 ~ "'$OLDDRV'" { p=0; $3++; $4++; print}; {if(p) print} ' $PRODIR/resources/drives.$FMLPHYS > $PRODIR/resources/drives.$FMLPHYS.$$
+        if ( -e $PRODIR/resources/drives.$FMLPHYS.$$ ) then
+          mv  $PRODIR/resources/drives.$FMLPHYS.$$  $PRODIR/resources/drives.$FMLPHYS
+        endif
+
+#Remove the "error" file from the rest of the spooling areas
+        foreach area ( $spool_list[*] )
+          rsh $FMLPHYS -n "rm $area/error" >& /dev/null &
+        end
+
+#Mark the failed job as failed 
+        set dtm = `date`
+        set owd = ` echo $dtm | sed 's/ /_/g' `
+        set queold = `cat $TMPRSC | nawk ' { print $1 } ' `
+        nawk '$1 ~ "'$queold'" { $7 = "FAILED_ON_INSP"; dat = "'$owd'"; gsub(/_/," ",dat); print $0, dat}'  $HST > $UPD
+
+      endif
+    endif
+
+    echo "Starting a new job on a farmlet $1 " `date`
+    $PRODIR/tpm/start_farmlet_job $FMLPHYS $2 $3 in $drivein
+    sleep 20
+  endif
+
+endif
+
+#Check whether RECO shell is running
+checkshell:
+check_minishell $2
+
+finish:
+if (-e $RESFIL) then
+  rm $RESFIL
+endif
+
+if ( -e $DRVALL ) then
+  rm $DRVALL
+endif
+
+if ( -e $TMPRSC ) then
+  rm $TMPRSC
+endif
+exit 

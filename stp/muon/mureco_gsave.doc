@@ -1,0 +1,319 @@
+
+                                                                  NOV-27-90
+                                                                  DEC-17-91
+
+    The following GEANT cards are used to produce MURECO_GSAVE.DAT file.
+Please note that the CUTS cards are different from usual D0GEANT default cards.
+The created GSAVE.DAT file is primarily intended to be used with MURECO package
+and for other purposes should be used with caution. Also different GEANT cards
+are used for GEANT311 and GEANT314. The two routines (GEOMUO & VOLPOS) that
+were modified to produce this special files also follow.
+                                                        S. Abachi
+                        For GEANT 311
+LIST
+DCEN 3
+DMUO 3
+DCAL 3
+PAIR 1
+COMP 2
+PHOT 2
+BREM 1
+MUNU 0
+LOSS 2
+MULS 1
+CUTS .00002,.00002,.001,.001,.001,.00002,.00002,10000.,10000.,.005,1.E10
+SAVE 'INIT'
+STOP
+                        For GEANT 314
+LIST
+DCEN 0
+DMUO 3
+DCAL 3
+PAIR 0
+COMP 2
+PHOT 2
+BREM 0
+MUNU 0
+LOSS 2
+MULS 1
+CUTS .00005,.00005,.002,.002,.002,.00005,.00005,10000.,10000.,.005,1.E10
+SAVE 'INIT'
+STOP
+
+
+
+
+      LOGICAL FUNCTION GEOMUO()
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Defines geometry of the D0 muon system.
+C-     The geometry parameters are taken from muon constant Zebra
+C-  banks, MGEH and MGEO for PDT modules and MFEH and MFEG for
+C-  magnetized iron.
+C-
+C-     The geometry tree structure is following:
+C-
+C-    MVOL     D0 mother volume.
+C-     I
+C-     I--PIPE     beam pipe.
+C-     I
+C-     I--CMxx     muon PDT module in C layer.     (xx module number)
+C-     I   I--CPxx(3)         four deck of muon chamber.
+C-     I       I--CCxx(24)    24 cells in a deck.
+C-     I
+C-     I--BMxx     muon PDT module in B layer.     (xx module number)
+C-     I   I--BPxx(3)         four deck of muon chamber.
+C-     I       I--BCxx(24)    24 cells in a deck.
+C-     I
+C-     I--MCSB     central iron slabs            (1:4)
+C-     I--MCCR     central iron slabs at corner  (1:4)
+C-     I--METD     end iron slabs    (1:4,z>0 AND 5:8,Z<0)
+C-     I
+C-     I--AMxx    muon PDT module in A layer.     (xx modue number)
+C-     I   I--APxx(4)         four deck of muon chamber.
+C-     I       I--ACxx(24)    24 cells in a deck.
+C-     I
+C-     I--MCAL        mother volume for CAL including CEN.
+C-         I   I--MCEN    mother volume for CEN.
+C-         I   I--....    (many CAL volumes)
+C-
+C-   Returned value : TRUE
+C-   Inputs  :
+C-   Outputs :
+C-   Controls:
+C-
+C-   Created     JAN-1987   S.Kunori
+C-   Updated     NOV-1988   D.Hedin     modify MUCELL call
+C-   Updated  17-JUL-1989   N.A.Graf    Ordered various volumes with GSORD
+C-   Updated  18-JUL-1989   N.A.Graf    Include mother volume MMUO.
+C-   Updated   4-AUG-1989   Alan M. Jonckheere  Update for PBD
+C-   Modified 14-DEC-1991   S. Abachi  Modified to be used for special
+C-                                     GSAVE.DAT for muon package
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$INC:D0LOG.INC/LIST'      ! to get SMUO switch.
+C
+      INTEGER IM,IP,ICL,I,J,K,IVOL,ISLAB(3),ISTAT
+      CHARACTER*4 HS1,HS2,HS3
+      CHARACTER*4 VMNAME,VPNAME,VCNAME     !  volume name for module
+C                                          !  palne and cell.
+      INTEGER     NS1,NS2,NS3
+      REAL        SPWORK(3),VOFF
+      REAL        SPAR1(3),XPAR1(3),ROTM1(3,3)
+      REAL        SPAR2(3),XPAR2(3),ROTM2(3,3)
+      REAL        XPLOC(3),XPLAB(3)
+      REAL        SPAR3(3),XPAR3(3),ROTM3(3,3)
+      REAL        TH1,PH1,TH2,PH2,TH3,PH3
+      REAL        TMAXFD,DMAXMS,DEEMAX,EPSIL,STMIN
+      INTEGER     NBUFF,IBUFF(1)
+      INTEGER     GZMMAG
+      DATA TMAXFD,DMAXMS,DEEMAX,EPSIL,STMIN/.5,2.,.1,.05,.05/
+      DATA ISLAB/3*0/
+      DATA NBUFF/0/,IBUFF(1)/0/
+C
+C----------------------------------------------------------------------
+C
+      GEOMUO = .TRUE.
+      IF ( DMUO.LT.1 ) GOTO 999
+C
+C  define Geant rotation matrix.
+C  ================================
+C
+      CALL GSROTM(2000,90.,0.,90.,90.,0.,0.)    ! no rotation.
+C
+C  define materials.
+C  ==================
+C
+      CALL GSMATE(26,'IRON TOROID$',55.850,26.00,7.870,1.760,17.100
+     +           ,NBUFF,IBUFF)
+      CALL GSMATE(27,'IRON TOROID$',55.850,26.00,7.870,1.760,17.100
+     +           ,NBUFF,IBUFF)
+      CALL GSMATE(28,'IRON TOROID$',55.850,26.00,7.870,1.760,17.100
+     +           ,NBUFF,IBUFF)
+      CALL GSMATE(29,'IRON TOROID$',55.850,26.00,7.870,1.760,17.100
+     +           ,NBUFF,IBUFF)
+C
+C  define tracking media.
+C  ======================
+C
+      CALL GSTMED(20,'MUONAIR$',15,1,0,0.,TMAXFD,DMAXMS,DEEMAX,
+     A EPSIL,STMIN,0,0)      !  AIR FOR NOW
+      CALL GSTMED(21,'PDTALMINUM$',9,1,0,0.,TMAXFD,DMAXMS,DEEMAX,
+     A EPSIL,STMIN,0,0)      !  AIR FOR NOW
+      CALL GSTMED(22,'PDTGAS$',15,1,0,0.,TMAXFD,DMAXMS,DEEMAX,
+     A EPSIL,STMIN,0,0)      !  AIR FOR NOW
+      CALL GSTMED(26,'CFSLABBASE$',26,0,1,20.,TMAXFD,DMAXMS,DEEMAX,
+     A EPSIL,STMIN,0,0)
+      CALL GSTMED(27,'EFTOROID$',27,0,1,20.,TMAXFD,DMAXMS,DEEMAX,
+     A EPSIL,STMIN,0,0)
+      CALL GSTMED(28,'CFCORNER$',28,0,1,20.,TMAXFD,DMAXMS,DEEMAX,
+     A EPSIL,STMIN,0,0)
+      CALL GSTMED(29,'CFSLAB$',29,0,1,20.,TMAXFD,DMAXMS,DEEMAX,
+     A EPSIL,STMIN,0,0)
+C
+C     -- reset physics processes in iron toroids...  TAKEN OUT (SA)
+C
+C
+C  check the overlap of modules and iron toroids.
+C  ==============================================
+C
+CCC      CALL MSVCHK(ISTAT)
+C
+C  construct iron troid geometry.
+C  ==============================
+C
+C -- loop over iron slabs...
+C
+      DO 100 IM=1,28
+C     -- fetch geometrical parameters for iron slab...
+        CALL MUMAGS(IM,HS1,NS1,SPAR1,XPAR1,ROTM1,NBUFF,IBUFF)
+C     -- check if module exists...
+        IF(NS1.EQ.0) GO TO 101
+C     -- iron slab geometry...
+        CALL ROTGEA(ROTM1,TH1,PH1,TH2,PH2,TH3,PH3)
+        CALL GSROTM(IM+2400,TH1,PH1,TH2,PH2,TH3,PH3)
+C     -- define volume.
+        IF(IM.LE.10) THEN
+C           -- central slabs.
+          ISLAB(1)=ISLAB(1)+1
+          IF(ISLAB(1).EQ.1) THEN
+            IF(GZMMAG(4).NE.0) THEN
+              CALL GSVOLU('MCSB',HS1,29,SPAR1,NS1,IVOL)
+            ELSE
+              CALL GSVOLU('MCSB',HS1,26,SPAR1,NS1,IVOL)!TEMPORARY
+            ENDIF
+          ENDIF
+          CALL GSPOS('MCSB',ISLAB(1),'MMUO'
+     +                ,XPAR1(1),XPAR1(2),XPAR1(3),IM+2400,'ONLY')
+C
+        ELSE IF(IM.GE.11.AND.IM.LE.20) THEN
+C           -- corner slabs.
+          ISLAB(2)=ISLAB(2)+1
+          IF(ISLAB(2).EQ.1) THEN
+            CALL GSVOLU('MCCR',HS1,28,SPAR1,NS1,IVOL)
+          ENDIF
+          CALL GSPOS('MCCR',ISLAB(2),'MMUO'
+     +                ,XPAR1(1),XPAR1(2),XPAR1(3),IM+2400,'ONLY')
+C
+        ELSE IF(IM.GE.21.AND.IM.LE.30) THEN
+C           -- end slabs.
+          ISLAB(3)=ISLAB(3)+1
+          IF(ISLAB(3).EQ.1) THEN
+            CALL GSVOLU('METD',HS1,27,SPAR1,NS1,IVOL)
+          ENDIF
+          CALL GSPOS('METD',ISLAB(3),'MMUO'
+     +                ,XPAR1(1),XPAR1(2),XPAR1(3),IM+2400,'ONLY')
+        ENDIF
+
+  101   CONTINUE
+  100 CONTINUE
+C
+C  construct muon PDT module geometry.    TAKEN OUT (SA)
+C  ===================================
+C
+C      Muon System GSORD calls    TAKEN OUT (SA)
+C
+C ****  Setup Digitizations and Sets    ! TAKEN OUT (SA)
+C
+  999 RETURN
+      END
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+      SUBROUTINE VOLPOS(NMSRCP)
+C----------------------------------------------------------------------
+C-
+C-   Purpose and Methods : Does a GSVOLU followed by a GSPOS on
+C-                         Parameters obtained from SRCP
+C-
+C-   Inputs  : NMSRCP  SRCP Character Ident.
+C-   Outputs   SRCPAR array containing the parameters of the
+C-             Volume in question. In SRCPR.INC
+C-   Controls: None
+C-
+C-   Created   4-OCT-1988   Rajendran Raja
+C-   Updated  27-JUL-1989   Stuart Fuess        Add 'NONE' option to
+C-                                              skip positioning
+C-   Modified 14-DEC-1991   S. Abachi  Modified to be used for special
+C-                                     GSAVE.DAT for muon package
+C-
+C----------------------------------------------------------------------
+      IMPLICIT NONE
+C
+      INCLUDE 'D0$INC:SRCPR.INC'
+C
+      CHARACTER*(*) NMSRCP
+      CHARACTER*32 NMSRC1
+      INTEGER IVOLU,IERR
+      CHARACTER*4 POSTYP
+      CHARACTER*4  NAMES, MOTHERS, SHAPES
+C----------------------------------------------------------------------
+      CALL EZGET(NMSRCP,SRCPAR(1),IERR)
+      ENTRY VOLPOS1                     ! For zebra direct VOLPOS
+C !
+C ! VOLUME DESCRIPTOR SRCPARS are formatted as follows
+C ! SRCPAR(1) = volume name
+C ! SRCPAR(2) = Volume shape
+C ! SRCPAR(3) = Medium number
+C ! SRCPAR(4) = Mother volume from which this volume hangs
+C ! SRCPAR(5) = Type of positioning (POS,POSP DVN etc)
+C !    POS   = Do GSVOLU (if ICOPY = 1)followed by GSPOS
+C !    POSP  = Do GSVOLU (if ICOPY = 1)followed by GSPOSP
+C !    DVN   = Do GSDVN
+C !    DVN2  = Do GSDVN2
+C !    DVT   = Do GSDVT
+C !    DVT2  = Do GSDVT2
+C !
+C ! IF( SRCPAR(5) is DVN,DVN2,DVT,DVT2)GO TO DIVISIONS FOR FORMAT INFO.
+C !
+C ! SRCPAR(6) = Rotation matrix
+C ! SRCPAR(7) = Copy number of the volume
+C ! SRCPAR(8) = x of positioning
+C ! SRCPAR(9) = y of positioning
+C ! SRCPAR(10)= z of positioning
+C ! SRCPAR(11)= Number of parameters describing this volume
+C ! SRCPAR(12..)=volume parameters
+C !
+C ! FOR DIVISIONS, then format is as follows.
+C !
+C ! SRCPAR(6) = Number of divisions (NDIV). Applicable for DVN,DVN2,DVX
+C ! SRCPAR(7) = AXIS of division. (IAXIS)
+C ! SRCPAR(8) = Origin for the divisions (C0) . Applicable for DVN2,DVX,DVT2
+C ! SRCPAR(9) = STEP for divisions. applicable for DVX,DVT,DVT2
+C ! SRCPAR(10)= Expected maximum number of divisions (NDVMX). DVX,DVT,DVT2
+C !
+C
+
+      CALL UHTOC(NPSTYP,4,POSTYP,4) !Convert to characters
+C
+      CALL UHTOC(NAME,4,NAMES,4)
+      CALL UHTOC(MOTHER,4,MOTHERS,4)
+      CALL UHTOC(SHAPE,4,SHAPES,4)
+
+      IF ( POSTYP.EQ.'POS ' ) THEN !GSPOS
+        IF(ICOPY.EQ.1)CALL GSVOLU(NAMES,SHAPES,NUMED,PAR,NPAR,IVOLU)
+        CALL GSPOS(NAMES,ICOPY,MOTHERS,X,Y,Z,IROT,'ONLY')
+      ELSEIF ( POSTYP.EQ.'POSP' ) THEN !Only GSPOSP
+        IF(ICOPY.EQ.1)CALL GSVOLU(NAMES,SHAPES,NUMED,0,0,IVOLU)
+        CALL GSPOSP(NAMES,ICOPY,MOTHERS,X,Y,Z,IROT,'ONLY',PAR,NPAR)
+      ELSEIF ( POSTYP.EQ.'NONE' ) THEN !No positioning
+        IF(ICOPY.EQ.1)CALL GSVOLU(NAMES,SHAPES,NUMED,PAR,NPAR,IVOLU)
+C
+cc  ! Following taken out for mureco_gsave (SA)
+cc
+cc      ELSEIF ( POSTYP.EQ.'DVN ' ) THEN
+cc        CALL GSDVN(NAMES,MOTHERS,NDIV,IAXIS)
+cc      ELSEIF ( POSTYP.EQ.'DVN2' ) THEN
+cc        CALL GSDVN2(NAMES,MOTHERS,NDIV,IAXIS,C0,NUMED)
+cc      ELSEIF ( POSTYP.EQ.'DVT ' ) THEN
+cc        CALL GSDVT(NAMES,MOTHERS,STEP,IAXIS,NUMED,NDVMX)
+cc      ELSEIF ( POSTYP.EQ.'DVX ' ) THEN
+cc        CALL GSDVX(NAMES,MOTHERS,NDIV,IAXIS,STEP,C0,NUMED,NDVMX)
+cc      ELSEIF ( POSTYP.EQ.'DVT2' ) THEN
+cc        CALL GSDVT2(NAMES,MOTHERS,STEP,IAXIS,C0,NUMED,NDVMX)
+      ENDIF
+C
+  999 RETURN
+      END

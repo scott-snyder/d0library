@@ -1,0 +1,149 @@
+#!/bin/csh
+#A script to pickup automatically failed transfers that happened
+#yesterday and today; normally used as part of the crash_recover script
+#but may be used also as a standalone script at any time
+#Kirill Denisenko, 06/20/93
+
+#Check that another copy of the same script is not already running
+set running = `ps -ef | grep pick_up_trans | nawk ' ( $0 !~ "grep" && $0 !~ "'$$'" && $0 !~ "sh" ) { print }' `
+if ( $#running != 0 ) then
+  echo "pick_up_trans already running, don't try to start it..." | /usr/sbin/Mail -s "pick_up_trans already running" unix_proman
+  exit 1
+endif
+
+#First get yesterday's and today's date
+set today = `/bin/date | nawk ' { if ( length($3) == 1 ) { printf "%s..%d", $2, $3 } else { print $2, $3 } }'`
+set ysday = `/usr/local/bin/getdate yesterday | nawk ' { if ( length($3) == 1 ) { printf "%s..%d", $2, $3 } else { print $2, $3 } }'`
+
+#Get today's and yesterday's current and previous pdb areas
+set now = '/'`$PRODIR/exe/get_pdb_link`
+set prv = `$PRODIR/report/previous.csh $now`
+
+#Make a list of STAT tape matching today's and ysday's date in now and prv
+set now_tapes_today = `ls -l $PRODIR/pdbkd$now/STAT*.RCP | eval grep "'$today'" | nawk ' { print $9 } '`
+
+set now_tapes_ysday = `ls -l $PRODIR/pdbkd$now/STAT*.RCP | eval grep "'$ysday'" | nawk ' { print $9 } '`
+
+set prv_tapes_ysday = `ls -l $PRODIR/pdbkd$prv/STAT*.RCP | eval grep "'$ysday'" | nawk ' { print $9 } '`
+
+#Now get them all in one variable
+set all_stats = `echo $now_tapes_today $now_tapes_ysday $prv_tapes_ysday`
+
+#Exclude those on the tape drives
+set on_drives = `ps -ef | grep outspool | nawk ' { for (i=1; i<=NF; i++) { if ($i=="-inl") {print $(i+1); break; }}} '`
+foreach ondrive ( $on_drives[*] )
+  set I = 0
+  foreach stats ( $all_stats[*] )
+    @ I = $I + 1
+    if ( $stats =~ *${ondrive}* ) then
+      set all_stats[$I] = "XXXXXX"
+    endif
+  end
+end
+
+#Get the physical CPU name
+set NODE = $FERMICSHRC
+
+#Now exclude those that are currently being copied
+set copy_now = `ls $PRODIR/report/copy_now/copy_now.*`
+set on_copy
+foreach cnow ( $copy_now[*] )
+  set cpu = `nawk ' { print $2 }' $cnow`
+  if ( $cpu !~ $NODE ) then
+    goto next
+  endif
+  set pid = `nawk ' { print $1 }' $cnow`
+  set her = `ps -p $pid | grep copy`
+  if ( $#her == 0 ) then
+    rm $cnow
+  else
+    set CVSN = $cnow:e
+    set on_copy = `echo $on_copy $CVSN`
+  endif
+next:
+end
+foreach oncopy ( $on_copy[*] )
+  set I = 0
+  foreach stats ( $all_stats[*] )
+    @ I = $I + 1
+    if ( $stats =~ *${oncopy}* ) then
+      set all_stats[$I] = "XXXXXX"
+    endif
+  end
+end
+
+#Exclude those that finished and are awaiting regular copy ( look for "end" )
+set LMS  = `grep $NODE $PRODIR/resources/resource | nawk ' { print $1 }'`
+set end_vsn
+foreach lm ( $LMS[*] )
+  set PRODAT = `nawk ' /PRODAT_DIRECTORY/ { print $2; exit } ' $PRODIR/resources/resource.$lm `
+  if ( -e $PRODAT/$lm/proman/sta/end ) then
+    set newvsn = `cat $PRODAT/$lm/proman/sta/end | nawk ' { print $2 } '`
+    set end_vsn = `echo $end_vsn $newvsn`
+  endif
+end
+foreach endvsn ( $end_vsn[*] )
+  set I = 0
+  foreach stats ( $all_stats[*] )
+    @ I = $I + 1
+    if ( $stats =~ *${endvsn}* ) then
+      set all_stats[$I] = "XXXXXX"
+    endif
+  end
+end
+
+#Now exclude successfully copied tapes
+set copy_all
+set copy_rcp
+foreach stats ( $all_stats[*] )
+  if ( $stats !~ XXXXXX ) then
+    set hd  = $stats:h
+    set VSN = `echo $stats:t | nawk ' { gsub(/STAT_/,""); gsub(/\.RCP/,""); print }' ` 
+    set hd = `echo $hd | nawk ' { gsub(/pdbkd/,"logdb"); print } ' `
+    set OK = 0
+    if ( -e $hd/copy_results_log.$VSN ) then
+      set OK = `nawk ' BEGIN { ok = 0 }; /DSTs copied for '$VSN'/ { ok++ }; /RCPs copied for '$VSN'/ { ok++ }; END { print ok } ' $hd/copy_results_log.$VSN`
+    endif
+    if ( $OK == 0 ) then
+      set copy_all = `echo $copy_all $stats`
+    else
+      if ( $OK == 1 ) then
+        set copy_rcp = `echo $copy_rcp $stats`
+      endif
+    endif
+  endif
+end
+      
+#Now copy them all
+foreach tape ( $copy_all[*] )
+  
+#Check first that the tape belongs to this machine
+  set tlm = `nawk ' /NODE_NAME/ { print $2 }' $tape | tr '[A-Z]' '[a-z]'`
+  set tlm = `echo $tlm | sed "s/\'//g"`
+  if ( $tlm =~ *$NODE* ) then
+    set hd  = $tape:h
+    set VSN = `echo $tape:t | nawk ' { gsub(/STAT_/,""); gsub(/\.RCP/,""); print }' ` 
+    set ld = `echo $hd | nawk ' { gsub(/pdbkd/,"logdb"); print } ' `
+    set PRODAT = `nawk ' /PRODAT_DIRECTORY/ { print $2; exit } ' $PRODIR/resources/resource.$tlm `
+#And copy it
+    $PRODIR/exe/copy_results.csh $VSN $PRODAT/$tlm/proman $hd >>& $ld/copy_results_log.$VSN &
+  endif
+end
+
+foreach tape ( $copy_rcp[*] )
+  
+#Check first that the tape belongs to this machine
+  set tlm = `nawk ' /NODE_NAME/ { print $2 }' $tape | tr '[A-Z]' '[a-z]'`
+  set tlm = `echo $tlm | sed "s/\'//g"`
+  if ( $tlm =~ *$NODE* ) then
+    set hd  = $tape:h
+    set VSN = `echo $tape:t | nawk ' { gsub(/STAT_/,""); gsub(/\.RCP/,""); print }' ` 
+    set ld = `echo $hd | nawk ' { gsub(/pdbkd/,"logdb"); print } ' `
+    set PRODAT = `nawk ' /PRODAT_DIRECTORY/ { print $2; exit } ' $PRODIR/resources/resource.$tlm `
+#And copy it
+    $PRODIR/report/conv_prepare_rcp $VSN $hd $PRODAT/$tlm/proman  >>& $ld/copy_results_log.$VSN &
+  endif
+end
+
+#This all
+exit

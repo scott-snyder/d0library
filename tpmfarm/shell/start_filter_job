@@ -1,0 +1,96 @@
+#!/bin/csh
+#A shell script to update and start the filter job
+#It first checks for the project spooler to be running
+#If the spooler is finished - copies the results
+#and mounts a new spooler
+#K.Denisenko, FNAL
+#Created 9/25/92
+#Last modified:
+
+#to prevent "No match messages"
+set nonomatch
+
+#File definitions
+set BLNKS  = $PRODIR/resources/blanks
+set TMP    = $PRODIR/resources/tmp/cltm."$$"
+set RESFIL = $PRODIR/resources/tmp/res.tmp."$$"
+
+#check for the outspool processes running
+ps -ef | grep dzero > $RESFIL
+set outspool_pid = `nawk '/outspool/ { print $2 }' $RESFIL`
+if (  $outspool_pid != "" ) then
+#spooler is running; exit immediately
+  goto finish
+else
+
+#If there is an "endit" signal - remove it
+  if ( -e ~/filt/endit ) then
+    rm ~/filt/endit
+  endif
+
+#An output tape is finished; mount a new tape
+  if ( $outspool_pid == "" ) then
+    cat ~/filt/end > $TMP 
+    if ( $status != 0 ) then
+      cat ~/filt/error > $TMP
+      if ( $status == 0 ) then
+        echo 'The previous filter job ended ABEND ' `cat $TMP` $1 `date` | /usr/sbin/Mail unix_proman
+        rm ~/filt/error
+        set OLDVSN = `nawk ' { print $2 } ' $TMP`
+        echo "$OLDVSN" >> ~/filt/failed.tapes
+        goto finish
+      endif
+    else
+      rm ~/filt/end >& /dev/null
+      set OLDVSN = `nawk ' { print $2 } ' $TMP`
+      set OLDPDB = `nawk ' { print $5 } ' $TMP`
+      set OLDLOG = `echo $OLDPDB | sed 's/pdbkd/logdb/1' `
+      echo "Starting the results copy for tape $OLDVSN " `date`
+      $PRODIR/exe/copy_results_fl.csh $OLDVSN $OLDPDB /local/fnsfd/proman >& $OLDLOG/copy_results_log.$OLDVSN &
+      echo "$OLDVSN" `date` >> ~/filt/successfull.tapes
+    endif
+
+#Start a new output tape; Change all the db definitions
+    echo "Mounting a new output tape for the filter " `date`
+
+#Create a new environment link
+    set pdb_area = `$PRODIR/exe/get_pdb_link`
+
+#Get a blank from the list
+    set OUTVOL = `nawk '/READY/ { print $1; exit }' $BLNKS`
+    if ( $OUTVOL == "" ) then
+      echo `date` ' No available output tapes' | Mail unix_proman
+      exit
+    endif
+
+#Mark the output tape as used
+    nawk '{p=1}; $1 ~ "'$OUTVOL'" { p=0; print $1 " USED"}; {if(p) print}'  \
+    $BLNKS > $TMP
+    mv $TMP $BLNKS
+
+#Create a timestamp
+    set fdate = ` date '+%y%m%d%H' | nawk ' { print substr($0,2) }' `
+
+#Submit the outspooler
+    setenv PDB_AREA  $PRODIR/pdbkd/$pdb_area
+    setenv CLF_AREA  $PRODIR/clflog/$pdb_area
+    setenv TAPE_MGR cps_tape
+    setenv TAPE_LABELS VMS
+    setenv OUTPTH   ~/filt
+    $PRODIR/exe/outspool_cl.x -inl $OUTVOL -path $OUTPTH -nby 3600 >& $CLF_AREA/clspool_${OUTVOL}_${fdate}.log & 
+
+  endif
+
+endif
+
+finish:
+#Remove the temp files
+if ( -e $TMP ) then
+  rm $TMP
+endif
+if ( -e $RESFIL ) then
+  rm $RESFIL
+endif
+
+#That is about it
+exit

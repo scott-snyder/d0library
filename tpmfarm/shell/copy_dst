@@ -1,0 +1,120 @@
+#!/bin/csh 
+#A command procedure to create a list of successfull DSTs belonging to
+# a VSN tape 
+#K.Denisenko
+#Created: 9/12/92
+#Last Modified:
+#First ask for a tape VSN
+# -- 8-Oct-1992 third argument added - area where RCP-files reside
+
+#The first argument is the tape VSN
+setenv VSN $1
+set FILE = $3/STAT_${VSN}.RCP
+if (! -e $FILE ) then
+  echo 'This dataset does not exist, exiting...'
+  goto finish
+endif
+
+#Check whether the outspooler really finished
+set chk = `grep 'END' $FILE` 
+if ( $chk == "" ) then
+#This tape probably wasn't finished properly; send a warning mail about it
+# echo "Just a warning: tape $VSN is non-finished; adding \END \STOP" | /usr/sbin/Mail -s "Copying unfinished tape" unix_proman
+  echo ' \END'  >> $FILE
+  echo ' \STOP' >> $FILE
+endif
+
+#The second argument is the PROMAN area
+setenv PROMAN  $2
+
+#Define a log area of report
+setenv RPR  $PRODIR/report 
+setenv LOG  $RPR/log  
+
+#Find a node name to index temp files
+set NOD = `/usr/local/bin/funame`
+
+#Temporary file
+set TMP = $LOG/copy_dst_tmp.$NOD.$$
+
+#Now use an awk script to process the datasets
+set prev = `$RPR/previous.csh $3`
+setenv dirrcp "{$3,$prev}"
+set OUTSET = $LOG/${VSN}.OUTSET.$NOD.$$
+$RPR/outpdb_report.x $FILE $OUTSET
+
+#Prepare the start of the copied.$VSN
+set where  = 'D0$DATA$BUFFER'
+set where1 = 'D0\$DATA\$BUFFER'
+
+#Lookup a logical for where1
+set where2 = `rsh d0tsar -n "sh log $where" | nawk ' /"'$where1'"/ { b =index($3,"\:"); print substr($3,2,b-2) } ' `
+
+echo "CD $where" >  $LOG/copied.$VSN
+echo "lcd $PROMAN/linktemps" >> $LOG/copied.$VSN
+echo '#A script to delete links and corresponding DSTs' > $LOG/deleted.$VSN
+
+#Save the current working directory
+set olddir = $cwd
+cd $PROMAN/linktemps
+
+set DSLIST = `wc -l < $OUTSET`
+if ( $DSLIST == 0 ) then
+  echo "This output tape $VSN will be returned to blanks; no action necessary" |  /usr/sbin/Mail -s "$VSN returned to blanks" unix_proman
+  nawk ' $1 ~ "'$VSN'" { if ( $3 < 3 ) { gsub(/USED/, "READY"); print $1, $2, $3+1 } else { gsub(/USED/, "BADTAPE"); print }  exit } ' $PRODIR/resources/blanks > $PRODIR/resources/blanks_upd.$VSN
+  rm $FILE
+  rm $LOG/copied.$VSN
+  if ( -e $OUTSET ) then
+    rm $OUTSET
+  endif
+  exit 2
+endif
+
+#Loops over all datasets in $OUTSET, checks whether DSTs exits and
+#put corresponding lines into copied.$VSN file
+$RPR/loop_over_sets.csh < $OUTSET
+
+#Finish the $LOG/copied.$VSN
+echo "quit" >> $LOG/copied.$VSN
+
+#Check whether the D0FS is up or not; wait if not
+wait_d0fs:
+$PRODIR/exe/uptest >& /dev/null
+set RDY = $status
+$PRODIR/exe/check_buffer.csh >& /dev/null
+set CKB = $status
+if ( $RDY != 0 || $CKB != 0 ) then
+  sleep 800
+  goto wait_d0fs
+endif
+
+#Now zftp it to the buffer area on D0FS
+$PRODIR/exe/zftp d0tsar < $LOG/copied.$VSN >& $LOG/copy_log.$VSN
+
+#Check that the transfer was OK; remove files transferred successfully
+$RPR/acheck_transfer.csh $VSN $PROMAN "$where2"
+set stacheck = $status
+endofit:
+if ( $stacheck != 0 ) then
+  cd $olddir
+  echo "DST transfer to D0FS failed for $VSN " `date` > $TMP
+  /usr/sbin/Mail unix_proman < $TMP
+  rm $TMP
+  exit 1
+endif
+
+#Remove the DSTs and the links
+chmod u+x $LOG/deleted.$VSN
+$LOG/deleted.$VSN >& /dev/null
+
+#Restore the current directory
+cd $olddir
+
+#update the COPIED_DST.LOG file
+echo "DSTs for tape $VSN have been copied to D0FS on " `date` >> \
+ $RPR/COPIED_DST.LOG
+finish:
+if ( -e $OUTSET ) then
+  rm $OUTSET
+endif
+exit

@@ -1,0 +1,131 @@
+#!/bin/csh -f
+#"start_farmlet_job"
+#A script that mounts an input ( $1 = in ) or output ( $1 = out ) tape
+#K.Denisenko
+#Created 12/15/92
+#Last modified
+#Arguments: logical nodename, project, vsn, {in, out}, tapedrive
+#it gets the outvolume from the list of available tapes (blanks)
+# -- K. Denisenko 1/29/93 5th argument tapedrive added
+# -- K. Denisenko 4/08/93 Modifications for "list"-inspooler;
+#                         Needs env $inspool_idx to be defined
+
+set nonomatch
+
+#File definitions
+set BLNKS  = ${PRODIR}/resources/blanks
+set IJOBS  = ${PRODIR}/resources/injobs
+set QUEUN  = ${PRODIR}/resources/queueid
+set ENVRM  = ${PRODIR}/resources/env.$FMLNODE
+set HST    = ${PRODIR}/history/jobs.log
+set TMP    = ${PRODIR}/resources/tmp/stjn."$$"
+
+if ( $4 == "out" ) then
+
+#Create a new environment link
+  set pdb_area = `$PRODIR/exe/get_pdb_link`
+  echo $pdb_area > $ENVRM
+
+#Get a blank from the list
+  set OUTVOL = `nawk '/READY/ { print $1; exit }' $BLNKS`
+  if ( $OUTVOL == "" ) then
+    echo `date` ' No available output tapes' | Mail -s "No blanks" unix_proman
+    exit
+  endif
+
+#Mark the output tape as used
+  nawk '{p=1}; $1 ~ "'$OUTVOL'" { p=0; print $1 " USED"}; {if(p) print}'  \
+  $BLNKS > $TMP
+  mv $TMP $BLNKS
+
+#Create a timestamp
+  set fdate = ` date '+%y%m%d%H' | nawk ' { print substr($0,2) }' `
+
+#Create an outtape.node file
+  echo $OUTVOL > $PRODIR/resources/outtape.$1
+
+#Define the shell name
+  set OUTSHELL = shelldb/$pdb_area/OUTSHELL_${OUTVOL}_${fdate}.CSH
+  set outshell = $PRODIR/$OUTSHELL
+
+#Submit the outspooler
+  set PDB_AREA = pdbkd/$pdb_area
+  set LOG_AREA = logdb/$pdb_area
+  echo '#\!/bin/csh'                > $outshell
+  echo 'setup  cps'                >> $outshell
+  echo 'setenv TAPE_MGR cps_tape'  >> $outshell
+  echo 'setenv TAPE_LABELS VMS'    >> $outshell
+  echo 'setenv PDB_AREA $PRODIR'"/$PDB_AREA" >> $outshell
+  echo 'setenv LOG_AREA $PRODIR'"/$LOG_AREA" >> $outshell
+  echo "setenv DRIVEOUT $5"        >> $outshell
+  echo "setenv OUTLABEL $OUTVOL"   >> $outshell
+  echo "setenv fdate    $fdate"    >> $outshell
+  echo "setenv FMLNODE  $1"        >> $outshell
+  echo "setenv PROJECT  $2"        >> $outshell
+  echo "setenv OUTPTH   $PRODAT/$1/proman/sta" >> $outshell
+  echo '$PRODIR/exe/outspool_'"$FMLNODE"' -inl $OUTLABEL -dev $DRIVEOUT -path $OUTPTH -nby 3600 >& $LOG_AREA/outspool_${OUTLABEL}_${fdate}.log & '       >> $outshell
+  rsh $FMLPHYS -n 'source $PRODIR/'"$OUTSHELL" &; set bkgr = $child
+  $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+
+else
+  if ( $4 == "in" ) then
+
+#Get a next job number
+    set QUEID = `cat $QUEUN`
+    @ NQUEID  = ( $QUEID + 1 )
+    echo $NQUEID > $QUEUN
+
+#Mark the input tape as submitted
+    nawk '{p=1}; $1 ~ "'$3'" { p=0; gsub(/WAITING/,"SUBMITTED"); print $0 }; {if(p) print}'  \
+    $IJOBS > $TMP
+    mv $TMP $IJOBS
+
+#Check whether the input tape is available
+    set fmentry = `$PRODIR/exe/check_invol.csh $3`
+    if ( $fmentry == -1 ) then
+#update the history log
+      echo $QUEID $1 "XXXXX" $2 $3 "4WNODE TAPE_IN_USE" `date` >> $HST
+      echo "Tape $3 is in use on the D0FS" | /usr/sbin/Mail -s "Tape in use on D0FS" unix_proman
+      exit
+    endif
+
+#Create a "tape_moved.WMXXXX" file
+    $PRODIR/tpm/create_tape.csh $3 $FMLNODE
+
+#Get the environment link
+    set pdb_area = `cat $ENVRM`
+
+#Define the shell name
+    set INSHELL = shelldb/$pdb_area/INSHELL_$QUEID.CSH
+    set inshell = $PRODIR/$INSHELL
+
+#Submit the inspooler
+    set LOG_AREA = logdb/$pdb_area
+    echo '#\!/bin/csh'                > $inshell
+    echo 'setup  cps'                >> $inshell
+    echo 'setenv TAPE_MGR cps_tape'  >> $inshell
+    echo 'setenv TAPE_LABELS VMS'    >> $inshell
+    echo 'setenv LOG_AREA $PRODIR'"/$LOG_AREA" >> $inshell
+    echo "setenv INLABEL $3"         >> $inshell
+    echo "setenv DRIVEIN $5"         >> $inshell
+    echo "setenv QUEID   $QUEID"     >> $inshell
+    echo "setenv PRODAT  $PRODAT"    >> $inshell
+    echo "setenv FMLPHYS  $1"        >> $inshell
+    echo "setenv PROJECT  $2"        >> $inshell
+    echo "setenv INSPLNR $inspool_idx" >> $inshell
+    echo 'setenv INSPLST $PRODIR/resources/inspool_list_${INSPLNR}.${FMLPHYS}' \
+                                     >> $inshell
+    echo "setenv FMQUE   $fmentry"   >> $inshell
+    echo '$PRODIR/exe/inspool_${FMLPHYS}_$INSPLNR -inl $INLABEL -dev $DRIVEIN -queid $QUEID -fmq $FMQUE >& $LOG_AREA/inspool_${QUEID}.log&'          >> $inshell
+    rsh $FMLPHYS -n 'source $PRODIR/'"$INSHELL" &; set bkgr = $child
+    $PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+
+#update the history log
+    echo $QUEID $FMLNODE "XXXXX" $2 $3 "PWNODE INQUEUED" `date` >> $HST
+
+  endif
+
+endif
+
+#That is about it
+exit

@@ -1,0 +1,25 @@
+#!/bin/csh
+#It is a master script to submit pick_up_trans to all machine currently
+#in the production manager list, no matter available or not
+#Kirill Denisenko, 06/20/93
+
+#Leave only physical CPU
+set FMLARRY = `nawk ' { us = index ( $1,"\_" ); if ( us == 0 ) { print $1 } else { print substr( $1, 1, us - 1 ) } } ' $PRODIR/resources/resource`
+
+#Exclude the same names
+set template = $FMLARRY[1]
+set cpu_list = $template
+foreach cpu ( $FMLARRY[2-$#FMLARRY] )
+  if ( $cpu !~ $template ) then
+    set cpu_list = `echo $cpu_list $cpu`
+    set template = $cpu
+  endif
+end
+
+#Do pick_all_trans for all of them
+foreach cpu_phys ( $cpu_list[*] )
+  rsh $cpu_phys -n '$PRODIR'"/exe/pick_up_trans &"
+end
+
+#This is all
+exit

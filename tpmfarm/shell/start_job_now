@@ -1,0 +1,102 @@
+#!/bin/csh -f
+#"start_job_now"
+#A script that prepares and submits actual shell script to be executed
+#K.Denisenko
+#Created 9/2/92
+#Last modified
+# 9/9/92 K. Denisenko Redefine DBL3 and dst, sum, and hst4 areas
+# 6/18/93 K. Denisenko All project dependence is phased out
+#Arguments: node project involume
+#it gets the outvolume from the list of available tapes (blanks)
+
+set nonomatch
+
+#File definitions
+set BLNKS  = $PRODIR/resources/blanks
+set IJOBS  = $PRODIR/resources/injobs
+set QUEUN  = $PRODIR/resources/queueid
+set RESTAB = $PRODIR/resources/resource.$1
+set LOGRRE = $PRODIR/resources/errlog
+set HST    = $PRODIR/history/jobs.log
+set TMP    = $PRODIR/resources/tmp/stjn."$$"
+
+#Get the PRODAT directory name for the farmlet
+setenv PRODAT ` nawk ' /PRODAT_DIRECTORY/ { print $2 } ' $RESTAB `
+
+#Get a blank from the list
+set OUTVOL = `nawk '/READY/ { print $1; exit }' $BLNKS`
+if ( $OUTVOL == "" ) then
+  echo `data` ' No available output tapes' >> $LOGRRE
+  exit
+endif
+
+#Mark the output tape as used, the job as submitted
+ nawk '{p=1}; $1 ~ "'$OUTVOL'" { p=0; print $1 " USED"}; {if(p) print}'  \
+ $BLNKS > $TMP
+ mv $TMP $BLNKS
+
+#Mark the input tape as used
+ nawk '{p=1}; $1 ~ "'$3'" { p=0; gsub(/WAITING/, "SUBMITTED"); print $0 }; {if(p) print}'  \
+ $IJOBS > $TMP
+ mv $TMP $IJOBS
+
+#Create a "tape_moved.WMXXXX" file
+ $PRODIR/tpm/create_tape.csh $3 $1
+
+#Get a next job number
+ set QUEID = `cat $QUEUN`
+ @ NQUEID  = ( $QUEID + 1 )
+ echo $NQUEID > $QUEUN
+
+#Get a pdb_area and save it in env.node
+set pdb_dir = `$PRODIR/exe/get_pdb_link`
+echo $pdb_dir > env.$1
+
+#Create a shell to submit d0reco.csh
+set SHLFL = ${PRODIR}/shelldb/$pdb_dir/"$2"_"$QUEID".CSH
+echo "#\!/bin/csh"                              >  $SHLFL
+echo 'setenv prod ~/production'                 >> $SHLFL
+echo 'source ~/d0library/unix/d0local.login'    >> $SHLFL
+echo 'source ~/d0library/unix/d0local.cshrc'    >> $SHLFL
+echo 'libtest unix'                             >> $SHLFL
+echo 'cd $PRODIR/run'                           >> $SHLFL
+echo "cd $1"                                    >> $SHLFL
+echo "setenv PROJECT $2"                        >> $SHLFL
+echo "setenv QUEID $QUEID"                      >> $SHLFL
+echo 'setenv JOBNAME ${PROJECT}_${QUEID}'       >> $SHLFL
+echo 'setenv LOG_AREA $PRODIR/logdb/'"$pdb_dir" >> $SHLFL
+echo 'setenv PDB_AREA $PRODIR/pdbkd/'"$pdb_dir" >> $SHLFL
+echo 'setenv DBL3 /dbl3'                        >> $SHLFL
+echo "setenv INLABEL $3"                        >> $SHLFL
+echo "setenv OUTLABEL $OUTVOL"                  >> $SHLFL
+echo "setenv PRODAT   $PRODAT"                  >> $SHLFL
+echo 'setenv PM_DISK1 $PRODAT/'"$1"             >> $SHLFL
+
+echo 'setenv INSPOOL $PM_DISK1/proman/inspool'  >> $SHLFL
+echo 'ln -sf $PRODIR/stsdb/'"$pdb_dir/"'${PROJECT}_${QUEID}.STATUS pm_status_1 ' \
+>> $SHLFL
+
+echo 'setenv RAW_AREA $PM_DISK1/proman/raw'       >> $SHLFL
+echo 'setenv STA_AREA $PM_DISK1/proman/sta'       >> $SHLFL
+echo 'setenv DST_AREA $PM_DISK1/proman/dst'       >> $SHLFL
+echo "setenv SUM_AREA /proman/sumdb/$pdb_dir"     >> $SHLFL
+echo "setenv HST_AREA /proman/hstdb/$pdb_dir"     >> $SHLFL
+echo '$PRODIR/tpm/d0reco_std.csh >&! \' >> $SHLFL
+echo '${LOG_AREA}/${PROJECT}_${QUEID}.log &'      >> $SHLFL
+
+#Execute this remote file on node $1
+chmod u+x $SHLFL
+rsh $1 -n "source "'$PRODIR'"/shelldb/$pdb_dir/${2}_${QUEID}.CSH" &; set bkgr = $child
+$PRODIR/tpm/check_rsh.csh $0 $bkgr 600 5
+
+if ( $status == 0 ) then
+   echo "Job $QUEID submitted to node $1 on " `date`
+# update the history log
+   echo $QUEID $1 "XXXXX" $2 $3  $OUTVOL "SUBMITTED" `date` >> $HST 
+else
+   echo "Job $QUEID failed on submission to node $1"
+   echo $QUEID $1 "XXXXX" $2 $3  $OUTVOL "FAILED_ON_SUB" `date` >> $HST
+endif
+#That is about it
+exit
+

@@ -1,0 +1,12 @@
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+C D0 library release version function.
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      Character*72 Function VSTP()
+      VSTP = ' STP'//
+     X                   '  OFFICIAL V1.17'//
+     X                   ' 14-JUL-1997 10:16:41.41'
+      Return
+      End
