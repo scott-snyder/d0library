@@ -27,7 +27,7 @@ C------------------------------------------------------------------
         CALL EZRSET
         ICALL=1
       END IF
-      IF (ALL_VEES.EQ..FALSE.) GO TO 1000
+      IF (ALL_VEES.EQV..FALSE.) GO TO 1000
       CALL DHDIR('VEES_RCP','HBOOK_DIRECTORY',IER,' ')
       IF (IER.NE.0) THEN
         CALL ERRMSG('VEES','VEES',

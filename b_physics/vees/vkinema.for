@@ -188,7 +188,7 @@ C
 C
 C ****  Conclusion
 C
-      IF (VKINEMA .EQ. .FALSE.) THEN  ! None of the hypothesis satisfied
+      IF (VKINEMA .EQV. .FALSE.) THEN  ! None of the hypothesis satisfied
         CALL PVESDR(NPVES)            ! PVES bank dropped
       END IF
   999 RETURN

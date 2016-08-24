@@ -35,7 +35,7 @@ C------------------------------------------------------------------
         CALL EZGET('RVMIN1',RVMIN1,IER)
         CALL EZGET('RVMIN2',RVMIN2,IER)
         CALL EZGET('READSTP',READSTP,IER)
-        IF (READSTP.EQ..FALSE.) GO TO 1001
+        IF (READSTP.EQV..FALSE.) GO TO 1001
 C
 C  Get wire positions from STP
 C
@@ -74,7 +74,7 @@ C CDC:
       R1MIN=60.
       R2MIN=60.
       IF (RV.GT.R2MIN) GO TO 1000
-      IF (READSTP.EQ..FALSE.) THEN
+      IF (READSTP.EQV..FALSE.) THEN
         OK=.TRUE.
         GO TO 1000
       END IF

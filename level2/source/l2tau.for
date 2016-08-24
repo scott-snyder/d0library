@@ -93,7 +93,7 @@ C ****  Ascertain that the l2jets tool and l2etmiss tool were called
 C
       CALL GTESUM_COUNTS('FILT',NFOUND,IER)
       IF (IER.NE.0) THEN
-        WRITE(MSG,'(A,I)')'IER From GTESUM_COUNTS = ',IER
+        WRITE(MSG,'(A,I6)')'IER From GTESUM_COUNTS = ',IER
         CALL ERRMSG('GTESUM_COUNTS','L2TAU',MSG,'W')
       ENDIF
       RESULT_FLAG = (NFOUND(ID_JET).GE.NUM_JETS_MIN)
@@ -101,7 +101,7 @@ C
         CALL GTESUM_SORT('FILT',ID_JET,NMAX,IORDER,WORK,IER)
         IF (IER.NE.0) THEN
 C...this should only happen if you didn't have enough space reserved (NMAX)
-          WRITE(MSG,'(A,I)')'IER From GTESUM_SORT (FILT) = ',IER
+          WRITE(MSG,'(A,I6)')'IER From GTESUM_SORT (FILT) = ',IER
           CALL ERRMSG('GTESUM_SORT','L2TAU',MSG,'W')
         ENDIF
         CALL GTESUM('FILT',ID_JET,IORDER(LJET),ET,ETA_PHYS,

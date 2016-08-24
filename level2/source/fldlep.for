@@ -29,26 +29,26 @@ C
       DATA CDC_REQ4 /.FALSE./
 C
 C----------------------------------------------------------------------
-      LYR02 = SECTOR(0).AND.SECTOR(2)
-      LYR13 = SECTOR(1).AND.SECTOR(3)
+      LYR02 = iand(SECTOR(0),SECTOR(2))
+      LYR13 = iand(SECTOR(1),SECTOR(3))
       IF (CDC_REQ4) THEN
-        LYRALL = (LYR02.AND.LYR13) .OR. (ISHFTC(LYR02,-1,32).AND.LYR13)
+        LYRALL = ior(iand(LYR02,LYR13), iand(ISHFTC(LYR02,-1,32),LYR13))
       ELSE
-        CND1A =  LYR02.AND.SECTOR(1)
-        CND1B =  ISHFTC(LYR02,-1,32) .AND. SECTOR(1)
+        CND1A =  iand(LYR02,SECTOR(1))
+        CND1B =  iand(ISHFTC(LYR02,-1,32), SECTOR(1))
 
-        CND2A =  LYR02.AND.SECTOR(3)
-        CND2B =  ISHFTC(LYR02,-1,32) .AND. SECTOR(3)
+        CND2A =  iand(LYR02,SECTOR(3))
+        CND2B =  iand(ISHFTC(LYR02,-1,32), SECTOR(3))
 
-        CND3A =  LYR13.AND.SECTOR(0)
-        CND3B =  LYR13.AND.ISHFTC(SECTOR(0),-1,32)
+        CND3A =  iand(LYR13,SECTOR(0))
+        CND3B =  iand(LYR13,ISHFTC(SECTOR(0),-1,32))
 
-        CND4A =  LYR13.AND.SECTOR(2)
-        CND4B =  LYR13.AND.ISHFTC(SECTOR(2),-1,32)
+        CND4A =  iand(LYR13,SECTOR(2))
+        CND4B =  iand(LYR13,ISHFTC(SECTOR(2),-1,32))
 C
-        LYRALLA = CND1A.OR.CND2A.OR.CND3A.OR.CND4A
-        LYRALLB = CND1B.OR.CND2B.OR.CND3B.OR.CND4B
-        LYRALL =  LYRALLA .OR. LYRALLB
+        LYRALLA = ior(ior(CND1A,CND2A),ior(CND3A,CND4A))
+        LYRALLB = ior(ior(CND1B,CND2B),ior(CND3B,CND4B))
+        LYRALL =  ior(LYRALLA, LYRALLB)
       ENDIF
 C
 C  Pass event if segement found in r-phi,  Calculate Eta,Phi and z vertex.

@@ -63,7 +63,7 @@ C
 C   Protect against bad data
 C
         IF (LENCRT.LE.0) THEN
-          WRITE(MSG,'(A,I)')'ZERO LENGTH FOR CRATE ',CRTID
+          WRITE(MSG,'(A,I6)')'ZERO LENGTH FOR CRATE ',CRTID
           CALL ERRMSG('Bad FDC Data','L2_FDCUNP',MSG,'W')
           OK = SET_BAD_CD_FLAG()   !NOTE: This KILLS the event
           STATUS = .FALSE.
@@ -86,7 +86,7 @@ C                                             ! where this cluster in on.
             LENGTH = IAND(IQ(POINT), MASK)  ! Channel length ( byte count
 C                                           ! ,including itself )
             IF (LENGTH.LE.0) THEN
-              WRITE(MSG,'(A,I)')'ZERO LENGTH FOR CHANNEL ',CHNL
+              WRITE(MSG,'(A,I6)')'ZERO LENGTH FOR CHANNEL ',CHNL
               CALL ERRMSG('Bad FDC Data','L2_FDCUNP',MSG,'W')
               OK = SET_BAD_CD_FLAG()   !NOTE: This KILLS the event
               STATUS = .FALSE.
@@ -95,7 +95,7 @@ C                                           ! ,including itself )
 C
             IF ( CHNL .GT. UNUSED_CHNLS ) GOTO 99
             IF ( CHNL .LT. MIN_CHNL .OR. CHNL .GT. MAX_CHNL ) THEN
-              WRITE(MSG,'(A,I)')
+              WRITE(MSG,'(A,I6)')
      &            ' out of array MAP bound for channel ',CHNL
               CALL ERRMSG('Out of MAP bound','L2_FDCUNP',MSG,'W')
               GOTO 99
@@ -107,7 +107,7 @@ C
           ENDDO
 C
           IF ( GOOD_CHNL_PER_CRT .EQ. 0 ) THEN
-            WRITE(MSG,'(A,I)')'All channels bad for crate ',CRTID
+            WRITE(MSG,'(A,I6)')'All channels bad for crate ',CRTID
             CALL ERRMSG('No good channels','L2_FDCUNP',MSG,'W')
             STATUS = .FALSE.
             GOTO 999

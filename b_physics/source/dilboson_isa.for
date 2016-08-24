@@ -75,7 +75,7 @@ C
           FOUND=.TRUE.
         END IF
       END IF
-      IF (FOUND.EQ..TRUE.) THEN
+      IF (FOUND) THEN
         E1=SQRT(P1**2+MASSLEP**2)
         PHI1=Q(L1+7)
         IF (PHI1.LT.0.) PHI1=PHI1+TWOPI

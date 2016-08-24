@@ -65,14 +65,14 @@ C
      &      'Could not find parameter','F')
       ENDIF
       log_or_not = trnlnm(filename, fntrans, fn_len)
-      If (log_or_not) filename = fntrans
+      If (log_or_not /= 0) filename = fntrans
       IFILE  = 1
 C
 C     open output file
 C
       CALL GTUNIT(GRAND_FSUM_USER,LUN,IER)
       Log_or_not = trnlnm(OUTPUT_LOGICAL,fntrans,fn_len)
-      If (Log_or_not) then
+      If (Log_or_not /= 0) then
         output_file=fntrans
       Else
         IF (SUMMARY) THEN
@@ -104,7 +104,7 @@ C
             CALL EZGETS('FNAMES',IFILE,FILENAME,NCHR,IER)
             IF (NCHR.LE.0) IER = 1
             log_or_not = trnlnm(filename, fntrans, fn_len)
-            If (log_or_not) filename = fntrans
+            If (log_or_not /= 0) filename = fntrans
           ENDIF
         ELSE
 C
@@ -128,7 +128,7 @@ C
             CALL EZGETS('FNAMES',IFILE,FILENAME,NCHR,IER)
             IF (NCHR.LE.0) IER = 1
             log_or_not = trnlnm(filename, fntrans, fn_len)
-            If (log_or_not) filename = fntrans
+            If (log_or_not /= 0) filename = fntrans
           Else
             Write(IER_CHR,'(I3)') IER
             Call errmsg('Grand_Fsum', 'Grand_Fsum', 

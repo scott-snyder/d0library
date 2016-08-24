@@ -367,14 +367,14 @@ C           ETHE2=Q(LFDC2+24)
                 WRITE(PRUNIT,777) ETA,ETADEC,THE,THEDEC,PHI,PHIDEC,
      &                            PDEC,PART,(XYZI(I),I=1,3)
                 WRITE(PRUNIT,778) (VX(I),I=1,3)
-                write (*,887),NUM
-                write (*,888), N1,IZTRK1,NISA1(I1,1),WISA1(I1),NHIT1,
+                write (*,887) NUM
+                write (*,888) N1,IZTRK1,NISA1(I1,1),WISA1(I1),NHIT1,
      &          ETA1,ETAI(1),THE1,THEI(1),PHI1,PHII(1),EI(1),MI(1)
                 write (*,888), N2,IZTRK2,NISA2(I2,1),WISA2(I2),NHIT2,
      &          ETA2,ETAI(2),THE2,THEI(2),PHI2,PHII(2),EI(2),MI(2)
-                write (*,777), ETA,ETADEC,THE,THEDEC,PHI,PHIDEC,
+                write (*,777) ETA,ETADEC,THE,THEDEC,PHI,PHIDEC,
      &                            PDEC,PART,(XYZI(I),I=1,3)
-                write (*,778), (VX(I),I=1,3)
+                write (*,778) (VX(I),I=1,3)
                 NP1 = NP + 1
                 NP2 = NP + 2
                 NP3 = NP/2 + 1
@@ -456,7 +456,7 @@ C           ETHE2=Q(LFDC2+24)
           ENDIF
   300   CONTINUE 
         WRITE(PRUNIT,334) (NIZT(N), N=1,NP)
-        write (*,334), (NIZT(N), N=1,NP)
+        write (*,334) (NIZT(N), N=1,NP)
       ENDIF
       IF(NP .GT. 0) THEN
         DO 500 I1 = 1, NP/2

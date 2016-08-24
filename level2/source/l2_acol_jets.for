@@ -91,7 +91,7 @@ C
 C
         CALL GTESUM_COUNTS('FILT',NFOUND,IER)
         IF (IER.NE.0) THEN
-          WRITE(MSG,'(A,I)')'IER From GTESUM_COUNTS = ',IER
+          WRITE(MSG,'(A,I6)')'IER From GTESUM_COUNTS = ',IER
           CALL ERRMSG('GTESUM_COUNTS','L2_ACOL_JETS',MSG,'W')
         ENDIF
         Nmet = NFOUND(ID_ETMISS)
@@ -101,7 +101,7 @@ C
         CALL GTESUM('FILT',ID_OBJECT,Nmet,MET,ETAmet,ETA_DET,PHImet,
      &       IFLAG,IER)
         IF (IER.NE.0) THEN
-          WRITE(MSG,'(A,I)')'IER From GTESUM = ',IER
+          WRITE(MSG,'(A,I6)')'IER From GTESUM = ',IER
           CALL ERRMSG('GTESUM','L2_ACOL_JETS',MSG,'F')
         ENDIF
 C

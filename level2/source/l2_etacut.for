@@ -112,7 +112,7 @@ C Use ESUM bank as basis of tool
 C
       CALL GTESUM_COUNTS('FILT',NFOUND,IER)
       IF (IER.NE.0) THEN
-        WRITE(MSG,'(A,I)')'IER From GTESUM_COUNTS = ',IER
+        WRITE(MSG,'(A,I6)')'IER From GTESUM_COUNTS = ',IER
         CALL ERRMSG('GTESUM_COUNTS','L2_ETACUT',MSG,'W')
       ENDIF
 C
@@ -137,7 +137,7 @@ C
       IF (ID_OBJECT.EQ.ID_ELECTRON.OR.ID_OBJECT.EQ.ID_PHOTON) THEN
         CALL GTL2EM_COUNT(CURRENT,NGOT,IER)
         IF (IER.NE.0) THEN
-          WRITE(MSG,'(A,I)')'IER From GTL2EM_COUNT = ',IER
+          WRITE(MSG,'(A,I6)')'IER From GTL2EM_COUNT = ',IER
           CALL ERRMSG('GTL2EM_COUNT','L2_ETACUT',MSG,'W')
         ENDIF
         NPASSED = 0
@@ -159,7 +159,7 @@ C
       CALL GTESUM_SORT('FILT',ID_OBJECT,NMAX,IORDER,WORK,IER)
       IF (IER.NE.0) THEN
 C...this should only happen if you didn't have enough space reserved (NMAX)
-        WRITE(MSG,'(A,I)')'IER From GTESUM_SORT (FILT) = ',IER
+        WRITE(MSG,'(A,I6)')'IER From GTESUM_SORT (FILT) = ',IER
         CALL ERRMSG('GTESUM_SORT','L2_ETACUT',MSG,'W')
       ENDIF
       N = 0
@@ -184,11 +184,11 @@ C
 C...this should only happen if you asked for more than was claimed
           IF (ID_OBJECT.EQ.ID_ELECTRON.OR.ID_OBJECT.EQ.ID_PHOTON) THEN
             IF (IER.NE.-4) THEN   !but allow failed candidate
-              WRITE(MSG,'(A,I)')'TROUBLE IN GTL2EM_VALUE: IER',IER
+              WRITE(MSG,'(A,I6)')'TROUBLE IN GTL2EM_VALUE: IER',IER
               CALL ERRMSG('EM_ETACUT','L2_ETACUT',MSG,'W')
             ENDIF
           ELSE
-            WRITE(MSG,'(A,I)')'IER From GTESUM = ',IER
+            WRITE(MSG,'(A,I6)')'IER From GTESUM = ',IER
             CALL ERRMSG('GTESUM','L2_ETACUT',MSG,'W')
           ENDIF
         ELSE
@@ -201,7 +201,7 @@ C Increment counter and save Eta
 C
             N=N+1
             IF (N.GT.NMAX) THEN
-              WRITE(MSG,'(A,I)')'TOO MANY OBJECTS OF TYPE ',ID_OBJECT
+              WRITE(MSG,'(A,I6)')'TOO MANY OBJECTS OF TYPE ',ID_OBJECT
               CALL ERRMSG('NCAND_ETACUT','L2_ETACUT',MSG,'W')
             ELSE
               IF(OBJECT_HAS(ETADET)) THEN

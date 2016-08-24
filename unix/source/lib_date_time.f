@@ -16,11 +16,11 @@ C----------------------------------------------------------------------
       character*20 time_string
       integer local_time(2)
       integer*2 time_len
-      logical ok
+      integer ok
       integer sys$gettim, sys$asctim
 C---------------------------------------------------------------------
       ok = sys$gettim(local_time)
-      if(ok)ok = sys$asctim(time_len, time_string, local_time)
+      if(ok /= 0)ok = sys$asctim(time_len, time_string, local_time)
       date_time = time_string
       lib$date_time = ok
   999 return

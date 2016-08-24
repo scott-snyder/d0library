@@ -91,7 +91,7 @@ C...this example should be run after L2_EM with NUM_EM set to 2
 C----------------------------------------------------------------------
       CALL GTESUM_COUNTS('FILT',NFOUND,IER)
       IF (IER.NE.0) THEN
-        WRITE(MSG,'(A,I)')'IER From GTESUM_COUNTS = ',IER
+        WRITE(MSG,'(A,I6)')'IER From GTESUM_COUNTS = ',IER
         CALL ERRMSG('GTESUM_COUNTS','L2_GENERIC',MSG,'W')
       ENDIF
 C...it's overkill, but I'll sort anyway; could do IORDER(k) -> k
@@ -99,7 +99,7 @@ C...it's overkill, but I'll sort anyway; could do IORDER(k) -> k
       CALL GTESUM_SORT('FILT',ID_ELECTRON,NMAX,IORDER,WORK,IER)
       IF (IER.NE.0) THEN
 C...this should only happen if you didn't have enough space reserved (NMAX)
-        WRITE(MSG,'(A,I)')'IER From GTESUM_SORT (FILT) = ',IER
+        WRITE(MSG,'(A,I6)')'IER From GTESUM_SORT (FILT) = ',IER
         CALL ERRMSG('GTESUM_SORT','L2_GENERIC',MSG,'W')
       ENDIF
       N = 0
@@ -108,7 +108,7 @@ C...this should only happen if you didn't have enough space reserved (NMAX)
      &    ETA_DET,PHI,IFLAG,IER)
         IF (IER.NE.0) THEN
 C...this should only happen if you asked for more than was claimed
-          WRITE(MSG,'(A,I)')'IER From GTESUM = ',IER
+          WRITE(MSG,'(A,I6)')'IER From GTESUM = ',IER
           CALL ERRMSG('GTESUM','L2_GENERIC',MSG,'W')
         ELSE
           THETA = THETA_FROM_ETA(ETA_PHYS)
@@ -121,7 +121,7 @@ C...this should only happen if you asked for more than was claimed
      &        ETA_DET,PHI,IFLAG,IER)
             IF (IER.NE.0) THEN
 C...this should only happen if you asked for more than was claimed
-              WRITE(MSG,'(A,I)')'IER From GTESUM = ',IER
+              WRITE(MSG,'(A,I6)')'IER From GTESUM = ',IER
               CALL ERRMSG('GTESUM','L2_GENERIC',MSG,'W')
             ELSE
               THETA = THETA_FROM_ETA(ETA_PHYS)

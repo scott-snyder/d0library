@@ -1,8 +1,7 @@
 THISDIR := $(TOPDIR)/$(PACKAGE)
 LIBDIR := $(TOPDIR)/lib
-TMP_OPT := $(TOPDIR)/tmp/opt/$(PACKAGE)
-TMP_DEB := $(TOPDIR)/tmp/deb/$(PACKAGE)
-TMP_SRC := $(TOPDIR)/tmp/src/$(PACKAGE)
+TMP_OPT := $(TOPDIR)/tmp/OPT/$(PACKAGE)
+TMP_DEB := $(TOPDIR)/tmp/DEB/$(PACKAGE)
 
 ifeq (,$($(PACKAGE)_EXCEPT_DIR))
  EXCEPT_DIR_PATS :=
@@ -18,9 +17,6 @@ ifeq (,$(wildcard $(TMP_OPT)))
 endif
 ifeq (,$(wildcard $(TMP_DEB)))
   $(shell mkdir -p $(TMP_DEB))
-endif
-ifeq (,$(wildcard $(TMP_SRC)))
-  $(shell mkdir -p $(TMP_SRC))
 endif
 
 ifneq (,$($(PACKAGE)_SOURCE_FOR))
@@ -77,12 +73,12 @@ OBJECT_OPT := $(OBJECT_FOR_OPT) $(OBJECT_C_OPT) $(OBJECT_F_OPT)
 define for_common_compile
 	$(NOECHO) echo '-->' $(1) $<
 	$(NOECHO) mkdir -p $(dir $@)
-	$(NOECHO) mkdir -p $(TMP_SRC)/$(dir $<)
+	$(NOECHO) mkdir -p $(TOPDIR)/tmp/$(1)/$(dir $<)
 	$(BINDIR)/tasteofd0 LINUX < $< | \
-          $(BINDIR)/vmstounix > $(TMP_SRC)/$(patsubst %.for,%.f,$<)
+          $(BINDIR)/vmstounix > $(TOPDIR)/tmp/$(1)/$(patsubst %.for,%.f,$<)
 	$(F77)  \
           $(F77_COMMON_FLAGS) -I $(dir $<) $(F77_$(1)_FLAGS) -c -o $@ \
-          $(TMP_SRC)/$(patsubst %.for,%.f,$<)
+          $(TOPDIR)/tmp/$(1)/$(patsubst %.for,%.f,$<)
 endef
 
 
@@ -138,8 +134,7 @@ clean : clean-$(PACKAGE)
 clean-$(PACKAGE) :
 	$(NOECHO) PACKAGE=$(patsubst clean-%,%,$@); \
 	echo Cleaning $$PACKAGE; \
-	rm -rf $(TOPDIR)/tmp/opt/$$PACKAGE; \
-	rm -rf $(TOPDIR)/tmp/deb/$$PACKAGE; \
-	rm -rf $(TOPDIR)/tmp/src/$$PACKAGE; \
+	rm -rf $(TOPDIR)/tmp/OPT/$$PACKAGE; \
+	rm -rf $(TOPDIR)/tmp/DEB/$$PACKAGE; \
         rm -f $(LIBDIR)/$$PACKAGE.a; \
         rm -f $(LIBDIR)/deb_$$PACKAGE.a

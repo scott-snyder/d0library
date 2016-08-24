@@ -52,12 +52,12 @@ C-
       if(d0_loc(force).eq.0)then
          get_args = .true.
       else
-         if((force.and.1).eq.0)then
+         if((iand(force,1)).eq.0)then
             get_args = .true.
          else
             get_args = .false.
          endif
-         force = force .or. 1
+         force = ior(force, 1)
       endif
 C-
 C- Read the command line

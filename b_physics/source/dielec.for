@@ -413,7 +413,7 @@ C-  Correlate ISAJET leptons and reconstructed leptons
 C
 C-  Call the kinematic fitting.
           IEND=0
-          IF (DO_KIN_FIT.EQ..TRUE.) CALL VKIN_FIT(2,IEND,PRB,CHI)
+          IF (DO_KIN_FIT) CALL VKIN_FIT(2,IEND,PRB,CHI)
           IF (IEND.LT.0) GO TO 200
 C
   210     NPAIR=NPAIR + 1

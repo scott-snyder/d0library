@@ -88,7 +88,7 @@ C
       NUMEVT=NUMEVT+1
       DIMUON=.FALSE.
       IF (LEPTONS.NE.14) GO TO 1000
-      IF (FAKEMU .EQ. .TRUE.) THEN
+      IF (FAKEMU) THEN
         CALL DIMUON_FAKE(NISAL)
         NUMMUONS=NISAL
         GO TO 500
@@ -113,7 +113,7 @@ C
 C
         DO 200 I2=I1+1,NUMMUONS
 C
-          IF (FAKEMU.EQ..TRUE.) THEN
+          IF (FAKEMU) THEN
             CALL FAKEMU1(I1,I2,FOUNDMUS,OK,P1,P2,THE1,THE2,PHI1,PHI2)
             IF (FOUNDMUS) THEN
               GO TO 600
@@ -163,7 +163,7 @@ C
           ETR(2,2)=ETHE2
           ETR(3,2)=EPHI2
 C
-  600     IF (FAKEMU.EQ..TRUE.) THEN
+  600     IF (FAKEMU) THEN
             CALL FAKEMU2(I1,I2,FOUNDMUS,OK,P1,P2,THE1,THE2,PHI1,PHI2)
             IF (.NOT.OK) GO TO 200
           ENDIF  
@@ -184,7 +184,7 @@ C
 C  Call the kinematic fitting.
 C
           IEND=0
-          IF (DO_KIN_FIT.EQ..TRUE.) CALL VKIN_FIT(2,IEND,PRB,CHI)
+          IF (DO_KIN_FIT) CALL VKIN_FIT(2,IEND,PRB,CHI)
           IF (IEND.LT.0) GO TO 200
           CALL DILBOSON_HIS(10,PRB,1.)
           CALL DILBOSON_HIS(11,CHI,1.)
@@ -261,7 +261,7 @@ C
 C
 C  search for Ks
 C
-          IF (DO_KSHORT.EQ..FALSE.) GO TO 300
+          IF (DO_KSHORT.EQV..FALSE.) GO TO 300
 C          EHADNEAR=ETOT(1)+ETOT(2)-EEM(1)-EEM(2)
           EHADNEAR=EHAD(1)+EHAD(2)-EHAD(3)-EHAD(4) 
           IF (EHADNEAR.LT.EHADMIN) GO TO 300
