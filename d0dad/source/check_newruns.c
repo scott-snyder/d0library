@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include <unistd.h>
 
 #define NENTRIES_MAX 2000
 #define NPARTS_MAX  99
@@ -39,6 +41,16 @@ struct entry_tag            /* Array of run/evtnum triplets for current file.*/
 #define EVTMIN(i,j) ( entries[i].evtnum[0]<entries[j].evtnum[0] ?  entries[i].evtnum[0] : entries[j].evtnum[0] )
 #define EVTMAX(i,j) ( entries[i].evtnum[1]>entries[j].evtnum[1] ?  entries[i].evtnum[1] : entries[j].evtnum[1] )
 
+int readin(const char *fname);
+void coallesce();
+int writeout(const char *fname);
+int upcase(char *sptr);
+void extract_name_and_extension(char *name, char *ext, char *both, char *full_field);
+int extract_field( char *full_field, char **listptr );
+int select_field(char *f1, char *f2, int flag);
+int merge_names(char *s1, char *s2);
+
+int
 main(int argc, char **argv, char **envp)
 {
   int i;
@@ -110,7 +122,7 @@ int readin(const char *fname)
  *-     run into a single section.
  *-
 */
-coallesce()
+void coallesce()
 {
   char *incomment;
   int test(const void *, const void *),i=0,j=1,k;
@@ -172,7 +184,7 @@ coallesce()
 /*
  *-   Purpose and Methods: Write the coallesced records to the file on fp.
 */
-writeout(const char *fname)
+int writeout(const char *fname)
 {
   struct entry_tag *data=entries;
   char   oldname[133],*crlf;
@@ -203,7 +215,7 @@ writeout(const char *fname)
   }
 
   /* Clean up. */
-  close(fp);
+  fclose(fp);
 }
 
 /*
@@ -262,7 +274,7 @@ char compare( int i, int j ) {
  *-   Created  27-Jun-1995   John D. Hobbs
  *-
 */
-merge_names(char *s1, char *s2)
+int merge_names(char *s1, char *s2)
 {
   char temp[FNAME_MAX];
   char both1[128],both2[128],name1[128],name2[128],ext1[128],ext2[128];
@@ -361,7 +373,7 @@ merge_names(char *s1, char *s2)
  *-   Created  28-Jun-1995   John D. Hobbs
  *-
 */
-extract_field( char *full_field, char **listptr )
+int extract_field( char *full_field, char **listptr )
 {
   char   *end,*list;
 
@@ -396,7 +408,7 @@ extract_field( char *full_field, char **listptr )
  *-   Created  28-Jun-1995   John D. Hobbs
  *-
 */
-extract_name_and_extension(char *name, char *ext, char *both, char *full_field)
+void extract_name_and_extension(char *name, char *ext, char *both, char *full_field)
 {
   char *start,*end;
 
@@ -438,6 +450,7 @@ extract_name_and_extension(char *name, char *ext, char *both, char *full_field)
  *-   Created  28-Jun-1995   John D. Hobbs
  *-
 */
+int
 upcase(char *sptr)
 {
   int i;
@@ -455,6 +468,7 @@ upcase(char *sptr)
  *-   Created  28-Jun-1995   John D. Hobbs
  *-
 */
+int
 select_field(char *f1, char *f2, int flag)
 {
   /* Check for possibly completed lists. */
