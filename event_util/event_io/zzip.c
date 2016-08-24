@@ -74,6 +74,7 @@
 #include <file.h>
 #else
 #include <fcntl.h>
+#include <unistd.h>
 #endif
 #if defined(VMS) && !defined(__GNUC__)
 #include <unixio.h>

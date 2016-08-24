@@ -69,6 +69,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
 
 #if defined(VMS) && !defined(__GNUC__)
 # include <unixio.h>

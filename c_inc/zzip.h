@@ -733,7 +733,7 @@ extern void flush_outbuf  OF((struct zzip_desc *z));
 extern void flush_window  OF((struct zunzip_desc *z));
 /*extern void write_buf     OF((int fd, voidp buf, unsigned cnt));*/
 extern char *strlwr       OF((char *s));
-extern char *basename     OF((char *fname));
+/*extern char *basename     OF((char *fname));*/
 extern void make_simple_name OF((char *name));
 extern char *add_envopt   OF((int *argcp, char ***argvp, char *env));
 extern void error         OF((char *m));
@@ -748,6 +748,7 @@ extern int inflate OF((struct zunzip_desc *z));
 extern int inflate_block  OF((struct zunzip_desc *z, int *));
 extern void inflate_init   OF((struct zunzip_desc *z));
 extern void inflate_finish OF((struct zunzip_desc *z));
+extern void inflate_skip_bits OF((struct zunzip_desc *z, int nbits));
 
 /************************* end gzip.h part 2 *****************************/
 
