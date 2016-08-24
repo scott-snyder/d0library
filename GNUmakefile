@@ -29,4 +29,5 @@ clean :
 
 #include $(wildcard */GNUmakefile.sub)
 include unix/GNUmakefile.sub
+include b_physics/GNUmakefile.sub
 

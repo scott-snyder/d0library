@@ -35,7 +35,7 @@ EXCEPT_FOR := $(foreach s,$($(PACKAGE)_EXCEPT_FOR),\
                 $(wildcard $(THISDIR)/*/$(s)))
 SOURCE_FOR := $(filter-out $(EXCEPT_FOR),$(SOURCE_FOR))
 endif
-OBJECT_FOR := $(patsubst %.for,%.o,$(notdir $(SOURCE_FOR)))
+OBJECT_FOR := $(patsubst %.for,%.o,$(patsubst $(THISDIR)/%,%,$(SOURCE_FOR)))
 OBJECT_FOR_OPT := $(addprefix $(TMP_OPT)/,$(OBJECT_FOR))
 OBJECT_FOR_DEB := $(addprefix $(TMP_DEB)/,$(OBJECT_FOR))
 
@@ -51,7 +51,7 @@ EXCEPT_F := $(foreach s,$($(PACKAGE)_EXCEPT_F),\
                 $(wildcard $(THISDIR)/*/$(s)))
 SOURCE_F := $(filter-out $(EXCEPT_F),$(SOURCE_F))
 endif
-OBJECT_F := $(patsubst %.f,%.o,$(notdir $(SOURCE_F)))
+OBJECT_F := $(patsubst %.f,%.o,$(patsubst $(THISDIR)/%,%,$(SOURCE_F)))
 OBJECT_F_OPT := $(addprefix $(TMP_OPT)/,$(OBJECT_F))
 OBJECT_F_DEB := $(addprefix $(TMP_DEB)/,$(OBJECT_F))
 
@@ -71,25 +71,23 @@ OBJECT_C := $(patsubst %.c,%.o,$(patsubst $(THISDIR)/%,%,$(SOURCE_C)))
 OBJECT_C_OPT := $(addprefix $(TMP_OPT)/,$(OBJECT_C))
 OBJECT_C_DEB := $(addprefix $(TMP_DEB)/,$(OBJECT_C))
 
-#OBJECT_DEB := $(OBJECT_FOR_DEB) $(OBJECT_C_DEB) $(OBJECT_F_DEB)
-#OBJECT_OPT := $(OBJECT_FOR_OPT) $(OBJECT_C_OPT) $(OBJECT_F_OPT)
-OBJECT_DEB := $(OBJECT_C_DEB)
-OBJECT_OPT := $(OBJECT_C_OPT)
-TMP_SOURCES := $(addprefix $(TMP_SRC)/,\
-                 $(notdir $(SOURCE_FOR) $(SOURCE_C) $(SOURCE_F)))
+OBJECT_DEB := $(OBJECT_FOR_DEB) $(OBJECT_C_DEB) $(OBJECT_F_DEB)
+OBJECT_OPT := $(OBJECT_FOR_OPT) $(OBJECT_C_OPT) $(OBJECT_F_OPT)
 
 define for_common_compile
-	$(NOECHO) echo $(1) $(patsubst ../../%,%,$(shell readlink $<))
+	$(NOECHO) echo '-->' $(1) $<
+	$(NOECHO) mkdir -p $(dir $@)
+	$(NOECHO) mkdir -p $(TMP_SRC)/$(dir $<)
 	$(BINDIR)/tasteofd0 LINUX < $< | \
-          $(BINDIR)/vmstounix > $(patsubst %.for,%.f,$<)
-	$(F77) -I$(dir $(patsubst ../../%,%,$(shell readlink $<))) \
+          $(BINDIR)/vmstounix > $(TMP_SRC)/$(patsubst %.for,%.f,$<)
+	$(F77)  \
           $(F77_COMMON_FLAGS) $(F77_$(1)_FLAGS) -c -o $@ \
-          $(patsubst %.for,%.f,$<)
+          $(TMP_SRC)/$(patsubst %.for,%.f,$<)
 endef
 
 
 define c_common_compile
-	$(NOECHO) echo $(1) $<
+	$(NOECHO) echo '-->' $(1) $<
 	$(NOECHO) mkdir -p $(dir $@)
 	$(CC) -I$(dir $(patsubst ../../%,%,$(shell readlink $<))) \
           $(C_COMMON_FLAGS) $(C_$(1)_FLAGS) -c -o $@ $<
@@ -97,13 +95,14 @@ endef
 
 
 define f_common_compile
-	$(NOECHO) echo $(1) $(patsubst ../../%,%,$(shell readlink $<))
+	$(NOECHO) echo '-->' $(1) $<
+	$(NOECHO) mkdir -p $(dir $@)
 	$(F77) $(F77_COMMON_FLAGS) $(F77_$(1)_FLAGS) -c -o $@ $<
 endef
 
 
 define make_lib_common
-	$(NOECHO) echo Make lib $@
+	$(NOECHO) echo '-->' Make lib $@
 	ar cr $@ $+
 endef
 
@@ -118,23 +117,21 @@ ifneq (,$($(PACKAGE)_LIB))
   $(LIB_OPT) : $(OBJECT_OPT)
 	$(make_lib_common)
 
-#  $(OBJECT_FOR_DEB) : $(TMP_DEB)/%.o : $(TMP_SRC)/%.for
-#	$(call for_common_compile,DEB)
-#  $(OBJECT_FOR_OPT) : $(TMP_OPT)/%.o : $(TMP_SRC)/%.for
-#	$(call for_common_compile,OPT)
+  $(OBJECT_FOR_DEB) : $(TMP_DEB)/%.o : $(THISDIR)/%.for
+	$(call for_common_compile,DEB)
+  $(OBJECT_FOR_OPT) : $(TMP_OPT)/%.o : $(THISDIR)/%.for
+	$(call for_common_compile,OPT)
 
   $(OBJECT_C_DEB) : $(TMP_DEB)/%.o : $(THISDIR)/%.c
 	$(call c_common_compile,DEB)
   $(OBJECT_C_OPT) : $(TMP_OPT)/%.o : $(THISDIR)/%.c
 	$(call c_common_compile,OPT)
 
-#  $(OBJECT_F_DEB) : $(TMP_DEB)/%.o : $(TMP_SRC)/%.f
-#	$(call f_common_compile,DEB)
-#  $(OBJECT_F_OPT) : $(TMP_OPT)/%.o : $(TMP_SRC)/%.f
-#	$(call f_common_compile,OPT)
+  $(OBJECT_F_DEB) : $(TMP_DEB)/%.o : $(THISDIR)/%.f
+	$(call f_common_compile,DEB)
+  $(OBJECT_F_OPT) : $(TMP_OPT)/%.o : $(THISDIR)/%.f
+	$(call f_common_compile,OPT)
 
-#  $(TMP_SOURCES) : % :
-#	$(NOECHO) ln -sf ../../$(wildcard $(subst /tmp_src/,/*/,$@)) $@
 endif
 
 clean : clean-$(PACKAGE)
