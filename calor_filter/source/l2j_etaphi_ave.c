@@ -42,12 +42,13 @@ C-   Updated  22-MAR-2004   sss - compile with g77
 
 void l2j_etaphi_util_init();		 /* initialization routine for lo arrays*/
 
+void
 l2j_etaphi_ave( int *ie_start, int *ip_start, int *ie_off_low, 
 	 int *ip_off_low, int *ie_off_high, int *ip_off_high,
 	 unsigned char *p_fadc_block, int *ie_ave, int *ip_ave, float *em_et
 	 , float *total_et )
 {
-	static Imod  = 2;					/* control truncation of trigger */
+	static int Imod  = 2;					/* control truncation of trigger */
 	int ieta_del = 0;					/* tower ET (1=none 2=1/4 drop ) */
 	int iphi_del = 0;
 	int ietot    = 0;
