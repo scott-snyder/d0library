@@ -11,6 +11,7 @@
 //
 */
 #include <stdlib.h>
+#include <string.h>
 #ifdef VMS 
 # define FILESIZE posix_filesize
 # include <stat.h>
@@ -21,6 +22,7 @@
 # define stat_t struct stat
 #endif
 
+int
 FILESIZE (const char *fname, int nameLen ) {
   char   *local_name;
   stat_t buffer;

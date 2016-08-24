@@ -8,6 +8,7 @@
 /*---------------------------------------------------------------------
   utility to guarantee machine independence of \nl and \0
 ----------------------------------------------------------------------*/
+void
 #ifdef D0FLAVOR
 getnlnull_(chnl,chnull)	
 #else

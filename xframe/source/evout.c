@@ -214,6 +214,7 @@ unsigned long *reason;
 
 }
 
+void
 #ifdef D0FLAVOR
 evoutc_(nout)
 #else

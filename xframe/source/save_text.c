@@ -164,6 +164,7 @@ XtAppContext appcontext;
 /*---------------------------------------------------------------------
   saves the tags for widgets upon creation 
 ----------------------------------------------------------------------*/
+void
 save_text(w,tag,reason)   
 Widget        w;
 int        *tag;

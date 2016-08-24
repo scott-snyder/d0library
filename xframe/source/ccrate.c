@@ -9,6 +9,7 @@
 
 #define MAXBUFF 40000
 
+void
 #ifdef D0FLAVOR
 ccrate_(crate,chans,list,total,ncol,
 #else

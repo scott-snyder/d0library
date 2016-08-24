@@ -5,6 +5,8 @@
  
 #include <stdio.h>                   /* I/O definitions                       */
  
+int getit(char s[], int lim);
+
 /*---------------------------------------------------------------------
     part of my own little compack!
 ----------------------------------------------------------------------*/
@@ -33,7 +35,7 @@ char *line;
   		 is appended, but the length is ONLY the number of real characters 
   		 (excluding the '\0')
 ----------------------------------------------------------------------*/
-getit(s,lim)
+int getit(s,lim)
 char s[];
 int lim;
 {

@@ -7,6 +7,7 @@
 
 #include "xframe/source/d0x_c.h"
 
+void
 #ifdef D0FLAVOR
 rawstat_(str)
 #else

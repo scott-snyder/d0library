@@ -10,6 +10,7 @@
 /*---------------------------------------------------------------------
   sets the value of length of the chain in the window
 ----------------------------------------------------------------------*/
+void
 #ifdef D0FLAVOR
 csetlin_(chain)   /* only 3 characters allowed */
 #else

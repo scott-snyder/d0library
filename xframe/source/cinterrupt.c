@@ -12,6 +12,7 @@ void finterrupt(int*);
 /*---------------------------------------------------------------------
   pushed to interrupt SCAN, SKIP, SEARCH 
 ----------------------------------------------------------------------*/
+void
 cinterrupt(w,tag,reason)  
 int w;
 int		*tag;

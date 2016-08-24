@@ -156,6 +156,7 @@ XmFileSelectionBoxCallbackStruct *reason;
         XtUnmanageChild(file_browse);    
 }
 
+void
 #ifdef D0FLAVOR
 solabel_(count)
 #else

@@ -51,6 +51,7 @@ char *str;
 	XmStringFree(text2);
 }
 
+void
 #ifdef D0FLAVOR
 fwarning_(str)
 #else

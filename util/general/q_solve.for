@@ -105,9 +105,9 @@ C...Deadtime
       WRITE (6,200) SOLVE,LOOP,DPCT_DEAD,DR,P,B,RU_TAG,R,100.*PDEAD
       WRITE (LUN,200)SOLVE,LOOP,DPCT_DEAD,DR,P,B,RU_TAG,R,100.*PDEAD
   200 FORMAT (' Solve For ',A,'.  Loop over ',A,'.'/
-     &  ' (P=Processors, B = Buffers, D = Dead %'
+     &  ' (P=Processors, B = Buffers, D = Dead %',
      &  ', R = Erlangs/processor)',
-     &  /5X,' Loop steps: P,B by 1, D by ',F5.2,'%, R by ',F5.2
+     &  /5X,' Loop steps: P,B by 1, D by ',F5.2,'%, R by ',F5.2,
      &  /' Inputs:  P = ',I5,' B = ',I5,A21,
      &  F5.2,' Dead % = ',F5.2)
       CALL Q_WRITE_HEADINGS(6)

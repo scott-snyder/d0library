@@ -5,6 +5,7 @@
 
 #include <stdio.h>                   /* I/O definitions                       */
 
+void
 #ifdef D0FLAVOR
 cxerrmsg_(text)
 #else

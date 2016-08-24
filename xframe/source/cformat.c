@@ -39,6 +39,7 @@ unsigned long	*reason;
 	XtFree(bank);
 }
 
+void
 #ifdef D0FLAVOR
 fbankaddr_(addr)
 #else

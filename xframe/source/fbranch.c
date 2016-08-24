@@ -9,6 +9,7 @@
 #include "xframe/source/d0x_c.h"
 
 extern int the_address;
+void
 #ifdef D0FLAVOR
 fbranch_(parent,store,link,iq,lq,zp)
 #else

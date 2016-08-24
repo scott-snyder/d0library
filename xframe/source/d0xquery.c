@@ -1201,7 +1201,7 @@ unsigned long  *reason;
 			dummy = hexist(&hid);
 #endif
 			if (dummy == 0) {
-				warning("Histogram not defined (???)");
+				warning("Histogram not defined ");
 			    return;
 			}
 			/*
@@ -1362,7 +1362,7 @@ unsigned long  *reason;
 			dummy = hexist(&hid);
 #endif
 			if (dummy == 0) {
-				warning("Histogram not defined (???)");
+				warning("Histogram not defined ");
 			    return;
 			}
 			/*
@@ -1464,7 +1464,7 @@ unsigned long  *reason;
 			dummy = hexist(&hid);
 #endif
 			if (dummy == 0) {
-				warning("Histogram not defined (???)");
+				warning("Histogram not defined ");
 			    return;
 			}
 			/*
@@ -1702,7 +1702,7 @@ unsigned long  *reason;
 			dummy = hexist(&hid);
 #endif
 			if (dummy == 0) {
-				warning("Histogram not defined (???)");
+				warning("Histogram not defined ");
 			    return;
 			}
 			/*
@@ -1774,7 +1774,7 @@ unsigned long  *reason;
 			dummy = hexist(&hidn);
 #endif
 			if (dummy == 0) {
-				warning("Histogram not defined (???)");
+				warning("Histogram not defined ");
 			    return;
 			}
 			/*
@@ -1944,7 +1944,7 @@ unsigned long  *reason;
 			dummy = hexist(&hid2);
 #endif
 			if (dummy == 0) {
-				warning("Histogram not defined (???)");
+				warning("Histogram not defined ");
 			    return;
 			}
 			/*
@@ -2097,7 +2097,7 @@ unsigned long  *reason;
 			i = 2;
 			dxhisto(wdumq,&i,uldumq);
 			update_timer = XtAppAddTimeOut(appcontext,itime,timeautoupdate,
-				(void*)itime_tag);
+                                                       (void*)(unsigned long)itime_tag);
 			break;
 		default:
 			printf("Illegal TAG D0XHIST - Tell FNALD0::DREW\n");
@@ -2435,6 +2435,7 @@ unsigned long *reason;
 }
 
 
+int
 strcx(str,ch)  /* returns the position of ch in str */
 char *str, *ch;
 {

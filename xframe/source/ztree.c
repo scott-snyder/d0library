@@ -70,7 +70,7 @@ int link, lenb, address;
     		XtCreateManagedWidget(temp, xmPushButtonWidgetClass,
     				zebra_tree, wargs, n);
     XtAddCallback(daughter, XmNactivateCallback, bankbutton, 
-    	(void*)address);
+                  (void*)(unsigned long)address);
     XmStringFree(str);
     return(daughter);
 }

@@ -1905,7 +1905,7 @@ char *string;
     toggle = XtCreateManagedWidget("toggle",xmToggleButtonWidgetClass,
             rowcol, wargs, n);
     XtAddCallback(toggle, XmNvalueChangedCallback, (XtCallbackProc)selectit, 
-    		(void*)ind);
+                  (void*)(unsigned long)ind);
 /*
   now do each of the columns
 */
@@ -1922,7 +1922,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNvalueChangedCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind));
+                  (void*)(unsigned long)(100*ind));
     }
 /* eta */
     if ( do_eta ) {
@@ -1930,7 +1930,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 1));
+                  (void*)(unsigned long)(100*ind + 1));
     }
 /* phi */
     if ( do_phi ) {
@@ -1939,7 +1939,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 2));
+                  (void*)(unsigned long)(100*ind + 2));
     }
 /* emf */
     if ( do_emf ) {
@@ -1947,7 +1947,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 3));
+                  (void*)(unsigned long)(100*ind + 3));
     }
 /* cone */
     if ( do_rjet ) {
@@ -1955,7 +1955,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 4));
+                  (void*)(unsigned long)(100*ind + 4));
     }
 /* mass */
     if ( do_mass ) {
@@ -1963,7 +1963,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 5));
+                  (void*)(unsigned long)(100*ind + 5));
     }
 /* transverse mass */
     if ( do_mt ) {
@@ -1971,7 +1971,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 6));
+                  (void*)(unsigned long)(100*ind + 6));
     }
 /* theta */
     if ( do_theta ) {
@@ -1980,7 +1980,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 7));
+                  (void*)(unsigned long)(100*ind + 7));
     }
 /* e */
     if ( do_e ) {
@@ -1988,7 +1988,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 8));
+                  (void*)(unsigned long)(100*ind + 8));
     }
 /* px */
     if ( do_px ) {
@@ -1996,7 +1996,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 9));
+                  (void*)(unsigned long)(100*ind + 9));
     }
 /* py */
     if ( do_py ) {
@@ -2004,7 +2004,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 10));
+                  (void*)(unsigned long)(100*ind + 10));
     }
 /* pz */
     if ( do_pz ) {
@@ -2012,7 +2012,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 11));
+                  (void*)(unsigned long)(100*ind + 11));
     }
 /* pt */
     if ( do_pt ) {
@@ -2020,7 +2020,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 12));
+                  (void*)(unsigned long)(100*ind + 12));
     }
 /* scale */
     if ( do_sfac) {
@@ -2028,7 +2028,7 @@ char *string;
     XtSetArg(wargs[n], XmNvalue,sst); n++;
     w = XtCreateManagedWidget("label",xmTextWidgetClass,rowcol,wargs,n);
     XtAddCallback(w, XmNmodifyVerifyCallback, (XtCallbackProc)variab, 
-    	(void*)(100*ind + 13));
+    	(void*)(unsigned long)(100*ind + 13));
     }
  
 }
@@ -2062,7 +2062,7 @@ int ind;
             XmNlabelString, tmp,
             NULL);
     XtAddCallback(toggle, XmNvalueChangedCallback, (XtCallbackProc)mcselectit, 
-    			(void*)ind);
+                  (void*)(unsigned long)ind);
     XmStringFree(tmp);
 /*
   now do each of the columns
@@ -2291,7 +2291,7 @@ void MakeRCMCLables()
     XtCreateManagedWidget("label",xmLabelWidgetClass,mcrowcol, wargs, n);
 }
  
-GetMaxEt()
+int GetMaxEt()
 {
     int indmax,i;
     float maxet = 0.;
@@ -2327,7 +2327,7 @@ int x,y,rads;
  
 /*  euler rotation - input are values x,y,z and cos/sin of theta,phi,psi
     output is via address to xe,ye,ze */
-Euler(x,y,z,cosphi,sinphi,costheta,sintheta,cospsi,sinpsi,xe,ye,ze)
+void Euler(x,y,z,cosphi,sinphi,costheta,sintheta,cospsi,sinpsi,xe,ye,ze)
 double *xe, *ye, *ze;
 double x,y,z,costheta,sintheta,cosphi,sinphi,cospsi,sinpsi;
 {
@@ -2341,7 +2341,7 @@ double x,y,z,costheta,sintheta,cosphi,sinphi,cospsi,sinpsi;
 }
  
 /*  euler rotation about PHI (1st rotation, see Goldstein pg 108/109 */
-Euler1(x,y,z,cosphi,sinphi,xe,ye,ze)
+void Euler1(x,y,z,cosphi,sinphi,xe,ye,ze)
 double *xe, *ye, *ze;
 double x,y,z,cosphi,sinphi;
 {
@@ -2351,7 +2351,7 @@ double x,y,z,cosphi,sinphi;
 }
  
 /*  euler rotation about THETA (2nd rotation, see Goldstein pg 108/109 */
-Euler2(x,y,z,costheta,sintheta,xe,ye,ze)
+void Euler2(x,y,z,costheta,sintheta,xe,ye,ze)
 double *xe, *ye, *ze;
 double x,y,z,costheta,sintheta;
 {
@@ -2362,7 +2362,7 @@ double x,y,z,costheta,sintheta;
  
 /*  inverse euler rotation - input are values x,y,z and cos/sin of theta,phi,psi
     output is via address to xe,ye,ze */
-invEuler(x,y,z,cosphi,sinphi,costheta,sintheta,cospsi,sinpsi,xe,ye,ze)
+void invEuler(x,y,z,cosphi,sinphi,costheta,sintheta,cospsi,sinpsi,xe,ye,ze)
 double *xe, *ye, *ze;
 double x,y,z,costheta,sintheta,cosphi,sinphi,cospsi,sinpsi;
 {
@@ -2734,7 +2734,7 @@ int *id;
       call myself after timeout ms
 */
     timer_id = XtAppAddTimeOut(appcontext,
-        timeout, (XtTimerCallbackProc)change_phi, (void*)incr);
+        timeout, (XtTimerCallbackProc)change_phi, (void*)(unsigned long)incr);
 }
  
 void thetarot(w, more, cbs)
@@ -2777,7 +2777,7 @@ int *id;
       call myself after timeout ms
 */
     timer_id = XtAppAddTimeOut(appcontext,
-        timeout, (XtTimerCallbackProc)change_theta, (void*)incr);
+        timeout, (XtTimerCallbackProc)change_theta, (void*)(unsigned long)incr);
 }
  
 void psirot(w, more, cbs)
@@ -2820,6 +2820,6 @@ int *id;
       call myself after timeout ms
 */
     timer_id = XtAppAddTimeOut(appcontext,
-        timeout, (XtTimerCallbackProc)change_psi, (void*)incr);
+        timeout, (XtTimerCallbackProc)change_psi, (void*)(unsigned long)incr);
 }
  

@@ -23,6 +23,7 @@ char *string;
 
 }
 
+void
 #ifdef D0FLAVOR
 fsetflabel_(c)
 #else

@@ -6,4 +6,4 @@ void subpad(){}
 void pechochar(){}
 #endif
 
-xkluge(){}
+void xkluge(){}

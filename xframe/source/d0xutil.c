@@ -12,6 +12,7 @@
 /*
   xmtextsetstring from fortran
 */
+void
 #ifdef D0FLAVOR
 fxmtss_(w,string)
 #else

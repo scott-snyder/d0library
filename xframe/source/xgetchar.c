@@ -124,6 +124,7 @@ void FlushEvents()
 	
 }
 
+void
 #ifdef D0FLAVOR
 fxgetchar_(prompt,default_line,result,status)
 #else
