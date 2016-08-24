@@ -26,7 +26,7 @@ C----------------------------------------------------------------------
          
      &  ' #  VETO  N_CNT ETMIN   CONE_CEN CONE_ENG',
      &  ' MAXRAD MINRAD EMFRACT_MAX EMFRACT_MIN ')
-  202 FORMAT(' ',I3,1X,L1,<NPAR_VAL_MAX-1>(1X,F8.2))
+  202 FORMAT(' ',I3,1X,L1,*(1X,F8.2))
       IF (LJPAR .LE. 0) RETURN
 C---Find some variables
       NPAR_SET_MAX = IC(LJPAR + 3)

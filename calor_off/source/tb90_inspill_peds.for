@@ -43,7 +43,7 @@ C
       DATA ICRATE/7/
       DATA LFIRST,LFIRST2,LFIRST3/2*.TRUE.,.FALSE./
 C----------------------------------------------------------------------
-      TRG   = IQ(LHEAD+11) .AND. 65535
+      TRG   = iand(IQ(LHEAD+11), 65535)
       TB90_INSPILL_PEDS =  .TRUE.
 C
       IF (LFIRST) THEN

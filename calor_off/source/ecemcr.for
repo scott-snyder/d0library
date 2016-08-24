@@ -66,6 +66,9 @@ C..   for TESTING
 
       INTEGER ICLUS
       INTEGER OUTUNIT/11/
+      integer ihcacl/4hCACL/
+      integer ihpelc/4hPELC/
+      integer ihppho/4hPPHO/
 C
 C----------------------------------------------------------------------
 C
@@ -98,13 +101,13 @@ C
       PELC = .FALSE.
       PPHO = .FALSE.
 C
-      IF(Q(LPTR_IN-4) .EQ.4HCACL) THEN
+      IF(IQ(LPTR_IN-4) .EQ. ihCACL) THEN
         CACL = .TRUE.
         LCACL_IN = LPTR_IN
-      ELSEIF(Q(LPTR_IN-4) .EQ.4HPELC) THEN
+      ELSEIF(IQ(LPTR_IN-4) .EQ. iHPELC) THEN
         PELC = .TRUE.
         LCACL_IN = LQ(LPTR_IN-2)
-      ELSEIF(Q(LPTR_IN-4) .EQ.4HPPHO) THEN
+      ELSEIF(IQ(LPTR_IN-4) .EQ. iHPPHO) THEN
         PPHO = .TRUE.
         LCACL_IN = LQ(LPTR_IN-2)
       ELSE

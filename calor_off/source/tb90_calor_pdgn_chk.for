@@ -58,9 +58,9 @@ C
 C
 C--- Now get the SEQUENTIAL ADC address
 C
-        SEQ =  IBITS(IWORD,-22,9)*NDEPTC + DEPTH   + 1
+        SEQ =  IBITS(IWORD,22,9)*NDEPTC + DEPTH   + 1
 C
-        SEQ_PED = IBITS(IWORD,-22,5)*NDEPTC + DEPTH
+        SEQ_PED = IBITS(IWORD,22,5)*NDEPTC + DEPTH
 C
 C ****  Do pedestal subtraction if needed
 C

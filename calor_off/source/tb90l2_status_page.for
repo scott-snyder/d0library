@@ -667,8 +667,8 @@ C----------------------------------------------------------------------
 C##### PUT IN COUNTERS FOR RAW BEAM,RAW PEDS, RAW-NZSUP EVENTS
        CALL GET_EVENT_TYPE('ANY',DATA_AVAILABLE)
        IF(DATA_AVAILABLE)THEN
-         IF ( (2.AND.IQ(LHEAD+11) ) .GT.0) RAW_BEAM= RAW_BEAM + 1
-         IF ( (4.AND.IQ(LHEAD+11) ) .GT.0) RAW_BEAM_PEDS= 
+         IF ( (iand(2,IQ(LHEAD+11)) ) .GT.0) RAW_BEAM= RAW_BEAM + 1
+         IF ( (iand(4,IQ(LHEAD+11)) ) .GT.0) RAW_BEAM_PEDS= 
      &        RAW_BEAM_PEDS + 1
 C        THE TRIGGER FOR NON-ZERO SUPPRESSED EVENTS
 
@@ -693,9 +693,9 @@ C-
 C----------------------------------------------------------------------
       RUN = IQ(LHEAD+6)
       EVENT = IQ(LHEAD+9)
-      IF ( (4.AND.IQ(LHEAD+11) ) .GT.0)THEN
+      IF ( (iand(4,IQ(LHEAD+11)) ) .GT.0)THEN
          CAL_BEAM_PEDS= CAL_BEAM_PEDS + 1
-      ELSE IF ( (2.AND.IQ(LHEAD+11) ) .GT.0)THEN
+      ELSE IF ( (iand(2,IQ(LHEAD+11)) ) .GT.0)THEN
          CAL_BEAM= CAL_BEAM + 1
 
       ELSE
@@ -715,9 +715,9 @@ C#####COUNTING NZSUP EVENTS
       CALL GTTCMC(TAGWORD,HALL,NADC,ADC,NTDC,TDC,NSCALER,SCALER,
      &                  NLDTDC,LDTDC,IER)
 
-      IF ( (2**5 .AND. TAGWORD  ) .GT.0) CEREN9 = CEREN9 + 1
-      IF ( (2**6 .AND. TAGWORD  ) .GT.0) CERENA = CERENA + 1
-      IF ( (2**8 .AND. TAGWORD  ) .GT.0) CEREN2 = CEREN2 + 1
+      IF ( (iand(2**5, TAGWORD)  ) .GT.0) CEREN9 = CEREN9 + 1
+      IF ( (iand(2**6, TAGWORD)  ) .GT.0) CERENA = CERENA + 1
+      IF ( (iand(2**8, TAGWORD)  ) .GT.0) CEREN2 = CEREN2 + 1
 
 C----------------------------------------------------------------------
       TB90L2_STATUS_PAGE_EVENT = .TRUE.
