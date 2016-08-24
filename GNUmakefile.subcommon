@@ -1,7 +1,8 @@
 THISDIR := $(TOPDIR)/$(PACKAGE)
-TMP_OPT := $(THISDIR)/tmp_opt
-TMP_DEB := $(THISDIR)/tmp_deb
-TMP_SRC := $(THISDIR)/tmp_src
+LIBDIR := $(TOPDIR)/lib
+TMP_OPT := tmp/opt/$(THISDIR)
+TMP_DEB := tmp/deb/$(THISDIR)
+TMP_SRC := tmp/src/$(THISDIR)
 
 ifeq (,$($(PACKAGE)_EXCEPT_DIR))
  EXCEPT_DIR_PATS :=
@@ -9,6 +10,9 @@ else
  EXCEPT_DIR_PATS := $(foreach d,$($(PACKAGE)_EXCEPT_DIR),$(THISDIR)/$(d)/%)
 endif
 
+ifeq (,$(wildcard $(LIBDIR)))
+  $(shell mkdir -p $(LIBDIR))
+endif
 ifeq (,$(wildcard $(TMP_OPT)))
   $(shell mkdir -p $(TMP_OPT))
 endif
@@ -108,8 +112,8 @@ endef
 
 
 ifneq (,$($(PACKAGE)_LIB))
-  LIB_OPT := $(THISDIR)/$(PACKAGE).a
-  LIB_DEB := $(THISDIR)/deb_$(PACKAGE).a
+  LIB_OPT := $(LIBDIR)/$(PACKAGE).a
+  LIB_DEB := $(LIBDIR)/deb_$(PACKAGE).a
   libs : $(LIB_DEB) $(LIB_OPT)
 
   $(LIB_DEB) : $(OBJECT_DEB)

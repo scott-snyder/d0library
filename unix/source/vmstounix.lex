@@ -4,6 +4,7 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 char    cndx[256];
 char    outbuf[256];
 char    *exclam;

@@ -32,7 +32,8 @@ int     ignore = 0;
                        cndx[0] = '\0';
                      if ( (fp = fopen(cndx,"r")) == NULL ) {
                        fprintf(stderr,"\n%s%s\n","Error opening file :",cndx);
-                       return;
+                       YY_FATAL_ERROR ("tasteofd0 failed");
+                       return 1;
                      }else{
                        while ( (c = getc(fp)) != EOF )  putchar(c);
                      }
@@ -91,7 +92,7 @@ int     ignore = 0;
                   }
                 }
 %%
-main(argc,argv)
+int main(argc,argv)
 int     argc;
 char    *argv[];
 {
