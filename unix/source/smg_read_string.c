@@ -1,4 +1,6 @@
+#include <string.h>
 #include "smg.h"
+#include "unix.h"
 #define STRLEN 256
 
 long smg$read_string_( DISPLAY **kbid, char *text, char *prompt, 

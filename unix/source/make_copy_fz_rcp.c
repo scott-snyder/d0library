@@ -42,6 +42,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef linux
 #include <string.h>

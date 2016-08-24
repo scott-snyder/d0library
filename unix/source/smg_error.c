@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "smg.h"
 
 char *smg_function_name = NULL;

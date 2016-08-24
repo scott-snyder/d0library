@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "unix.h"
 
 long d0_readlink_(char *path, char *buf, long pathlen, long buflen)

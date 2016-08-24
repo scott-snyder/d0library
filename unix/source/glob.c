@@ -71,6 +71,7 @@ static char sccsid[] = "@(#)glob.c	5.12 (Berkeley) 6/24/91";
 
 /* sss - need to include this with recent glibc. */
 #include <stdlib.h>
+#include <string.h>
 #define notdef 1
 
 #ifdef notdef

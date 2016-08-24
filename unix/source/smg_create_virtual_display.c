@@ -35,7 +35,7 @@ C----------------------------------------------------------------------
 
 {
   DISPLAY *display;
-  static num_display = 0;     /* Number of displays (for debugging) */
+  static int num_display = 0;     /* Number of displays (for debugging) */
 
   smg_static_data.function_name = "smg$create_virtual_display";
 

@@ -14,6 +14,7 @@
 #define NULL   ((void*)0)
 #endif
 
+#include <time.h>
 #include "glob.h"
 
 /* Find_file typedef for context structure linked list. */
@@ -70,3 +71,10 @@ long sys$asctim_(short *timlen, char *timbuf, long *tim, long len_timbuf1,
 long sys$bintim_(char *timbuf, long *tim, long len_timbuf);
 long sys$gettim_(long *time);
 long sys$numtim_(short *timbuf, long *tim);
+
+char *fstring(char *cstr, char *fstr, long len_fstr);
+char *cstring(char *fstr, long len_fstr, char *cstr, long len_cstr);
+void unix_to_vms_time_ (time_t*, long*);
+void vms_to_unix_time_ (long*, time_t*);
+int fatmen_find(char *file, int nout, char *outbuf);
+

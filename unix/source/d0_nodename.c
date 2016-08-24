@@ -1,5 +1,6 @@
 #include "unix.h"
 #include <string.h>
+#include <unistd.h>
 
 void d0_nodename_(char *node, long nodelen)
 

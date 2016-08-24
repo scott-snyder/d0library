@@ -1,3 +1,4 @@
+#include <string.h>
 #include "smg.h"
 #define STRLEN 256
 

@@ -1,4 +1,5 @@
 #include "smg.h"
+#include "unix.h"
 #define STRLEN 256
 
 long smg$read_from_display_( DISPLAY **dpid, char *text, char *term_string, 

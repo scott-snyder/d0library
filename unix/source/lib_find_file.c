@@ -66,6 +66,7 @@ C-----------------------------------------------------------------------
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "unix.h"
  
 char *lib_find_file(char *ifile, char *rfile, context_t **context)

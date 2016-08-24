@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include "unix.h"
 
 char *fstring(char *cstr, char *fstr, long len_fstr)

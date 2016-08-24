@@ -13,7 +13,7 @@ F77_COMMON_FLAGS := -fdollar-ok -fugly-logint -fno-second-underscore \
 CC := cc
 C_DEB_FLAGS := -g
 C_OPT_FLAGS := -O2
-C_COMMON_FLAGS := -I$(TOPDIR) -I$(TOPDIR)/c_inc
+C_COMMON_FLAGS := -I$(TOPDIR) -I$(TOPDIR)/c_inc -D_GNU_SOURCE
 
 ifeq (,$(VERBOSE))
 NOECHO := @
@@ -27,5 +27,6 @@ all : build-tools libs
 libs :
 clean :
 
-include $(wildcard */GNUmakefile.sub)
+#include $(wildcard */GNUmakefile.sub)
+include unix/GNUmakefile.sub
 

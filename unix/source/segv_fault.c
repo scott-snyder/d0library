@@ -9,7 +9,9 @@
  *-   Created  12-Apr-1994   John D. Hobbs
  *-
 */
+#include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 int stdout_path;
 
 #include <signal.h>
@@ -25,6 +27,7 @@ struct sigaction my_segv_action,def_segv_action;
 volatile int dumpme;
 int run,event;
 
+void
 segv_install_(int *force_dump)
 {
   void segv_trap(int sig);

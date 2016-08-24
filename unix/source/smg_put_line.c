@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include "smg.h"
+#include "unix.h"
 #define STRLEN 256
 
 long smg$put_line_( DISPLAY **dpid, char *text, long *line_adv, long *vattr,

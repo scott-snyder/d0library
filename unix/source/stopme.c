@@ -22,6 +22,7 @@
 #include <signal.h>
 struct sigaction my_action,def_action;
 
+void
 STOPME_INSTALL()
 {
   void set_stop_flag(int sig);

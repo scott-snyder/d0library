@@ -41,6 +41,7 @@
 
 #include <unistd.h>          /*  HPX SGI SUN                */
 #include <errno.h>
+#include <stdio.h>
 #define NBYTPW 4       /* Number of bytes per word */
 void cfget_(lundes, medium, nwrec, nwtak, mbuf, stat)
       char *mbuf;

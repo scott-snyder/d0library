@@ -35,6 +35,8 @@ C-----------------------------------------------------------------------
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include <stdio.h>
 
 #define STRLEN 4096
 #define OCTAL(a) ((a)>='0' && (a) < '8')

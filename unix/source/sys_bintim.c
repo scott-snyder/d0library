@@ -1,5 +1,9 @@
 #include "unix.h"
 #include <time.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 long sys$bintim_(char *timbuf, long *tim, long len_timbuf)
 

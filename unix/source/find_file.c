@@ -26,6 +26,7 @@ C-----------------------------------------------------------------------
 #include <sys/wait.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <ctype.h>
 
 #ifndef ARG_MAX
 # define ARG_MAX 4096
