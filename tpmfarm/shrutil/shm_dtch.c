@@ -20,7 +20,7 @@
 ******************************************************************************/
 
 
- int shm_dtch_( int shmaddr )
+ int shm_dtch_( unsigned long shmaddr )
  {
     
     int rtrn;

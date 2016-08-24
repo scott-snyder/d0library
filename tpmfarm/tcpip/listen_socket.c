@@ -14,6 +14,10 @@
 
 */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int
  listen_socket_ (socket_descr, max_backlog)
  int *socket_descr, *max_backlog ;
 

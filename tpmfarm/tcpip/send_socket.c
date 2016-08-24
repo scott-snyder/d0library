@@ -26,6 +26,10 @@
 
 */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int
  send_socket_ (socket_descr, out_buffer, buffer_longs)
  int *socket_descr ;
  int out_buffer[ ] ;
@@ -37,7 +41,7 @@
  
  buffer_bytes = *buffer_longs * 4 ;
 
- status = send (*socket_descr, out_buffer, buffer_bytes) ;
+ status = send (*socket_descr, out_buffer, buffer_bytes, 0) ;
 
  if (status < 0) status = -errno ;
 

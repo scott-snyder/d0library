@@ -11,6 +11,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
+#include <strings.h>
+#include <time.h>
 #include "pfarms.h"
 /*******************************************************************************
 
@@ -29,7 +31,7 @@ Kirill Denisenko, 8/17/93
 *******************************************************************************/
 
 
-main(  int argc, char *argv[] )
+int main(  int argc, char *argv[] )
 {
 	static int event_rqst[10]  = { 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 } ;
 	static int record_rqst[10] = { 5, 0, 0, 0, 0, 0, 0, 0, 0, 0 } ;
@@ -38,7 +40,7 @@ main(  int argc, char *argv[] )
 	int piden;
 	int opperm_flags_create, opperm_flags_exist;
 	int shmid, shmidaux, size, i;
-	int addr, rtrn_adr;
+	unsigned long addr, rtrn_adr;
 	int *buffer, *buffer_aux;
 	pid_t ppid, mypid;
 
@@ -63,10 +65,10 @@ main(  int argc, char *argv[] )
 	unsigned bytr;
 
 /*  Function Prototypes                                            */
-	int read_buf(int , int *, unsigned);
+	int read_buf(int , int *, int);
 	void onintr_owr(int);
-	void bzero(void *, int );
-	void bcopy(const void *, void *, int);
+	/*void bzero(void *, int );*/
+	/*void bcopy(const void *, void *, int);*/
 
 /*   Check number of arguments  */
 	if ( argc != 5 ) {
@@ -118,7 +120,7 @@ main(  int argc, char *argv[] )
 
 /*   Attach it  */
 	addr = 0x0;
-	rtrn_adr = (int)shmat(shmid, (void *)addr, SHM_RND );
+	rtrn_adr = (unsigned long)shmat(shmid, (void *)addr, SHM_RND );
 	if ( rtrn_adr == -1 ) {
 		printf("[OUTWRITER]: shm_atch failed.  Exiting...\n");
 		exit(-3);
@@ -331,7 +333,7 @@ renegotiate:
 		addr = 0x0;
 		t_count = 0;
 wait_atch:
-		rtrn_adr = (int)shmat(shmidaux, (void *)addr, SHM_RND );
+		rtrn_adr = (unsigned long)shmat(shmidaux, (void *)addr, SHM_RND );
 		if ( rtrn_adr == -1 ) { 
 			printf("[OUTWRITER]: Aux shm_atch failed.  Exiting...\n");
                 	if ( t_count < 3 ) {

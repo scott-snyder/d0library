@@ -26,6 +26,9 @@
 	
 */
 
+#include <unistd.h>
+
+int
  rd_socket_ (socket_descr, in_buffer, buffer_bytes)
  int *socket_descr ;
  int in_buffer[ ] ;

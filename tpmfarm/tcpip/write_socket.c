@@ -13,6 +13,11 @@
 
 */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+int
  write_socket_ (descr, buffer, n_longs)
  int *descr ;
  int buffer [] ;

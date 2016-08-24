@@ -25,7 +25,7 @@
 ******************************************************************************/
 
 
- void put_word_( int addr,  int word, int value )
+ void put_word_( unsigned long addr,  int word, int value )
  {
     
     int *buffer;

@@ -26,6 +26,10 @@
 	
 */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int
  recv_socket_ (socket_descr, in_buffer, buffer_longs)
  int *socket_descr ;
  int in_buffer[ ] ;
@@ -37,7 +41,7 @@
  
  buffer_bytes = *buffer_longs * 4 ;
 
- byte_count = recv (*socket_descr, in_buffer, buffer_bytes) ;
+ byte_count = recv (*socket_descr, in_buffer, buffer_bytes, 0) ;
 
  if (byte_count < 0) 
     long_count = -errno ;

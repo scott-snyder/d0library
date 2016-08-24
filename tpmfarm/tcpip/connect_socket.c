@@ -23,7 +23,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <string.h>
 
+int
 connect_socket_ (socket_descr, port_number, internet_address)
  int *socket_descr ;
  ushort *port_number ;

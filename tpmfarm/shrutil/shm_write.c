@@ -21,7 +21,7 @@
 ******************************************************************************/
 
 
- void shm_write_( int addr,  int buf_in, int precl, int offset, int nspec )
+ void shm_write_( unsigned long addr,  unsigned long buf_in, int precl, int offset, int nspec )
  {
     
     int i;

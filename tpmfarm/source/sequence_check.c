@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define MAXFILE 1000  /* Max number of files on an input tape */
 
@@ -18,7 +19,7 @@ char filename[200];
 char name1[132], label1[70];
 static char name[MAXFILE][132];
 static int  seq[MAXFILE];
-char *getenv(char *), *prodir;
+char *prodir;
 char *label, *namefile;
 int i;
 

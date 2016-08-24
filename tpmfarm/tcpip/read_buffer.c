@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <unistd.h>
 
 int read_buffer_(int sock_des, int *buffer, int bytes)
 {

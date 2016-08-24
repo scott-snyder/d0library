@@ -12,6 +12,10 @@
 */
 
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int
  shutdown_socket_ (socket_descr)
  int *socket_descr ;
 

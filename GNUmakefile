@@ -68,10 +68,10 @@ include spythia/GNUmakefile.sub
 include srcp_util/GNUmakefile.sub
 include stp/GNUmakefile.sub
 include top_physics/GNUmakefile.sub
-#include tpmfarm/GNUmakefile.sub #FAILURE
+include tpmfarm/GNUmakefile.sub #FAILURE
 include trd_util/GNUmakefile.sub
 include util/GNUmakefile.sub
 include vtx_util/GNUmakefile.sub
 include wz/GNUmakefile.sub
 include xframe/GNUmakefile.sub
-#include zebra_util/GNUmakefile.sub
+include zebra_util/GNUmakefile.sub

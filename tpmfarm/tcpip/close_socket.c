@@ -12,6 +12,11 @@
 */
 
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+int
  close_socket_ (socket_descr)
  int *socket_descr ;
 

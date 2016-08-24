@@ -21,14 +21,14 @@
 ******************************************************************************/
 
 
- int shm_atch_( int shmid )
+ unsigned long shm_atch_( int shmid )
  {
     
-    int addr, rtrn;
+    unsigned long addr, rtrn;
 
     addr = 0x0;
 
-    rtrn = (int)shmat(shmid, (void *)addr, SHM_RND );
+    rtrn = (unsigned long)shmat(shmid, (void *)addr, SHM_RND );
 	if ( rtrn == -1 )
 		perror("Attach failed");
     return(rtrn); 

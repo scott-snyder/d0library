@@ -18,7 +18,9 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <string.h>
 
+int
  accept_socket_ (old_descr)
  int *old_descr ;
 

@@ -62,6 +62,7 @@
 #include <sys/time.h>
 
 
+int
  select_socket_ (n_descr, read_mask, write_mask, exc_mask, timeo)
  int *n_descr ;
  int *read_mask, *write_mask, *exc_mask ;
