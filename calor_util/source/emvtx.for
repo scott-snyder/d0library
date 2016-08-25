@@ -108,7 +108,9 @@ C
         PACKED_WORD = IQ(POINTER+3)
         Call CAEP_INDICES(PACKED_WORD,ETA,PHI,LYR)
         If (LYR .gt. 7) Go To 5
-        If (ABS(ETA) .gt. 12 .XOR. L_EC) Go To 5
+c        If (ABS(ETA) .gt. 12 .XOR. L_EC) Go To 5
+        If (ABS(ETA) .gt. 12 .and. .not.L_EC) Go To 5
+        If (ABS(ETA) .le. 12 .and. L_EC) Go To 5
         IDEPTH = 0
         JDEPTH = 0
 C

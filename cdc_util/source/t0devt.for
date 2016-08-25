@@ -28,6 +28,7 @@ C----------------------------------------------------------------------
       LOGICAL       HIT_IN_T0D, TRK_IN_T0D, T0HITS, T0TRKS
       LOGICAL       FIRST,OK,ZCDEVT,CALL_ZCD,CALL_FIBERS
       LOGICAL       CALL_PRESHOWER,PSRWFL
+      integer i_t0d_evt
 C
       DATA          T0D_EV /0/, RUNSAV /-1/, EVTSAV /-1/, FIRST /.TRUE./
 C
@@ -59,7 +60,8 @@ C
       IF(RUNNO().LT.93888) THEN
         IF ( .NOT. L_T0D_REC ) RETURN
         T0D_EV = T0D_EV + 1
-        IF ( T0D_EV .NE. N_T0D_EVT ) RETURN
+        i_t0d_evt = n_t0d_evt
+        IF ( T0D_EV .NE. i_T0D_EVT ) RETURN
         T0D_EV = 0
 C
 C ****  Set HBOOK directory

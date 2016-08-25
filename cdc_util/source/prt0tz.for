@@ -52,9 +52,9 @@ C
       DO I=ISTR,IEND
         LT0TZ = GZT0TZ(I)
         WRITE (LUN,1010) I,(IQ(IC),IC=LT0TZ+1,LT0TZ+4),
-     &    IQ(LT0TZ+7).AND.'0000FFFF'X,
+     &    iand(IQ(LT0TZ+7),'0000FFFF'X),
      &    IQ(LT0TZ+7)/65536,
-     &    IQ(LT0TZ+8).AND.'0000FFFF'X,
+     &    iand(IQ(LT0TZ+8),'0000FFFF'X),
      &    IQ(LT0TZ+8)/65536,
      &    IQ(LT0TZ+9),IQ(LT0TZ+10),
      &    Q(LT0TZ+5),Q(LT0TZ+6),

@@ -15,6 +15,9 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:ZEBCOM.INC'
       INCLUDE 'D0$LINKS:IZPPHO.LINK'
       INTEGER LPPHO,GZPPHO,LPARH,GZPARH,LPELC,GZPELC
+
+      integer ihpelc/4HPELC/
+      integer ihppho/4HPPHO/
 C----------------------------------------------------------------------
       LPARH = GZPARH()
       LPELC = GZPELC()
@@ -27,13 +30,13 @@ C- Now loop over both chains dropping PELCs from PPHO or vice versa
 
       LPELC = GZPELC()
       DO WHILE (LPELC.GT.0)
-        IF (Q(LPELC-4).NE.4HPELC) CALL MZDROP(IXCOM,LPELC,'.')
+        IF (Q(LPELC-4).NE.iHPELC) CALL MZDROP(IXCOM,LPELC,'.')
         LPELC = LQ(LPELC)
       ENDDO
 
       LPPHO = GZPPHO()
       DO WHILE (LPPHO.GT.0)
-        IF (Q(LPPHO-4).NE.4HPPHO) CALL MZDROP(IXCOM,LPPHO,'.')
+        IF (Q(LPPHO-4).NE.iHPPHO) CALL MZDROP(IXCOM,LPPHO,'.')
         LPPHO = LQ(LPPHO)
       ENDDO
 

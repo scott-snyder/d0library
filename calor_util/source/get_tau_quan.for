@@ -118,7 +118,7 @@ C ****  now to fill QUAN
 C
  300  CALL VZERO(QUAN(1),NQUAN)      ! initialized to zero
       IF (ETSUM.GT.0.0 .AND. ESUM.GT.0.0) THEN
-        IF (FLAG.EQ.0) THEN
+        IF (.not.FLAG) THEN
           QUAN(1) = ET(1)/ETSUM
           QUAN(2) = ET(2)/ETSUM
           QUAN(3) = (ET(3)+ET(4)+ET(5)+ET(6))/ETSUM

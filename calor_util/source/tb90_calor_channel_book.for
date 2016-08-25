@@ -50,10 +50,10 @@ C
       DONE(SEQ) = 1
       BOOK_COUNT = BOOK_COUNT + 1
       NBOOK = BOOK_COUNT
-      IDEP =  ( ISHFT(ADD,-2) .AND. 15)
-      ITOW =  ( ISHFT(ADD,-6) .AND. 3)
-      IBLS   =  ( ISHFT(ADD,-8) .AND. 7)
-      IADC   =  ( ISHFT(ADD,-11) .AND. 31)
+      IDEP =  iand( ISHFT(ADD,-2), 15)
+      ITOW =  iand( ISHFT(ADD,-6), 3)
+      IBLS   =  iand( ISHFT(ADD,-8), 7)
+      IADC   =  iand( ISHFT(ADD,-11), 31)
       WRITE(TITLE,1001)ETA,PHI,LYR,IADC,IBLS,ITOW,IDEP
       CALL HBOOK1(IOFF1+NBOOK,TITLE,HBIN,HLO,HHI,0.0)
       TITLE(1:5) = 'WATCH'

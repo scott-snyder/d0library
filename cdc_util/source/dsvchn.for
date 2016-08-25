@@ -56,7 +56,7 @@ C
         END IF
   100 CONTINUE  
   300 CONTINUE
-      IF (NEW.EQ..FALSE.) GO TO 999
+      IF (NEW.EQV..FALSE.) GO TO 999
       IQ(LCHAI+1)=IQ(LCHAI+1)+1             ! increment number of chains
       NCHAIN=IQ(LCHAI+1)
       LSTART=LCHAI+1+(NCHAIN-1)*NCDCEL

@@ -54,6 +54,7 @@ C----------------------------------------------------------------------
       INTEGER LCLUS,STATUS,IER,USERMASK,VERSION
       LOGICAL OK,FIRST
       DATA FIRST/.TRUE./
+      integer ihppho/4HPPHO/
 
 C----------------------------------------------------------------------
       OK = .TRUE.
@@ -61,7 +62,7 @@ C----------------------------------------------------------------------
       IF (VERSION.EQ.1) THEN
         STATUS = IQ(LCLUS+20)
       ELSE IF (VERSION.EQ.2) THEN
-        IF(IQ(LCLUS-4).EQ.4HPPHO) THEN
+        IF(IQ(LCLUS-4).EQ.iHPPHO) THEN
           STATUS = IQ(LCLUS+23)
         ELSE
           STATUS = IQ(LCLUS+20)

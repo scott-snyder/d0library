@@ -71,7 +71,7 @@ C
       CALL EZGET('T0DFUL',L_T0D_FUL,IERR)
       CALL EZGET('T0DEVT',N_T0D_EVT,IERR)
       CALL EZGET('T0DZTRK',L_T0D_ZTRK,IERR)
-      IF ( (.NOT. L_T0D_REC) .OR. (N_T0D_EVT .EQ. 0) ) THEN
+      IF ( (.NOT. L_T0D_REC) .OR. (.not.N_T0D_EVT) ) THEN
         L_T0D_REC = .FALSE.
         CALL ERRMSG('T0D','T0DINI','T0D package is switched off','I')
         GO TO 999

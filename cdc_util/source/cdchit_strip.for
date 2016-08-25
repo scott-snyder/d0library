@@ -54,7 +54,7 @@ C
               L = 1
               Do While (L .le. NH)
                 If (IWORD .eq. IAND(IH(L),mask_0003FFFE)) Then
-                  If ((IH(L) .and. mask_00400000) .eq. 0)
+                  If ((iand(IH(L), mask_00400000)) .eq. 0)
      &              Call Squeeze(L,NH,IH)
                 End If
                 L = L + 1
@@ -73,15 +73,15 @@ C
               If (IQ(LDTSG+22*J-5) .eq. 0) Then
                 Go To 4
               Else
-                Z = ZHit(IQ(LDTSG+22*J-5) .and. mask_0003FFFE)
+                Z = ZHit(iand(IQ(LDTSG+22*J-5), mask_0003FFFE))
                 If (Abs(Z) .gt. 99) Go To 4
               End If
             Else If (IQ(LDTSG+22*J-5) .eq. 0) Then
-              Z = ZHit(IQ(LDTSG+22*J-11) .and. mask_0003FFFE)
+              Z = ZHit(iand(IQ(LDTSG+22*J-11), mask_0003FFFE))
               If (Abs(Z) .gt. 99) Go To 4
             Else
-              Z1 = ZHit(IQ(LDTSG+22*J-11) .and. mask_0003FFFE)
-              Z2 = ZHit(IQ(LDTSG+22*J-5) .and. mask_0003FFFE)
+              Z1 = ZHit(iand(IQ(LDTSG+22*J-11), mask_0003FFFE))
+              Z2 = ZHit(iand(IQ(LDTSG+22*J-5), mask_0003FFFE))
               If (Abs(Z1) .gt. 99) Then
                 If (Abs(Z2) .gt. 99) Go To 4
                 Z = Z2
@@ -112,7 +112,7 @@ C
                 L = 1
                 Do While (L .le. NH)
                   If (IWORD .eq. IAND(IH(L),mask_0003FFFE)) Then
-                    If ((IH(L) .and. mask_00400000) .eq. 0)
+                    If (iand(IH(L), mask_00400000) .eq. 0)
      &                Call Squeeze(L,NH,IH)
                   End If
                   L = L + 1

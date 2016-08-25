@@ -59,7 +59,7 @@ C
             DO 200 IHIT = 1, NHIT
               HLABEL = IBITS(IQ(IPDHIT+1),1,17)
               IF (LABEL(I)/2 .EQ. HLABEL) THEN
-                ZPOS(I) = FLOAT(IBITS(IQ(IPDHIT+2),16,31)) / 100. 
+                ZPOS(I) = FLOAT(IBITS(IQ(IPDHIT+2),16,16)) / 100. 
 C                                        ! convert it to cm
                 GOTO 100
               ENDIF

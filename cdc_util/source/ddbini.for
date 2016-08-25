@@ -43,6 +43,7 @@ C
       LOGICAL GN_PROC_INI, PD_PROC_INI, TM_PROC_INI, DBG_OFF
       LOGICAL TM_PROC_INI_FIRST_RUN
       LOGICAL DB_OPENED
+      integer i_tm_proc_ini_first_run
 C
       SAVE FIRST,DB_OPENED
 C
@@ -104,7 +105,8 @@ C
         ENDIF
         IF (TM_INI .AND. IOK) THEN
           RUN = RUNNO()
-          IF (TM_PROC_INI.AND.RUN.LT.TM_PROC_INI_FIRST_RUN) THEN
+          i_tm_proc_ini_first_run = tm_proc_ini_first_run
+          IF (TM_PROC_INI.AND.RUN.LT.i_TM_PROC_INI_FIRST_RUN) THEN
             CALL DSTP_FETCH(CRUN,'TIMES',DB_OPENED,IOK)
           ELSE
             CALL DTMINI(CRUN,MAX_CDCRT,DB_OPENED,IOK)

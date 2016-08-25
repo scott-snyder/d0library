@@ -56,6 +56,12 @@ C
       DATA IUPPER / 1, 5, 2, 3, 4 /    ! renumbering for upper pentagon
       DATA ILOWER / 1, 5, 4, 2, 3 /    ! renumbering for lower pentagon
       DATA IMIDDLE / 5, 1, 2, 4, 3 /   ! renumbering for EH pentagons
+
+      integer ihtrap/4HTRAP/
+      integer ihtrd9/4HTRD9/
+      integer ihtubs/4HTUBS/
+      integer ihcons/4HCONS/
+      integer ihpcon/4HPCON/
 C
       IERR =  1
       IF( FIRST) THEN                  ! initialize PSI
@@ -134,8 +140,8 @@ C
       RC = SQRT(XC*XC + YC*YC)
       AZI = ATAN2(YC, XC)
 C
-      IF( IC(LQCLYR + ICSHAP) .EQ. 4HTRAP .OR. IC(LQCLYR + ICSHAP) 
-     +   .EQ. 4HTRD9) THEN      ! CC cells
+      IF( IC(LQCLYR + ICSHAP) .EQ. iHTRAP .OR. IC(LQCLYR + ICSHAP) 
+     +   .EQ. iHTRD9) THEN      ! CC cells
         HI = C(LQCLYR+ICPAR4)   ! half hight of cell
         BL = C(LQCLYR+ICPAR5)   ! half base length of cell
         DR = 2.* HI
@@ -153,13 +159,13 @@ C&ENDIF
         PHI2 = ATAN2( Y2, X2)
         DAZI = ABS( PHI2- PHI1)
         IF( DAZI .GT. PI) DAZI = TWOPI - DAZI
-        IF(IC(LQCLYR+ICSHAP) .EQ. 4HTRD9) THEN  ! last cell of Cen Cal
+        IF(IC(LQCLYR+ICSHAP) .EQ. iHTRD9) THEN  ! last cell of Cen Cal
                                         ! Coarse Hadronic
           DZ = 2.*MAX(C(LQCLYR+ICPAR1), C(LQCLYR+ICPA12))
         END IF
 C
 C
-      ELSE IF( IC( LQCLYR + ICSHAP) .EQ. 4HTUBS) THEN      ! EE lay 1,2
+      ELSE IF( IC( LQCLYR + ICSHAP) .EQ. iHTUBS) THEN      ! EE lay 1,2
         RI = C(LQCLYR + ICPAR1)
         RO = C(LQCLYR + ICPAR2)
         DR = RO - RI
@@ -168,7 +174,7 @@ C
         IF( DAZI .GT. PI) DAZI = TWOPI - DAZI
 C
 C
-      ELSE IF( IC( LQCLYR + ICSHAP) .EQ. 4HCONS) THEN      ! EE lay 3,4;
+      ELSE IF( IC( LQCLYR + ICSHAP) .EQ. iHCONS) THEN      ! EE lay 3,4;
 C                                        ! IH and MH calorimeter cells
 C
         RI = 0.5*(C(LQCLYR+ICPAR2)+C(LQCLYR+ICPAR4))
@@ -178,7 +184,7 @@ C
         DAZI = ABS(C(LQCLYR+ICPAR7) - C(LQCLYR+ICPAR6))
         IF( DAZI .GT. PI) DAZI = TWOPI - DAZI
 C
-      ELSE IF(IC(LQCLYR + ICSHAP) .EQ. 4HPCON) THEN        ! OH cells
+      ELSE IF(IC(LQCLYR + ICSHAP) .EQ. iHPCON) THEN        ! OH cells
 C
         IF( C(LQCLYR+ICPAR3) .EQ. 3.) THEN  ! trinagular shapes
 C

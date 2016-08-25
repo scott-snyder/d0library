@@ -71,7 +71,7 @@ C
         J = 4
         DO WHILE ( J .LT. NWORD*NDHIT+4 )
           IWORD = IQ(LDHIT+J)
-          IF ((IWORD.AND.'0003FFFF'X).EQ.IHIT) THEN
+          IF (iand(IWORD,'0003FFFF'X).EQ.IHIT) THEN
             IQ(LT0DH+3*IC)   = IWORD
             IQ(LT0DH+3*IC+1) = IQ(LDHIT+J+1)
             Q (LT0DH+3*IC+2) = Q(LDTTH+2)

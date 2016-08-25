@@ -28,6 +28,7 @@ C----------------------------------------------------------------------
       INCLUDE      'D0$INC:ZCDLN1.INC'
       INCLUDE      'D0$INC:ZCDLN2.INC'
       INTEGER       GZDTRK, ZCD_EV, IERR, RUNSAV, EVTSAV, RUNNO, EVONUM
+      integer       i_zcd_evt
       LOGICAL       HIT_FLG
 C
       DATA          ZCD_EV /0/, RUNSAV /-1/, EVTSAV /-1/
@@ -37,7 +38,8 @@ C
       ZCDEVT = .TRUE.
       IF ( .NOT. L_ZCD_REC ) RETURN
       ZCD_EV = ZCD_EV + 1
-      IF ( ZCD_EV .NE. N_ZCD_EVT ) RETURN
+      i_zcd_evt = n_zcd_evt
+      IF ( ZCD_EV .NE. i_ZCD_EVT ) RETURN
       ZCD_EV = 0
 C
 C ****  Ensure that we are going to process a different event

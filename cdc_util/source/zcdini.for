@@ -56,7 +56,7 @@ C
       CALL EZGET('ZCDFUL',L_ZCD_FUL,IERR)
       CALL EZGET('ZCDEVT',N_ZCD_EVT,IERR)
       CALL EZGET('ZCDZTRK',L_ZCD_ZTRK,IERR)
-      IF ( (.NOT. L_ZCD_REC) .OR. (N_ZCD_EVT .EQ. 0) ) THEN
+      IF ( (.NOT. L_ZCD_REC) .OR. (.not.N_ZCD_EVT) ) THEN
         L_ZCD_REC = .False.
         CALL ERRMSG('ZCD','ZCDINI','ZCD package is switched off','I')
         Go To 999

@@ -31,7 +31,7 @@ C
       CALL UCOPY(DHIT_WORDS,WORDS,NWORDS)
       CALL DHIT_UNPACK(WORDS,LAYER,SECTOR,WIRE,JHIT,ONTRK,
      &                 ISIDE,IZTRK,TIME,ZPOS,AREA,NWORDS)
-      IF (.NOT.ONTRK) GOTO 999
+      IF (ONTRK.eq.0) GOTO 999
       IF (LDGEH .LE. 0 .OR. LDTMH .LE. 0) THEN
         CALL ERRMSG('DHIT_MC_TO_DATA','DHIT_MC_TO_DATA',
      &              'no STP banks, could NOT convert!','W')

@@ -88,7 +88,7 @@ C
         DO 321 LAYER = 0, MAXLAY
           LDLYR(LAYER) = GZDLYR(LAYER)
           DO 322 SECTOR = 0, MAXSEC
-            IF ((ON(LAYER,SECTOR).EQ..FALSE.)) GO TO 322
+            IF ((ON(LAYER,SECTOR).EQV..FALSE.)) GO TO 322
             LDSEC(SECTOR, LAYER) = GZDSEC(SECTOR,LAYER)
             LDCDA(SECTOR, LAYER) = GZDCDA(SECTOR,LAYER)
             LOC = LDSEC(SECTOR,LAYER)
@@ -133,7 +133,7 @@ C
           NHITLA = 0
           NHITLS = 0
           DO 30 SECTOR = 0, MAXSEC
-            IF ((ON(LAYER,SECTOR).EQ..FALSE.)) GO TO 30
+            IF ((ON(LAYER,SECTOR).EQV..FALSE.)) GO TO 30
             CALL DHTCHK(LAYER,SECTOR,2,DONE)
             IF (DONE) GOTO 31
             CALL DSECHT(LAYER,SECTOR,NHITS,NHITS1)      
