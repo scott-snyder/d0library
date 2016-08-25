@@ -34,7 +34,7 @@ include calor_filter/GNUmakefile.sub
 include calor_off/GNUmakefile.sub
 include calor_util/GNUmakefile.sub
 include cdc_util/GNUmakefile.sub
-#include cd_util/GNUmakefile.sub
+include cd_util/GNUmakefile.sub
 #include compack/GNUmakefile.sub
 #include d0dad/GNUmakefile.sub
 #include d0geant/GNUmakefile.sub

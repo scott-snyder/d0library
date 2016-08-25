@@ -46,6 +46,9 @@ C----------------------------------------------------------------------
       Data          L_First /.True./, L_Hist /.True./, L_Run /.True./
       Data          L_VTX /.False./, Eps / 1.E-9 /
       Character*255 CurDir
+
+      integer ihpelc/4HPELC/
+      integer ihppho/4HPPHO/
 C
       PACKED(1) = 0
       PACKED(2) = 0
@@ -334,9 +337,9 @@ C
       End If
 C
       LPPHO = LQ(LHMTP+1)
-      If (IQ(LPPHO-4) .eq. 4HPPHO) Then
+      If (IQ(LPPHO-4) .eq. iHPPHO) Then
         IPho = 0
-      Else If (IQ(LPPHO-4) .eq. 4HPELC) Then
+      Else If (IQ(LPPHO-4) .eq. iHPELC) Then
         IPho = 1
       Else
         Call ErrMsg('CAPHEL','HITSINFO',

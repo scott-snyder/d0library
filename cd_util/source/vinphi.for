@@ -27,7 +27,7 @@ C----------------------------------------------------------------------
 
       IF (FIRST) THEN
         CALL EZPICK('VTRAKS_RCP')
-        IF ( EZERROR(IER) ) THEN
+        IF ( EZERROR(IER) .ne. 0) THEN
           CALL ERRMSG('ZTRAKS','VINPHI',
      &    'Unable to find bank VTRAKS_RCP','W')
           GOTO 999
