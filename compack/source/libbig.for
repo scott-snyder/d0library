@@ -24,7 +24,7 @@ C----------------------------------------------------------------------
 C&IF IBMAIX
 C&      I=LOC(ATTR)
 C&ELSE
-      I=%LOC(ATTR)
+      I=LOC(ATTR)
 C&ENDIF
       IF(I.GT.100) THEN
          LIBBIG=SMG$PUT_CHARS_WIDE(MAINID,TEXT,LINE,COLUMN,0,ATTR,

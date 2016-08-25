@@ -31,7 +31,7 @@ C----------------------------------------------------------------------
         ENDIF
 C
         STATUS = SMG$RETURN_CURSOR_POS (USEID,LINE,COL)
-        IF ( .NOT. STATUS ) CALL LIB$SIGNAL (%VAL(STATUS))
+        IF ( STATUS.eq.0 ) CALL LIB$SIGNAL (%VAL(STATUS))
 C
         IF ( LINE .EQ. (SPLLIN-2) ) THEN
           CALL INTMSG 

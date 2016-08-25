@@ -83,7 +83,7 @@ C
           CALL GNOSMG       !Check if /NOSMG was present
         ENDIF
 C&ELSE
-C&        STATUS = LIB$GET_FOREIGN(COMAND,,ISIZ,)
+C&        STATUS = LIB$GET_FOREIGN(COMAND,0,ISIZ,0)
 C&        IF ( STATUS .NE. SS$_NORMAL ) CALL LIB$SIGNAL(%VAL(STATUS))
 C&        IF(INDEX(COMAND,'NOSMG').NE.0
 C&     &                  .OR. INDEX(COMAND,'nosmg').NE.0) THEN

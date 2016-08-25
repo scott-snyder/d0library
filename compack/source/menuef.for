@@ -30,10 +30,10 @@ C----------------------------------------------------------------------
 C
       IF ( EVENT_MODE ) THEN
         ISTAT = SMG$ENABLE_UNSOLICITED_INPUT(PASTID,KEYAST,MAINID)
-        IF ( .NOT. ISTAT ) CALL MSGSCR(ISTAT,' ')
+        IF ( ISTAT.eq.0 ) CALL MSGSCR(ISTAT,' ')
       ELSE
         ISTAT = SMG$DISABLE_UNSOLICITED_INPUT (PASTID)
-        IF ( .NOT. ISTAT ) CALL MSGSCR(ISTAT,' ')
+        IF ( ISTAT.eq.0 ) CALL MSGSCR(ISTAT,' ')
       ENDIF
   999 RETURN
       END

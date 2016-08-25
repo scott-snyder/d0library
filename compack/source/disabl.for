@@ -19,7 +19,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       IF(.NOT.QIOFLG) THEN
 	 ISTAT=SMG$DISABLE_UNSOLICITED_INPUT(PASTID)
-	 IF(.NOT.ISTAT) THEN
+	 IF(ISTAT.eq.0) THEN
 	    CALL MSGSCR(ISTAT,' DISABLE_INPUT-->')
 	 ENDIF
          QIOFLG=.TRUE.

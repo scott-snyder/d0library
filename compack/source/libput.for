@@ -25,7 +25,7 @@ C----------------------------------------------------------------------
 C&IF IBMAIX
 C&      I=LOC(ATTR)
 C&ELSE
-      I=%LOC(ATTR)
+      I=LOC(ATTR)
 C&ENDIF
       IF(I.GT.100) THEN
          LIBPUT=SMG$PUT_CHARS(MAINID,TEXT,LINE,COLUMN,0,ATTR,

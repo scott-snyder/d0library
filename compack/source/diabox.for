@@ -91,7 +91,7 @@ C
 C ****  Create display for window
 C
         STATUS = SMG$CREATE_VIRTUAL_DISPLAY(ROWS,COLS,VDID,SMG$M_BORDER)
-        IF ( .NOT. STATUS ) THEN
+        IF ( STATUS.eq.0 ) THEN
           CALL MSGSCR(STATUS,'DIABOX')
         ENDIF
       ENDIF
@@ -124,28 +124,28 @@ C
       ROW     = NPRT
       COL     = MAX(LTITLE,LMAXSTR+LPRTSTR+1)
       STATUS  = SMG$CHANGE_VIRTUAL_DISPLAY(VDID,ROW,COL)
-      IF ( .NOT. STATUS ) THEN
+      IF ( STATUS.eq.0 ) THEN
         CALL MSGSCR(STATUS,'DIABOX')
       ENDIF
 C
 C ****  Label dialog box
 C
       STATUS = SMG$LABEL_BORDER(VDID,TITLE(1:LTITLE))
-      IF ( .NOT. STATUS ) THEN
+      IF ( STATUS.eq.0 ) THEN
         CALL MSGSCR(STATUS,'DIABOX')
       ENDIF
 C
 C ****  Erase dialog box
 C
       STATUS = SMG$ERASE_DISPLAY(VDID)
-      IF ( .NOT. STATUS ) THEN
+      IF ( STATUS.eq.0 ) THEN
         CALL MSGSCR(STATUS,'DIABOX')
       ENDIF
 C
 C ****  Paste dialog box to pasteboard
 C
       STATUS = SMG$PASTE_VIRTUAL_DISPLAY(VDID,PASTID,DIAL_ROW,DIAL_COL)
-      IF ( .NOT. STATUS ) THEN
+      IF ( STATUS.eq.0 ) THEN
         CALL MSGSCR(STATUS,'DIABOX')
       ENDIF
 C
@@ -244,7 +244,7 @@ C
      &                               INISTR(1:LINISTR))
           ENDIF
         ENDIF
-        IF ( .NOT. STATUS ) THEN
+        IF ( STATUS.eq.0 ) THEN
           CALL MSGSCR(STATUS,'DIABOX')
         ENDIF
 C
@@ -282,7 +282,7 @@ C
 C ****  Unpaste dialog box
 C
       STATUS = SMG$UNPASTE_VIRTUAL_DISPLAY(VDID,PASTID)
-      IF ( .NOT. STATUS ) THEN
+      IF ( STATUS.eq.0 ) THEN
         CALL MSGSCR(STATUS,'DIABOX')
       ENDIF
 C

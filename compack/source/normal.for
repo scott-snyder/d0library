@@ -20,9 +20,9 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       IF ( TRMFLG .AND. GETDEV() ) THEN
         STATUS = SMG$ERASE_PASTEBOARD (PASTID)
-        IF ( .NOT. STATUS ) CALL LIB$SIGNAL (%VAL(STATUS))
-        STATUS = SMG$DELETE_PASTEBOARD (PASTID,)
-        IF ( .NOT. STATUS ) CALL LIB$SIGNAL (%VAL(STATUS))
+        IF ( STATUS.eq.0 ) CALL LIB$SIGNAL (%VAL(STATUS))
+        STATUS = SMG$DELETE_PASTEBOARD (PASTID,0)
+        IF ( STATUS.eq.0 ) CALL LIB$SIGNAL (%VAL(STATUS))
       ENDIF
   999 RETURN
       END

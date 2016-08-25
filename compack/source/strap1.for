@@ -40,7 +40,7 @@ C&      len = len1 + len2
 C&      if (len .gt. 0) then
 C&        dsc(1) = len
 C&        istat = lib$get_vm (len+8, ptr)
-C&        if (.not. istat) then
+C&        if (istat.eq.0) then
 C&          call intmsg (' strap1: out of dynamic memory')
 C&          call lib$stop (%val(istat))
 C&        endif

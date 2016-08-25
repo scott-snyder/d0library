@@ -29,7 +29,7 @@ C----------------------------------------------------------------------
           USEID = MAINID
         ENDIF
         STATUS = SMG$SET_CURSOR_REL (USEID,LINE-1,0)
-        IF ( .NOT. STATUS ) CALL LIB$SIGNAL (%VAL(STATUS))
+        IF ( STATUS.eq.0 ) CALL LIB$SIGNAL (%VAL(STATUS))
         N = LEN(STRING)
         CALL INTMSG (STRING(1:N))
       ENDIF

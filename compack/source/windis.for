@@ -281,7 +281,7 @@ C
      &                                      MAXCOLS,
      &                                      VDID,
      &                                      SMG$M_BORDER)
-        IF ( .NOT. STATUS ) THEN
+        IF ( STATUS.eq.0 ) THEN
           CALL MSGSCR(STATUS,'WINDIS')
         ENDIF
       ENDIF
@@ -291,7 +291,7 @@ C
       IF ( NITEM .LE. 0 ) THEN
         NBUFFER = 0
         CALL SMG$ERASE_DISPLAY(VDID)
-        IF ( .NOT. STATUS ) THEN
+        IF ( STATUS.eq.0 ) THEN
           CALL MSGSCR(STATUS,'WINDIS')
         ENDIF
         GOTO 999
@@ -307,7 +307,7 @@ C
         IF ( NBUFFER .LT. MAXROWS ) THEN
           NBUFFER = NBUFFER + 1
           STATUS = SMG$PUT_LINE(VDID,ITEM(I)(1:L))
-          IF ( .NOT. STATUS ) THEN
+          IF ( STATUS.eq.0 ) THEN
             CALL MSGSCR(STATUS,'WINDIS')
           ENDIF
         ELSE

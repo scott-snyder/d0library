@@ -58,7 +58,7 @@ C
 C ****  Paste window to pasteboard
 C
         STATUS = SMG$PASTE_VIRTUAL_DISPLAY (HELPID,PASTID,LINE,COLUMN)
-        IF ( .NOT. STATUS ) CALL LIB$SIGNAL (%VAL(STATUS))
+        IF ( STATUS.eq.0 ) CALL LIB$SIGNAL (%VAL(STATUS))
 C
 C ****  Write help info to window
 C
@@ -78,7 +78,7 @@ C
 C ****  Remove help window from pasteboard
 C
         STATUS = SMG$UNPASTE_VIRTUAL_DISPLAY (HELPID,PASTID)
-        IF ( .NOT. STATUS ) CALL LIB$SIGNAL (%VAL(STATUS))
+        IF ( STATUS.eq.0 ) CALL LIB$SIGNAL (%VAL(STATUS))
       ENDIF
   999 RETURN
       END
