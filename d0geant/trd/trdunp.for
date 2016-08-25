@@ -53,8 +53,8 @@ C
       DO 20 I=2,IQ(LL-1)-2
         DO 10 J=1,NWORDF
           K=K+1
-          IAUX=ISHFT(IQ(LL+I),-NBITF*(J-1)).AND.MASK
-          IPROV=IBITS(IQ(LL+I),NBITF*(J-1),NBITF).AND.MASK
+          IAUX=iand(ISHFT(IQ(LL+I),-NBITF*(J-1)),MASK)
+          IPROV=iand(IBITS(IQ(LL+I),NBITF*(J-1),NBITF),MASK)
           YAUX(K)=IPROV
           IF(YAUX(K).LT.ORIG.AND.IFOIS.LE.2)THEN
             PRINT*,' PROBLEM_TRD :IN TRDUNP,YAUX',YAUX(K),

@@ -64,7 +64,8 @@ C           -- check if this pair has been tested and found to be
 C              overlapping...
             IF(NOVER.GT.0) THEN
               DO 202 I=1,NOVER
-                IF(IOVER(1,I).EQ.I2I.AND.IOVER(2,I).AND.I1I) GO TO 201
+                IF(IOVER(1,I).EQ.I2I.AND.IOVER(2,I).ne.0.AND.
+     &             I1I.ne.0) GO TO 201
 202           CONTINUE
             ENDIF
 C           -- obtain geometry parameters for I2 module...

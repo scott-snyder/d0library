@@ -31,6 +31,8 @@ C--   INTERNAL VARIABLES
       REAL EX,EY,EZ,E,MAGN
       REAL ET,THETA,PHI,ETA
       REAL SIG2EX,SIG2EY
+
+      integer ihjets/4HJETS/
 C----------------------------------------------------------------------
 C
 C--   CHECK LJET0
@@ -43,7 +45,7 @@ C--   BEGIN LOOP OVER JETS BANKS
       LJETS=LJET0
 C
 C--   CHECK LINK
-   10 IF(IQ(LJETS-4).NE.4hJETS)THEN
+   10 IF(IQ(LJETS-4).NE.ihJETS)THEN
         WRITE(LOUT,*)'ENJETS--> PROBLEM WITH LJETS'
         GOTO 999
       END IF

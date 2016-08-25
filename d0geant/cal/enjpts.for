@@ -40,6 +40,8 @@ C--   INTERNAL VARIABLES
       BYTE BYCAEP(4)
       EQUIVALENCE (ADJPTS,BYJPTS)
       EQUIVALENCE (ADCAEP,BYCAEP)
+
+      integer ihjpts/4HJPTS/
 C----------------------------------------------------------------------
 C
 C--   CHECK LJET0
@@ -53,7 +55,7 @@ C--   BEGIN LOOP OVER JPTS BANKS
    10 LJPTS=LQ(LJETS-IZJPTS)
 C
 C--   CHECK LINK
-      IF(IQ(LJPTS-4).NE.4hJPTS)THEN
+      IF(IQ(LJPTS-4).NE.ihJPTS)THEN
         WRITE(LOUT,*)'ENJPTS--> PROBLEM WITH LJPTS'
         GOTO 999
       END IF

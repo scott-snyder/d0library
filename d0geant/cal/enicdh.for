@@ -28,6 +28,8 @@ C--   INTERNAL VARIABLES
       INTEGER LICDH,GZICDH
       INTEGER NBOOK
       INTEGER NTRK,NWTRK,NUSED
+
+      integer ihicdh/4HICDH/
 C
 C--   GET LINK TO ICDH BANK
       LICDH=GZICDH()
@@ -37,7 +39,7 @@ C--   CHECK LINK
         IF ( PD0.GE.2 ) WRITE(LOUT,*)'ENICDH-->NO ICDH bank booked'
         RETURN
       ENDIF
-      IF ( IQ(LICDH-4).NE.4hICDH ) THEN
+      IF ( IQ(LICDH-4).NE.ihICDH ) THEN
         WRITE(LOUT,*)'ENICDH--> PROBLEM WITH ICDH BANK NAME'
         RETURN
       ENDIF

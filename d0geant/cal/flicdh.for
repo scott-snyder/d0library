@@ -50,7 +50,9 @@ C--   INTERNAL VARIABLES
      +4hD14+,
      +4hD06-,4hD07-,
      +4hD08-,4hD09-,4hD10-,4hD11-,4hD12-,4hD13-,
-     +4hD14-/
+     +     4hD14-/
+
+      integer ihicdh/4HICDH/
 C----------------------------------------------------------------------
 C
       LTILE = 0.
@@ -70,7 +72,7 @@ C--   CHECK LINK TO ICDH BANK
         WRITE(LOUT,*)'FLICDH--> PROBLEM WITH LICDH'
         RETURN
       END IF
-      IF(IQ(LICDH-4).NE.4hICDH)THEN
+      IF(IQ(LICDH-4).NE.ihICDH)THEN
         WRITE(LOUT,*)'FLICDH--> PROBLEM WITH ICDH BANK NAME'
         RETURN
       END IF

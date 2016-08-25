@@ -69,8 +69,8 @@ C
       IQ(LKFDCH+1)=IQ(LKFDCH+1)+NVHITS        ! increment # hits in forward ch.
 C
 C-------------------- TEST PRINTOUT ---------------------------------------
-D     WRITE (LOUT,20) HALF,SECTOR,WIRE,
-D    &       IQ(LKFHLF+1),IQ(LKFPHI+1),IQ(LKFPSC+1),NVHITS
+cD     WRITE (LOUT,20) HALF,SECTOR,WIRE,
+cD    &       IQ(LKFHLF+1),IQ(LKFPHI+1),IQ(LKFPSC+1),NVHITS
    20 FORMAT(' LDFPSC: HALF/UNIT/SECT/WIRE ',3I3,5X,4I3)
 C--------------------------------------------------------------------------
 C  Transfer hits to ZEBRA bank "FPSC".

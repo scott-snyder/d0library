@@ -39,6 +39,8 @@ C--   INTERNAL VARIABLES
       BYTE BYTES(4)
       INTEGER PKADDR
       EQUIVALENCE (PKADDR,BYTES)
+
+      integer ihjpts/4HJPTS/
 C----------------------------------------------------------------------
 C
 C--   CHECK LJET0
@@ -64,7 +66,7 @@ C--   CHECK LINK TO JPTS BANK
         WRITE(LOUT,*)'FLJPTS--> PROBLEM WITH LJPTS'
         GOTO 999
       END IF
-      IF(IQ(LJPTS-4).NE.4hJPTS)THEN
+      IF(IQ(LJPTS-4).NE.ihJPTS)THEN
         WRITE(LOUT,*)'FLJPTS--> PROBLEM WITH LJPTS'
         GOTO 999
       END IF

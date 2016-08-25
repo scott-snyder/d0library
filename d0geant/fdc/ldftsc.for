@@ -73,8 +73,8 @@ C
       IQ(LKFDCH+1)=IQ(LKFDCH+1)+NVHITS        ! increment # hits in forward ch.
 C
 C------------------------ TEST PRINTOUT -------------------------------
-D         WRITE(LOUT,20) HALF,UNIT,QUAD,SECTOR,WIRE,
-D    &    IQ(LKFHLF+1),IQ(LKFTHE+1),IQ(LKFTQD+1),IQ(LKFTSC+1),NVHITS
+cD         WRITE(LOUT,20) HALF,UNIT,QUAD,SECTOR,WIRE,
+cD    &    IQ(LKFHLF+1),IQ(LKFTHE+1),IQ(LKFTQD+1),IQ(LKFTSC+1),NVHITS
    20 FORMAT(' LDFTSC: HALF/UNIT/QUAD/SECT/WIRE ',5I3,5X,5I3)
 C----------------------------------------------------------------------
 C

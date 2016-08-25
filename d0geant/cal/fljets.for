@@ -32,6 +32,8 @@ C--   INTERNAL VARIABLES
       INTEGER I
       REAL MAGN
       REAL UVECT(3)
+
+      integer ihjets/4HJETS/
 C----------------------------------------------------------------------
 C
 C--   CHECK LJET0
@@ -53,7 +55,7 @@ C--   GET LINK TO JETS BANK
    10 CONTINUE
 C
 C--   CHECK LINK
-      IF(IQ(LJETS-4).NE.4hJETS)THEN
+      IF(IQ(LJETS-4).NE.ihJETS)THEN
         WRITE(LOUT,*)'FLJETS--> PROBLEM WITH LJETS'
         GOTO 999
       END IF
