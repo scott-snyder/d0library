@@ -214,13 +214,13 @@ C
 C
         IF(.NOT.PAUSCH) THEN
           NEVT=NEVT+1
-          IF(STATUS.NE.PAUSCH) THEN
+          IF(STATUS.NEQV.PAUSCH) THEN
             STATUS=PAUSCH
             CALL STAMSG(MSGSTA,.TRUE.)
           ENDIF
         ELSE
           CALL WAIBIT(1)         ! add a wait for paused state
-          IF(STATUS.NE.PAUSCH) THEN
+          IF(STATUS.NEQV.PAUSCH) THEN
             STATUS=PAUSCH
             CALL STAMSG(' Data is NOT being processed',.TRUE.)
           ENDIF

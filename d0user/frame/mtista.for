@@ -12,7 +12,8 @@ C-   Created  30-MAR-1988   Serban D. Protopopescu
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
-      CHARACTER*8 SAVTIT,SETMTI
+      CHARACTER*8 SETMTI
+      character*8 savtit
       CHARACTER*(*) STITLE
 C----------------------------------------------------------------------
 C
