@@ -81,6 +81,10 @@ C-
       INTEGER IHOOK        ! 1 = STA, 2 = DST
       LOGICAL FIRST
       DATA FIRST/.TRUE./
+
+      integer ihHEAD/4HHEAD/
+      integer ihHSTR/4HHSTR/
+      
 C----------------------------------------------------------------------
 C-
 C- Main entry point.
@@ -106,7 +110,7 @@ C-
 C-
 C- Do not attempt to compress non-event data (STP files, etc.)
 C-
-      IF(IQ(LHEAD-4).NE.4HHEAD)GO TO 999
+      IF(IQ(LHEAD-4).NE.iHHEAD)GO TO 999
 C-
 C- Check for a ZDST bank.  Do not attempt to compress an event more than
 C- once.
@@ -148,7 +152,7 @@ C-
         DO I = 1,NL
           LBANK = LQ(LRECO-I)
           IF(LBANK.NE.0)THEN
-            IF(IQ(LBANK-4).EQ.4HHSTR)THEN
+            IF(IQ(LBANK-4).EQ.iHHSTR)THEN
               L = LZLAST(IXCOM, LHEAD)
             ELSE
               L = LZLAST(IXCOM, LRECO)
@@ -221,7 +225,7 @@ C-
  20   CONTINUE
       LCOMP = LQ(LHEAD)
       IF(LCOMP.NE.0 .AND. LQ(LCOMP).NE.0 .AND.
-     &   KEEP_HSTR .AND. IQ(LCOMP-4).EQ.4HHSTR)
+     &   KEEP_HSTR .AND. IQ(LCOMP-4).EQ.iHHSTR)
      &   LCOMP = LQ(LCOMP)
       IF(.NOT.RECYCLE)THEN
         CALL FZOUT(MLUN, IXMAIN, LCOMP, 1, 'LP', 1, 0, 0)

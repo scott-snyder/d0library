@@ -36,14 +36,14 @@ include calor_util/GNUmakefile.sub
 include cdc_util/GNUmakefile.sub
 include cd_util/GNUmakefile.sub
 include compack/GNUmakefile.sub
-#include d0dad/GNUmakefile.sub
+#include d0dad/GNUmakefile.sub #FAIL!
 include d0geant/GNUmakefile.sub #WARNING!
 include d0hplt/GNUmakefile.sub
 include d0reco/GNUmakefile.sub
 include d0user/GNUmakefile.sub
-#include dbl3/GNUmakefile.sub  #WARNING!
-#include errmsg_util/GNUmakefile.sub
-#include event_util/GNUmakefile.sub
+#include dbl3/GNUmakefile.sub  #FAIL!
+include errmsg_util/GNUmakefile.sub
+include event_util/GNUmakefile.sub
 #include fdc_util/GNUmakefile.sub
 #include graphics_util/GNUmakefile.sub #WARNING!
 #include isajet/GNUmakefile.sub
