@@ -33,7 +33,7 @@ C----------------------------------------------------------------------
       ENDIF
       HROUT_FILE=HROUT_FILE(1:N2)//'.HST'
       STATUS = TRNLNM('USR$OUT',STRING,LSTRING) 
-      IF ( STATUS ) THEN                            
+      IF ( STATUS.ne.0 ) THEN                            
         HROUT_FILE = 'USR$OUT:'//HROUT_FILE(1:N2+4)
       ENDIF
   999 RETURN

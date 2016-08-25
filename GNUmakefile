@@ -8,7 +8,7 @@ F77 := gfortran
 F77_DEB_FLAGS := -g
 F77_OPT_FLAGS := -O2
 F77_COMMON_FLAGS := -fdollar-ok -fno-second-underscore --std=legacy \
-                    -fno-automatic -fno-backslash -I$(TOPDIR)
+                    -fno-automatic -fno-backslash -I$(TOPDIR) -fd-lines-as-comments
 
 CC := cc
 C_DEB_FLAGS := -g
@@ -38,7 +38,7 @@ include cd_util/GNUmakefile.sub
 include compack/GNUmakefile.sub
 #include d0dad/GNUmakefile.sub
 include d0geant/GNUmakefile.sub #WARNING!
-#include d0hplt/GNUmakefile.sub
+include d0hplt/GNUmakefile.sub
 #include d0reco/GNUmakefile.sub
 #include d0user/GNUmakefile.sub
 #include dbl3/GNUmakefile.sub  #WARNING!
