@@ -45,10 +45,10 @@ include d0user/GNUmakefile.sub
 include errmsg_util/GNUmakefile.sub
 include event_util/GNUmakefile.sub
 include fdc_util/GNUmakefile.sub
-include graphics_util/GNUmakefile.sub #WARNING!
-#include isajet/GNUmakefile.sub
-#include isajet_util/GNUmakefile.sub
-#include isazeb/GNUmakefile.sub
+include graphics_util/GNUmakefile.sub
+#include isajet/GNUmakefile.sub #FAIL!
+include isajet_util/GNUmakefile.sub
+include isazeb/GNUmakefile.sub
 #include lcompack/GNUmakefile.sub
 #include level0/GNUmakefile.sub
 #include level1/GNUmakefile.sub

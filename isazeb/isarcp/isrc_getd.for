@@ -65,7 +65,7 @@ C
 C ****  Get number of values/identifier from type list
 C
       IPVAL = ISHFT(IQ(IPTO+ID),-NBITS)
-      TOTAL = IQ(IPTT+IPVAL) .AND. MASK
+      TOTAL = iand(IQ(IPTT+IPVAL), MASK)
 C
 C ****  Get values and value types
 C

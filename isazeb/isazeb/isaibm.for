@@ -95,15 +95,18 @@ C          SPECIFY COMMAND FILE
    2  PRINT* ,' Do you wish to use an OLD command file? (Y/N)'                  
       READ 1020,YN                                                              
       IF(YN.EQ.'Y'.OR.YN.EQ.'y') THEN                                           
-        OPEN(UNIT=11,ERR=100,STATUS='OLD',FORM='FORMATTED')                     
+        OPEN(UNIT=11,ERR=100,STATUS='OLD',FORM='FORMATTED',
+     &       file='isa.cmd')
         NEWCOM=.FALSE.                                                          
       ELSE                                                                      
-        OPEN(UNIT=11,ERR=200,STATUS='NEW',FORM='FORMATTED')                     
+        OPEN(UNIT=11,ERR=200,STATUS='NEW',FORM='FORMATTED',
+     &       file='isa.cmd')
         NEWCOM=.TRUE.                                                           
       ENDIF                                                                     
 C                                                                               
 C          SPECIFY LISTING FILE                                                 
-      OPEN(UNIT=12,ERR=200,STATUS='NEW',FORM='FORMATTED')                       
+      OPEN(UNIT=12,ERR=200,STATUS='NEW',FORM='FORMATTED',
+     &     file='isa.lis')
 C                                                                               
 C          PREPARE COMMAND FILE                                                 
       IF(NEWCOM) CALL ISASET(IDKY,IEVTAP,11,12)                                 
