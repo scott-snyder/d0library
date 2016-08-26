@@ -50,7 +50,7 @@ C&ENDIF
         ENDIF
  100    FORMAT(A)
  101    FORMAT(/A)
- 102    FORMAT($,A)
+ 102    FORMAT(A,$)
         J=I+2     !Skip <CR> and <LF>
         GOTO 1
       ELSE
