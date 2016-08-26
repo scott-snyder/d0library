@@ -106,7 +106,7 @@ C
           FVTX = VERTEX_DATA(IOFFSET+20)
           SIGN = IAND(FVTX,'10'X)/'10'X
           GOOD = IAND(FVTX,'20'X)/'20'X
-          IF ( SIGN.EQ.0 ) THEN
+          IF ( .not.SIGN ) THEN
             ZPOS = FASTZ_MULTIPLIER*IAND(FVTX,'F'X) + FASTZ_OFFSET
           ELSE
             ZPOS = -FASTZ_MULTIPLIER*IAND('10'X-FVTX,'F'X) +

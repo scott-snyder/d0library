@@ -148,7 +148,7 @@ C
       IF ( SGOOD ) THEN
         SVTX = IBITS(SVERTEX,16,16)
         SIGN = IAND(SVTX,'100'X)/'100'X
-        IF ( SIGN.EQ.0 ) THEN
+        IF ( .not.SIGN ) THEN
           SZPOS = SLOW_Z_MULTIPLIER*IAND(SVTX,'FF'X)+SLOW_OFFSET
         ELSE
           SZPOS = -SLOW_Z_MULTIPLIER*IAND('100'X-SVTX,'FF'X)
