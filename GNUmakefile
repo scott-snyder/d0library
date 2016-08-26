@@ -4,11 +4,15 @@ ifeq (,$(wildcard $(BINDIR)))
   $(shell mkdir -p $(BINDIR))
 endif
 
-F77 := gfortran
-F77_DEB_FLAGS := -g
-F77_OPT_FLAGS := -O2
-F77_COMMON_FLAGS := -fdollar-ok -fno-second-underscore --std=legacy \
-                    -fno-automatic -fno-backslash -I$(TOPDIR) -fd-lines-as-comments
+FORT := gfortran
+FORT_DEB_FLAGS := -g
+FORT_OPT_FLAGS := -O2
+FORT_COMMON_FLAGS := -fdollar-ok -fno-second-underscore --std=legacy \
+                     -fno-automatic -fno-backslash -I$(TOPDIR) -fd-lines-as-comments
+
+F77 := g77
+F77_COMMON_FLAGS := -fdollar-ok -fugly-logint -fno-second-underscore \
+                    -fno-automatic -fno-backslash -Wno-globals -I$(TOPDIR)
 
 CC := cc
 C_DEB_FLAGS := -g
@@ -41,12 +45,12 @@ include d0geant/GNUmakefile.sub #WARNING!
 include d0hplt/GNUmakefile.sub
 include d0reco/GNUmakefile.sub
 include d0user/GNUmakefile.sub
-#include dbl3/GNUmakefile.sub  #FAIL!
+include dbl3/GNUmakefile.sub  #WARNING!
 include errmsg_util/GNUmakefile.sub
 include event_util/GNUmakefile.sub
 include fdc_util/GNUmakefile.sub
 include graphics_util/GNUmakefile.sub
-#include isajet/GNUmakefile.sub #FAIL!
+include isajet/GNUmakefile.sub
 include isajet_util/GNUmakefile.sub
 include isazeb/GNUmakefile.sub
 #include lcompack/GNUmakefile.sub
