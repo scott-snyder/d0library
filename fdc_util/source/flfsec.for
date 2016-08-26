@@ -62,7 +62,7 @@ C
       SAVE ON
       DATA FIRST/.TRUE./
       DATA EXTPHI,EXTTHE,EXTLEN/3*0./
-      DATA ON/1152*0/
+      DATA ON/1152*.false./
 C
 C-------------------------------------------------------------------------
 C

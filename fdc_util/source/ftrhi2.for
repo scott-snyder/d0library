@@ -467,11 +467,11 @@ C
                 LKFXDAN=GZFPDA(H,SECTR)
                 LKFXSCN=GZFPSC(H,SECTR)
               ENDIF
-              IF(LKFXSCN.LE. 0) THEN
+              IF(.not.LKFXSCN) THEN
                 WRITE(*,*) ' FTRHI2 - LKFXSCN is bad=',LKFXSCN
                 GOTO 303
               ENDIF
-              IF(LKFXDAN.LE. 0) THEN
+              IF(.not.LKFXDAN) THEN
                 WRITE(*,*) ' FTRHI2 - LKFXDAN is bad=',LKFXDAN
                 GOTO 303
               ENDIF
