@@ -53,10 +53,10 @@ C
       IF (LOCAT .EQ. 0) THEN
          CALL ERROR('JVISBL: SEGMENT DOES NOT EXIST')
       ENDIF
-      CVIS = (SEGINF(2,LOCAT) / 8) .AND. 1
+      CVIS = iand((SEGINF(2,LOCAT) / 8), 1)
       IF (CVIS .NE. VISFLG) THEN
          CVIS = VISFLG * 8
-         SEGINF(2,LOCAT) = ((.NOT. 8) .AND. SEGINF(2,LOCAT)) + CVIS
+         SEGINF(2,LOCAT) = iand((NOT(8)), SEGINF(2,LOCAT)) + CVIS
          CALL KBLDN(SEGINF(6,LOCAT), TSEG)
          TSEG = 'D'//TSEG
          IF (VISFLG .EQ. 1) THEN

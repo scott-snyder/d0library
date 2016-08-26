@@ -45,7 +45,7 @@ include d0user/GNUmakefile.sub
 include errmsg_util/GNUmakefile.sub
 include event_util/GNUmakefile.sub
 include fdc_util/GNUmakefile.sub
-#include graphics_util/GNUmakefile.sub #WARNING!
+include graphics_util/GNUmakefile.sub #WARNING!
 #include isajet/GNUmakefile.sub
 #include isajet_util/GNUmakefile.sub
 #include isazeb/GNUmakefile.sub

@@ -66,7 +66,7 @@ C    Then executable code follows
       IF (LOCAT .EQ. 0) THEN
         CALL ERROR('JT2ALL: NAME DOES NOT EXIST')
       ENDIF
-      TTYPE = SEGINF(2,LOCAT) .AND. 3
+      TTYPE = iand(SEGINF(2,LOCAT), 3)
       IF (TTYPE .NE. 2) THEN
         CALL ERROR('JT2ALL: 2D IMAGE TRANS. NOT ALLOWED ON NAME')
       ENDIF

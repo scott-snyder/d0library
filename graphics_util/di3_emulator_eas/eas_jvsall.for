@@ -47,10 +47,10 @@ C
       ENDIF
       DO 10 I=1,NSEGS
          LOCAT = I
-         CVIS = (SEGINF(2,LOCAT) / 8) .AND. 1
+         CVIS = iand((SEGINF(2,LOCAT) / 8), 1)
          IF (CVIS .NE. VISFLG) THEN
             CVIS = VISFLG * 8
-            SEGINF(2,LOCAT) = ((.NOT. 8) .AND. SEGINF(2,LOCAT)) + CVIS
+            SEGINF(2,LOCAT) = iand((not(8)), SEGINF(2,LOCAT)) + CVIS
             NAME = SEGINF(6,LOCAT)
             CALL KBLDN(NAME, TSEG)
             TSEG = 'D'//TSEG

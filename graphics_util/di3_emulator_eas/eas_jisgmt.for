@@ -46,12 +46,12 @@ C
       IF (LOCAT .NE. 0) THEN
          ARRAY(1) = 1
          I = SEGINF(2,LOCAT)
-         ARRAY(5) = I .AND. 3
+         ARRAY(5) = iand(I, 3)
          I = I / 4
-         ARRAY(4) = I .AND. 1
+         ARRAY(4) = iand(I, 1)
          I = I / 2
-         ARRAY(2) = I .AND. 1
-         ARRAY(3) = SEGINF(3,LOCAT) .AND. 65535
+         ARRAY(2) = iand(I, 1)
+         ARRAY(3) = iand(SEGINF(3,LOCAT), 65535)
          ARRAY(6) = SEGINF(3,LOCAT) / 65536
       ENDIF
       RETURN
