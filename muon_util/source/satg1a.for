@@ -121,7 +121,7 @@ C
           DO N1 = 1, NN
             NSH = IQ(LD2+2)
             NX = DBYTE(WORD2)
-            NS1=DBYTE(WORD1).AND.MASK
+            NS1=iand(DBYTE(WORD1),MASK)
             IF (NS1.EQ.NKS(NP)) NX = NKX(NP) - NX
             K = 0
             DO 1 N2 = 1, NN
@@ -130,7 +130,7 @@ C
               IF (IQ(LD3+13) .EQ. 1) GO TO 1
               NSH = IQ(LD3+2)
               NY = DBYTE(WORD2)
-              NS2=DBYTE(WORD1).AND.MASK
+              NS2=iand(DBYTE(WORD1),MASK)
               IF (NS2.EQ.NKS(NP)) NY = NKX(NP) - NY
               IF (IABS(NX-NY) .LE. 2) THEN
                 K = K + 1
@@ -156,7 +156,7 @@ C
         PX = C(LC1+1)
         NSH = IQ(LD1+2)
         NX = DBYTE(WORD2)
-        NS1=DBYTE(WORD1).AND.MASK
+        NS1=iand(DBYTE(WORD1),MASK)
         IF (NS1.EQ.NKS(1)) NX = NKX(1) - NX
         X = NX
         LD2 = LQ(LSAHS-IND-2)         ! address of the hits in plane 2
@@ -170,7 +170,7 @@ C
  
           NSH = IQ(LD2+2)
           NY = DBYTE(WORD2)
-          NS2=DBYTE(WORD1).AND.MASK
+          NS2=iand(DBYTE(WORD1),MASK)
           IF (NS2.EQ.NKS(2)) NY = NKX(2) - NY
           IF (NX .GE. NL1 .AND. NX .LE. NL2) THEN
             IF (NY .GE. NL1 .AND. NY .LE. NL2) GO TO 102
@@ -189,7 +189,7 @@ C
             IF (IQ(LD2+13) .EQ. 1 .AND. IQ(LD3+13) .EQ. 1) GO TO 103
             NSH = IQ(LD3+2)
             NU = DBYTE(WORD2)
-            NS3=DBYTE(WORD1).AND.MASK
+            NS3=iand(DBYTE(WORD1),MASK)
             IF (NS3.EQ.NKS(3)) NU = NKX(3) - NU
             IF (NU .LT. NUMIN .OR. NU .GT. NUMAX) GO TO 103
             IF (NU .GE. KN(3) .AND. NU .LE. KX(3)) THEN

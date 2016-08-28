@@ -211,7 +211,7 @@ C
   700 CONTINUE
       CHISQ=CHISQ/(FLOAT(NGOOD)-4.)
       IF (PASS.LT.5) THEN
-        IF (PASS.EQ.1.OR.REFIT.EQ..TRUE.) THEN
+        IF (PASS.EQ.1.OR.REFIT) THEN
           PASS=PASS+1
           GO TO 2000
         END IF

@@ -100,7 +100,7 @@ C
       FIT(4)=YMAGC-FIT(2)*ZMAGC
       IF (.NOT.SAPTST(N_DIR,FIT,IFL)) THEN
       ELSE
-        IF (IFL.EQ..FALSE.) THEN
+        IF (.not.IFL) THEN
 C
 C  track does not pass through SAMUS A station; don't change the status
 C
