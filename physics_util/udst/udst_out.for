@@ -24,7 +24,7 @@ C
       CHARACTER*4   CIDLIST2(NIDMAX),CHOPT
       INTEGER       IDLIST1(NID1),IDLIST2(NIDMAX)
       EQUIVALENCE ( IDLIST2, CIDLIST2 )
-      DATA          IDLIST1 /'ANLS','UTAG'/
+      DATA          IDLIST1 /4HANLS,4HUTAG/
 C----------------------------------------------------------------------
       IF(FIRST)THEN
         FIRST=.FALSE.

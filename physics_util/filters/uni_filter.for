@@ -392,7 +392,7 @@ C     Filter bit word, one bit per filter.
       FILTER_BITS=0
       DO I=1,NFILT
 C       Fill the filter bit word
-        IF(FILTER(I))FILTER_BITS=FILTER_BITS.OR.2**(I-1)
+        IF(FILTER(I))FILTER_BITS=ior(FILTER_BITS,2**(I-1))
         IF (I.EQ.1)THEN
 C          KEEP_QCD=FILTER(I)
         ELSE
@@ -539,7 +539,7 @@ C    ( DEAL WITH FILES WITH ONE OR 0 EVENTS)
         WRITE(LUN,*)'Filter correlations normalized to total events (%)'
         WRITE(LUN,*)
         WRITE(LUN,201)(FILTER_NAMES(I)(1:5),I=1,NFILT)
-  201   FORMAT(' FILTERS     ',<NFILT>(1X,A5))
+  201   FORMAT(' FILTERS     ',(1X,A5))
         WRITE(LUN,200)
   200   FORMAT(' ',122('-'))
         DO I=1,NFILT
@@ -547,7 +547,7 @@ C    ( DEAL WITH FILES WITH ONE OR 0 EVENTS)
      &                 (CORRELATION(I,J)/num_calls*100.,J=1,NFILT)
         ENDDO
         WRITE(LUN,200)
-  202   FORMAT(' ',A12,<NFILT>F6.2)
+  202   FORMAT(' ',A12,F6.2)
         WRITE(LUN,*)
         WRITE(LUN,*)'FILTER TIMES'
         WRITE(LUN,*)

@@ -15,6 +15,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:ZEBCOM.INC'
       REAL    PT,ETA,PHI
       INTEGER LJETS,IER,UDST_VERSION,LUDST,GZUDST
+      integer ihjets/4HJETS/
       IF(LJETS.EQ.0)THEN
         CALL ERRMSG('LINK=0','UDST_FIX_JETS','called with LJETS=0','W')
         GOTO 999
@@ -32,7 +33,7 @@ C... for UDST version<5 recompute px,py,pz, for version>=5 px,py,pz are stored
       ENDIF
       IF(Q(LJETS+7).EQ.0) Q(LJETS+7) = 2.*ATAN(EXP(-ETA))
 C... do the following only for JETS banks, not JNEP
-      IF(IQ(LJETS-4).EQ.4HJETS)THEN
+      IF(IQ(LJETS-4).EQ.iHJETS)THEN
 C... if version >=8 set bit in the energy correction status word which
 C    says the jet area and ET weighted area has been calculated in RECO.
         IF(IQ(LJETS+1).GE.8) THEN

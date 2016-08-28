@@ -180,7 +180,7 @@ C
       IQESUM(4)=0
       DO I=0,23
 C     Check for overflow/underflow in storage and notify
-        IF( JBIT(IQESUMC(1),8+I) ) THEN
+        IF( JBIT(IQESUMC(1),8+I).ne.0 ) THEN
           WRITE(ERRTXT,1001) I
  1001     FORMAT('Lost objects of type ',I2)
           CALL ERRMSG('OBJECT_OVERFLOW',MYNAME,ERRTXT,'I')

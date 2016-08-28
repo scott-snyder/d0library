@@ -59,10 +59,10 @@ include level1/GNUmakefile.sub
 include level2/GNUmakefile.sub
 include muon_reco/GNUmakefile.sub
 include muon_util/GNUmakefile.sub
-#include neural/GNUmakefile.sub
-#include nodi3000/GNUmakefile.sub
-#include offline_util/GNUmakefile.sub
-#include physics_util/GNUmakefile.sub
+include neural/GNUmakefile.sub
+include nodi3000/GNUmakefile.sub
+include offline_util/GNUmakefile.sub
+include physics_util/GNUmakefile.sub
 #include pixie/GNUmakefile.sub
 #include program_builder/GNUmakefile.sub
 #include pythia/GNUmakefile.sub

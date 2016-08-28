@@ -18,6 +18,9 @@ C----------------------------------------------------------------------
       INTEGER LPARH,GZPARH,SIGN,LPELC,LPELC_FIRST,NEXT_PELC_LINK
       INTEGER I,NPELC,NZBANK
       LOGICAL FOUND
+
+      integer ihpelc/4HPELC/
+      integer ihppho/4HPPHO/
 C----------------------------------------------------------------------
       UDST_PELC_LINK=0
       IF (LJETS.GT.0) THEN
@@ -34,10 +37,10 @@ C----------------------------------------------------------------------
         GOTO 999
       ENDIF
 
-      IF (IQ(LPELC-4).EQ.4HPELC) THEN
+      IF (IQ(LPELC-4).EQ.iHPELC) THEN
         SIGN=1
         LPELC_FIRST=LQ(LPARH-IZPELC)
-      ELSE IF (IQ(LPELC-4).EQ.4HPPHO) THEN
+      ELSE IF (IQ(LPELC-4).EQ.iHPPHO) THEN
         SIGN=-1
         LPELC_FIRST=LQ(LPARH-IZPPHO)
       ELSE

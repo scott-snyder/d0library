@@ -27,6 +27,8 @@ C----------------------------------------------------------------------
       CHARACTER*80 STRING
       LOGICAL OK
       LOGICAL QNOLINK,QSHLIB,QTIGHT,QNOTRK,QLOOSE
+
+      integer ihpelc/4HPELC/
 C----------------------------------------------------------------------
       OK=.FALSE.
 C
@@ -68,7 +70,7 @@ C
         STATUS = LPELC   !STATUS WORD IN THE BANK LINK PLACE
         OK = IAND(STATUS,CHECK_MASK).EQ.0
       ELSE
-        IF ( .NOT.QNOTRK.AND.Q(LPELC-4).NE.4HPELC ) THEN
+        IF ( .NOT.QNOTRK.AND.Q(LPELC-4).NE.iHPELC ) THEN
           CALL ERRMSG('NO PELC BANK',' GOOD ELECTRON',
      &      ' NO CHECK ON STATUS WORD DONE','W')
           GO TO 999  !NOT BEING GIVEN A PELC BANK

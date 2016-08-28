@@ -57,7 +57,7 @@ C save file. Do not print it.
         GO TO 999
       ELSE
         ISTAT=QPRINT(FILE(1:L1),QUE(1:L3),FORM(1:L2),.TRUE.)
-        IF(ISTAT) THEN
+        IF(ISTAT.ne.0) THEN
           CALL INTMSG(' FILE '//FILE(1:L1)//' PRINTED ON QUEUE '//QUE)
         ELSE
           CALL MSGSCR(ISTAT,' Error printing-->')

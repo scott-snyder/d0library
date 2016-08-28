@@ -27,7 +27,7 @@ C
       NOTWANTED   = .FALSE.
       IF ( QCD_FILT_STRING(NOTWANTED,'JET_GAP', NOTWANTED, 'JET_GAP') )
      &  QCD_GAP = .TRUE.
-      IF ( QCD_SD().EQ..TRUE. ) QCD_GAP = .FALSE.
+      IF ( QCD_SD() ) QCD_GAP = .FALSE.
 
   999 RETURN
       END

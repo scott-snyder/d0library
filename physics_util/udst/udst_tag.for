@@ -23,13 +23,15 @@ C----------------------------------------------------------------------
       CHARACTER*4 GRP
       LOGICAL FIRST
       DATA FIRST / .TRUE. /
+
+      integer ihudst/4HUDST/
 C----------------------------------------------------------------------
       IER=0
       UDST_TAG=' '
       IF (LUDST.LE.0) THEN
         IER=1                      ! LUDST = 0
         GOTO 999
-      ELSEIF (Q(LUDST-4).NE.4HUDST) THEN
+      ELSEIF (Q(LUDST-4).NE.iHUDST) THEN
         IER=1                      ! LUDST doesn't point to a UDST bank
         GOTO 999
       ENDIF
