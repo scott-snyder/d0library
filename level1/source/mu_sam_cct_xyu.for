@@ -122,7 +122,7 @@ C.. Build output bits
   900 CONTINUE
 
 C.. Print out debugging info
-      IF(IPRSTRPL.EQ.1) THEN
+      IF(IPRSTRPL) THEN
         SUMIN=0
         SUMOUT=0
         DO I=0,15

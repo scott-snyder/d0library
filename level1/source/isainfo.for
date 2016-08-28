@@ -97,7 +97,7 @@ C.. Entry point to fill HBOOK objects with ISAJET information
           CALL MU_L1_RAW_BITS(L1_BITS)
 
           DO IBIT=1,16
-            IF(L1_BITS(IBIT)) GOODCCT=.TRUE.
+            IF(L1_BITS(IBIT).ne.0) GOODCCT=.TRUE.
           ENDDO
 
 C- fill ISAJET info

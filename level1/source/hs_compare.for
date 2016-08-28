@@ -46,7 +46,7 @@ C-- Working variables
       LOGICAL ISAJET_DATA,FIRST_WRT,FLGVAL,LATCH_PROBL,FIRST
       INTEGER GZISAE, LISAE
       INTEGER TEMP,I,II,ISIM,IHDW,IER
-      CHARACTER*6 REGION(7)
+      CHARACTER*8 REGION(7)
       DATA FIRST / .TRUE. /
       DATA REGION /'>> CF >>','>> WN >>','>> WS >>',
      &             '>> ON >>','>> OS >>','>> SN >>','>> SS >>'/

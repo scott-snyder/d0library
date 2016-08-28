@@ -62,7 +62,7 @@ C__ Check wamus
         DO I = 1 ,164
           MODNO=MODS(I)
           CALL MUMCRS(MODNO,ITRUNC,ICENFL,ICRS)
-          IF(ITRUNC.AND.ICENFL.GT.0) THEN
+          IF(iand(ITRUNC,ICENFL).GT.0) THEN
             SKIP=.TRUE.
 	    WRITE(MSG,125) MODNO,ITRUNC
             CALL INTMSG(MSG)
@@ -77,7 +77,7 @@ C__ Check samus
         DO I = 165 ,200
           MODNO=MODS(I)
           CALL MUMCRS(MODNO,ITRUNC,ICENFL,ICRS)
-          IF(ITRUNC.AND.ICENFL.GT.0) THEN
+          IF(iand(ITRUNC,ICENFL).GT.0) THEN
             SKIP=.TRUE.
 	    WRITE(MSG,125) MODNO,ITRUNC
             CALL INTMSG(MSG)

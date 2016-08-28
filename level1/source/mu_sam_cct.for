@@ -137,7 +137,7 @@ C.. Calculates the XXX roads
           IF(XXX(III,II).NE.0) XXXFLG=1
         ENDDO
       ENDDO
-      IF(IPRSCCT.EQ.1) THEN
+      IF(IPRSCCT) THEN
         PRINT *,'*** Looking for an XXX road ***'
         CALL DUMPV(SCC_FILT_X,6,16,'SCC :',.TRUE.,0)
         CALL DUMPV(XXX,2,16,'XXX :',.TRUE.,0)
@@ -153,7 +153,7 @@ C.. Calculates the YYY roads
           IF(YYY(III,II).NE.0) YYYFLG=1
         ENDDO
       ENDDO
-      IF(IPRSCCT.EQ.1) THEN
+      IF(IPRSCCT) THEN
         PRINT *,'*** Looking for an YYY road ***'
         CALL DUMPV(SCC_FILT_Y,6,16,'SCC :',.TRUE.,0)
         CALL DUMPV(YYY,2,16,'YYY :',.TRUE.,0)
@@ -168,7 +168,7 @@ C.. Calculates the UUU roads
           IF(UUU(III,II).NE.0) UUUFLG=1
         ENDDO
       ENDDO
-      IF(IPRSCCT.EQ.1) THEN
+      IF(IPRSCCT) THEN
         PRINT *,'*** Looking for an UUU road ***'
         CALL DUMPV(SCC_FILT_U,6,16,'SCC :',.TRUE.,0)
         CALL DUMPV(UUU,2,16,'UUU :',.TRUE.,0)
@@ -209,7 +209,7 @@ C.. Fills the input connectors for the last stage in pure SAMUS logic
 
 C.. Find candidate triggers
       CALL MU_SAM_CCT_SUM(SCC,SAMBITS)
-      IF(IPRSCCT.EQ.1) THEN
+      IF(IPRSCCT) THEN
         PRINT *,'*** Looking for a muon candidate ***'
         CALL DUMPV(SCC,6,16,'SCC :',.TRUE.,0)
         CALL DUMPV(SAMBITS,1,12,'SAM_OUT:',.TRUE.,1)

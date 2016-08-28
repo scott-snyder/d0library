@@ -76,7 +76,7 @@ C  Compute the muon triggers for all trigger regions.
              JOTC(IBIT) = .FALSE.
            ENDDO
 
-           IF(TREG(TRIG_REG))THEN
+           IF(TREG(TRIG_REG).ne.0)THEN
              CALL MU_TRIG_CRATE_L15(TRIG_REG,CCTLAT(TRIG_REG),
      &					JMGRDAT,IMGRDAT)
 
