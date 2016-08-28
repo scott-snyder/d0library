@@ -23,7 +23,7 @@ c      DATA  RADL_ECEM/0.3, 2.6, 7.9, 9.3/
 c      DATA  RADL_ECIH/4*30.45,34.32/
 C----------------------------------------------------------------------
       IF(MUKA_CONST_INIT.NE.0) RETURN           ! Already initialized
-      IF(INIT) THEN
+      IF(INIT.ne.0) THEN
 c        CALL MZEBRA (0)                   ! INITIALIZE ZEBRA
 c        CALL INZCOM (2)                   ! Initialize /ZEBCOM/
 c        CALL INZLNK                       ! initialize ZLINKA

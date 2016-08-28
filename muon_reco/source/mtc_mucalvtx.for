@@ -35,7 +35,7 @@ C
       IVTX = 0
       IF (NV.EQ.0) GO TO 999
       HFRMIN=0.499
-      IF (FIRST.EQ..TRUE.) THEN
+      IF (FIRST) THEN
         FIRST=.FALSE.
         CALL EZGET('MUVERT',MUVERT,IER)
       END IF

@@ -26,7 +26,7 @@ C
       DATA FIRST/.TRUE./
 
 C
-      IF (FIRST.EQ..FALSE.) GO TO 999
+      IF (.not.FIRST) GO TO 999
       SAMRECO_INI = .FALSE.
       CALL INZCOM(2)            !Initialize Zebra data banks
       CALL INZSTP               !Initialize Zebra STP banks

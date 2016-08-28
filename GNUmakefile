@@ -56,8 +56,8 @@ include isazeb/GNUmakefile.sub
 include lcompack/GNUmakefile.sub
 include level0/GNUmakefile.sub
 include level1/GNUmakefile.sub
-#include level2/GNUmakefile.sub #FAILURE
-#include muon_reco/GNUmakefile.sub
+include level2/GNUmakefile.sub
+include muon_reco/GNUmakefile.sub
 #include muon_util/GNUmakefile.sub
 #include neural/GNUmakefile.sub
 #include nodi3000/GNUmakefile.sub
