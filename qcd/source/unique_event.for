@@ -53,7 +53,7 @@ C
       EVENTWORD = EVENT/32      ! find word that event number is in
       EVENTBIT = MOD(EVENT,32)  ! find bit
       BIT = BTEST(EVENTSAVE(EVENTWORD),EVENTBIT)
-      IF (BIT) THEN        !event has been processed
+      IF (BIT.ne.0) THEN        !event has been processed
         NDUP = NDUP + 1
         UNIQUE_EVENT = .FALSE.
       ELSE                      !set event bit

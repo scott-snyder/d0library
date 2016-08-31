@@ -27,7 +27,7 @@ C
       INTEGER NELEC,NELC_MAX
       REAL    ELC_ET, ELC_E,ELC_EZ, ELC_EX, ELC_EY,
      &        ELC_ETA,ELC_PHI
-      CHARACTER*225 QCD_ELC1_TAG    
+      CHARACTER*231 QCD_ELC1_TAG    
 C
       DATA QCD_ELC1_TAG/
      &       'NELEC[0,3],NELC_MAX:I,ELC_COR(NELEC):R,
@@ -59,7 +59,7 @@ C
      &        ELC_E_ISO1, ELC_E_ISO2,
      &        ELC_ET_ISO1, ELC_ET_ISO2
 C
-      CHARACTER*350 QCD_ELC2_TAG      
+      CHARACTER*372 QCD_ELC2_TAG      
 C
       DATA  QCD_ELC2_TAG/    
      &       'ELC_EM_FRAC(NELEC):R, ELC_HMTR_CHSQ(NELEC):R, 
@@ -88,7 +88,7 @@ C ****  TRD info.
 C
      &        ELC_ETOT_LIKE, ELC_TOT_LEFF, ELC_ELIKE_5V,
      &        ELC_ELIKE_4V, ELC_ELIKE_2V
-      CHARACTER*350 QCD_ELC3_TAG          
+      CHARACTER*417 QCD_ELC3_TAG          
 C
       DATA QCD_ELC3_TAG/
      &       'ELC_NCELLS(NELEC):I, ELC_NCELLS_THR(NELEC):I,

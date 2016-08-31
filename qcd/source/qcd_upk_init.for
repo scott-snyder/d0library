@@ -85,10 +85,10 @@ C
         DO I = 1, PBD_FLAG_MAX
           PNAME = PBD_FLAG_NAME(I)
           LENG = MIN(TRULEN(PNAME),32)
-          IF((PNAME(1:LENG).EQ.'SAMRECO'.AND.SAM.EQ..FALSE.).OR.
-     +       (PNAME(1:LENG).EQ.'LEVEL0'.AND.L0.EQ..FALSE.).OR.
-     +       (PNAME(1:LENG).EQ.'CAHITS'.AND.CAH.EQ..FALSE.).OR.
-     +       (PNAME(1:LENG).EQ.'FTRAKS'.AND.FTK.EQ..FALSE.))
+          IF((PNAME(1:LENG).EQ.'SAMRECO'.AND..not.SAM).OR.
+     +       (PNAME(1:LENG).EQ.'LEVEL0'.AND..not.L0).OR.
+     +       (PNAME(1:LENG).EQ.'CAHITS'.AND..not.CAH).OR.
+     +       (PNAME(1:LENG).EQ.'FTRAKS'.AND..not.FTK))
      +       PBD_FLAG_VALUE(I)=.FALSE.
         END DO
 C

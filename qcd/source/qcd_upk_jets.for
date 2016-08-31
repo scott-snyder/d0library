@@ -712,14 +712,14 @@ C
         IF(JTCSDO) THEN
           FOUND=.FALSE.
           II=1
-          DO WHILE (FOUND.EQ..FALSE..AND.II.LE.NJOLD)
+          DO WHILE (.not.FOUND.AND.II.LE.NJOLD)
             IF(JJET.EQ.TRANS(II,1)) THEN
               KJET=TRANS(II,2)
               FOUND=.TRUE.
             END IF
             II=II+1
           END DO
-          IF(FOUND.EQ..FALSE.) THEN
+          IF(.not.FOUND) THEN
             CALL ERRMSG('QCD_UPK_JETS','QCD_UPK_JETS',
      +           'JTCS Index problem ','F')
           END IF

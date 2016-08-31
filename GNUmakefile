@@ -66,7 +66,7 @@ include physics_util/GNUmakefile.sub
 include pixie/GNUmakefile.sub
 include program_builder/GNUmakefile.sub
 include pythia/GNUmakefile.sub
-#include qcd/GNUmakefile.sub
+include qcd/GNUmakefile.sub
 #include showerlibrary/GNUmakefile.sub
 #include spythia/GNUmakefile.sub
 #include srcp_util/GNUmakefile.sub
