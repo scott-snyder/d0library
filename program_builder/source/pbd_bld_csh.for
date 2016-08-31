@@ -47,7 +47,7 @@ C----------------------------------------------------------------------
       CHARACTER*80  DEF_DIR             ! CURRENT DEFAULT DIRECTORY SPEC
       CHARACTER*80  HEADER (6)          ! FILE HEADER MESSAGE
       CHARACTER*80  RCP_HDR (15)        ! RCP COMMAND LINES
-      CHARACTER*31  MESSAGE             ! MESSAGE STRING
+      CHARACTER*33  MESSAGE             ! MESSAGE STRING
       CHARACTER*80  FILE_SPEC           ! FILE SPECIFICATION TO PARSE
       CHARACTER*80  NODE_NAME           ! NODE NAME
       CHARACTER*80  DEV_NAME            ! DEVICE NAME
