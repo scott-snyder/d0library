@@ -36,7 +36,7 @@ C
       REAL EMIN   ! MINIMUM ENERGY/CELL  TO APPEAR IN PLOT
 C----------------------------------------------------------------------
       CHARACTER*16 STR1
-      CHARACTER*30 MESS2
+      CHARACTER*40 MESS2
       CHARACTER*15 LABELS(5)
       CHARACTER*3 CCOL
       LOGICAL EZERROR,PU_PICK_ACTIVE

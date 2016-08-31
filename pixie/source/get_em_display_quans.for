@@ -30,6 +30,8 @@ C
       REAL TRD_TRUNCATED_MEAN,TRD_ANODE(3),ETOT_LIKE,ETOT_LEFF
       REAL TRK_PHI,TRK_THETA,TRK_MIP,TRK_XPT,TRK_YPT,TRK_ZPT
       REAL VTX_PHI,VTX_THETA,VTX_MIP,VTX_XPT,VTX_YPT,VTX_ZPT
+
+      integer ihpelc/4HPELC/
 C----------------------------------------------------------------------
       VSN = IQ(LCLUS+1)
       NQUANS = 0
@@ -110,7 +112,7 @@ C      NAMQUANS(NQUANS) = 'ISOL ETOT'
       QUANS(NQUANS) = CHISQ
       NAMQUANS(NQUANS) = 'TRUN CHISQ'
 C
-      IF (IQ(LCLUS-4).EQ.4HPELC) THEN
+      IF (IQ(LCLUS-4).EQ.iHPELC) THEN
 C
         LZTRK = LQ(LCLUS-3)
         IF(LZTRK.LE.0) THEN

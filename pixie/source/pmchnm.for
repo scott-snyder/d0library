@@ -36,9 +36,9 @@ C
          CALL MUGEOM(NMOD,0,0,VECT,WLEN,VOFF,IORENT)
          IORENT = ABS(IORENT)
 C
-         IF (IORENT.EQ.1) CALL J3MOVE((XC+-45.),(YC+DY+25.),0.)
+         IF (IORENT.EQ.1) CALL J3MOVE((XC+(-45.)),(YC+DY+25.),0.)
          IF (IORENT.EQ.2) CALL J3MOVE((XC+DX+20.),YC+0.,0.)
-         IF (IORENT.EQ.3) CALL J3MOVE((XC+-45.),(YC+DY+25.),0.)
+         IF (IORENT.EQ.3) CALL J3MOVE((XC+(-45.)),(YC+DY+25.),0.)
          IF (IORENT.EQ.4) CALL J3MOVE((XC+DX+20.),YC+0.,0.)
          CALL JSIZE(48.,48.)
          CALL J3STRG(CHNM)

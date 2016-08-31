@@ -85,7 +85,7 @@ C      IF ( NHITS(WIR1) .NE. NHITS(WIR2) ) GO TO 1000
             YERR(NTOT)= QHIT(I1+5)! DY
             ZCEN(NTOT)= QHIT(I1+4)            ! z
             ZERR(NTOT)= QHIT(I1+6) ! DZ
-            STAT = IQHIT(I1+10) .AND. MASK
+            STAT = iand(IQHIT(I1+10), MASK)
             IF ( STAT .NE. 3 .AND. PATH .EQ. 'RECO' ) THEN ! unmatched hit
               POS(NTOT) = 0
               GO TO 400

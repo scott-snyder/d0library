@@ -48,7 +48,8 @@ C----------------------------------------------------------------------
 
       INTEGER MAXSIZE,ID
       PARAMETER ( MAXSIZE=4000 )
-      INTEGER LOCAL(MAXSIZE), TOTAL, ITYPE(MAXSIZE), IPOINT,SKIP
+      INTEGER LOCAL(MAXSIZE), TOTAL, ITYPE(MAXSIZE), IPOINT
+      logical skip
       INTEGER LENGTH
       CHARACTER*32 NAME,CHARVAL
       INTEGER VTCHR

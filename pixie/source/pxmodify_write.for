@@ -184,12 +184,12 @@ C
 C ****  Menu item and menu command
 C
             TEMP = ' '
-            TEMP = '    '''//CVAL(1:LVAL)//''''
+            TEMP = '    '''//CVAL(1:iVAL)//''''
             WRITE(UNIT=LUN,FMT='(A)')TEMP
             CALL EZGET_NEXT_VALUE_TYPE
      &        (BUFFER(II)(I+1:J-1),IVALUE,CVAL,ITYPE,LVAL,IER,PTR)
             TEMP = ' '
-            TEMP = '    '''//CVAL(1:LVAL)//''''
+            TEMP = '    '''//CVAL(1:iVAL)//''''
             WRITE(UNIT=LUN,FMT='(A)')TEMP
 C
 C ****  Help
@@ -198,9 +198,9 @@ C
               TEMP_PTR = PTR
               CALL EZGET_NEXT_VALUE_TYPE
      &          (BUFFER(II)(I+1:J-1),IVALUE,CVAL,ITYPE,LVAL,IER,PTR)
-              IF(( ITYPE .NE. VTLOG ) .AND. ( LVAL .NE. 0 ))THEN
+ 1            IF(( ITYPE .NE. VTLOG ) .AND. ( iVAL .NE. 0 ))THEN
                 TEMP = ' '
-                TEMP = '    '''//CVAL(1:LVAL)//''''
+                TEMP = '    '''//CVAL(1:iVAL)//''''
                 WRITE(UNIT=LUN,FMT='(A)')TEMP
               ENDIF
             ENDDO

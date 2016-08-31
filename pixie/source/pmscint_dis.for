@@ -64,7 +64,7 @@ C
 C----Drawing non-hit scints. only dropping hit ones-----
 C
       CALL EZPICK('PX_MUODIS_RCP')
-      IF ( EZERROR(IER) ) THEN
+      IF ( EZERROR(IER).ne.0 ) THEN
         CALL ERRMSG('PIXIE','PMSCINT_DIS',
      &    'Bank PX_MUODIS_RCP NOT FOUND','W')
         GOTO 998

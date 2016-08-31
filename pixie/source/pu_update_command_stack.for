@@ -87,7 +87,7 @@ C
 C ****  Decide if we're exiting or descending to a new menu
 C
       UP_MENU      = COMMAND(I:J) .EQ. 'EXIT'
-      DOWN_MENU  =   ( INDEX(COMMAND_STACK(STACK_PTR),'$') ) .OR.
+      DOWN_MENU  =   ( INDEX(COMMAND_STACK(STACK_PTR),'$') ).ne.0 .OR.
      &               ( MENU(II:JJ) .NE. LAST_MENU(II:JJ) )
       LAST_MENU = MENU(1:LEN(MENU))
 C

@@ -70,8 +70,8 @@ C
      X  GO TO 999
       IF ( (ITYP .LT. 0) .OR. (ITYP .GT.4) )
      X  GO TO 999
-      IF ( (CALFLG .NE. .TRUE.) .AND. (CALFLG .NE. .FALSE.) )
-     X  GO TO 999
+c      IF ( (CALFLG .NE. .TRUE.) .AND. (CALFLG .NE. .FALSE.) )
+c     X  GO TO 999
       IF (INDX .GT.17) THEN
         IF ((ITYP .NE. 0).OR.(ITYP.NE.4) ) THEN
           INDX = MOD ( INDX,17 )

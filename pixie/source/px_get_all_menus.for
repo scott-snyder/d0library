@@ -56,7 +56,7 @@ C----------------------------------------------------------------------
       TEMP_PTR = PTR
       DO WHILE ( ACTIVE )
 C
-C ****  Skipping the logival values
+C ****  Skipping the logical values
 C
         DO WHILE ( ( ITYPE .EQ. VTLOG ) .AND.
      &             ( IER   .EQ. 0     ) )
@@ -69,18 +69,18 @@ C
 C
 C ****  Getting first menu
 C
-          MENU1(TOTAL_MENUS) = CVAL(1:LVAL)
+          MENU1(TOTAL_MENUS) = CVAL(1:iVAL)
 C
 C ****  Getting the second menu name
 C
           CALL EZGET_NEXT_VALUE_TYPE
      &      (PACKAGE_NAME,IVAL,CVAL,ITYPE,LVAL,IER,PTR)
-          MENU2(TOTAL_MENUS) = CVAL(1:LVAL)
+          MENU2(TOTAL_MENUS) = CVAL(1:iVAL)
 C
 C ****  Get the action routine.  If the menu item is a combined view
 C ****  return the name of the combined view as the action routine
 C
-          IF ( MENU2(TOTAL_MENUS)(LVAL:LVAL) .EQ. '%' ) THEN
+          IF ( MENU2(TOTAL_MENUS)(iVAL:iVAL) .EQ. '%' ) THEN
             ACTION(TOTAL_MENUS) = MENU2(TOTAL_MENUS)
           ELSE
 C

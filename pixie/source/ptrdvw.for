@@ -119,7 +119,7 @@ C ****  Check on the TRD_ANO_CATH flag to define
 C ****  the ANODE variable to draw the correct display
 C
       TRUTH = FLGVAL('TRD_ANO_CATH')
-      IF (TRUTH.EQ..TRUE.) THEN
+      IF (TRUTH) THEN
         ANODE = 1
       ELSE
         ANODE = 2

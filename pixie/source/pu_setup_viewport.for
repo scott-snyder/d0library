@@ -114,7 +114,7 @@ C
 C
 C ****  Setup 3D transformation
 C
-      IF ( VIEW3D(1) .NE. 0 ) THEN
+      IF ( VIEW3D(1) ) THEN
         CALL JIQDEV( IDEV, 17, I )             ! Real 3-D driver ?
         IF( I .NE. 0 ) CALL JDD3D( .TRUE. )
         CALL JPARAL

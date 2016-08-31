@@ -64,7 +64,7 @@ C    ==================
      X     XDIR,YDIR,ZDIR,TEMP,UMIN,UMAX,VMIN,VMAX,
      X     WX,WY,WZ,XSIZE,YSIZE,PLZMAX,ZMED
       INTEGER COLRED,I,J,IETA,IPHI,XNUM,YNUM,SEGNUM,LIST(1)
-      CHARACTER*24 IMESS1
+      CHARACTER*30 IMESS1
 C    Data Statements:
 C    ================
       DATA COLRED/1/

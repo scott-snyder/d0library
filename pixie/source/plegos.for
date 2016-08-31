@@ -21,7 +21,7 @@ C----------------------------------------------------------------------
       REAL XMIN,XMAX,YMIN,YMAX,ZMAX
       CHARACTER*3 COL1,COL2
       CHARACTER*4 XLAB,YLAB,ZLAB
-      CHARACTER*32 PLTITL
+      CHARACTER*40 PLTITL
       INTEGER NXMIN,NYMIN,N
       INTEGER NXG,NYG
       REAL ZSCAL

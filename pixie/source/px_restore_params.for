@@ -38,7 +38,7 @@ C
       CHARACTER*40 ARRAY_NAME,FILE,COMBINE_ARRAY
       CHARACTER*32 RCPFILE
 C----------------------------------------------------------------------
-      CHARACTER*40 OPTIONS(NOPTION),REM_OPTIONS(NOPTION)
+      CHARACTER*80 OPTIONS(NOPTION),REM_OPTIONS(NOPTION)
       DATA OPTIONS/'RESTORE PXPARAMS',
      &             'RESTORE PXSCREEN',
      &             'RESTORE COMBINE VIEWS'/

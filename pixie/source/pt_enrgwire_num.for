@@ -26,7 +26,7 @@ C
       CHARACTER*2 C2
       CHARACTER*4 TXTMS1
       CHARACTER*4 TXTMS2
-      CHARACTER*5 TXTMS3
+      CHARACTER*6 TXTMS3
       CHARACTER*3 CLAYER   ! Character Layer num
       CHARACTER*7 CENRG,CX1! Character Energy
       CHARACTER*7 CX       ! Dummy char variable

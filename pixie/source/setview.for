@@ -145,7 +145,7 @@ C
 C ****  Get Screen Number for current package
 C
       CALL PU_GET_SCREEN_NUMBER(COMMAND,ISCREEN,NSCREEN,IER)
-      IF ( IER .NE. 0 ) THEN
+      IF ( IER ) THEN
         STRING = 'Error accessing view '//COMMAND
         CALL ERRMSG('BAD_VIEW','SETVIEW',
      &    STRING,'W')
@@ -169,7 +169,7 @@ C
         CALL PU_MODIFY_VIEW
      &    (PACKAGE_NAME(1:LPACK),COMMAND(1:LCOMM),IER)
 C
-        IF ( IER .NE. 0 ) THEN
+        IF ( IER ) THEN
           STRING = 'Problem modifying parameter '//COMMAND(1:LCOMM)
           CALL ERRMSG('PIXIE_ERROR','SETVIEW',
      &          STRING,'W')

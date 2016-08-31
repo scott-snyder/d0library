@@ -31,7 +31,7 @@ C----------------------------------------------------------------------
       CHARACTER*4 REM, CVAL
       CHARACTER*8 CEMIN
       CHARACTER*16 IMESS
-      CHARACTER*24 MESS1,MESS2,MESS3,MESS4
+      CHARACTER*30 MESS1,MESS2,MESS3,MESS4
       LOGICAL EZERROR
 C =======================================================================
       DATA IMARK/1/

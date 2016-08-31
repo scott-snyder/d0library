@@ -26,12 +26,14 @@ C-
       INTEGER LZTRK,LZFIT,LDTRK,LFDCT,LVTXT,LTRDT,LLYR
       REAL        CQUANS(50),TQUANS(50),QUANS(50)
       CHARACTER*8 CQUAN_NAMES(50),TQUAN_NAMES(50),NAMQUANS(50)
+
+      integer ihpelc/4HPELC/
 C----------------------------------------------------------------------
 C-
       CALL VZERO(QUANS,50)
       LCACL = LQ(LPELC-2)
       LCASH = LQ(LCACL-2)
-      IF (IQ(LPELC-4) .EQ. 4HPELC) THEN
+      IF (IQ(LPELC-4) .EQ. iHPELC) THEN
         LZTRK = LQ(LPELC-3)
         LVTXT = LQ(LZTRK-6)
         LDTRK = LQ(LZTRK-7)

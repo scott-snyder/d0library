@@ -226,7 +226,7 @@ C
           CALL EZPICK(MENU_NAME(IMENU)(I:LMENU)//'_RCP')
           IF ( EZERROR(IER) ) THEN
             CALL ERRMSG('INVALID RCP FILE','PXBUILD_ADD_NEW_ITEM',
-     &        ,'Could not PICK '//MENU_NAME(IMENU)(1:LMENU),'W')
+     &        'Could not PICK '//MENU_NAME(IMENU)(1:LMENU),'W')
             GOTO 999
           ENDIF
 C

@@ -82,9 +82,9 @@ C
 C ****  Get the FADC data
 C
       TRUTH = FLGVAL('TRD_ANO_CATH')
-      IF (TRUTH.EQ..TRUE.) THEN
+      IF (TRUTH) THEN
         KA = 0
-      ELSE IF (TRUTH.EQ..FALSE.) THEN
+      ELSE
         KA = 3
       ENDIF
       ILO = LAYER

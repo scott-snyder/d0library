@@ -71,7 +71,7 @@ C *** Find the file
 C
         CONTXT = 0
         DATAFILE = ' '
-        ISTAT = LIB$FIND_FILE(DATFILNM(IDF:NDF),DATAFILE,CONTXT,,,,)
+        ISTAT = LIB$FIND_FILE(DATFILNM(IDF:NDF),DATAFILE,CONTXT,0,0,0,0)
 C
 C ****  If the file is NOT found drop the extension and
 C ****  continue search
