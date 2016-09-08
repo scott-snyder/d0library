@@ -60,7 +60,7 @@ C
   100 CONTINUE  
   300 CONTINUE
       NCHAIN=IQ(LCHAI+1)
-      IF (NEW.EQ..FALSE..OR.NCHAIN.EQ.MAXCHN) GO TO 1000
+      IF (.not.NEW.OR.NCHAIN.EQ.MAXCHN) GO TO 1000
       IQ(LCHAI+1)=IQ(LCHAI+1)+1             ! increment number of chains
       NCHAIN=IQ(LCHAI+1)
       LSTART=LCHAI+1+(NCHAIN-1)*8

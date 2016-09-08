@@ -63,7 +63,7 @@ C
         IF (IBITS(IQ(LVERT+2),8,8) .LT. VERT_MINTRK) GO TO 10
         ZVTX = Q(LVERT+5)
         IF ( ABS(ZVTX) .GT. VERT_MAXVAL) GO TO 10
-        IF ( IBITS(IQ(LVERT+2),26,1)) GO TO 10
+        IF ( IBITS(IQ(LVERT+2),26,1) .ne. 0) GO TO 10
         DZDR = (Z0-ZVTX)/R0
         DO LAYER = 0,2
           IF ( ABS(ZVTX+DZDR*VTXR7(LAYER)).GT.VTXHL(LAYER)) GO TO 10

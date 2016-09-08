@@ -46,7 +46,7 @@ C
           CALL VTMCHK(GOOD)
           IF ( GOOD ) THEN
             CALL VSTP_INSERT('TIMES',IER)
-            IF ( IER .NE. 0 ) THEN
+            IF ( IER  ) THEN
               WRITE(MSG,'(A,I2)') 
      &          'Error writing tzeros to DBL3, IER = ', IER
               CALL ERRMSG('DBL3 error','VTXCOFF_SUMMARY',
@@ -72,7 +72,7 @@ C
           CALL VGNCHK(GOOD)
           IF ( GOOD ) THEN
             CALL VSTP_INSERT('GAINS',IER)
-            IF ( IER .NE. 0 ) THEN
+            IF ( IER ) THEN
               WRITE(MSG,'(A,I2)') 
      &          'Error writing gains to DBL3, IER = ', IER
               CALL ERRMSG('DBL3 error','VTXCOFF_SUMMARY',

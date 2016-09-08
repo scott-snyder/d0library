@@ -111,7 +111,7 @@ C
             CALL VSECHT(LAYER,SECTOR)
           ELSEIF ( VCHT_EXISTS ) THEN
             CALL VCHT_UNPACK(LAYER,SECTOR,ISTAT)
-            IF ( ISTAT .EQ. 0 ) THEN
+            IF ( .not.ISTAT ) THEN
               CALL VHTCHK(LAYER,SECTOR,1,DONE)  ! Set done bit in VTXH
             ELSE
               CALL ERRMSG('Hit data missing','VTHITS',

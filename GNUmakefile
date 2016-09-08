@@ -75,7 +75,7 @@ include top_physics/GNUmakefile.sub
 include tpmfarm/GNUmakefile.sub
 include trd_util/GNUmakefile.sub
 include util/GNUmakefile.sub
-#include vtx_util/GNUmakefile.sub
+include vtx_util/GNUmakefile.sub
 include wz/GNUmakefile.sub
 include xframe/GNUmakefile.sub
 include zebra_util/GNUmakefile.sub
