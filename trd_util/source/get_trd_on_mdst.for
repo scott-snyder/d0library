@@ -55,6 +55,9 @@ C      COMMON/WORKSP/WS(LENGWS)
       DATA PPHO_VAR_NAME/'TRDACP','TRDEFP','TRD11P','TRD12P','TRD21P',
      &                   'TRD22P','TRD31P','TRD32P'/
       DATA IFOIS/0/
+
+      integer ihpelc/4HPELC/
+      integer ihppho/4HPPHO/
 C----------------------------------------------------------------------
       LUDST = GZUDST()
       UDST_VER = IQ(LUDST+1)
@@ -97,13 +100,13 @@ C
         IF(LZTRK.NE.0) THEN
           LCLUS = LQ(LZTRK-4)
           IF (LCLUS.NE.0) THEN
-            IF (IQ(LCLUS-4).EQ.4HPELC) THEN
+            IF (IQ(LCLUS-4).EQ.iHPELC) THEN
               DO K = 1,NINT
                 CLUS_VAR_NAME(K) = PELC_VAR_NAME(K)
               ENDDO
               CLUS_NAME = 'PELC'
 C take care of PPHOs
-            ELSEIF (IQ(LCLUS-4).EQ.4HPPHO) THEN
+            ELSEIF (IQ(LCLUS-4).EQ.iHPPHO) THEN
               DO K = 1,NINT
                 CLUS_VAR_NAME(K) = PPHO_VAR_NAME(K)
               ENDDO

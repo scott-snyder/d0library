@@ -50,6 +50,9 @@ C     Validity dates
       DATA FIRST/.TRUE./
       CHARACTER*1 X1
       CHARACTER*2 X2
+
+      integer ihyes/3HYES/
+      integer ilhyes/3Hyes/
 C
       IF (FIRST) THEN
                DO 10 I=1,MIN0(9,NDEV_HV)
@@ -131,7 +134,7 @@ C     If no error, get the new validity keys
       ENDIF
       ENDIF
 C
-      IF (.NOT.HVM_VALID.AND.I.EQ.3HYES.OR.I.EQ.3Hyes) THEN
+      IF (.NOT.HVM_VALID.AND.I.EQ.iHYES.OR.I.EQ.ilHyes) THEN
       CALL DBMU_GETHV( CLASS_HVM,VTIM,' ',NDEV_HV,VAL_HV_HVM,
      &XHOU_HVM,IRET_HVM)
 C    If IRET_HVM = 0, then simply there was no update: take the data
@@ -149,8 +152,8 @@ C     If no error, get the new validity keys
       ENDIF
       ENDIF
 C     Tests which one of DBMON and HVMON is closest in time
-      IF ((IRET_DBM.GT.0).AND.(IRET_HVM.GT.0).AND.((I.EQ.3HYES).OR.(I.
-     &  EQ.3Hyes))) THEN
+      IF ((IRET_DBM.GT.0).AND.(IRET_HVM.GT.0).AND.((I.EQ.iHYES).OR.(I.
+     &  EQ.ilHyes))) THEN
        IF ((ABS(XHOU_HVM).LT.ABS(XHOU_DBM))) THEN
         DO 30 I = 1,NDEV_HV
          VAL_HV(I) = VAL_HV_HVM(1,I)  

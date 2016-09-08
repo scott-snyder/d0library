@@ -83,7 +83,7 @@ C  Zero cell energies
 C
       IF(RUNNO().NE.RUNI)THEN !current run not equal to previous run
         RUNI=RUNNO()
-        IF(TYP_RUN.NE.RUN1A())THEN ! switch from run 1a to 1b or vice versa
+        IF(TYP_RUN.NEQV.RUN1A())THEN ! switch from run 1a to 1b or vice versa
           TYP_RUN=RUN1A()
           CALL TRD_NWIRE_PER_LAYER
           DPHI(3)=2.0*PI/FLOAT(NWIRE_PER_LAYER(3))

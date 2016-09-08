@@ -32,19 +32,23 @@ C----------------------------------------------------------------------
       EQUIVALENCE (VI , II )
       LOGICAL DOCOR,DOCLUS,DOPRINT,FIRST,DO_HISTO
       DATA FIRST/.TRUE./
+
+      integer ihy/1HY/
+      integer ihyes/3HYES/
+
       IF(FIRST)THEN
         FIRST=.FALSE.
         LOUT=TRUNIT()
         CALL EZPICK('TRD_RCP')
         DO_HISTO=.FALSE.
         CALL EZGET('HSTBOK',IWS,IERR)
-        IF(IERR.EQ.0)DO_HISTO=IWS(1).EQ.1HY .OR. IWS(1).EQ.1HY
-     &    .OR. IWS(1).EQ.3HYES
+        IF(IERR.EQ.0)DO_HISTO=IWS(1).EQ.iHY .OR. IWS(1).EQ.iHY
+     &    .OR. IWS(1).EQ.iHYES
         CALL EZGET('ETOTM',ETOTM,IER)
         NDFADC=TVALIN(3)
         DOCLUS=.FALSE.
         CALL EZGET('CLUSTER_RECONS',I,IER)
-        IF(I.EQ.1HY .OR. I.EQ.1HY .OR. I.EQ.3HYES)DOCLUS=.TRUE.
+        IF(I.EQ.iHY .OR. I.EQ.iHY .OR. I.EQ.iHYES)DOCLUS=.TRUE.
 C        DOCOR=.FALSE.
 C        CALL EZGET('CORRECTION_<EPI>',I,IER)
         DOPRINT=SWTDBG.EQ.1 .AND. LOUT.NE.0

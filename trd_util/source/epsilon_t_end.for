@@ -149,7 +149,7 @@ C-          INITIALIZATION
             T_END = T_END + LYR_NRG
           ENDIF
         ENDDO
-        IF (TRD_ZERO) T_END = 0.0
+        IF (TRD_ZERO.ne.0) T_END = 0.0
         TRUNC_SUM = 1.5*T_END/FLOAT(TGEO) ! normalize t_end to 3-lyr trsum
 C-          *** remove most of dependence on run and environment with scale
 C-          *** factors applied to trunc_sum.

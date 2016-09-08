@@ -173,7 +173,7 @@ C        ENDDO
           CALL PACK_INTEGER (INTEGER_WORD,51,NA,4,LSTART,LNEXT)
         ELSE
           K=2  ! nb. of packed words  in the bank
-          IF(RUN1A())K=4
+          IF(RUN1A().ne.0)K=4
           CALL PACK_INTEGER (INTEGER_WORD,51,NA,K,LSTART,LNEXT)! wires nb
         ENDIF
         CALL PACK_REAL (REAL_WORD,100.,51,NA,2,LNEXT,LNEXT)!E anodes

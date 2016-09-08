@@ -83,6 +83,8 @@ C
       REAL TRD_ANAL_CATH
       DATA IFOIS/0/
       DATA FIRST/.TRUE./
+      integer ihpelc/4HPELC/
+      
       IF(FIRST)THEN ! initialization
         TRDINI =  TRD_ANALYSIS_INI()
         MC_DATA =  IQ(LHEAD+1) .GT. 1000
@@ -202,7 +204,7 @@ C      IF(DOPRINT)WRITE(LOUT,*)' calor eta',Q(LCLUS+19)
         ENDIF
         IF(DOPRINT)WRITE(LOUT,*)' in TRD_ANALYSIS,lpelc',LPELC
         IF (LCLUS.NE.0) THEN
-          IF (IQ(LCLUS-4).EQ.4HPELC)THEN
+          IF (IQ(LCLUS-4).EQ.iHPELC)THEN
             IF( .NOT.TRD_CHECK_INTEGRITY(LZTRK_LOCAL)) GOTO 999
             IETA=Q(LCLUS+19)
 C            write(lout,*)' lztrk,LQ(LTRDT-4)',lztrk,LQ(LTRDT-4)
