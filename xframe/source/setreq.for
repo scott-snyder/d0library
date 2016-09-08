@@ -187,11 +187,12 @@ c
 c
       include 'd0$xframe$source:d0map.inc'
 c
-      logical satisfied,thisone,checkoptr,checkopti,checkoptl
+      logical satisfied,thisone,checkoptr,checkopti,checkoptl,checkoptc
       integer i,nummet,index,nbanks,ibank(100),npass,lbank,j
       integer type,offset
       character*4 bank,fchar
       character*12 spec
+      logical ltmp
 c
 c     preset to false
 c
@@ -256,11 +257,12 @@ c
                 thisone = checkopti(
      &            iq(lbank+offset),rivals1(j),rops1(j))
               else if (type.eq.istf) then
+                ltmp = iq(lbank+offset)
                 thisone = checkoptl(
-     &            iq(lbank+offset),rbvals1(j),rops1(j))
+     &            ltmp,rbvals1(j),rops1(j))
               else if (type.eq.ischar) then
                 call uhtoc(iq(lbank+offset),4,fchar,4)
-                thisone = checkoptr(
+                thisone = checkoptc(
      &            fchar,rcvals1(j),rops1(j))
               endif
 c
@@ -323,7 +325,7 @@ c
 c
       include 'd0$xframe$source:d0map.inc'
 c
-      character*(*) opt
+c      character*(*) opt
       real freal,treal
       integer op
 c
@@ -357,7 +359,7 @@ c
 c
       include 'd0$xframe$source:d0map.inc'
 c
-      character*(*) opt
+c      character*(*) opt
       integer fint, tint
       integer op
 c
@@ -391,7 +393,7 @@ c
 c
       include 'd0$xframe$source:d0map.inc'
 c
-      character*(*) opt
+c      character*(*) opt
       logical ftf, ttf
       integer op
 c
@@ -417,7 +419,7 @@ c
 c
       include 'd0$xframe$source:d0map.inc'
 c
-      character*(*) opt
+c      character*(*) opt
       character*(*) fchar, tchar
       integer op
 c

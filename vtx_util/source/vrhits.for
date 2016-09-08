@@ -128,12 +128,12 @@ C  do hitfinding for this sector, book and fill VSEC
 C
             IF ( FULLVCHT ) THEN  ! get sector info from VCHT
               CALL VCHT_UNPACK(LAYER,SECTOR,ISTAT)
-              IF ( ISTAT .EQ. 0 ) CALL VHTCHK(LAYER,SECTOR,1,DONE) ! set bit
+              IF ( .not.ISTAT ) CALL VHTCHK(LAYER,SECTOR,1,DONE) ! set bit
             ELSEIF ( RAW_EXISTS ) THEN ! find hits from raw data
               CALL VSECHT(LAYER,SECTOR)
             ELSEIF ( VCHT_EXISTS ) THEN ! VCHT not full; try anyway (last hope)
               CALL VCHT_UNPACK(LAYER,SECTOR,ISTAT)
-              IF ( ISTAT .EQ. 0 ) THEN
+              IF ( .not.ISTAT ) THEN
                 CALL VHTCHK(LAYER,SECTOR,1,DONE) ! set done bit
               ELSE
                 CALL ERRMSG('VTX-NO-DATA','VRHITS',

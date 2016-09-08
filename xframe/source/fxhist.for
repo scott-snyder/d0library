@@ -218,9 +218,9 @@ c
             else if (type.eq.istf) then
               ftf = iq(kbank+offset)
               if (mode.eq.0) then
-                call hfill(hid,ftf+.5,0.,1.)
+                call hfill(hid,fint+.5,0.,1.)
               else
-                call hfn(hid,ftf+.5)
+                call hfn(hid,fint+.5)
               endif
             endif
 c

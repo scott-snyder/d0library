@@ -352,7 +352,7 @@ c
 c     check if this event satisfies requirements criteria
 c
       meetit = .false.
-      if ((doreq).and.nreqs.gt.0) meetit = reqmet()
+      if ((doreq.ne.0).and.nreqs.gt.0) meetit = reqmet()
 c
 c     histogram any variables based on requirement (0=hist, 1=tuples)
 c
