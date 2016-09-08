@@ -39,7 +39,7 @@ C
       DATA LUNIT / 0 /, KETA / 0 /
       CHARACTER*4 CHAR4
       EQUIVALENCE (CHAR4,MCLYR(1))
-      DATA MCLYR / 0, 3, 1, 24, 9 /
+      DATA MCLYR / 4HCLYR, 3, 1, 24, 9 /
       DATA CHAR4 / 'CLYR'/
 C
       CALL MZLINT(IXSTP,'/LCLYR/', LCLYR, JQCLYR, KSCLYR)   ! temporary link

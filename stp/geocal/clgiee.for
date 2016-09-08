@@ -29,8 +29,8 @@ C---------------------------------------------------------------
       EQUIVALENCE (ICHARR,CHARR)
       EQUIVALENCE (CHAR4,MCLGI(1))
       EQUIVALENCE (CHAS4,MCSHA(1))
-      DATA MCLGI / 0, 6, 1, 18, 9/
-      DATA MCSHA / 0, 0, 0, 16, 9/
+      DATA MCLGI / 4HCLGI, 6, 1, 18, 9/
+      DATA MCSHA / 4HCSHA, 0, 0, 16, 9/
       DATA CHAR4 / 'CLGI'/
       DATA CHAS4 / 'CSHA'/
 C

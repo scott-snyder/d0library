@@ -35,9 +35,9 @@ C---------------------------------------------------------------
       CHARACTER*4 CHARR
       EQUIVALENCE (ICHARR, CHARR), (CHAR4,MCLGA(1)), (CHAS4,MCSHA(1))
       EQUIVALENCE (CHAL4,MCLNK(1))
-      DATA MCLGA / 0, 6, 1, 18, 9/
-      DATA MCSHA / 0, 0, 0,  6, 9/
-      DATA MCLNK / 0, 32, 0, 4, 2/
+      DATA MCLGA / 4HCLGA, 6, 1, 18, 9/
+      DATA MCSHA / 4HCSHA, 0, 0,  6, 9/
+      DATA MCLNK / 4HCLNK, 32, 0, 4, 2/
       DATA CHAR4 / 'CLGA' /
       DATA CHAS4 / 'CSHA' /
       DATA CHAL4 / 'CLNK' /

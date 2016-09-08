@@ -132,7 +132,7 @@ C
       DATA CHFCX/'FCX1','FCX2','FCX3','FCX4','FCX5','FCX6'/
       DATA CHFRBX/'FBX1','FBX2','FBX3','FBX4','FBX5','FBX6'/
       DATA CHFGX/'GX1 ','GX2 ','GX3 ','GX4 ','GX5 ','GX6 ',
-     &   'GX7 ','GX8 ','GX9 ','GX10 ','GX11 '/
+     &   'GX7 ','GX8 ','GX9 ','GX10','GX11'/
       DATA CHFULX/'ULX1','ULX2','ULX3','ULX4','ULX5',
      &  'ULX6','ULX7'/
       DATA CHFURX/'URX1','URX2','URX3','URX4','URX5',

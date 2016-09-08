@@ -16,7 +16,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$LINKS:IZCTHE.LINK'
       INTEGER JCTHE, MCTHE(5), IOCTHE, NMSR
 C
-      DATA MCTHE / 'CTHE', 2, 0, 39, 9 /
+      DATA MCTHE / 4HCTHE, 2, 0, 39, 9 /
 C
       CALL MZFORM('CTHE','1H7I-F',IOCTHE)
       MCTHE(5) = IOCTHE

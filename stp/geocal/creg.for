@@ -28,7 +28,7 @@ C
       PARAMETER   (IGFRAC = 20)    ! fraction index
       INTEGER MCREG(5), IOCREG, LORIG
 C
-      DATA MCREG/'CREG', 4, 4, 20, 9/
+      DATA MCREG/4HCREG, 4, 4, 20, 9/
 C
       CALL MZFORM('CREG','8I1F4I-F',IOCREG)
       MCREG(5) = IOCREG

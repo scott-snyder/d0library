@@ -16,7 +16,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$LINKS:IZCMDL.LINK'
       INTEGER JCMDL, MCMDL(5), IOCMDL, NMSR
 C
-      DATA MCMDL / 'CMDL', 2, 0, 39, 9 /
+      DATA MCMDL / 4HCMDL, 2, 0, 39, 9 /
 C
       CALL MZFORM('CMDL','1H7I-F',IOCMDL)
       MCMDL(5) = IOCMDL

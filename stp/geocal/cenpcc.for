@@ -29,8 +29,8 @@ C---------------------------------------------------------------
       EQUIVALENCE (ICHARR,CHARR)
       EQUIVALENCE (CHAR4,MCENP(1))
       EQUIVALENCE (CHAS4,MCSHA(1))
-      DATA MCENP / 0, 5, 0, 18, 9/
-      DATA MCSHA / 0, 0, 0,  6, 9/
+      DATA MCENP / 4HCENP, 5, 0, 18, 9/
+      DATA MCSHA / 4HCSHA, 0, 0,  6, 9/
       DATA CHAR4 / 'CENP'/
       DATA CHAS4 / 'CSHA'/
 

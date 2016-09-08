@@ -132,7 +132,7 @@ C
       DATA CHFCY/'FCY1','FCY2','FCY3','FCY4','FCY5','FCY6'/
       DATA CHFRBY/'FBY1','FBY2','FBY3','FBY4','FBY5','FBY6'/
       DATA CHFGY/'GY1 ','GY2 ','GY3 ','GY4 ','GY5 ','GY6 ',
-     &   'GY7 ','GY8 ','GY9 ','GY10 ','GY11 '/
+     &   'GY7 ','GY8 ','GY9 ','GY10','GY11'/
       DATA CHFULY/'ULY1','ULY2','ULY3','ULY4','ULY5',
      &   'ULY6','ULY7'/
       DATA CHFURY/'URY1','URY2','URY3','URY4','URY5',

@@ -38,7 +38,7 @@ C
       EQUIVALENCE (CHAR4,MCLYR(1))
       DATA LUNIT / 0 /, LERR / 6 /
       DATA FIRST /.TRUE./
-      DATA MCLYR / 0, 2, 1, 16, 9 /
+      DATA MCLYR / 4HCLYR, 2, 1, 16, 9 /
       DATA CHAR4 / 'CLYR'/
 C
       IF (FIRST) THEN

@@ -16,7 +16,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$LINKS:IZCSYL.LINK'
       INTEGER JCSYL, MCSYL(5)
 C
-      DATA MCSYL / 'CSYL', 3, 2, 10, 2 /
+      DATA MCSYL / 4HCSYL, 3, 2, 10, 2 /
 C
       CALL MZLIFT(IDVSURV, JCSYL, LCSRV, -IZCSYL, MCSYL, 0)
 C----------------------------------------------------------------------

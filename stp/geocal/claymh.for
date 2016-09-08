@@ -37,8 +37,8 @@ C
       CHARACTER*4 CHAR4,CHAS4
       EQUIVALENCE (CHAR4,MCLAY(1))
       EQUIVALENCE (CHAS4,MCSHA(1))
-      DATA MCLAY / 0, 4, 0, 35, 9 /
-      DATA MCSHA / 0, 0, 0,  7, 9 /
+      DATA MCLAY / 4HCLAY, 4, 0, 35, 9 /
+      DATA MCSHA / 4HCSHA, 0, 0,  7, 9 /
       DATA CHAR4 / 'CLAY'/
       DATA CHAS4 / 'CSHA'/
       DATA INCH /2.54/                   ! converts inches to cm

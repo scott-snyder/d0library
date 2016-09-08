@@ -20,7 +20,7 @@ C----------------------------------------------------------------------
       REAL    RMEAN, SIGMA
       PARAMETER( RMEAN = 20.)
       PARAMETER( SIGMA = 1.5)
-      DATA    MPDPDL / 'DPDL', 0, 0, 0, 0 /
+      DATA    MPDPDL / 4HDPDL, 0, 0, 0, 0 /
 C----------------------------------------------------------------------
 C
       IF (LDPDH .EQ. 0) CALL BKDPDH(LDPDH)

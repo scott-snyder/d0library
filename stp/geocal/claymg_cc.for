@@ -33,7 +33,7 @@ C
 C
       CHARACTER*4 CHAR4
       EQUIVALENCE (CHAR4,MCLAY(1))
-      DATA MCLAY / 0, 4, 0, 28, 9 /
+      DATA MCLAY / 4HCLAY, 4, 0, 28, 9 /
       DATA CHAR4 / 'CLAY'/
       DATA LUNIT / 0 /
 C

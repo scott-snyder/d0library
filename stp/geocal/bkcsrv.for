@@ -15,7 +15,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:CALOR_SURVEY.INC'
       INTEGER JCSRV, MCSRV(5)
 C
-      DATA MCSRV / 'CSRV', 1, 1, 10, 2/
+      DATA MCSRV / 4HCSRV, 1, 1, 10, 2/
 C
       IF( JCSRV .EQ.0 ) THEN
         CALL MZLIFT(IDVSURV, JCSRV, LSURV, 1, MCSRV,0)

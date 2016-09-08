@@ -25,9 +25,9 @@ C----------------------------------------------------------------------
       REAL    MATRIX(3,3), VECTOR(3), X0, Y0, Z0, COSPHI, SINPHI
       REAL    X00, Y00, Z00, X01, Y01
       LOGICAL FIRST, EZERROR
-      DATA    MPDALH / 'DALH',  4,  4,  2,  2 /
-      DATA    MPDALL / 'DALL', 32, 32,  2,  2 /
-      DATA    MPDALS / 'DALS',  0,  0,  0,  0 /
+      DATA    MPDALH / 4HDALH,  4,  4,  2,  2 /
+      DATA    MPDALL / 4HDALL, 32, 32,  2,  2 /
+      DATA    MPDALS / 4HDALS,  0,  0,  0,  0 /
 C      DATA    MATRIX/0.9952,-0.09797,0.0002291,0.09797,0.9952,
 C     &               -0.0002292, -0.0002056,0.0002505,1.0/
 C      DATA VECTOR/0.00594,0.01382,-0.00673/

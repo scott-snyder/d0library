@@ -23,8 +23,8 @@ C---------------------------------------------------------------
       EQUIVALENCE (ICHARR,CHARR)
       EQUIVALENCE (CHAR4,MCRYO(1))
       EQUIVALENCE (CHAS4,MCSHA(1))
-      DATA MCRYO / 0, 4, 0, 16, 9/
-      DATA MCSHA / 0, 0, 0,  5, 9/
+      DATA MCRYO / 4HCRYO, 4, 0, 16, 9/
+      DATA MCSHA / 4HCSHA, 0, 0,  5, 9/
       DATA CHAR4 / 'CRYO'/
       DATA CHAS4 / 'CSHA'/
 C

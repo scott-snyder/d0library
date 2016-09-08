@@ -25,7 +25,7 @@ C
 C
       CHARACTER*4 CHAR4
       EQUIVALENCE (CHAR4,MCEDP(1))
-      DATA MCEDP / 0, 37, 1, 11, 2 /
+      DATA MCEDP / 4HCEDP, 37, 1, 11, 2 /
       DATA CHAR4 / 'CEDP'/
 C----------------------------------------------------------------------
 C

@@ -23,8 +23,8 @@ C---------------------------------------------------------------
       REAL    PAX1(3), PAX2(3), INCH
       INTEGER LZFIND
       COMMON / LCLGA / LCLGA, LPCON, LTUBE, LORIG
-      DATA MCENP / 'CENP', 5, 0, 18, 9/
-      DATA MCSHA / 'CSHA', 0, 0,  7, 9/
+      DATA MCENP / 4HCENP, 5, 0, 18, 9/
+      DATA MCSHA / 4HCSHA, 0, 0,  7, 9/
       DATA NSEG  / 16 /
       DATA INCH  /2.54/                         ! conversion to cm
 C

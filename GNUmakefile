@@ -70,7 +70,7 @@ include qcd/GNUmakefile.sub
 include showerlibrary/GNUmakefile.sub
 include spythia/GNUmakefile.sub
 include srcp_util/GNUmakefile.sub
-#include stp/GNUmakefile.sub
+include stp/GNUmakefile.sub
 #include top_physics/GNUmakefile.sub
 #include tpmfarm/GNUmakefile.sub
 #include trd_util/GNUmakefile.sub

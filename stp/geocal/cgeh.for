@@ -17,7 +17,7 @@ C------------------------------------------------------------------------
 C
       CHARACTER*4 CHAR4
       EQUIVALENCE (CHAR4,MCGEH(1))
-      DATA MCGEH / 0, 5, 4, 9, 9/
+      DATA MCGEH / 4HCGEH, 5, 4, 9, 9/
       DATA CHAR4 /'CGEH'/
       CALL MZFORM('CGEH','8I1F',IOCGEH)
 C

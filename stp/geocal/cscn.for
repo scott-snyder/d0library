@@ -41,11 +41,11 @@ C
       EQUIVALENCE (CHAR43,MCLYR(1))
       EQUIVALENCE (CHAR44,MCLAY(1))  
       EQUIVALENCE (CHAR45,MCLNK(1))
-      DATA MCSCN / 0, 6, 1, 19, 9/
-      DATA MCSHA / 0, 0, 0, 7, 9/
-      DATA MCLYR / 0, 2, 1, 16, 9/
-      DATA MCLAY / 0, 4, 0, 1, 9/
-      DATA MCLNK / 0, 1, 0, 4, 2/
+      DATA MCSCN / 4HCSCN, 6, 1, 19, 9/
+      DATA MCSHA / 4HCSHA, 0, 0, 7, 9/
+      DATA MCLYR / 4HCLYR, 2, 1, 16, 9/
+      DATA MCLAY / 4HCLAY, 4, 0, 1, 9/
+      DATA MCLNK / 4HCLNK, 1, 0, 4, 2/
       DATA CHAR41/ 'CSCN'/
       DATA CHAR42/ 'CSHA'/
       DATA CHAR43/ 'CLYR'/

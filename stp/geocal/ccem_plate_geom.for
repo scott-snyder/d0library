@@ -61,6 +61,10 @@ C  Equivalences
 C  Parameters
       REAL CM_PER_INCH
       PARAMETER ( CM_PER_INCH = 2.54 )
+
+      integer ihss/4HSS  /
+      integer ihg10/4HG10 /
+      integer ihu/4HU   /
 C----------------------------------------------------------------------
 C  Select the CC SRCP file
 C  Used both for EZGETs in this routine and in the CCEM_ routines
@@ -174,11 +178,11 @@ C  Create a volume representing this element
 C----------------------------------------------------------------------
         VOLUME_LABEL = ELEMENT_NAME(1:4) // '_VOLUME'
         CALL UCTOH ( ELEMENT_NAME(1:4), VOLUME_NAME, 4, 4 )
-        IF ( MATERIAL_NAME .EQ. 4HSS   ) THEN
+        IF ( MATERIAL_NAME .EQ. iHSS   ) THEN
           VOLUME_MATERIAL_CODE = STAINLESS_STEEL_CODE
-        ELSE IF ( MATERIAL_NAME .EQ. 4HU    ) THEN
+        ELSE IF ( MATERIAL_NAME .EQ. iHU    ) THEN
           VOLUME_MATERIAL_CODE = URANIUM_CODE
-        ELSE IF ( MATERIAL_NAME .EQ. 4HG10  ) THEN
+        ELSE IF ( MATERIAL_NAME .EQ. iHG10  ) THEN
           VOLUME_MATERIAL_CODE = G10_CODE
         ENDIF
         Z_POSITION = CM_PER_INCH * ( 0.5 * (LO_Z + HI_Z) - CENTRAL_Z )

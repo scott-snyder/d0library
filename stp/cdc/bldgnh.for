@@ -21,7 +21,7 @@ C----------------------------------------------------------------------
       PARAMETER( GAIN = 1. )
       CHARACTER*4 CHAR4
       EQUIVALENCE (CHAR4,MPDGNL(1))
-      DATA    MPDGNL / 0, 0, 0, 0, 0 /
+      DATA    MPDGNL / 4HDGNL, 0, 0, 0, 0 /
       DATA    CHAR4/'DGNL'/
 C----------------------------------------------------------------------
 C

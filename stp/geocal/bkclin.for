@@ -23,7 +23,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$LINKS:IZCLIN.LINK'
       INTEGER JCLIN, MCLIN(5), IOCLIN
 C
-      DATA MCLIN /'CLIN', 1, 0, 30, 9 /
+      DATA MCLIN /4HCLIN, 1, 0, 30, 9 /
 C
       CALL MZFORM('CLIN','2I1F8I-F',IOCLIN)
       MCLIN(5) = IOCLIN

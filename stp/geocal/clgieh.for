@@ -32,8 +32,8 @@ C---------------------------------------------------------------
       EQUIVALENCE (CHAR4,MCLGI(1))
       EQUIVALENCE (CHAS4,MCSHA(1))
       DATA IMVACU / 16 /
-      DATA MCLGI / 0, 6, 1, 18, 9/
-      DATA MCSHA / 0, 0, 0,  5, 9/
+      DATA MCLGI / 4HCLGI, 6, 1, 18, 9/
+      DATA MCSHA / 4HCSHA, 0, 0,  5, 9/
       DATA CHAR4 / 'CLGI'/
       DATA CHAS4 / 'CSHA'/
 C
