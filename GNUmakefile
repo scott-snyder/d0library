@@ -78,4 +78,4 @@ include util/GNUmakefile.sub
 #include vtx_util/GNUmakefile.sub
 include wz/GNUmakefile.sub
 include xframe/GNUmakefile.sub
-#include zebra_util/GNUmakefile.sub
+include zebra_util/GNUmakefile.sub

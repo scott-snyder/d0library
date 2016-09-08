@@ -14,6 +14,8 @@ C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:ZEBCOM.INC'
       INCLUDE 'D0$LINKS:IZZDST.LINK'
+
+      integer ihzdst/4HZDST/
 C----------------------------------------------------------------------
       IF (LHEAD.EQ.0)THEN
         GZZDST=0
@@ -24,6 +26,6 @@ C----------------------------------------------------------------------
 C-
 C- Verify hollerith bank identifier.
 C-
-      IF(IQ(GZZDST-4).NE.4HZDST)GZZDST = 0
+      IF(IQ(GZZDST-4).NE.iHZDST)GZZDST = 0
   999 RETURN
       END
