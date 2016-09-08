@@ -50,7 +50,7 @@ C----------------------------------------------------------------------
       if (.not. hexist (id)) then
         call hcdir (msg, 'R')
         print *, '-->'//msg
-        write (msg, '(''id: '', i)') id
+        write (msg, '(''id: '', i8)') id
         call errmsg ('can''t find histogram', me, msg, 'f')
       endif
 

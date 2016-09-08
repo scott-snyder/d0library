@@ -70,7 +70,7 @@ C----------------------------------------------------------------------
       IF(MOBJ.LT.0.001) GOTO 111
       UZ = PTOT(3)/MOBJ
       GAMMAZ = SQRT(1. + UZ**2)
-      BETAZ = (UZ/ABS(UZ))*SQRT(1. - GAMMAZ**-2)
+      BETAZ = (UZ/ABS(UZ))*SQRT(1. - GAMMAZ**(-2))
       DO II = 1,NOBJ
         P4V(3,II) = GAMMAZ*(P4V(3,II) - BETAZ*P4V(4,II))
         P4V(4,II) = GAMMAZ*(P4V(4,II) - BETAZ*P4V(3,II))

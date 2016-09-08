@@ -296,7 +296,7 @@ C
           CALL MNEXCM(FCN,'FIX',ARGLIS,1,IER)
         ENDIF
         IF(IER .NE. 0)THEN
-          WRITE(LUNIT,'(A,I)') 'UNABLE TO DEFINE PARAMETER NO,', I
+          WRITE(LUNIT,'(A,I8)') 'UNABLE TO DEFINE PARAMETER NO,', I
           STOP
         ENDIF
       ENDDO
