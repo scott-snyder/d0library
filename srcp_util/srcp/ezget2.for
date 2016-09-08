@@ -141,7 +141,7 @@ C
             K = K + 1
             IC(IPTV+J) = IVAL(K)
             IC(IPTT+J) = EZZSHFT(TYPE(K),NBITS)
-            IC(IPTT+J) = IC(IPTT+J) .OR. TOTAL
+            IC(IPTT+J) = ior(IC(IPTT+J), TOTAL)
   310     CONTINUE
           NUMV = K
         ENDIF

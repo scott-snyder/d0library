@@ -59,7 +59,7 @@ C----------------------------------------------------------------------
 C
 C ****  Determine Control SWITCH
 C
-      BEFORE = .NOT. SWITCH
+      BEFORE = SWITCH.eq.0
 C
 C ****  Check if an SRCP bank has been selected
 C

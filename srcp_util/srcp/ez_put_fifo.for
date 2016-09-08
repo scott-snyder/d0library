@@ -45,6 +45,8 @@ C----------------------------------------------------------------------
       INTEGER LENOCC, LZFIDH
       DATA FIRST/.TRUE./
       SAVE ND, NR, NW, FIRST, NLINK
+
+      integer ihspace/4H    /
 C----------------------------------------------------------------------
       IF(FIRST)THEN
         FIRST = .FALSE.
@@ -72,7 +74,7 @@ C-
 C-
 C- Confidence builder.
 C-
-      IF(IQ(LFIFO-4).NE.4H    )THEN
+      IF(IQ(LFIFO-4).NE.ihspace )THEN
         CALL ERRMSG('EZ_PUT_FIFO', 'EZ_PUT_FIFO', 'Wrong bank', 'F')
         GO TO 999
       ENDIF
@@ -131,7 +133,7 @@ C-
 C-
 C- Confidence builder.
 C-
-      IF(IQ(LFIFO-4).NE.4H    )THEN
+      IF(IQ(LFIFO-4).NE.ihspace )THEN
         CALL ERRMSG('EZ_GET_FIFO', 'EZ_GET_FIFO', 'Wrong bank', 'F')
         GO TO 999
       ENDIF

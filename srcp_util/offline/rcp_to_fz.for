@@ -44,14 +44,14 @@ C
 C ****  Check logicals
 C
       STATUS = TRNLNM(RCP_INPUT,STRING,L)
-      IF ( .NOT. STATUS ) THEN
+      IF ( iand(STATUS,1).eq.0 ) THEN
         CALL INTMSG
      &   (' %RCP_TO_FZ-E-UNDEFINED, Please DEFINE logical '//RCP_INPUT)
         GOTO 999
       ENDIF
 C
       STATUS = TRNLNM(FZ_OUTPUT,STRING,L)
-      IF ( .NOT. STATUS ) THEN
+      IF ( iand(STATUS,1).eq.0 ) THEN
         CALL INTMSG
      &   (' %RCP_TO_FZ-E-UNDEFINED, Please DEFINE logical '//FZ_OUTPUT)
         GOTO 999
