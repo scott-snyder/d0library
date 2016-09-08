@@ -72,7 +72,7 @@ include spythia/GNUmakefile.sub
 include srcp_util/GNUmakefile.sub
 include stp/GNUmakefile.sub
 include top_physics/GNUmakefile.sub
-#include tpmfarm/GNUmakefile.sub
+include tpmfarm/GNUmakefile.sub
 #include trd_util/GNUmakefile.sub
 #include util/GNUmakefile.sub
 #include vtx_util/GNUmakefile.sub

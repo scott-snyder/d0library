@@ -50,7 +50,7 @@ C----------------------------------------------------------------------
       SAVE     sig_list
       SAVE     first,evin,evout
       DATA     first/.true./
-      INTEGER  eor /.false./
+      logical  eor /.false./
       SAVE     eor
 
       LOGICAL  flgmain /.true./, err_ini /.false./
