@@ -1392,7 +1392,7 @@ C-   Created   24-JUN-1992  Richard Mueller
 C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
-      CHARACTER*140 line
+      CHARACTER*(*) line
       INTEGER lon,wr_unit
 C----------------------------------------------------------------------
 C

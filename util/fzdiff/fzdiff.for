@@ -93,6 +93,8 @@ C-
       logical lib$get_foreign
       integer trulen
       logical fzdiff_stcomp
+
+      integer ihhead/4HHEAD/
 C-----------------------------------------------------------------------
 C&IF VAXVMS
       CALL SYS$SETEXV(%VAL(1),LIB$FIXUP_FLT,,)
@@ -286,7 +288,7 @@ C-
 C- If these are banks of type HEAD, then compare and print event numbers
 C-
       if(iq(lfzhd(1)-4).eq.iq(lfzhd(2)-4) 
-     &  .and. iq(lfzhd(2)-4).eq.4hHEAD)then
+     &  .and. iq(lfzhd(2)-4).eq.ihHEAD)then
         evnum(1) = iq(lfzhd(1) + 9)
         evnum(2) = iq(lfzhd(2) + 9)
         if(evnum(1).eq.evnum(2))then
@@ -313,7 +315,7 @@ C-
       if(uncompress)then
         do i = 1,2
           lhead = lfzhd(i)
-          if(iq(lhead-4).eq.4hHEAD)call uncompress_zebra
+          if(iq(lhead-4).eq.ihHEAD)call uncompress_zebra
         enddo
       endif
 C-

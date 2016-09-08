@@ -174,6 +174,8 @@ C-
       data nerror, max_error/0, 10/
 C- Error variable to handle exit codes ( K. Denisenko)
       logical err /.false./
+
+      integer ihhead/4HHEAD/
 C-----------------------------------------------------------------------
 C-
 C- Initialize Zebra and read in RCP file
@@ -648,11 +650,11 @@ C-
 C-
 C- See if we want to match event numbers.
 C-
-      if(match_event.ge.0 .and. (iq(lhead-4).ne.4hHEAD 
+      if(match_event.ge.0 .and. (iq(lhead-4).ne.ihHEAD 
      &  .or. iq(lhead+9).ne.match_event))go to 500
-      if(skip_event.ge.0 .and. (iq(lhead-4).ne.4hHEAD 
+      if(skip_event.ge.0 .and. (iq(lhead-4).ne.ihHEAD 
      &  .or. iq(lhead+9).eq.skip_event))go to 500
-      if(match_run.ge.0 .and. (iq(lhead-4).ne.4hHEAD 
+      if(match_run.ge.0 .and. (iq(lhead-4).ne.ihHEAD 
      &  .or. iq(lhead+6).ne.match_run))go to 500
 C-
 C- Unpack TSUM bank, if requested.
@@ -773,7 +775,7 @@ C-
 C- Display output if requested.
 C-
       if(display_run_event)then
-        if(iq(lhead-4).eq.4hHEAD)then
+        if(iq(lhead-4).eq.ihHEAD)then
           ev = iq(lhead+9)
           run = iq(lhead+6)
           print 520, run, ev
