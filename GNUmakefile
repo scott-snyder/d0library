@@ -45,7 +45,7 @@ include d0geant/GNUmakefile.sub
 include d0hplt/GNUmakefile.sub
 include d0reco/GNUmakefile.sub
 include d0user/GNUmakefile.sub
-include dbl3/GNUmakefile.sub  #WARNING!
+include dbl3/GNUmakefile.sub
 include errmsg_util/GNUmakefile.sub
 include event_util/GNUmakefile.sub
 include fdc_util/GNUmakefile.sub
