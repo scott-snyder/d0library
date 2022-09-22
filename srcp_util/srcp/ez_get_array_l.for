@@ -1,0 +1,16 @@
+      SUBROUTINE EZ_GET_ARRAY_l (ARRAY_NAME,PARAM_NAME,NPARAM,
+     &  IVAL, CVAL,TYPE,REMARK,IER)
+      IMPLICIT NONE
+      CHARACTER*(*) ARRAY_NAME
+      CHARACTER*(*) PARAM_NAME(*)
+      INTEGER NPARAM
+      logical IVAL(*)
+      CHARACTER*(*) CVAL(*)
+      INTEGER TYPE(*)
+      CHARACTER*(*) REMARK(*)
+      INTEGER IER
+C
+      call ez_get_array (ARRAY_NAME,PARAM_NAME,NPARAM,
+     &     IVAL, CVAL,TYPE,REMARK,IER)
+      return
+      END

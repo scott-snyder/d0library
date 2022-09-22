@@ -45,7 +45,7 @@ c
 c *** Retrieve the value of the appropriate type, and cast it to a string.
 c
       if (type .eq. VTINT .or. type .eq. VTHEX) then
-        call ezget1 (id, index, index, 1, ival, ier)
+        call ezget1_i (id, index, index, 1, ival, ier)
         write (sbuf, '(i12)') ival
         call word (sbuf, beg, end, vallen)
         val = sbuf(beg:end)
@@ -58,7 +58,7 @@ c
         val = sbuf(beg:end)
 
       else if (type .eq. VTLOG) then
-        call ezget1 (id, index, index, 1, lval, ier)
+        call ezget1_l (id, index, index, 1, lval, ier)
         write (sbuf, '(l12)') lval
         call word (sbuf, beg, end, vallen)
         val = sbuf(beg:end)

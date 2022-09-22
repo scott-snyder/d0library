@@ -47,7 +47,7 @@ c
 c *** Retrieve the value of the appropriate type, and cast it to int.
 c
       if (type .eq. VTINT .or. type .eq. VTHEX) then
-        call ezget1 (id, index, index, 1, ival, ier)
+        call ezget1_i (id, index, index, 1, ival, ier)
         rval = real (ival)
 
       else if (type .eq. VTREAL .or. type .eq. VTREFM .or.
@@ -55,7 +55,7 @@ c
         call ezget1 (id, index, index, 1, rval, ier)
 
       else if (type .eq. VTLOG) then
-        call ezget1 (id, index, index, 1, lval, ier)
+        call ezget1_l (id, index, index, 1, lval, ier)
         if (lval) then
           rval = 1
         else

@@ -70,7 +70,7 @@ C----------------------------------------------------------------------
 C
 C ****  Get ADD_MENU_ITEM flag
 C
-      CALL EZGET_NEXT_VALUE_TYPE
+      CALL EZGET_NEXT_VALUE_TYPE_l
      &            (MENU,ADD_MENU_ITEM,STRING,ITYPE,LENGTH,IER,PTR)
 C
       IF ( IER .NE. 0 ) THEN
@@ -80,7 +80,7 @@ C
 C
 C ****  Get MENADD arguments
 C
-        CALL EZGET_NEXT_VALUE_TYPE
+        CALL EZGET_NEXT_VALUE_TYPE_l
      &            (MENU,SWITCH,STRING,ITYPE,LENGTH,IER,PTR)
 C
 C ****  Get MENU item

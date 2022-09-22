@@ -4,7 +4,7 @@ C-
 C-   Purpose and Methods : Merges two given RCP banks into another RCP bank.
 C-
 C-   Inputs  : BANK1   [C*]: First RCP bank to merge
-C-             BANK2   [C*]: Second RCP bank to concavinate
+C-             BANK2   [C*]: Second RCP bank to concatinate
 C-
 C-   Outputs : BANKOUT [C*]:
 C-
@@ -118,6 +118,6 @@ C
       CALL EZEND
       CALL EZRSET  ! Reseting Bankout
 C
-  800 CALL EZRSET(BANK2)
+  800 CALL EZRSET
   999 RETURN
       END

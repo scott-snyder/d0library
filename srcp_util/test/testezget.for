@@ -72,7 +72,7 @@ C ****  Change some parameters in each SRCP bank  ****
 C ****************************************************
 C
       CALL EZPICK ('FIRST_COPY')                ! Select bank FIRST_COPY
-      CALL EZSET  ('MIXTUR(7:7)',5555,ERROR)    ! Set element 7 to 5555
+      CALL EZSET  ('MIXTUR(7:7)',5555.,ERROR)    ! Set element 7 to 5555
       CALL EZRNAM ('FIRST_COPY','MAIN_COPY')    ! Rename bank
 C
       CALL EZPICK ('SECOND_COPY')               ! Select bank SECOND_COPY
@@ -99,19 +99,19 @@ C
 C ****  PARAMETER       MIXTUR(*)       SELECT BANK MAIN_COPY
 C
       CALL EZPICK ('MAIN_COPY')
-      CALL EZGET  ('MIXTUR(7:7)',IDATUM,ERROR)
+      CALL EZGET_i  ('MIXTUR(7:7)',IDATUM,ERROR)
       WRITE(6,90)   IDATUM
       WRITE(LUN,90) IDATUM
 C
 C ****  PARAMETER       LOGICAL
 C
-      CALL EZGET ('LOGICAL',BOOLE,ERROR)
+      CALL EZGET_l ('LOGICAL',BOOLE,ERROR)
       WRITE(6,100)   BOOLE
       WRITE(LUN,100) BOOLE
 C
-      CALL EZSET ('LOGICAL',.NOT. BOOLE,ERROR) ! Flip truth value of flag
+      CALL EZSET_l ('LOGICAL',.NOT. BOOLE,ERROR) ! Flip truth value of flag
 C
-      CALL EZGET ('LOGICAL',BOOLE,ERROR)
+      CALL EZGET_l ('LOGICAL',BOOLE,ERROR)
       WRITE(6,100)   BOOLE
       WRITE(LUN,100) BOOLE
 C
@@ -141,8 +141,8 @@ C
       CARRAY(1) = 'DREI'
       CARRAY(2) = 'FIER'
       CARRAY(3) = 'FUNF'
-      CALL EZSET ('WINOS(3:5)',IARRAY(1),ERROR)! Modify elements 3 thru 5
-      CALL EZGETA('WINOS',1,6,1,IARRAY(1),ERROR)! Get elements 1 thru 6
+      CALL EZSET_iarr ('WINOS(3:5)',IARRAY(1),ERROR)! Modify elements 3 thru 5
+      CALL EZGETA_iarr('WINOS',1,6,1,IARRAY(1),ERROR)! Get elements 1 thru 6
       WRITE(6,140)   (CARRAY(I),I=1,6)
       WRITE(LUN,140) (CARRAY(I),I=1,6)
 C

@@ -93,7 +93,9 @@ C
       IF ( TYPE .GT. VTCHR ) THEN       ! Check for character type
         L = TYPE - VTCHR                ! Get string length
         NWORD = (L+3)/4                 ! NUMBER OF WORDS
-        CALL EZGET2 (ID,PTR,PTR+NWORD-1,1,IVAL,ITYPE,NVAL,TOTAL,IER)
+        CALL EZGET2 (ID,PTR,PTR+NWORD-1,1,IVAL(1),ITYPE(1),NVAL,TOTAL,
+     &               IER)
+        
         CALL DHTOC (L,IVAL,CVAL(1:LEN(CVAL)))
         PTR = PTR + NWORD               ! Point to next value
         LVAL= L

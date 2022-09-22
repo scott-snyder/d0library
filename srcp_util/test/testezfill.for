@@ -69,10 +69,10 @@ C
 C ****  Add simple parameters
 C
       PRINT*,'Testing EZFILL...'
-      CALL EZFILL ('INTEGER','This is of type integer',111,'I',1)
-      CALL EZFILL ('BOOLEAN','This is of type boolen',.TRUE.,'L',1)
+      CALL EZFILL_i ('INTEGER','This is of type integer',111,'I',1)
+      CALL EZFILL_l ('BOOLEAN','This is of type boolen',.TRUE.,'L',1)
       CALL EZFILL ('REAL','This is of type real',222.222,'R',1)
-      CALL EZFILL
+      CALL EZFILL_h
      &  ('HOLLERITH','This is of type hollerith','ZORO','H',1)
 C
 C ****  Add an array of mixed type
@@ -86,10 +86,10 @@ C
       TYPE(3)   = 'R'
       TYPE(4) = 'H'
 C
-      CALL EZFILL
+      CALL EZFILL_rarr
      &  ('MIXED_R','This is of type array structure',RARRAY,TYPE,4)
 C
-      CALL EZFILL
+      CALL EZFILL_iarr
      &  ('MIXED_I','This is of type array structure',IARRAY,TYPE,4)
 
       DO I=1,8
@@ -99,7 +99,7 @@ C
 C ****  Pack string into real array
 C
       CALL DCTOH (32,'TheTimeHasComeTheWalrus             ',RARRAY(1))
-      CALL EZFILL
+      CALL EZFILL_rarr
      &  ('STRING','This is a string',RARRAY,TYPE,8)
 
       PRINT*,'Testing EZEND...'
