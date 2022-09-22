@@ -262,8 +262,8 @@ C-   Updated  11-FEB-1992   James T. McKinley - Add filter name selection
 C-
 C----------------------------------------------------------------------
       CALL vzero(ntuple(1),NTUPLE_SIZE)
-      CALL vzero(parm_set_found,NMAX)
-      CALL vzero(ncandps,NMAX)
+      CALL vzero_i(parm_set_found,NMAX)
+      CALL vzero_i(ncandps,NMAX)
       nps_found = 0
       newevt = .TRUE.
       RETURN
@@ -284,15 +284,15 @@ C-                          selection parameters to RCP file.
 C-
 C----------------------------------------------------------------------
       CALL ezpick('L2EM_NTUPLE_RCP')              
-      CALL ezget('ALL',all,ier)                           ! fill w/ all
-      CALL ezget('BY_NAME',by_name,ier)                   ! name switch
-      CALL ezget('PARM_SET',parm_set,ier)                 ! P.S. # switch
-      CALL ezget('NSETS',nsets,ier)                       ! # of P.S.'s
-      CALL ezget('PASS_TRIG',pass_trig,ier)               ! pass trigger
-      CALL ezget('PASS_FILT',pass_filt,ier)               ! pass filter
-      CALL ezget('FILT_ONLY',filt_only,ier)               ! name only switch
-      CALL ezget('NTRIG',ntrig,ier)                       ! # trigger names
-      CALL ezget('NFILT',nfilt,ier)                       ! # filter names
+      CALL ezget_l('ALL',all,ier)                           ! fill w/ all
+      CALL ezget_l('BY_NAME',by_name,ier)                   ! name switch
+      CALL ezget_iarr('PARM_SET',parm_set,ier)                 ! P.S. # switch
+      CALL ezget_i('NSETS',nsets,ier)                       ! # of P.S.'s
+      CALL ezget_l('PASS_TRIG',pass_trig,ier)               ! pass trigger
+      CALL ezget_l('PASS_FILT',pass_filt,ier)               ! pass filter
+      CALL ezget_l('FILT_ONLY',filt_only,ier)               ! name only switch
+      CALL ezget_i('NTRIG',ntrig,ier)                       ! # trigger names
+      CALL ezget_i('NFILT',nfilt,ier)                       ! # filter names
       CALL ez_get_chars('TRIG',sal,trig(1),ier)           ! trigger names
       CALL ez_get_chars('FILT',sal,filt(1),ier)           ! filter names
       CALL ezget('VERSIONS',versions,ier)                 ! # trigger menus

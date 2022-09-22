@@ -31,9 +31,10 @@ C
 C...check validity of options in CAHITS_RCP
         CALL EZPICK('CAHITS_RCP')        ! Select bank
         OK = OK.AND..NOT.EZERROR(IER)
-        IF (IER .EQ. 0) CALL EZGET('DO_GNSCOR',DO_GNSCOR,IER)
-        IF (IER .EQ. 0) CALL EZGET('BUILD_CSF',BUILD_CSF,IER)
-        IF (IER .EQ. 0) CALL EZGET('DATA_DRIVE_CSF',DATA_DRIVE_CSF,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('DO_GNSCOR',DO_GNSCOR,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('BUILD_CSF',BUILD_CSF,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('DATA_DRIVE_CSF',DATA_DRIVE_CSF,
+     &                               IER)
         IF (IER .NE. 0) THEN      ! Error reading RCP
           CALL ERRMSG('NO CAHITS_RCP','CL2_MAKE_TABLES',
      &  ' Error while reading CAHITS_RCP','F')
@@ -54,12 +55,12 @@ C...check validity of options in CAHITS_RCP
           CALL EZPICK('CL2HITS_RCP')       ! Select bank
           OK = OK.AND..NOT.EZERROR(IER)
         ENDIF
-        IF (IER .EQ. 0) CALL EZGET('D0_DATA',D0_DATA,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('D0_DATA',D0_DATA,IER)
         TBLOAD = 0
-        IF (IER .EQ. 0) CALL EZGET('MONTE_CARLO',MONTE_CARLO,IER)
-        IF (IER .EQ. 0) CALL EZGET('SFTVSN',SFTVSN,IER)
-        IF (IER .EQ. 0) CALL EZGET('PLATE',PLATE,IER)
-        IF (IER .EQ. 0) CALL EZGET('NOISE_TYPE',NOISE_TYPE,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('MONTE_CARLO',MONTE_CARLO,IER)
+        IF (IER .EQ. 0) CALL EZGET_i('SFTVSN',SFTVSN,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('PLATE',PLATE,IER)
+        IF (IER .EQ. 0) CALL EZGET_i('NOISE_TYPE',NOISE_TYPE,IER)
         IF (IER .NE. 0) THEN      ! Error reading RCP
           CALL ERRMSG('NO CL2HITS_RCP','CL2_MAKE_TABLES',
      &  ' Error while reading CL2HITS_RCP','F')

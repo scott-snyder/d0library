@@ -146,31 +146,31 @@ C---Fill in number of parameter sets
       NUM_PARAMS = NEWPAR1
 C---Now get the arrays out normally:
       NPARAM_VALUE = 0
-      CALL EZGET('ETMIN',ETMIN,IER)
+      CALL EZGET_rarr('ETMIN',ETMIN,IER)
       IF (IER .NE. 0) GOTO 900
       NPARAM_VALUE = NPARAM_VALUE + 1   ! count # of parameter values
-      CALL EZGET('CORE_DELTA_R',CONE_CENTER,IER)
+      CALL EZGET_rarr('CORE_DELTA_R',CONE_CENTER,IER)
       IF (IER .NE. 0) GOTO 900
       NPARAM_VALUE = NPARAM_VALUE + 1   ! count # of parameter values
 C      CALL EZGET('JET_DELTA_R',CONE_TOTAL,IER)
 C      IF (IER .NE. 0) GOTO 900
 C      NPARAM_VALUE = NPARAM_VALUE + 1   ! count # of parameter values
-      CALL EZGET('SIZE_MAX',MAXRAD,IER)
+      CALL EZGET_rarr('SIZE_MAX',MAXRAD,IER)
       IF (IER .NE. 0) GOTO 900
       NPARAM_VALUE = NPARAM_VALUE + 1   ! count # of parameter values
-      CALL EZGET('SIZE_MIN',MINRAD,IER)
+      CALL EZGET_rarr('SIZE_MIN',MINRAD,IER)
       IF (IER .NE. 0) GOTO 900
       NPARAM_VALUE = NPARAM_VALUE + 1   ! count # of parameter values
-      CALL EZGET('EMPCT_MAX',MAX_PERCENT,IER)
+      CALL EZGET_rarr('EMPCT_MAX',MAX_PERCENT,IER)
       IF (IER .NE. 0) GOTO 900
       NPARAM_VALUE = NPARAM_VALUE + 1   ! count # of parameter values
-      CALL EZGET('EMPCT_MIN',MIN_PERCENT,IER)
+      CALL EZGET_rarr('EMPCT_MIN',MIN_PERCENT,IER)
       IF (IER .NE. 0) GOTO 900
       NPARAM_VALUE = NPARAM_VALUE + 1   ! count # of parameter values
-      CALL EZGET('NUM_JETS',NJET_COUNT,IER)
+      CALL EZGET_iarr('NUM_JETS',NJET_COUNT,IER)
       IF (IER .NE. 0) GOTO 900
       NPARAM_VALUE = NPARAM_VALUE + 1   ! count # of parameter values
-      CALL EZGET('VETO',VETO_THIS,IER)
+      CALL EZGET_larr('VETO',VETO_THIS,IER)
       IF (IER .NE. 0) THEN
         CALL ERRMSG('No VETO?','L2JETS_PARAMETERS',
      &    'VETO parameter set not found?','W')
@@ -208,23 +208,23 @@ C
       CALL EZPICK('L2JETS_CONTROL')
       CALL EZERR(IER)
       IF (IER .NE. 0) GOTO 900
-      CALL EZGET('DUMP_JAUX',DUMP_JAUX,IER)
+      CALL EZGET_l('DUMP_JAUX',DUMP_JAUX,IER)
       IF (IER .NE. 0) GOTO 900
-      CALL EZGET('DO_ALL_CAND',DO_ALL_CAND,IER)
+      CALL EZGET_i('DO_ALL_CAND',DO_ALL_CAND,IER)
       IF (IER .NE. 0) GOTO 900
-      CALL EZGET('RUN_ELN',RUN_ELN,IER)
+      CALL EZGET_l('RUN_ELN',RUN_ELN,IER)
       IF (IER .NE. 0) GOTO 900
-      CALL EZGET('USE_CL2',USE_CL2,IER)
+      CALL EZGET_l('USE_CL2',USE_CL2,IER)
       IF (IER .NE. 0) GOTO 900
-      CALL EZGET('TRGR_READY',TRGR_READY,IER)
+      CALL EZGET_l('TRGR_READY',TRGR_READY,IER)
       IF (IER .NE. 0) GOTO 900
-      CALL EZGET('NJTHOT_FAKE',NJTHOT_FAKE,IER)
+      CALL EZGET_i('NJTHOT_FAKE',NJTHOT_FAKE,IER)
       IF (IER .NE. 0) GOTO 900
-      CALL EZGET('JT_COMP_FAKE',JT_COMP_FAKE,IER)
+      CALL EZGET_l('JT_COMP_FAKE',JT_COMP_FAKE,IER)
       IF (IER .NE. 0) GOTO 900
-      CALL EZGET('IHOT_MSK_JT_FAKE',IHOT_MSK_JT_FAKE,IER)
+      CALL EZGET_iarr('IHOT_MSK_JT_FAKE',IHOT_MSK_JT_FAKE,IER)
       IF (IER .NE. 0) GOTO 900
-      CALL EZGET('IHOT_ADR_JT_FAKE',IHOT_ADR_JT_FAKE,IER)
+      CALL EZGET_iarr('IHOT_ADR_JT_FAKE',IHOT_ADR_JT_FAKE,IER)
       IF (IER .NE. 0) GOTO 900
 C
 C--- Get calibration numbers:

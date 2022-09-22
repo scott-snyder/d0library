@@ -58,20 +58,21 @@ C...      but if l2_em gets an event, there will be trouble.
           GO TO 999
         ENDIF
         IF(IER.EQ.0) THEN
-          CALL EZGET('NUMBER_OF_SETS',NPARIN,IER)
+          CALL EZGET_i('NUMBER_OF_SETS',NPARIN,IER)
           IF (NPARIN.GT.NSETS) THEN
             CALL ERRMSG('L2_EM_NPARIN_BIG','L2_EM_PARAMETERS',
      &        'More Parameter Sets Than Storage Available','F')
           ENDIF
         ENDIF
-        IF(IER.EQ.0) CALL EZGET('ETMIN_CC',CCET_CUT,IER)
-        IF(IER.EQ.0) CALL EZGET('ETMIN_EC',ECET_CUT,IER)
-        IF(IER.EQ.0) CALL EZGET('NUM_EM',NUMBER_EM,IER)
-        IF(IER.EQ.0) CALL EZGET('DEL_ETA_TRACK',DETA_TR,IER)
-        IF(IER.EQ.0) CALL EZGET('DEL_PHI_TRACK',DPHI_TR,IER)
-        IF(IER.EQ.0) CALL EZGET('CONE_DELTA_R',CONE_R,IER)
-        IF(IER.EQ.0) CALL EZGET('CONE_FRACT_MAX',CONE_FRACT_MAX,IER)
-        IF(IER.EQ.0) CALL EZGET('DO_ISOLATION',DO_ISOLATION,IER)
+        IF(IER.EQ.0) CALL EZGET_rarr('ETMIN_CC',CCET_CUT,IER)
+        IF(IER.EQ.0) CALL EZGET_rarr('ETMIN_EC',ECET_CUT,IER)
+        IF(IER.EQ.0) CALL EZGET_iarr('NUM_EM',NUMBER_EM,IER)
+        IF(IER.EQ.0) CALL EZGET_rarr('DEL_ETA_TRACK',DETA_TR,IER)
+        IF(IER.EQ.0) CALL EZGET_rarr('DEL_PHI_TRACK',DPHI_TR,IER)
+        IF(IER.EQ.0) CALL EZGET_rarr('CONE_DELTA_R',CONE_R,IER)
+        IF(IER.EQ.0) CALL EZGET_rarr('CONE_FRACT_MAX',CONE_FRACT_MAX,
+     &                               IER)
+        IF(IER.EQ.0) CALL EZGET_larr('DO_ISOLATION',DO_ISOLATION,IER)
         DO I = 1,NPARIN
           IF (IER.EQ.0) THEN
             CALL EZGETS('SHAPE_CUTS',I,SHAPE_C(I),NCHR,IER)
@@ -98,7 +99,7 @@ C...have to re-GET from STP each time to be sure common block is up to date
       IF (.NOT.OK2) GO TO 999     ! allow for no parameters (triggering in run)
 C
 C...find out which format: undefined is format 0
-      IF(IER.EQ.0) CALL EZGET('L2EM_VERSION',L2EM_VERSION,IER)
+      IF(IER.EQ.0) CALL EZGET_i('L2EM_VERSION',L2EM_VERSION,IER)
       IF(IER.NE.0)THEN
         L2EM_VERSION = 0
         IER = 0
@@ -108,13 +109,13 @@ C...find out which format: undefined is format 0
 
 C...eta bin boundaries
       IF (L2EM_VERSION.GE.1) THEN
-        IF(IER.EQ.0) CALL EZGET('ETA_BOUNDS',ETA_BOUNDS,IER)
+        IF(IER.EQ.0) CALL EZGET_iarr('ETA_BOUNDS',ETA_BOUNDS,IER)
       ELSE
         CALL UCOPY(IETAC_BIN_DEFAULT,ETA_BOUNDS,NETABIN)
       ENDIF
 C...energy bin boundaries
       IF(L2EM_VERSION.GE.1)THEN
-        IF(IER.EQ.0) CALL EZGET ('E_BOUNDS',E_BOUNDS,IER)
+        IF(IER.EQ.0) CALL EZGET_rarr ('E_BOUNDS',E_BOUNDS,IER)
       ELSE
         CALL UFILL(E_BOUNDS,1,2*(NENRGBIN-1),999999.)      !init bounds to HUGE
         IF(IER.EQ.0) CALL EZGET ('ETH1',E_BOUNDS(1,1),IER) ! old bins
@@ -123,7 +124,7 @@ C...energy bin boundaries
         E_BOUNDS(2,2) = E_BOUNDS(2,1)
       ENDIF
 C...flag for E or Et in CAEP bank
-      IF(IER.EQ.0) CALL EZGET('ET_IN_CAEP',ET_IN_CAEP,IER)
+      IF(IER.EQ.0) CALL EZGET_l('ET_IN_CAEP',ET_IN_CAEP,IER)
 C
 C...indices of EMCUTS are cut #, energy band, eta range
 C...Cut numbers: (1-9 are longitudinal; 10, 11 & 12 are transverse cuts)
@@ -216,11 +217,11 @@ C 9,10 min,max cuts on (E4x4/E2x2 - 1)
       ENDIF
 C
 C...not get the parameters defining the depths of the isolation cone
-      IF(IER.EQ.0) CALL EZGET('LO_GAMMA_FLOOR',LO_GAMMA_FLOOR,IER)
-      IF(IER.EQ.0) CALL EZGET('HI_GAMMA_FLOOR',HI_GAMMA_FLOOR,IER)
-      IF(IER.EQ.0) CALL EZGET('LO_CONE_LAYER',LO_CONE_LAYER,IER)
-      IF(IER.EQ.0) CALL EZGET('HI_CONE_LAYER',HI_CONE_LAYER,IER)
-      IF(IER.EQ.0) CALL EZGET('CONE_USE_ICD',CONE_USE_ICD,IER)
+      IF(IER.EQ.0) CALL EZGET_i('LO_GAMMA_FLOOR',LO_GAMMA_FLOOR,IER)
+      IF(IER.EQ.0) CALL EZGET_i('HI_GAMMA_FLOOR',HI_GAMMA_FLOOR,IER)
+      IF(IER.EQ.0) CALL EZGET_i('LO_CONE_LAYER',LO_CONE_LAYER,IER)
+      IF(IER.EQ.0) CALL EZGET_i('HI_CONE_LAYER',HI_CONE_LAYER,IER)
+      IF(IER.EQ.0) CALL EZGET_l('CONE_USE_ICD',CONE_USE_ICD,IER)
       IF(L2EM_VERSION.GE.3)THEN !get ETMIN_CELL parameter
         IF(IER.EQ.0) CALL EZGET('ETMIN_CELL',ETMIN_CELL,IER)
       ELSE

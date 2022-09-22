@@ -75,12 +75,13 @@ C
         CALL HMDIR('CL2TEST_CANDS','S')       ! create CL2TEST_CANDS directory
         CALL EZPICK('CL2TEST_RCP')       ! Select bank
         OK = .NOT.EZERROR(IER)
-        IF (IER .EQ. 0) CALL EZGET('TIME_CANDS',TIME_CANDS,IER)
-        IF (IER .EQ. 0) CALL EZGET('TIMES_PER_CAND',TIMES_PER_CAND,IER)
-        IF (IER .EQ. 0) CALL EZGET('ICDJET',ICDJET,IER)
-        IF (IER .EQ. 0) CALL EZGET('SIZEM',SIZEM,IER)
-        IF (IER .EQ. 0) CALL EZGET('SIZJT',SIZJT,IER)
-        IF (IER .EQ. 0) CALL EZGET('COMPARE_CANDS',COMPARE_CANDS,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('TIME_CANDS',TIME_CANDS,IER)
+        IF (IER .EQ. 0) CALL EZGET_i('TIMES_PER_CAND',TIMES_PER_CAND,
+     &                                IER)
+        IF (IER .EQ. 0) CALL EZGET_l('ICDJET',ICDJET,IER)
+        IF (IER .EQ. 0) CALL EZGET_i('SIZEM',SIZEM,IER)
+        IF (IER .EQ. 0) CALL EZGET_i('SIZJT',SIZJT,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('COMPARE_CANDS',COMPARE_CANDS,IER)
         IF (IER .NE. 0) THEN      ! Error reading RCP
           CALL ERRMSG('CL2TEST','CL2TEST_CANDS',
      &  ' Error while reading CL2TEST_RCP','F')

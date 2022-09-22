@@ -74,7 +74,7 @@ C----------------------------------------------------------------------
       ENDIF
       IF(first)THEN
         CALL ezpick('L2EM_NTUPLE_RCP')
-        CALL ezget('RESET_EVTCTR',reset_evtctr,ier)
+        CALL ezget_l('RESET_EVTCTR',reset_evtctr,ier)
         CALL ezget('REPFREQ',repfreq,ier)
         first = .FALSE.
         CALL ezrset

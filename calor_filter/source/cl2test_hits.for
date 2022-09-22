@@ -71,9 +71,9 @@ C
         OK = CL2TEST_INIT()             ! be sure INIT is done
         CALL EZPICK('CL2TEST_RCP')       ! Select bank
         OK = .NOT.EZERROR(IER)
-        IF (IER .EQ. 0) CALL EZGET('TIME_HITS',TIME_HITS,IER)
-        IF (IER .EQ. 0) CALL EZGET('REMAKE_CAD',REMAKE_CAD,IER)
-        IF (IER .EQ. 0) CALL EZGET('COMPARE_HITS',COMPARE_HITS,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('TIME_HITS',TIME_HITS,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('REMAKE_CAD',REMAKE_CAD,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('COMPARE_HITS',COMPARE_HITS,IER)
         IF (IER .EQ. 0) CALL EZGET('CL2_DIFF_CUT',CL2_DIFF_CUT,IER) ! Get values
         IF (IER .NE. 0) THEN      ! Error reading RCP
           CALL ERRMSG('CL2TEST','CL2TEST_HITS',
@@ -83,9 +83,9 @@ C
         ENDIF
         CALL EZPICK('CAHITS_RCP')       ! Select bank
         OK = .NOT.EZERROR(IER)
-        IF (IER .EQ. 0) CALL EZGET('DO_CAEPFL',DO_CAEPFL,IER)
-        IF (IER .EQ. 0) CALL EZGET('DO_CAEHFL',DO_CAEHFL,IER)
-        IF (IER .EQ. 0) CALL EZGET('DO_C1PMET',DO_C1PMET,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('DO_CAEPFL',DO_CAEPFL,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('DO_CAEHFL',DO_CAEHFL,IER)
+        IF (IER .EQ. 0) CALL EZGET_l('DO_C1PMET',DO_C1PMET,IER)
         IF (IER .NE. 0) THEN      ! Error reading RCP
           CALL ERRMSG('CL2TEST','CL2TEST_HITS',
      &  ' Error while reading CAHITS_RCP','F')

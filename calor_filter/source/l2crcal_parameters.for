@@ -86,7 +86,7 @@ C---Check to see if we must read in too many.
         GOTO 800
         END IF
 C---Read values
-      CALL EZGET('MUON_TRACK_MODE',MUON_TRACK_MODE,IER)
+      CALL EZGET_i('MUON_TRACK_MODE',MUON_TRACK_MODE,IER)
       IF (IER .NE. 0) THEN
         MUMSG = ' Could not read MUON_TRACK_MODE '
         GOTO 800
@@ -96,7 +96,7 @@ C---Read values
         MUMSG = ' Could not read DPHI_CUT '
         GOTO 800
       END IF
-      CALL EZGET('IMUHIT_CONE',IMUHIT_CONE,IER)
+      CALL EZGET_i('IMUHIT_CONE',IMUHIT_CONE,IER)
       IF (IER .NE. 0) THEN
         MUMSG = ' Could not read IMUHIT_CONE '
         GOTO 800
