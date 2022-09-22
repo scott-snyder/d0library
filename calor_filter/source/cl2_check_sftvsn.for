@@ -31,7 +31,7 @@ C----------------------------------------------------------------------
       CHARACTER*32 IDMSG
       CHARACTER*1 SEVERITY
       INTEGER VERSION_WORD
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
       BYTE VERSION_BYTE(4)
       EQUIVALENCE (VERSION_BYTE(1),VERSION_WORD)
 C&ENDIF
@@ -44,7 +44,7 @@ C&ENDIF
 C----------------------------------------------------------------------
 C
 C...unpack version number from CAGS
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
       VERSION_WORD = IC(L2CAGS+9)
       SFTVSN = VERSION_BYTE(1)
       D0_DATA = .NOT.BTEST(VERSION_WORD,30)     !Bit on for NWA data  
@@ -55,7 +55,7 @@ C...find out data version to see if it matches CAGS bank
       POINT = CRATE_POINT(CRATID)
       L2CAD = L2CAD1
       IF (CRATE_CAD(CRATID).EQ.2) L2CAD = L2CAD2
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
       VERSION_WORD = IQ(L2CAD+4+POINT)
       DATA_SFTVSN = VERSION_BYTE(1)
       DATA_D0_DATA = .NOT.BTEST(VERSION_WORD,30)

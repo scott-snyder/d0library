@@ -24,7 +24,7 @@ C----------------------------------------------------------------------
       INTEGER INDEX,LDCAEP,NCH,NR,I
       INTEGER IETA,IPHI,ILYR
       INTEGER NUMALL
-C&IF VAXVMS
+C&IF VAXVMS,LINUX
       BYTE BYT(4)
       EQUIVALENCE (BYT(1),INDEX)
 C&ENDIF
@@ -38,7 +38,7 @@ C
         DO I=1,NCH*NR,NR
           LDCAEP=LDCAEP + NR
           INDEX=IQ(LDCAEP+4)
-C&IF VAXVMS
+C&IF VAXVMS,LINUX
           IETA=BYT(4)
           IPHI=BYT(3)
           ILYR=BYT(2)

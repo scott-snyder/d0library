@@ -23,7 +23,7 @@ C----------------------------------------------------------------------
       INTEGER SCALE,INDEX,INDMAX
       INTEGER JCRATE,CRATEID
       INTEGER IETA,IPHI,ILYR
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
       BYTE BYTES(4)
       EQUIVALENCE (PAKADR,BYTES)
 C&ELSE
@@ -51,7 +51,7 @@ C...get info needed to calculate which CAGS table entry is closest
         INDMAX = IC(L2CADT-1) - 3
         DO INDEX = 0,INDMAX
           PAKADR = IC(L2CADT + INDEX + 3)
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
           IETA = BYTES(4)
           IPHI = BYTES(3)
           ILYR = BYTES(2)

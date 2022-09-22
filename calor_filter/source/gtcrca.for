@@ -21,7 +21,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:ZEBCOM.INC'
       INTEGER N,IETA(N_MAX),IPHI(N_MAX),ILAY(N_MAX),IAD,I,LCRCA
       INTEGER ICONE
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
       BYTE JIAD(4)
       EQUIVALENCE (JIAD,IAD)
 C&ENDIF
@@ -38,7 +38,7 @@ C----------------------------------------------------------------------
       DO I = 1,N                        ! Cycle through cells
         EHIT(I) = Q(LCRCA + 2*(I-1) + 6)    ! Deposited energy
         IAD     =IQ(LCRCA + 2*(I-1) + 5)    ! packed address of cell
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
         IETA(I) = JIAD(4)
         IPHI(I) = JIAD(3)
         ILAY(I) = JIAD(2)

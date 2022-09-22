@@ -25,7 +25,7 @@ C----------------------------------------------------------------------
       LOGICAL RESULT_FLAG,EXTRA_FLAG
       LOGICAL OUT_OF_RANGE
       INTEGER LCRCA,LADD,ITRACK,I
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
       BYTE BADD(4)
       EQUIVALENCE(LADD,BADD)            ! Allow us to 'pack' LADD
 C&ENDIF
@@ -98,7 +98,7 @@ C                                     ! Maximum delta phi of track (mod pi)
       DO I = 1,NMCELL                 ! Cycle over cells
 C---Pack the cell data in 4 bytes: highest byte is IETA,IPHI,ILAYER and
 C---least significant byte is 0.
-C&IF VAXVMS,VAXELN
+C&IF VAXVMS,VAXELN,LINUX
         BADD(4)  = IMUHIT_ETA(I)
         BADD(3)  = IMUHIT_PHI(I)
         BADD(2)  = IMUHIT_LYR(I)
