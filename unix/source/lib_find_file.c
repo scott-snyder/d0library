@@ -504,6 +504,7 @@ C-----------------------------------------------------------------------
       }
     }
     /* delete a table entry */
+    if (T_size <= 0) return 0;
     tmpcont=(contxt_table **)malloc((T_size-1)*sizeof(contxt_table *));
     for ( j=0; j<T_size-1; j++) {
       tmpcont[j] = ( contxt_table * )malloc( sizeof( contxt_table ));

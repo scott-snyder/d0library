@@ -72,6 +72,7 @@ static char sccsid[] = "@(#)glob.c	5.12 (Berkeley) 6/24/91";
 /* sss - need to include this with recent glibc. */
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #define notdef 1
 
 #ifdef notdef
@@ -529,7 +530,6 @@ glob3(pathbuf, pathend, pattern, restpattern, pglob, no_match)
     glob_t *pglob;
     int     no_match;
 {
-    extern int errno;
     DIR    *dirp;
     struct dirent *dp;
     int     err;

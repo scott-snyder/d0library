@@ -38,7 +38,9 @@ C----------------------------------------------------------------------
       integer*2 outlen
       integer force
       integer i, j, len_str, next
-      integer d0_loc
+      integer*8 d0_loc
+      integer*8 d0_loci
+      integer*8 d0_locs
       integer narg, iargc
       external iargc
       logical get_args
@@ -49,7 +51,7 @@ C----------------------------------------------------------------------
 C-
 C- Decide if we want to get the command line.
 C-
-      if(d0_loc(force).eq.0)then
+      if(d0_loci(force).eq.0)then
          get_args = .true.
       else
          if((iand(force,1)).eq.0)then
@@ -103,7 +105,7 @@ C     &         ichar('a'))
 C-
 C- Return length to calling program.
 C-
-      if(d0_loc(outlen).ne.0)outlen = len_str
+      if(d0_locs(outlen).ne.0)outlen = len_str
       lib$get_foreign = 1
  999  return
       end
