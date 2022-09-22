@@ -68,7 +68,7 @@ C
           L2_JETA(I) = I
           L2_JETA(-I) = -I + 1
         ENDDO
-        DO I  = NETAL + 1, NETAL + BORDER2 + 1
+        DO I  = NETAL + 1, NETAL + BORDER2
           L2_JETA(I) = NETAL             ! only towers in trigger bank
           L2_JETA(-I) = -NETAL + 1
         ENDDO
