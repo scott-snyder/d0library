@@ -57,9 +57,9 @@ C----------------------------------------------------------------------
       IF(FIRST) THEN
         FIRST = .FALSE.
         CALL EZPICK('VEES_RCP')
-        CALL EZGET(  'NSTEPM',  NSTEPM,IER)
-        CALL EZGET(  'IPRINT',  IPRINT,IER)
-        CALL EZGET(     'IMT',     IMT,IER)
+        CALL EZGET_i(  'NSTEPM',  NSTEPM,IER)
+        CALL EZGET_i(  'IPRINT',  IPRINT,IER)
+        CALL EZGET_i(     'IMT',     IMT,IER)
         CALL EZGET(    'XMIN',    XMIN,IER)
         CALL EZGET(    'XMAX',    XMAX,IER)
         CALL EZRSET

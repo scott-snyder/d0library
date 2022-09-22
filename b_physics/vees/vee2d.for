@@ -34,7 +34,7 @@ C------------------------------------------------------------------
         CALL EZPICK('VEES_RCP')
         CALL EZGET('RVMIN1',RVMIN1,IER)
         CALL EZGET('RVMIN2',RVMIN2,IER)
-        CALL EZGET('READSTP',READSTP,IER)
+        CALL EZGET_l('READSTP',READSTP,IER)
         IF (READSTP.EQV..FALSE.) GO TO 1001
 C
 C  Get wire positions from STP

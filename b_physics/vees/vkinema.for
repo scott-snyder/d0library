@@ -42,12 +42,12 @@ C----------------------------------------------------------------------
       IF(FIRST) THEN
         FIRST = .FALSE.
         CALL EZPICK('VEES_RCP')
-        CALL EZGET(  'DO_KS',  DO_KS,IER)
-        CALL EZGET(  'DO_LM',  DO_LM,IER)
+        CALL EZGET_l(  'DO_KS',  DO_KS,IER)
+        CALL EZGET_l(  'DO_LM',  DO_LM,IER)
         CALL EZGET(  'PT_MIN',  PT_MIN,IER)
         CALL EZGET('PVEE_MIN',PVEE_MIN,IER)
         CALL EZGET('P1_MIN',P1_MIN,IER)
-        CALL EZGET(     'NTR',     NTR,IER)
+        CALL EZGET_i(     'NTR',     NTR,IER)
         CALL EZRSET
         CONST= 0.001143095213      ! = 0.014*sqrt(0.02)/sqrt(3.)
         PRUNIT=USUNIT()

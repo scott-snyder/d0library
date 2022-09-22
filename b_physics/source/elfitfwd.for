@@ -65,7 +65,7 @@ C-    Output results
       REAL CLIST(100)
 C
 C-    Fit matrices
-      REAL AMAT(NP,NM),YVEC(NP),RVEC(NM),PAR(NP),CHSQ
+      REAL AMAT(NP,NM),YVEC(NP),RVEC(NM),PAR(NP),CHSQ(1,1)
       REAL WRK(200),ERMSC1,ERMSC
       REAL ERMAT(NM,NM),ERALL(NM,NM),ERPAR(NM,NM)
       REAL XVEC(NM),XVEC1(NM),XVEC2(NM),BMAT(NP,NP),CMAT(NP,NP)
@@ -254,7 +254,7 @@ C  Calculate residuals and chisquare. Store them.
 C
       CALL MXMPY(AMAT(1,1),YVEC(1),XVEC1(1),NM,NP,1)
       CALL VSUB(RVEC(1),XVEC1(1),XVEC2(1),NM)
-      CALL MXMLTR(XVEC2(1),ERMAT(1,1),CHSQ,1,NM)
+      CALL MXMLTR(XVEC2,ERMAT,CHSQ,1,NM)
 C
 C-  Output
 C
@@ -274,7 +274,7 @@ C
       CLIST(1)=FLOAT(MXLST)
       CLIST(2)=8.
       IF (.NOT.LVTX) CLIST(2)=4.
-      CLIST(3)=CHSQ
+      CLIST(3)=CHSQ(1,1)
       CLIST(5)=COVTX
       CLIST(6)=COEND
       CLIST(7)=COFDC

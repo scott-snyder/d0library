@@ -36,7 +36,7 @@ C----------------------------------------------------------------------
       CALL VADD(V1,DS1,RVX1,3)
       CALL VADD(V2,DS2,RVX2,3)
       CALL VSUB(RVX2,RVX1,X,3)
-      CALL VSCALE(X, 0.5, EVX, 3)
+      CALL VSCALE(X, 0.5d0, EVX, 3)
       CALL VADD(RVX1,EVX,VX,3)
       CALL VSUB(VX,V0,D,3)
       PHI = ATAN2(D(2), D(1))

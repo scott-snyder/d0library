@@ -37,8 +37,8 @@ C----------------------------------------------------------------------
 C------------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         CALL EZPICK('DILBOSON_RCP')
-        CALL EZGET('DILBOSON_ID',DILBOSON_ID,IER)
-        CALL EZGET('LEPTONS',LEPTONS,IER)
+        CALL EZGET_i('DILBOSON_ID',DILBOSON_ID,IER)
+        CALL EZGET_i('LEPTONS',LEPTONS,IER)
         CALL EZGET('PT_MIN1',PT_MIN1,IER)
         CALL EZGET('PT_MIN2',PT_MIN2,IER)
         CALL EZGET('PT_MIN',PT_MIN,IER)
