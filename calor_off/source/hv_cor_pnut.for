@@ -87,13 +87,13 @@ C-------------------------------------------------------------------
 
         IF(IER.EQ.0) THEN
           CALL EZPICK('HV_COR_RCP')
-          CALL EZGET('FIRST_RUN_TO_CORRECT',
+          CALL EZGET_i('FIRST_RUN_TO_CORRECT',
      &                   FIRST_RUN_TO_CORRECT,IER)
           IF(IER.NE.0) THEN
             CALL ERRMSG('CAL','HV_COR_PNUT',
      &                      'Fail to read FIRST_RUN/Use Default','W')
           END IF
-          CALL EZGET('HAD_JETS_ALGORITHM',ICHOICE_HAD,IER)
+          CALL EZGET_i('HAD_JETS_ALGORITHM',ICHOICE_HAD,IER)
           IF(IER.NE.0) THEN
             CALL ERRMSG('CAL','HV_COR_PNUT',
      &                      'Fail to read HAD_JETS_ALGORITHM','W')

@@ -54,13 +54,13 @@ C
       CALL UZERO(ETCATE,1,NTOT)
       CALL UZERO(EXCATE,1,NTOT)
       CALL UZERO(EYCATE,1,NTOT)
-      CALL UZERO(PTCATE,1,NTOT)
+      CALL vZERO_i(PTCATE,NTOT)
 C--
 C--   UZEROs below not needed; useful for debugging
 C--
       CALL UZERO(ETLIST,1,2*NTWMAX)
-      CALL UZERO(IDLIST,1,2*NTWMAX)
-      CALL UZERO(ORLIST,1,2*NTWMAX)
+      CALL vZERO_i(IDLIST,2*NTWMAX)
+      CALL vZERO_i(ORLIST,2*NTWMAX)
 C
 C        loop over CAEH hits for the first time; find number of towers
 C

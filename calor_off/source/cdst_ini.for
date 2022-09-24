@@ -74,7 +74,7 @@ C
         CALL EZRSET
 C
         CALL EZPICK('TRD_RCP')
-         CALL EZSET('CALIB_DATA','NONE',IER)
+         CALL EZSETs('CALIB_DATA',1,'NONE',4,IER)
         CALL EZRSET
 C
         CALL EZPICK('DTRAKS_RCP')

@@ -14,17 +14,16 @@ C----------------------------------------------------------------------
       IMPLICIT NONE
       INCLUDE 'D0$INC:CHMATR.INC'
       INTEGER IHMUN,IERR,IWRT
-      INTEGER FILNA1(20)
       LOGICAL OK
       CHARACTER*80 FILNAM
+      integer filnam_len
       LOGICAL FIRST
       DATA FIRST/.TRUE./
 C----------------------------------------------------------------------
       IF(FIRST)THEN
         FIRST = .FALSE.
         CALL EZPICK('CAPHEL_RCP')
-        CALL GTSRCP('HMATRIX_FILE',FILNA1,1)
-        CALL UHTOC(FILNA1,4,FILNAM,80)
+        call ezgets('HMATRIX_FILE', 1, FILNAM, FILNAM_LEN, IERR)
         CALL GTSRCP('BEAM_ENERGY',BEAMEN,1)
         CALL EZRSET
       ENDIF

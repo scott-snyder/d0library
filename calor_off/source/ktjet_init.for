@@ -55,27 +55,27 @@ C
         END IF
 
         NOWERRMESS = ' RCP parameter not found'
-        CALL EZGET('IPRINT', IPRINT, IER)
+        CALL EZGET_i('IPRINT', IPRINT, IER)
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('DO_PRECLUSTER', DO_PRECLUSTER, IER)
+        CALL EZGET_l('DO_PRECLUSTER', DO_PRECLUSTER, IER)
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('DO_POSTCLUSTER', DO_POSTCLUSTER, IER)
+        CALL EZGET_l('DO_POSTCLUSTER', DO_POSTCLUSTER, IER)
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('DO_SUBJETS', DO_SUBJETS, IER)
+        CALL EZGET_l('DO_SUBJETS', DO_SUBJETS, IER)
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('IFSCALE', IFSCALE, IER)
+        CALL EZGET_i('IFSCALE', IFSCALE, IER)
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('INPUT_TYPE', INPUT_TYPE_KT, IER)
+        CALL EZGET_iarr('INPUT_TYPE', INPUT_TYPE_KT, IER)
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('D_SEP', D_SEP_KT, IER)
+        CALL EZGET_rarr('D_SEP', D_SEP_KT, IER)
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('F_CUT', F_CUT_KT, IER)
+        CALL EZGET_rarr('F_CUT', F_CUT_KT, IER)
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('NJETS', NJETS, IER)
+        CALL EZGET_i('NJETS', NJETS, IER)
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('DO_PRECLUSTER', DO_PRECLUSTER, IER)
+        CALL EZGET_l('DO_PRECLUSTER', DO_PRECLUSTER, IER)
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('MAKE_KTCL', MAKE_KTCL, IER)
+        CALL EZGET_l('MAKE_KTCL', MAKE_KTCL, IER)
         IF (IER .NE. 0) GOTO 900
         CALL EZGETA('KTCUT', 0, 0, 0, N_KTCUTS, IER)
         IF (IER .NE. 0) GOTO 900
@@ -83,9 +83,9 @@ C
         IF (IER .NE. 0) GOTO 900
         CALL EZGET('KTCUT', KTCUT(1), IER )
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('IPATH', IPATH, IER )
+        CALL EZGET_i('IPATH', IPATH, IER )
         IF (IER .NE. 0) GOTO 900
-        CALL EZGET('KTLOG10', KTLOG10, IER )
+        CALL EZGET_l('KTLOG10', KTLOG10, IER )
         IF (IER .NE. 0) GOTO 900
 C
 C: New stuff
@@ -94,7 +94,7 @@ C
         IF (IER .NE. 0) GOTO 901
         CALL EZGET('MINIMUM_ET', MINIMUM_ET, IER )
         IF (IER .NE. 0) GOTO 901
-        CALL EZGET('USE_DET_ETA', USE_DET_ETA, IER )
+        CALL EZGET_l('USE_DET_ETA', USE_DET_ETA, IER )
         IF (IER .NE. 0) GOTO 901
         CALL EZGET('KT_ET_MIN', KT_ET_MIN, IER )
         IF (IER .NE. 0) GOTO 901
@@ -102,21 +102,21 @@ C
         IF (IER .NE. 0) GOTO 901
         CALL EZGET('MIN_PREC_ET', MIN_PREC_ET, IER )
         IF (IER .NE. 0) GOTO 901
-        CALL EZGET('ET_ORDERED', ET_ORDERED, IER )
+        CALL EZGET_k('ET_ORDERED', ET_ORDERED, IER )
         IF (IER .NE. 0) GOTO 901
-        CALL EZGET('ETA_ORDERED', ETA_ORDERED, IER )
+        CALL EZGET_l('ETA_ORDERED', ETA_ORDERED, IER )
         IF (IER .NE. 0) GOTO 901
-        CALL EZGET('KT_MAKE_JETS', KT_MAKE_JETS, IER )
+        CALL EZGET_l('KT_MAKE_JETS', KT_MAKE_JETS, IER )
         IF (IER .NE. 0) GOTO 901
-        CALL EZGET('REMOVE_LOW_ET_CELLS', REMOVE_LOW_ET_CELLS, IER )
+        CALL EZGET_l('REMOVE_LOW_ET_CELLS', REMOVE_LOW_ET_CELLS, IER )
         IF (IER .NE. 0) GOTO 901
-        CALL EZGET('SEARCH_SIZE', SEARCH_SIZE, IER )
+        CALL EZGET_i('SEARCH_SIZE', SEARCH_SIZE, IER )
         IF (IER .NE. 0) GOTO 901
-        CALL EZGET('NSCALE', NSCALE, IER )
+        CALL EZGET_i('NSCALE', NSCALE, IER )
         IF (IER .NE. 0) GOTO 901
-        CALL EZGET('IETDEF', IETDEF, IER )
+        CALL EZGET_i('IETDEF', IETDEF, IER )
         IF (IER .NE. 0) GOTO 901
-        CALL EZGET('IETADEF', IETADEF, IER )
+        CALL EZGET_i('IETADEF', IETADEF, IER )
         IF (IER .NE. 0) GOTO 901
 
         GOTO 902
@@ -166,7 +166,7 @@ c   verify flag is on in the framework (d0reco).
 C
         
         do_hist_temp = .false.
-        call ezget ('DO_BASIC_HISTS', do_hist_temp, ier)
+        call ezget_l ('DO_BASIC_HISTS', do_hist_temp, ier)
         do_basic_hist = do_hist_temp .or. FLGVAL('VERIFY')
 
         if (do_basic_hist) then

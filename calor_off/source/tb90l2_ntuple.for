@@ -143,13 +143,15 @@ C----------------------------------------------------------------------
       CALL ezpick('TB90L2_NTUPLE_RCP')
       CALL ezget('LOW_ENERGY_CRAZY_LIMIT',low_crazy,ier)
       CALL ezget('HIGH_ENERGY_CRAZY_LIMIT',high_crazy,ier)
-      CALL ezget('SAMPLING_FRACTION_CORR',sfrac_corr,ier)
-      CALL ezget('NTUPLE_NO_CUT',no_cut,ier)
-      CALL ezget('NTUPLE_WIDE_CUT',wide_cut,ier)
-      CALL ezget('NTUPLE_NARROW_CUT',narrow_cut,ier)
-      CALL ezget('DO_GLOBAL_ETA_CUT',do_eta_cut,ier)
-      IF ( do_eta_cut ) CALL ezget('GLOBAL_ETA_LIMITS',eta_limits,ier)
-      CALL ezget('DO_SIMPLE_CLUSTERING',do_simple_clustering,ier)
+      CALL ezget_rarr('SAMPLING_FRACTION_CORR',sfrac_corr,ier)
+      CALL ezget_l('NTUPLE_NO_CUT',no_cut,ier)
+      CALL ezget_l('NTUPLE_WIDE_CUT',wide_cut,ier)
+      CALL ezget_l('NTUPLE_NARROW_CUT',narrow_cut,ier)
+      CALL ezget_l('DO_GLOBAL_ETA_CUT',do_eta_cut,ier)
+      IF ( do_eta_cut ) CALL ezget_iarr('GLOBAL_ETA_LIMITS',eta_limits,
+     &     ier)
+      
+      CALL ezget_l('DO_SIMPLE_CLUSTERING',do_simple_clustering,ier)
       IF ( ier .NE. 0 ) do_simple_clustering = .FALSE.  ! default
       CALL ezrset
       RETURN

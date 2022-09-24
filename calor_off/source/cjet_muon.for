@@ -52,7 +52,7 @@ C----------------------------------------------------------------------
         CALL INRCP('CAJETS_RCP',IER)
         CALL EZPICK('CAJETS_RCP')       ! SELECT JETS RCP BANK
         IF (IER.EQ.0) 
-     &    CALL EZGET('DROP_UNASSOC_JETS',DROP_UNASSOC_JETS,IER)
+     &    CALL EZGET_l('DROP_UNASSOC_JETS',DROP_UNASSOC_JETS,IER)
         IF (IER.EQ.0) 
      &    CALL EZGET('MUJETS_IFW4_MAX',MUJETS_IFW4_MAX,IER)
         IF (EZERR(IER)) THEN

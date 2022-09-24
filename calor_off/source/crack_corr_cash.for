@@ -38,8 +38,8 @@ C
 C
       IER    = 0.0
       ECRACK = 0.0
-      CALL VZERO(IPHI_EL(1),2)
-      CALL VZERO(IPHI_ER(1),2)
+      CALL VZERO_i(IPHI_EL(1),2)
+      CALL VZERO_i(IPHI_ER(1),2)
       CALL VZERO(ELIVE(1),2)
 
       LCACL = LQ(LELPH-2)

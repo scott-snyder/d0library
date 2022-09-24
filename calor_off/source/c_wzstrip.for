@@ -41,7 +41,7 @@ C----------------------------------------------------------------------
         NUM_Z_PH_PH = 0
         IWRITE = 0
         CALL EZPICK('CALFRAME_RCP')
-        CALL EZGET('DO_C_RERUN_HMATRIX',DO_C_RERUN_HMATRIX,IER)
+        CALL EZGET_l('DO_C_RERUN_HMATRIX',DO_C_RERUN_HMATRIX,IER)
         CALL EZRSET
       ENDIF
 C

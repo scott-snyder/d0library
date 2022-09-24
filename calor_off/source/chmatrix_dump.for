@@ -89,7 +89,7 @@ C
             ENDIF
 C
             CALL EZPICK('HMATRIX_RCP')
-            CALL EZGET('PLOT_MATRIX',PLOT_MATRIX,IER)
+            CALL EZGET_l('PLOT_MATRIX',PLOT_MATRIX,IER)
             CALL EZRSET
 C
             IF ( (.NOT.ACCUMULATE).AND.PLOT_MATRIX ) THEN

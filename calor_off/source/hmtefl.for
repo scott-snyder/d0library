@@ -64,7 +64,7 @@ C
 C ****  fill packed hits in photon road
 C
       CALL HITSINFO(LHMTE,PACKED_HITS)
-      CALL UCOPY(PACKED_HITS,Q(LHMTE+16),3)
+      CALL UCOPY_i(PACKED_HITS,iQ(LHMTE+16),3)
 C fill in the rest of the bank here.
 C----------------------------------------------------------------------
   999 RETURN

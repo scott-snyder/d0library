@@ -38,9 +38,9 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       IF ( FIRST ) THEN
         FIRST = .FALSE.
-        CALL EZGET('ETA_NEIGHBOR_LIMIT',DELETA,IER)
-        CALL EZGET('PHI_NEIGHBOR_LIMIT',DELPHI,IER)
-        CALL EZGET('DO_NEIGHBOR_ENERGY',DOENER,IER)
+        CALL EZGET_i('ETA_NEIGHBOR_LIMIT',DELETA,IER)
+        CALL EZGET_i('PHI_NEIGHBOR_LIMIT',DELPHI,IER)
+        CALL EZGET_l('DO_NEIGHBOR_ENERGY',DOENER,IER)
       ENDIF
 C
       CATI = CATW(I)

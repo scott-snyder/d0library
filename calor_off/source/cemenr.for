@@ -50,8 +50,8 @@ C----------------------------------------------------------------------
       CALL UZERO(ENDPTH,1,NDPTH)
       CALL UZERO(EMAX,1,NDPTH)
       CALL UZERO(PEDPTH,1,NDPTH)
-      CALL UZERO(ETAMX,1,NDPTH)
-      CALL UZERO(PHIMX,1,NDPTH)
+      CALL vZERO_i(ETAMX,NDPTH)
+      CALL vZERO_i(PHIMX,NDPTH)
 C
 C ****  GET POINTERS AND ETA OF CENTRAL TOWER
 C

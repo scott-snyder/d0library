@@ -38,7 +38,7 @@ C----------------------------------------------------------------------
      &      'SET ECUT_ZERO_SUPRESS 1.E-37','I')
           ECUT = 1.0E-37    ! compress out channels not in CAEP and correct len
         ENDIF
-        CALL EZGET('DELETE_EXISTING_CAD',DEL_CAD,IER)
+        CALL EZGET_l('DELETE_EXISTING_CAD',DEL_CAD,IER)
         CALL EZRSET
         CALL PATHGT(OLD_PATH)
         CALL PATHST(PATH)

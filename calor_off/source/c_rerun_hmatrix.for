@@ -63,7 +63,7 @@ C----------------------------------------------------------------------
       IF (FIRST) THEN
         FIRST = .FALSE.
         CALL EZPICK('HMATRIX_RCP')
-        CALL EZGET('USE_CASH_INFO',USE_CASH_INFO,IER)
+        CALL EZGET_l('USE_CASH_INFO',USE_CASH_INFO,IER)
         IF (.NOT.USE_CASH_INFO) THEN
           USE_CASH_INFO = .TRUE.
           CALL EZSET('USE_CASH_INFO',USE_CASH_INFO,IER)
@@ -77,8 +77,8 @@ C----------------------------------------------------------------------
         ENDIF
         CALL EZPICK('CAPHEL_RCP')
         CALL EZGET('WEIGHT_CUT',WEIGHT_CUT,IER)
-        CALL EZGET('USE_LOG_WEIGHTED_CENTER',USE_LOG,IER)
-        CALL EZGET('DO_HMATRIX_ANALYSIS',DO_HMATRIX_ANAL,IER)
+        CALL EZGET_l('USE_LOG_WEIGHTED_CENTER',USE_LOG,IER)
+        CALL EZGET_l('DO_HMATRIX_ANALYSIS',DO_HMATRIX_ANAL,IER)
         CALL EZRSET
         USE_MONTE_VERTEX = .FALSE.
         IF ( GZISV1().NE.0.0 ) THEN

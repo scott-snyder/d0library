@@ -42,8 +42,8 @@ C----------------------------------------------------------------------
       IF( first ) THEN
         first = .false.
         CALL EZPICK('CAHITS_RCP')
-        CALL EZGET('DO_PHI_CORRECTIONS',DO_PHI_CORRECTIONS,IER)
-        CALL EZGET('DO_RESCALE_EM',DO_RESCALE_EM,IER)
+        CALL EZGET_l('DO_PHI_CORRECTIONS',DO_PHI_CORRECTIONS,IER)
+        CALL EZGET_l('DO_RESCALE_EM',DO_RESCALE_EM,IER)
         CALL EZRSET
       ENDIF
 C

@@ -65,6 +65,6 @@ C
 C ****  fill packed hits in photon road
 C
       CALL HITSINFO(LHMTP,PACKED_HITS)
-      CALL UCOPY(PACKED_HITS,Q(LHMTP+16),3)
+      CALL UCOPY_i(PACKED_HITS,iQ(LHMTP+16),3)
   999 RETURN
       END

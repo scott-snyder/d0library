@@ -157,16 +157,18 @@ C
       CALL ezpick('TB90L2_CALOR_HIST_RCP')
       CALL ezget('LOW_ENERGY_CRAZY_LIMIT',low_crazy,ier)
       CALL ezget('HIGH_ENERGY_CRAZY_LIMIT',high_crazy,ier)
-      CALL ezget('SAMPLING_FRACTION_CORR',sfrac_corr,ier)
-      CALL ezget('MAIN_WATCH_FLAG',gen_watch,ier)
-      CALL ezget('EM_WATCH_FLAG',em_watch,ier)
-      CALL ezget('HAD_SM_ETA_FLAG',had_smeta,ier)
-      CALL ezget('HAD_LG_ETA_FLAG',had_lgeta,ier)
-      CALL ezget('LAYER_WATCH',lyr_watch,ier)
-      CALL ezget('ALIGNMENT_WATCH',eta_align,ier)
-      CALL ezget('DO_LEGO',lego_plots,ier)
-      CALL ezget('DO_GLOBAL_ETA_CUT',do_eta_cut,ier)
-      IF ( do_eta_cut ) CALL ezget('GLOBAL_ETA_LIMITS',eta_limits,ier)
+      CALL ezget_rarr('SAMPLING_FRACTION_CORR',sfrac_corr,ier)
+      CALL ezget_l('MAIN_WATCH_FLAG',gen_watch,ier)
+      CALL ezget_l('EM_WATCH_FLAG',em_watch,ier)
+      CALL ezget_l('HAD_SM_ETA_FLAG',had_smeta,ier)
+      CALL ezget_l('HAD_LG_ETA_FLAG',had_lgeta,ier)
+      CALL ezget_l('LAYER_WATCH',lyr_watch,ier)
+      CALL ezget_l('ALIGNMENT_WATCH',eta_align,ier)
+      CALL ezget_l('DO_LEGO',lego_plots,ier)
+      CALL ezget_l('DO_GLOBAL_ETA_CUT',do_eta_cut,ier)
+      IF ( do_eta_cut ) CALL ezget_iarr('GLOBAL_ETA_LIMITS',eta_limits,
+     &     ier)
+      
       CALL ezrset
       RETURN
 C#######################################################################

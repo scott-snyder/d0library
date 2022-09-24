@@ -83,7 +83,7 @@ C
       MET3=Q(LPNUT3+7)
       SCALAR_ET = Q(LPNUT3+14)
       MET2_3=MET2-MET3
-       CALL HFILL(5,MET2_3,0,1.)
+       CALL HFILL(5,MET2_3,0.,1.)
 
       IF(.NOT.DO_ANALYSIS.AND..NOT.VERIFY) GOTO 999
 C
@@ -95,9 +95,9 @@ C
       EX=Q(LPNUT3+3)
       EY=Q(LPNUT3+4)
       X = MET3**2/(0.5*SCALAR_ET)
-       CALL HFILL(1,MET3,0,1.)
-       CALL HFILL(9,MET2,0,1.)
-       CALL HFILL(2,SCALAR_ET,0,1.)
+       CALL HFILL(1,MET3,0.,1.)
+       CALL HFILL(9,MET2,0.,1.)
+       CALL HFILL(2,SCALAR_ET,0.,1.)
        CALL HFILL(3,X,0.,WT)
        CALL HFILL(4,MET2,MET3,1.)
 C
@@ -107,9 +107,9 @@ C     compare to ISAJET
         CALL ISA_NUS_SUM(NUS_SUM,OK)
         IF(OK) THEN
         ISA_MET=SQRT(NUS_SUM(1)**2+NUS_SUM(2)**2)
-        CALL HFILL(6,MET-ISA_MET,0,WT)
+        CALL HFILL(6,MET-ISA_MET,0.,WT)
         DIFF=SQRT((EX-NUS_SUM(1))**2+(EY-NUS_SUM(2))**2)
-        CALL HFILL(7,DIFF,0,WT)
+        CALL HFILL(7,DIFF,0.,WT)
        ENDIF
       ENDIF
       GOTO 999

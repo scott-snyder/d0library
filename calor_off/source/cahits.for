@@ -37,13 +37,13 @@ C----------------------------------------------------------------------
         CALL EZPICK ( 'CAHITS_RCP' )
         CALL EZERR ( IER )
         IF ( IER.EQ.0 ) THEN
-          CALL EZGET ( 'DO_CAEPFL',   DO_CAEPFL, IER )
+          CALL EZGET_l ( 'DO_CAEPFL',   DO_CAEPFL, IER )
           IF ( IER.NE.0 ) CALL ERRMSG ( 'NO_CAEPFL_SWITCH', 'CAHITS',
      &      'USE RECENT CAHITS_RCP FORMAT', 'W' )
           IER = 0
-          CALL EZGET( 'DO_CAEQFL', DO_CAEQFL, IER )
-          IF ( IER .EQ. 0 ) CALL EZGET( 'DOCAEQ_TO_CAEP', DOCAEQ_TO_CAEP
-     &      ,IER )
+          CALL EZGET_l( 'DO_CAEQFL', DO_CAEQFL, IER )
+          IF ( IER .EQ. 0 ) CALL EZGET_l( 'DOCAEQ_TO_CAEP',
+     &         DOCAEQ_TO_CAEP,IER )
           IF ( IER .NE. 0 ) THEN
             CALL ERRMSG('NO CAEQ SWITCH','CAHITS',
      &        'USE RECENT CAHITS_RCP FORMAT','W')
@@ -58,14 +58,14 @@ C***  Drop all PNUT banks unconditionally
           LPNUT = GZPNUT(0)
           IF(LPNUT.GT.0) CALL MZDROP(IXCOM,LPNUT,'L')
 C***          
-          CALL EZGET ( 'DO_CAEHFL',   DO_CAEHFL, IER )
-          CALL EZGET ( 'DO_CATEFL',   DO_CATEFL, IER )
-          CALL EZGET ( 'DO_C1PMET',   DO_C1PMET, IER )
-          CALL EZGET ( 'DO_C2PMET',   DO_C2PMET, IER )
-          CALL EZGET ( 'FILL_PTCAEP', FILL_PTCAEP, IER )
-          CALL EZGET ( 'DO_ANALYSIS', DO_ANALYSIS, IER )
-          CALL EZGET ( 'DO_AIDA',     DO_AIDA, IER)
-          CALL EZGET ( 'DO_ICD_CORR', DO_ICD_CORR, IER )
+          CALL EZGET_l ( 'DO_CAEHFL',   DO_CAEHFL, IER )
+          CALL EZGET_l ( 'DO_CATEFL',   DO_CATEFL, IER )
+          CALL EZGET_l ( 'DO_C1PMET',   DO_C1PMET, IER )
+          CALL EZGET_l ( 'DO_C2PMET',   DO_C2PMET, IER )
+          CALL EZGET_l ( 'FILL_PTCAEP', FILL_PTCAEP, IER )
+          CALL EZGET_l ( 'DO_ANALYSIS', DO_ANALYSIS, IER )
+          CALL EZGET_l ( 'DO_AIDA',     DO_AIDA, IER)
+          CALL EZGET_l ( 'DO_ICD_CORR', DO_ICD_CORR, IER )
           IF ( IER .NE. 0 ) THEN
             DO_ICD_CORR = .FALSE.
             CALL ERRMSG ( 'NO_CAHITS_RCP', 'CAHITS',
@@ -77,14 +77,14 @@ C***
      &        'DO_AIDA not found in CAHITS.RCP, setting FALSE', 'I' )
           ENDIF
 
-          CALL EZGET ( 'DO_HOTSUP',   DO_HOTSUP, IER )
+          CALL EZGET_l ( 'DO_HOTSUP',   DO_HOTSUP, IER )
           IF ( IER.NE.0 ) THEN
             DO_HOTSUP=.FALSE.
             CALL ERRMSG ( 'NO_CAHITS_RCP', 'CAHITS',
      &        'DO_HOTSUP not found in CAHITS.RCP, setting FALSE', 'I' )
           ENDIF
 
-          CALL EZGET ( 'DO_HOTFIND',  DO_HOTFIND, IER )
+          CALL EZGET_l ( 'DO_HOTFIND',  DO_HOTFIND, IER )
           IF ( IER.NE.0 ) THEN
             DO_HOTFIND=.FALSE.
             CALL ERRMSG ( 'NO_CAHITS_RCP', 'CAHITS',
@@ -101,7 +101,7 @@ C***
           ENDIF
 
           DOCATD_TO_CAEP = .FALSE.
-          CALL EZGET( 'DO_CATD_TO_CAEP', DOCATD_TO_CAEP, IER )  ! silent
+          CALL EZGET_l( 'DO_CATD_TO_CAEP', DOCATD_TO_CAEP, IER )  ! silent
           IF ( DOCATD_TO_CAEP ) THEN
             CALL ERRMSG('CREATING_CAEP_FROM_CADT','CAHITS',
      &        '- TURNING OFF AIDA,HOTSUP and HOTFIND!','W')

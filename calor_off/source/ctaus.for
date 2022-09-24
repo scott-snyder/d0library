@@ -28,7 +28,7 @@ C
           CALL ERRMSG('CTAUS','CTAUS',
      &      'CTAUS RCP bank not found in CTAUS.','W')
         ELSE
-          CALL EZGET('DO_ANALYSIS',DO_ANALYSIS,IER)
+          CALL EZGET_l('DO_ANALYSIS',DO_ANALYSIS,IER)
           CALL EZGETS ('JET_PATH',IDX,JET_PATH,LENF,IER)
           CALL EZGET('TEMPLATE',TEMPLATE,IER)
           CALL EZRSET
