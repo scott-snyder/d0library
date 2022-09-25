@@ -85,7 +85,7 @@ C
 C ****  Loop over ISAQ banks (parton banks) pointed to by PJPT
 C
       CALL UZERO(SUM,1,NMAX)
-      CALL UZERO(LOC,1,NMAX)
+      CALL vZERO_i(LOC,NMAX)
 C
       NPARTON = IQ(LPJPT-3) - 1         ! Number of reference links
       NPARTON = MIN(NPARTON,MAXPAR)

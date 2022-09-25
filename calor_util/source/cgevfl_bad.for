@@ -66,11 +66,15 @@ C----------------------------------------------------------------------
         IF(EZERR(IER)) THEN
           CALL ERRMSG('NO_RCP_FILE_CGEV','CGEVFL_BAD',RCP_FILE,'W')
         ELSE
-          CALL EZGET ('BAD_CHANNEL_CPB8_BITS',  BAD_BITS(1,1,0),IER)
-          CALL EZGET ('BAD_CHANNEL_CPB1_BITS',  BAD_BITS(1,1,1),IER)
-          CALL EZGET ('BAD_CHANNEL_CGB8_BITS',  BAD_BITS(1,2,0),IER)
-          CALL EZGET ('BAD_CHANNEL_CGB1_BITS',  BAD_BITS(1,2,1),IER)
-          CALL EZGET ('KEEP_CHANNELS',  KEEP_LIST,IER)
+          CALL EZGET_iarr ('BAD_CHANNEL_CPB8_BITS',  BAD_BITS(1,1,0)
+     &         ,IER)
+          CALL EZGET_iarr ('BAD_CHANNEL_CPB1_BITS',  BAD_BITS(1,1,1)
+     &         ,IER)
+          CALL EZGET_iarr ('BAD_CHANNEL_CGB8_BITS',  BAD_BITS(1,2,0)
+     &         ,IER)
+          CALL EZGET_iarr ('BAD_CHANNEL_CGB1_BITS',  BAD_BITS(1,2,1)
+     &         ,IER)
+          CALL EZGET_i ('KEEP_CHANNELS',  KEEP_LIST,IER)
           CALL EZGET_SIZE ('BAD_CHANNEL_CPB8_BITS',NBITS(1,0),IER)
           CALL EZGET_SIZE ('BAD_CHANNEL_CPB1_BITS',NBITS(1,1),IER)
           CALL EZGET_SIZE ('BAD_CHANNEL_CGB8_BITS',NBITS(2,0),IER)
@@ -83,9 +87,9 @@ C----------------------------------------------------------------------
           END IF
           NKEEP = NKEEP / 3
           CALL EZGET ('EM_GAIN',           EM_GAIN,IER)
-          CALL EZGET ('DO_ADC_TO_GEV',     DO_ADC_TO_GEV,IER)
-          CALL EZGET ('CSF_CORRECTIONS',   TCOR,IER)
-          CALL EZGET ('DO_FIX_8_1',        DO_FIX_8_1,IER)
+          CALL EZGET_l ('DO_ADC_TO_GEV',     DO_ADC_TO_GEV,IER)
+          CALL EZGET_l ('CSF_CORRECTIONS',   TCOR,IER)
+          CALL EZGET_l ('DO_FIX_8_1',        DO_FIX_8_1,IER)
           IF(IER.NE.0)DO_FIX_8_1=.FALSE.
         END IF
         CALL EZRSET

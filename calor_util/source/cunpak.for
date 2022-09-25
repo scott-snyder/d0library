@@ -56,8 +56,8 @@ C                 get constants out of CAL_STPFILE
         CALL EZERR(IER)
         IF ( IER.EQ.0 .AND. .NOT.RESET) THEN
           CALL EZGET('ENERGY_CUTOFF',ECUTOF,IER)
-          CALL EZGET('DO_ADC_TO_GEV',CONGEV,IER)
-          CALL EZGET('ZERO_SUPRESS',DOSUPR,IER)
+          CALL EZGET_l('DO_ADC_TO_GEV',CONGEV,IER)
+          CALL EZGET_l('ZERO_SUPRESS',DOSUPR,IER)
         ELSE
 C            Defaults if no file is used
           CALL INTMSG( 

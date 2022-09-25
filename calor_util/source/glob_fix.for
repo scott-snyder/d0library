@@ -54,10 +54,10 @@ C
 C
 C ****  Read parameters from RCP file
 C
-          CALL EZGET('CORR_LEVEL_PNUT',CORR_LEVEL_PNUT, STATUS )
-          IF ( STATUS .EQ. 0 ) CALL EZGET('BUILD_GLOB',BUILD_GLOB,
+          CALL EZGET_i('CORR_LEVEL_PNUT',CORR_LEVEL_PNUT, STATUS )
+          IF ( STATUS .EQ. 0 ) CALL EZGET_l('BUILD_GLOB',BUILD_GLOB,
      &      STATUS)
-          CALL EZGET('CORR_LEVEL_MAIN_RING',I,STATUS)
+          CALL EZGET_i('CORR_LEVEL_MAIN_RING',I,STATUS)
           IF ( STATUS .EQ. 0 ) THEN
             LEVEL = I
           ENDIF
@@ -65,7 +65,7 @@ C
           IF ( STATUS .EQ. 0 ) THEN
             ENERGY = R
           ENDIF
-          CALL EZGETA('NEGATIVE_CELL_ENERGY_THRESH',0,0,0,N,IER)
+          CALL EZGETA_iarr('NEGATIVE_CELL_ENERGY_THRESH',0,0,0,N,IER)
           CALL EZGETA('NEGATIVE_CELL_ENERGY_THRESH',1,N,1,
      &      ET_THRNEG,IER)
           IF ( STATUS .NE. 0 ) THEN
@@ -90,9 +90,9 @@ C
       ELSE 
         CALL BKGLOB(LGLOB) ! book another GLOB bank
         LGLOB1=LQ(LGLOB)   ! get old link
-        CALL UCOPY(IQ(LGLOB1+2),IQ(LGLOB+2),2)
+        CALL UCOPY_i(IQ(LGLOB1+2),IQ(LGLOB+2),2)
         CALL UCOPY(Q(LGLOB1+17),Q(LGLOB+17),1)
-        CALL UCOPY(IQ(LGLOB1+18),IQ(LGLOB+18),11)
+        CALL UCOPY_i(IQ(LGLOB1+18),IQ(LGLOB+18),11)
         CALL MZDROP(IXCOM,LGLOB1,' ') ! drop old bank
       ENDIF
 C

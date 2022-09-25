@@ -86,7 +86,7 @@ C-
 C-   Created  24-JUN-1991   James Richardson
 C-
 C----------------------------------------------------------------------
-      CALL vzero(mod_channels(1,0),2*6)
+      CALL vzero_i(mod_channels(1,0),2*6)
       CALL vzero(mod_energy(1,0),2*6)
       RETURN
       END

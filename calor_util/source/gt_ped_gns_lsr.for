@@ -87,7 +87,7 @@ C----------------------------------------------------------------------
       ENDIF
 C
       IF (LINK.GT.0) THEN
-        CALL UCOPY(IC(LINK),HEAD,NHEAD)
+        CALL UCOPY_i(IC(LINK),HEAD,NHEAD)
         IF (TASK.LT.3) THEN         ! peds => get ICD chans from CPD8/1 banks
           ICH = 1
           ITWR = 2

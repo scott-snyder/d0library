@@ -57,8 +57,8 @@ C----------------------------------------------------------------------
         FIRST = .FALSE.
         CALL EZPICK(RCP_BANK)
         IF( .NOT. EZERR(IER) ) THEN
-          CALL EZGET('DO_GNSCOR',DO_GNSCOR,IER)
-          CALL EZGET('ERRMSG_LIMIT_PDGN',ERRMSG_LIMIT,IER)
+          CALL EZGET_l('DO_GNSCOR',DO_GNSCOR,IER)
+          CALL EZGET_i('ERRMSG_LIMIT_PDGN',ERRMSG_LIMIT,IER)
           IF(DO_GNSCOR)THEN
             CALL EZ_GET_CHARS('GAINS_FILE',N,GAIN_FILE,IER)
             IF (IER.NE.0) THEN
@@ -77,7 +77,7 @@ C----------------------------------------------------------------------
             CALL EZGET('HIGH_GAIN_CUT',HIGH_GAIN,IER)
             IF (IER.NE.0) HIGH_GAIN = 50000
           END IF
-          CALL EZGET('DO_PEDSUB',DO_PEDSUB,IER)
+          CALL EZGET_l('DO_PEDSUB',DO_PEDSUB,IER)
           IF(DO_PEDSUB)THEN
             CALL EZ_GET_CHARS('PEDESTAL_FILE',N,PED_FILE,IER)
             IF (IER.NE.0) THEN
@@ -85,19 +85,19 @@ C----------------------------------------------------------------------
               CALL ERRMSG('NO PED FILES in RCP ','CAEPFL_PEDGNS',
      &        ' USE NOMINAL DBL3 ','W')
             END IF
-            CALL EZGET('USE_CPZ_BANK',DO_CPZ,IER)
+            CALL EZGET_l('USE_CPZ_BANK',DO_CPZ,IER)
             IF (IER.NE.0) THEN
               DO_CPZ = .FALSE.
             END IF
-            CALL EZGET('LOW_PED_CUT*1',LOW_PED_1,IER)
+            CALL EZGET_i('LOW_PED_CUT*1',LOW_PED_1,IER)
             IF (IER.NE.0) LOW_PED_1 = 0
-            CALL EZGET('HIGH_PED_CUT*1',HIGH_PED_1,IER)
+            CALL EZGET_i('HIGH_PED_CUT*1',HIGH_PED_1,IER)
             IF (IER.NE.0) HIGH_PED_1 = 100000
-            CALL EZGET('LOW_PED_CUT*8',LOW_PED_8,IER)
+            CALL EZGET_i('LOW_PED_CUT*8',LOW_PED_8,IER)
             IF (IER.NE.0) LOW_PED_8 = 0
-            CALL EZGET('HIGH_PED_CUT*8',HIGH_PED_8,IER)
+            CALL EZGET_i('HIGH_PED_CUT*8',HIGH_PED_8,IER)
             IF (IER.NE.0) HIGH_PED_8 = 100000
-            CALL EZGET('DO_ZERO_SUPRESS',DO_ZSUPR,IER)
+            CALL EZGET_l('DO_ZERO_SUPRESS',DO_ZSUPR,IER)
             IF (IER.NE.0) THEN
               DO_ZSUPR = .TRUE.
               CALL ERRMSG('NO ZERO_SUPRESS FLAG in RCP ',

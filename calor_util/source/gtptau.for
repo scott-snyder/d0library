@@ -106,7 +106,7 @@ C
           IER=0
         ENDIF
       ELSE
-        LPTAU = GZPTAU(0)
+        LPTAU = GZPTAU()
         IF ( LPTAU .GT. 0 ) THEN
           NUM_TAU = NZBANK(IXCOM,LPTAU)
           IER = 0

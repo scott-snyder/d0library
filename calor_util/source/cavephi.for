@@ -26,8 +26,8 @@ C------------------------------------------------------------------------
 C
       CALL VZERO(AVPHI,NLYRL*(NETAL*2+1))
       CALL VZERO(AVHI,8*NLYRL)
-      CALL VZERO(NUM,NLYRL*(NETAL*2+1))
-      CALL VZERO(NUMHI,8*NLYRL)
+      CALL VZERO_i(NUM,NLYRL*(NETAL*2+1))
+      CALL VZERO_i(NUMHI,8*NLYRL)
 C
       JETAL  =  NETAL - 2      ! ALL BUT LAST TWO ETAS
       DO IETA = -JETAL,JETAL

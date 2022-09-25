@@ -81,7 +81,7 @@ C
             LAST_RUN_1A = 0
             GOTO 999
           END IF
-          CALL EZGET('LAST_RUN_1A_CHK',RUN_1A_CHK,IER)
+          CALL EZGET_i('LAST_RUN_1A_CHK',RUN_1A_CHK,IER)
           IF (RUN_1A_CHK .NE. LAST_RUN_1A) THEN
             CALL ERRMSG('ICD','CSF_ICD_1A',
      &        'CSF_ICD_1A VERSION MIXUP','W')
@@ -135,8 +135,8 @@ C
             FIRST_HALF_RUN_1B = 0
             GOTO 999
           END IF
-          CALL EZGET('FIRST_HALF_RUN_1B_CHK',
-     &                FIRST_HALF_RUN_1B_CHK,IER)
+          CALL EZGET_i('FIRST_HALF_RUN_1B_CHK',
+     &                 FIRST_HALF_RUN_1B_CHK,IER)
           IF (FIRST_HALF_RUN_1B_CHK .NE. FIRST_HALF_RUN_1B) THEN
             CALL ERRMSG('ICD','CSF_ICD_1A',
      &        'CSF_ICD_1A VERSION MIXUP','W')
@@ -190,8 +190,8 @@ C
             SECOND_HALF_RUN_1B = 0
             GOTO 999
           END IF
-          CALL EZGET('SECOND_HALF_RUN_1B_CHK',
-     &                SECOND_HALF_RUN_1B_CHK,IER)
+          CALL EZGET_i('SECOND_HALF_RUN_1B_CHK',
+     &                  SECOND_HALF_RUN_1B_CHK,IER)
           IF (SECOND_HALF_RUN_1B_CHK .NE. SECOND_HALF_RUN_1B) THEN
             CALL ERRMSG('ICD','CSF_ICD_1A',
      &        'CSF_ICD_1A VERSION MIXUP','W')

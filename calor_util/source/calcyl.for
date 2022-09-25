@@ -73,9 +73,7 @@ C
         DELX(I) = C(LQCLIN + IGDTX + I - 1)       ! copy displ vector
   100 CONTINUE
 C
-      DO 200 I = 1, 9
-  200 RINV(I, 1) = C(LQCLIN + IGR11 + I -1)       ! copy inverse
-                                        ! rotation matrix
+      call ucopy (C(LQCLIN + IGR11 + I -1), RINV, 9) ! copy inverse rotation matrix
 C----------------------------------------------------------------------
   999 RETURN
       END

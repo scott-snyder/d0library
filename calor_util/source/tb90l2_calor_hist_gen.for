@@ -130,7 +130,7 @@ C-
 C-   Created  20-JUN-1991   James Richardson
 C-
 C----------------------------------------------------------------------
-      CALL vzero(mod_channels(0),NUM_OF_MODULES+1)      ! +1 get (0)
+      CALL vzero_i(mod_channels(0),NUM_OF_MODULES+1)      ! +1 get (0)
       CALL vzero(mod_energy(0),NUM_OF_MODULES+1)        ! energy counts
       CALL vzero(energy_layer(1,1),NUM_OF_MODULES*LAST_LYRD_MOD)!lyrs
       CALL vzero(max_energy_layer(1,1,1),LAST_LYRD_MOD*MAX_LYR_NUM*3)

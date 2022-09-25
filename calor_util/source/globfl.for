@@ -50,7 +50,7 @@ C
 C ****  Get constants from current RCP file
 C
       IF ( IFLAG .EQ. 0 ) THEN
-        CALL EZGET('CORR_LEVEL_MAIN_RING',I,STATUS)
+        CALL EZGET_i('CORR_LEVEL_MAIN_RING',I,STATUS)
         IF ( STATUS .EQ. 0 ) THEN
           LEVEL = I
         ENDIF
@@ -58,7 +58,7 @@ C
         IF ( STATUS .EQ. 0 ) THEN
           ENERGY = R
         ENDIF
-        CALL EZGETA('NEGATIVE_CELL_ENERGY_THRESH',0,0,0,N,IER)
+        CALL EZGETA_iarr('NEGATIVE_CELL_ENERGY_THRESH',0,0,0,N,IER)
         CALL EZGETA('NEGATIVE_CELL_ENERGY_THRESH',1,N,1,
      &      ET_THRNEG,IER)
         GOTO 999
@@ -78,9 +78,9 @@ C
         CALL BKGLOB(LGLOB) ! book another GLOB bank
         LGLOB1=LQ(LGLOB)   ! get old link
         IQ(LGLOB+1)=5      ! upgrade to version 5
-        CALL UCOPY(IQ(LGLOB1+2),IQ(LGLOB+2),3)
+        CALL UCOPY_i(IQ(LGLOB1+2),IQ(LGLOB+2),3)
         CALL UCOPY(Q(LGLOB1+5),Q(LGLOB+5),13)
-        CALL UCOPY(IQ(LGLOB1+18),IQ(LGLOB+18),11)
+        CALL UCOPY_i(IQ(LGLOB1+18),IQ(LGLOB+18),11)
         CALL ENEG_FROM_CAEQ(ENEG,ETNEG)
         Q(LGLOB+29)  = ENEG      ! negative energy
         Q(LGLOB+30)  = ETNEG      ! negative ET 

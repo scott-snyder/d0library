@@ -43,10 +43,10 @@ C----------------------------------------------------------------------
       INTEGER    IETA_TOWER, IPHI_TOWER, IETA_MAX_TOWER, IPHI_MAX_TOWER
       REAL       EMF, ENERGY, ENERGY_OFF, ENERGY_SCALE_1, ENERGY_MAX
       REAL       ETA_TOWER, PHI_TOWER
-      PARAMETER( IEMF_MAX         = '7F'X )
-      PARAMETER( IENERGY_MAX      = 'FFF'X )
-      PARAMETER( IETA_MAX_TOWER      = '3F'X )
-      PARAMETER( IPHI_MAX_TOWER      = '3F'X )
+      data IEMF_MAX       / z'7F' /
+      data IENERGY_MAX    / z'FFF' /
+      data IETA_MAX_TOWER / z'3F' /
+      data IPHI_MAX_TOWER / z'3F' /
       PARAMETER( ENERGY_OFF       = 15.0   )
       PARAMETER( ENERGY_SCALE_1   = 100.   )
       PARAMETER( ENERGY_MAX       = 1000. )

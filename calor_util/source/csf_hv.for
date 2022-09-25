@@ -60,13 +60,13 @@ C
         GOTO 999
       END IF
       CALL EZPICK('CSF_HV_RCP')
-      CALL EZGET('FIRST_RUN_TO_CORRECT',FIRST_RUN,IER)
+      CALL EZGET_i('FIRST_RUN_TO_CORRECT',FIRST_RUN,IER)
       IF(IER.NE.0) CALL ERRMSG('CAL','CSF_HV',
      &    'Fail to read FIRST_RUN - Use Default','W')
-      CALL EZGET('HV_OLD',HV_OLD,IER)
+      CALL EZGET_i('HV_OLD',HV_OLD,IER)
       IF(IER.NE.0) CALL ERRMSG('CAL','CSF_HV',
      &    'Fail to read HV_OLD - use Default','W')
-      CALL EZGET('HV_NEW',HV_NEW,IER)
+      CALL EZGET_i('HV_NEW',HV_NEW,IER)
       IF(IER.NE.0) CALL ERRMSG('CAL','CSF_HV',
      &    'Fail to read HV_NEW - use Default','W')
       CALL EZGET('HV_COR',HV_COR,IER)

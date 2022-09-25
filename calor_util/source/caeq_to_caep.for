@@ -21,7 +21,7 @@ C----------------------------------------------------------------------
       REAL ENERGY
       INTEGER IEMAX             ! Energy is stored in 13 bits - assume this
 C                               ! is always true!!
-      PARAMETER( IEMAX = '1FFF'X)
+      data iemax / z'1ffff' /
 C
       BYTE BYTES(4)
       INTEGER PACKWD

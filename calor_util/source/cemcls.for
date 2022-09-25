@@ -38,9 +38,9 @@ C----------------------------------------------------------------------
       ETOT = 0.
       CALL UZERO(ENDPTH,1,4)
       CALL UZERO(EMAX,1,4)
-      CALL UZERO(ETAMX,1,4)
-      CALL UZERO(PHIMX,1,4)
-      CALL UZERO(NCELL,1,4)
+      CALL vZERO_i(ETAMX,4)
+      CALL vZERO_i(PHIMX,4)
+      CALL vZERO_i(NCELL,4)
       ILR3MX = 0
 C
 C ****  GET POINTERS AND ETA OF CENTRAL TOWER

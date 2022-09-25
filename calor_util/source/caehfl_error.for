@@ -147,7 +147,7 @@ C
           CALL ERRMSG('No error constants','CAEHFL_ERROR',
      &      ' Obsolete CAHITS.RCP','W')
         ELSE
-          CALL EZGET('SIGMA_EM', SIGMA_EM, IER)
+          CALL EZGET_rarr('SIGMA_EM', SIGMA_EM, IER)
         ENDIF
 C
         SIGMA_HAD(1) = 0.
@@ -158,7 +158,7 @@ C
           CALL ERRMSG('No error constants','CAEHFL_ERROR',
      &      ' Obsolete CAHITS.RCP','W')
         ELSE
-          CALL EZGET('SIGMA_HAD',SIGMA_HAD,IER)
+          CALL EZGET_rarr('SIGMA_HAD',SIGMA_HAD,IER)
         ENDIF
 C
         SIGMA_ICD(1) = 0.
@@ -169,7 +169,7 @@ C
           CALL ERRMSG('No error constants','CAEHFL_ERROR',
      &      ' Obsolete CAHITS.RCP','W')
         ELSE
-          CALL EZGET('SIGMA_ICD',SIGMA_ICD,IER)
+          CALL EZGET_rarr('SIGMA_ICD',SIGMA_ICD,IER)
         ENDIF
 C
         SIGMA_MSG(1) = 0.
@@ -180,14 +180,14 @@ C
           CALL ERRMSG('No error constants','CAEHFL_ERROR',
      &      ' Obsolete CAHITS.RCP','W')
         ELSE
-          CALL EZGET('SIGMA_MSG',SIGMA_MSG,IER)
+          CALL EZGET_rarr('SIGMA_MSG',SIGMA_MSG,IER)
         ENDIF
-        CALL EZGET('PRINT_ERRORS',PRINT_ERRORS,IER)
+        CALL EZGET_l('PRINT_ERRORS',PRINT_ERRORS,IER)
         CALL EZGET('PRINT_ERRORS_MIN',PRINT_ERRORS_MIN,IER)
-        CALL EZGET('PRINT_ERRORS_MAXLINE',MAXLINE,IER)
-        CALL EZGET('USE_CGEV_FOR_ERRORS',USE_CGEV,IER)
+        CALL EZGET_i('PRINT_ERRORS_MAXLINE',MAXLINE,IER)
+        CALL EZGET_l('USE_CGEV_FOR_ERRORS',USE_CGEV,IER)
         IF (IER .NE. 0) USE_CGEV = .FALSE.
-        CALL EZGET('GET_SUMS',GET_SUMS,IER)
+        CALL EZGET_l('GET_SUMS',GET_SUMS,IER)
         IF (IER .NE. 0) THEN
           GET_SUMS = .FALSE.
         ENDIF

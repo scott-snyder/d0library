@@ -60,7 +60,7 @@ C
         CALL EZGET('TRACE_SLOPE_LONG',TRACE_SLOPE_LONG,IERR) ! Int for trace 
         CALL EZGET('TRACE_INT_SHORT',TRACE_INT_SHORT,IERR) ! Slope for trace 
         CALL EZGET('TRACE_SLOPE_SHORT',TRACE_SLOPE_SHORT,IERR) ! Slope trace 
-        CALL EZGET('PBOX_COR',PBOX_COR,IERR) ! relative pulser cor factors
+        CALL EZGET_rarr('PBOX_COR',PBOX_COR,IERR) ! relative pulser cor factors
         CALL EZGET('P4COR_INT',P4COR_INT,IERR) ! pulser 4, cor factors - int
         CALL EZGET('P4COR_SLOPE',P4COR_SLOPE,IERR) ! pls 4, cor factors - slope
         CALL EZRSET

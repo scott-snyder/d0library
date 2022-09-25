@@ -52,7 +52,7 @@ C----------------------------------------------------------------------
       ENDIF
 C
       IF (LINK.GT.0) THEN
-        CALL UCOPY(IC(LINK),HEAD,NHEAD)
+        CALL UCOPY_i(IC(LINK),HEAD,NHEAD)
         CALL UCOPY(C(LINK+NHEAD+CARD*LENGTH+1),VAL,LENGTH)
       ELSE
         HEAD(1)=-1

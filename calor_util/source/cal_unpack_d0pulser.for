@@ -24,6 +24,10 @@ C
       INTEGER IPBOX,PULSERS(*)
       INTEGER GZTRGR,GZFIND_CRATE
       CHARACTER*80 MSG_STRING
+      integer z80
+      data z80 / z'80' /
+      integer zf000
+      data zf000 / z'f0000' /
 C
 C----------------------------------------------------------------------
 C
@@ -54,7 +58,7 @@ C
           POINT=2527                   !LOCATION OF PULSER BLOCK
         ELSE
           POINT=2715                   !LOCATION OF PULSER BLOCK
-          IF (IQ(LTRG1+POINT) .EQ. '80'X) THEN
+          IF (IQ(LTRG1+POINT) .EQ. z80) THEN
             POINT = POINT+64            !LOCATION OF CAL PULSERS
           ELSE
             IER=2
@@ -67,7 +71,7 @@ C
         ENDIF
         DO IPBOX=1,14
           PULSERS(IPBOX)=IQ(LTRG1+POINT+IPBOX)
-          IF(PULSERS(IPBOX).EQ.-1.OR.PULSERS(IPBOX).EQ.'0000F000'X)THEN
+          IF(PULSERS(IPBOX).EQ.-1.OR.PULSERS(IPBOX).EQ.zF000)THEN
             IER=3
             WRITE(MSG_STRING,102)IPBOX-1,PULSERS(IPBOX)
   102       FORMAT(' CANNOT READ PULSERWORD FOR PULSER ',Z1,1X,Z8)

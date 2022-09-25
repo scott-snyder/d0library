@@ -75,7 +75,7 @@ C      INCLUDE 'D0$INC:DBRSUM.INC'
       EQUIVALENCE (IWORD,IBWORD)
       DATA LFIRST /.TRUE./
       DATA ACRATE/7,17,27,37,47,57,8,18,28,38,48,58/
-      DATA MASK/'FF'X/
+      DATA MASK/z'FF'/
 C
 C----------------------------------------------------------------------
 C
@@ -107,7 +107,7 @@ C
           GO TO 999
         ENDIF
 C
-        CALL VZERO(PEDFLGS,16)
+        CALL VZERO_i(PEDFLGS,16)
         CALL VZERO(GNSFLGS,16)
         CALL EZGET('PEDFLGS',PEDFLGS,IERR)
         IF (IERR.NE.0) THEN
@@ -148,7 +148,7 @@ C***** Unpack calib bad channel banks
 C
       BNKFLG = 0
       NCLB = (2*NETAL+1)*NPHIL*NLYRL/4
-      CALL VZERO(CLBBAD,NCLB)
+      CALL VZERO_b(CLBBAD,NCLB)
       DO ICR = 1,12           ! all 12 ADC crates
         ICRATE = ACRATE(ICR)
 C

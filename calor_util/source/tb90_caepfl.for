@@ -77,12 +77,12 @@ C                 get constants out of TB90_CALOR_UNPACK_RCP
         IF ( IER.EQ.0 ) THEN
           CALL EZGET('ENERGY_CUTOFF',ECUTOF,IER)
           CALL EZGET('SIGMA_CUTOFF',SCUTOF,IER)
-          CALL EZGET('CONVERT_TO_GEV',CONGEV,IER)
-          CALL EZGET('ZERO_SUPRESS',ZSUP,IER)
-          CALL EZGET('USE_CPZ_BANK',CPZ,IER)
-          CALL EZGET('FILL_PTCAEP',LPTCAEP,IER)
-          CALL EZGET('DO_PEDSUB',DO_PEDSUB,IER)
-          CALL EZGET('DO_GNSCOR',DO_GNSCOR,IER)
+          CALL EZGET_l('CONVERT_TO_GEV',CONGEV,IER)
+          CALL EZGET_l('ZERO_SUPRESS',ZSUP,IER)
+          CALL EZGET_l('USE_CPZ_BANK',CPZ,IER)
+          CALL EZGET_l('FILL_PTCAEP',LPTCAEP,IER)
+          CALL EZGET_l('DO_PEDSUB',DO_PEDSUB,IER)
+          CALL EZGET_l('DO_GNSCOR',DO_GNSCOR,IER)
           CALL EZGET('GAIN_NORMALIZATION',GAIN_NORM,IER)
           IF (IER.NE.0) THEN
             GAIN_NORM = 1900. 
@@ -101,37 +101,37 @@ C                 get constants out of TB90_CALOR_UNPACK_RCP
             CALL ERRMSG('NO HIGH GAIN CUT in RCP ','TB90_CAEPFL',
      &        ' USE NOMINAL 5000 ','W')
           END IF
-          CALL EZGET('LOW_PED_CUT*1',LOW_PED_1,IER)
+          CALL EZGET_i('LOW_PED_CUT*1',LOW_PED_1,IER)
           IF (IER.NE.0) THEN
             LOW_PED_1 = 2025
             CALL ERRMSG('NO LOW PEDESTAL CUT in RCP ','TB90_CAEPFL',
      &        ' USE NOMINAL 2025 ','W')
           END IF
-          CALL EZGET('HIGH_PED_CUT*1',HIGH_PED_1,IER)
+          CALL EZGET_i('HIGH_PED_CUT*1',HIGH_PED_1,IER)
           IF (IER.NE.0) THEN
             HIGH_PED_1 = 2825 
             CALL ERRMSG('NO HIGH PEDESTAL CUT in RCP ','TB90_CAEPFL',
      &        ' USE NOMINAL 2825 ','W')
           END IF
-          CALL EZGET('LOW_PED_CUT*8',LOW_PED_8,IER)
+          CALL EZGET_i('LOW_PED_CUT*8',LOW_PED_8,IER)
           IF (IER.NE.0) THEN
             LOW_PED_8 = 150
             CALL ERRMSG('NO LOW PEDESTAL CUT in RCP ','TB90_CAEPFL',
      &        ' USE NOMINAL 150 ','W')
           END IF
-          CALL EZGET('HIGH_PED_CUT*8',HIGH_PED_8,IER)
+          CALL EZGET_i('HIGH_PED_CUT*8',HIGH_PED_8,IER)
           IF (IER.NE.0) THEN
             HIGH_PED_8 = 450
             CALL ERRMSG('NO HIGH PEDESTAL CUT in RCP ','TB90_CAEPFL',
      &        ' USE NOMINAL 450 ','W')
           END IF
-          CALL EZGET('STATUS_MASK',STATUS_MASK,IER)
+          CALL EZGET_i('STATUS_MASK',STATUS_MASK,IER)
           IF (IER.NE.0) THEN
             STATUS_MASK = 196607 ! STATUS_VERTEX = 0002FFFF in hex 
             CALL ERRMSG('NO STATUS MASK in RCP ','TB90_CAEPFL',
      &        ' USE NOMINAL 0002FFFF ','W')
           END IF
-          CALL EZGET('OVERWRITE_CAEP',OVERWRITE_CAEP,IER)
+          CALL EZGET_l('OVERWRITE_CAEP',OVERWRITE_CAEP,IER)
           IF (IER.NE.0) THEN
             OVERWRITE_CAEP = .FALSE. ! Do not overwrite CAEP
             CALL ERRMSG('NO OVERWRITE_CAEP in RCP ','TB90_CAEPFL',

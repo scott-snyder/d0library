@@ -36,7 +36,7 @@ C----------------------------------------------------------------------
       IF (FIRST) THEN
         FIRST = .FALSE.
         NUM_EVTS = 0
-        CALL VZERO(NUM_HITS,NLYRL*NPHIL*(2*NETAL+1))
+        CALL VZERO_i(NUM_HITS,NLYRL*NPHIL*(2*NETAL+1))
         CALL VZERO(NRG_SUM,NLYRL*NPHIL*(2*NETAL+1))
         RUNNUM = IQ(LHEAD+6)
       ENDIF

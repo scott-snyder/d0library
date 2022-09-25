@@ -44,7 +44,7 @@ C----------------------------------------------------------------------
         IF (LSCAL.EQ.0) CALL BKSCAL('STPC',LSCAL)
         CALL EZPICK(RCP_BANK)
         IF( .NOT. EZERR(IER) ) THEN
-          CALL EZGET('DO_GNSCOR',DO_GNSCOR,IER)
+          CALL EZGET_l('DO_GNSCOR',DO_GNSCOR,IER)
           IF(DO_GNSCOR)THEN
             CALL EZ_GET_CHARS('GAINS_FILE',N,FILENAME,IER)
             IF (IER.NE.0) THEN
@@ -54,8 +54,8 @@ C----------------------------------------------------------------------
             END IF
             CALL UPCASE(FILENAME,GAIN_FILE)
           END IF
-          CALL EZGET('DO_PEDSUB',DO_PED,IER)
-          IF(.NOT.DO_PED)CALL EZGET('PEDESTAL_SIGMAS',DO_PED,IER)
+          CALL EZGET_l('DO_PEDSUB',DO_PED,IER)
+          IF(.NOT.DO_PED)CALL EZGET_l('PEDESTAL_SIGMAS',DO_PED,IER)
           IF(DO_PED)THEN
             CALL EZ_GET_CHARS('PEDESTAL_FILE',N,FILENAME,IER)
             IF (IER.NE.0) THEN
@@ -82,7 +82,7 @@ C----------------------------------------------------------------------
         END IF
         BYPASS_DBL3_ERROR = .FALSE.
         IF (PED_FILE.EQ.'DBL3' .OR. GAIN_FILE.EQ.'DBL3') THEN
-          CALL EZGET('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,IER)
+          CALL EZGET_k('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,IER)
           IF(IER.NE.0) CALL ERRMSG('NO_ERR_SWITCH','READ_PEDGNS',
      &      'USE DBL3 BYPASS ERROR SWITCH  = FALSE AS DEFAULT','W')
         END IF
@@ -248,7 +248,7 @@ C
       ENDIF
       IF (OK) THEN
         CALL EZGET('CALIB_VERSION',VSN,IER1)  !FROM SRCP BANK LAST PICKED
-        CALL EZGET('CAD_VERSION',CADVSN,IER1)
+        CALL EZGET_i('CAD_VERSION',CADVSN,IER1)
         C(LSCAL+9)=VSN
         IC(LSCAL+10)=CADVSN
         IF(TASK.EQ.1) THEN

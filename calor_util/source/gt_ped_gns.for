@@ -64,7 +64,7 @@ C----------------------------------------------------------------------
 C
       LINK  = LZFIND(IDVSTP,LINKH,CARD,11)   !Finds Bank with Card
       IF ( LINK.GT.0 ) THEN
-        CALL UCOPY(IC(LINK),HEAD,NHEAD)
+        CALL UCOPY_i(IC(LINK),HEAD,NHEAD)
         CALL UCOPY(C(LINK+NHEAD+1),VAL,LENDAT)
       ELSE
         HEAD(1)=-1

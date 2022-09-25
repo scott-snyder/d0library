@@ -166,7 +166,7 @@ C
           IER=0
         ENDIF
       ELSE
-        LPELC = GZPELC(0)
+        LPELC = GZPELC()
         IF ( LPELC .GT. 0 ) THEN
           NUM_ELC = NZBANK(IXCOM,LPELC)
           IER = 0

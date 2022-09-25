@@ -101,7 +101,7 @@ C
               CALL EZGET(PARAM,ETAPHI,IER)
               RENORM = IER.EQ.0
               PARAM = 'CORRECT_'//MODULE(1:TRULEN(MODULE))
-              CALL EZGET(PARAM,LCORRECT,IER)
+              CALL EZGET_l(PARAM,LCORRECT,IER)
               LCORRECT = LCORRECT .AND. (IER.EQ.0)
               CALL EZRSET
               IF(LMSG) THEN

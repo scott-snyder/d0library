@@ -42,8 +42,8 @@ C----------------------------------------------------------------------
       IF( first ) THEN
         first = .false.
         CALL EZPICK('CAHITS_RCP')
-        CALL EZGET('DO_CRYO_CORR',DO_CRYO_CORR,IER)
-        CALL EZGET('CRYO_FACTOR',CRYO_FACTOR,IER)
+        CALL EZGET_l('DO_CRYO_CORR',DO_CRYO_CORR,IER)
+        CALL EZGET_rarr('CRYO_FACTOR',CRYO_FACTOR,IER)
         CALL EZGET('RESCALE_TOLERANCE',TOL,IER)
         CALL EZGET('CASH_SUM_TOLERANCE',TOL_CASH,IER)
         CALL EZRSET

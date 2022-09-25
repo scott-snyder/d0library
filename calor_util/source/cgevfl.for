@@ -56,21 +56,21 @@ C
           CALL ERRMSG('NO_RCP_FILE_CGEV','CGEVFL',RCP_FILE,'W')
         ELSE
           CALL EZGETS ('CSF_STPFILE',1,CSF_STPFILE,LENF,IER)
-          CALL EZGET ('DO_GNSCOR',         DO_GNSCOR,IER)
+          CALL EZGET_l ('DO_GNSCOR',         DO_GNSCOR,IER)
           CALL EZGET ('EM_GAIN',           EM_GAIN,IER)  
           CALL EZGET ('ICD_GAIN',          ICD_GAIN,IER)  
-          CALL EZGET ('DO_PEDSUB',         DO_PEDSUB,IER)
-          CALL EZGET ('DO_ADC_TO_GEV',     DO_ADC_TO_GEV,IER)
-          CALL EZGET ('DO_HOTSUP',         DO_HOTSUP,IER)
-          CALL EZGET ('CSF_CORRECTIONS',   TCOR,IER)    
-          CALL EZGET ('BUILD_CSF',         BUILD_CSF,IER)
-          CALL EZGET ('OLD_CAEP',          OLD_CAEP,IER)
-          CALL EZGET ('DO_ZERO_SUPRESS',   DO_ZERO_SUPRESS,IER)
+          CALL EZGET_l ('DO_PEDSUB',         DO_PEDSUB,IER)
+          CALL EZGET_l ('DO_ADC_TO_GEV',     DO_ADC_TO_GEV,IER)
+          CALL EZGET_l ('DO_HOTSUP',         DO_HOTSUP,IER)
+          CALL EZGET_l ('CSF_CORRECTIONS',   TCOR,IER)    
+          CALL EZGET_l ('BUILD_CSF',         BUILD_CSF,IER)
+          CALL EZGET_i ('OLD_CAEP',          OLD_CAEP,IER)
+          CALL EZGET_l ('DO_ZERO_SUPRESS',   DO_ZERO_SUPRESS,IER)
           CALL EZGET ('SIGMA_CUTOFF',      SIGMA_CUTOF,IER)
-          CALL EZGET ('DATA_DRIVE_CSF',    LDD,IER)      
-          CALL EZGET ('PEDESTAL_SIGMAS',   PSIGMA,IER)
+          CALL EZGET_l ('DATA_DRIVE_CSF',    LDD,IER)      
+          CALL EZGET_l ('PEDESTAL_SIGMAS',   PSIGMA,IER)
           PSIGMA = PSIGMA.OR.(DO_ZERO_SUPRESS.AND.SIGMA_CUTOF.GT.0)
-          CALL EZGET ('BAD_CHANNELS',      BAD_LIST,IER) 
+          CALL EZGET_iarr ('BAD_CHANNELS',      BAD_LIST,IER) 
           CALL EZGET_SIZE ('BAD_CHANNELS', NBAD,IER)     
           IF(MOD(NBAD,3).NE.0) THEN
             CALL ERRMSG('BAD_CHANNELS_SET_WRONG','CGEVFL_PED',
@@ -105,11 +105,11 @@ C
           SIGMA_CUTOF = 0.    ! no pedestal sigma in MC (yet)
           PSIGMA    = .FALSE. ! no pedestal sigma in MC (yet)
           CALL EZPICK(RCP_FILE)
-          CALL EZSET('DO_PEDSUB',DO_PEDSUB,IER)  ! update RCP_BANK 
-          CALL EZSET('DO_GNSCOR',DO_GNSCOR,IER)
-          CALL EZSET('DO_HOTSUP',DO_HOTSUP,IER)
+          CALL EZSET_l('DO_PEDSUB',DO_PEDSUB,IER)  ! update RCP_BANK 
+          CALL EZSET_l('DO_GNSCOR',DO_GNSCOR,IER)
+          CALL EZSET_l('DO_HOTSUP',DO_HOTSUP,IER)
           CALL EZSET('SIGMA_CUTOFF',SIGMA_CUTOF,IER)
-          CALL EZSET('PEDESTAL_SIGMA',PSIGMA,IER)
+          CALL EZSET_l('PEDESTAL_SIGMA',PSIGMA,IER)
           CALL EZRSET
         ELSE IF (TB) THEN
           CALL EZPICK(RCP_FILE)
@@ -117,9 +117,9 @@ C
             CALL ERRMSG('TB DATA NOT PEDESTAL SUBTRACTED','CGEVFL',
      &      'DO_PEDSUB TURNED ON IN CAHITS_RCP','W') 
             DO_PEDSUB = .TRUE. ! get peds in TB dbl3
-            CALL EZSET('DO_PEDSUB',DO_PEDSUB,IER)  ! update RCP_BANK 
+            CALL EZSET_l('DO_PEDSUB',DO_PEDSUB,IER)  ! update RCP_BANK 
           END IF
-          CALL EZSET('NEED_CAD2',.FALSE.,IER) ! update RCP_BANK 
+          CALL EZSET_l('NEED_CAD2',.FALSE.,IER) ! update RCP_BANK 
           CALL EZRSET
         END IF
 C
@@ -251,14 +251,14 @@ C
       IF(.NOT.DO_PEDSUB.AND.PSIGMA) THEN
         DO_PEDSUB = PSIGMA
         CALL EZPICK(RCP_FILE)
-        CALL EZSET('DO_PEDSUB',DO_PEDSUB,IER)  ! update RCP_BANK 
+        CALL EZSET_l('DO_PEDSUB',DO_PEDSUB,IER)  ! update RCP_BANK 
         CALL EZRSET
       ENDIF
       CALL CGEVFL_PEDGNS(RCP_FILE,IER)
       IF(.NOT.DO_PEDSUBL.AND.PSIGMA) THEN
         DO_PEDSUB = DO_PEDSUBL
         CALL EZPICK(RCP_FILE)
-        CALL EZSET('DO_PEDSUB',DO_PEDSUB,IER)  ! update RCP_BANK 
+        CALL EZSET_l('DO_PEDSUB',DO_PEDSUB,IER)  ! update RCP_BANK 
         CALL EZRSET
       ENDIF
   888 CONTINUE

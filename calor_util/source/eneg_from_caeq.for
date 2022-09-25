@@ -22,7 +22,7 @@ C----------------------------------------------------------------------
       REAL    XC,YC,ZC,XV,YV,ZV,DIST
       INTEGER IEMAX             ! Energy is stored in 13 bits - assume this
 C                               ! is always true!!
-      PARAMETER( IEMAX = '1FFF'X)
+      data IEMAX / z'1FFF' /
       REAL OFFSET, E_SCALE_1, E_PREC_2
       DATA OFFSET    /.500/
       DATA E_SCALE_1 /8.91/

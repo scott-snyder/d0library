@@ -64,7 +64,7 @@ C--- scan PMUO bank to get information about associated cells from
 C--- MUCA bank and save IETA and IPHI of the tower which contains
 C--- these cells.
 C-
-      CALL VZERO(MUOFLG, NPHIL*2*NETAL)
+      CALL VZERO_i(MUOFLG, NPHIL*2*NETAL)
       LPMUO = GZPMUO(1)
    10 IF (LPMUO .LE. 0) GO TO 40
       LMUON = LQ(LPMUO-3)

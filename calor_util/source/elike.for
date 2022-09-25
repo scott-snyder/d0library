@@ -114,7 +114,8 @@ C ****  USE same tables for 1A and 1B for VTX only tracks
 C **** read only once at the beginning
 C
         DO I=1,NVAR_VTX
-          IF(STATUS.EQ.0)CALL EZGETA(NAME_VTX(I),0,0,0,N_VTX(I),STATUS)
+          IF(STATUS.EQ.0)CALL EZGETA_iarr(NAME_VTX(I),0,0,0,N_VTX(I)
+     &         ,STATUS)
           IF(STATUS.EQ.0)CALL EZGETA(NAME_VTX(I),1,N_VTX(I)-2,
      &      1,P_VTX(1,I),STATUS)
           IF(STATUS.EQ.0)CALL EZGETA(NAME_VTX(I),N_VTX(I)-1,N_VTX(I),1,
@@ -160,7 +161,8 @@ C
           ELSE
             J = I
           ENDIF
-          IF(STATUS.EQ.0)CALL EZGETA(NAME_CC(I),0,0,0,N_CC(J),STATUS)
+          IF(STATUS.EQ.0)CALL EZGETA_iarr(NAME_CC(I),0,0,0,N_CC(J)
+     &         ,STATUS)
           IF(STATUS.EQ.0)CALL EZGETA(NAME_CC(I),1,N_CC(J)-2,1,P_CC(1,J),
      &      STATUS)
           IF(STATUS.EQ.0)CALL EZGETA(NAME_CC(I),N_CC(J)-1,N_CC(J),1,
@@ -183,7 +185,8 @@ C
           ELSE
             J = I
           ENDIF
-          IF(STATUS.EQ.0)CALL EZGETA(NAME_EC(I),0,0,0,N_EC(J),STATUS)
+          IF(STATUS.EQ.0)CALL EZGETA_iarr(NAME_EC(I),0,0,0,N_EC(J)
+     &         ,STATUS)
           IF(STATUS.EQ.0)CALL EZGETA(NAME_EC(I),1,N_EC(J)-2,1,P_EC(1,J),
      &      STATUS)
           IF(STATUS.EQ.0)CALL EZGETA(NAME_EC(I),N_EC(J)-1,N_EC(J),1,
@@ -197,7 +200,8 @@ C
           ENDIF
           BIN_EC(J)=(X_EC(2,J)-X_EC(1,J))/FLOAT(N_EC(J))
         ENDDO
-        IF(STATUS.EQ.0)CALL EZGETA('CONST_TRD_EC',0,0,0,NCTRD_EC,STATUS)
+        IF(STATUS.EQ.0)CALL EZGETA_iarr('CONST_TRD_EC',0,0,0,NCTRD_EC
+     &       ,STATUS)
         IF(STATUS.EQ.0)CALL EZGETA('CONST_TRD_EC',1,NCTRD_EC,1,CTRD_EC,
      &      STATUS)
         IF (STATUS.NE.0) CALL ERRMSG('ELIKE_RCP','ELIKE',

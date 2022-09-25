@@ -23,7 +23,7 @@ C----------------------------------------------------------------------
       REAL ENERGY_THRESH
       PARAMETER( ENERGY_THRESH = 8.0) ! Range 1 : -OFFSET:ENERGY_THRESH
       INTEGER IEN_1_MAX
-      PARAMETER( IEN_1_MAX = '1FFF'X ) ! # in which to map range
+      data ien_1_max / Z'1FFF' / ! # in which to map range
       REAL E_PREC_2
       PARAMETER( E_PREC_2 = .05 )
       INTEGER NCAEQ_H, PACKWD, PACKWDB

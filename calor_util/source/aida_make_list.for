@@ -38,7 +38,7 @@ C ****  Reset for the new event
 C
       NFOUND = 0
       CALL VZERO (ETARRAY, AIDA_LIST_LENGTH)
-      CALL VZERO (LIST, AIDA_LIST_LENGTH)
+      CALL VZERO_i (LIST, AIDA_LIST_LENGTH)
 C
 C ****  Return with error status if there is no CAEH bank
 C

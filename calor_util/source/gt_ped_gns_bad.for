@@ -33,7 +33,7 @@ C----------------------------------------------------------------------
       INTEGER ICRATE,IADC,IBLS,ITWR,IDEP,ISCL,NEG,IWRD
       INTEGER IMASK,NTOTBD,ICHAN,I
       INTEGER GZCPDH,GZCGNH,LZFIND,LINKH
-      DATA IMASK/'FFFF'X/
+      DATA IMASK/z'FFFF'/
 C----------------------------------------------------------------------
       IER = -1
       NBAD = 0

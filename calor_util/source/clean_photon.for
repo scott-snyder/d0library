@@ -53,11 +53,11 @@ C
      &                'Failed to pick CLEANEM_RCP','F')
             return
          end if
-         if (IErr .eq. 0) call EZGET('NH_CDC',NH_CDC,IErr)
-         if (IErr .eq. 0) call EZGET('NH_FDC',NH_FDC,IErr)
-         if (IErr .eq. 0) call EZGET('NH_VTX',NH_VTX,IErr)
-         if (IErr .eq. 0) call EZGET('N3D_CDC',N3D_CDC,IErr)
-         if (IErr .eq. 0) call EZGET('NZS_CDC',NZS_CDC,IErr)
+         if (IErr .eq. 0) call EZGET_i('NH_CDC',NH_CDC,IErr)
+         if (IErr .eq. 0) call EZGET_i('NH_FDC',NH_FDC,IErr)
+         if (IErr .eq. 0) call EZGET_i('NH_VTX',NH_VTX,IErr)
+         if (IErr .eq. 0) call EZGET_i('N3D_CDC',N3D_CDC,IErr)
+         if (IErr .eq. 0) call EZGET_i('NZS_CDC',NZS_CDC,IErr)
          if (IErr .eq. 0) call EZGET('RH_CDC',RH_CDC,IErr)
          if (IErr .eq. 0) call EZGET('RH_FDC',RH_FDC,IErr)
          if (IErr .eq. 0) call EZGET('RH_VTX',RH_VTX,IErr)
