@@ -310,7 +310,7 @@ C&        IF(TYPARR(I).EQ.'I' .OR. TYPARR(I).EQ.'R' .OR.
 C&     &    TYPARR(I).EQ.'L' .OR. TYPARR(I).EQ.'H')THEN
 C&          CALL MOVINT(PAR(PTON(I)), %VAL(ADDNPAR(I)))
 C&        ELSE
-C&          CALL MOVSTR(%REF(CPAR(PTOC(I))), %VAL(ADDCPAR(I)), 
+C&          CALL MOVSTR2(%REF(CPAR(PTOC(I))), %VAL(ADDCPAR(I)), 
 C&     &      %VAL(LEN(CPAR(PTOC(I)))), %VAL(LENCPAR(I)))
 C&        ENDIF
 C& 90   CONTINUE

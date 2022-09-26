@@ -80,7 +80,8 @@ C
         IF(STRING(1:1).EQ.'0') THEN
           ISTAT=SMG$PUT_LINE(MINID1,' ',1,0,%VAL(0),1,%VAL(0),%VAL(0))
         ELSEIF(STRING(1:1).EQ.'1') THEN
-          ISTAT = SMG$PUT_LINE(MINID1, ' ', SPLLIN-3) ! SPLLIN-2 blank lines
+          ISTAT = SMG$PUT_LINE(MINID1, ' ', SPLLIN-3,0,%val(0),0,
+     &                         %val(0),%val(0))      ! SPLLIN-2 blank lines
           IF (.NOT. ISTAT) CALL LIB$SIGNAL(%VAL(ISTAT))
         ENDIF
         IF(STRING(1:1).EQ.'+') THEN

@@ -38,7 +38,7 @@ C&ENDIF
 C----------------------------------------------------------------------
 C
       NP = LEN (PRT)
-      CALL VNUMI (NV,VALS,'(',',',')',VALSTR,M)
+      CALL VNUMI (NV,VALS(1),'(',',',')',VALSTR,M)
       CALL VNUMI (1,DEFAUL,'[',',',']',DEFSTR,N)
 C
 C ****  Ask for value

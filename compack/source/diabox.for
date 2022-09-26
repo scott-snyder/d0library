@@ -207,7 +207,7 @@ C
      &                               TIMEOUT,%VAL(0),
      &                               LRESSTR,
      &                               KEY_CODE,
-     &                               VDID)
+     &                               VDID, '')
           ELSE
             STATUS = SMG$READ_STRING(KEYID,
      &                               RESSTR(1:LMAXSTR),
@@ -217,7 +217,7 @@ C
      &                               %VAL(0),%VAL(0),
      &                               LRESSTR,
      &                               KEY_CODE,
-     &                               VDID)
+     &                               VDID, '')
           ENDIF
         ELSE
           IF ( TIMEOUT .GT. 0 ) THEN
