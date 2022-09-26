@@ -23,7 +23,7 @@ C----------------------------------------------------------------------
       INTEGER LRTST
       INTEGER GZRTST
       INTEGER IADDR, RADDR
-      DATA RADDR /'1C0D'X/
+      DATA RADDR /z'1C0D'/
 C      DATA RADDR /'1C1C'X/
       INTEGER MaxData
       PARAMETER   ( MaxData = 1536 )

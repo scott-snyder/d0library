@@ -35,8 +35,8 @@ C
      &    'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('NUM_DUMPS',NDFL,IER)   ! get number of banks
-        CALL EZGET('DUMP_BANKS',BANKS,IER) ! get list of banks
+        CALL EZGET_i('NUM_DUMPS',NDFL,IER)   ! get number of banks
+        CALL EZGET_iarr('DUMP_BANKS',BANKS,IER) ! get list of banks
         CALL EZRSET
 C
         IF(NDFL.GT.NDFLMX) 

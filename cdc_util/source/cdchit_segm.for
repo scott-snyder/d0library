@@ -23,7 +23,7 @@ C----------------------------------------------------------------------
       Logical       LCheck
 C
       integer mask_0003fffe
-      parameter (mask_0003fffe = '0003FFFE'X)
+      data mask_0003fffe / z'0003FFFE' /
 C
       IFL = 0
       NSeg = 0

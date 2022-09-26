@@ -91,9 +91,9 @@ C
         CALL EZGET('CDZCH2',CDZCH2,IER)
         CALL EZGET('CDZCHI',CDZCHI,IER)
         IF(.NOT. MCDATA) THEN
-          CALL EZGET('DLERRS',DLERRS,IER)
+          CALL EZGET_l('DLERRS',DLERRS,IER)
           CALL EZGET('DLTHSL',DLTHSL,IER)
-          CALL EZGET('SWDERR',SWDERR,IER)
+          CALL EZGET_l('SWDERR',SWDERR,IER)
           CALL EZGET('ERRSEG',ERRSEG,IER)
         ENDIF
         CALL EZRSET
@@ -231,9 +231,9 @@ C
 C
       CHISQ(2) = 0.
       J = 0
-      CALL VZERO(BADZID(1),8)
+      CALL VZERO_i(BADZID(1),8)
       CALL VZERO(ABSRES(1),8)
-      CALL VZERO(INDEX(1),8)
+      CALL VZERO_i(INDEX(1),8)
       DO 40 I = 1, N
         RESID(I,2) = 999.
         IF( WR(I) .LE. 0. ) GOTO 40

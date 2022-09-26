@@ -59,7 +59,7 @@ C
      &    'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('DISTBG',DISTBG,IER)
+        CALL EZGET_rarr('DISTBG',DISTBG,IER)
         CALL EZGET('BIGSLP',BIGSLP,IER)
         CALL EZGET('MEDSLP',MEDSLP,IER)
         CALL EZGET('LILSLP',LILSLP,IER)

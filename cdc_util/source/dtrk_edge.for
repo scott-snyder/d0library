@@ -44,7 +44,7 @@ C
      &    'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('CDMINL_EDGE',CDMINL,ERR)
+        CALL EZGET_i('CDMINL_EDGE',CDMINL,ERR)
         CALL EZGET('CDTDPH',CDTDPH,ERR)
         CALL EZGET('CDTDIS',CDTDIS,ERR)
         CALL EZRSET

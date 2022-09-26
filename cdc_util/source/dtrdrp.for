@@ -36,7 +36,7 @@ C
 C
       IF (NUMDRP.LE.0) GOTO 999
        IF(NUMDRP.LE.MAXDRP)THEN
-         CALL EZGET('DROPS_STA_BANKS',BANKS,IER) ! get list of banks
+         CALL EZGET_iarr('DROPS_STA_BANKS',BANKS,IER) ! get list of banks
        ELSE
          CALL ERRMSG('DTRAKS','DTRDRP',
      &      'DROP REQUEST EXCEEDS MAXIMUM ALLOWED ','W')

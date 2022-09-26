@@ -49,7 +49,7 @@ C
      &    'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('CDSURV',CDSURV,ERR)
+        CALL EZGET_i('CDSURV',CDSURV,ERR)
         CALL EZGET('MXHIGH',MXHIGH,ERR)
         if (err .ne. 0) mxhigh = 500.0
         CALL EZRSET
@@ -60,16 +60,16 @@ C
 C ****  Initialize every storage array for a new step in alignement
 C
         NCALL = CDSURV
-        CALL VZERO( NBRES (0,0,0), NBSENS*32*4 )
+        CALL VZERO_i( NBRES (0,0,0), NBSENS*32*4 )
         CALL VZERO( SUMRES(0,0,0), NBSENS*32*4 )
         CALL VZERO( SUMRE2(0,0,0), NBSENS*32*4 )
-        CALL VZERO( NZRES(1,0,0),  NBDELY*32*4 )
+        CALL VZERO_i( NZRES(1,0,0),  NBDELY*32*4 )
         CALL VZERO( SZRES(1,0,0),  NBDELY*32*4 )
         CALL VZERO( SZRE2(1,0,0),  NBDELY*32*4 )
-        CALL VZERO( NDLEV(1,0,0),  NBDELY*32*4 )
+        CALL VZERO_i( NDLEV(1,0,0),  NBDELY*32*4 )
         CALL VZERO( SDLRES(1,0,0), NBDELY*32*4 )
         CALL VZERO( SDLRE2(1,0,0), NBDELY*32*4 )
-        CALL VZERO( NEVGAI(0,0,0), (MXFADC+1)*32*4 )
+        CALL VZERO_i( NEVGAI(0,0,0), (MXFADC+1)*32*4 )
         CALL VZERO( SUMGAI(0,0,0), (MXFADC+1)*32*4 )
         CALL VZERO( SU2GAI(0,0,0), (MXFADC+1)*32*4 )
       ENDIF

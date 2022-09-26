@@ -56,7 +56,7 @@ C----------------------------------------------------------------------
      &    'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('MAXSEC',MAXSEC,ERR)
+        CALL EZGET_i('MAXSEC',MAXSEC,ERR)
         CALL EZGET('CDMXPH',CDMXPH,ERR)
         CALL EZRSET
       ENDIF

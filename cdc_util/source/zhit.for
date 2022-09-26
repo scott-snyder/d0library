@@ -18,7 +18,7 @@ C----------------------------------------------------------------------
       Integer       GZDHIT, LDHIT, IMask, I
 C
       integer mask_0003fffe
-      parameter (mask_0003fffe = '0003fffe'X)
+      data mask_0003fffe / z'0003fffe' /
 C
       LDHIT = GZDHIT()
       If (LDHIT .le. 0) Go To 1

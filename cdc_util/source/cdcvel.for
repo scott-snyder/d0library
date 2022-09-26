@@ -52,11 +52,11 @@ C
      &      'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('CDVTRK',CDVTRK,ERR)
-        CALL EZGET('CDALIT',CDALIT,ERR)
+        CALL EZGET_i('CDVTRK',CDVTRK,ERR)
+        CALL EZGET_i('CDALIT',CDALIT,ERR)
         CALL EZGET('ANOCUT',ANOCUT,ERR)
         CALL EZGET('CATCUT',CATCUT,ERR)
-        CALL EZGET('EACRUN',EACRUN,ERR)
+        CALL EZGET_l('EACRUN',EACRUN,ERR)
         CALL EZRSET
         LLDRFT = GZDRFT()             !Pointer to DRFT
         PHOFF0 = C(LLDRFT+9)*PI/180.  !Half opening angle of drift cell
@@ -89,7 +89,7 @@ C
         CALL VZERO (DELV,2)
         CALL VZERO (SGV,2)
         CALL VZERO (SGDELV,2)
-        CALL VZERO (NEVT,2)
+        CALL VZERO_i (NEVT,2)
       END IF
 C
       LLDTRH = GZDTRH()           !Pointer to DTRH

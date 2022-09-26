@@ -49,9 +49,9 @@ C
         IF (IER .NE. 0) GFACTR = 1.0
         IF (IQ(LHEAD+1) .GT. 1000) MCDATA = .TRUE.
         IF (.NOT. MCDATA) THEN
-          CALL EZGET('VPLVMI',VPLVMI,ERR)
-          CALL EZGET('SWDERR',SWDERR,ERR)
-          CALL EZGET('D0CFUN',D0CFUN,ERR)            
+          CALL EZGET_l('VPLVMI',VPLVMI,ERR)
+          CALL EZGET_l('SWDERR',SWDERR,ERR)
+          CALL EZGET_l('D0CFUN',D0CFUN,ERR)            
         ENDIF
         CALL EZRSET
       ENDIF

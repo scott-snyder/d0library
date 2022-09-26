@@ -34,8 +34,8 @@ C
      &        'Unable to find CD_FIX_RCP','F')
           ENDIF
         ENDIF
-        CALL EZGET('POLYORDER',POLYORDER,IER)
-        CALL EZGET('POLYCOEFF',POLYCOEFF,IER)
+        CALL EZGET_i('POLYORDER',POLYORDER,IER)
+        CALL EZGET_rarr('POLYCOEFF',POLYCOEFF,IER)
         CALL EZRSET
       ENDIF
 C

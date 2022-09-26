@@ -52,7 +52,7 @@ C
       CALL GETPAR(1,'  Change histogram booking parameters?
      &  Y/N>','L',ANSWER)
       IF (ANSWER) 
-     &  CALL GETPAR(5,PROMPT,TYPARR,NBINS,XMIN,XMAX,YMIN,YMAX)
+     &  CALL GETPAR5(PROMPT,TYPARR,NBINS,XMIN,XMAX,YMIN,YMAX)
 C      DO 200 J = 0, MAXSEC
 C        DO 100 I = 0, 27
 C          ID = 3000 + I + J * 28

@@ -67,10 +67,10 @@ C
       L_T0D_REC  = .FALSE.
       L_T0D_ZTRK = .FALSE.
       N_T0D_EVT = 1
-      CALL EZGET('T0DREC',L_T0D_REC,IERR)
-      CALL EZGET('T0DFUL',L_T0D_FUL,IERR)
-      CALL EZGET('T0DEVT',N_T0D_EVT,IERR)
-      CALL EZGET('T0DZTRK',L_T0D_ZTRK,IERR)
+      CALL EZGET_l('T0DREC',L_T0D_REC,IERR)
+      CALL EZGET_l('T0DFUL',L_T0D_FUL,IERR)
+      CALL EZGET_i('T0DEVT',N_T0D_EVT,IERR)
+      CALL EZGET_l('T0DZTRK',L_T0D_ZTRK,IERR)
       IF ( (.NOT. L_T0D_REC) .OR. (.not.N_T0D_EVT) ) THEN
         L_T0D_REC = .FALSE.
         CALL ERRMSG('T0D','T0DINI','T0D package is switched off','I')
@@ -90,7 +90,7 @@ C
 C ****  Initializing histogramming for the T0D
 C
       L_HIST = .FALSE.
-      CALL EZGET('T0DHIS',L_HIST,IERR)
+      CALL EZGET_l('T0DHIS',L_HIST,IERR)
       IF (L_HIST) THEN
         CALL DHDIR('T0D_RCP','HBOOK_DIRECTORY',IERR,' ')
         IF (IERR .NE. 0)

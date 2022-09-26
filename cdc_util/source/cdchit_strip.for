@@ -24,11 +24,11 @@ C----------------------------------------------------------------------
       Common /CDCHIT/ NW
 C
       integer mask_0003fffe
-      parameter (mask_0003fffe = '0003FFFE'X)
+      data mask_0003fffe / z'0003FFFE' /
       integer mask_00400000
-      parameter (mask_00400000 = '00400000'X)
+      data mask_00400000 / z'00400000' /
       integer mask_FFBFFFFF
-      parameter (mask_FFBFFFFF = 'FFBFFFFF'X)
+      data mask_FFBFFFFF / z'FFBFFFFF' /
 C
       NG = 0
       If (NH .le. 0) Return

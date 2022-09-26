@@ -47,7 +47,7 @@ C    passes is decided by the inefficiency allowed in the tracking.  (INEFF)
           GOTO 999
         ENDIF
         CALL EZGET('DSLMAX',DSLMAX,IER)
-        CALL EZGET('INEFF',INEFF,IER)  !max number of missing hits in a segment
+        CALL EZGET_i('INEFF',INEFF,IER)  !max number of missing hits in a segment
         CALL EZRSET
         MXPASS=INEFF+1
         ICALL=1

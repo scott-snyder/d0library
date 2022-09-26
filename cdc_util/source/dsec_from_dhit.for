@@ -80,18 +80,18 @@ C
         IF (IER .NE. 0) GFACTR = 1.0
         IF (IQ(LHEAD+1) .GT. 1000) MCDATA = .TRUE.
         IF (.NOT. MCDATA) THEN
-          CALL EZGET('VPLVMI',VPLVMI,ERR)
-          CALL EZGET('SWDERR',SWDERR,ERR)
-          CALL EZGET('D0CFUN',D0CFUN,ERR)            
+          CALL EZGET_l('VPLVMI',VPLVMI,ERR)
+          CALL EZGET_l('SWDERR',SWDERR,ERR)
+          CALL EZGET_l('D0CFUN',D0CFUN,ERR)            
         ENDIF
         call EZGET('TERRSW', TERRSW, ERR)
         if (err .ne. 0) terrsw = 12.0
         call EZGET('TERRDL', TERRDL, ERR)
         if (err .ne. 0) terrdl = 2.2
 C
-        CALL EZGET('FIXZ',FIXZ,IER)
-        CALL EZGET('POLYORDER',POLYORDER,IER)
-        CALL EZGET('POLYCOEFF',POLYCOEFF,IER)
+        CALL EZGET_l('FIXZ',FIXZ,IER)
+        CALL EZGET_i('POLYORDER',POLYORDER,IER)
+        CALL EZGET_rarr('POLYCOEFF',POLYCOEFF,IER)
 C
         CALL EZRSET
       ENDIF

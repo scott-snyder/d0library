@@ -37,7 +37,7 @@ C----------------------------------------------------------------------"
       COMMON /    / IB(2)
       DIMENSION B(2)    
       EQUIVALENCE (B(1),IB(1))
-      DIMENSION TITLE(3)
+      character*(*) title
       REAL*8 SUMYW,SUMYYW,SUMW,SUMWW
       CHARACTER*40 TITL
       LOGICAL HEXIST,LERR
@@ -301,8 +301,8 @@ C
       YP=Y-(B(LOC+5)+B(LOC+6))/2.
       CALL HFILL(IB(LOC+1),X,YP)
       CALL HFILL(IB(LOC+2),X,YP*YP)
-      CALL HFILL(IB(LOC+3),X)
-      CALL HFILL(IB(LOC+4),X)
+      CALL HFILL(IB(LOC+3),X,0.)
+      CALL HFILL(IB(LOC+4),X,0.)
       RETURN
  1002 FORMAT(1X,' ID',I6,' NOT FOUND')
       END

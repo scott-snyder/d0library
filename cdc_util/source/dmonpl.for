@@ -137,7 +137,7 @@ C**************************************
   424       CONTINUE
   333     CONTINUE
   222   CONTINUE
-        CALL EZGET('CDINFM',CDINFM,ERR)
+        CALL EZGET_i('CDINFM',CDINFM,ERR)
         CALL EZGET('MAX_PEAK',MAX_PEAK,ERR)
         CALL EZRSET
       ENDIF

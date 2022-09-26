@@ -37,8 +37,8 @@ C------------------------------------------------------------------------------
           GOTO 999
         ENDIF
         CALL EZGET('INEFF',INEFF,IER)
-        CALL EZGET('NSEC',NSEC,IER)
-        CALL EZGET('DPATH',IPATH,IER)
+        CALL EZGET_iarr('NSEC',NSEC,IER)
+        CALL EZGET_i('DPATH',IPATH,IER)
         CALL EZRSET
         ICALL=1
       END IF

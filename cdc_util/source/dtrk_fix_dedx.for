@@ -35,7 +35,7 @@ C
           ENDIF
         ENDIF
         CALL EZGETA('DE_DX_RUNS',0,0,0,NRUNS,IER)
-        CALL EZGET('DE_DX_RUNS',MIP_RUNS,IER)
+        CALL EZGET_iarr('DE_DX_RUNS',MIP_RUNS,IER)
         CALL EZGET('DE_DX_CORRS',MIP_CORR,IER)
         CALL EZRSET
         RUNOLD = 0

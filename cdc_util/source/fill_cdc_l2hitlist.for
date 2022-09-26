@@ -64,13 +64,13 @@ C----------------------------------------------------------------------
      &      'Unable to find bank L2CDHT','W')
           GOTO 999
         ENDIF
-        CALL EZGET('TSCALE',ISCALE,ERR)
+        CALL EZGET_i('TSCALE',ISCALE,ERR)
         tscale = float(iscale)
-        CALL EZGET('TMAX',IMAX,ERR)
+        CALL EZGET_i('TMAX',IMAX,ERR)
         tmax = float(imax)
-        CALL EZGET('ARMAX',IMAX,ERR)
+        CALL EZGET_i('ARMAX',IMAX,ERR)
         armax = float(imax)
-        CALL EZGET('WIDMAX',IMAX,ERR)
+        CALL EZGET_i('WIDMAX',IMAX,ERR)
         widmax = float(imax)
         CALL EZGET('FFRQCY',FFRQCY,ERR)
         CALL EZGET('TRGOFF',trgoff,ERR)
@@ -84,7 +84,7 @@ C
 C  Check whether this is a new event. If so build pointer map.
       if (IQ(lhead+9) .ne. event_number) then
         event_number = IQ(lhead+9)
-        call VZERO(map, 2*n_layer*n_sector*n_wire)
+        call VZERO_i(map, 2*n_layer*n_sector*n_wire)
         length_cdh2 = IQ(lcdh2 -1)
         point = lcdh2 + length_cdh2 - cable_trailer_length
         do while (point .gt. (lcdh2 + header_length))

@@ -37,7 +37,7 @@ C----------------------------------------------------------------------
       integer ldhit, gzdhit, dhit_len
       real time, zed, errz
       integer MASK16
-      parameter (MASK16 = 'FFFF'x)
+      data MASK16 / z'FFFF' /
       REAL    MAX_VALUE
       PARAMETER( MAX_VALUE = 32768.0 )
       REAL    MIP

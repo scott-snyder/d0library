@@ -16,6 +16,9 @@ C----------------------------------------------------------------------
       INCLUDE      'D0$INC:ZEBCOM.INC'
       INTEGER       LUN, NT0TZ, ILEVEL, GZT0TZ, LT0TZ, GZT0TH, LT0TH
       INTEGER       NTRACK, IC, I, ISTR, IEND
+
+      integer z0000FFFF
+      data z0000FFFF / z'0000FFFF' /
 C
       IF (NT0TZ .LT. 0) THEN
         WRITE (LUN,'(''0PRT0TZ error: invalid track number: '',I2)')
@@ -52,9 +55,9 @@ C
       DO I=ISTR,IEND
         LT0TZ = GZT0TZ(I)
         WRITE (LUN,1010) I,(IQ(IC),IC=LT0TZ+1,LT0TZ+4),
-     &    iand(IQ(LT0TZ+7),'0000FFFF'X),
+     &    iand(IQ(LT0TZ+7),z0000FFFF),
      &    IQ(LT0TZ+7)/65536,
-     &    iand(IQ(LT0TZ+8),'0000FFFF'X),
+     &    iand(IQ(LT0TZ+8),z0000FFFF),
      &    IQ(LT0TZ+8)/65536,
      &    IQ(LT0TZ+9),IQ(LT0TZ+10),
      &    Q(LT0TZ+5),Q(LT0TZ+6),

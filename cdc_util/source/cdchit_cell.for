@@ -21,7 +21,7 @@ C----------------------------------------------------------------------
       Integer         NCell, IAddr(1), I1, I2, I, J, J1, ICell
 C
       integer mask_fffc07ff
-      parameter (mask_fffc07ff = 'FFFC07FF'X)
+      data mask_fffc07ff / z'FFFC07FF' /
 C
       NCell = 0
       If (PhiMin .gt. PhiMax) Return

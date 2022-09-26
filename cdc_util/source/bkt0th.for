@@ -27,8 +27,8 @@ C
       SAVE     L_FIRST
 
       integer mask_fffc0000, mask_0003ffff
-      parameter (mask_fffc0000 = 'FFFC0000'X,
-     &           mask_0003ffff = '0003FFFF'X)
+      data mask_fffc0000 / z'FFFC0000' /
+      data mask_0003ffff / z'0003FFFF' /
 C----------------------------------------------------------------------
       IF( L_FIRST ) THEN
         L_FIRST = .FALSE.

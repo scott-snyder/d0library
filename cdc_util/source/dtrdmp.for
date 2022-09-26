@@ -63,7 +63,7 @@ C
       CALL EZGET('NUM_DUMPS',NUMDMP,IER)   ! get number of banks
       IF (NUMDMP .LE. 0) GOTO 999
       IF(NUMDMP.LE.MAXDMP)THEN
-        CALL EZGET('DUMP_BANKS',BANKS,IER) ! get list of banks
+        CALL EZGET_i('DUMP_BANKS',BANKS,IER) ! get list of banks
       ELSE
         CALL ERRMSG('DTRAKS','DTRDMP',
      &      'DUMP REQUEST EXCEEDS MAXIMUM ALLOWED ','W')

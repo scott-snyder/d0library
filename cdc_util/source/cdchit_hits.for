@@ -33,7 +33,7 @@ C----------------------------------------------------------------------
       Real            Coord(3,1), Theta, TheMin, TheMax, DXV, DYV
 C
       integer mask_fffc07ff
-      parameter (mask_fffc07ff = 'FFFC07FF'X)
+      data mask_fffc07ff / z'FFFC07FF' /
 C
       NCell = 0
       Call CDCHIT_Cell(PhiMin,PhiMax,NCell,IAddr)

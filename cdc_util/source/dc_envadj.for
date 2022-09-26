@@ -62,10 +62,10 @@ C----------------------------------------------------------------------
         FIRST = .FALSE.
         ERROR = 0
         CALL EZPICK('DTRAKS_RCP')
-        CALL EZGET('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,ERR)
+        CALL EZGET_l('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,ERR)
         CALL EZGET('DBM_MAX_TIME',MAX_TIME,ERR)
         ERROR = ERROR + ERR
-        CALL EZGET('ENV_NUM_DEV',NUM_DEV,ERR)
+        CALL EZGET_i('ENV_NUM_DEV',NUM_DEV,ERR)
         ERROR = ERROR + ERR
 C        CALL EZGETA('ENV_DEVICES',0,0,0,NWORDS,ERR)
         ERROR = ERROR + ERR

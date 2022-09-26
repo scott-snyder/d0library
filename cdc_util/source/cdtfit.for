@@ -56,11 +56,11 @@ C
      &    'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('CDSURV',CDSURV,ERR)
+        CALL EZGET_i('CDSURV',CDSURV,ERR)
         CALL EZGET('CDTCH2',CDTCH2,ERR)
-        CALL EZGET('MINNMZ',MINNMZ,ERR)
-        CALL EZGET('MINZ_EDGE',MINZ_EDGE,ERR)
-        CALL EZGET('BUILD_DHIT',BUILD_DHIT,ERR)
+        CALL EZGET_i('MINNMZ',MINNMZ,ERR)
+        CALL EZGET_i('MINZ_EDGE',MINZ_EDGE,ERR)
+        CALL EZGET_l('BUILD_DHIT',BUILD_DHIT,ERR)
         CALL EZRSET
       ENDIF
       DO 200 I = 1, NBTWIR
@@ -128,7 +128,7 @@ C
 C ****  Now, test the track quality ( Chisq )
 C
       IF( CHISQ(1) .GT. CDTCH2*NDEGF(1) ) THEN
-        CALL VZERO(NUSEGM(0), 4)
+        CALL VZERO_i(NUSEGM(0), 4)
         IF( DBGFLG .AND. LVLDBG(7) .GE. 3) WRITE(LUNDBG,3200)
  3200   FORMAT(10X,'Chisquare on XY is too big. Track rejected')
         GOTO 999
@@ -136,7 +136,7 @@ C
       IF (MODE .NE. 0) THEN
         CALL DCHKT_EDGE(PARFIT,EDGETR)
         IF (.NOT. EDGETR) THEN
-          CALL VZERO(NUSEGM(0), 4)
+          CALL VZERO_i(NUSEGM(0), 4)
           GOTO 999
         ENDIF
       ENDIF

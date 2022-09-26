@@ -21,18 +21,18 @@ C----------------------------------------------------------------------
       INTEGER LRTST, GZRTST
       INTEGER I, J, NTDATA, IDATA, NTFDATA, LP, L, IPULSE, IFDATA
       INTEGER RADDR
-      DATA RADDR /'1C0D'X/
+      DATA RADDR /z'1C0D'/
 C
       integer mask_000000ff
-      parameter (mask_000000ff = '000000ff'X)
+      data mask_000000ff / z'000000ff' /
       integer mask_0000ff00
-      parameter (mask_0000ff00 = '0000ff00'X)
+      data mask_0000ff00 / z'0000ff00' /
       integer mask_00ff0000
-      parameter (mask_00ff0000 = '00ff0000'X)
+      data mask_00ff0000 / z'00ff0000' /
       integer mask_ff000000
-      parameter (mask_ff000000 = 'ff000000'X)
+      data mask_ff000000 / z'ff000000' /
       integer mask_0000ffff
-      parameter (mask_0000ffff = '0000ffff'X)
+      data mask_0000ffff / z'0000ffff' /
 C----------------------------------------------------------------------
       LRTST = GZRTST()
       IF ( LRTST .LE. 0 ) THEN

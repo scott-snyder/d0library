@@ -16,6 +16,29 @@ C----------------------------------------------------------------------
       INTEGER       LUN, NT0DH, LT0DH, LT0HT, GZT0HT, NHITS, IC
       INTEGER       I, ISTR, IEND, ILEVEL, NT0TD, LT0TH, IOF, NW, J
       INTEGER       NTRACK, GZT0DH,  GZT0TD
+
+      integer z00000001
+      data z00000001 / z'00000001' /
+      integer z000000FE
+      data z000000FE / z'000000FE' /
+      integer z00000700
+      data z00000700 / z'00000700' /
+      integer z0000F800
+      data z0000F800 / z'0000F800' /
+      integer z00030000
+      data z00030000 / z'00030000' /
+      integer z00040000
+      data z00040000 / z'00040000' /
+      integer z00080000
+      data z00080000 / z'00080000' /
+      integer z00100000
+      data z00100000 / z'00100000' /
+      integer z00200000
+      data z00200000 / z'00200000' /
+      integer z00400000
+      data z00400000 / z'00400000' /
+      integer z0000FFFF
+      data z0000FFFF / z'0000FFFF' /
 C
       IF (NT0TD .LT. 0) THEN
         WRITE (LUN,'(''0PRT0DH error: invalid track number: '',I2)')
@@ -67,18 +90,18 @@ C
         DO I=1,NHITS
           IOF = NW*(I-1) + 3
           WRITE (LUN,1010) I,
-     &      iand(IQ(LT0DH+IOF),'00000001'X),
-     &      iand(IQ(LT0DH+IOF),'000000FE'X)/2,
-     &      iand(IQ(LT0DH+IOF),'00000700'X)/256,
-     &      iand(IQ(LT0DH+IOF),'0000F800'X)/2048,
-     &      iand(IQ(LT0DH+IOF),'00030000'X)/65536,
-     &      iand(IQ(LT0DH+IOF),'00040000'X)/262144,
-     &      iand(IQ(LT0DH+IOF),'00080000'X)/524288,
-     &      iand(IQ(LT0DH+IOF),'00100000'X)/1048576,
-     &      iand(IQ(LT0DH+IOF),'00200000'X)/2097152,
-     &      iand(IQ(LT0DH+IOF),'00400000'X)/4194304,
+     &      iand(IQ(LT0DH+IOF),z00000001),
+     &      iand(IQ(LT0DH+IOF),z000000FE)/2,
+     &      iand(IQ(LT0DH+IOF),z00000700)/256,
+     &      iand(IQ(LT0DH+IOF),z0000F800)/2048,
+     &      iand(IQ(LT0DH+IOF),z00030000)/65536,
+     &      iand(IQ(LT0DH+IOF),z00040000)/262144,
+     &      iand(IQ(LT0DH+IOF),z00080000)/524288,
+     &      iand(IQ(LT0DH+IOF),z00100000)/1048576,
+     &      iand(IQ(LT0DH+IOF),z00200000)/2097152,
+     &      iand(IQ(LT0DH+IOF),z00400000)/4194304,
      &      IQ(LT0DH+IOF)/8388608,
-     &      iand(IQ(LT0DH+IOF+1),'0000FFFF'X)*0.1,
+     &      iand(IQ(LT0DH+IOF+1),z0000FFFF)*0.1,
      &      (IQ(LT0DH+IOF+1)/65536)/100.,
      &      Q(LT0DH+IOF+2)
         ENDDO
