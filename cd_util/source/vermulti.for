@@ -33,10 +33,10 @@ C
      &       'Unable to find bank VERTEX_RCP','W')
           GOTO 1000
         ENDIF
-        CALL EZGET('NBIN',NBIN1,IER)
-        CALL EZGET('NBIN2',NBIN2,IER)
+        CALL EZGET_i('NBIN',NBIN1,IER)
+        CALL EZGET_i('NBIN2',NBIN2,IER)
         CALL EZGET('ZHI',ZHI,IER)
-        CALL EZGET('MAXPRIM',MAXPRIM,IER)
+        CALL EZGET_i('MAXPRIM',MAXPRIM,IER)
         CALL EZGET('SIGMAZ',SIGMAZ,IER)
         CALL EZGET('MIN1',MIN1,IER)
         CALL EZGET('MIN2',MIN2,IER)

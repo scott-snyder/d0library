@@ -37,7 +37,7 @@ C
      &       'Unable to find bank VERTEX_RCP','W')
             GOTO 999
           ENDIF
-          CALL EZGET('SMEAR_XY',SMEAR,IER)
+          CALL EZGET_i('SMEAR_XY',SMEAR,IER)
           CALL EZGET('SIGMA',SIGMA,IER)
           CALL EZRSET
         END IF

@@ -67,8 +67,8 @@ C----------------------------------------------------------------------
         CALL EZGET('FSGMFC2',SGMFC2,IER)
         CALL EZGET('FITRLMT',ITRLMT,IER)
         CALL EZGET('FBIGSGM',BIGSGM,IER) 
-        CALL EZGET('FHSTFLG',HSTFLG,IER) 
-        CALL EZGET('BEAM_POS',BEAM_POS,IER)
+        CALL EZGET_l('FHSTFLG',HSTFLG,IER) 
+        CALL EZGET_rarr('BEAM_POS',BEAM_POS,IER)
         CALL EZRSET               
         IF (HSTFLG) THEN           
           CALL ZVERT_FDC_TRKBK

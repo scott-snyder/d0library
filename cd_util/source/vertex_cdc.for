@@ -33,7 +33,7 @@ C
      &    'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('DPATH',IPATH,ERR)
+        CALL EZGET_i('DPATH',IPATH,ERR)
         CALL EZRSET
         CALL EZPICK('VERTEX_RCP')
         IF ( EZERROR(IER) ) THEN

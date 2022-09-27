@@ -60,7 +60,7 @@ C
 C
       ZTRDDF=.TRUE.
       CALL EZPICK('ZTRAKS_RCP')       
-      CALL EZGET('NUM_DUMPS',NUMDMP,IER)   ! get number of banks
+      CALL EZGET_i('NUM_DUMPS',NUMDMP,IER)   ! get number of banks
       IF(NUMDMP.LE.MAXDMP)THEN
         CALL EZGET('DUMP_BANKS',BANKS,IER) ! get list of banks
       ELSE

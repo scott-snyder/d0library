@@ -85,21 +85,21 @@ C
         ELSE IF (COMAND.EQ.'SHOW') THEN
           CALL ZSHOW_PULSER
         ELSE IF (COMAND.EQ.'AMPLTDA') THEN
-          CALL GETPAR(1,' Enter Amplitude of Pulse - A > ','I',AMPLTDA)
+          CALL GETPAR1(' Enter Amplitude of Pulse - A > ','I',AMPLTDA)
           IF (AMPLTDA.LT.0.OR.AMPLTDA.GT.255) THEN
             CALL INTMSG(
      &        ' Amplitude out of range (0-255). Value not set ')
             AMPLTDA = 0
           ENDIF
         ELSE IF (COMAND.EQ.'AMPLTDB') THEN
-          CALL GETPAR(1,' Enter Amplitude of Pulse - B > ','I',AMPLTDB)
+          CALL GETPAR1(' Enter Amplitude of Pulse - B > ','I',AMPLTDB)
           IF (AMPLTDB.LT.0.OR.AMPLTDB.GT.255) THEN
             CALL INTMSG(
      &        ' Amplitude out of range (0-255). Value not set ')
             AMPLTDA = 0
           ENDIF
         ELSE IF (COMAND.EQ.'SHCARD') THEN
-          CALL GETPAR(1,' Enter Shaper Card Number > ','I',SHCARD)
+          CALL GETPAR1(' Enter Shaper Card Number > ','I',SHCARD)
           IF (SHCARD.LT.0.OR.SHCARD.GT.15) THEN
             IF (SHCARD.EQ.24) THEN
               CALL INTMSG(' All shaper cards have been selected ')

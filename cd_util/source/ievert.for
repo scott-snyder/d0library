@@ -87,10 +87,10 @@ C....Do RCP thing
 
         call ezpick('vertex_fix_rcp')
         call ezerr(ier)
-        if (ier.eq.0) call ezgeta('ERR_DISTANCE_CC',0,0,0,n,ier)
+        if (ier.eq.0) call ezgeta_iarr('ERR_DISTANCE_CC',0,0,0,n,ier)
         if (ier.eq.0) call ezgeta('ERR_DISTANCE_CC',1,n,1,err_dist_cc,
      &    ier)
-        if (ier.eq.0) call ezgeta('ERR_DISTANCE_EC',0,0,0,n,ier)
+        if (ier.eq.0) call ezgeta_arr('ERR_DISTANCE_EC',0,0,0,n,ier)
         if (ier.eq.0) call ezgeta('ERR_DISTANCE_EC',1,n,1,err_dist_ec,
      &    ier)
         if (ier.eq.0) call ezget('SIG_TRKMATCH_CUT',sig_trkmatch_cut,
@@ -98,7 +98,7 @@ C....Do RCP thing
         if (ier.eq.0) call ezget('VERT_IMPACT_CUT',vert_impact_cut,
      &    ier)
         if (ier.eq.0) call ezget('CLUS_Z_CUTOFF',clus_z_cutoff,ier)
-        if (ier.eq.0) call ezget('CM3POS_MAX_ITER',max_iter,ier)
+        if (ier.eq.0) call ezget_i('CM3POS_MAX_ITER',max_iter,ier)
         if (ier.ne.0) then
             call errmsg('incomplete_vertex_fix_rcp','ievert',
      &      ' error reading rcp parameters ','f')

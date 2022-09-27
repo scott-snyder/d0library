@@ -62,7 +62,7 @@ C
           GOTO 999
         ENDIF
         CALL EZGET('VERHIST(1)',VERHIST(1,1),ERR) 
-        CALL EZGET('HST_VERIFY',HST_VERIFY,ERR) 
+        CALL EZGET_l('HST_VERIFY',HST_VERIFY,ERR) 
         CALL EZRSET
         LISAE1 = GZISAE()
         IF (LISAE1 .GT. 0) THEN

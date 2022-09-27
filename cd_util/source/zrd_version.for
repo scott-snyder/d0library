@@ -36,7 +36,7 @@ C
 C
       INTEGER VERSION,IERR,VTYPE
       INTEGER MASK,SYNC,NCDDN, LENGTH
-      PARAMETER (MASK = 'FFFF'X)
+      data MASK / z'FFFF' /
 C
 C----------------------------------------------------------------------
 C

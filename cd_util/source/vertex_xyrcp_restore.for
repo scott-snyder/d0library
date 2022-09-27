@@ -27,7 +27,7 @@ C
         FIRST = .FALSE.
         CALL EZPICK('VERTEX_RCP')
         ERR = 0
-        CALL EZGET('BRUNNO(1)',BRUNNO(1),IER)
+        CALL EZGET_i('BRUNNO(1)',BRUNNO(1),IER)
         ERR = ERR + IER
         CALL EZGET('BEAM_POS_RUN(1)',BEAM_POS_RUN(1),IER)
         ERR = ERR + IER

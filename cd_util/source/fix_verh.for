@@ -70,9 +70,9 @@ C
 C
 C copy from old to new
 C
-      CALL UCOPY(LQ(LVERH-3),LQ(LNEW-3),3)           ! ref links
+      CALL UCOPY_i(LQ(LVERH-3),LQ(LNEW-3),3)           ! ref links
       IQ(LNEW+1) = 3                                 ! version #
-      CALL UCOPY(IQ(LVERH+2),IQ(LNEW+2),2)           ! data
+      CALL UCOPY_i(IQ(LVERH+2),IQ(LNEW+2),2)           ! data
 C
       CALL MZREPL(IXMAIN,LTMP,' ')                   ! replace
 C

@@ -37,7 +37,7 @@ C
           GOTO 999
         ENDIF
         CALL EZGET('TOLDST',TOLDST,ERR)
-        CALL EZGET('MORETK',MORETK,ERR)
+        CALL EZGET_l('MORETK',MORETK,ERR)
         CALL EZRSET
         CALL EZPICK('DTRAKS_RCP')
         IF ( EZERROR(IER) ) THEN
@@ -45,7 +45,7 @@ C
      &    'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('MAXSEC',MAXSEC,ERR)
+        CALL EZGET_i('MAXSEC',MAXSEC,ERR)
         CALL EZRSET
         ZCDC = C(LDGEH + 19)
       ENDIF

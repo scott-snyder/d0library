@@ -58,7 +58,7 @@ C
           GOTO 400
         ENDIF
         CALL EZGET('ERRTHE',ERRTHE,IER)
-        CALL EZGET('FDONLY',FDONLY,IER)
+        CALL EZGET_l('FDONLY',FDONLY,IER)
         CALL EZRSET
         CALL EZPICK('FTRAKS_RCP')
         IF ( EZERROR(IER) ) THEN
@@ -66,7 +66,7 @@ C
      &      'Unable to find bank FTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('FPATH',IPATH,IER)
+        CALL EZGET_i('FPATH',IPATH,IER)
         CALL EZRSET
         CALL EZPICK('VTRAKS_RCP')
         IF ( EZERROR(IER) ) THEN
@@ -74,7 +74,7 @@ C
      &    'Unable to find bank VTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('VPATH',JPATH,IER)
+        CALL EZGET_i('VPATH',JPATH,IER)
         CALL EZRSET
       END IF
 C
@@ -110,7 +110,7 @@ C
         QUAL2D = 9999.9
         UNIQUE = .TRUE.
         IVMTCH = 0
-        CALL VZERO(TMPV,5)
+        CALL VZERO_i(TMPV,5)
         CALL VZERO(TMPDPH,5)
 C
 C   loop on VTX tracks in the phi road

@@ -49,13 +49,13 @@ C----------------------------------------------------------------------
         CALL EZGETA('IP_SIGMA', 1, 2, 1, IPSigma, IER)
         IF(IER .NE. 0) CALL ERRMSG('VERTEX_RCP', 'XYRCP',
      &    'IP_SIGMA not found', 'F')
-        CALL EZGET('HOURS_STALE', HoursStale, IER)
+        CALL EZGET_i('HOURS_STALE', HoursStale, IER)
         IF(IER .NE. 0) CALL ERRMSG('VERTEX_RCP', 'XYRCP',
      &    'HOURS_STALE not found', 'F')
-        CALL EZGET('FIRST_DB_RUN', FirstDBRun, IER)
+        CALL EZGET_i('FIRST_DB_RUN', FirstDBRun, IER)
         IF(IER .NE. 0) CALL ERRMSG('VERTEX_RCP', 'XYRCP',
      &    'FIRST_DB_RUN not found', 'F')
-        CALL EZGET('BYPASS_DBL3_ERROR', DBBypass, IER)
+        CALL EZGET_l('BYPASS_DBL3_ERROR', DBBypass, IER)
         IF(IER .NE. 0) CALL ERRMSG('VERTEX_RCP', 'XYRCP',
      &    'BYPASS_DBL3_ERROR not found', 'F')
         CALL EZRSET

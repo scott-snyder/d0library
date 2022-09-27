@@ -63,7 +63,7 @@ C
         CALL EZGET('BIGSGM',BIGSGM,ERR)
         CALL EZGET('SGMFC2',SGMFC2,ERR)
         CALL EZGET('CDCRES',CDCRES,ERR)
-        CALL EZGET('HSTFLG',HSTFLG,ERR)
+        CALL EZGET_l('HSTFLG',HSTFLG,ERR)
         CALL EZRSET
         CALL EZPICK('DTRAKS_RCP')
         IF ( EZERROR(IER) ) THEN
@@ -71,7 +71,7 @@ C
      &    'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('DPATH',IPATH,ERR)
+        CALL EZGET_i('DPATH',IPATH,ERR)
         CALL EZRSET        
         LDGEH = GZDGEH()
         CALL HBOOK1(1099,' VERTEX IN Z$',100,-90.,90.,0.)

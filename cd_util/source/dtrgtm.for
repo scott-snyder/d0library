@@ -36,11 +36,11 @@ C
      &       'Unable to find bank DTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('TRGLAY',TRGLAY,ERR)
-        CALL EZGET('TRGSEC',TRGSEC,ERR)
-        CALL EZGET('TRGWIR',TRGWIR,ERR)
+        CALL EZGET_i('TRGLAY',TRGLAY,ERR)
+        CALL EZGET_i('TRGSEC',TRGSEC,ERR)
+        CALL EZGET_i('TRGWIR',TRGWIR,ERR)
         CALL EZGET('TRGOFF',TRGOFF,ERR)
-        CALL EZGET('HISTON(1)',HISTON(1),ERR)
+        CALL EZGET_iarr('HISTON(1)',HISTON(1),ERR)
         CALL EZRSET
       ENDIF
 C

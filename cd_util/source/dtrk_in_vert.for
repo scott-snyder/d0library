@@ -47,7 +47,7 @@ C
           GOTO 999
         ENDIF
         CALL EZGET('BXYLMT',BXYLMT,IER)
-        CALL EZGET('BEAM_POS',BEAM_POS,IER)
+        CALL EZGET_rarr('BEAM_POS',BEAM_POS,IER)
         CALL EZRSET
       ENDIF
 C

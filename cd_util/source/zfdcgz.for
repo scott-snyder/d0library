@@ -51,11 +51,11 @@ C
         FIRST = .FALSE.
         CALL EZPICK('VERTEX_RCP')       ! Get FDC vertex-finding params
         CALL EZGET('FTOLDST',TOLDST,ERR)
-        CALL EZGET('FSECMIN',FSECMIN,ERR)
-        CALL EZGET('FSECMAX',FSECMAX,ERR)
+        CALL EZGET_i('FSECMIN',FSECMIN,ERR)
+        CALL EZGET_i('FSECMAX',FSECMAX,ERR)
         CALL EZGET('ZFDCLM',ZFDC,ERR)
 C        ZFDC = C(LFGEH + 8) - C(LFGEH + 5)
-        CALL EZGET('FHALF',FHALF,ERR)
+        CALL EZGET_l('FHALF',FHALF,ERR)
         CALL EZRSET
       ENDIF
 C
@@ -65,7 +65,7 @@ C
         STAG = FSTAGR(HALF,0,0,0,WIRE)          ! Staggering
         CALL GTFALH(HALF,0,0,0,0,XC,YC,ZIN)     ! Locate Z of inner SW0
         CALL GTFALH(HALF,0,4,0,0,XC,YC,ZOUT)    ! Locate Z of outer SW0
-        CALL VZERO(NBHITS(0,0),48)
+        CALL VZERO_i(NBHITS(0,0),48)
         CALL VZERO(XABS(0,0,1,0),960)     ! is there time to do this?
         CALL VZERO(YABS(0,0,1,0),960)     ! is there time to do this?
         ONEZ(HALF) = 0

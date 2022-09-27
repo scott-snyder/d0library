@@ -75,7 +75,7 @@ C
           GOTO 999
         ENDIF
         CALL EZGET('ERRTHE',ERRTHE,IER)
-        CALL EZGET('MATCH2D',MATCH2D,IER)
+        CALL EZGET_l('MATCH2D',MATCH2D,IER)
         CALL EZRSET
         CALL EZPICK('FTRAKS_RCP')
         IF ( EZERROR(IER) ) THEN
@@ -83,7 +83,7 @@ C
      &      'Unable to find bank FTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('FPATH',IPATH,IER)
+        CALL EZGET_i('FPATH',IPATH,IER)
         CALL EZRSET
         CALL EZPICK('VTRAKS_RCP')
         IF ( EZERROR(IER) ) THEN
@@ -91,7 +91,7 @@ C
      &    'Unable to find bank VTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('VPATH',JPATH,IER)
+        CALL EZGET_i('VPATH',JPATH,IER)
         CALL EZRSET
       END IF
       NZFV = 0
@@ -119,7 +119,7 @@ C
         QUAL2D = 9999.9
         UNIQUE = .TRUE.
         IVMTCH = 0
-        CALL VZERO(TMPV,5)
+        CALL VZERO_i(TMPV,5)
         CALL VZERO(TMPDPH,5)
         DO 300 IV=1,NV
           IF (IDV(IV) .LE. 0) GOTO 300

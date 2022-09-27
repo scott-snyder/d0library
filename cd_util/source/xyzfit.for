@@ -47,20 +47,21 @@ C----------------------------------------------------------------------
       DATA TITLEY /'Y coordinate, cm from '/
       DATA FILNAM /'USR$OUT:XYVERT_00000.DAT'/
       DATA NRUNO /-1/, CDATE /'  /  /  '/
+      integer i
 C
       IF (FIRST) THEN
         CALL EZPICK('XYVERT_RCP')
-        CALL EZGET('VERTEX_Z_EXIST',VERTXZ,IER)
-        CALL EZGET('HIST_LIM_LOW',XMIN,IER)
-        CALL EZGET('HIST_LIM_HIG',XMAX,IER)
-        CALL EZGET('BIN_NUMB_XY',NBXY,IER)
-        CALL EZGET('BIN_NUMB_Z',NBZ,IER)
-        CALL EZGET('BIN_NUMB_Z2',NBZ2,IER)
+        CALL EZGET_l('VERTEX_Z_EXIST',VERTXZ,IER)
+        CALL EZGET_rarr('HIST_LIM_LOW',XMIN,IER)
+        CALL EZGET_rarr('HIST_LIM_HIG',XMAX,IER)
+        CALL EZGET_i('BIN_NUMB_XY',NBXY,IER)
+        CALL EZGET_i('BIN_NUMB_Z',NBZ,IER)
+        CALL EZGET_i('BIN_NUMB_Z2',NBZ2,IER)
         CALL EZGET('ZLIMIT',ZLIM,IER)
-        CALL EZGET('XYPLANEO',XYBO,IER)
+        CALL EZGET_rarr('XYPLANEO',XYBO,IER)
         CALL EZGET('PEAKMIN',PKMIN,IER)
-        CALL EZGET('PARAMS',PAR,IER)
-        CALL EZGET('EXAMINE',FEXAM,IER)
+        CALL EZGET_d('PARAMS',PAR,IER)
+        CALL EZGET_l('EXAMINE',FEXAM,IER)
         IF (IER.NE.0) CALL ERRMSG(' Error reading RCP-file',
      &     'XYZFIT',' Exit','F')
         CALL EZRSET
@@ -68,7 +69,10 @@ C
      &     'XYZFIT',' NDIM.LT.NBXY*NBZ2','F')
         IF (.NOT.FEXAM) FILNAM(1:8) = '        ' ! 8 spaces
         CALL UCOPY(XYBO,XYBN,2)
-        CALL UCOPY(PAR,PARR,12)
+        do i=1, 12
+          parr(i) = par(i)
+        enddo
+        !CALL UCOPY(PAR,PARR,12)
         IVZ = 5 ! Zvert
         DZ = 2.*ZLIM/NBZ2
       ENDIF

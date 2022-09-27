@@ -31,7 +31,7 @@ C------------------------------------------------------------------------
         ENDIF
         CALL EZGET('TOL2',TOL2,IER)
         CALL EZGET('ZHI',ZHI,IER)
-        CALL EZGET('NBIN2',NBIN2,IER)
+        CALL EZGET_i('NBIN2',NBIN2,IER)
         CALL EZRSET
         ZLOW=-ZHI
         DELTAZ=(ZHI-ZLOW)/FLOAT(NBIN2)

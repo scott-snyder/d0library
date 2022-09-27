@@ -81,7 +81,7 @@ C
         YGF=Q(LOCF+5)
         QUALIT = 9999.9
         ICMTCH = 0
-        CALL VZERO(TMPC,5)
+        CALL VZERO_i(TMPC,5)
         CALL VZERO(TMPDPH,5)
         DO 300 IC=1,NC
           CALL PATHST(DPATH)

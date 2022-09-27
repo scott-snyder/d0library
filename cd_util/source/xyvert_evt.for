@@ -40,7 +40,7 @@ C----------------------------------------------------------------------
      &    'Unable to find bank VTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('IUSED',IUSED,IER) ! define "USED" bit for segments
+        CALL EZGET_i('IUSED',IUSED,IER) ! define "USED" bit for segments
         CALL EZRSET
         CALL EZPICK('XYVERT_RCP')
         IF ( EZERROR(IER) ) THEN
@@ -49,7 +49,7 @@ C----------------------------------------------------------------------
           GOTO 999
         ENDIF
         CALL EZGET('VERTEX_Z_EXIST',VERTXZ,IER)
-        CALL EZGET('NSTAMX',NSTAMX,IER)
+        CALL EZGET_i('NSTAMX',NSTAMX,IER)
         CALL EZGET('DO_VTX_TRACK',IDOVTX,IER)
         CALL EZGET('USED_SEGMENT',FLUSED,IER)
         IF (IER.NE.0) CALL ERRMSG(' Error reading RCP-file',

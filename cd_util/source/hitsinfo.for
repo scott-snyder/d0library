@@ -49,6 +49,17 @@ C----------------------------------------------------------------------
 
       integer ihpelc/4HPELC/
       integer ihppho/4HPPHO/
+
+      integer z00000001
+      data z00000001 / z'00000001' /
+      integer z00000002
+      data z00000002 / z'00000002' /
+      integer z80000000
+      data z80000000 / z'80000000' /
+      integer z00000008
+      data z00000008 / z'00000008' /
+      integer z00000010
+      data z00000010 / z'00000010' /
 C
       PACKED(1) = 0
       PACKED(2) = 0
@@ -82,24 +93,24 @@ C
             Return
           End If
         End If
-        CALL EZGET('HITS_INFO',L_Run,IErr)
+        CALL EZGET_l('HITS_INFO',L_Run,IErr)
         If (.not. L_Run) Then
           L_Hist = .False.
           Go To 999
         End If
         If ((IErr .eq. 0) .and. L_Hist)
-     &                   CALL EZGET('HITS_HIST',L_Hist,IErr)
-        If (IErr .eq. 0) CALL EZGET('HITS_SEGM',HITS_SEGM,IErr)
+     &                   CALL EZGET_l('HITS_HIST',L_Hist,IErr)
+        If (IErr .eq. 0) CALL EZGET_l('HITS_SEGM',HITS_SEGM,IErr)
         If (IErr .eq. 0) CALL EZGET('FDC_THETA',FDC_Theta,IErr)
         If (IErr .eq. 0) CALL EZGET('FDC_PHI',FDC_Phi,IErr)
         If (IErr .eq. 0) CALL EZGET('CDC_THETA',CDC_Theta,IErr)
         If (IErr .eq. 0) CALL EZGET('CDC_PHI',CDC_Phi,IErr)
-        If (IErr .eq. 0) CALL EZGET('HITS_VTX',L_VTX,IErr)
+        If (IErr .eq. 0) CALL EZGET_l('HITS_VTX',L_VTX,IErr)
         If (L_VTX) Then
           If (IErr .eq. 0) CALL EZGET('VTX_THETA',VTX_Theta,IErr)
           If (IErr .eq. 0) CALL EZGET('VTX_PHI',VTX_Phi,IErr)
         End If
-        if (ierr .eq. 0) call ezget('HITS_TRD',l_trd,ierr)
+        if (ierr .eq. 0) call ezget_l('HITS_TRD',l_trd,ierr)
         if (l_trd) then
            if (ierr .eq. 0) call ezget('TRD_THETA',trd_theta,ierr)
            if (ierr .eq. 0) call ezget('TRD_PHI',trd_phi,ierr)
@@ -135,10 +146,10 @@ C
           End If
         End If
 C
-        CALL EZGET('CDCON',L_CDC,IErr)
-        If (IErr .eq. 0) CALL EZGET('FDCON',L_FDC,IErr)
-        If (IErr .eq. 0) CALL EZGET('VTXON',L_Cent,IErr)
-        If (IErr .eq. 0) CALL EZGET('TRDON',L_TRD,IErr)
+        CALL EZGET_l('CDCON',L_CDC,IErr)
+        If (IErr .eq. 0) CALL EZGET_l('FDCON',L_FDC,IErr)
+        If (IErr .eq. 0) CALL EZGET_l('VTXON',L_Cent,IErr)
+        If (IErr .eq. 0) CALL EZGET_l('TRDON',L_TRD,IErr)
         If (IErr .ne. 0) Call ErrMsg('CAPHEL','HITSINFO',
      &                        'Failed to read ZTRAKS_RCP bank','F')
         If (.not.L_Cent) L_VTX = .False.  ! ZTRAKS setting supersedes 
@@ -312,7 +323,7 @@ C
         Do While (LVERT .gt. 0)
           IV = IV + 1
           ZV(IV) = Q(LVERT+5)
-          If ((IPrim .eq. 0) .and. (IAND(IQ(LVERT+2),'80000000'X).ne.0))
+          If ((IPrim .eq. 0) .and. (IAND(IQ(LVERT+2),z80000000).ne.0))
      &         IPrim = IV
           LVERT = LQ(LVERT)
         End Do
@@ -557,20 +568,20 @@ C
         endif
       End If
       If (L_Cent) Then
-        Packed(1) = IOR(PACKED(1),'00000001'X)
-        If (HITS_SEGM)   Packed(1) = IOR(Packed(1),'00000002'X)
+        Packed(1) = IOR(PACKED(1),z00000001)
+        If (HITS_SEGM)   Packed(1) = IOR(Packed(1),z00000002)
         Packed(1) = IOR(Packed(1),ISHFT(N3D_M,16))
         Packed(1) = IOR(Packed(1),ISHFT(NSeg_M,20))
         Packed(2) = IOR(Packed(2),NHW_M)
         Call GetCloud(NCloud)
         Packed(3) = IOR(Packed(3),ISHFT(NCloud,21))
       Else
-        Packed(1) = IOR(PACKED(1),'00000010'X)
+        Packed(1) = IOR(PACKED(1),z00000010)
       End If
       Packed(1) = IOR(Packed(1),ISHFT(NH_M,8))
       Packed(1) = IOR(Packed(1),ISHFT(INT((RW_M-R3_M)*100+0.5),24))
       If ( L_VTX ) Then
-        If (NWV_M .ge. 8) Packed(1) = IOR(PACKED(1),'00000008'X)
+        If (NWV_M .ge. 8) Packed(1) = IOR(PACKED(1),z00000008)
         Packed(2) = IOR(Packed(2),ISHFT(NH2_M,8))
         Packed(2) = IOR(Packed(2),ISHFT(NH3_M,16))
         Packed(2) = IOR(Packed(2),ISHFT(INT(R3_M*100+0.5),24))

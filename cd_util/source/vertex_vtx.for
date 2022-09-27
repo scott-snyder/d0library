@@ -36,16 +36,16 @@ C------------------------------------------------------------------
      &       'Unable to find bank VTRAKS_RCP','W')
           GOTO 1000
         ENDIF
-        CALL EZGET('VPATH',IPATH,IER)
-        CALL EZGET('NSEC',NSEC,IER)
+        CALL EZGET_i('VPATH',IPATH,IER)
+        CALL EZGET_iarr('NSEC',NSEC,IER)
         CALL EZRSET
         CALL EZPICK('VERTEX_RCP')
-        CALL EZGET('NR',NR,IER)
-        CALL EZGET('ENOUGH',ENOUGH,IER)
-        CALL EZGET('MAXPRIM',MAXPRIM,IER)
+        CALL EZGET_i('NR',NR,IER)
+        CALL EZGET_i('ENOUGH',ENOUGH,IER)
+        CALL EZGET_i('MAXPRIM',MAXPRIM,IER)
         CALL EZGET('SINGLEV',SINGLEV,IER)
         CALL EZGET('SIGMAZ',SIGMAZ,IER)
-        CALL EZGET('HSTFLG',HSTFLG,IER)
+        CALL EZGET_l('HSTFLG',HSTFLG,IER)
         CALL EZRSET
 C
 C         Create/Set HBOOK directory for VERTEX

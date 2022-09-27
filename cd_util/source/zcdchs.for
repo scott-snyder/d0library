@@ -45,7 +45,7 @@ C----------------------------------------------------------------------
         CALL EZGET('BIGSGM',BIGSGM,ERR)
         CALL EZGET('SGMFC2',SGMFC2,ERR)
         CALL EZGET('CDCRES',CDCRES,ERR)
-        CALL EZGET('HSTFLG',HSTFLG,ERR)
+        CALL EZGET_l('HSTFLG',HSTFLG,ERR)
         CALL EZRSET
         LDGEH = GZDGEH()
 C

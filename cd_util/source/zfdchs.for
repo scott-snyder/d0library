@@ -47,11 +47,11 @@ C----------------------------------------------------------------------
         CALL EZGET('FSGMFC2',SGMFC2,ERR)
         CALL EZGET('FDCRES', FDCRES,ERR)
         CALL EZGET('ZFDCUT', ZFDCUT,ERR)
-        CALL EZGET('FRATIO', FRATIO,ERR)
-        CALL EZGET('TFRACT', TFRACT,ERR)
+        CALL EZGET_i('FRATIO', FRATIO,ERR)
+        CALL EZGET_i('TFRACT', TFRACT,ERR)
         CALL EZGET('FNUMER', FNUMER,ERR)
-        CALL EZGET('FHALF',FHALF,ERR)
-        CALL EZGET('FHSTFLG',HSTFLG,ERR)
+        CALL EZGET_l('FHALF',FHALF,ERR)
+        CALL EZGET_l('FHSTFLG',HSTFLG,ERR)
         CALL EZRSET
         LKFGEH = GZFGEH()
 C
