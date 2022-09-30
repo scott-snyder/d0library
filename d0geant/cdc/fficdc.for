@@ -28,8 +28,8 @@ C
       PCDC = 1
       IF ( DCDC .LE. 0 ) GOTO 999
 C
-      CALL FFKEY('DCDC',DCDC,1,'INTEGER')
-      CALL FFKEY('PCDC',PCDC,1,'INTEGER')
+      CALL FFKEY_i('DCDC',DCDC,1,'INTEGER')
+      CALL FFKEY_i('PCDC',PCDC,1,'INTEGER')
 C
       DO I = 1, 10
         SCDC(I) = -1.

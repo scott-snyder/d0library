@@ -48,12 +48,12 @@ C ****  Get data from SRCP bank which was selected prior to calling
 C       this routine
 C
       CALL ADDSTR(NMSRCP,'(1)',NMSRC1,LEN3)   !Makes it into array format
-      CALL GTSRCP(NMSRC1,LMIX(1),1)
+      CALL GTSRCP_i(NMSRC1,LMIX(1),1)
 C
 C ****  All general stuff is in bank SRCP_REST
 C
-      CALL GTSRCP('MXLV0_ISVOL',ISVOL,1)
-      CALL GTSRCP('MXLV0_IFIELD',IFIELD,1)
+      CALL GTSRCP_i('MXLV0_ISVOL',ISVOL,1)
+      CALL GTSRCP_i('MXLV0_IFIELD',IFIELD,1)
       CALL GTSRCP('MXLV0_FIELDM',FIELDM,1)
       CALL GTSRCP('MXLV0_TMAXFD',TMAXFD,1)
       CALL GTSRCP('MXLV0_DMXMS',DMXMS,1)
@@ -82,12 +82,12 @@ C
         TOTL=0.
         TOTABS=0.
         TOTRAD=0.
-        CALL UCOPY(LMIX(IPT),MIXNA1,3)
+        CALL UCOPY_i(LMIX(IPT),MIXNA1,3)
         CALL UHTOC( MIXNA1,3,MIXNAC,12)
         IMXNO = LMIX(IPT+3)
         NLMAT = LMIX(IPT+4)
         NLMATA = IABS(NLMAT)
-        CALL UCOPY(LMIX(IPT+5),IMXMAT(1),NLMATA)
+        CALL UCOPY_i(LMIX(IPT+5),IMXMAT(1),NLMATA)
         CALL UCOPY(RMIX(IPT+5+NLMATA),DL(1),NLMATA)
         IPT = IPT + 5 + 2*NLMATA
         IF ( NLMAT.LT.0 ) THEN

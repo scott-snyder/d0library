@@ -49,7 +49,7 @@ C
 C ****  Perform digitization for each end of the Delay Line
 C
         CALL CDATDL ( IFADC, HITDL, NHITOT )
-        CALL VZERO ( NHITOT,2)
+        CALL VZERO_i ( NHITOT,2)
         GO TO 999
       ENDIF
       CALL CDATSW ( HIT, NDIM, NHIT, IFADC )
@@ -85,7 +85,7 @@ C
 C ****  Perform digitization for each end of the Delay Line
 C
         CALL CDATDL ( IFADC, HITDL, NHITOT )
-        CALL VZERO ( NHITOT,2)
+        CALL VZERO_i ( NHITOT,2)
       ENDIF
   999 CONTINUE
       RETURN

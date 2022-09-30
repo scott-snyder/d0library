@@ -60,7 +60,7 @@ C
       IF ( NHITS.LE.0 ) GO TO 999
 C
       CALL VZERO ( PROVE(0), IARRAY )
-      CALL VZERO ( IPROVE(0), IARRAY )
+      CALL VZERO_i ( IPROVE(0), IARRAY )
       CALL VZERO ( PROVE1(1), 2500 ) 
 C
 C   ITYPE: 0 = wire layer, 1 = z-strip layer
@@ -137,8 +137,8 @@ C
 C
 C ****  Zero suppression simulation
 C
-      CALL VZERO ( ILEAD, 64 )
-      CALL VZERO ( ITRAIL, 64 )
+      CALL VZERO_i ( ILEAD, 64 )
+      CALL VZERO_i ( ITRAIL, 64 )
       CALL ZERSUP ( DTTYPE, IARRAY, IPROVE, NCLUS, ILEAD, ITRAIL )
 C
 C ****  Pack and store data in ZEBRA bank

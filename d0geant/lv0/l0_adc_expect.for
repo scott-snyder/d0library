@@ -54,6 +54,9 @@ C----------------------------------------------------------------------
       EXTERNAL EZERROR
       SAVE FIRST,Q_MIN,Q_MAX,T_MIN,T_MAX
       DATA FIRST /.TRUE./
+
+      integer z1FFFFC
+      data z1FFFFC / z'1FFFFC' /
 C----------------------------------------------------------------------
       IF ( FIRST ) THEN
         CALL VZERO(PED_ARRAY,360)
@@ -70,13 +73,13 @@ C----------------------------------------------------------------------
           CALL EZGET('CUT_2',CUTI(2),ERR)
           CALL EZGET('CUT_3',CUTI(3),ERR)
           CALL EZGET('CUT_4',CUTI(4),ERR)
-          CALL EZGET('MC_1',MC(1),ERR)
-          CALL EZGET('MC_2',MC(2),ERR)
-          CALL EZGET('MC_3',MC(3),ERR)
-          CALL EZGET('MC_4',MC(4),ERR)
-          CALL EZGET('MC_5',MC(5),ERR)
-          CALL EZGET('MC_6',MC(6),ERR)
-          CALL EZGET('MC_7',MC(7),ERR)
+          CALL EZGET_i('MC_1',MC(1),ERR)
+          CALL EZGET_i('MC_2',MC(2),ERR)
+          CALL EZGET_i('MC_3',MC(3),ERR)
+          CALL EZGET_i('MC_4',MC(4),ERR)
+          CALL EZGET_i('MC_5',MC(5),ERR)
+          CALL EZGET_i('MC_6',MC(6),ERR)
+          CALL EZGET_i('MC_7',MC(7),ERR)
           IBUNCH=BUNCH
         ENDIF
         CALL EZRSET
@@ -352,19 +355,19 @@ C
         IF (N(3,I).LE.1) THEN
           SIGMA(I)=0.0
         ELSEIF (N(3,I).EQ.2) THEN
-          T2SUM(3,I)=IAND(T2SUM(3,I),'1FFFFC'X)
+          T2SUM(3,I)=IAND(T2SUM(3,I),z1FFFFC)
           SIGMA(I)=FLOAT(NINT(SQRT(1.0*T2SUM(3,I))))
         ELSEIF (N(3,I).GE.3.AND.N(3,I).LE.4) THEN
-          T2SUM(3,I)=IAND(T2SUM(3,I)/2,'1FFFFC'X)
+          T2SUM(3,I)=IAND(T2SUM(3,I)/2,z1FFFFC)
           SIGMA(I)=FLOAT(NINT(SQRT(2.0*T2SUM(3,I)/(N(3,I)-1))))
         ELSEIF (N(3,I).GE.5.AND.N(3,I).LE.8) THEN
-          T2SUM(3,I)=IAND(T2SUM(3,I)/4,'1FFFFC'X)
+          T2SUM(3,I)=IAND(T2SUM(3,I)/4,z1FFFFC)
           SIGMA(I)=FLOAT(NINT(SQRT(4.0*T2SUM(3,I)/(N(3,I)-1))))
         ELSEIF (N(3,I).GE.9.AND.N(3,I).LE.16) THEN
-          T2SUM(3,I)=IAND(T2SUM(3,I)/8,'1FFFFC'X)
+          T2SUM(3,I)=IAND(T2SUM(3,I)/8,z1FFFFC)
           SIGMA(I)=FLOAT(NINT(SQRT(8.0*T2SUM(3,I)/(N(3,I)-1))))
         ELSEIF (N(3,I).GE.17.AND.N(3,I).LE.31) THEN
-          T2SUM(3,I)=IAND(T2SUM(3,I)/16,'1FFFFC'X)
+          T2SUM(3,I)=IAND(T2SUM(3,I)/16,z1FFFFC)
           SIGMA(I)=FLOAT(NINT(SQRT(16.0*T2SUM(3,I)/(N(3,I)-1))))
         ENDIF
       ENDDO

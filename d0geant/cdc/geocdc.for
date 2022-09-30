@@ -125,7 +125,7 @@ C
         DEN = C ( LDMAT + 9 )
         RDL = C ( LDMAT + 10)
         ABL = C ( LDMAT + 11)
-        CALL UHTOC(IC(LDMAT+2),4,NAMEC,4)
+        CALL UHTOC_i(IC(LDMAT+2),4,NAMEC,4)
         CALL GSMATE ( NUM, NAMEC, ATW, ATN,
      &                   DEN, RDL, ABL, 0, 0 )
         LDMAT = LDMAT + IWED
@@ -158,8 +158,8 @@ C
       YCENT = C ( LDGEH + 4 )
       ZCENT = C ( LDGEH + 5 )
       DO 100 I = 1, KVLM
-        CALL UHTOC ( C(LDWAL+1),4,NAM,4)
-        CALL UHTOC ( C(LDWAL+7),4,NAMOT,4)
+        CALL UHTOC ( iC(LDWAL+1),4,NAM,4)
+        CALL UHTOC ( iC(LDWAL+7),4,NAMOT,4)
         X(1) = C ( LDGEH + IC ( LDWAL + 2 ) )
         X(2) = C ( LDGEH + IC ( LDWAL + 3 ) )
         X(3) = C ( LDGEH + IC ( LDWAL + 5 ) )

@@ -27,8 +27,8 @@ C
         SCEN(I) = 0.
       ENDDO
 C
-      CALL FFKEY('DTRD',DTRD,1,'INTEGER')
-      CALL FFKEY('PTRD',PTRD,1,'INTEGER')
+      CALL FFKEY_i1('DTRD',DTRD,1,'INTEGER')
+      CALL FFKEY_i1('PTRD',PTRD,1,'INTEGER')
 C
       CALL VZERO(STRD,10)
       STRD(6)=10. !Choose Garibian' parametrization  with d(gap)/gap=1.

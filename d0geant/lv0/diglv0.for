@@ -59,7 +59,7 @@ C
       DO I = 1 , 123
         IQ(LTRGR+I)=DATA_WORD(I)
       ENDDO
-      CALL VZERO (INFO,240)
+      CALL VZERO_i (INFO,240)
 C----------------------------------------------------------------------
   999 RETURN
       END

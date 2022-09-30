@@ -27,8 +27,8 @@ C
       PVTX = 1
       IF ( DVTX .LE. 0 ) GOTO 999
 C
-      CALL FFKEY('DVTX',DVTX,1,'INTEGER')
-      CALL FFKEY('PVTX',PVTX,1,'INTEGER')
+      CALL FFKEY_i1('DVTX',DVTX,1,'INTEGER')
+      CALL FFKEY_i1('PVTX',PVTX,1,'INTEGER')
 C
       DO I = 1, 10
         SVTX(I) = -1.

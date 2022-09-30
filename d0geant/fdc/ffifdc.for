@@ -25,8 +25,8 @@ C
       PFDC = 1
       IF ( DFDC .LE. 0 ) GOTO 999
 C
-      CALL FFKEY('DFDC',DFDC,1,'INTEGER')
-      CALL FFKEY('PFDC',PFDC,1,'INTEGER')
+      CALL FFKEY_i1('DFDC',DFDC,1,'INTEGER')
+      CALL FFKEY_i1('PFDC',PFDC,1,'INTEGER')
 C
       DO I = 1, 10
         SFDC(I) = -1.

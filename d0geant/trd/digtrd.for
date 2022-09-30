@@ -115,8 +115,8 @@ C -- First call to trgpmc with (ITRG = 0)
 C --
       DO 300 JST=1,3         ! Loop on the 3 TRD stacks
         IST=4-JST
-        CALL VZERO(NHITPW,256)
-        CALL VZERO(NHITPC,256)
+        CALL VZERO_i(NHITPW,256)
+        CALL VZERO_i(NHITPC,256)
         LL=LQ(LTRDH-IST)
         IF(LL.EQ.0)GO TO 250
         NBANK=NZBANK(IXCOM,LL)
@@ -126,7 +126,7 @@ C --
 C
 C  PREPARE BANK CDD4 FOR ANODES
 C
-        CALL VZERO(IWS,256)
+        CALL VZERO_i(IWS,256)
 C  PUT IWS(I) =1 IF WIRE I IS HIT
         DO 30 I=1,NBANK
           ND=IQ(LL-1)
@@ -240,7 +240,7 @@ C
 C  PREPARE BANK CDD4 FOR CATHODES
 C
         IF (STRD(2).NE.1.) THEN
-          CALL VZERO(IWS,256)
+          CALL VZERO_i(IWS,256)
 C  PUT IWS(I) =1 IF WIRE I IS HIT
           LL = LQ(LTRDH-IST)
           DO 120 I=1,NBANK

@@ -42,7 +42,7 @@ C
       IF ( NHITS.LE.0 ) GO TO 999
 C
       CALL VZERO ( PROVE(0), IARRAY )
-      CALL VZERO ( IPROVE(0), IARRAY )
+      CALL VZERO_i ( IPROVE(0), IARRAY )
 C
 C ****  ITYPE to distinguish between sense wire and delay line
 C
@@ -94,8 +94,8 @@ C ****  Zero suppression simulation
 C         SFDC(5) = 0. enable zero-suppression;
 C         SFDC(5) > 0. disable zero-suppression;
 C
-      CALL VZERO ( ILEAD, 64 )
-      CALL VZERO ( ITRAIL, 64 )
+      CALL VZERO_i ( ILEAD, 64 )
+      CALL VZERO_i ( ITRAIL, 64 )
       CALL ZERSUP ( 2, IARRAY, IPROVE, NCLUS, ILEAD,ITRAIL )
 C      DO 103 I = 1, NCLUS
 C        IF ( ILEAD(I) .LT. 0 ) ILEAD(I) = 0

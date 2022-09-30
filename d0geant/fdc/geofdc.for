@@ -204,8 +204,8 @@ C
       KVPAR = IC ( LFWAL + 2 )
       LFWAL = LFWAL + 2
       DO I = 1, KVLM
-        CALL UHTOC ( C(LFWAL+1),4,NAM,4)
-        CALL UHTOC ( C(LFWAL+11),4,NAMOT,4)
+        CALL UHTOC ( iC(LFWAL+1),4,NAM,4)
+        CALL UHTOC ( iC(LFWAL+11),4,NAMOT,4)
         SIZE(1) = C ( LFWAL + 2 )
         SIZE(2) = C ( LFWAL + 3 )
         SIZE(3) = C ( LFWAL + 4 )
@@ -274,7 +274,7 @@ C
         KVTYP = IC ( LFDUM + 3 )
         LFDUM = LFDUM + 3
         DO I = 1, KVTYP
-          CALL UHTOC ( C(LFDUM+1),4,TYP(I),4)
+          CALL UHTOC ( iC(LFDUM+1),4,TYP(I),4)
           KVNT(I)  = IC ( LFDUM + 2 )
           KVSP(I)  = IC ( LFDUM + 3 )
           LFDUM = LFDUM + 3
@@ -282,8 +282,8 @@ C
         DO I = 1, KVTYP
           DO J = 1, KVNT(I)
             IF ( I .EQ. 1 ) THEN
-              CALL UHTOC ( C(LFDUM+1),4,NAM,4)
-              CALL UHTOC ( C(LFDUM+9),4,NAMOT,4)
+              CALL UHTOC ( iC(LFDUM+1),4,NAM,4)
+              CALL UHTOC ( iC(LFDUM+9),4,NAMOT,4)
               SIZE(1) = C ( LFDUM + 2 )
               SIZE(2) = C ( LFDUM + 3 )
               SIZE(3) = C ( LFDUM + 4 )
@@ -294,8 +294,8 @@ C
               ROT = 9001
               CALL GSVOLU ( NAM, TYP(I), MAT, SIZE(1), 3, IVOLU )
             ELSE
-              CALL UHTOC ( C(LFDUM+1),4,NAM,4)
-              CALL UHTOC ( C(LFDUM+9),4,NAMOT,4)
+              CALL UHTOC ( iC(LFDUM+1),4,NAM,4)
+              CALL UHTOC ( iC(LFDUM+9),4,NAMOT,4)
               SIZE(1) = C ( LFDUM + 2 )
               SIZE(2) = C ( LFDUM + 3 )
               SIZE(3) = 0.40
@@ -360,7 +360,7 @@ C
         KVNWIR = IC ( LFDUM + 2 )
         KVPAR = IC ( LFDUM + 3 )
         KVNVOL = IC ( LFDUM + 4 )
-        CALL UHTOC ( C(LFDUM+1),4,TYP(K),4)
+        CALL UHTOC ( iC(LFDUM+1),4,TYP(K),4)
         LFDUM = LFDUM + 5
         DO I = 1, KVNWIR
           KVWZ(K,I)   = IC ( LFDUM + I )
@@ -393,15 +393,15 @@ C
           LFDUM = LFDUM + KVNWIR
         ENDIF
         DO I = 1, KVNVOL
-          CALL UHTOC ( C(LFDUM+1),4,NAM,4)
-          CALL UHTOC ( C(LFDUM+9),4,NAMOT,4)
+          CALL UHTOC ( iC(LFDUM+1),4,NAM,4)
+          CALL UHTOC ( iC(LFDUM+9),4,NAMOT,4)
           SIZE(1) = C ( LFDUM + 2 )
           SIZE(2) = C ( LFDUM + 3 )
           SIZE(3) = C ( LFDUM + 4 )
           POS(1)  = C ( LFDUM + 5 )
           POS(2)  = C ( LFDUM + 6 )
           POS(3)  = C ( LFDUM + 7 ) + ZOFSET
-          CALL UHTOC ( C(LFDUM+8),4,SUBNAM,4)
+          CALL UHTOC ( iC(LFDUM+8),4,SUBNAM,4)
           MAT     = 97
           ROT     = 9002
           IF ( K .LE. 2 ) THEN
@@ -448,7 +448,7 @@ C
         KVTYP = IC( LFDUM+3 )
         LFDUM = LFDUM + 3 + KVTYP*3
         DO I=1,13                       ! sector & intercell mother vols
-          CALL UHTOC( C(LFDUM+1),4,NAM,4 )
+          CALL UHTOC( iC(LFDUM+1),4,NAM,4 )
           CALL GSORD(NAM,3)
           CALL GSATT(NAM,'SEEN',0)
           LFDUM = LFDUM + KVPAR

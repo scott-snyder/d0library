@@ -25,6 +25,8 @@ C----------------------------------------------------------------------
       REAL TAB1(MAX_SIZE),TAB2(MAX_SIZE)
       LOGICAL FIRST
       LOGICAL OK
+      real rindex(2,max_pulse)
+      equivalence (index, rindex)
 C
       DATA FIRST /.TRUE./
 C----------------------------------------------------------------------
@@ -36,7 +38,7 @@ C
         CALL GTUNIT(600,LUN,IERR)
         CALL D0RZOPEN(LUN,'PULSE_PARAM','URI',4096,OK) 
         CALL RZFILE(LUN,'VTX pulses',' ')
-        CALL RZVIN(INDEX,2*MAX_PULSE,NRFILE,1,1,'D')
+        CALL RZVIN(rINDEX,2*MAX_PULSE,NRFILE,1,1,'D')
         NUMPULSE = INDEX(1,1)
         LIBSIZE = INDEX(2,1)
         WRITE(6,*) ' NUMBER OF PULSES IN LIBRARY       = ',NUMPULSE
@@ -52,7 +54,7 @@ C
      &      LIBSIZE,MAX_SIZE
           STOP
         ENDIF
-        CALL RZVIN(INDEX,2*MAX_PULSE,NRFILE,2,1,'D')
+        CALL RZVIN(rINDEX,2*MAX_PULSE,NRFILE,2,1,'D')
         CALL RZVIN(TAB1,MAX_SIZE,NRFILE,3,1,'D')
         CALL RZVIN(TAB2,MAX_SIZE,NRFILE,4,1,'D')
       ENDIF

@@ -33,15 +33,15 @@ C
 C
 C BATCH/INTERACTIVE - LOGICAL
       LBAT = .FALSE.
-      CALL FFKEY ('LBAT',LBAT,1,' ')
+      CALL FFKEY_l ('LBAT',LBAT,1,' ')
 C
 C SHOWER GENERATION
       SHWG = 1        ! 0=GHEISHA, =1 PARAMETRISATION, =2 FROZEN SHOWER
-      CALL FFKEY('SHWG',SHWG,1,'INTEGER')
+      CALL FFKEY_i1('SHWG',SHWG,1,'INTEGER')
 C
 C SAVE SECONDARIES IN MCEN INTO JTRAK/JVERT BANKS
       SSEC = .200
-      CALL FFKEY('SSEC',SSEC,1,'REAL')
+      CALL FFKEY_r1('SSEC',SSEC,1,'REAL')
 C
 C UTILITY FLAGS - GLOBAL
       DO KK = 1, 9
@@ -51,18 +51,18 @@ C UTILITY FLAGS - GLOBAL
 C
 C MASTER PRINT/DRAW
       PD0 = 1         ! Minimal Printing
-      CALL FFKEY('PD0 ',PD0,1,'INTEGER')
+      CALL FFKEY_i1('PD0 ',PD0,1,'INTEGER')
       DTRK = 0        ! No printing of tracks
-      CALL FFKEY('DTRK',DTRK,1,'INTEGER')
+      CALL FFKEY_i1('DTRK',DTRK,1,'INTEGER')
       DHIT = 1        ! Print hits
-      CALL FFKEY('DHIT',DHIT,1,'INTEGER')
+      CALL FFKEY_i1('DHIT',DHIT,1,'INTEGER')
       DDIG = 1        ! Print digitization
-      CALL FFKEY('DDIG',DDIG,1,'INTEGER')
+      CALL FFKEY_i1('DDIG',DDIG,1,'INTEGER')
 C                                               
 C BLUE BOOK INTERATION LENGTHS                  
 C if non zero do interaction lengths using RRLAM
       DLAM = 0                                  
-      CALL FFKEY('DLAM',DLAM,1,'INTEGER')       
+      CALL FFKEY_i1('DLAM',DLAM,1,'INTEGER')       
 C
 C I/O
 C - ZEBRA
@@ -70,10 +70,10 @@ C - ZEBRA
       IWRCHR = 'OU'
       IRDFLN = ' '
       IWRFLN = ' '
-      CALL FFKEY('IMOD',LRDCHR,1,'INTEGER')
-      CALL FFKEY('OMOD',LWRCHR,1,'INTEGER')
-      CALL FFKEY('IFIL',LRDFLN,20,'MIXED')
-      CALL FFKEY('OFIL',LWRFLN,20,'MIXED')
+      CALL FFKEY_i1('IMOD',LRDCHR,1,'INTEGER')
+      CALL FFKEY_i1('OMOD',LWRCHR,1,'INTEGER')
+      CALL FFKEY_i('IFIL',LRDFLN,20,'MIXED')
+      CALL FFKEY_i('OFIL',LWRFLN,20,'MIXED')
       IRDUNI=0
       IWRUNI=0
       DO KK=1,8
@@ -81,12 +81,12 @@ C - ZEBRA
       ENDDO
       IRDREC=0
       IWRREC=0        !This makes 11. original vzero was for 10 vars.
-      CALL FFKEY('ZBIO',IRDUNI,10,'INTEGER')
+      CALL FFKEY_i1('ZBIO',IRDUNI,10,'INTEGER')
 C
 C RKIN=N WILL READ EVENT KINEMATICS FROM LOGICAL UNIT N.
 C RKIN=0 WILL MAKE THE KINE CARD EFFECTIVE.
       RKIN = 0
-      CALL FFKEY('RKIN',RKIN,1,'INTEGER')
+      CALL FFKEY_i1('RKIN',RKIN,1,'INTEGER')
 C
       ENTRY PRT_DFFINI
 C

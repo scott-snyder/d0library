@@ -23,7 +23,7 @@ C
       INTEGER VERSION,IFL,LNSKP,LCDD3,ISETVN
       INTEGER WRDVAL,CWORD(0:5),EVTID,MASK
       DATA CWORD / 0,0,3,2,15,3/         ! Controller word
-      PARAMETER (MASK = 'FFFF'X)
+      data MASK / z'FFFF' /
 C
       CHARACTER*80 MSGSTR
 C----------------------------------------------------------------------

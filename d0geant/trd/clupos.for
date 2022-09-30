@@ -104,7 +104,7 @@ C  DETERMINE THE DIRECTION COSINES
       END IF
       CALL UCOPY(XCLES,AUX(1),NSMEAR)
       CALL UCOPY(ECLES,AUX(501),NSMEAR)
-      CALL UCOPY(IESCAP,IAUX(1),NSMEAR)
+      CALL UCOPY_i(IESCAP,IAUX(1),NSMEAR)
       DO 100 I = 1,NSMEAR
 C  XCLES is referenced with respect to the 'MIDDLE' window (TEC entrance
 C  along the path of the particle).

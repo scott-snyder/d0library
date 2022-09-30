@@ -50,7 +50,7 @@ c      DATA NHSUM/1/                     ! Sum last hit element only (Energy)
         FACTOR1 = 0.00000000003         ! will divide time by 30 ps
         FACTOR2 = 100000                ! will multiply energy by 1E5
         CALL VZERO (CELL,360)
-        CALL VZERO (INFO,216)
+        CALL VZERO_i (INFO,216)
         IF ( SLV0(3).EQ.1.0 ) THEN
           CALL L0_RUN1A_SETUP(CELL)
         ELSEIF ( SLV0(3).EQ.2.0) THEN 

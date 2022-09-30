@@ -46,7 +46,7 @@ C----------------------------------------------------------------------
         CALL EZGET('NTRIES_ELECTRON',NTRIES_MAX,IER)
         CALL EZRSET
       ENDIF
-      CALL UCOPY(KEY1,RKEY,NKEY)
+      CALL UCOPY_i(KEY1,RKEY,NKEY)
       NT = MIN(CYC_MAX,NTRIES_MAX)
       MIN_RESIDUAL = 1.E10
       LISV1 = LQ(LISP1+1)

@@ -130,8 +130,8 @@ C
       YCENT = C ( LVGEH + 4 )
       ZCENT = C ( LVGEH + 5 )
       DO 100 I = 1, KVLM
-        CALL UHTOC ( C(LVWAL+1),4,NAM,4)
-        CALL UHTOC ( C(LVWAL+7),4,NAMOT,4)
+        CALL UHTOC ( iC(LVWAL+1),4,NAM,4)
+        CALL UHTOC ( iC(LVWAL+7),4,NAMOT,4)
         X(1) = C ( LVGEH + IC ( LVWAL + 2 ) )
         X(2) = C ( LVGEH + IC ( LVWAL + 3 ) )
         X(3) = C ( LVGEH + IC ( LVWAL + 5 ) )

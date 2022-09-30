@@ -55,7 +55,7 @@ C
       IF ( NHITS.LE.0 ) GO TO 999
 C
       CALL VZERO ( PROVE(0), IARRAY)
-      CALL VZERO ( IPROVE(0), IARRAY)
+      CALL VZERO_i ( IPROVE(0), IARRAY)
 C
 C   ITYPE to distinguish between sense wire and delay line 
 C   (0: SW, 1:DL)
@@ -104,8 +104,8 @@ C
 C
 C ****  Zero suppression simulation
 C
-      CALL VZERO(ILEAD, NHMAX)
-      CALL VZERO(ITRAIL, NHMAX)
+      CALL VZERO_i(ILEAD, NHMAX)
+      CALL VZERO_i(ITRAIL, NHMAX)
       CALL ZERSUP(1, IARRAY, IPROVE, NCLUS, ILEAD, ITRAIL)
 C
 C ****  Pack and store data in ZEBRA bank

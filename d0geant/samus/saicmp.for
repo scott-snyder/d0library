@@ -21,8 +21,8 @@ C&IF SIUNIX,LINUX
 C&      INTEGER*2 SAICMP
 C&ENDIF
       INTEGER I(3), J(3), II, JJ
-      II = IAND (I(1),'377'O)
-      JJ = IAND (J(1),'377'O)
+      II = IAND (I(1),o'377')
+      JJ = IAND (J(1),o'377')
       IF     (II .LT. JJ) THEN
         SAICMP = -1
       ELSEIF (II .EQ. JJ) THEN
