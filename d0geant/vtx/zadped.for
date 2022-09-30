@@ -43,7 +43,7 @@ C
 C ****  Fill the random number array:
 C
         FIRST = .FALSE.
-        DO I = 0, NMRAND
+        DO I = 0, NMRAND-1
           CALL NORRAN(FLUCT)
           RANDOM(I) = FLUCT
         ENDDO
