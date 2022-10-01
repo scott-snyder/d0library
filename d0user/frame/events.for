@@ -78,7 +78,7 @@ C
       PICK_EVTS = .FALSE.
 C
    20 NL = 1
-      CALL GETPAR(1,' How many events to display (<20)? [1] >',
+      CALL GETPAR1(' How many events to display (<20)? [1] >',
      &   'I',NL)
       IF (NL.GT.20) GOTO 20
 C
@@ -95,8 +95,8 @@ C
       CALL OUTMSG(' in the Event Display menu.')
 C
       DO 102 I = 1,NL
-        CALL GETPAR(1,' Run no.>','I',ELIST(I,1))
-        CALL GETPAR(1,' Event no.>','I',ELIST(I,2))
+        CALL GETPAR1(' Run no.>','I',ELIST(I,1))
+        CALL GETPAR1(' Event no.>','I',ELIST(I,2))
         IF (ELIST(I,1).LT.0) THEN
           ASK = .FALSE.
           GOTO 103

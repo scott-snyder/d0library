@@ -38,10 +38,10 @@ C
         CALL HBOOK1(1,' TOTAL ENERGY$',50,0.,2000.,0.)
         CALL HBOOK1(2,' Maximum Et in a cell$',50,0.,50.,0.0)
         CALL HBOOK1(3,' Maximum E in a cell$',50,0.,100.,0.0)
-        CALL HBOOK1(4,' Maximum  Et in a tower$',50,0,100.,0.0)
-        CALL HBOOK1(5,' Maximum EM Et in a tower$',50,0,50.,0.0)
-        CALL HBOOK1(6,' Jets Et $',50,0,200.,0.0)
-        CALL HBOOK1(7,' Clusters Et $',50,0,100.,0.0)
+        CALL HBOOK1(4,' Maximum  Et in a tower$',50,0.,100.,0.0)
+        CALL HBOOK1(5,' Maximum EM Et in a tower$',50,0.,50.,0.0)
+        CALL HBOOK1(6,' Jets Et $',50,0.,200.,0.0)
+        CALL HBOOK1(7,' Clusters Et $',50,0.,100.,0.0)
         CALL HBOOK1(8,' Missing Et 1$',50,0.,100.,0.0)
         CALL HBOOK1(9,' Missing Et 2$',50,0.,100.,0.0)
         CALL HBOOK1(10,' Jet Pair Masses$',50,0.,500.,0.0)
@@ -106,9 +106,9 @@ C
           ENDIF
           POINTR=POINTR+NR
         ENDDO
-        CALL HFILL(1,ETOT,0,1.)
-        CALL HFILL(2,ETMAX,0,1.)
-        CALL HFILL(3,EMAX,0,1.)
+        CALL HFILL(1,ETOT,0.,1.)
+        CALL HFILL(2,ETMAX,0.,1.)
+        CALL HFILL(3,EMAX,0.,1.)
 C
 C       Analyze towers
         LCATE=GZCATE()
@@ -125,13 +125,13 @@ C         towers
           ET=Q(LDCATE+8)
           IF(ET.GT.ETMAX) ETMAX=ET
    11   CONTINUE
-        CALL HFILL(5,ETMAX,0,1.)
+        CALL HFILL(5,ETMAX,0.,1.)
         DO 12 I=NCHEM+1,NCHTOT
           ET=Q(LDCATE+8)
           IF(ET.GT.ETMAX) ETMAX=ET
           LDCATE=LDCATE+NR
    12   CONTINUE
-        CALL HFILL(4,ETMAX,0,1.)
+        CALL HFILL(4,ETMAX,0.,1.)
         CALL RSLINK('CANALI',N1) 
       ELSE
         CALL ERRMSG('No CAEP bank','CANALI','Cannot get hits or towers',
@@ -144,7 +144,7 @@ C
           LPNUT=GZPNUT(I)
           IF(LPNUT.GT.0) THEN
             ET=Q(LPNUT+7)
-            CALL HFILL(7+I,ET,0,1.)
+            CALL HFILL(7+I,ET,0.,1.)
           ENDIF
         ENDDO
 C       
@@ -156,7 +156,7 @@ C       find # of jets
    21   IF(LJETS.NE.0) THEN
           NJETS=NJETS+1
           ET=Q(LJETS+6)
-          CALL HFILL(6,ET,0,1.)
+          CALL HFILL(6,ET,0.,1.)
           IF(NJETS.LE.NJTMAX) CALL UCOPY(Q(LJETS+2),PJETS(1,NJETS),4)
           LJETS=LQ(LJETS)
           GOTO 21
@@ -185,7 +185,7 @@ C       find # of clusters
         NCACL=NCACL+1
         LCACL=LQ(LCACL)
         ET=Q(LCACL+8)
-        CALL HFILL(7,ET,0,1.)
+        CALL HFILL(7,ET,0.,1.)
         GOTO 23
       ENDIF
   999 RETURN

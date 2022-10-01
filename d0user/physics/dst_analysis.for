@@ -66,7 +66,7 @@ C
         CALL INRCP('DST_RCP',IER)       
         IF(IER.EQ.0) THEN
           CALL EZPICK('DST_RCP')  
-          CALL EZGET('JETS_ALGORITHM',ICHOICE,IER)
+          CALL EZGET_i('JETS_ALGORITHM',ICHOICE,IER)
           CALL EZGET('JETS_MIN_ET',ETMIN,IER)
           CALL EZRSET
         ENDIF
@@ -113,7 +113,7 @@ C         loop through electron banks and pick maximum
         DO WHILE (LPELC.GT.0)
           NELEC=NELEC+1
           ET=Q(LPELC+7)
-          CALL HFILL(1,ET,0,1.)
+          CALL HFILL(1,ET,0.,1.)
           IF(ET.GT.ELC_ET) THEN
             ELC_ET=ET
             ELC_ETA=Q(LPELC+9)
@@ -125,7 +125,7 @@ C         loop through electron banks and pick maximum
         ENDDO
 C
         IF(LPELCMX.GT.0) THEN
-          CALL HFILL(2,ELC_ET,0,1.)
+          CALL HFILL(2,ELC_ET,0.,1.)
           CALL HFILL(3,ELC_ETA,ELC_PHI,1.)
         ENDIF
 C
@@ -183,7 +183,7 @@ C        loop over all jets
           LJETS=LQ(LJETS)  ! pointer to next jet
         ENDDO
         AN=NJETS
-        CALL HFILL(19,AN,0,1.)
+        CALL HFILL(19,AN,0.,1.)
 C
       ENDIF
 C
@@ -219,7 +219,7 @@ C         drop low angle muons and pick maximum
             CALL MZDROP(IXCOM,LPMUO,' ')
           ELSE
             NMUONS=NMUONS+1
-            CALL HFILL(22,ET,0,1.)
+            CALL HFILL(22,ET,0.,1.)
             IF(ET.GT.MUON_ET) THEN
               MUON_ET=ET
               MUON_ETA=ETA
@@ -230,7 +230,7 @@ C         drop low angle muons and pick maximum
           LPMUO=LQ(LPMUO)          ! pointer to next muon
         ENDDO
         IF(MUON_ET.GT.4.) THEN
-          CALL HFILL(23,MUON_ET,0,1.)
+          CALL HFILL(23,MUON_ET,0.,1.)
           CALL HFILL(21,MUON_ETA,MUON_PHI,1.)
         ENDIF
 C
@@ -248,13 +248,13 @@ C         loop through photon banks and pick maximum
         DO WHILE (LPPHO.GT.0)
           NPHOT=NPHOT+1
           ET=Q(LPPHO+7)
-          CALL HFILL(41,ET,0,1.)
+          CALL HFILL(41,ET,0.,1.)
           IF(ET.GT.PHOT_ET) THEN
             PHOT_ET=ET
           ENDIF
           LPPHO=LQ(LPPHO)          ! pointer to next photon
         ENDDO
-        IF(PHOT_ET.GT.10.) CALL HFILL(42,PHOT_ET,0,1.)
+        IF(PHOT_ET.GT.10.) CALL HFILL(42,PHOT_ET,0.,1.)
 C
       ENDIF
 C
@@ -266,9 +266,9 @@ C
         PHI=Q(LPTAU+9)
         ETA=Q(LPTAU+10)
         RRMS=Q(LPTAU+11)
-        CALL HFILL(121,ET,0,1.)
-        CALL HFILL(122,RRMS,0,1.)
-        IF(AN.GT.2) CALL HFILL(123,ET,0,1.)
+        CALL HFILL(121,ET,0.,1.)
+        CALL HFILL(122,RRMS,0.,1.)
+        IF(AN.GT.2) CALL HFILL(123,ET,0.,1.)
         LPTAU=LQ(LPTAU)
       ENDDO
       CALL RESET_CAPH
@@ -279,7 +279,7 @@ C
 C
       DST_DIAL=.TRUE.
       ICHOICE=1
-      CALL GETPAR(1,'Chose Cone jets (1,2,3) or NN jets (4) [1]>',
+      CALL GETPAR1('Choose Cone jets (1,2,3) or NN jets (4) [1]>',
      &  'I',ICHOICE)
       CALL GETPAR(1,'ETMIN for jets [15.]>','R',ETMIN)
 C

@@ -22,7 +22,7 @@ C
       IF(FLGVAL('MORE_EVENTS')) THEN
         NSKIP=0
         YES=.FALSE.
-        CALL GETPAR(1,' Process all events for remaining runs? Y/N >'
+        CALL GETPAR1(' Process all events for remaining runs? Y/N >'
      &      ,'L',YES)
 C
         IF ( YES ) THEN

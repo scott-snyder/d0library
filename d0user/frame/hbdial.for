@@ -32,7 +32,7 @@ C
       CALL OUTMSG(MSG)
       MSG=' will terminate dialog.'
       CALL OUTMSG(MSG)
-      CALL GETPAR(1,PROMP,TYPARR,J)
+      CALL GETPAR1(PROMP,TYPARR,J)
 C
       IF(PFNUM().EQ.4) RETURN
 C
@@ -51,7 +51,7 @@ C
         GOTO 1
 C
       ELSE IF(J.EQ.2) THEN                ! 2D Histograms
-        CALL GETPAR(9,PROMPT,TYPARR,NIDENT,  
+        CALL GETPAR9(PROMPT,TYPARR,NIDENT,  
      $  DEFID,INTIT,INXBIN,XMIN,XMAX,INYBIN,YMIN,YMAX)
         IF(PFNUM().EQ.4) RETURN   
         INTIT=INTIT(1:31)//'$'

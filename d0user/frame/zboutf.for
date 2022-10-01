@@ -60,7 +60,7 @@ C
       CALL OUTMSG(MESG)
 C
       OSTRM='   '
-      CALL GETPAR(1,PROMPT(1),'C',OSTRM)
+      CALL GETPAR1(PROMPT(1),'C',OSTRM)
       IF(PFNUM().EQ.4.OR.OSTRM.EQ.'   ') GOTO 999          ! RETURN
 C
       IF(OSTRM.EQ.'ALL') THEN         ! drop all output units
@@ -104,7 +104,7 @@ C
 C
 C        set flags if only event records are to be written out
       YES=.FALSE.
-      CALL GETPAR(1,' Write only event records(no b-o-r or e-o-r)? [N]>'
+      CALL GETPAR1l(' Write only event records(no b-o-r or e-o-r)? [N]>'
      &  ,'L', YES)
       IF(YES) THEN
         ONLY_E='ONLY_EVENTS_'//OSTRM
@@ -126,12 +126,12 @@ C
       NHIGH=NLOW+9
       IF(NLOW.LT.NUM) GOTO 4
       YES=.FALSE.
-      CALL GETPAR(1,' Want to add or remove from list? [N]>','L',
+      CALL GETPAR1l(' Want to add or remove from list? [N]>','L',
      &    YES)
       IF(YES) THEN
 C          add to list
    5    NAMCHK='    '
-        CALL GETPAR(1,' Add to drop list, end with <cr> >','C',
+        CALL GETPAR1(' Add to drop list, end with <cr> >','C',
      &      NAMCHK)
         CALL EVDROP(OSTRM,NAMCHK)
         IF(NAMCHK.NE.'    ') GOTO 5

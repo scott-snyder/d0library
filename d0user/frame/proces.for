@@ -93,7 +93,7 @@ C
 C           dialog for storing histograms
 C
       ISTORH=0
-      CALL GETPAR(1,'Store histograms ? 0=NO, 1=after each run, 2='
+      CALL GETPAR1('Store histograms ? 0=NO, 1=after each run, 2='
      &    //'end of job only >','I',ISTORH)
       IF(ISTORH.NE.1) CALL SETSTR(.FALSE.)
       IF(ISTORH.EQ.1) CALL SETSTR(.TRUE.)
@@ -432,7 +432,7 @@ C
         IF(FLGVAL('NO_INPUT_FILE')) THEN
           CALL GETPAR(1,' Change no. of events to process? Y/N>',
      &      'L',YES)
-          IF(YES) CALL GETPAR(1,' Number of events>','I',NEVRUN)
+          IF(YES) CALL GETPAR1(' Number of events>','I',NEVRUN)
           CALL STNVRN(NEVRUN)
         ELSE
           CALL GETPAR(1,' Want a new input file? Y/N >',
@@ -461,7 +461,7 @@ C
           ELSE
             CALL GETPAR(1,' Change no. of events to process? Y/N>',
      &        'L',YES)
-            IF(YES) CALL GETPAR(1,' Number of events>','I',NEVRUN)
+            IF(YES) CALL GETPAR1(' Number of events>','I',NEVRUN)
             CALL STNVRN(NEVRUN)
           ENDIF
           NEVRUN=USNVRN()

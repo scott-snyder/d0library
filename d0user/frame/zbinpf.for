@@ -54,7 +54,7 @@ C
     1 CONTINUE
       IF(FIRST) THEN
         TAPE=.FALSE.
-        CALL GETPAR(1,' Will you be reading files from tape? [N]>',
+        CALL GETPAR1(' Will you be reading files from tape? [N]>',
      &    'L',TAPE)
         FIRST=.FALSE.
       ENDIF
