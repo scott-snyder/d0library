@@ -257,15 +257,15 @@ C
      &      'F')
         ENDIF
         CALL EZPICK('STRIP_RCP')
-        CALL EZGET('USE_HEADER',USE_HEADER,STATUS)
-        CALL EZGET('DO_HIST',DO_HIST,STATUS)
+        CALL EZGET_l('USE_HEADER',USE_HEADER,STATUS)
+        CALL EZGET_l('DO_HIST',DO_HIST,STATUS)
         IF(STATUS.NE.0)THEN
           DO_HIST = .TRUE.
           CALL ERRMSG('D0USER','STRIP_TRIG',
      &      'DO_HIST RCP parameter missing -- set to .TRUE.', 'W')
           STATUS = 0
         ENDIF
-        IF(STATUS.EQ.0)CALL EZGET('DO_MICRO_BLANK_CUT',
+        IF(STATUS.EQ.0)CALL EZGET_l('DO_MICRO_BLANK_CUT',
      &    DO_MICRO_BLANK_CUT,STATUS)
         IF(STATUS.NE.0)THEN
           DO_MICRO_BLANK_CUT = .FALSE.
@@ -302,7 +302,7 @@ C ****  L1 bits which are requested
               CALL ERRMSG('D0USER','STRIP-TRIG','Unable to read L1BITS',
      &          'F')
             ELSE
-              CALL EZGET('L1BITS',L1BITS,STATUS)
+              CALL EZGET_i('L1BITS',L1BITS,STATUS)
             ENDIF
           ENDIF
           DO I = 1,NBITS
@@ -318,7 +318,7 @@ C ****  L2 bits which are requested
               CALL ERRMSG('D0USER','STRIP-TRIG','Unable to read L2BITS',
      &          'F')
             ELSE
-              CALL EZGET('L2BITS',L2BITS,STATUS)
+              CALL EZGET_iarr('L2BITS',L2BITS,STATUS)
             ENDIF
           ENDIF
           DO I = 1,NBITS

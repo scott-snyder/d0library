@@ -105,7 +105,7 @@ C
           CALL ERRMSG(' No objects given','RECO_FILTER',
      &      'Filter package will not filter ','W')
         ELSE
-          CALL EZGETA('FILTER_OBJECTS',1,N,1,FILT_INFO,IER)
+          CALL EZGETA_iarr('FILTER_OBJECTS',1,N,1,FILT_INFO,IER)
           N=N/4
           DO I=1,20
             NOBJ_STREAM(I)=0
