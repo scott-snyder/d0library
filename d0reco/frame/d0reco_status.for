@@ -28,8 +28,8 @@ C----------------------------------------------------------------------
 C
       IF ( FIRST ) THEN
         CALL EZPICK('D0RECO_RCP')
-        CALL EZGET('REPORT_STATUS',STATUS_ON,IER)
-        CALL EZGET('REPORT_RATE',NREPORT,IER)
+        CALL EZGET_l('REPORT_STATUS',STATUS_ON,IER)
+        CALL EZGET_i('REPORT_RATE',NREPORT,IER)
         CALL EZRSET
         LHSTR=GZHSTR()
         CALL UHTOC(IQ(LHSTR+7),40,NAME,40)

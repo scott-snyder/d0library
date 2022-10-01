@@ -78,11 +78,11 @@ C
 C
 C           read flag settings
         OK=.FALSE.
-        CALL EZGET('WRITE_E_FILE',OK,IER)
+        CALL EZGET_l('WRITE_E_FILE',OK,IER)
         CALL FLGSET('WRITE_E_FILE',OK)
-        CALL EZGET('VERIFY',OK,IER)
+        CALL EZGET_l('VERIFY',OK,IER)
         CALL FLGSET('VERIFY',OK)
-        CALL EZGET('REMOTE_STA',OK,IER)
+        CALL EZGET_l('REMOTE_STA',OK,IER)
         IF(IER.EQ.0)CALL FLGSET('REMOTE_STA',OK)
 C-IF parallel RECO
         CALL EZGET('PARALLEL',OK,IER)
@@ -119,7 +119,7 @@ C
 C
 C            read in dump requests
 C
-        CALL EZGET('NUMBER_DUMPS',NUMBER_DUMPS,IER)
+        CALL EZGET_i('NUMBER_DUMPS',NUMBER_DUMPS,IER)
         CALL FLGSET('DUMP_PROCES',.FALSE.)
         IF(NUMBER_DUMPS.NE.0) THEN
 C
@@ -131,9 +131,9 @@ C
      &        MSG,'W')
           ENDIF
 C
-          CALL EZGET('SKIP_DUMPS',SKIP_DUMPS,IER)
+          CALL EZGET_i('SKIP_DUMPS',SKIP_DUMPS,IER)
           IF(SKIP_DUMPS.LT.0) THEN           ! read list of events to dump
-            CALL EZGET('EVENTS_TO_DUMP',EVENT_ID,IER)
+            CALL EZGET_iarr('EVENTS_TO_DUMP',EVENT_ID,IER)
             DO I=1,NUMBER_DUMPS
               CALL DMPLST(EVENT_ID(1,I),IER)
             ENDDO

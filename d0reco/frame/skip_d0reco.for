@@ -37,7 +37,7 @@ C
         IF(NUMBER_OF_SKIPS.LE.0) GOTO 999
 C
         IF(NUMBER_OF_SKIPS.LE.MAX_SKIPS) THEN
-          CALL EZGET('EVENTS_TO_SKIP',EVENTS_TO_SKIP,IER) ! get list of events
+          CALL EZGET_iarr('EVENTS_TO_SKIP',EVENTS_TO_SKIP,IER) ! get list of events
           IF(IER.NE.0) EVENTS_TO_SKIP(1,1)=0
         ELSE
           WRITE(MSG,100) MAX_SKIPS

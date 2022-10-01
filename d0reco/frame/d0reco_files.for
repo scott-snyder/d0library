@@ -57,7 +57,7 @@ C              read input files
           NO_EVENTS(I)=-1
         ENDDO
         N=0
-        CALL EZ_GET_CHARS('NUMBER_OF_EVENTS',N,NO_EVENTS,IER)   
+        CALL EZGET_IARR('NUMBER_OF_EVENTS',N,NO_EVENTS,IER)   
         IF(N.GT.0.AND.N.NE.NFILES) THEN
           CALL ERRMSG(' NUMBER_OF_EVENTS error','D0RECO_FILES'
      &      ,'NUMBER_OF_EVENTS does not match INPUT_FILES','F')
