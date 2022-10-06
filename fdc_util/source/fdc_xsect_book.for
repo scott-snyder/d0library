@@ -35,7 +35,7 @@ C----------------------------------------------------------------------
         CALL EZGET('VELOCP',VELOCP,IER)
         CALL EZRSET
         CALL EZPICK('FDC_RCP')
-        CALL EZGET('FB_SHORT_HISTS',SHORT_HISTS,IER)
+        CALL EZGET_l('FB_SHORT_HISTS',SHORT_HISTS,IER)
         CALL EZRSET
         CALL DHDIR('FDC_RCP','FDC_XSECT',IER,' ')
 C

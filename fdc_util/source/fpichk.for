@@ -55,6 +55,8 @@ C
       REAL ISHIST(4,MAXHIS)
       EQUIVALENCE ( FQTRAK,IFQTRAK  )
       EQUIVALENCE ( VQTRAK,IVQTRAK  )
+
+      real rtmp
 C
       LOGICAL MUTRAK,INSIDE_FDC,SEC_PION,SEC_MUON,WRAP,PI_PAIR,MU_PAIR
       LOGICAL INSIDE_VTX,BEYOND_CD,IN_BEAMPIPE,BETWEEN_VTXFDC
@@ -128,7 +130,7 @@ C
 C
       IF (FIRST) THEN    ! Book histograms
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('PRRECO',PRRECO,IERR)
+        CALL EZGET_l('PRRECO',PRRECO,IERR)
         CALL EZGET('ISHIST(1)',ISHIST(1,1),IERR)
         CALL EZRSET
         IDJ=0
@@ -556,11 +558,13 @@ C
      &      ABS(ZTHETA(IZ)-THETA2(KP2(IZ))),
      &      ABS(ZPHI(IZ)-PHI2(KP2(IZ))),1.)
         ELSE
+          rtmp = (TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ))))
           IF (ISHIST(1,15).EQ.2.) CALL HFF2(15+HOFSET,NID(15),
-     &                 Z2,(TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ)))),1.)
+     &         Z2,rtmp,1.)
+          rtmp = TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ)))
           IF (ISHIST(1,54).EQ.2.) CALL HFF2(54+HOFSET,NID(54),
      &      ABS(ZTHETA(IZ)-THETA2(KP2(IZ))),
-     &      (TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ)))),1.)
+     &      rtmp,1.)
         ENDIF
 C
         IF( (VPHI(IZ)-PHI2(KP2(IZ))).LT.PI ) THEN
@@ -570,11 +574,13 @@ C
      &      ABS(ZTHETA(IZ)-THETA2(KP2(IZ))),
      &      ABS(ZPHI(IZ)-PHI2(KP2(IZ))),1.)
         ELSE
+          rtmp = TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ)))
           IF (ISHIST(1,92).EQ.2.) CALL HFF2(92+HOFSET,NID(92),
-     &                 Z2,(TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ)))),1.)
+     &                 Z2,rtmp,1.)
+          rtmp = TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ)))
           IF (ISHIST(1,96).EQ.2.) CALL HFF2(96+HOFSET,NID(96),
      &      ABS(ZTHETA(IZ)-THETA2(KP2(IZ))),
-     &      (TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ)))),1.)
+     &      rtmp,1.)
         ENDIF
 C
         IF( (FPHI(IZ)-PHI2(KP2(IZ))).LT.PI ) THEN
@@ -584,11 +590,13 @@ C
      &      ABS(ZTHETA(IZ)-THETA2(KP2(IZ))),
      &      ABS(ZPHI(IZ)-PHI2(KP2(IZ))),1.)
         ELSE
+          rtmp = (TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ))))
           IF (ISHIST(1,98).EQ.2.) CALL HFF2(98+HOFSET,NID(98),
-     &                 Z2,(TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ)))),1.)
+     &                 Z2,rtmp,1.)
+          rtmp = (TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ))))
           IF (ISHIST(1,102).EQ.2.) CALL HFF2(102+HOFSET,NID(102),
      &      ABS(ZTHETA(IZ)-THETA2(KP2(IZ))),
-     &      (TWOPI-ABS(ZPHI(IZ)-PHI2(KP2(IZ)))),1.)
+     &      rtmp,1.)
         ENDIF
         IF (ISHIST(1,19).EQ.2.) CALL HFF2(19+HOFSET,NID(19),
      &                 Z2,ABS(ZTHETA(IZ)-THETA2(KP2(IZ))),1.)

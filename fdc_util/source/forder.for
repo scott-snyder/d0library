@@ -43,7 +43,7 @@ C----------------------------------------------------------------------
         ELSE
           CALL EZGET('BILIPT',BILIPT,IER)
           CALL EZGET('BILIRT',BILIRT,IER)
-          CALL EZGET('RUNTYPE',RUNTYPE,IER)
+          CALL EZGET_i('RUNTYPE',RUNTYPE,IER)
           CALL EZRSET
         ENDIF
       ENDIF

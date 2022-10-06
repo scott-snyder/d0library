@@ -84,7 +84,7 @@ C----------------------------------------------------------------------
 C
       IF (FIRST) THEN
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('TINEFF',INEFF,IER)
+        CALL EZGET_i('TINEFF',INEFF,IER)
         CALL EZGET('TOLXDI',TOLXDI,IER)
         CALL EZGET('MAX_XT_SLOPE',MAX_XT_SLOPE,IER)
         CALL EZGET('MAX_XTSEG_CHI',MAXCHI,IER)

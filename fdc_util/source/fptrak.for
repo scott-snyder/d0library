@@ -26,6 +26,8 @@ C
       INTEGER NFSECT,NSSECT,NTEST,TESTSG(50),SKPIN,ICALL
       INTEGER GZFSEG,NZBANK
       REAL QTRAK(26),CONT(26),QHSEC(3,34),QHIT(18),RESID(34),SGCONT(62)
+      integer iqhsec(3,34)
+      equivalence (qhsec, iqhsec)
       REAL FIADDS,FNHITS,Z0(2),RTRK
       REAL FX(3),FY(3),FZ(3)
       REAL SX(3),SY(3),SZ(3)
@@ -43,7 +45,7 @@ C----------------------------------------------------------------------
       IF(ICALL.EQ.0) THEN
         CALL EZPICK('FTRAKS_RCP')
         CALL EZGET('Z0',Z0,IER)
-        CALL EZGET('SGONLY',SGONLY,IER)
+        CALL EZGET_l('SGONLY',SGONLY,IER)
         CALL EZRSET
         ICALL=1
       ENDIF
@@ -63,8 +65,8 @@ C      DO 100 ITRACK=1,NTRACK
         ENDIF
         IF (NHIT.GE.26) GO TO 100  ! full 3-segment track
         DO 200 IHSEC=1,IQTRAK(2)
-          CALL UCOPY(QHSEC(1,IHSEC),IADD(IHSEC),1)
-          CALL UCOPY(QHSEC(2,IHSEC),IHIT(IHSEC),1)
+          CALL UCOPY_i(iQHSEC(1,IHSEC),IADD(IHSEC),1)
+          CALL UCOPY_i(iQHSEC(2,IHSEC),IHIT(IHSEC),1)
           CALL UCOPY(QHSEC(3,IHSEC),RESID(IHSEC),1)
   200   CONTINUE
 C

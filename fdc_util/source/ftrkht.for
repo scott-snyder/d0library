@@ -55,6 +55,8 @@ C
       REAL DXDZ,DYDZ,ZTRK,XTRK,YTRK,PHI,THETA,RADIUS
       REAL R,RPHI,WPHI,RPERP,RWIR
       EQUIVALENCE(QTRAK,IQTRAK)
+      integer iqhsec(3, 34)
+      equivalence (qhsec, iqhsec)
       REAL FSTAGR
 C
       SAVE ICALL
@@ -75,7 +77,7 @@ C
       CALL GTFDCT(TRKNUM,CONT,QHSEC,LADDER)
       CALL UCOPY(CONT,QTRAK,26)
       IF (IQTRAK(2).EQ.0) GOTO 999      ! If no hits on track then return
-      CALL UCOPY(QHSEC(1,1),IADD,1)
+      CALL UCOPY_i(iQHSEC(1,1),IADD,1)
       IF (IADD.LE.0) GOTO 999         ! No hit info with track
 C
 C  Get information of hits on the track
@@ -95,8 +97,8 @@ C
       PREV_IADD = -1
 C
       DO 10 IHSEC = 1,NHITS
-        CALL UCOPY(QHSEC(1,IHSEC),IADD,1)
-        CALL UCOPY(QHSEC(2,IHSEC),IHIT,1)
+        CALL UCOPY_i(iQHSEC(1,IHSEC),IADD,1)
+        CALL UCOPY_i(iQHSEC(2,IHSEC),IHIT,1)
 C
 C Do not include delay line information in arrays for ZTRK fit.
 C IADD (logical address of wire) is identical for a theta SW0 hit and its

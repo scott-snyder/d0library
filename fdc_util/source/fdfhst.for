@@ -77,11 +77,11 @@ C----------------------------------------------------------------------
 C
       IF (FIRST) THEN
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('DO_RISE',DO_RISE,IER)
+        CALL EZGET_l('DO_RISE',DO_RISE,IER)
         CALL EZGET('Z0',Z0,IER)
         CALL EZRSET
         CALL EZPICK('FDC_RCP')
-        CALL EZGET('PRLVL',PRLVL,IER)
+        CALL EZGET_i('PRLVL',PRLVL,IER)
         CALL EZRSET
         FIRST = .FALSE.
       END IF
@@ -146,7 +146,7 @@ C HISTOGRAMS INVOLVING HITS ON SEGMENTS
 C
       DO 100 HALF = 0, MXHALF
 C
-        CALL VZERO(MSEG,576)
+        CALL VZERO_i(MSEG,576)
 C
         DO 200 LAYER = 0, 2
 C

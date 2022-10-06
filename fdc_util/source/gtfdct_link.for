@@ -23,23 +23,27 @@ C-----------------------------------------------------------------------
       INCLUDE 'D0$INC:ZEBCOM.INC/LIST'
       INTEGER LFDCT,LFDTH,NHSEC,LADDER(0:2)
       REAL QTRAK(26),QHSEC(3,34)
+      real rtmp
+      integer itmp
+      equivalence (rtmp, itmp)
 C-----------------------------------------------------------------------
       IF (LFDCT.EQ.0) THEN           ! track deleted
         CALL VZERO(QTRAK,26)
         CALL VZERO(QHSEC,102)
-        CALL VZERO(LADDER(0),3)
+        CALL VZERO_i(LADDER(0),3)
         GO TO 999
       END IF
       CALL UCOPY(Q(LFDCT+1),QTRAK,26)
-      CALL UCOPY(QTRAK(2),NHSEC,1)      ! fill track fit info
+      rtmp = qtrak(2)
+      nhsec = itmp
       LFDTH=LQ(LFDCT-1)
       IF(LFDTH.LE.0) THEN
         CALL VZERO(QHSEC,102)
-        CALL VZERO(LADDER(0),3)
+        CALL VZERO_i(LADDER(0),3)
         GOTO 999
       ENDIF
       CALL UCOPY(Q(LFDTH+1),QHSEC(1,1),3*NHSEC)   ! fill track hits info
-      CALL UCOPY(Q(LFDTH+103),LADDER(0),3)        ! fill segment ladder info
+      CALL UCOPY_i(iQ(LFDTH+103),LADDER(0),3)        ! fill segment ladder info
 C----------------------------------------------------------------------
   999 CONTINUE
       RETURN

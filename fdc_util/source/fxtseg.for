@@ -103,12 +103,12 @@ C----------------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         ICALL = 1
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('TINEFF',INEFF,IER)
+        CALL EZGET_i('TINEFF',INEFF,IER)
         CALL EZGET('TOLXDI',TOLXDI,IER)
         CALL EZGET('MAX_XT_SLOPE',MAX_XT_SLOPE,IER)
         CALL EZGET('MAX_XTSEG_CHI',MAXCHI,IER)
         CALL EZGET('ERRF_XSECT_THETA',ERRF_XSECT ,IER)
-        CALL EZGET('HITS_PER_WIRE',HITS_PER_WIRE,IER)
+        CALL EZGET_i('HITS_PER_WIRE',HITS_PER_WIRE,IER)
         CALL EZRSET
       END IF
 C

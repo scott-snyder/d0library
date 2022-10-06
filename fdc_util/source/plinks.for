@@ -57,9 +57,9 @@ C----------------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         CALL MZFORM('LINK','4I 1F',IXLINK)
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('DELTAZ',DELTAZ,IER)
-        CALL EZGET('YBIG',YBIG,IER)
-        CALL EZGET('TOLDLY',TOLDLY,IER)
+        CALL EZGET_rarr('DELTAZ',DELTAZ,IER)
+        CALL EZGET_rarr('YBIG',YBIG,IER)
+        CALL EZGET_rarr('TOLDLY',TOLDLY,IER)
         CALL EZGET('TOLSL',TOLSL,IER)
         CALL EZRSET
         ICALL=1

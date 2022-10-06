@@ -140,8 +140,8 @@ C
 C----------------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('PINEFF',INEFF,IER)
-        CALL EZGET('MAX_XPSEG_CHI',MAXCHI,IER)
+        CALL EZGET_i('PINEFF',INEFF,IER)
+        CALL EZGET_rarr('MAX_XPSEG_CHI',MAXCHI,IER)
         CALL EZGET('ERRF_XSECT_PHI',ERRF_XSECT ,IER)
         MINDEP = NBPSEN-INEFF-2
         CALL EZRSET

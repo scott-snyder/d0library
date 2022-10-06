@@ -58,8 +58,8 @@ C----------------------------------------------------------------------
       IF(ICALL.EQ.0) THEN
         ICALL=1
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('TINEFF',INEFF,IER)
-        CALL EZGET('HITS_PER_WIRE',HITS_PER_WIRE,IER)
+        CALL EZGET_i('TINEFF',INEFF,IER)
+        CALL EZGET_i('HITS_PER_WIRE',HITS_PER_WIRE,IER)
         CALL EZGET('MAXTIMEFACT',MAXFACT,IER)        
         CALL EZRSET
         MAXDIST = 5.5 * MAXFACT

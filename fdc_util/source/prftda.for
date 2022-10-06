@@ -88,7 +88,7 @@ C
             DO 40 ISECT=MINSEC,MAXSEC
 C
               IF (CFL.NE.'ONE' .OR. LKFTDA.LE.0) LKFTDA=
-     &                             GZFTDA(IHALF,ITHE,IQUAD,ISECT)
+     &                             GZFTDA(IHALF,IQUAD,ISECT)
               IF (LKFTDA.LE.0) THEN
                 WRITE(PRUNIT,1011) LKFTDA
                 GO TO 999

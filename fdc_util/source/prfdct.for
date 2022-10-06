@@ -40,6 +40,10 @@ C
       REAL QTRAK(26),CONT(26),QHSEC(3,34),QHIT(18)
       REAL RESID(34),MULTI,CHIDF,CHISUM
       REAL HITX(34),HITY(34),HITZ(34),WR(34),WZ(34)
+      integer iqhsec(3,34)
+      equivalence (qhsec, iqhsec)
+      integer iqhit(18)
+      equivalence (qhit, iqhit)
 C
       CHARACTER*4 PATH
       CHARACTER*3 CFL
@@ -66,11 +70,11 @@ C---------------------------------------------------------------------
      X      (QTRAK(IWORD),IWORD=4,6),QTRAK(23),QTRAK(22),QTRAK(24),
      X      QTRAK(7),QTRAK(8),QTRAK(19),CHALF(HALF),
      X      LADDER(0),LADDER(1),LADDER(2)
-        CALL UCOPY(QHSEC(1,1),IADD(1),1)
+        CALL UCOPY_i(iQHSEC(1,1),IADD(1),1)
         IF(IADD(1).LE.0) GOTO 999
         DO 20 IHSEC=1,IQTRAK(2)
-          CALL UCOPY(QHSEC(1,IHSEC),IADD(IHSEC),1)
-          CALL UCOPY(QHSEC(2,IHSEC),IHIT(IHSEC),1)
+          CALL UCOPY_i(iQHSEC(1,IHSEC),IADD(IHSEC),1)
+          CALL UCOPY_i(iQHSEC(2,IHSEC),IHIT(IHSEC),1)
           CALL UCOPY(QHSEC(3,IHSEC),RESID(IHSEC),1)
           IF (PATH.EQ.'GEAN') THEN
             CALL FCODER(IADD(IHSEC),HALF,UNIT,QUAD,SECTOR,WIRE,UB,1)
@@ -80,7 +84,7 @@ C---------------------------------------------------------------------
             ELSE
               CALL GTFPSC(HALF,SECTOR,'HIT',IHIT(IHSEC),NEL,NWORDS,QHIT)
             END IF
-            CALL UCOPY(QHIT(10),ISATRA(IHSEC),1)
+            CALL UCOPY_i(iQHIT(10),ISATRA(IHSEC),1)
           ENDIF
    20   CONTINUE
         IF (PATH.EQ.'GEAN')
@@ -117,11 +121,11 @@ C---------------------------------------------------------------------
      X      (QTRAK(IWORD),IWORD=4,6),QTRAK(23),QTRAK(22),QTRAK(24),
      X      QTRAK(7),QTRAK(8),QTRAK(19),CHALF(HALF),
      X      LADDER(0),LADDER(1),LADDER(2)
-        CALL UCOPY(QHSEC(1,1),IADD(1),1)
+        CALL UCOPY_i(iQHSEC(1,1),IADD(1),1)
         IF(IADD(1).LE.0) GOTO 100
         DO 200 IHSEC=1,IQTRAK(2)
-          CALL UCOPY(QHSEC(1,IHSEC),IADD(IHSEC),1)
-          CALL UCOPY(QHSEC(2,IHSEC),IHIT(IHSEC),1)
+          CALL UCOPY_i(iQHSEC(1,IHSEC),IADD(IHSEC),1)
+          CALL UCOPY_i(iQHSEC(2,IHSEC),IHIT(IHSEC),1)
           CALL UCOPY(QHSEC(3,IHSEC),RESID(IHSEC),1)
           IF (PATH.EQ.'GEAN') THEN
             CALL FCODER((IADD(IHSEC)/2),HALF,UNIT,QUAD,SECTOR,WIRE,UB,1)
@@ -131,7 +135,7 @@ C---------------------------------------------------------------------
             ELSE
               CALL GTFPSC(HALF,SECTOR,'HIT',IHIT(IHSEC),NEL,NWORDS,QHIT)
             END IF
-            CALL UCOPY(QHIT(10),ISATRA(IHSEC),1)  ! track ID
+            CALL UCOPY_i(iQHIT(10),ISATRA(IHSEC),1)  ! track ID
           ENDIF
   200   CONTINUE
         IF (CFL.EQ.'ALL'.AND.PATH.EQ.'GEAN')

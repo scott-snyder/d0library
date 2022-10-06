@@ -37,7 +37,7 @@ C
 C------------------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('PINEFF',INEFF,IER)
+        CALL EZGET_i('PINEFF',INEFF,IER)
         CALL EZGET('DSLMAX',DSLMAX,IER)
         MXPASS=INEFF+1
         CALL EZRSET

@@ -67,7 +67,7 @@ C----------------------------------------------------------------------
 C
       IF (FIRST) THEN
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('Z0',Z0,IER)
+        CALL EZGET_rarr('Z0',Z0,IER)
         CALL EZGET('TOLSLOPE',TOLSLOPE,IER)
         CALL EZGET('THETA_SLOPE_MAX',THETA_SLOPE_MAX,IER)
         CALL EZGET('PHI_SLOPE_MAX',PHI_SLOPE_MAX,IER)

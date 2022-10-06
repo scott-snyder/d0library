@@ -67,7 +67,7 @@ C----------------------------------------------------------------------
         CALL EZPICK('FDC_RCP')
         CALL EZGET('FB_MXCHSQ_XSW',MAXCHISQ_XSW ,IER)
         CALL EZGET('FB_SLOPE_CUT',SLOPE_CUT,IER)
-        CALL EZGET('FB_SHORT_HISTS_XSW',SHORT_HISTS,IER)
+        CALL EZGET_l('FB_SHORT_HISTS_XSW',SHORT_HISTS,IER)
         CALL EZRSET
         FIRST = .FALSE.
       END IF

@@ -100,11 +100,11 @@ C----------------------------------------------------------------------
 C
       IF (ICALL .EQ. 0) THEN
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('DBG_FDGETD',DBG_FDGETD,IER)
+        CALL EZGET_l('DBG_FDGETD',DBG_FDGETD,IER)
         CALL EZGET('FDLTOL',FDLTOL,IER)
         CALL EZGET('ERR_DL_TWO',ERR_DL_TWO,IER)
         CALL EZGET('ERR_DL_ONE',ERR_DL_ONE,IER)
-        CALL EZGET('SINGLE_DL',SINGLE_DL,IER)
+        CALL EZGET_l('SINGLE_DL',SINGLE_DL,IER)
         CALL EZRSET
         LUNDBG = USUNIT()
         ICALL = 1

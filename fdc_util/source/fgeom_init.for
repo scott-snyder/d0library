@@ -38,10 +38,10 @@ C----------------------------------------------------------------------
         FIRST = .FALSE.
         IDX=1
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('RUNTYPE',RUNTYPE,IER)
+        CALL EZGET_i('RUNTYPE',RUNTYPE,IER)
         IF(RUNTYPE.LE.0) IDX=2
         CALL EZGETS(GEOFIL,IDX,FILNAM,LENGTH,IER)
-        CALL EZGET('ALIGN_LEVEL',IALIGN,IER)
+        CALL EZGET_i('ALIGN_LEVEL',IALIGN,IER)
         CALL EZGET('SHIFT_FDC',SHIFT_FDC,IER)
         CALL EZRSET
 C

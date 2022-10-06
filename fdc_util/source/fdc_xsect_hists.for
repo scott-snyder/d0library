@@ -89,7 +89,7 @@ C----------------------------------------------------------------------
         CALL EZPICK('FDC_RCP')
         CALL EZGET('FB_MXCHSQ_XSECT ',MAXCHISQ_XSECT ,IER)
         CALL EZGET('FB_SLOPE_CUT',SLOPE_CUT,IER)
-        CALL EZGET('FB_SHORT_HISTS',SHORT_HISTS,IER)
+        CALL EZGET_l('FB_SHORT_HISTS',SHORT_HISTS,IER)
         CALL EZRSET
         CALL GTFALH(0,0,5,5,0,XC,YC,ZC)
         CALL GTFALH(0,0,5,4,0,XD,YD,ZD)

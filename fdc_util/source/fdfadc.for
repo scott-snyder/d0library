@@ -61,10 +61,10 @@ C----------------------------------------------------------------------
       IF ( FIRST ) THEN
         FIRST = .FALSE.
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('RUNTYPE',RUNTYPE,IER)
+        CALL EZGET_i('RUNTYPE',RUNTYPE,IER)
         CALL EZGET('BILIPT',BILIPT,IER)
         CALL EZGET('BILIRT',BILIRT,IER)
-        CALL EZGET('MAP(1)',MAP(0),IER)
+        CALL EZGET_i('MAP(1)',MAP(0),IER)
         CALL EZRSET
         IF (RUNTYPE.LE.0) THEN
           DO BIN=0,BILIPT

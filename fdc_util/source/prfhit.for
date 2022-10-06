@@ -21,7 +21,7 @@ C  Input:
       INTEGER PRUNIT,LJFHIT,MFHIT,IFL
       CHARACTER CFL*(*)
 C  Local:
-      INTEGER IQFHIT(2),NHIT
+      INTEGER IQFHIT(2),NHIT(1)
 C  Printout line:
       INTEGER IHIT,HALF,UNIT,QUAD,SECTOR,WIRE
       INTEGER DL,LR,ON_SEG,TRK_FDCT,TRK_ZTRK
@@ -30,13 +30,13 @@ C----------------------------------------------------------------------
       IF ( IFL .LT. 3 ) GOTO 999
 C
       CALL GTFHIT(0,NHIT)
-      IF ( NHIT .LT. 0 ) GOTO 999
+      IF ( NHIT(1) .LT. 0 ) GOTO 999
 C
       WRITE(PRUNIT,*) ' '
-      WRITE(PRUNIT,100) NHIT
+      WRITE(PRUNIT,100) NHIT(1)
       WRITE(PRUNIT,101)
 C
-      DO IHIT =  1, NHIT
+      DO IHIT =  1, NHIT(1)
 C
         CALL GTFHIT(IHIT,IQFHIT)
         CALL FHIT_DECODE( IQFHIT,

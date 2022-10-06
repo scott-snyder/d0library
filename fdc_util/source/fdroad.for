@@ -136,11 +136,11 @@ C---------------------------------------------------------------------
           CALL ERRMSG('FTRAKS','FDROAD','FTRAKS_RCP not found.','W')
         ELSE
           CALL EZGETS('FPATH',IDX,FPATH,LENGTH,IER)
-          CALL EZGET('REDOFDC',REDOFDC,IER)
-          CALL EZGET('MAX_HITS',MAX_HITS,IER)
-          CALL EZGET('TINEFF',INEFF,IER)
-          CALL EZGET('EDGE_TRACKS',EDGE_TRACKS,IER)
-          CALL EZGET('CALL_FLINSG',CALL_FLINSG,IER)
+          CALL EZGET_l('REDOFDC',REDOFDC,IER)
+          CALL EZGET_i('MAX_HITS',MAX_HITS,IER)
+          CALL EZGET_i('TINEFF',INEFF,IER)
+          CALL EZGET_l('EDGE_TRACKS',EDGE_TRACKS,IER)
+          CALL EZGET_l('CALL_FLINSG',CALL_FLINSG,IER)
           CALL EZGET('FDCRECO',FDCRECO,IER)
           CALL EZRSET
         ENDIF

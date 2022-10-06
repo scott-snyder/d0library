@@ -39,12 +39,12 @@ C------------------------------------------------------------------------
       NEL=IQ(LKFTSC+2)
       NWORDS=IQ(LKFTSC+3)
       IF (OPT.EQ.'SEC') THEN
-        CALL UCOPY(IQ(LKFTSC+1),CONT,1)
+        CALL UCOPY_i(IQ(LKFTSC+1),CONT,1)
         GO TO 1000
       END IF
       IF (OPT.EQ.'WIR') THEN
-        CALL UCOPY(IQ(LKFTSC+4),CONT(1),NEL)
-        CALL UCOPY(IQ(LKFTSC+4+NEL),CONT(1+NEL),
+        CALL UCOPY_i(IQ(LKFTSC+4),CONT(1),NEL)
+        CALL UCOPY_i(IQ(LKFTSC+4+NEL),CONT(1+NEL),
      X             NEL)
         GO TO 1000
       END IF

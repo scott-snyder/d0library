@@ -56,7 +56,7 @@ C
         Z_OFFSET =  Z_OFFSET + Z_FDC/2.
 C
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('Z0',Z0,IER)
+        CALL EZGET_rarr('Z0',Z0,IER)
         CALL EZRSET
         CALL EZPICK('FDC_RCP')
         CALL EZGET('X_FDC',X_FDC,IER)

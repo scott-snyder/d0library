@@ -32,7 +32,7 @@ C----------------------------------------------------------------------
         FIRST=.FALSE.
         CALL EZPICK('FTRAKS_RCP')
         CALL EZGET('Z0',Z0,IER)
-        CALL EZGET('ALIGN_LEVEL',ALIGN_LEVEL,IER)
+        CALL EZGET_i('ALIGN_LEVEL',ALIGN_LEVEL,IER)
         CALL EZRSET
       ENDIF
 C

@@ -174,13 +174,14 @@ C
           NBINP = (MXWIRP+1)*(MXSECP+1)
 C
           TITLE = 'FDC SW Sum of Peak Height, Seg Hits-'//H//' Theta'
-          CALL HBOOK1(100+HALF*10,TITLE,NBINT,-0.5,FLOAT(NBINT)-0.5,0)
+          CALL HBOOK1(100+HALF*10,TITLE,NBINT,-0.5,FLOAT(NBINT)-0.5,0.)
 C
           TITLE = 'FDC DL Sum of Peak Height, Seg Hits-'//H//' Theta'
-          CALL HBOOK1(101+HALF*10,TITLE,NBINDL,-0.5,FLOAT(NBINDL)-0.5,0)
+          CALL HBOOK1(101+HALF*10,TITLE,NBINDL,-0.5,FLOAT(NBINDL)-0.5
+     &         ,0.)
 C
           TITLE = 'FDC SW Sum of Peak Height, Seg Hits-'//H//' Phi'
-          CALL HBOOK1(102+HALF*10,TITLE,NBINP,-0.5,FLOAT(NBINP)-0.5,0)
+          CALL HBOOK1(102+HALF*10,TITLE,NBINP,-0.5,FLOAT(NBINP)-0.5,0.)
 C
         END DO
 C

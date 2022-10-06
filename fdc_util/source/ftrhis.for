@@ -35,6 +35,8 @@ C
       REAL CHI,QTRAK(26),XPOS,YPOS,ZPOS,BESDIF,RESID
       REAL COSMTHE
       EQUIVALENCE(QTRAK,IQTRAK)
+      integer ifsec(3,34)
+      equivalence (qfsec, ifsec)
 C
       LOGICAL FIRST,FDC
       LOGICAL EZERROR
@@ -130,8 +132,9 @@ C
         IF (FHIST(1,11).EQ.1.) CALL HFF1(11,NID(11),YPOS,1.)
         W=-1
         DO 204 IHIT=1,IQTRAK(2)
-          CALL UCOPY(QFSEC(1,IHIT),IADD,1)
-          CALL UCOPY(QFSEC(3,IHIT),RESID,1)
+          CALL UCOPY_i(iFSEC(1,IHIT),IADD,1)
+          resid = qfsec(3, ihit)
+          !CALL UCOPY(QFSEC(3,IHIT),RESID,1)
           PREV_W=W
           CALL FCODER(IADD/2,H,U,QU,S,W,UB,1)
           LAYER=U*2 + QU/4
