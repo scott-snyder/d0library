@@ -50,7 +50,7 @@ C--- Setup all retain segments
 C-
       IF ( HDISCO ) THEN
         HDISCO = .FALSE.
-        CALL VZERO(ILISTS,64)
+        CALL VZERO_i(ILISTS,64)
 C--- To setup the transfomation network.
 C-
         CALL JIQDEV(1,17,IRESP)
