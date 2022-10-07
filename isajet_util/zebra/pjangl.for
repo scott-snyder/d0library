@@ -72,7 +72,7 @@ C
       LSUP = LISAE-IZISAQ   ! find pointer to first bank
       NP = 0
       CALL VZERO(PBOOST(1),4)
-      CALL VZERO(SKPMAP(1),NPMAX)
+      CALL VZERO_l(SKPMAP(1),NPMAX)
    10 CALL GTISAQ(LSUP,LISAQ,ID,P,PHI,TH,ETA)
       IF( LISAQ .GT. 0 ) THEN
         NP = NP + 1
@@ -94,8 +94,8 @@ C
         LSUP = LISAQ
         GOTO 10
       END IF
-      CALL VZERO(SEEDMP(1),NP)
-      CALL VZERO(JETMAP,NP)            ! zero any jet pointers
+      CALL VZERO_i(SEEDMP(1),NP)
+      CALL VZERO_i(JETMAP,NP)            ! zero any jet pointers
 C
 C ****  BOOST TO PARTON REST FRAME
 C
@@ -229,7 +229,7 @@ C
 C ****  FOUND ALL JETS - FILL PJET BANK
 C
   400 CALL VZERO(PJET(1,1),4*NJET)
-      CALL VZERO(NQ(1),NP)
+      CALL VZERO_i(NQ(1),NP)
       CALL VZERO(ET_JET(1),NJET)
 C
       DO IP = 1, NP

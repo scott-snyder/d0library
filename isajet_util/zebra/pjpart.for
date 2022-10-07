@@ -88,8 +88,8 @@ C HIGH ETA
         LSUPV = LISV1
         GOTO 10
       END IF
-      CALL VZERO(SEEDMP(1),NP)
-      CALL VZERO(JETMAP,NP)            ! zero any jet pointers
+      CALL VZERO_i(SEEDMP(1),NP)
+      CALL VZERO_i(JETMAP,NP)            ! zero any jet pointers
 C
       DO 90 IP = 1, NP
         ORDER(IP) = IP

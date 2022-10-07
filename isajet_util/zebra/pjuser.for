@@ -139,9 +139,9 @@ C HIGH ETA
           GOTO 10
         END IF
       ENDIF
-   35 CALL VZERO(SEEDMP(1),NP)
-      CALL VZERO(JETMAP,NP*2)            ! zero any jet pointers
-      CALL VZERO(ISHARE,NJMAX)
+   35 CALL VZERO_i(SEEDMP(1),NP)
+      CALL VZERO_i(JETMAP,NP*2)            ! zero any jet pointers
+      CALL VZERO_i(ISHARE,NJMAX)
 C
       DO IP = 1, NP
         ORDER(IP) = IP
