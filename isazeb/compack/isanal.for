@@ -101,13 +101,13 @@ C
           IF(LISP1.GT.0) THEN 
             PTSQ=P(1)**2+P(2)**2
             IF(CHARGE(ID).NE.0) THEN
-              CALL HFILL(9,ETA,0,WEIGHT)
+              CALL HFILL(9,ETA,0.,WEIGHT)
               IF(PTSQ.GT.PTSQMX) PTSQMX=PTSQ
             ENDIF
             IDABS=IABS(ID)
             IF(IDABS.EQ.12.OR.IDABS.EQ.14) THEN ! check for muons and electrons
               PT=SQRT(PTSQ)
-              CALL HFILL(1,PT,0,WEIGHT)
+              CALL HFILL(1,PT,0.,WEIGHT)
             ENDIF
 C
             GOTO 200
@@ -130,7 +130,7 @@ C
           GOTO 300
         ENDIF
         PTMAX=SQRT(PTSQMX)
-        CALL HFILL(3,PTMAX,0,WEIGHT)
+        CALL HFILL(3,PTMAX,0.,WEIGHT)
 C   
 C          Analyze pseudo-calorimeter data.
 C
@@ -213,10 +213,10 @@ C
 C
       ISADIA=.TRUE.
       SMEAR=.TRUE.
-      CALL GETPAR(1,' Smear pseudo-calorimeter data? [Y] >',
+      CALL GETPAR1l(' Smear pseudo-calorimeter data? [Y] >',
      &  'L',SMEAR)
       YES=.FALSE.
-      CALL GETPAR(1,' Change defaults for jet finding? [N] >',
+      CALL GETPAR1l(' Change defaults for jet finding? [N] >',
      &  'L',YES)
       IF(YES) THEN
         CALL GETPAR(1,' RJET [0.7]>','R',RJET)

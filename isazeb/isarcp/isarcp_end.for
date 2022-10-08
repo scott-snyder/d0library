@@ -20,11 +20,11 @@ C
       CALL HISTDO                       ! Print histograms
 C
       CALL EZPICK('ISARCP_RCP')
-      CALL EZGET('HBOOK_SAVE',LHBOOK,IER)      
+      CALL EZGET_l('HBOOK_SAVE',LHBOOK,IER)      
 C
 C ****  final random number seed
 C
-      CALL EZGET('GTUNIT_ID',GTUNIT_ID,IER)
+      CALL EZGET_i('GTUNIT_ID',GTUNIT_ID,IER)
       CALL EZ_FILE_OPEN(GTUNIT_ID,'RANDOM_SEED_SAVE_FILE','OF',
      &  SEED_UNIT,SEED_FILE,IER)
       WRITE(SEED_UNIT,302) XSEED    

@@ -36,9 +36,9 @@ C
         CALL GTUNIT(111,ITDKY,IER)             ! reserve decay unit
    10   CALL D0OPEN(ITDKY,NAMDKY,' ',OK)    ! open decay file
         IF ( .NOT.OK ) THEN
-          CALL GETPAR(1,' Cannot open decay file. Give another? Y/N>',
+          CALL GETPAR1l(' Cannot open decay file. Give another? Y/N>',
      &    'L',OK)
-          IF(OK) CALL GETPAR(1,' Name of file','C',NAMDKY)
+          IF(OK) CALL GETPAR1c(' Name of file','C',NAMDKY)
           IF(OK) GOTO 10
           CALL QUITS
         ENDIF
@@ -59,36 +59,36 @@ C
       QLEP=.TRUE.
       CALL OUTMSG(' Default is not to fill ISAC banks')
       YES=.FALSE.
-      CALL GETPAR(1,' Change default? [N]>','L',YES)
+      CALL GETPAR1l(' Change default? [N]>','L',YES)
       IF ( YES ) THEN
         YES=.TRUE.
-        CALL GETPAR(1,' Fill particle banks? [Y]>','L',YES)
+        CALL GETPAR1l(' Fill particle banks? [Y]>','L',YES)
         QPART=YES
         YES=.FALSE.
-        CALL GETPAR(1,' Fill pseudo-calorimeter banks (ISAC)? [N]>',
+        CALL GETPAR1l(' Fill pseudo-calorimeter banks (ISAC)? [N]>',
      &    'L',YES)
         QCAL=YES
         YES=.TRUE.
-        CALL GETPAR(1,' Fill lepton banks (ISAL)? [Y]>','L',YES)
+        CALL GETPAR1l(' Fill lepton banks (ISAL)? [Y]>','L',YES)
         QLEP=YES
       ENDIF
       CALL ISBKST(QPART,QCAL,QLEP)
       IRUN=1
-      CALL GETPAR(1,' Give a run number [1] >','I',IRUN)
+      CALL GETPAR1(' Give a run number [1] >','I',IRUN)
       CALL ISA_SETRUN(IRUN)
       YES=.FALSE.
-      CALL GETPAR(1,' Do you want to generate single track events? [N]>'
+      CALL GETPAR1l(' Do you want to generate single track events? [N]>'
      &  ,'L',YES)
       CALL FLGSET('ONE_TRACK',YES)
       IF(.NOT.YES) THEN             ! standard event generation
 C
         YES=.FALSE.
-        CALL GETPAR(1,' Change defaults for PJET? [N]>','L',YES)
+        CALL GETPAR1l(' Change defaults for PJET? [N]>','L',YES)
         IF(YES) THEN
           NUM=1
-          CALL GETPAR(1,' number of PJET algorithms [1]>','I',NUM)
+          CALL GETPAR1(' number of PJET algorithms [1]>','I',NUM)
           IT=1
-          CALL GETPAR(1,' algorithm type 1=CONE, 2=ANGL or 3=PART, [1]>'
+          CALL GETPAR1(' algorithm type 1=CONE, 2=ANGL or 3=PART, [1]>'
      &      ,'I',IT)  
           IF(IT.EQ.1) ALG='CONE'
           IF(IT.EQ.2) ALG='ANGL'
@@ -98,14 +98,14 @@ C
           DRCUT=.45
           CALL GETPAR(1,' CONE CUT (IN R OR ANGLE) [.45]>','R',DRCUT)
           NIT=1
-          CALL GETPAR(1,' maximum number of iterations [1]>','I',NIT)
+          CALL GETPAR1(' maximum number of iterations [1]>','I',NIT)
           NIR=0
           IR=.TRUE.
-          CALL GETPAR(1,' include init radiation [Y]>','L',IR)
+          CALL GETPAR1l(' include init radiation [Y]>','L',IR)
           IF(.NOT.IR) NIR=1
           MUON=0
           IM=.FALSE.
-          CALL GETPAR(1,' include muons [N]>','L',IM)
+          CALL GETPAR1l(' include muons [N]>','L',IM)
           IF(IM) MUON=1
           CALL PJPSET(NUM,ALG,ETCUT,DRCUT,NIT,NIR,MUON,0.)
         ENDIF
@@ -113,13 +113,13 @@ C
 C          specify command file 
 C
         YES=.TRUE.
-    1   CALL GETPAR(1,' Read an OLD command file? [Y]>','L',YES)
+    1   CALL GETPAR1l(' Read an OLD command file? [Y]>','L',YES)
         IF(YES) THEN
-    2     CALL GETPAR(1,' Enter old command file NAME>','C',FILCOM)
+    2     CALL GETPAR1c(' Enter old command file NAME>','C',FILCOM)
           CALL D0OPEN(ITCOM,FILCOM,' ',OK)
           IF(.NOT.OK) THEN
             YES=.TRUE.
-            CALL GETPAR(1,' Cannot open file. Try another? [Y]>',
+            CALL GETPAR1l(' Cannot open file. Try another? [Y]>',
      &        'L',YES)
             IF(YES) GOTO 2
             GOTO 1
@@ -129,25 +129,25 @@ C
           CALL OUTMSG(' If the name is NONE, file will not be saved.')
           CALL OUTMSG(' If the name is PARTONS a parton input file'//
      &      ' is expected')
-          CALL GETPAR(1,' Enter command file name>','C',FILCOM)
+          CALL GETPAR1c(' Enter command file name>','C',FILCOM)
 C
 C              initialize to read partons from a file
           IF(FILCOM(1:7).EQ.'PARTONS') THEN
-   11       CALL GETPAR(1,' Enter PARTONS file name>','C',FILCOM)
+   11       CALL GETPAR1c(' Enter PARTONS file name>','C',FILCOM)
             CALL D0OPEN(ITCOM,FILCOM,'IU',OK)
             IF(.NOT.OK) THEN
               YES=.TRUE.
-              CALL GETPAR(1,' Cannot open file. Try another? [Y]>',
+              CALL GETPAR1l(' Cannot open file. Try another? [Y]>',
      &        'L',YES)
               IF(YES) GOTO 11
               CALL QUITS                 ! exit, cannot handle files
             ENDIF
             USE_CONE_LIM=.TRUE.
-            CALL GETPAR(1,'Use cone limits? [Y]>','L',USE_CONE_LIM)
+            CALL GETPAR1l('Use cone limits? [Y]>','L',USE_CONE_LIM)
             CALL OUTMSG(' Pick W/Z decay modes:')
             CALL OUTMSG(' ALL, QUARKS, LEPTONS, ELECTRON, MUON,'
      &        //' E_AND_MU, TAUS, NUS')
-            CALL GETPAR(1,' [E_AND_MU]>','C',W_DECAY)
+            CALL GETPAR1c(' [E_AND_MU]>','C',W_DECAY)
             IF(W_DECAY.EQ.' ') W_DECAY='E_AND_MU'
             IFL=-1
 C
@@ -155,7 +155,7 @@ C
             CALL D0OPEN(ITCOM,FILCOM,'O',OK)
             IF(.NOT.OK) THEN
               YES=.TRUE.
-              CALL GETPAR(1,' Cannot open file. Try another? [Y]>',
+              CALL GETPAR1l(' Cannot open file. Try another? [Y]>',
      &        'L',YES)
               IF(YES) GOTO 1
               CALL QUITS                 ! exit, cannot handle files
@@ -181,7 +181,7 @@ C
           CALL ISABEG(IFL)
           IF(IFL.NE.0) THEN
             YES=.TRUE.
-            CALL GETPAR(1,' Bad command file. Try another?[Y]>',
+            CALL GETPAR1l(' Bad command file. Try another?[Y]>',
      &        'L',YES)
             IF(YES) GOTO 1
             CALL QUITS
@@ -193,7 +193,7 @@ C
       ELSE    ! generate events with one track only
         CALL INTMSG(' You must provide subroutine IS1TRK, default is:')
         CALL INTMSG(' D0$ISAZEB$SOURCE:IS1TRK.FOR, use it as example.')
-        CALL GETPAR(1,' How many 1 track events do you want?>','I',
+        CALL GETPAR1(' How many 1 track events do you want?>','I',
      &    NEVENT)
         ITCOM=0
       ENDIF

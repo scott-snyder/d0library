@@ -18,10 +18,10 @@ C----------------------------------------------------------------------
       REAL*8 SEED
 C----------------------------------------------------------------------
 C
-      CALL EZGET('NUMBER_OF_EVENTS',NEVENT,IER)
-      CALL EZGET('RUN_NUMBER',IRUN,IER)
-      CALL EZGET('DO_ONE_TRACK_EVENTS',DO_ONE_TRACK,IER)
-      CALL EZGET('DO_READ_SEED',DO_READ_SEED,IER)
+      CALL EZGET_i('NUMBER_OF_EVENTS',NEVENT,IER)
+      CALL EZGET_i('RUN_NUMBER',IRUN,IER)
+      CALL EZGET_l('DO_ONE_TRACK_EVENTS',DO_ONE_TRACK,IER)
+      CALL EZGET_l('DO_READ_SEED',DO_READ_SEED,IER)
 C
       ISARCP_BEG=.TRUE.
       IF(.NOT.DO_ONE_TRACK)CALL ISABEG(IER)                  ! INIT ISAJET.

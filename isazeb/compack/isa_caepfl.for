@@ -135,13 +135,13 @@ C
 C
         ISA_CAEP_DIA=.TRUE.
         SMEAR=.FALSE.
-        CALL GETPAR(1,' Smear pseudo-calorimeter data? [N] >',
+        CALL GETPAR1l(' Smear pseudo-calorimeter data? [N] >',
      &  'L',SMEAR)
         PCUT(1)=.05
         CALL GETPAR(1,' e.m. energy cutoff [.05]>','R',PCUT(1))
         PCUT(2)=.20
         CALL GETPAR(-1,' had. energy cutoff [.20]>','R',PCUT(2))
         DO_SHOWER=.TRUE.
-        CALL GETPAR(1,' Generate long. showers? [Y]>','L',DO_SHOWER)
+        CALL GETPAR1l(' Generate long. showers? [Y]>','L',DO_SHOWER)
  999    RETURN
         END
