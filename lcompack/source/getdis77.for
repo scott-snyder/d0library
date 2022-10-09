@@ -42,7 +42,7 @@ C----------------------------------------------------------------------
       REAL  RLIMIT(2,30)
       EQUIVALENCE (LOCLIM,RLIMIT)
       CHARACTER*40 CHARS,OUTSTR,INPARA,PARSTR,PARINT,PAREAL,
-     *             PARLOG
+     *             PARLOG,pareal_i
       CHARACTER*8 PFSTR(4)
       CHARACTER*80 TRANUP,TOPIN
       REAL XIN,TRAREA
@@ -95,7 +95,7 @@ C
             ULEN=MIN(40,TRULEN(LABELS(M)))
             WRITE(LABLIN(M),1020) LABELS(M)(1:ULEN)
           ENDIF
-          PARLIN(M) = PAREAL(PAR(PTON(M)))
+          PARLIN(M) = PAREAL_i(PAR(PTON(M)))
   290     CONTINUE
         ELSEIF(TYPARR(M).EQ.'L') THEN
           ULEN=MIN(36,TRULEN(LABELS(M)))

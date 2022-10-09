@@ -755,7 +755,7 @@ C&          ASSIGN 30 TO RETURN
 C&          GO TO 100
 C& 30       CONTINUE
 C&          ADDCPAR(I) = ADDR
-C&          CALL MOVSTR(%VAL(ADDR), CPAR(NCHAR), %VAL(LENCPAR(I)))
+C&          CALL MOVSTR1(%VAL(ADDR), CPAR(NCHAR), %VAL(LENCPAR(I)))
 C&        ENDIF
 C& 50   CONTINUE
 C&C-
