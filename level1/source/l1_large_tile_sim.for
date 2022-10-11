@@ -75,7 +75,7 @@ C
           DO THRESH = 1, 3
             WRITE ( ANDOR_NAME, 1000 ) (REF-LT_REF_MIN), THRESH
  1000       FORMAT ( 'L1C_LT_CNT_', I1, '_GE', I1 )
-            CALL EZGET( ANDOR_NAME, 
+            CALL EZGET_i( ANDOR_NAME, 
      &                  LT_ANDOR_INDEX( REF, THRESH ), IER)
             IF (IER .NE. RCP_OK) THEN
               LT_ANDOR_INDEX( REF, THRESH ) = OUT_OF_RANGE

@@ -20,10 +20,10 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       CTTR_DIAL=.TRUE.
       YES=.TRUE.
-      CALL GETPAR(1,'Add noise to trigger towers?[Y]>','L',YES)
+      CALL GETPAR1l('Add noise to trigger towers?[Y]>','L',YES)
       NOISE=YES
       YES=.TRUE.
-      CALL GETPAR(-1,'Smear trigger towers?[Y]>','L',YES)
+      CALL GETPARm1l('Smear trigger towers?[Y]>','L',YES)
       SMEAR=YES
       CUTOFF=1.0
       CALL GETPAR(-1,'Give energy cutoff [1.0]>','R',CUTOFF)
@@ -31,7 +31,7 @@ C----------------------------------------------------------------------
       CALL PATHRS
       CALL PATHGT(SPATH)
       WRITE(MSG,111)SPATH
-      CALL GETPAR(1,MSG(1:42),'U',PATH)
+      CALL GETPAR1(MSG(1:42),'U',PATH)
       IF(PATH.EQ.' ') PATH=SPATH
       CALL PATHDF(PATH)
       CALL PATHRS

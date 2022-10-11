@@ -38,7 +38,7 @@ C.. Read in RCP switch
         CALL EZPICK('MUSIM_RCP')
         CALL EZERR(IERP)     ! Check if error
         IF(IERP.EQ.0)THEN
-          CALL EZGET('IPR_ISA',IPRISA,IER)
+          CALL EZGET_l('IPR_ISA',IPRISA,IER)
           CALL EZGET('TH_MIN',THMIN,IER)
           CALL EZGET('TH_MAX',THMAX,IER)
           CALL EZGET('PHI_MIN',PHIMIN,IER)

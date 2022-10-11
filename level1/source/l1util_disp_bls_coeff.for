@@ -103,7 +103,7 @@ C
 C       Get the coordinates to look at
  1000 CONTINUE
       ETA = 0
-      CALL GETPAR(1,' Trigger Tower ETA >', 'I', ETA)
+      CALL GETPAR1(' Trigger Tower ETA >', 'I', ETA)
       IF (ETA .EQ. 0) GOTO 999 
       SIGN_ETA = POS_ETA
       IF (ETA .LT. 0) THEN
@@ -111,7 +111,7 @@ C       Get the coordinates to look at
         SIGN_ETA = NEG_ETA
       ENDIF
       PHI = 0
-      CALL GETPAR(1, ' Trigger Tower PHI >', 'I', PHI)
+      CALL GETPAR1( ' Trigger Tower PHI >', 'I', PHI)
       IF (PHI .EQ. 0) GOTO 999
 C
 C       Loop through all possible coordinates and print out those that match

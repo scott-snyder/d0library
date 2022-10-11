@@ -56,21 +56,21 @@ C--     Read the to do flags
           CALL ERRMSG(' EZPICK ERR','MU_SUP_L1',STRING,'S')
           GOTO 999
         ENDIF
-        CALL EZGET('DO_L1',DOL1,IER)   ! Flag to skip or not the L1 processing
-        CALL EZGET('IPR_L1',IPRL1,IER)
-        CALL EZGET('IPR_LATCH',IPRLATCH,IER)
-        CALL EZGET('IPR_STAT',IPRSTAT,IER)
-        CALL EZGET('IPR_WCCT',IPRWCCT,IER)
-        CALL EZGET('IPR_SWCCT',IPRSWCCT,IER)
-        CALL EZGET('IPR_SCCT',IPRSCCT,IER)
-        CALL EZGET('IPR_SWTRPL',IPRSWTRPL,IER)
-        CALL EZGET('IPR_STRPL',IPRSTRPL,IER)
-        CALL EZGET('IPR_CC',IPRCC,IER)
-        CALL EZGET('IPR_ISA',IPRISA,IER)
-        CALL EZGET('IPR_MULT',IPRMULT,IER)
+        CALL EZGET_l('DO_L1',DOL1,IER)   ! Flag to skip or not the L1 processing
+        CALL EZGET_l('IPR_L1',IPRL1,IER)
+        CALL EZGET_l('IPR_LATCH',IPRLATCH,IER)
+        CALL EZGET_l('IPR_STAT',IPRSTAT,IER)
+        CALL EZGET_l('IPR_WCCT',IPRWCCT,IER)
+        CALL EZGET_l('IPR_SWCCT',IPRSWCCT,IER)
+        CALL EZGET_l('IPR_SCCT',IPRSCCT,IER)
+        CALL EZGET_l('IPR_SWTRPL',IPRSWTRPL,IER)
+        CALL EZGET_l('IPR_STRPL',IPRSTRPL,IER)
+        CALL EZGET_l('IPR_CC',IPRCC,IER)
+        CALL EZGET_l('IPR_ISA',IPRISA,IER)
+        CALL EZGET_l('IPR_MULT',IPRMULT,IER)
         CALL EZGET('TRIG_BIT',TRIGBIT,IER) ! specific trigger bit (1:31) to be
                                            ! processed
-        CALL EZGET('EVT_LIST',EVTLIST,IER) ! To process only events listed in
+        CALL EZGET_l('EVT_LIST',EVTLIST,IER) ! To process only events listed in
                                            ! ERR_EVT.DAT
         CALL EZRSET()
         PRINTANY = IPRL1.OR.IPRLATCH.OR.IPRSTAT.OR.IPRWCCT.OR.

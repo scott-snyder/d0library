@@ -17,8 +17,8 @@ C----------------------------------------------------------------------
       LOGICAL H_L1BIT(16),HFW_L1BIT(0:31)
 C--   Mask the unused bits form CCT_LATCH
       INTEGER LATCH_MASK(7)
-      DATA LATCH_MASK/'1FF003'X,'10F003'X,'10F003'X,
-     &                '10F3FF'X,'10F3FF'X,'13F03F'X,'13F03F'X/
+      DATA LATCH_MASK/z'1FF003',z'10F003',z'10F003',
+     &                z'10F3FF',z'10F3FF',z'13F03F',z'13F03F'/
 C-- TRGR variables
       INTEGER IREG(6),CRATEWORDS(5),TRIG_NUM(5),CRATE_ID(5),
      &        NOTC_CARDS(5),ACTOTC(5),VERSION(5),L15OTC(5),

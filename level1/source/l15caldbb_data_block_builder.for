@@ -21,6 +21,8 @@ C
 C
       INTEGER    FFFFFFFF,      FFFF
       PARAMETER (FFFFFFFF = -1, FFFF = 65535)
+      integer z0f
+      data z0f / z'0f'/
       INTEGER LTRGR_LEVEL1
       INTEGER   GZFIND_CRATE, GZTRGR
       EXTERNAL  GZFIND_CRATE, GZTRGR
@@ -71,7 +73,7 @@ C
      &               BYTE_LENGTH)
         L15CAL_CRATE_HEADER(4) = L15CAL_VERSION_NUMBER
         L15CAL_CRATE_HEADER(5) = L15CAL_REVISION_NUMBER
-        L15CAL_CRATE_HEADER(6) = 'F'X  !should be copied from hardware trgr?
+        L15CAL_CRATE_HEADER(6) = z0f  !should be copied from hardware trgr?
         L15CAL_CRATE_HEADER(7) = 0     !should be replaced with m+pass flags
 C        L15CAL_CRATE_TRAILER(1) = L15CAL_BANK_LENGTH 
         L15CAL_CRATE_TRAILER(2) = L15CAL_CRATE_ID

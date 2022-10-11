@@ -38,7 +38,7 @@ C----------------------------------------------------------------------
 	CALL EZERR(IERP)     ! Check if error
         IF(IERP.EQ.0)THEN
           CALL EZGET('MULT_BK',MULTBK,IER)
-          CALL EZGET('IPR_MULT',IPRMULT,IER)
+          CALL EZGET_l('IPR_MULT',IPRMULT,IER)
           CALL EZRSET()
 	ELSE
            CALL EZGET_ERROR_TEXT(IER,STRING)

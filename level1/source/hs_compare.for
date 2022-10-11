@@ -34,8 +34,8 @@ C-- Mask to cct latch comparisson
 C>>      DATA LATCH_MASK/'1FF003'X,'10F003'X,'10F003'X,
 C>>     &                '10F3FF'X,'10F3FF'X,'13F03F'X,'13F03F'X/
 C>> For now compare only octant and l1 bits
-      DATA LATCH_MASK/'1FF003'X,'10F003'X,'10F003'X,
-     &                '10F003'X,'10F003'X,'00003F'X,'00003F'X/
+      DATA LATCH_MASK/z'1FF003',z'10F003',z'10F003',
+     &                z'10F003',z'10F003',z'00003F',z'00003F'/
 C-- Region to compare/printout, word in MUSIM.RCP
       INTEGER TRGREGMSKWORD
       LOGICAL PRREG(7)
@@ -56,8 +56,8 @@ C----------------------------------------------------------------------
         FIRST = .FALSE.
         CALL EZPICK('MUSIM_RCP')
         CALL EZGET('TRG_REG_MSK_WORD',TRGREGMSKWORD,IER)
-        CALL EZGET('IPR_L1',IPRL1,IER)
-        CALL EZGET('IPR_LATCH',IPRLATCH,IER)
+        CALL EZGET_l('IPR_L1',IPRL1,IER)
+        CALL EZGET_l('IPR_LATCH',IPRLATCH,IER)
         CALL EZGET('OUTPUT_MODE',OUTMODE,IER)
         CALL EZGET('STRIP_MODE',STRIPMODE,IER)
         CALL EZRSET()

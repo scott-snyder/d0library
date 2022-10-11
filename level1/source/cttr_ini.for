@@ -42,8 +42,8 @@ C
 C
 C ****  read runtime switches and cutoff ****
 C
-          CALL EZGET('ADD_NOISE',NOISE,IER)
-          CALL EZGET('DO_SMEAR',SMEAR,IER)
+          CALL EZGET_l('ADD_NOISE',NOISE,IER)
+          CALL EZGET_l('DO_SMEAR',SMEAR,IER)
           CALL EZGET('E_CUTOFF',ECUT,IER)
           CALL CTTOWER_SMEAR(NOISE,SMEAR,ECUT)
         ENDIF

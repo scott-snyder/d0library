@@ -26,6 +26,7 @@ C----------------------------------------------------------------------
       INTEGER XXXFLG,YYYFLG,UUUFLG
       INTEGER SAMCC(0:15,6,3),QQ(0:15,6),SAMTRIG
       LOGICAL SAMBITS(0:31)
+      integer sambits_i(0:31)
       INTEGER MULT(6),IABC(3),IA,IB,IC
       INTEGER FLIPSTAT(3,2),MULT_CUT(3),IER
       CHARACTER*72 STRING
@@ -72,7 +73,7 @@ C
           CALL ERRMSG(' SAM_MULT_CUT_CX','MU_SAM_CCT',STRING,'F')
           GOTO 999
         ENDIF
-        CALL EZGET('IPR_SCCT',IPRSCCT,IER)
+        CALL EZGET_i('IPR_SCCT',IPRSCCT,IER)
 
         CALL EZRSET()
 
@@ -212,7 +213,10 @@ C.. Find candidate triggers
       IF(IPRSCCT) THEN
         PRINT *,'*** Looking for a muon candidate ***'
         CALL DUMPV(SCC,6,16,'SCC :',.TRUE.,0)
-        CALL DUMPV(SAMBITS,1,12,'SAM_OUT:',.TRUE.,1)
+        do ii=0, 31
+          sambits_i(ii)=sambits(ii)
+        enddo
+        CALL DUMPV(SAMBITS_i,1,12,'SAM_OUT:',.TRUE.,1)
       ENDIF
       SAMTRIG=0
       IF(SAMBITS(0).OR.SAMBITS(1)) THEN

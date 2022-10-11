@@ -32,10 +32,10 @@ C<<
      &     'Y1', 'Y2', 'Y3', 'Y4', 'X1', 'X2', 'X3',    ! rapidity areas
      &     'EN', 'ES'/                                  ! double sectors
 C<<
-      DATA L1_DATA / '1'X,                                 ! pulser bit
-     &    '02'X, '04'X, '08'X, '10'X, '20'X, '40'X, '80'X, ! trigger regions
-     &    '02'X, '0E'X, '3E'X, 'FE'X, 'FC'X, 'F0'X, 'C0'X, ! rapidity areas
-     &    '14'X, '28'X /                                   ! double sectors
+      DATA L1_DATA / z'1',                                 ! pulser bit
+     &    z'02', z'04', z'08', z'10', z'20', z'40', z'80', ! trigger regions
+     &    z'02', z'0E', z'3E', z'FE', z'FC', z'F0', z'C0', ! rapidity areas
+     &    z'14', z'28' /                                   ! double sectors
 C<<
 C----------------------------------------------------------------------
       NN = 0
