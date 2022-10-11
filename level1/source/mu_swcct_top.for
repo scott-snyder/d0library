@@ -213,7 +213,7 @@ C.. Second stage pal logic
 C      CALL SAMWAM_ROADS(3100,X,Y,U,SWBITS)
 
 C..  Compute different roads independently for monitoring
-      DO I=0,IDIM
+      DO I=1,IDIM
         IROAD(I)=0
       ENDDO
 

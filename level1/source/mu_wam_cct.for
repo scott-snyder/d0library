@@ -62,7 +62,9 @@ C-- OR coarse centroid inputs by 4
 
 C-- renormalize A,B,C to 1
       DO I=1,20
-        IF (A(I).GT.0.AND.I.LE.12) A(I)=1
+        if (i.le.12) then
+          IF (A(I).GT.0) A(I)=1
+        endif
         IF (B(I).GT.0) B(I)=1
         IF (C(I).GT.0) C(I)=1
       ENDDO
