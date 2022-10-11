@@ -81,6 +81,8 @@ C
       INTEGER THRESH_TO_QUANT(GL_EMET_THRTYP:GL_TOTL2_THRTYP)
       DATA THRESH_TO_QUANT / EM_ET_QUANT, EM_L2_QUANT, HD_ET_QUANT,
      &  HD_L2_QUANT, TOT_ET_QUANT, TOT_L2_QUANT /
+
+      integer tmp(mpt_cmp_max), ii
 C
       WRITE (LUN,20)
    10 FORMAT( ' ', 130('-'))
@@ -454,8 +456,11 @@ C
       CALL L1DMP_ENERGY_SUM_THRSH(LUN,GL_TOTL2_THRTYP, 
      &  'TOT 2nd Energy Sum', GLOBAL_ENERGY_REF(1,1,GL_TOTL2_THRTYP), 
      &  REF_MAX-1)
+      do ii = 1, mpt_cmp_max
+        tmp(ii) = total_mpt_ref(ii)
+      enddo
       CALL L1DMP_ENERGY_SUM_THRSH(LUN,AO_THRSH_MPT, 
-     &  'Mis Pt Energy Sum', TOTAL_MPT_REF, MPT_CMP_MAX-1)
+     &  'Mis Pt Energy Sum', tmp, MPT_CMP_MAX-1)
 C
 C       Count Thresholds
   260 FORMAT(' ', A, I1)
