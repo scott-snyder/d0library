@@ -48,6 +48,13 @@ C
       LOGICAL GOOD
       LOGICAL SIGN
       LOGICAL FIRST, EZERROR
+
+      integer z0f
+      data z0f / z'0f' /
+      integer z10
+      data z10 / z'10' /
+      integer z20
+      data z20 / z'20' /
 C
       SAVE FIRST
       DATA FIRST/.TRUE./
@@ -104,12 +111,12 @@ C
         ENDIF
         IF ( .NOT.FULL_PLV0 ) THEN
           FVTX = VERTEX_DATA(IOFFSET+20)
-          SIGN = IAND(FVTX,'10'X)/'10'X
-          GOOD = IAND(FVTX,'20'X)/'20'X
+          SIGN = IAND(FVTX,z10)/z10
+          GOOD = IAND(FVTX,z20)/z20
           IF ( .not.SIGN ) THEN
-            ZPOS = FASTZ_MULTIPLIER*IAND(FVTX,'F'X) + FASTZ_OFFSET
+            ZPOS = FASTZ_MULTIPLIER*IAND(FVTX,z0f) + FASTZ_OFFSET
           ELSE
-            ZPOS = -FASTZ_MULTIPLIER*IAND('10'X-FVTX,'F'X) +
+            ZPOS = -FASTZ_MULTIPLIER*IAND(z10-FVTX,z0f) +
      &                               FASTZ_OFFSET
           ENDIF
           FULL_L0VX=.TRUE.

@@ -35,6 +35,17 @@ C
       REAL    SLOWZ, FASTZ
 C
       CHARACTER*3 CFL
+
+      integer z0f
+      data z0f / z'0f' /
+      integer z10
+      data z10 / z'10' /
+      integer z20
+      data z20 / z'20' /
+      integer zff
+      data zff / z'ff' /
+      integer z100
+      data z100 / z'100' /
 C----------------------------------------------------------------------
       IF ( IFL.LE.0 ) GOTO 999
       LKL0VX=LJL0VX
@@ -75,19 +86,19 @@ C
             WRITE(PRUNIT,208) WORDS(OFFSET+16)
             WRITE(PRUNIT,209) WORDS(OFFSET+17), WORDS(OFFSET+18)
           WRITE(PRUNIT,210) WORDS(OFFSET+19), WORDS(OFFSET+20)
-          SIGN = IAND(WORDS(OFFSET+19),'100'X)/'100'X
+          SIGN = IAND(WORDS(OFFSET+19),z100)/z100
           IF ( SIGN.EQ.0 ) THEN
-            SLOWZ = 0.75*IAND(WORDS(OFFSET+19),'FF'X)
+            SLOWZ = 0.75*IAND(WORDS(OFFSET+19),zFF)
           ELSE
-            SLOWZ = -0.75*IAND('100'X-WORDS(OFFSET+19),'FF'X)
+            SLOWZ = -0.75*IAND(z100-WORDS(OFFSET+19),zFF)
           ENDIF
-          SIGN = IAND(WORDS(OFFSET+20),'10'X)/'10'X
+          SIGN = IAND(WORDS(OFFSET+20),z10)/z10
           IF ( SIGN.EQ.0 ) THEN
-            FASTZ = 6.25*IAND(WORDS(OFFSET+20),'F'X)
+            FASTZ = 6.25*IAND(WORDS(OFFSET+20),z0F)
           ELSE
-            FASTZ = -6.25*IAND('10'X-WORDS(OFFSET+20),'F'X)
+            FASTZ = -6.25*IAND(z10-WORDS(OFFSET+20),z0F)
           ENDIF
-          GOOD_FZ = IAND(WORDS(OFFSET+20),'20'X)/'20'X
+          GOOD_FZ = IAND(WORDS(OFFSET+20),z20)/z20
           WRITE(PRUNIT,310) SLOWZ,FASTZ,GOOD_FZ
           WRITE(PRUNIT,211) WORDS(OFFSET+21), WORDS(OFFSET+22)
           WRITE(PRUNIT,212)

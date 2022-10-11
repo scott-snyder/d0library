@@ -32,7 +32,7 @@ C
 C
 C ****  Tell which banks must be dropped from standard output (STA)
 C
-        CALL EZGET('NUM_DROPS_STA',NUMDRP,IER)   ! get number of banks
+        CALL EZGET_i('NUM_DROPS_STA',NUMDRP,IER)   ! get number of banks
 C
         IF (NUMDRP.GT.0) THEN
           IF(NUMDRP.LE.MAXDRP)THEN

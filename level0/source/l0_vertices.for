@@ -51,6 +51,11 @@ c      REAL FASTZ_MULTIPLIER, FASTZ_OFFSET
 C
       LOGICAL FGOOD, SGOOD
       LOGICAL SIGN
+
+      integer zff
+      data zff / z'ff' /
+      integer z100
+      data z100 / z'100' /
 C
 c      DATA FASTZ_MULTIPLIER, FASTZ_OFFSET / 6.25, 0.00 /
       DATA SLOW_Z_MULTIPLIER, SLOW_OFFSET / 0.75, 0.00 /
@@ -147,11 +152,11 @@ C
       SZPOS = 0.0
       IF ( SGOOD ) THEN
         SVTX = IBITS(SVERTEX,16,16)
-        SIGN = IAND(SVTX,'100'X)/'100'X
+        SIGN = IAND(SVTX,z100)/z100
         IF ( .not.SIGN ) THEN
-          SZPOS = SLOW_Z_MULTIPLIER*IAND(SVTX,'FF'X)+SLOW_OFFSET
+          SZPOS = SLOW_Z_MULTIPLIER*IAND(SVTX,zFF)+SLOW_OFFSET
         ELSE
-          SZPOS = -SLOW_Z_MULTIPLIER*IAND('100'X-SVTX,'FF'X)
+          SZPOS = -SLOW_Z_MULTIPLIER*IAND(z100-SVTX,zFF)
      &      + SLOW_OFFSET
         ENDIF
         IF ( IBITS(SVERTEX,0,1).EQ.1 ) THEN

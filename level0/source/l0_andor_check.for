@@ -44,6 +44,51 @@ C
 C
       SAVE FIRST
       DATA FIRST/.TRUE./
+
+      integer z11
+      data z11 / z'11' /
+      integer z19
+      data z19 / z'19' /
+      integer z1d
+      data z1d / z'1d' /
+      integer z1f
+      data z1f / z'1f' /
+      integer z20
+      data z20 / z'20' /
+      integer z21
+      data z21 / z'21' /
+      integer z22
+      data z22 / z'22' /
+      integer z25
+      data z25 / z'25' /
+      integer z26
+      data z26 / z'26' /
+      integer z29
+      data z29 / z'29' /
+      integer z2a
+      data z2a / z'2a' /
+      integer z2f
+      data z2f / z'2f' /
+      integer z31
+      data z31 / z'31' /
+      integer z36
+      data z36 / z'36' /
+      integer z37
+      data z37 / z'37' /
+      integer z39
+      data z39 / z'39' /
+      integer z3a
+      data z3a / z'3a' /
+      integer z3b
+      data z3b / z'3b' /
+      integer z3d
+      data z3d / z'3d' /
+      integer z3e
+      data z3e / z'3e' /
+      integer z3f
+      data z3f / z'3f' /
+      integer z5f
+      data z5f / z'5f' /
 C
 C----------------------------------------------------------------------
 C
@@ -101,21 +146,21 @@ C
       IF (.NOT.PRODFL) GOTO 100
       IF ( L1BIT_PASSED(1) ) GOTO 100
       IF ( L2BIT_PASSED(1) ) GOTO 100
-      IF ((L1VTX.EQ.'20'X).AND.(ANDOR1.EQ.'5F'X)) GOTO 100
-      IF ((L1VTX.EQ.'21'X).AND.(ANDOR1.EQ.'1F'X)) GOTO 100
-      IF ((L1VTX.GE.'22'X).AND.(L1VTX.LE.'25'X).AND.(ANDOR1.EQ.'1D'X))
+      IF ((L1VTX.EQ.z20).AND.(ANDOR1.EQ.z5F)) GOTO 100
+      IF ((L1VTX.EQ.z21).AND.(ANDOR1.EQ.z1F)) GOTO 100
+      IF ((L1VTX.GE.z22).AND.(L1VTX.LE.z25).AND.(ANDOR1.EQ.z1D))
      &    GOTO 100
-      IF ((L1VTX.GE.'26'X).AND.(L1VTX.LE.'29'X).AND.(ANDOR1.EQ.'19'X))
+      IF ((L1VTX.GE.z26).AND.(L1VTX.LE.z29).AND.(ANDOR1.EQ.z19))
      &    GOTO 100
-      IF ((L1VTX.GE.'2A'X).AND.(L1VTX.LE.'2F'X).AND.(ANDOR1.EQ.'11'X))
+      IF ((L1VTX.GE.z2A).AND.(L1VTX.LE.z2F).AND.(ANDOR1.EQ.z11))
      &    GOTO 100
-      IF ((L1VTX.GE.'31'X).AND.(L1VTX.LE.'36'X).AND.(ANDOR1.EQ.'31'X))
+      IF ((L1VTX.GE.z31).AND.(L1VTX.LE.z36).AND.(ANDOR1.EQ.z31))
      &    GOTO 100
-      IF ((L1VTX.GE.'37'X).AND.(L1VTX.LE.'3A'X).AND.(ANDOR1.EQ.'39'X))
+      IF ((L1VTX.GE.z37).AND.(L1VTX.LE.z3A).AND.(ANDOR1.EQ.z39))
      &    GOTO 100
-      IF ((L1VTX.GE.'3B'X).AND.(L1VTX.LE.'3E'X).AND.(ANDOR1.EQ.'3D'X))
+      IF ((L1VTX.GE.z3B).AND.(L1VTX.LE.z3E).AND.(ANDOR1.EQ.z3D))
      &    GOTO 100
-      IF ((L1VTX.EQ.'3F'X).AND.(ANDOR1.EQ.'3F'X)) GOTO 100
+      IF ((L1VTX.EQ.z3F).AND.(ANDOR1.EQ.z3F)) GOTO 100
       CALL ERRMSG('LEVEL0-andor-fastz-mismatch',
      &    'L0_ANDOR_CHECK','Level 1 ANDOR bits dont map to FASTZ bits',
      &    'W')
@@ -145,21 +190,21 @@ C
       IF (.NOT.PRODFL) GOTO 200
       IF ( L1BIT_PASSED(1) ) GOTO 200
       IF ( L2BIT_PASSED(1) ) GOTO 200
-      IF ((L0SVTX.EQ.'20'X).AND.(ANDOR1.EQ.'5F'X)) GOTO 200
-      IF ((L0SVTX.EQ.'21'X).AND.(ANDOR1.EQ.'1F'X)) GOTO 200
-      IF ((L0SVTX.GE.'22'X).AND.(L0SVTX.LE.'25'X).AND.(ANDOR1.EQ.'1D'X))
+      IF ((L0SVTX.EQ.z20).AND.(ANDOR1.EQ.z5F)) GOTO 200
+      IF ((L0SVTX.EQ.z21).AND.(ANDOR1.EQ.z1F)) GOTO 200
+      IF ((L0SVTX.GE.z22).AND.(L0SVTX.LE.z25).AND.(ANDOR1.EQ.z1D))
      &    GOTO 200
-      IF ((L0SVTX.GE.'26'X).AND.(L0SVTX.LE.'29'X).AND.(ANDOR1.EQ.'19'X))
+      IF ((L0SVTX.GE.z26).AND.(L0SVTX.LE.z29).AND.(ANDOR1.EQ.z19))
      &    GOTO 200
-      IF ((L0SVTX.GE.'2A'X).AND.(L0SVTX.LE.'2F'X).AND.(ANDOR1.EQ.'11'X))
+      IF ((L0SVTX.GE.z2A).AND.(L0SVTX.LE.z2F).AND.(ANDOR1.EQ.z11))
      &    GOTO 200
-      IF ((L0SVTX.GE.'31'X).AND.(L0SVTX.LE.'36'X).AND.(ANDOR1.EQ.'31'X))
+      IF ((L0SVTX.GE.z31).AND.(L0SVTX.LE.z36).AND.(ANDOR1.EQ.z31))
      &    GOTO 200
-      IF ((L0SVTX.GE.'37'X).AND.(L0SVTX.LE.'3A'X).AND.(ANDOR1.EQ.'39'X))
+      IF ((L0SVTX.GE.z37).AND.(L0SVTX.LE.z3A).AND.(ANDOR1.EQ.z39))
      &    GOTO 200
-      IF ((L0SVTX.GE.'3B'X).AND.(L0SVTX.LE.'3E'X).AND.(ANDOR1.EQ.'3D'X))
+      IF ((L0SVTX.GE.z3B).AND.(L0SVTX.LE.z3E).AND.(ANDOR1.EQ.z3D))
      &    GOTO 200
-      IF ((L0SVTX.EQ.'3F'X).AND.(ANDOR1.EQ.'3F'X)) GOTO 200
+      IF ((L0SVTX.EQ.z3F).AND.(ANDOR1.EQ.z3F)) GOTO 200
       CALL ERRMSG('LEVEL0-andor-verbrd-fastz-mismatch',
      &    'L0_ANDOR_CHECK',
      &    'Level 1 ANDOR bits dont map to vertex board FASTZ bits',

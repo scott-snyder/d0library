@@ -98,12 +98,12 @@ C
           CALL ERRMSG('LEVEL0-no-rcp','L0_SLOWER_VERTEX',
      &                              'LEVEL0_RCP not found.','W')
         ELSE
-          CALL EZGET('L0Z',L0Z,ERR)
+          CALL EZGET_rarr('L0Z',L0Z,ERR)
           CALL EZGET('SLOWER_OFFZ',SLOWER_OFFZ,ERR)
-          CALL EZGET('CUT_A',CUT_A,ERR)
-          CALL EZGET('CUT_B',CUT_B,ERR)
-          CALL EZGET('CUT_C',CUT_C,ERR)
-          CALL EZGET('CUT_D',CUT_D,ERR)
+          CALL EZGET_i('CUT_A',CUT_A,ERR)
+          CALL EZGET_i('CUT_B',CUT_B,ERR)
+          CALL EZGET_i('CUT_C',CUT_C,ERR)
+          CALL EZGET_i('CUT_D',CUT_D,ERR)
           CALL EZGET('CUT_Z1',CUT_Z1,ERR)
           CALL EZGET('CUT_Z2',CUT_Z2,ERR)
           CALL EZRSET
@@ -120,20 +120,20 @@ C
       GOODZ=.FALSE.
       FULL_Z=0.0
       CALL VZERO(CHAN_EFF,72)
-      CALL VZERO(N_TIMES,36)
-      CALL VZERO(S_TIMES,36)
-      CALL VZERO(N_OTIMES,36)
-      CALL VZERO(S_OTIMES,36)
-      CALL VZERO(N_TIMAP,36)
-      CALL VZERO(S_TIMAP,36)
+      CALL VZERO_i(N_TIMES,36)
+      CALL VZERO_i(S_TIMES,36)
+      CALL VZERO_i(N_OTIMES,36)
+      CALL VZERO_i(S_OTIMES,36)
+      CALL VZERO_i(N_TIMAP,36)
+      CALL VZERO_i(S_TIMAP,36)
       N_TOT=0
       S_TOT=0
       N_NGRP=0
       S_NGRP=0
-      CALL VZERO(N_NUMGRP,10)
-      CALL VZERO(S_NUMGRP,10)
-      CALL VZERO(N_LAST,10)
-      CALL VZERO(S_LAST,10)
+      CALL VZERO_i(N_NUMGRP,10)
+      CALL VZERO_i(S_NUMGRP,10)
+      CALL VZERO_i(N_LAST,10)
+      CALL VZERO_i(S_LAST,10)
       CALL VZERO(N_MEAN,10)
       CALL VZERO(S_MEAN,10)
       CALL VZERO(N_SIGMA,10)
@@ -264,10 +264,10 @@ C
 C
 C  Assemble local corrected times values.
 C
-      CALL VZERO(USE_CHAN,72)
-      CALL VZERO(N_SC,2)
-      CALL VZERO(N_LC,2)
-      CALL VZERO(N_CH,2)
+      CALL VZERO_l(USE_CHAN,72)
+      CALL VZERO_i(N_SC,2)
+      CALL VZERO_i(N_LC,2)
+      CALL VZERO_i(N_CH,2)
       CALL VZERO(TSUM,2)
       CALL VZERO(T2SUM,2)
       CALL VZERO(TAVG,2)

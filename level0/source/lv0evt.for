@@ -46,7 +46,7 @@ C
      &                                 'LEVEL0_RCP not found.','W')
           GOTO 999
         ELSE
-          CALL EZGETA('BAD_MR_RUNNO',0,0,0,NRUN,IER)
+          CALL EZGETA_iarra('BAD_MR_RUNNO',0,0,0,NRUN,IER)
           IF (IER.EQ.0)
      &      CALL EZGETA('BAD_MR_RUNNO',1,NRUN,1,BAD_MR_RUNNO,IER)
           IF (NRUN.GT.MAX_BAD_MR) NRUN=MAX_BAD_MR

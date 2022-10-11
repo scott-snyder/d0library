@@ -29,11 +29,11 @@ C------------------------------------------------------------------
       NVER=0
       CALL VZERO(ZVER,10)
       CALL VZERO(DZVER,10)
-      CALL VZERO(TYPVER,10)
-      CALL VZERO(WGTVER,10)
-      CALL VZERO(TRKVER,10)
+      CALL VZERO_i(TYPVER,10)
+      CALL VZERO_i(WGTVER,10)
+      CALL VZERO_i(TRKVER,10)
       CALL VZERO(CZZVER,10)
-      CALL VZERO(METVER,10)
+      CALL VZERO_i(METVER,10)
       CALL GTVERH(ICONT)
       NVER=ICONT(2)
       IF ( NVER.GT.10 ) NVER = 10

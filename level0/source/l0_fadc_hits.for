@@ -42,9 +42,9 @@ C----------------------------------------------------------------------
           CALL ERRMSG('LEVEL0-NO-RCP','L0_FADC_HITS',
      &                                 'LEVEL0_RCP NOT FOUND.','W')
         ELSE
-          CALL EZGET('NORTH_FADC_CHAN',NORTH_CHAN,ERR)
+          CALL EZGET_i('NORTH_FADC_CHAN',NORTH_CHAN,ERR)
           IF (ERR.NE.0) NORTH_CHAN=4
-          CALL EZGET('SOUTH_FADC_CHAN',SOUTH_CHAN,ERR)
+          CALL EZGET_u('SOUTH_FADC_CHAN',SOUTH_CHAN,ERR)
           IF (ERR.NE.0) SOUTH_CHAN=5
           CALL EZGET('CHAN4_LOC',CHAN4_LOC,ERR)
           IF (ERR.NE.0) CHAN4_LOC=470.0

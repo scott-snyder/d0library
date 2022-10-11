@@ -49,10 +49,10 @@ C
         CALL EZGET('EXTPHI',EXTPHI,IER)
         CALL EZGET('EXTTHE',EXTTHE,IER)
         CALL EZGET('WIDSEC',WIDSEC,IER)
-        CALL EZGET('Z0',Z0,IER)
+        CALL EZGET_rarr('Z0',Z0,IER)
         CALL EZRSET
         CALL EZPICK('LEVEL0_RCP')
-        CALL EZGET('L0Z',L0Z,IER)
+        CALL EZGET_rarr('L0Z',L0Z,IER)
         CALL EZRSET
         EXTTHE=0.0
         EXTPHI=0.0

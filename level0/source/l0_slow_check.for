@@ -82,12 +82,12 @@ C
           CALL EZGET('PEDSIG_QMUL',PEDSIG_QMUL,ERR)
           CALL EZGET('PED_ARRAY(1)',PED_ARRAY(1,1),ERR)
           CALL EZGET('CALIB_ARRAY(1)',CALIB_ARRAY(1,1),ERR)
-          CALL EZGET('L0Z',L0Z,ERR)
+          CALL EZGET_rarr('L0Z',L0Z,ERR)
           CALL EZGET('SLOW_OFFZ',SLOW_OFFZ,ERR)
-          CALL EZGET('DBG_SLOWZ',DBG_SLOWZ,ERR)
-          CALL EZGET('CUT_1',CUT_1,ERR)
-          CALL EZGET('CUT_2',CUT_2,ERR)
-          CALL EZGET('CUT_3',CUT_3,ERR)
+          CALL EZGET_l('DBG_SLOWZ',DBG_SLOWZ,ERR)
+          CALL EZGET_i('CUT_1',CUT_1,ERR)
+          CALL EZGET_i('CUT_2',CUT_2,ERR)
+          CALL EZGET_i('CUT_3',CUT_3,ERR)
           CALL EZGET('CUT_4',CUT_4,ERR)
           CALL EZRSET
         ENDIF
@@ -125,8 +125,8 @@ C
         FIRST = .FALSE.
       ENDIF
 C
-      CALL VZERO(HWORDS,26)
-      CALL VZERO(SWORDS,26)
+      CALL VZERO_i(HWORDS,26)
+      CALL VZERO_i(SWORDS,26)
 C
 C  Fetch the FASTZ info for software answer
 C
@@ -139,11 +139,11 @@ C
       CALL GTL0AD(CBUNCH,IBUNCH,NCHAN,NWORD,RAW_TIME,BUNCH_ID,
      &                                        RAW_CHARGE,CORRECT_TIME)
 C
-      CALL VZERO(USE_CHAN,72)
+      CALL VZERO_i(USE_CHAN,72)
       CALL VZERO(COR_TIME,72)
-      CALL VZERO(N_SC,2)
-      CALL VZERO(N_LC,2)
-      CALL VZERO(N_CH,2)
+      CALL VZERO_i(N_SC,2)
+      CALL VZERO_i(N_LC,2)
+      CALL VZERO_i(N_CH,2)
       CALL VZERO(TSUM,2)
       CALL VZERO(T2SUM,2)
       CALL VZERO(TAVG,2)

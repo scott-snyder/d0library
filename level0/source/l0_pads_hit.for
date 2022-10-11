@@ -102,7 +102,7 @@ C
         FIRST=.FALSE.
       ENDIF
 C
-      CALL VZERO(PADS_HIT,324)
+      CALL VZERO_i(PADS_HIT,324)
 C
 C  Cut on raw charge and raw time values in L0AD banks.
 C

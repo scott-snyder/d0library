@@ -61,7 +61,7 @@ C
       IF ( EZERROR(IER) ) THEN
         CALL ERRMSG('LEVEL0','LV0DMP','LEVEL0_RCP not found.','W')
       ELSE
-        CALL EZGET('NUM_DUMPS',NUMDMP,IER)   ! get number of banks
+        CALL EZGET_i('NUM_DUMPS',NUMDMP,IER)   ! get number of banks
         IF(NUMDMP.LE.MAXDMP)THEN
           CALL EZGET('DUMP_BANKS',BANKS,IER) ! get list of banks
         ELSE

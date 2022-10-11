@@ -78,12 +78,12 @@ C---------------------------------------------------------------------
         FIRST=.FALSE.
       ENDIF
 C
-      CALL VZERO(NLC(1,1),16)
+      CALL VZERO_i(NLC(1,1),16)
       CALL VZERO(LC_HIT_POSITIONS(1,1,1,1),480)
-      CALL VZERO(NSC(1),2)
+      CALL VZERO_i(NSC(1),2)
       CALL VZERO(SC_HIT_POSITIONS(1,1,1),1000)
-      CALL VZERO(CHANS_HIT,72)
-      CALL VZERO(PADS_HIT,162)
+      CALL VZERO_i(CHANS_HIT,72)
+      CALL VZERO_i(PADS_HIT,162)
 C
       CALL GTFTRH(ICONT2)
       NTRACK=ICONT2(2)

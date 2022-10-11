@@ -83,6 +83,11 @@ C
       EXTERNAL EZERROR
       LOGICAL PRODUC, PRODFL
       EXTERNAL PRODUC
+
+      integer zff
+      data zff / z'ff' /
+      integer z100
+      data z100 / z'100' /
 C
       SAVE FIRST,CHG_MINCUT,CHG_MAXCUT,TIM_MINCUT,TIM_MAXCUT
       SAVE SLOW_Z_MULTIPLIER, SLOW_OFFZ, PRODFL
@@ -162,11 +167,11 @@ C
         IF ( .NOT.FULL_PLV0 ) THEN
           IF ( VERTEX_DATA(OFFSET+21).EQ.1 ) INTERACTION=1
           SVTX = VERTEX_DATA(OFFSET+19)
-          SIGN = IAND(SVTX,'100'X)/'100'X
+          SIGN = IAND(SVTX,z100)/z100
           IF ( SIGN.EQ.0 ) THEN
-            SLOW_Z = SLOW_Z_MULTIPLIER*IAND(SVTX,'FF'X)
+            SLOW_Z = SLOW_Z_MULTIPLIER*IAND(SVTX,zFF)
           ELSE
-            SLOW_Z = -SLOW_Z_MULTIPLIER*IAND('100'X-SVTX,'FF'X)
+            SLOW_Z = -SLOW_Z_MULTIPLIER*IAND(z100-SVTX,zFF)
           ENDIF
           IF ( VERTEX_DATA(OFFSET+26).EQ.1 ) then
             MI_FLAG=1
@@ -189,10 +194,10 @@ C
         TAVG(VERTEX_DATA(29)) = VERTEX_DATA(41)
         FULL_Z = (-2./30.0)*(SLOW_Z+SLOW_Z-SLOW_OFFZ)
 C
-        CALL VZERO(USE_CHAN,72)
-        CALL VZERO(N_SC,2)
-        CALL VZERO(N_LC,2)
-        CALL VZERO(N_CH,2)
+        CALL VZERO_i(USE_CHAN,72)
+        CALL VZERO_i(N_SC,2)
+        CALL VZERO_i(N_LC,2)
+        CALL VZERO_i(N_CH,2)
         CALL VZERO(TSUM,2)
         CALL VZERO(T2SUM,2)
         CALL VZERO(TAVG,2)
