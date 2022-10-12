@@ -51,12 +51,12 @@ C
       CALL EZGET('DLTZR1',DLTZR1,ERR)
       CALL EZGET('DLTZR2',DLTZR2,ERR)        ! for L2_CDGETZ
 C
-      CALL EZGET('PULTH1(1)',PULTH1(1),ERR)                ! - see CD_MATCH
-      CALL EZGET('PULTH2(1)',PULTH2(1),ERR)                ! - see CD_MATCH
-      CALL EZGET('PULTH3(1)',PULTH3(1),ERR)                ! - see CD_MATCH
-      CALL EZGET('PULMAX(1)',PULMAX(1),ERR)                ! - see CD_MATCH
+      CALL EZGET_i('PULTH1(1)',PULTH1(1),ERR)                ! - see CD_MATCH
+      CALL EZGET_i('PULTH2(1)',PULTH2(1),ERR)                ! - see CD_MATCH
+      CALL EZGET_i('PULTH3(1)',PULTH3(1),ERR)                ! - see CD_MATCH
+      CALL EZGET_i('PULMAX(1)',PULMAX(1),ERR)                ! - see CD_MATCH
       CALL EZGET('PULWEI(1)',PULWEI(1),ERR)                ! - see CD_MATCH
-      CALL EZGET('TABLE(1)',TABLE(0),ERR)                  !
+      CALL EZGET_i('TABLE(1)',TABLE(0),ERR)                  !
       CALL EZRSET
 C
       DO 7 J = 1, 2                                        !
@@ -73,7 +73,7 @@ C
       CALL EZGET('ZCERMX',ZCERMX,ERR)        ! For L2_VERTEX_CDC (Needed?)
 C
       CALL EZGET('TOLDST',TOLDST,ERR)        ! For L2_ZCDCGZ
-      CALL EZGET('MORETK',MORETK,ERR)        ! For L2_ZCDCGZ
+      CALL EZGET_l('MORETK',MORETK,ERR)        ! For L2_ZCDCGZ
 C
       CALL EZGET('ZSIGMA',ZSIGMA,ERR)        ! L2_ZCDCHS
       CALL EZGET('SGMFCT',SGMFCT,ERR)        ! L2_ZCDCHS

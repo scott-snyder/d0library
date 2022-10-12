@@ -21,7 +21,7 @@ C
       INTEGER POINT,CRTID,MASK,START
 C     INTEGER PHIMIN,PHIMAX
       LOGICAL STATUS
-      PARAMETER (MASK = 'FFFF'X)
+      data MASK / z'FFFF' /
 C
 C----------------------------------------------------------------------
 C

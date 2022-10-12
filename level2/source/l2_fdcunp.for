@@ -30,7 +30,7 @@ C
 C
       LOGICAL STATUS, OK, SET_BAD_CD_FLAG
 C
-      PARAMETER (MASK = 'FFFF'X)
+      data MASK / z'FFFF' /
 C
       CHARACTER*80 MSG
 C----------------------------------------------------------------------

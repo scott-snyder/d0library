@@ -58,11 +58,11 @@ C----------------------------------------------------------------------
           goto 999
         endif
         call EZGET('INL2', INL2, ier)
-        call EZGET('NCRATE_FDC', ncrate, ier)
+        call EZGET_i('NCRATE_FDC', ncrate, ier)
         if (ier .ne. 0) ncrate = 12
-        call EZGET('LEN_CABLE_TRAILER', len_cable_trailer, ier)
+        call EZGET_i('LEN_CABLE_TRAILER', len_cable_trailer, ier)
         if (ier .ne. 0) len_cable_trailer = 16
-        call EZGET('MAX_DEPTH', max_depth, ier)
+        call EZGET_i('MAX_DEPTH', max_depth, ier)
         if (ier .ne. 0) max_depth = 512
 C
 C               .

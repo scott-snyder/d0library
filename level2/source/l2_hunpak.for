@@ -18,7 +18,7 @@ C
       INTEGER ID,NBIN,IBIN,ICLRD
       REAL CONT(*)
       LOGICAL L2_HEXIST
-      DATA ICLRD /'44524C43'X/
+      DATA ICLRD /z'44524C43'/
 C----------------------------------------------------------------------
 C
 C  *** Check if histogram exists

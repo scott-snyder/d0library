@@ -48,12 +48,12 @@ C...first, carefully retrieve cuts from RCP
       OK = .NOT.EZERROR(IER)
 
       IF (OK) THEN
-        IF (IER.EQ.0) CALL EZGET('NUMBER_OF_SETS',NPARIN,IER)
+        IF (IER.EQ.0) CALL EZGET_i('NUMBER_OF_SETS',NPARIN,IER)
         IF(PSN.LE.0.OR.PSN.GT.NPARIN) IER = 1
-        IF (IER.EQ.0) CALL EZGET('AMOD',AMOD,IER)
-        IF (IER.EQ.0) CALL EZGET('BMOD',BMOD,IER)
-        IF (IER.EQ.0) CALL EZGET('CMOD',CMOD,IER)
-        IF (IER.EQ.0) CALL EZGET('OMOD',OMOD,IER)
+        IF (IER.EQ.0) CALL EZGET_iarr('AMOD',AMOD,IER)
+        IF (IER.EQ.0) CALL EZGET_iarr('BMOD',BMOD,IER)
+        IF (IER.EQ.0) CALL EZGET_iarr('CMOD',CMOD,IER)
+        IF (IER.EQ.0) CALL EZGET_iarr('OMOD',OMOD,IER)
         IF (IER.NE.0) OK = .FALSE.
       ENDIF
 

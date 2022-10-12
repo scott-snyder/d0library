@@ -71,38 +71,38 @@ C
       CALL EZGET('ZTOL', ZTOL, ERR)
       CALL EZGET('PHITOL', PHITOL, ERR)
 C
-      CALL EZGET('COSMICS',COS_FLAG,ERR)
-      CALL EZGET('DELAY',DEL_FLAG,ERR)
-      CALL EZGET('FDC',FDC_FLAG,ERR)
-      CALL EZGET('CDC',CDC_FLAG,ERR)
+      CALL EZGET_l('COSMICS',COS_FLAG,ERR)
+      CALL EZGET_l('DELAY',DEL_FLAG,ERR)
+      CALL EZGET_l('FDC',FDC_FLAG,ERR)
+      CALL EZGET_l('CDC',CDC_FLAG,ERR)
 C
       CALL EZGET('TRGOFF',TRGOFF,ERR) ! Should return 0 for MC data
 C                                     !       585.0 for COSMIC data
 C                                     !      -230.0 for collider run Ia
-      CALL EZGET('MONTE_CARLO',MC_FLAG,ERR)
+      CALL EZGET_l('MONTE_CARLO',MC_FLAG,ERR)
 C
       CALL EZGET('VTX_X0', X0, ERR)
       CALL EZGET('VTX_Y0', Y0, ERR)
 C
       CALL EZGET('CDC_EDGE', CDC_EDGE, ERR)
       CALL EZGET('FDC_EDGE', FDC_EDGE, ERR)
-      CALL EZGET('WIRE_MIN', WIRE_MIN, ERR)
-      CALL EZGET('MIN_DEL', MIN_DEL, ERR)
-      CALL EZGET('TOO_MANY', TOO_MANY, ERR)
+      CALL EZGET_i('WIRE_MIN', WIRE_MIN, ERR)
+      CALL EZGET_i('MIN_DEL', MIN_DEL, ERR)
+      CALL EZGET_i('TOO_MANY', TOO_MANY, ERR)
       CALL EZGET('DRFTCUT', DRFTCUT, ERR)
       CALL EZGET('THR1', THR1, ERR)
       CALL EZGET('THR2', THR2, ERR)
-      CALL EZGET('IPED', IPED, ERR)
+      CALL EZGET_i('IPED', IPED, ERR)
 C
       CALL EZRSET
 C
       CALL EZPICK('L2CDHT_RCP')       ! Open the RCP from Chris' hitfind
 C
-      CALL EZGET('TRGFLG',TRGFLG,ERR) ! For Trigger time correction
+      CALL EZGET_l('TRGFLG',TRGFLG,ERR) ! For Trigger time correction
       CALL EZGET('DLTZR1',DLTZR1,ERR) ! offset for delay line (left side)
       CALL EZGET('DLTZR2',DLTZR2,ERR) ! offset for delay line (right side)
 C
-      CALL EZGET('TABLE', BIMAP, ERR)
+      CALL EZGET_iarr('TABLE', BIMAP, ERR)
 C
       CALL EZRSET
       GOTO 999                        ! parameter stage complete

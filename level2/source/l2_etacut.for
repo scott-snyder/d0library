@@ -92,7 +92,8 @@ C
 C Get the parameters from the IPth set
 C
           IF (IER.EQ.0) CALL EZGETS('OBJECT',IP,OBJECT,NCHR,IER)
-          IF (IER.EQ.0) CALL EZGETA('NUM_FOUND',IP,IP,1,NUM_FOUND,IER)
+          IF (IER.EQ.0) CALL EZGETA_iarr('NUM_FOUND',IP,IP,1,NUM_FOUND
+     &         ,IER) 
           IF (IER.EQ.0) CALL EZGETA('ETMIN',IP,IP,1,ETMIN,IER)
           IF (IER.EQ.0) CALL EZGETA('GAPCUT',IP,IP,1,GAPCUT,IER)
           IF (IER.EQ.0)

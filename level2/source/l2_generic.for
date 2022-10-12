@@ -65,16 +65,17 @@ C...is IP consistent with the number of sets which exist?
             GO TO 999
           ENDIF
 C...Get the parameters from the IPth set
-          IF (IER.EQ.0) CALL EZGETA('NUM_FOUND',IP,IP,1,NUM_FOUND,IER)
+          IF (IER.EQ.0) CALL EZGETA_iarr('NUM_FOUND',IP,IP,1,NUM_FOUND
+     &         ,IER)
           IF (IER.EQ.0) CALL EZGETA('ET_MIN',IP,IP,1,ET_MIN,IER)
-          IF (IER.EQ.0) CALL EZGETA('ICUT1',IP,IP,1,ICUT1,IER)
-          IF (IER.EQ.0) CALL EZGETA('ICUT2',IP,IP,1,ICUT2,IER)
+          IF (IER.EQ.0) CALL EZGETA_iarr('ICUT1',IP,IP,1,ICUT1,IER)
+          IF (IER.EQ.0) CALL EZGETA_uarr('ICUT2',IP,IP,1,ICUT2,IER)
           IF (IER.EQ.0) CALL EZGETA('CUT1',IP,IP,1,CUT1,IER)
           IF (IER.EQ.0) CALL EZGETA('CUT2',IP,IP,1,CUT2,IER)
           IF (IER.EQ.0) CALL EZGETS('CHAR1',IP,CHAR1,NCHR,IER)
           IF (IER.EQ.0) CALL EZGETS('CHAR2',IP,CHAR2,NCHR,IER)
-          IF (IER.EQ.0) CALL EZGETA('LOG1',IP,IP,1,LOG1,IER)
-          IF (IER.EQ.0) CALL EZGETA('LOG2',IP,IP,1,LOG2,IER)
+          IF (IER.EQ.0) CALL EZGETA_i('LOG1',IP,IP,1,LOG1,IER)
+          IF (IER.EQ.0) CALL EZGETA_i('LOG2',IP,IP,1,LOG2,IER)
         ENDIF
       ENDIF
       IF (.NOT.OK) THEN

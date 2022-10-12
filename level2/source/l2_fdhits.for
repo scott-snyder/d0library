@@ -52,8 +52,8 @@ C                                ! ( in terms of PHI_QUAD(HALF,QUAD) )
       REAL BEG_PULS, END_PULS
       REAL TZERO                 ! Get T0's from STP (where CALIB Tzero
 C                                ! information were included ).
-      PARAMETER (MASK8 = 'FF'X)
-      PARAMETER (MASK16 = 'FFFF'X)
+      data MASK8 / z'FF' /
+      data MASK16 / z'FFFF' /
 C
       DATA PHI_QUAD /0.785,0.785,2.356,2.356,3.927,3.927,
      &               5.498,5.498,0.0,0.0,1.571,1.571,

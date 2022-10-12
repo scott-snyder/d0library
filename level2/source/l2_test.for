@@ -66,7 +66,7 @@ C...is IP consistent with the number of sets which exist?
           ENDIF
 C...Get the parameters from the IPth set
           IF (IER.EQ.0) CALL EZGETA('DELAY_SEC',IP,IP,1,DELAY_SEC,IER)
-          IF (IER.EQ.0) CALL EZGETA('ERROR_1_OF',IP,IP,1,
+          IF (IER.EQ.0) CALL EZGETA_i('ERROR_1_OF',IP,IP,1,
      &      ERROR_1_OF,IER)
 C...examples of getting other variable types
 C          IF (IER.EQ.0) CALL EZGETS('CHAR1',IP,CHAR1,NCHR,IER)

@@ -28,7 +28,7 @@ C
       CHARACTER*4 SHTITLE(20)
       EQUIVALENCE (ITITLE(1),SHTITLE(1),TITLE)
 C
-      DATA ICLRD /'44524C43'X/
+      DATA ICLRD /z'44524C43'/
 C----------------------------------------------------------------------
 C
 C      IF(ID.EQ.0) THEN

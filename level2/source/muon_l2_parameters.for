@@ -92,12 +92,12 @@ C----------------------------------------------------------------------
       CALL EZERR(IER)
       IF (IER.NE.0) GO TO 999	   ! could not find muon_parameters_rcp
 
-      CALL EZGET('NUMBER_OF_SETS',NUMBER_OF_SETS,IER)
+      CALL EZGET_i('NUMBER_OF_SETS',NUMBER_OF_SETS,IER)
       IF(NUMBER_OF_SETS.GT.128) THEN
         ERROR_MESSAGE= 'NUMBER OF SETS TOO BIG'
         GOTO 1000
       ENDIF                 
-      CALL EZGET('NUM_MUONS',NUM_MUONS,IER)
+      CALL EZGET_iarr('NUM_MUONS',NUM_MUONS,IER)
       IF(IER.NE.0) THEN
         ERROR_MESSAGE= 'COULD NOT FIND NUM_MUONS'
         GOTO 1000
@@ -132,7 +132,7 @@ C----------------------------------------------------------------------
      $      OUT_MESSAGE,'W')
         ENDIF
       ENDDO
-      CALL EZGET('COSMIC_REJECT',COSMIC_REJECT,IER)
+      CALL EZGET_l('COSMIC_REJECT',COSMIC_REJECT,IER)
       IF(IER.NE.0) THEN
         DO I = 1, NUMBER_OF_SETS
           COSMIC_REJECT(I) = .FALSE.
@@ -142,7 +142,7 @@ C----------------------------------------------------------------------
 	CALL ERRMSG('MUON_L2_PARAMETERS','COSMIC_REJECT',
      $      OUT_MESSAGE,'W')
       ENDIF
-      CALL EZGET('REFIT_T0',REFIT_T0,IER)
+      CALL EZGET_l('REFIT_T0',REFIT_T0,IER)
       IF(IER.NE.0) THEN
         DO I = 1, NUMBER_OF_SETS
           REFIT_T0(I) = .FALSE.
@@ -152,7 +152,7 @@ C----------------------------------------------------------------------
 	CALL ERRMSG('MUON_L2_PARAMETERS','REFIT_T0',
      $      OUT_MESSAGE,'W')
       ENDIF
-      CALL EZGET('SCINT_ON_TRACK',SCINT_ON_TRACK,IER)
+      CALL EZGET_l('SCINT_ON_TRACK',SCINT_ON_TRACK,IER)
       IF(IER.NE.0) THEN
         DO I = 1, NUMBER_OF_SETS
           SCINT_ON_TRACK(I) = .FALSE.
@@ -162,7 +162,7 @@ C----------------------------------------------------------------------
 	CALL ERRMSG('MUON_L2_PARAMETERS','SCINT_ON_TRACK',
      $      OUT_MESSAGE,'W')
       ENDIF
-      CALL EZGET('CAL_ON_TRACK',CAL_ON_TRACK,IER)
+      CALL EZGET_l('CAL_ON_TRACK',CAL_ON_TRACK,IER)
       IF(IER.NE.0) THEN
         DO I = 1, NUMBER_OF_SETS
           CAL_ON_TRACK(I) = .FALSE.
@@ -172,7 +172,7 @@ C----------------------------------------------------------------------
 	CALL ERRMSG('MUON_L2_PARAMETERS','CAL_ON_TRACK',
      $      OUT_MESSAGE,'W')
       ENDIF
-      CALL EZGET('CD_ON_TRACK',CD_ON_TRACK,IER)
+      CALL EZGET_l('CD_ON_TRACK',CD_ON_TRACK,IER)
       IF(IER.NE.0) THEN
         DO I = 1, NUMBER_OF_SETS
           CD_ON_TRACK(I) = .FALSE.

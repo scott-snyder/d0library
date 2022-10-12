@@ -22,7 +22,7 @@ C
       REAL BIN_LIMIT, BIN_SIZE, LLIM, ULIM, XVALUE
       LOGICAL L2_HEXIST
       CHARACTER*80 MSG
-      DATA ICLRD /'44524C43'X/
+      DATA ICLRD /z'44524C43'/
 C----------------------------------------------------------------------
 C
 C  *** Check if Histogram exists

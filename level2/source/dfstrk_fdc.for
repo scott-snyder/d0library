@@ -33,8 +33,8 @@ C
       REAL SW_THR1,DL_THR1,SW_THR2,DL_THR2
       REAL SUM,SUMX,AREA
 C
-      PARAMETER (MASK8 = 'FF'X)
-      PARAMETER (MASK16 = 'FFFF'X)
+      data MASK8 / z'FF' /
+      data MASK16 / z'FFFF' /
       DATA SW_THR1,SW_THR2,DL_THR1,DL_THR2 /3.0,5.0,6.0,10.0/
       DATA IPED /10/
 C

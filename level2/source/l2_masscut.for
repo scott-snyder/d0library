@@ -86,12 +86,13 @@ C
 C Get the parameters from the IPth set
 C
           CALL EZGETS('OBJECT',IP,OBJECT,NCHR,IER)
-          IF (IER.EQ.0) CALL EZGETA('NOBJECTS',IP,IP,1,NOBJECTS,IER)
+          IF (IER.EQ.0) CALL EZGETA_iarr('NOBJECTS',IP,IP,1,NOBJECTS
+     &         ,IER)
           IF(NOBJECTS.LT.2)THEN
              CALL ERRMSG('L2_MASSCUT_NOBJ','L2_MASSCUT',
      &         'Number of objects requested fewer than 2.','F')
           ENDIF
-          IF (IER.EQ.0) CALL EZGETA('LEADING',IP,IP,1,LEADING,IER)
+          IF (IER.EQ.0) CALL EZGETA_i('LEADING',IP,IP,1,LEADING,IER)
           IF (IER.EQ.0) CALL EZGETA('ETA1_MIN',IP,IP,1,ETA1_MIN,IER)
           IF (IER.EQ.0) CALL EZGETA('ETA1_MAX',IP,IP,1,ETA1_MAX,IER)
           IF (IER.EQ.0) CALL EZGETA('ETA2_MIN',IP,IP,1,ETA2_MIN,IER)

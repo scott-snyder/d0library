@@ -25,7 +25,7 @@ C
 C
       LOGICAL L2_HEXIST
       CHARACTER*60 TITLE
-      DATA ICLRD /'44524C43'X/
+      DATA ICLRD /z'44524C43'/
 C----------------------------------------------------------------------
 C
 C  *** Check if Histogram has been booked. If not ABORT.

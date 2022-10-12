@@ -129,7 +129,7 @@ C
       INTEGER POINT,CRTID,MASK,START
       INTEGER PHIMIN,PHIMAX
       LOGICAL STATUS
-      PARAMETER (MASK = 'FFFF'X)
+      data MASK / z'FFFF' /
       INTEGER TOTAL
 C
 C----------------------------------------------------------------------
@@ -208,8 +208,8 @@ C
       INTEGER POINT,END,HITLEN,HITADR
       INTEGER MASK8,MASK16,NCLUS,IER
 C
-      PARAMETER (MASK8 = 'FF'X)
-      PARAMETER (MASK16 = 'FFFF'X)
+      data MASK8 / z'FF' /
+      data MASK16 / z'FFFF' /
 C
 C----------------------------------------------------------------------
       NCLUS = 0

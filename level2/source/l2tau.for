@@ -74,7 +74,7 @@ C...Get the parameters from the IPth set
      &      JET_MET_DPHI_MIN,IER)
           IF (IER.EQ.0) CALL EZGETA('JET_JET_DPHI_MAX',IP,IP,1,
      &      JET_JET_DPHI_MAX,IER)
-          IF (IER.EQ.0) CALL EZGETA('NUM_JETS_MIN',IP,IP,1,
+          IF (IER.EQ.0) CALL EZGETA_i('NUM_JETS_MIN',IP,IP,1,
      &      NUM_JETS_MIN,IER)
           IF (IER.EQ.0) CALL EZGETA('JET_ET_MIN',IP,IP,1,
      &      JET_ET_MIN,IER)

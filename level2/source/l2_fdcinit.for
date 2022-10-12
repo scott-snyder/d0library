@@ -69,8 +69,8 @@ C
         CALL ERRMSG('FTRAKS','L2_FDCINIT',
      &              'FTRAKS_RCP not found.','F')
       ENDIF
-      CALL EZGET('RUNTYPE',RUNTYPE,IER)
-      CALL EZGET('FILL_STP',FILL_STP,IER)
+      CALL EZGET_i('RUNTYPE',RUNTYPE,IER)
+      CALL EZGET_l('FILL_STP',FILL_STP,IER)
       CALL EZRSET
 C
 C  Check consistancy of RCP file and data type.
@@ -108,7 +108,7 @@ C
         CALL EZGET('GN_INI',GN_INI,IER)
         CALL EZGET('PD_INI',PD_INI,IER)
         CALL EZGET('TM_INI',TM_INI,IER)
-        CALL EZGET('MAX_FDCRT',MAX_FDCRT,IER)
+        CALL EZGET_i('MAX_FDCRT',MAX_FDCRT,IER)
         CALL EZRSET
         GNSTR='     '
         IF(GN_INI) GNSTR='GAINS'

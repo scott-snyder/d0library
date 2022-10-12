@@ -57,11 +57,14 @@ C
        LOGICAL FIRST, INL2
        DATA    FIRST /.TRUE./
        DATA    NSEC/15,31,31/
+
+       integer zffff
+       data zffff / z'ffff' /
 C----------------------------------------------------------------------
        OK = .FALSE.
        IF (FIRST) THEN
          FIRST = .FALSE.
-         SEC_END_MASK='FFFF'X
+         SEC_END_MASK=zFFFF
          SEC_END_MASK=IBCLR(SEC_END_MASK,1)
          SEC_END_MASK=IBCLR(SEC_END_MASK,2)
          SEC_END_MASK=IBCLR(SEC_END_MASK,3)

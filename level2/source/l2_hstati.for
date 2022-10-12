@@ -24,7 +24,7 @@ C
       REAL BINSIZ,LLIM,ULIM,BINVAL,WNEVT
       LOGICAL L2_HEXIST
       CHARACTER*45 MSG
-      DATA ICLRD /'44524C43'X/
+      DATA ICLRD /z'44524C43'/
 C----------------------------------------------------------------------
 C
 C  *** Check if histogram exists

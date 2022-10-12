@@ -54,7 +54,7 @@ C
 C     make sure the parameter set is within the bounds of the
 C     RCP - otherwise, something has happened!!!
 C
-      CALL EZGET('NUMBER_OF_SETS',NPARIN,IER)
+      CALL EZGET_i('NUMBER_OF_SETS',NPARIN,IER)
       IF (IER.EQ.0) THEN
         IF ( PSN.LT.1 .OR. PSN.GT.NPARIN ) THEN
           WRITE(MSG,
@@ -83,7 +83,7 @@ C...now, if doing a simulation, override actual result on request
       CALL EZPICK_NOMSG('L2SIM_RCP',IER)
       IF (IER.EQ.0) THEN
         APPLY_L2_PRESCALE = .TRUE.  !default
-        CALL EZGET('APPLY_L2_PRESCALE',APPLY_L2_PRESCALE,IER)
+        CALL EZGET_l('APPLY_L2_PRESCALE',APPLY_L2_PRESCALE,IER)
         L2_PRESCALE_FROM_DATA = .FALSE. !default
         IF(IER.EQ.0) 
      &    CALL EZGET('L2_PRESCALE_FROM_DATA',L2_PRESCALE_FROM_DATA,IER)
