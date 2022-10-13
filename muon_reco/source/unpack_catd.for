@@ -68,8 +68,8 @@ C----------------------------------------------------------------------
       ETSUM = 0.
       CALL VZERO(TE,MXTWRS)
       CALL VZERO(ET,MXTWRS)
-      CALL VZERO(TETA,MXTWRS)
-      CALL VZERO(TPHI,MXTWRS)
+      CALL VZERO_i(TETA,MXTWRS)
+      CALL VZERO_i(TPHI,MXTWRS)
       CALL VZERO(ARRAY,20)
 
       IF (NTWRS.LE.MXTWRS) THEN

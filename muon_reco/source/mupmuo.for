@@ -152,7 +152,7 @@ C for refitting, copy old PMUO information
               ND_OLD = IQ(LPMUO_OLD-1)
               ND_NEW = IQ(LPMUO-1)
               ND = MIN(ND_OLD,ND_NEW)
-              CALL UCOPY(IQ(LPMUO_OLD+1),IQ(LPMUO+1),ND)
+              CALL UCOPY_i(IQ(LPMUO_OLD+1),IQ(LPMUO+1),ND)
             ENDIF
           ENDIF
         ENDIF

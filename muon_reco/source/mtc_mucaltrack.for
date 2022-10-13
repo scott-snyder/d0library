@@ -46,7 +46,7 @@ C- check for caep or caeq bank, if they're not there, zero output arrays
      &      ' MTC_MUCALTRACK: error - no CAEP or CAEQ energy bank'
           vtx_temp(3) = -5000.
           CALL mtc_mucalen(vtx_temp,dvtx,eta,phi)
-          CALL mtc_mucalen5(vtx_temp,dvtx,eta,phi)
+          CALL mtc_mucalen5
           ilyrmin = 1
           CALL mtc_line_stepback(ilyrmin,
      &      point1, cosdir, chicalin, chiene, flyrhit, icntall)

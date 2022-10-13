@@ -46,8 +46,8 @@ C
 C
       SAMRECO_DDF = .TRUE.
       CALL EZPICK('SAMRECO_RCP')                ! select SAMRECO_RCP
-      CALL EZGET('NUM_DUMPS',NUMDMP,IER)        ! get number of banks
-      CALL EZGET('NUM_EVENT_DUMPS',NUMEVD,IER)  ! Get number of events
+      CALL EZGET_i('NUM_DUMPS',NUMDMP,IER)        ! get number of banks
+      CALL EZGET_i('NUM_EVENT_DUMPS',NUMEVD,IER)  ! Get number of events
 C
       IF(NUMDMP.LE.MAXDMP)		THEN
         CALL EZGET('DUMP_BANKS',BANKS,IER)      ! get list of banks

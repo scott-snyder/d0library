@@ -39,7 +39,7 @@ C on first RCP called, but mask array from CLEANMU_RCP
           CALL EZPICK('CLEANMU_RCP')
           CALL ERRMSG('Reading CLEANMU_RCP',
      &      'MU_SET_QUAL_MASK',' ','W')
-          CALL EZGETA('MUON_MASK',0,0,0,N,IER)
+          CALL EZGETA_i('MUON_MASK',0,0,0,N,IER)
           IF(IER.EQ.0) CALL EZGETA('MUON_MASK',1,N,1,IRCP_ARRAY,IER)
           IF(N.NE.32) CALL ERRMSG('Error reading Muon Mask Array',
      &    'MU_SET_QUAL_MASK',' ','F')

@@ -57,7 +57,7 @@ C----------------------------------------------------------------------
         CALL EZRSET
       END IF
 C first, restore Level 1.5 words to MTRH
-      LMTRH = GZMTRH()
+      LMTRH = GZMTRH(0)
       LMUON = GZMUON(0)
       LMRFT = 0
       IF(LMUON.GT.0) THEN

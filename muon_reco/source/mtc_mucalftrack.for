@@ -40,7 +40,7 @@ C- check for the caep bank, if it's not there, then zero block arrays
         WRITE(6,*) ' MTC_MUCALFTRACK: error - no CAEP energy bank'
         vtx_temp(3) = -5000.
         CALL mtc_mucalfen(vtx_temp,dvtx,eta,phi)
-        CALL mtc_mucalfen5(vtx_temp,dvtx,eta,phi)
+        CALL mtc_mucalfen5
         CALL mtc_line_fastback(
      &    point1, cosdir, chicalin, tenergy, flyrhit, icntall)
         CALL mtc_fill_fmtc

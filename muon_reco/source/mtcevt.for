@@ -46,13 +46,13 @@ C- read MTC.RCP
         CALL INRCP('mtc_rcp',IER)
         IF(IER.EQ.0) THEN
           CALL EZPICK('MTC_RCP')
-          CALL EZGET('FULL_MTC',     FULL_MTC, IER)
+          CALL EZGET_l('FULL_MTC',     FULL_MTC, IER)
           CALL EZGET('MTC_ETAMIN',   ETAMIN,   IER)
           CALL EZGET('MTC_ETAMAX',   ETAMAX,   IER)
           CALL EZGET('MTC_HFRACSCAN',HFRACSCAN,IER)
           CALL EZGET('MTC_HFRACFND', HFRACFND, IER)
           CALL EZGET('MTC_FRACFND',  FRACFND,  IER)
-          CALL EZGET('MTC_IPSTATUS', IPSTATUS, IER)
+          CALL EZGET_i('MTC_IPSTATUS', IPSTATUS, IER)
           CALL EZRSET
 C- store the mtc finding parameters in MTC_FIND.INC
           IMTC_FULL      = 0

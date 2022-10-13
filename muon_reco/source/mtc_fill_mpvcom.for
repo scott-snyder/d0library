@@ -35,7 +35,7 @@ C----------------------------------------------------------------------
 C- MTC_CALSECTS section
 C----------------------------------------------------------------------
 C- get the number of cells in eta in each cal module sublayer
-        CALL ezget('ISLNUM1',ivect5,ier)
+        CALL ezget_iarr('ISLNUM1',ivect5,ier)
         DO index=1,5
           ISLNUM(1,index) = ivect5(index)        ! 12,12,12,11,0
         END DO
@@ -46,80 +46,80 @@ C- check for errors now ...
      &      'subeta ranges in CCEM1 = ',ivect5(index)
         END IF
 
-        CALL ezget('ISLNUM2',ivect5,ier)
+        CALL ezget_iarr('ISLNUM2',ivect5,ier)
         DO index=1,5
           ISLNUM(2,index) = ivect5(index)        !  21,21,22,22,0
         END DO
-        CALL ezget('ISLNUM3',ivect5,ier)
+        CALL ezget_iarr('ISLNUM3',ivect5,ier)
         DO index=1,5
           ISLNUM(3,index) = ivect5(index)        !  5,0,0,0,0
         END DO
-        CALL ezget('ISLNUM4',ivect5,ier)
+        CALL ezget_iarr('ISLNUM4',ivect5,ier)
         DO index=1,5
           ISLNUM(4,index) = ivect5(index)        !  6,0,0,0,0
         END DO
-        CALL ezget('ISLNUM5',ivect5,ier)
+        CALL ezget_iarr('ISLNUM5',ivect5,ier)
         DO index=1,5
           ISLNUM(5,index) = ivect5(index)        !  6,0,0,0,0
         END DO
-        CALL ezget('ISLNUM6',ivect5,ier)
+        CALL ezget_iarr('ISLNUM6',ivect5,ier)
         DO index=1,5
           ISLNUM(6,index) = ivect5(index)        !  10,9,8,0,0
         END DO
-        CALL ezget('ISLNUM7',ivect5,ier)
+        CALL ezget_iarr('ISLNUM7',ivect5,ier)
         DO index=1,5
           ISLNUM(7,index) = ivect5(index)        !  20,19,19,18,17
         END DO
-        CALL ezget('ISLNUM8',ivect5,ier)
+        CALL ezget_iarr('ISLNUM8',ivect5,ier)
         DO index=1,5
           ISLNUM(8,index) = ivect5(index)        ! 6,6,5,6,7
         END DO
-        CALL ezget('ISLNUM9',ivect5,ier)
+        CALL ezget_iarr('ISLNUM9',ivect5,ier)
         DO index=1,5
           ISLNUM(9,index) = ivect5(index)        ! 6,0,0,0,0
         END DO
-        CALL ezget('ISLNUM10',ivect5,ier)
+        CALL ezget_iarr('ISLNUM10',ivect5,ier)
         DO index=1,5
           ISLNUM(10,index) = ivect5(index)     ! 5,5,4,0,0
         END DO
 C- fill the starting ieta for each calorimeter sublayer
-        CALL ezget('ISLETA1',ivect5,ier)
+        CALL ezget_iarr('ISLETA1',ivect5,ier)
         DO index=1,5
           ISLETA(1,index) = ivect5(index)        ! 1,1,1,1,999
         END DO
-        CALL ezget('ISLETA2',ivect5,ier)
+        CALL ezget_iarr('ISLETA2',ivect5,ier)
         DO index=1,5
           ISLETA(2,index) = ivect5(index)        ! 15,15,14,14,999
         END DO
-        CALL ezget('ISLETA3',ivect5,ier)
+        CALL ezget_iarr('ISLETA3',ivect5,ier)
         DO index=1,5
           ISLETA(3,index) = ivect5(index)        ! 8,999,999,999,999
         END DO
-        CALL ezget('ISLETA4',ivect5,ier)
+        CALL ezget_iarr('ISLETA4',ivect5,ier)
         DO index=1,5
           ISLETA(4,index) = ivect5(index)        ! 9,999,999,999,999
         END DO
-        CALL ezget('ISLETA5',ivect5,ier)
+        CALL ezget_iarr('ISLETA5',ivect5,ier)
         DO index=1,5
           ISLETA(5,index) = ivect5(index)        ! 8,999,999,999,999
         END DO
-        CALL ezget('ISLETA6',ivect5,ier)
+        CALL ezget_iarr('ISLETA6',ivect5,ier)
         DO index=1,5
           ISLETA(6,index) = ivect5(index)        ! 1,1,1,999,999
         END DO
-        CALL ezget('ISLETA7',ivect5,ier)
+        CALL ezget_iarr('ISLETA7',ivect5,ier)
         DO index=1,5
           ISLETA(7,index) = ivect5(index)        ! 17,18,19,20,21
         END DO
-        CALL ezget('ISLETA8',ivect5,ier)
+        CALL ezget_iarr('ISLETA8',ivect5,ier)
         DO index=1,5
           ISLETA(8,index) = ivect5(index)        ! 11,12,13,13,14
         END DO
-        CALL ezget('ISLETA9',ivect5,ier)
+        CALL ezget_iarr('ISLETA9',ivect5,ier)
         DO index=1,5
           ISLETA(9,index) = ivect5(index)        ! 1,999,999,999,999
         END DO
-        CALL ezget('ISLETA10',ivect5,ier)
+        CALL ezget_iarr('ISLETA10',ivect5,ier)
         DO index=1,5
           ISLETA(10,index) = ivect5(index)       ! 8,9,11,999,999
         END DO
@@ -133,43 +133,43 @@ C----------------------------------------------------------------------
 !  The # of sub-sub-layers in these special cal cells are entered in the
 !  other arrays
 !  by 1st column=sublayer #, 2nd column = ieta, 3rd col = # of sub-sub-layers
-        CALL ezget('ISSLNUM1',ivect5,ier)
+        CALL ezget_iarr('ISSLNUM1',ivect5,ier)
         DO index=1,5
           ISSLNUM(1,index) = ivect5(index)       ! 1,1,1,1,0
         END DO
-        CALL ezget('ISSLNUM2',ivect5,ier)
+        CALL ezget_iarr('ISSLNUM2',ivect5,ier)
         DO index=1,5
           ISSLNUM(2,index) = ivect5(index)       ! 1,1,3,2,0
         END DO
-        CALL ezget('ISSLNUM3',ivect5,ier)
+        CALL ezget_iarr('ISSLNUM3',ivect5,ier)
         DO index=1,5
           ISSLNUM(3,index) = ivect5(index)       ! 1,0,0,0,0
         END DO
-        CALL ezget('ISSLNUM4',ivect5,ier)
+        CALL ezget_iarr('ISSLNUM4',ivect5,ier)
         DO index=1,5
           ISSLNUM(4,index) = ivect5(index)       ! 1,0,0,0,0
         END DO
-        CALL ezget('ISSLNUM5',ivect5,ier)
+        CALL ezget_iarr('ISSLNUM5',ivect5,ier)
         DO index=1,5
           ISSLNUM(5,index) = ivect5(index)       ! 1,0,0,0,0
         END DO
-        CALL ezget('ISSLNUM6',ivect5,ier)
+        CALL ezget_iarr('ISSLNUM6',ivect5,ier)
         DO index=1,5
           ISSLNUM(6,index) = ivect5(index)     !   1,1,1,0,0
         END DO
-        CALL ezget('ISSLNUM7',ivect5,ier)
+        CALL ezget_iarr('ISSLNUM7',ivect5,ier)
         DO index=1,5
           ISSLNUM(7,index) = ivect5(index)       ! 2,2,2,2,3
         END DO
-        CALL ezget('ISSLNUM8',ivect5,ier)
+        CALL ezget_iarr('ISSLNUM8',ivect5,ier)
         DO index=1,5
           ISSLNUM(8,index) = ivect5(index)       ! 2,2,2,2,3
         END DO
-        CALL ezget('ISSLNUM9',ivect5,ier)
+        CALL ezget_iarr('ISSLNUM9',ivect5,ier)
         DO index=1,5
           ISSLNUM(9,index) = ivect5(index)       ! 1,0,0,0,0
         END DO
-        CALL ezget('ISSLNUM10',ivect5,ier)
+        CALL ezget_iarr('ISSLNUM10',ivect5,ier)
         DO index=1,5
           ISSLNUM(10,index) = ivect5(index)      ! 4,4,4,0,0
         END DO
@@ -178,61 +178,61 @@ C----------------------------------------------------------------------
 ! following arrays:
 !   1st column=sublayer #, 2nd column = ieta, 3rd col = # of sub-sub-layers
 ! in ECIH (ical=7)
-        CALL ezget('ISSLNUM_71',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_71',ivect3,ier)
         DO index=1,3
           ISSLNUM_7(1,index) = ivect3(index)       ! 1,17,1
         END DO
-        CALL ezget('ISSLNUM_72',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_72',ivect3,ier)
         DO index=1,3
           ISSLNUM_7(2,index) = ivect3(index)       ! 2,18,1
         END DO
-        CALL ezget('ISSLNUM_73',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_73',ivect3,ier)
         DO index=1,3
           ISSLNUM_7(3,index) = ivect3(index)       ! 3,19,1
         END DO
-        CALL ezget('ISSLNUM_74',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_74',ivect3,ier)
         DO index=1,3
           ISSLNUM_7(4,index) = ivect3(index)       ! 5,21,1
         END DO
 ! in the ECMH (ical=8)
-        CALL ezget('ISSLNUM_81',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_81',ivect3,ier)
         DO index=1,3
           ISSLNUM_8(1,index) = ivect3(index)       ! 1,11,1
         END DO
-        CALL ezget('ISSLNUM_82',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_82',ivect3,ier)
         DO index=1,3
           ISSLNUM_8(2,index) = ivect3(index)       ! 4,13,1
         END DO
-        CALL ezget('ISSLNUM_83',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_83',ivect3,ier)
         DO index=1,3
           ISSLNUM_8(3,index) = ivect3(index)       ! 5,14,1
         END DO
-        CALL ezget('ISSLNUM_84',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_84',ivect3,ier)
         DO index=1,3
           ISSLNUM_8(4,index) = ivect3(index)       ! 5,15,2
         END DO
-        CALL ezget('ISSLNUM_85',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_85',ivect3,ier)
         DO index=1,3
           ISSLNUM_8(5,index) = ivect3(index)       ! 5,20,2
         END DO
 ! in the ECOH (ical=10)
-        CALL ezget('ISSLNUM_101',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_101',ivect3,ier)
         DO index=1,3
           ISSLNUM_10(1,index) = ivect3(index)      ! 1, 8,3
         END DO
-        CALL ezget('ISSLNUM_102',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_102',ivect3,ier)
         DO index=1,3
           ISSLNUM_10(2,index) = ivect3(index)      ! 1,12,2
         END DO
-        CALL ezget('ISSLNUM_103',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_103',ivect3,ier)
         DO index=1,3
           ISSLNUM_10(3,index) = ivect3(index)      ! 2, 9,1
         END DO
-        CALL ezget('ISSLNUM_104',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_104',ivect3,ier)
         DO index=1,3
           ISSLNUM_10(4,index) = ivect3(index)      ! 3,11,3
         END DO
-        CALL ezget('ISSLNUM_105',ivect3,ier)
+        CALL ezget_iarr('ISSLNUM_105',ivect3,ier)
         DO index=1,3
           ISSLNUM_10(5,index) = ivect3(index)      ! 3,15,2
         END DO

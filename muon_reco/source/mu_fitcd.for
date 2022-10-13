@@ -35,8 +35,8 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       NOFIT = .FALSE.
       IF(FIRST)THEN
-        CALL EZGET('KALMAN_CD',KALMAN_CD,IERZ)
-        CALL EZGET('CD_ERROR',CD_ERROR,IERZ)
+        CALL EZGET_l('KALMAN_CD',KALMAN_CD,IERZ)
+        CALL EZGET_l('CD_ERROR',CD_ERROR,IERZ)
         IF(KALMAN_CD)THEN
           CALL EZGET('TOLERCD',TOLERCD,IERZ)
           CALL EZGET('TOLERCW',TOLERCW,IERZ)

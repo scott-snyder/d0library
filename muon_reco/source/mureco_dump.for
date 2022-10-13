@@ -63,11 +63,11 @@ C
 C
       MURECO_DDF=.TRUE.
       CALL EZPICK('MURECO_RCP')               ! select MURECO_RCP
-      CALL EZGET('NUM_DUMPS',NUMDMP,IER)   ! get number of banks
-      CALL EZGET('NUM_EVENT_DUMPS',NUMEVD,IER)  ! Get number of events
+      CALL EZGET_i('NUM_DUMPS',NUMDMP,IER)   ! get number of banks
+      CALL EZGET_i('NUM_EVENT_DUMPS',NUMEVD,IER)  ! Get number of events
 C
       IF(NUMDMP.LE.MAXDMP)THEN
-        CALL EZGET('DUMP_BANKS',BANKS,IER) ! get list of banks
+        CALL EZGET_iarr('DUMP_BANKS',BANKS,IER) ! get list of banks
       ELSE
         CALL ERRMSG('MURECO','MURECO_DDF',
      &      'DUMP REQUEST EXCEEDS MAXIMUM ALLOWED ','W')
