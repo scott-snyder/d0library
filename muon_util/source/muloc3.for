@@ -56,8 +56,8 @@ C                            ! in nb, central, vtxy,vtxx =0.
       DATA CHISQMX/300./
 C----------------------------------------------------------------------
 C
-      CALL VZERO(ISDT,NSM*4)
-      CALL VZERO(ISPD,NSM*4)
+      CALL VZERO_i(ISDT,NSM*4)
+      CALL VZERO_i(ISPD,NSM*4)
       CALL VZERO(PNT,NSM*4*2)
       CALL VZERO(QP,4*NSM)
       NSPD   = 0
@@ -125,7 +125,7 @@ C
               CALL VZERO(DTX,NHP)
               CALL VZERO(DTY,NHP)
               CALL VZERO(DTW,NHP)
-              CALL VZERO(PL,4)
+              CALL VZERO_i(PL,4)
               DO J = 1,4
                 IF (DX(J) .LT. 9998.) THEN
                   NT = NT+1

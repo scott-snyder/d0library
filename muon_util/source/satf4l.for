@@ -57,7 +57,7 @@ C
       END IF
       IF (FIRST) THEN
         CALL EZPICK ('SAMUS_UTIL_PARAM')
-        CALL EZGET ('NHTMX', NHTMX, IERR)
+        CALL EZGET_i ('NHTMX', NHTMX, IERR)
         CALL EZGET ('RDRTB', RDRTB, IERR)
         CALL EZRSET
         FIRST = .FALSE.

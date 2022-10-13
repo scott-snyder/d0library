@@ -57,7 +57,7 @@ C               data for octants 0-7     5,6 dummy
 C----------------------------------------------------------------------
       IF ( FIRST ) THEN
         FIRST = .FALSE.
-        CALL EZGET( 'SCINT_C_CELL', IEDGE, IER )
+        CALL EZGET_i( 'SCINT_C_CELL', IEDGE, IER )
         CALL EZGET( 'SCINT_C_WIRE', WIRE_MAX, IER )
       END IF
 C

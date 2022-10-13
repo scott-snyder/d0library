@@ -50,7 +50,7 @@ C
       CALL EZGET('LMUMOD',LMUMOD,IER)
       IF (LMUMOD .EQ. 4) THEN
         CALL EZGSET('KMUMOD()',NMODUL,1)       ! Number of modules
-        CALL EZGSET('KMUMOD',MODNUMS,1)         ! Array of module numbers
+        CALL EZGSET('KMUMOD',MODNUMS(1),1)         ! Array of module numbers
       ENDIF
 C
 C     Get CALIB_T RCP switch

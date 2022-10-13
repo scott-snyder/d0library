@@ -51,7 +51,7 @@ C
         CALL EZGET  ('DISCM', DISCM, IERR)
         CALL EZGET  ('PLANA', PLANA, IERR)
         CALL EZGET  ('CHISQ', CHISQ, IERR)
-        CALL EZGET  ('NTRMX', NTRMX, IERR)
+        CALL EZGET_i  ('NTRMX', NTRMX, IERR)
         IF (NTRMX .LT. 1) NTRMX = 1
         CALL EZRSET
         FIRST = .FALSE.

@@ -168,7 +168,7 @@ C
 C
         IF(LMUNMOD.EQ.4) THEN           !Read list from MURECO.RCP
           CALL EZGSET('KMUMOD()',MNUM,1)
-          CALL EZGSET('KMUMOD',MLIST,1)
+          CALL EZGSET('KMUMOD',MLIST(1),1)
           DO I=1,MNUM
             LISTM(MLIST(I)) = I
           ENDDO

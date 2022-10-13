@@ -79,7 +79,7 @@ C
 C ****  Read array with border numbers of the runs
 C
       CALL EZGET('MAX_RUN',MAX_RUN,IERR)        ! Length of array
-      CALL EZGET('NO_RU',RUN_NO,IERR)
+      CALL EZGET_iarr('NO_RU',RUN_NO,IERR)
       IF (IQ(LHEAD+1).GE.1000) THEN   ! MC data
         LMUD1=GZMUD1()
         NDATA=IQ(LMUD1-1)

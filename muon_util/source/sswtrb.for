@@ -38,10 +38,10 @@ C ****  define constants
 C
       IF (FIRST) THEN
         CALL EZPICK ('SAMUS_UTIL_PARAM')
-        CALL EZGET ('NHTMX', NHTMX, IERR)
-        CALL EZGET ('NTRMX', NTRMX, IERR)
-        CALL EZGET ('NHTBB', NHTBB, IERR)
-        CALL EZGET ('NHTMB', NHTMB, IERR)
+        CALL EZGET_i ('NHTMX', NHTMX, IERR)
+        CALL EZGET_i ('NTRMX', NTRMX, IERR)
+        CALL EZGET_i ('NHTBB', NHTBB, IERR)
+        CALL EZGET_i ('NHTMB', NHTMB, IERR)
         CALL EZGET ('DRFMX', DRFMX, IERR)
         CALL EZRSET
         FIRST = .FALSE.

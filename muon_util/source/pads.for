@@ -54,7 +54,7 @@ C
       INTEGER MUNMOD3,DUM,NUMMODS,HID
       LOGICAL PROCEED,WRITE_EVENT_CRP
       DATA PADREP/60.96/
-      DATA I16/'177777'O/
+      DATA I16/o'177777'/
 C
 C ************************BEGIN PAD ANALYSIS*********************
 C
@@ -74,8 +74,8 @@ C
         NUMMODS=MUNMOD3(0,DUM)
         EMOD=-1            !current module # along track
         NMT=0              ! # of different mods hit along track
-        CALL VZERO(NPLN,40)
-        CALL VZERO(WIREADD,40)
+        CALL VZERO_i(NPLN,40)
+        CALL VZERO_i(WIREADD,40)
         CALL VZERO(X,40)
         CALL VZERO(Y,40)
         CALL VZERO(Q1,40)
@@ -84,8 +84,8 @@ C
         CALL VZERO(TDIV,40)
         CALL VZERO(DELT,40)
         CALL VZERO(PADNUM,40)
-        CALL VZERO(NPT,10)
-        CALL VZERO(MODULE,10)
+        CALL VZERO_i(NPT,10)
+        CALL VZERO_i(MODULE,10)
         CALL VZERO(SLOPE,10)
         CALL VZERO(INTRCPT,10)
         DO I=1,10

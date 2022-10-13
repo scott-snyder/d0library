@@ -86,7 +86,7 @@ C
       IF (FIRST) THEN
         CALL EZPICK ('SAMUS_UTIL_PARAM')
         CALL EZGET  ('ROAD1', ROAD1, IERR)
-        CALL EZGET  ('SNGLH', SNGLH, IERR)
+        CALL EZGET_i  ('SNGLH', SNGLH, IERR)
         CALL EZRSET
         FIRST = .FALSE.
       END IF

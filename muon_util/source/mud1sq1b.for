@@ -43,7 +43,7 @@ C----------------------------------------------------------------------
       INTEGER I_MOD_TEST,MOD_TEST,LMOD_OFF_TEST,LMOD_OFF_NEXT_TEST
       INTEGER MADC_TEST,NHIT_TEST,IFLG_TEST,IUS4_TEST,MLAT_TEST(4)
 C----------------------------------------------------------------------
-      DATA  IMADC/'801C0000'X/
+      DATA  IMADC/z'801C0000'/
 C----------------------------------------------------------------------
       CALL VZERO(BUF,IBMAX)
       IER = 0

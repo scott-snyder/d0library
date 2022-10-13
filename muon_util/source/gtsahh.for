@@ -31,7 +31,7 @@ C
       INTEGER LSAHH,GZSAHH,LMUD1,GZMUD1
       INTEGER I,ISTA,JMUD1,JHEADW,B12
 	integer ishft,itest
-      DATA B12/'FFF'X/
+      DATA B12/z'FFF'/
 C
       NRAW = 0
       LSAHH = GZSAHH()

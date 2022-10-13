@@ -68,12 +68,12 @@ C-
         IF (LSAHH.EQ.0) THEN 
           CALL BKSAHH(0,0,LSAHH)
           CALL BKMUHT(0,0,LMUHT)
-          LMUD1=GZMUD1()
+          LMUD1=GZMUD1(0)
           NMUONH=IQ(LMUD1-1)/9
           NMAXF=10*NMUONH
           CALL BKMUOF(0,NMAXF,LMUOF)
-          LMUD1=GZMUD1()
-          LMUHT=GZMUHT()
+          LMUD1=GZMUD1(0)
+          LMUHT=GZMUHT(0)
           LSAHH=GZSAHH()
           CALL MUSRT1(LMUD1,LMUHT,LMUOF,LSAHH,IERR)  
         END IF

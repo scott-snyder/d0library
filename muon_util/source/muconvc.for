@@ -20,7 +20,7 @@ C----------------------------------------------------------------------
       REAL ETA_PHYS,PHI,PC(3),THE_D,ETA_D
       INCLUDE 'D0$INC:PI.DEF'
       REAL DIRC(3),XC(3),ALPHA,THE_PHYS
-      REAL C(3),R,OR(3),X(3)
+      REAL C(3),R
       INTEGER I,IHIT
       REAL DD,LL,BS,VV,LX,XX
 C
@@ -28,11 +28,6 @@ C
       DIRC(1) = SIN(THE_PHYS) * COS(PHI)
       DIRC(2) = SIN(THE_PHYS) * SIN(PHI)
       DIRC(3) = COS(THE_PHYS)
-      DO I=1,3
-        OR(I) = 0.0
-        X(I) = PC(I)
-        X(I+3) = DIRC(I)
-      ENDDO
 C
       CALL MUPLNZX(0.0,PC,DIRC,C,IHIT)
       IF(IHIT .EQ. 0) CALL MUPLNYZ(0.0,PC,DIRC,C,IHIT)

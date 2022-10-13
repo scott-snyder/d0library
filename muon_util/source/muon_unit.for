@@ -33,8 +33,7 @@ C----------------------------------------------------------------------
       IF(FIRST) THEN
         CALL GTUNIT(IUSER,IUNIT,IER)
         IF(IER.NE.0)
-     &    CALL INTMSG('GTUNIT','MUON_UNIT',
-     &    'cannot open unit IUNIT')
+     &    CALL INTMSG('GTUNIT MUON_UNIT cannot open unit IUNIT')
         FIRST = .FALSE.
       ENDIF    !first
 C

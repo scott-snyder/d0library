@@ -36,6 +36,7 @@ C----------------------------------------------------------------------
       INTEGER IWADD,IHMUOH,TIMSIN,LMUOH,GZMUOH,IDELT,IPAD 
       INTEGER PASS,IVER,NV,IMAX,I,II,IHIT(12) 
       INTEGER  LHIT,LSAV,GZMTRH,IPAR,IPAR1,IPAR2,NBAD
+      integer jj
       REAL XWAM(40),YWAM(40),ZWAM(40),SWAM(40),CWAM(40),WTWAM(40) 
       REAL XWIRE(50),YWIRE(50),ZWIRE(50),SINE(50),COSINE(50),WT(50)
       REAL RESID(50),RESID2,LR(50),BAD(50)
@@ -86,9 +87,13 @@ C
       END DO
  2000 CONTINUE
       CHISQ=0.
-      CALL VZERO(PAR8,8)
-      CALL VZERO(SUM,8)
-      CALL VZERO(COV8,32)
+      do ii=1, 4
+        par8(ii) = 0
+        sum(ii) = 0
+        do jj=1, 4
+          cov8(ii,jj) = 0
+        enddo
+      enddo
       CALL VZERO(AA,40)
 C
       NTOT=NWAM 

@@ -63,14 +63,14 @@ C
         CALL EZGET  ('PLANA', PLANA, IERR)
         CALL EZGET  ('PPAR1', PPAR1, IERR)
         CALL EZGET  ('PPAR2', PPAR2, IERR)
-        CALL EZGET  ('NTRMX', NTRMX, IERR)
+        CALL EZGET_i  ('NTRMX', NTRMX, IERR)
 
         IF (NTRMXC .LT. 1) NTRMXC = 1
         CALL EZRSET
         CALL PATHGT(PATH)
         FILTER = PATH.EQ.FILT_PATH
         IF(FILTER) THEN
-          CALL EZGET  ('NTRMXC', NTRMXC, IERR)
+          CALL EZGET_i  ('NTRMXC', NTRMXC, IERR)
         ELSE
           NTRMXC=NTRMX
         END IF

@@ -37,8 +37,8 @@ C----------------------------------------------------------------------
       DATA CHISQMX/10./
 C----------------------------------------------------------------------
 
-      CALL VZERO(JHDR,NSM*4)
-      CALL VZERO(ISOLDR,NSM*4)
+      CALL VZERO_i(JHDR,NSM*4)
+      CALL VZERO_i(ISOLDR,NSM*4)
       CALL VZERO(QD,4*NSM)
       CALL VZERO(D,4*4*NHP)
       CALL VZERO(PNT,NSM*4*2)

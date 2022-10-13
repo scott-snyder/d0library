@@ -15,7 +15,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       INTEGER EMOD,IMOD,NUMMODS,NTRK
       INTEGER NMODUL,MODNMS(400),MUNMOD3,LMUNMOD,MLIST0(164)
-      INTEGER I,J,L,IERR,DUM,LUN,SSUNIT
+      INTEGER I,J,L,IERR,DUM(1),LUN,SSUNIT
       REAL C,AV,RES,CHISQ,SIG(3)
       REAL RES_3MISS
       INTEGER HID
@@ -46,7 +46,7 @@ C
       CALL EZGET('LMUMOD',LMUNMOD,IERR)
       IF (LMUNMOD.EQ.4) THEN
         CALL EZGSET('KMUMOD()',NMODUL,1)   !# of entries in array KMUMOD.
-        CALL EZGSET('KMUMOD',MODNMS,1)     !local array containing mods.
+        CALL EZGSET('KMUMOD',MODNMS(1),1)     !local array containing mods.
         NUMMODS=MUNMOD3(-NMODUL,MODNMS)    !initializes MUNMOD3 so that-
       ENDIF                                !NUMMODS=NMODUL
       NUMMODS=MUNMOD3(0,DUM)
@@ -58,7 +58,8 @@ C
   500 FORMAT(' MOD',5X,'RESOLUTION(CM)',5X,' # TRACKS USED',/)
 C
       DO 100 I=1,NUMMODS
-        EMOD=MUNMOD3(1,I)
+        dum(1) = i
+        EMOD=MUNMOD3(1,dum)
         DO J=1,164
           IF (EMOD.EQ.MLIST0(J)) IMOD=J
         ENDDO  

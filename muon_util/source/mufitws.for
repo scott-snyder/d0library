@@ -40,6 +40,7 @@ C----------------------------------------------------------------------
       INTEGER NSAM,ISAM,QUAD,LSAHH,GZSAHH,LSTTH
       INTEGER ITRAK,LMUOT,GZMUOT,NPTRAK,NTOT,ITOT,NA,NBC
       INTEGER PASS,IVER,NV
+      integer ii, jj
       REAL XMAGC,YMAGC,ZMAGC,WTX,WTY,VERTEX(3),WTVERX,WTVERY
       INTEGER  IPAR1,IPAR2
       INCLUDE 'D0$INC:PI.DEF'
@@ -94,9 +95,13 @@ C      END IF
       PASS=1
  2000 CONTINUE
       CHISQ=0.
-      CALL VZERO(PAR8,8)
-      CALL VZERO(SUM,8)
-      CALL VZERO(COV,32)
+      do ii=1, 4
+        par8(ii) = 0
+        sum(ii) = 0
+        do jj=1, 4
+          cov(ii,jj) = 0
+        enddo
+      enddo
       CALL VZERO(AA,40)
 C
 C  Get SAMUS points
