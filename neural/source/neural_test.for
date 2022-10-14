@@ -35,7 +35,7 @@ C----------------------------------------------------------------------
 C
       CALL EZPICK('NEURAL_RCP')
 C
-      CALL EZGET('NUMBER_OF_TEST_PATTERNS',NPAT,STATUS)
+      CALL EZGET_i('NUMBER_OF_TEST_PATTERNS',NPAT,STATUS)
       NPAT1 = MIN(MAXPAT,NPAT)
       WRITE(6,'(/,''  --- Number of Patterns Requested: '',I10)') NPAT
 C
@@ -44,9 +44,9 @@ C
         CUT = 0.50               ! Default cut
       ENDIF
 C
-      CALL EZGET('INP_NTUPLE_ID',NTUPLE_ID,STATUS)
+      CALL EZGET_i('INP_NTUPLE_ID',NTUPLE_ID,STATUS)
       IF ( NTUPLE_ID .LE. 0 ) NTUPLE_ID = 2
-      CALL EZGET('OUT_NTUPLE_ID',IDN_OUT,STATUS)
+      CALL EZGET_i('OUT_NTUPLE_ID',IDN_OUT,STATUS)
       IF(IDN_OUT.EQ.0) IDN_OUT = NTUPLE_ID+1
 C
       OFFSET = 10
