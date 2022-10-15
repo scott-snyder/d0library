@@ -25,7 +25,7 @@ C-                       JTL December, 1986                          -
 C-                                                                   -
 C---------------------------------------------------------------------
       IMPLICIT NONE
-      INTEGER I
+      INTEGER I, j
       REAL PAX(3)
       REAL*8 ROT(3,3)
       REAL RTEST(3,3) !reconstructed rotation matrix for checking
@@ -39,8 +39,11 @@ C---------------------------------------------------------------------
 
       CALL PAXROT(PAX,RTEST)
 C     CALL VSUB(RTEST,ROT,DIFFS,9)
-      DO 10 I = 1, 9
-   10 DIFFS(I, 1) = RTEST(I, 1) - ROT(I, 1)
+      do i=1, 3
+        do j=1,3
+          DIFFS(I, j) = RTEST(I, j) - ROT(I, j)
+        enddo
+      enddo
 C
       DIFF = VASUM(DIFFS,9)
 

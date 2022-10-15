@@ -17,7 +17,7 @@ C-
 C----------------------------------------------------------------------
       IMPLICIT NONE
       INTEGER IKEY,NW,NELE,IDIR,IERR
-      INTEGER IORD,IRANK,ITMP,ILEN,ISTAT,I,J
+      INTEGER IORD,IRANK,ITMP,ILEN,ISTAT,I,J,k
       REAL    RDAT(NW,NELE)
       INTEGER LIB$GET_VM,LIB$FREE_VM
 C
@@ -33,8 +33,11 @@ C
       IF( IDIR.GT.0 ) GOTO 999
       DO I=1,NELE/2
          J=NELE+1-I
-         CALL UCOPY(RDAT(1,I),%VAL(ITMP),NW)
-         CALL UCOPY(RDAT(1,J),RDAT(1,I),NW)
+         CALL UCOPY_i(RDAT(1,I),%VAL(ITMP),NW)
+         do k=1, nw
+           rdat(k,i) = rdat(k,j)
+         enddo
+c         CALL UCOPY(RDAT(1,J),RDAT(1,I),NW)
          CALL UCOPY(%VAL(ITMP),RDAT(1,J),NW)
       ENDDO
 C

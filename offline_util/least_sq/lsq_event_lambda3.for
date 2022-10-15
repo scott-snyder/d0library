@@ -36,8 +36,8 @@ C----------------------------------------------------------------------
       IF(FIRST)THEN                     ! LOCAL INIT
         FIRST = .FALSE.
         CALL EZPICK('LSQ_RCP')
-        CALL EZGET('DO_LSQ_ANAL',DO_LSQ_ANAL,IER)
-        CALL EZGET('LSQ_DUMP_EVENTS',LSQ_DUMP_EVENTS,IER)
+        CALL EZGET_l('DO_LSQ_ANAL',DO_LSQ_ANAL,IER)
+        CALL EZGET_i('LSQ_DUMP_EVENTS',LSQ_DUMP_EVENTS,IER)
         CALL EZRSET
         DUNIT = 15
 C

@@ -59,7 +59,7 @@ C... proceed with read/write
       CALL gtunit(GT_USER_IDN,infile_unit,IERROR)
       IF (ierror.NE.0) CALL errmsg('GTUNIT failed',
      +  'RUNSUM_INFO',
-     +  'CANNOT get unit for input data file')
+     +  'CANNOT get unit for input data file','W')
       CALL d0open (infile_unit,ch_file_name,'IF',opened_ok)
       IF (.NOT.opened_ok) CALL errmsg('D0OPEN FAILED',
      +  'RUNSUM_INFO',

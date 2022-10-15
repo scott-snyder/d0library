@@ -24,9 +24,9 @@ C----------------------------------------------------------------------
       IF ( FIRST ) THEN
         FIRST = .FALSE.
         CALL EZPICK('HMATRIX_RCP')
-        CALL EZGET('DUMP_W_EVENT',DUMP_EVENT,IER)
+        CALL EZGET_l('DUMP_W_EVENT',DUMP_EVENT,IER)
         CALL EZGET('W_TRANSVERSE_MASS_CUT',WMASS_CUT,IER)
-        CALL EZGET('HMATRIX_USER',HM_USER,IER)
+        CALL EZGET_i('HMATRIX_USER',HM_USER,IER)
         CALL EZ_FILE_OPEN(HM_USER,'W_DUMP_FILE','OF',WUNIT,
      &    FILENAME,IER)
 C

@@ -75,7 +75,7 @@ C
 C
 C ****  get the print flag
 C
-      CALL EZGET ('LHPRINT', LHPRINT,IER)
+      CALL EZGET_l ('LHPRINT', LHPRINT,IER)
 
       IF (EZERR(IER)) THEN
         CALL ERRMSG('D0HCMP_HST_RCP','D0HCMP_HST_RCP',

@@ -25,6 +25,23 @@ C----------------------------------------------------------------------
       LOGICAL DIRECT
       SAVE NREC
       DATA NREC/100*0/
+
+      integer z0123CDEF
+      data z0123CDEF / z'0123CDEF' /
+      integer zEFCD2301
+      data zEFCD2301 / z'EFCD2301' /
+      integer z80708070
+      data z80708070 / z'80708070' /
+      integer z70807080
+      data z70807080 / z'70807080' /
+      integer z4321ABCD
+      data z4321ABCD / z'4321ABCD' /
+      integer zCDAB2143
+      data zCDAB2143 / z'CDAB2143' /
+      integer z80618061
+      data z80618061 / z'80618061' /
+      integer z61806180
+      data z61806180 / z'61806180' /
 C----------------------------------------------------------------------
       DIRECT = .FALSE.
       GO TO 1
@@ -50,10 +67,10 @@ C-
         ENDIF
         IQUEST(2) = NGOT/4
         IF(IRC.EQ.0.AND.START)THEN
-          IF(IBUF(1).NE.'0123CDEF'X.AND.IBUF(1).NE.'EFCD2301'X)GO TO 10
-          IF(IBUF(2).NE.'80708070'X.AND.IBUF(2).NE.'70807080'X)GO TO 10
-          IF(IBUF(3).NE.'4321ABCD'X.AND.IBUF(3).NE.'CDAB2143'X)GO TO 10
-          IF(IBUF(4).NE.'80618061'X.AND.IBUF(4).NE.'61806180'X)GO TO 10
+          IF(IBUF(1).NE.z0123CDEF.AND.IBUF(1).NE.zEFCD2301)GO TO 10
+          IF(IBUF(2).NE.z80708070.AND.IBUF(2).NE.z70807080)GO TO 10
+          IF(IBUF(3).NE.z4321ABCD.AND.IBUF(3).NE.zCDAB2143)GO TO 10
+          IF(IBUF(4).NE.z80618061.AND.IBUF(4).NE.z61806180)GO TO 10
         ENDIF
       ELSE
         IF(DIRECT)THEN

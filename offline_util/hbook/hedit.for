@@ -22,7 +22,7 @@ C
       COMMON/HCTIT/LTIT(40)
 C
       COMMON/HFORM/IA(127),IDU
-      DIMENSION KABEL(1),B(1)
+      DIMENSION KABEL(1),B(*)
       EQUIVALENCE (IB1,BB1),(IB2,BB2)
 C
 C     ------------------------------------------------------------------
@@ -37,7 +37,7 @@ C
       K=NCHAR*(NWTI-1)
       IF(K.GT.118)K=118
       CALL VBLANK(IA,128)
-      CALL UBLOW(LTIT,IA(11),K)
+      CALL UBLOW(LTIT(1),IA(11),K)
       CALL UBLOW(ITLAST,IA(K+11),NCHAR)
       CALL HFORMA(1)
 C

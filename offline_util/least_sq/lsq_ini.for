@@ -42,7 +42,7 @@ C
         CALL EZERR(IER)
 C
         IF(IER.EQ.0) THEN
-          CALL EZGET('NUMBER_OF_WARNINGS',NWARN,IER)
+          CALL EZGET_i('NUMBER_OF_WARNINGS',NWARN,IER)
           CALL ERRMAX ('LSQ',-1,NWARN)
           LSQ_INI= .TRUE.
         ELSE
@@ -60,7 +60,7 @@ C
           M_DELETE(I) = 0
         ENDDO
 C
-        CALL EZGET('NEW_RZ',NEW_RZ,IER)
+        CALL EZGET_l('NEW_RZ',NEW_RZ,IER)
         CALL EZGETS('SUB_DIRECTORY',1,SUB_DIRECTORY,NLEN,IER)
 C
         IF ( NEW_RZ ) THEN

@@ -18,7 +18,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$INC:HMATRIX_PARS.INC'
       INCLUDE 'D0$INC:ZHMATRIX.INC'
       INTEGER NEVENT
-      DOUBLE PRECISION DAVER,DEMAT,DAVERI,DAVERJ
+      DOUBLE PRECISION DAVER,DEMAT,DAVERI,DAVERJ,dtemp
       INTEGER I,J,I1,J1,IND,IND1,HMINDEX,IXIO,IER
       REAL    TEMP
       INTEGER NERROR
@@ -139,8 +139,8 @@ C
           IND1 = HMINDEX(I,J,VIS_DIM,VIS_DIM)
           IND = 2*IND1-1
           CALL DDGET(LHVIS+IND,DEMAT)
-          TEMP = DEMAT                  ! SINGLE PRECISION
-          CALL DDSET(LTEMP+IND1,TEMP)    ! IN TEMP BANK
+          dTEMP = DEMAT                  ! SINGLE PRECISION
+          CALL DDSET(LTEMP+IND1,dTEMP)    ! IN TEMP BANK
         ENDDO
       ENDDO
 C

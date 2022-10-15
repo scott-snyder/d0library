@@ -95,7 +95,7 @@ C ****  Get NEWFILE switch for file
 C
         LAST_II = II
         IF ( CTRL .EQ. 0 ) THEN
-          CALL EZGET_NEXT_VALUE_TYPE
+          CALL EZGET_NEXT_VALUE_TYPE_l
      &      (PARAM(1:LPARAM),NEWFILE,CVAL,ITYPE,LENGTH,CTRL,II)
           IF ( ITYPE .NE. VTLOG ) THEN
             NEWFILE = .TRUE.

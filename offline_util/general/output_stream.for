@@ -76,9 +76,9 @@ C
 C
 C ****  NUMBERS of EVENTS
 C
-        CALL EZGET('WRITE_BEGIN_RUN_RECORD',DO_BRUN,IER)
-        CALL EZGET('NEVT_SKIP',NSKIP,IER)
-        CALL EZGET('NEVT_WRITE',NEVENT,IER)
+        CALL EZGET_l('WRITE_BEGIN_RUN_RECORD',DO_BRUN,IER)
+        CALL EZGET_i('NEVT_SKIP',NSKIP,IER)
+        CALL EZGET_i('NEVT_WRITE',NEVENT,IER)
         IF ( NEVENT.LE.0 ) NEVENT = 999999
         WRITE(LOG_UNIT,*) ' Events: skip/WRITE ',nskip,nevent
         IEVENT = 0
@@ -104,9 +104,9 @@ C
 C
 C ****  DROP UNWANTED BANKS
 C
-          IF( IEVENT.EQ.1)CALL DZSURV('Existing event banks',0,LQ)
+          IF( IEVENT.EQ.1)CALL DZSURV('Existing event banks',0,LQ(1))
           CALL PURGE_BANKS ('OUTPUT_STREAM_RCP',IER)
-          IF( IEVENT.EQ.1)CALL DZSURV('Purged event banks',0,LQ)
+          IF( IEVENT.EQ.1)CALL DZSURV('Purged event banks',0,LQ(1))
 C
 C ****  WRITE IT OUT
 C
