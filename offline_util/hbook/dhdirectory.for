@@ -244,7 +244,7 @@ C
             NLEVEL = 1    ! top directory only
           ELSE
             NLEVEL = 2
-            DO LEVEL = 3, NMAX
+            DO LEVEL = 3, lMAX
               CALL EZGETS(DIRPATH(III:JJJ),LEVEL-1,SUBDIR(LEVEL),LENDIR,
      &          STATUS)
               IF(STATUS.NE.0) GOTO 5
