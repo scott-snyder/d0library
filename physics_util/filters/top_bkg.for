@@ -61,21 +61,21 @@ C----------------------------------------------------------------------
      &      'Error reading RCP file','F')
         ENDIF
         CALL EZPICK('TOP_BKG_RCP')
-        CALL EZGET('SELECT_ON_L2', SELECT_ON_L2, IER)
-        IF(IER.EQ.0)CALL EZGET('COUNT_JETS', COUNT_JETS, IER)
+        CALL EZGET_l('SELECT_ON_L2', SELECT_ON_L2, IER)
+        IF(IER.EQ.0)CALL EZGET_l('COUNT_JETS', COUNT_JETS, IER)
         IF(IER.EQ.0)CALL EZ_GET_CHARS('FILTNAMES',NFNAME_REQ,FNAME_REQ, 
      &    IER)
-        IF(IER.EQ.0)CALL EZGET('JET_ALG', JET_ALG, IER)
+        IF(IER.EQ.0)CALL EZGET_i('JET_ALG', JET_ALG, IER)
         IF(IER.EQ.0)CALL EZGET('JET_MIN_ET', JET_MIN_ET, IER)
         IF(IER.EQ.0)CALL EZGET('JET_MAX_ETA', JET_MAX_ETA, IER)
         IF(IER.EQ.0)CALL EZGET('EMJET_MIN_ET', EMJET_MIN_ET, IER)
         IF(IER.EQ.0)CALL EZGET('EMJET_MIN_EMFRAC', EMJET_MIN_EMFRAC, 
      &    IER)
         IF(IER.EQ.0)CALL EZGET('EMJET_MAX_ETA', EMJET_MAX_ETA, IER)
-        IF(IER.EQ.0)CALL EZGET('NJET_MIN_BY_FILT', NJET_MIN_BY_FILT, 
-     &    IER)
-        IF(IER.EQ.0)CALL EZGET('NEMJET_MIN_BY_FILT', NEMJET_MIN_BY_FILT, 
-     &    IER)
+        IF(IER.EQ.0)CALL EZGET_arr('NJET_MIN_BY_FILT', NJET_MIN_BY_FILT
+     &       ,IER)
+        IF(IER.EQ.0)CALL EZGET_iarr('NEMJET_MIN_BY_FILT',
+     &       NEMJET_MIN_BY_FILT,IER)
         IF (IER.NE.0) THEN
           CALL ERRMSG('TOP_BKG','TOP_BKG_RCP',
      &        'Error getting TOP_BKG RCP values','F')

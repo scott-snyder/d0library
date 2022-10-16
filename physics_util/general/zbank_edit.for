@@ -31,14 +31,14 @@ C-------------------------------------------------------
         NPASS = 0
         NFAIL = 0
         CALL EZPICK(RCP_BANK)
-        CALL EZGET('DO_EDIT',EDIT,IER)
+        CALL EZGET_l('DO_EDIT',EDIT,IER)
         IF (IER.NE.0) THEN
           CALL ERRMSG('DO_EDIT MISSING IN RCP',
      &        'ZBANK_EDIT',RCP_BANK,'W')
           EDIT = .FALSE.
           GOTO 999
         END IF
-        CALL EZGET('MESSAGE_INTERVAL',INTERVAL,IER)
+        CALL EZGET_i('MESSAGE_INTERVAL',INTERVAL,IER)
         IF(INTERVAL.EQ.0) INTERVAL = 100
         CALL EZGET('CUT',CUT,IER)
         IF (EDIT) THEN

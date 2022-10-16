@@ -60,7 +60,7 @@ C add another to list
    10 CONTINUE
       IF(NEW) THEN
         CALL EZPICK(RCP_BANK)
-        CALL EZGET('SELECT_TRIGGERS',TRIGGER(NUM_RCP),IER)
+        CALL EZGET_l('SELECT_TRIGGERS',TRIGGER(NUM_RCP),IER)
         IF( IER.NE.0) THEN
           MSG = 'NO TRIGGER SWITCH IN '//RCP_BANK
           CALL ERRMSG('NOTRIGSWTCH','TRIGGER_BIT_CHECK',
@@ -69,7 +69,7 @@ C add another to list
         END IF
         RCP_BANK_LIST(NUM_RCP) = RCP_BANK
         IF (TRIGGER(NUM_RCP)) THEN
-          CALL EZGET('TRIGGER_BITS',BITS,IER)
+          CALL EZGET_i('TRIGGER_BITS',BITS,IER)
           CALL EZGETA ('TRIGGER_BITS',0,0,0,N,IER)
           IF( (IER.EQ.0) .OR. (N.GT.0) ) THEN
             MASK(NUM_RCP) = 0

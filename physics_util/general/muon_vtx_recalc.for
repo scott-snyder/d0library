@@ -60,10 +60,10 @@ C- Compute BdL for possible cross-check w/MUOT BdL
 
 C- Get initial muon Z position at beam line...
 
-      CALL UCOPY(PMUO(4),VFIT,1)
+      CALL UCOPY_i(PMUO(4),VFIT,1)
       VFIT = MOD(VFIT/10,10)         ! Global fit status: Vertex?
       IF( VFIT.EQ.1 ) THEN
-        CALL UCOPY(PMUO(54),IVTX,1)
+        CALL UCOPY_i(PMUO(54),IVTX,1)
         Z0 = ZV0                     ! Get Z of orginally matched vertex
       ELSE
         IVTX = -1

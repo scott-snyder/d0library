@@ -66,7 +66,7 @@ C
         FIRST = .FALSE.
 C
         CALL EZPICK('HMATRIX_RCP')
-        CALL EZGET('USE_CASH_INFO',USE_CASH_INFO,IER)
+        CALL EZGET_l('USE_CASH_INFO',USE_CASH_INFO,IER)
         IF (.NOT.USE_CASH_INFO) THEN
           USE_CASH_INFO = .TRUE.
           CALL EZSET('USE_CASH_INFO',USE_CASH_INFO,IER)
@@ -85,8 +85,8 @@ C
           ENDIF
           CALL EZPICK('CAPHEL_RCP')
           CALL EZGET('WEIGHT_CUT',WEIGHT_CUT,IER)
-          CALL EZGET('USE_LOG_WEIGHTED_CENTER',USE_LOG,IER)
-          CALL EZGET('DO_HMATRIX',DO_HMATRIX,IER)
+          CALL EZGET_l('USE_LOG_WEIGHTED_CENTER',USE_LOG,IER)
+          CALL EZGET_l('DO_HMATRIX',DO_HMATRIX,IER)
           CALL EZRSET
         ENDIF
 C
@@ -270,11 +270,11 @@ C       SET ZTRAK PARAMETERS to run from DST, ie use only the tracks in
 C       the road as determined when the event was originally reconstructed.
 C
             CALL EZPICK('ZTRAKS_RCP')
-            CALL EZGET('MKZFIT',MKZFIT,IER)
-            CALL EZGET('VTXON',VTXON,IER)
-            CALL EZGET('CDCON',CDCON,IER)
-            CALL EZGET('FDCON',FDCON,IER)
-            CALL EZGET('TRDON',TRDON,IER)
+            CALL EZGET_l('MKZFIT',MKZFIT,IER)
+            CALL EZGET_l('VTXON',VTXON,IER)
+            CALL EZGET_l('CDCON',CDCON,IER)
+            CALL EZGET_l('FDCON',FDCON,IER)
+            CALL EZGET_l('TRDON',TRDON,IER)
             TURN_OFF = .FALSE.
             CALL EZSET('MKZFIT',TURN_OFF,IER)
             CALL EZSET('VTXON',TURN_OFF,IER)
@@ -338,11 +338,11 @@ C
             ENDDO
 C
             CALL EZPICK('ZTRAKS_RCP')
-            CALL EZGET('MKZFIT',MKZFIT,IER)
-            CALL EZGET('VTXON',VTXON,IER)
-            CALL EZGET('CDCON',CDCON,IER)
-            CALL EZGET('FDCON',FDCON,IER)
-            CALL EZGET('TRDON',TRDON,IER)
+            CALL EZGET_l('MKZFIT',MKZFIT,IER)
+            CALL EZGET_l('VTXON',VTXON,IER)
+            CALL EZGET_l('CDCON',CDCON,IER)
+            CALL EZGET_l('FDCON',FDCON,IER)
+            CALL EZGET_l('TRDON',TRDON,IER)
             CALL EZRSET
           ENDIF
 C

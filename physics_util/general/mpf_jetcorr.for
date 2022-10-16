@@ -73,19 +73,19 @@ C----------------------------------------------------------------------
           CALL errmsg('NO QCD_JET_CORRECTION_RCP',
      &      'mpf_jetcorr','NO RCP file to work with','F')
         ENDIF
-        CALL ezget('DO_BIAS_CORRECTION',DO_BIAS_CORRECTION,IER)
+        CALL ezget_l('DO_BIAS_CORRECTION',DO_BIAS_CORRECTION,IER)
         IF (ier.EQ.0) CALL ezget('MIN_JET_ENERGY',MIN_JET_ENERGY,IER)
-        IF (ier.EQ.0) CALL ezgeta('MPF_ERR_BIN',0,0,0,nbins,ier)
+        IF (ier.EQ.0) CALL ezgeta_i('MPF_ERR_BIN',0,0,0,nbins,ier)
         IF (ier.EQ.0) CALL ezgeta('MPF_ERR_BIN',1,nbins,1,mpf_err_bin,
      &      ier)
-        IF (ier.EQ.0) CALL ezget('MPF_RES',mpf_res,ier)
+        IF (ier.EQ.0) CALL ezget_rarr('MPF_RES',mpf_res,ier)
         IF (ier.EQ.0) CALL ezgeta('MPF_RES_LOW',
      &      1,nbins*nalgo,1,mpf_res_low,ier)
         IF (ier.EQ.0) CALL ezgeta('MPF_RES_HIGH',
      &      1,nbins*nalgo,1,mpf_res_high,ier)
-        CALL ezget('MC_RCP',mc_rcp, ier )
+        CALL ezget_i('MC_RCP',mc_rcp, ier )
         IF (MC_RCP.EQ.0) THEN
-          IF (ier.EQ.0) CALL ezget('MPF_RESV12',mpf_resV12,ier)
+          IF (ier.EQ.0) CALL ezget_rarr('MPF_RESV12',mpf_resV12,ier)
           IF (ier.EQ.0) CALL ezgeta('MPF_RES_LOWV12',
      &        1,nbins*nalgo,1,mpf_res_lowv12,ier)
           IF (ier.EQ.0) CALL ezgeta('MPF_RES_HIGHV12',

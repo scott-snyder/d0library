@@ -52,9 +52,9 @@ C   Get parameters from MU2_WZT.RCP
 C parameters for first (tight) muon
           CALL EZGET('ETA_MUZ1', ETACUT1, IER)
           CALL EZGET('PT_MUZ1', PTCUT1, IER)
-          CALL EZGET('IFW4_MUZ1', IFW4CUT1, IER)
-          CALL EZGET('MUCTAG_MUZ1', COSREJ1, IER)
-          CALL EZGET('XOCT_MUZ1', XOCT1, IER)
+          CALL EZGET_i('IFW4_MUZ1', IFW4CUT1, IER)
+          CALL EZGET_l('MUCTAG_MUZ1', COSREJ1, IER)
+          CALL EZGET_l('XOCT_MUZ1', XOCT1, IER)
           CALL EZGET('IMP_BV_MUZ1', CIMP_BV1,IER)
           CALL EZGET('CF_CAL_MUZ1', CF_CAL1, IER)
           CALL EZGET('EF_CAL_MUZ1', EF_CAL1, IER)
@@ -64,8 +64,8 @@ C parameters for first (tight) muon
 C parameters for second (loose) muon
           CALL EZGET('ETA_MUZ2', ETACUT2, IER)
           CALL EZGET('PT_MUZ2', PTCUT2, IER)
-          CALL EZGET('IFW4_MUZ2', IFW4CUT2, IER)
-          CALL EZGET('XOCT_MUZ2', XOCT2, IER)
+          CALL EZGET_i('IFW4_MUZ2', IFW4CUT2, IER)
+          CALL EZGET_l('XOCT_MUZ2', XOCT2, IER)
           IF (IER.NE.0) THEN
             CALL ERRMSG('MU2_WZT','MU2_WZT_RCP',
      &        'ERROR GETTING MU2_WZT RCP VALUES','W')

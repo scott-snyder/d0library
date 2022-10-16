@@ -122,7 +122,7 @@ C
           IER = -1
           GOTO 900
         ENDIF
-        CALL ezget('MC_RCP',mc_rcp, ier )
+        CALL ezget_i('MC_RCP',mc_rcp, ier )
         IF ( ier .NE. 0 ) THEN
           CALL errmsg('RCP error','JET_UNDZSP_FACTOR',
      &      'Read error:MC_RCP ','F')
@@ -130,11 +130,11 @@ C
         IF (mc_rcp.EQ.1) CALL ezget('MC_LUMIN',mc_lumin, ier )
 
 C
-        IF (ier.EQ.0) CALL EZGET('USE_LUM_AND_MI',USE_LUM_AND_MI,IER)
-        IF (ier.EQ.0) CALL ezgeta('LUM_LIST',0,0,0,LUMBINS,IER)
+        IF (ier.EQ.0) CALL EZGET_l('USE_LUM_AND_MI',USE_LUM_AND_MI,IER)
+        IF (ier.EQ.0) CALL ezgeta_i('LUM_LIST',0,0,0,LUMBINS,IER)
         IF (ier.EQ.0) CALL ezgeta('LUM_LIST',1,LUMBINS,1,LUM_LIST,IER)
 C
-        IF (ier.EQ.0) CALL EZGET('USE_630_MODEL',USE_630_MODEL,IER)
+        IF (ier.EQ.0) CALL EZGET_l('USE_630_MODEL',USE_630_MODEL,IER)
 C
         USE_MC_LUM = .FALSE.
         IF ((mc_rcp.EQ.1).AND.(mc_lumin.LT.-0.5)) then
@@ -161,10 +161,11 @@ C
 C
         IF (ier.EQ.0) CALL EZGET('ZSP_DENS_ERROR',ZSP_DENS_ERROR,IER)
         IF (ier.EQ.0) CALL EZGET('ZSP_DENS_SYS',ZSP_DENS_SYS,IER)
-        IF (ier.EQ.0) CALL EZGET('PUE_ET_DENSITY',PUE_ET_DENSITY, IER )
+        IF (ier.EQ.0) CALL EZGET_rarr('PUE_ET_DENSITY',PUE_ET_DENSITY,
+     &       IER )
         IF (ier.EQ.0) CALL EZGET('PUE_DENS_ERROR',PUE_DENS_ERROR,IER)
         IF ((ier.EQ.0).AND.(USE_630_MODEL)) THEN
-          CALL EZGET('ZSPUE_DENS_ERROR',ZSPUE_DENS_ERROR, IER )
+          CALL EZGET_rarr('ZSPUE_DENS_ERROR',ZSPUE_DENS_ERROR, IER )
         ENDIF
 C
         CALL EZRSET

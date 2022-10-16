@@ -111,7 +111,7 @@ C  ================
         NH1=NH1+1
         HNAME1(NH1)=NAME
         GO TO 2
-    5   CALL GETPAR(1,'List histograms for USER summary? Y/N',
+    5   CALL GETPAR1l('List histograms for USER summary? Y/N',
      x  'L',YES)
       IF(YES)THEN
          DO 6 IP=1,NH1,6
@@ -131,7 +131,7 @@ C  ================
         NH2=NH2+1
         HNAME2(NH2)=NAME
         GO TO 12
-   15   CALL GETPAR(1,'List histograms for STANDARD summary? Y/N',
+   15   CALL GETPAR1l('List histograms for STANDARD summary? Y/N',
      x  'L',YES)
       IF(YES)THEN
          DO 16 IP=1,NH2,6

@@ -72,7 +72,7 @@ C----------------------------------------------------------------------
      &      'mpf_jetcorr','NO RCP file to work with','F')
         ENDIF
         CALL ezget('PHY_BCK_ERROR',PHY_BCK_ERROR,IER)
-        IF (ier.EQ.0) CALL ezgeta('MPF_ERR_BIN',0,0,0,nbins,ier)
+        IF (ier.EQ.0) CALL ezgeta_i('MPF_ERR_BIN',0,0,0,nbins,ier)
         IF (ier.EQ.0) CALL ezgeta('MPF_ERR_BIN',1,nbins,1,mpf_err_bin,
      &      ier)
         IF (ier.EQ.0) CALL ezgeta('RESIDUAL_BIAS_ERROR',
@@ -81,9 +81,9 @@ C----------------------------------------------------------------------
      &    1,nbins,1,CAL_LEAK_ERROR,ier)
         IF (ier.EQ.0) CALL ezgeta('KT_ERROR',
      &    1,nbins,1,KT_ERROR,ier)
-        CALL ezget('MC_RCP',mc_rcp, ier )
+        CALL ezget_i('MC_RCP',mc_rcp, ier )
         IF (MC_RCP.EQ.1) THEN
-          IF (ier.EQ.0) CALL ezget('MC_TOPO_PAR',mc_topo_par,ier)
+          IF (ier.EQ.0) CALL ezget_rarr('MC_TOPO_PAR',mc_topo_par,ier)
         ENDIF
         IF (ier.NE.0)
      &      CALL errmsg('rcp read error','mpf_jetcorr',' ','F')

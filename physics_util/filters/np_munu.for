@@ -45,7 +45,7 @@ C----------------------------------------------------------------------
           CALL EZGET('JET_PT_CUT',JET_PT_CUT,ier)
           CALL EZGET('MET_CUT',MET_CUT,ier)
           CALL EZGET('MU_ETA_CUT',MU_ETA_CUT,ier)
-          CALL EZGET('MUON_MAX',MUON_MAX,ier)
+          CALL EZGET_i('MUON_MAX',MUON_MAX,ier)
           CALL EZRSET
         ENDIF
         CALL VZERO(RSUM,20)

@@ -52,7 +52,7 @@ C
 C
         CALL EZPICK('NP_TAU_RCP')
 C
-        CALL EZGET('JETS_ALGORITHM',ICHOICE,IER)
+        CALL EZGET_i('JETS_ALGORITHM',ICHOICE,IER)
         IF ( IER .NE. 0 ) THEN
           CALL ERRMSG ( 'RCP read error',
      &      'NP_TAU', 'Could not find parameter JETS_ALGORITHM', 'F')

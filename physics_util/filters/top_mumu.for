@@ -48,17 +48,17 @@ C   Get parameters from TOP_MUMU.RCP
 C parameters for first (tight) muon
           CALL EZGET('ETA_MUZ1', ETACUT1, IER)
           CALL EZGET('PT_MUZ1', PTCUT1, IER)
-          CALL EZGET('IFW4_MUZ1', IFW4CUT1, IER)
-          CALL EZGET('MUCTAG_MUZ1', COSREJ1, IER)
-          CALL EZGET('XOCT_MUZ1', XOCT1, IER)
+          CALL EZGET_i('IFW4_MUZ1', IFW4CUT1, IER)
+          CALL EZGET_l('MUCTAG_MUZ1', COSREJ1, IER)
+          CALL EZGET_l('XOCT_MUZ1', XOCT1, IER)
           CALL EZGET('IMP_RZ_MUZ1', CIMP_RZ1,IER)
-          CALL EZGET('CD_OR_MUZ1', NCD_OR1, IER)
+          CALL EZGET_i('CD_OR_MUZ1', NCD_OR1, IER)
           CALL EZGET('CAL_OR_MUZ1', CAL_OR1, IER)
           CALL EZGET('ISO_OR_MUZ1', CISO_OR1, IER)
 C parameters for second (loose) muon
           CALL EZGET('ETA_MUZ2', ETACUT2, IER)
           CALL EZGET('PT_MUZ2', PTCUT2, IER)
-          CALL EZGET('IFW4_MUZ2', IFW4CUT2, IER)
+          CALL EZGET_i('IFW4_MUZ2', IFW4CUT2, IER)
           IF (IER.NE.0) THEN
             CALL ERRMSG('TOP_MUMU','TOP_MUMU_RCP',
      &        'ERROR GETTING TOP_MUMU RCP VALUES','W')

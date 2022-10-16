@@ -38,7 +38,7 @@ C-
 C-                4/21/89      Kamal Hammoutene. BNLD0::KAMAL
 C-
       INTEGER DUMMY_SMG$_PASALREXI
-      PARAMETER (DUMMY_SMG$_PASALREXI = '00128031'X)
+      data DUMMY_SMG$_PASALREXI / z'00128031' /
 C-
 C-
 C-
@@ -137,7 +137,7 @@ C
         LBANK=LZFIDH(IDIV,HBANK,0)
 C
         IF(LBANK.EQ.0) THEN
-          CALL GETPAR(1,BANK//' BANK not found. Show .ZEB anyway? [N]',
+          CALL GETPAR1l(BANK//' BANK not found. Show .ZEB anyway? [N]',
      &        'L',YES)
           IF(YES) GO TO 130  
           GO TO 999 !exit if .ZEB not wanted
@@ -165,7 +165,7 @@ C
           CALL OUTMSG
      &      (' '//BANK//' is a linear structure with '//CLIN//
      &      ' members.')
-          CALL GETPAR(1,
+          CALL GETPAR1(
      &      'Pick one: (1 is head of chain, probably last booked)',
      &      'I',ILIN)
           CALL MOVE_ON_LINEAR_CHAIN(LBANK,-10000000,LBANK,NMOVED,IER) !to head
@@ -257,7 +257,7 @@ C&ENDIF
 
       RETURN
       ENTRY DADDR
-      CALL GETPAR(1,'Address of Bank> ','I',LBANK)
+      CALL GETPAR1('Address of Bank> ','I',LBANK)
 C MAKE SURE THAT THE STORE HAS BEEN SET CORRECTLY
       HBANK = IQQ(KQS+LBANK-4)
       CALL UHTOC(HBANK,4,BANK,4)

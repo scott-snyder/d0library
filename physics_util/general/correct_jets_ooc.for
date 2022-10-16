@@ -69,7 +69,7 @@ C
           CALL ezget('OA0',oa0,ier)
           CALL ezget('OA1',oa1,ier)
           CALL ezget('OA2',oa2,ier)
-          CALL ezget('OFUN',ofun,ier)
+          CALL ezget_i('OFUN',ofun,ier)
           CALL ezget('er0p',er0p,ier)
           CALL ezget('er0m',er0m,ier)
           CALL ezget('er1p',er1p,ier)

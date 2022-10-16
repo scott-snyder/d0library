@@ -54,24 +54,24 @@ C   Get parameters from the RCP file
         ELSE
              CALL EZPICK('EL2_B_RCP')
         ENDIF
-        CALL EZGET('CUTRHD',CUTRHD,IERR)
-        CALL EZGET('CUTOEE',CUTOEE,IERR)  ! At least two electrons
-        CALL EZGET('CUTOEG',CUTOEG,IERR)  ! At least one electron
-        CALL EZGET('CUTPTE',CUTPTE,IERR)  ! cut on PTmin of the pair
-        CALL EZGET('CUTPTM',CUTPTM,IERR)  ! REQUIRE A MUON 
-        CALL EZGET('CUTMSS',CUTMSS,IERR)  ! accept pairs w mass < MSSCUT
+        CALL EZGET_l('CUTRHD',CUTRHD,IERR)
+        CALL EZGET_l('CUTOEE',CUTOEE,IERR)  ! At least two electrons
+        CALL EZGET_l('CUTOEG',CUTOEG,IERR)  ! At least one electron
+        CALL EZGET_l('CUTPTE',CUTPTE,IERR)  ! cut on PTmin of the pair
+        CALL EZGET_l('CUTPTM',CUTPTM,IERR)  ! REQUIRE A MUON 
+        CALL EZGET_l('CUTMSS',CUTMSS,IERR)  ! accept pairs w mass < MSSCUT
         CALL EZGET('PTLOSE',PTLOSE,IERR)  ! loose pt cut (with mu)
         CALL EZGET('PTTIGT',PTTIGT,IERR)  ! tight pt cut (no mu)
         CALL EZGET('PTMCUT',PTMCUT,IERR)  ! muon pt(min)
-        CALL EZGET('IFWCUT',IFWCUT,IERR)  ! muon IFW4 
+        CALL EZGET_i('IFWCUT',IFWCUT,IERR)  ! muon IFW4 
         CALL EZGET('MSSCUT',MSSCUT,IERR)  ! mazimum invariant mass 
         CALL EZGET('PTHICT',PTHICT,IERR)  ! maximum Pt for both e's
-        CALL EZGET('EMMASK',EMMASK,IERR)  ! bit mask for CLEANEM cuts
+        CALL EZGET_i('EMMASK',EMMASK,IERR)  ! bit mask for CLEANEM cuts
 c+
 c trigger and filter bits
 c-
-        CALL EZGET('NTRIG',NTRIG,IERR)
-        CALL EZGET('NFILT',NFILT,IERR)
+        CALL EZGET_i('NTRIG',NTRIG,IERR)
+        CALL EZGET_i('NFILT',NFILT,IERR)
         CALL EZ_GET_CHARS('TRIG_BIT_NAMES',SAL,TRIG_BIT_NAMES(1),IERR)
         CALL EZ_GET_CHARS('FILT_BIT_NAMES',SAL,FILT_BIT_NAMES(1),IERR)
 c+-

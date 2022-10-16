@@ -61,10 +61,10 @@ C        reset all counters
       CALL INTMSG(MSG)
 C
       YES=.FALSE.
-      CALL GETPAR(1,'Dump event to screen? [N]:>','L',YES)
+      CALL GETPAR1l('Dump event to screen? [N]:>','L',YES)
       CALL FLGSET('DUMP_SCREEN',YES)
       YES=.FALSE.
-      CALL GETPAR(1,'Dump event to printer? [N]:>','L',YES)
+      CALL GETPAR1l('Dump event to printer? [N]:>','L',YES)
       CALL FLGSET('DUMP_QPRINT',YES)
 C
 C          dialog to specify number of events to dump

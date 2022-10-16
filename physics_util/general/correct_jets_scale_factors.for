@@ -122,9 +122,10 @@ C-        *** Initialize ***
      &      ier )
           IF (ier.EQ.0) CALL ezget('ECCH_SAMPLE_ERR',ecch_sample_err,
      &      ier )
-          IF (ier.EQ.0) CALL ezget('E_CORR_ICD',e_corr_icd,ier)
-          IF (ier.EQ.0) CALL ezget('E_CORR_ICD_OFF',e_corr_icd_off,ier)
-          IF (ier.EQ.0) CALL ezget('ETPARA',etpara,ier)
+          IF (ier.EQ.0) CALL ezget_rarr('E_CORR_ICD',e_corr_icd,ier)
+          IF (ier.EQ.0) CALL ezget_rarr('E_CORR_ICD_OFF',e_corr_icd_off
+     &         ,ier)
+          IF (ier.EQ.0) CALL ezget_rarr('ETPARA',etpara,ier)
           IF (ier.EQ.0) CALL ezget('icd_sys',icd_sys,ier)
           IF (ier.EQ.0) CALL ezget('cc_boost',cc_boost,ier)
 C
@@ -133,7 +134,7 @@ C
           IF (ier.EQ.0) CALL ezget('ecs_factor',ecs_factor,ier)
           IF (ier.EQ.0) CALL ezget('ecs_error',ecs_error,ier)
 C
-          CALL ezget('MC_RCP',mc_rcp, ier )
+          CALL ezget_i('MC_RCP',mc_rcp, ier )
           IF (MC_RCP.EQ.0) THEN
             IF (ier.EQ.0) CALL ezget('ecn_factorv12',ecn_factorv12,ier)
             IF (ier.EQ.0) CALL ezget('ecn_errorv12',ecn_errorv12,ier)
@@ -146,12 +147,12 @@ C
             ecs_errorv12 = ecs_error
           ENDIF
 C
-          CALL ezget('DO_ETA_CORRECTION',do_eta_correction,ier)
+          CALL ezget_l('DO_ETA_CORRECTION',do_eta_correction,ier)
           IF (ier.EQ.0.AND.do_eta_correction) THEN
             CALL errmsg('doing eta dependent correction',
      &          'correct_jets_scale_factors',
      &          'correct jets near ICR','I')
-            CALL ezgeta('ETA_ERR_BINS',0,0,0,nbins,ier)
+            CALL ezgeta_i('ETA_ERR_BINS',0,0,0,nbins,ier)
             IF (ier.EQ.0) CALL ezgeta('ETA_ERR_BINS',1,nbins,1,
      &          ETA_ERR_BINS,ier)
             IF (ier.EQ.0) CALL ezgeta('ETA_CORR_ERR',1,nbins,1,

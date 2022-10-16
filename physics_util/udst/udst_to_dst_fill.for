@@ -727,7 +727,7 @@ C-
             ENDIF
             IF(BANK_NAME(I,K) .EQ. 'GLOB')LADDR=LGLOB
             IF(BANK_NAME(I,K) .EQ. 'PLV0')LADDR=LPLV0
-            IF(BANK_NAME(I,K) .EQ. 'MTRH')LADDR=GZMTRH()
+            IF(BANK_NAME(I,K) .EQ. 'MTRH')LADDR=GZMTRH(0)
             IF(BANK_NAME(I,K) .EQ. 'FTRH')LADDR=GZFTRH()
             IF(BANK_NAME(I,K) .EQ. 'DTRH')LADDR=GZDTRH()
             IF(BANK_NAME(I,K) .EQ. 'TTRH')LADDR=LTTRH
@@ -813,7 +813,7 @@ C-
 C- create reference links
 C-
 C- links to/from TRDT
-      LTTRH=GZTTRH()
+      LTTRH=GZTTRH(0)
       LTRDT=LQ(LTTRH-1)
       DO WHILE(LTRDT.GT.0)
         Q(LTRDT+31)=ABS(Q(LTRDT+31)) ! valid values in DST: 1,0; in UDST: -1,0

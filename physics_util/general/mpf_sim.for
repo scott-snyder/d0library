@@ -48,7 +48,7 @@ c-      *** initialize variables ***
         CALL ezget('parton_et_thresh',mc_etthresh,ier)
         IF (ier.EQ.0) CALL ezget('em_et_thresh',em_et_thresh,ier)
         IF (ier.EQ.0) CALL ezget('jet_et_thresh',jet_et_thresh,ier)
-        IF (ier.EQ.0) CALL ezget('spectrum_power',spectrum_power,ier)
+        IF (ier.EQ.0) CALL ezget_i('spectrum_power',spectrum_power,ier)
         IF (ier.EQ.0) CALL ezget('em_resolution',phot_resolution,ier)
         IF (ier.EQ.0) CALL ezget('jet_resolution',jet_resolution,ier)
         IF (ier.EQ.0) CALL ezget('jet_response_base',jet_response_base,
@@ -60,9 +60,9 @@ c-      *** initialize variables ***
         IF (ier.EQ.0) CALL ezget('under_evt',under_evt,ier)
         IF (ier.EQ.0) CALL ezget('noise',noise,ier)
         IF (ier.EQ.0) CALL ezget('noise_resol',noise_resol,ier)        
-        IF (ier.EQ.0) CALL ezget('seed',seed,ier)
-        IF (ier.EQ.0) CALL ezget('num_generate',icount,ier)
-        IF (ier.EQ.0) CALL ezget('ntp_set',ntp_set,ier)
+        IF (ier.EQ.0) CALL ezget_i('seed',seed,ier)
+        IF (ier.EQ.0) CALL ezget_i('num_generate',icount,ier)
+        IF (ier.EQ.0) CALL ezget_l('ntp_set',ntp_set,ier)
         IF (ier.NE.0) CALL errmsg('ezget failed','mpf_sim',
      &    'error in rcp','F')
         CALL ezrset

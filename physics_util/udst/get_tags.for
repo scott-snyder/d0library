@@ -35,7 +35,7 @@ C
      &  'too many tags to split','F')
       CALL EZRSET
       CALL EZPICK('TAGS_RCP')
-      CALL EZGET('OUTPUT_TAGS',QOUT,IER)
+      CALL EZGET_l('OUTPUT_TAGS',QOUT,IER)
       IF(QOUT)THEN
         CALL GTUNIT(9191,LTAGS,IER)
         CALL D0OPEN(LTAGS,'TAGS.RCP','O',OK)
@@ -82,7 +82,7 @@ C
           CALL ERRMSG('TAGS_RCP','GET_TAGS',
      &      'group not found: '//XGRP(J),'W')
         ELSE
-          IF(IER.EQ.0)CALL EZGET('N_'//XGRP(J),MAXGRP(K),IER)
+          IF(IER.EQ.0)CALL EZGET_i('N_'//XGRP(J),MAXGRP(K),IER)
           IF(IER.EQ.0)CALL EZ_GET_CHARS(XGRP(J),NDIMG(K),XCHR,IER)
           IF(NDIMG(K).GT.NGRP)THEN
             CALL ERRMSG('TAGS_RCP','GET_TAGS','too many tags','F')

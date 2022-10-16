@@ -71,7 +71,7 @@ C
 C
         IERTOT = 0
 C--- Read in relative responses
-        CALL EZGET('EMF_REGIONS',EMF_REGIONS, IER )
+        CALL EZGET_i('EMF_REGIONS',EMF_REGIONS, IER )
         IERTOT = IERTOT + ABS(IER)
         CALL EZGET('REMF_CC_MIN',PARAM_RESPONSE(1,1,1), IER )
         IERTOT = IERTOT + ABS(IER)

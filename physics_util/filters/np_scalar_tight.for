@@ -43,7 +43,7 @@ C----------------------------------------------------------------------
         CALL EZGET ('HARD_SCALAR_ET_CUT', HARD_SCALAR_ET_CUT, IER)
         CALL EZGET ('CONE_RADIUS', CONE_RADIUS, IER)
         CALL EZGET ('EMFRJET1_CUT', EMFRJET1_CUT, IER)
-        CALL EZGET ('QCD_BAD_JET_CUT', QCD_BAD_JET_CUT, IER)
+        CALL EZGET_l ('QCD_BAD_JET_CUT', QCD_BAD_JET_CUT, IER)
         CALL EZRSET
 
         CALL VZERO(RSUMMARY,20)

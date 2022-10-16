@@ -44,7 +44,7 @@ C
         CALL EZGET('ECUT_MUB', ECUT, IER)
         IF (IER.NE.0) CALL ERRMSG('ECUT_MUB  not defined','MU_B',' ',
      &    'F')
-        CALL EZGET('NPOINTS_MUB', NPOINTS, IER)
+        CALL EZGET_i('NPOINTS_MUB', NPOINTS, IER)
         IF (IER.NE.0) CALL ERRMSG('NPOINTS_MUB  not defined','MU_B',
      &  ' ','F') 
         CALL EZRSET

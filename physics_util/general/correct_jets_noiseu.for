@@ -93,7 +93,7 @@ C----------------------------------------------------------------------
 C
 C: What TYPE of RCP?
 C
-        CALL ezget('MC_RCP',mc_rcp, ier )
+        CALL ezget_i('MC_RCP',mc_rcp, ier )
         iertot = iertot + abs(ier)
         IF ( iertot .NE. 0 ) THEN
           CALL errmsg('RCP error','CORRECT_JETS_NOISEU',
@@ -104,16 +104,16 @@ C
           CALL EZGET('MC_LUMIN',MC_LUMIN,IER)
           IERTOT = IERTOT + ABS(IER)
         ENDIF
-        CALL EZGET('USE_LUM_AND_MI',USE_LUM_AND_MI,IER)
+        CALL EZGET_l('USE_LUM_AND_MI',USE_LUM_AND_MI,IER)
         IERTOT = IERTOT + ABS(IER)
-        CALL EZGET('USE_RECO_AREA',USE_RECO_AREA,IER)
+        CALL EZGET_l('USE_RECO_AREA',USE_RECO_AREA,IER)
         IERTOT = IERTOT + ABS(IER)
         CALL EZGET('UNDER_DENSITY_V_4_2',UNDER_DENSITY_V_4_2, IER )
         IERTOT = IERTOT + ABS(IER)
         CALL EZGET('UNDER_ICD_DENSITY_V_4_2',UNDER_ICD_DENSITY_V_4_2,
      &    IER )
         IERTOT = IERTOT + ABS(IER)
-        CALL EZGET('USE_630_MODEL',USE_630_MODEL,IER)
+        CALL EZGET_l('USE_630_MODEL',USE_630_MODEL,IER)
         IERTOT = IERTOT + ABS(IER)
         CALL EZRSET
         IF ( IERTOT .NE. 0 ) THEN

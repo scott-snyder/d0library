@@ -155,15 +155,15 @@ C-
           CALL inrcp('FIX_JET_ET_RCP', ier)
           CALL ezpick_nomsg('FIX_JET_ET_RCP', ier)
         ENDIF
-        IF(ier.EQ.0)CALL ezget('do_fix_jet_et',do_fix_jet_et,ier)
-        IF(ier.EQ.0)CALL ezget('JET_ET_DEFINITION',jet_et_definition,
+        IF(ier.EQ.0)CALL ezget_l('do_fix_jet_et',do_fix_jet_et,ier)
+        IF(ier.EQ.0)CALL ezget_i('JET_ET_DEFINITION',jet_et_definition,
      &    ier)
         IF(ier.EQ.0)CALL ezget('max_ch_fraction',max_ch_fraction,ier)
         IF(ier.EQ.0)CALL ez_get_chars('mr_names',num_mr,mr_names,ier)
-        IF(ier.EQ.0)CALL ezgeta('CORR_SWITCH',0,0,0,nsw,ier)
+        IF(ier.EQ.0)CALL ezgeta_i('CORR_SWITCH',0,0,0,nsw,ier)
         IF(ier.EQ.0)CALL ezgeta('CORR_SWITCH',1,nsw,1,corr_switch,ier)
         IF(ier.EQ.0)CALL ezget('min_jet_et',min_jet_et,ier)
-        IF(ier.EQ.0)CALL ezget('jet_cut_switch',jet_cut_switch,ier)
+        IF(ier.EQ.0)CALL ezget_i('jet_cut_switch',jet_cut_switch,ier)
         CALL ezrset
         IF (ier.NE.0) CALL errmsg('Error reading FIX_JET_ET_RCP',
      &    'FIX_JET_ET',' ','F')

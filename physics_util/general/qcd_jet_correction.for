@@ -186,16 +186,16 @@ C: Select RCP bank
         ENDIF
 C: Read parameters...
 C: obtain minimum jet Et to correct
-        CALL ezgeta('MIN_JET_ET',0,0,0,nalgor,ier)
+        CALL ezgeta_i('MIN_JET_ET',0,0,0,nalgor,ier)
         IF (ier.EQ.0)
      &    CALL ezgeta('MIN_JET_ET',1,nalgor,1,min_jet_et,ier)
 c: BIAS correction
-        CALL ezget('DO_BIAS_CORRECTION',do_bias_correction, ier )
+        CALL ezget_l('DO_BIAS_CORRECTION',do_bias_correction, ier )
         IF (do_bias_correction) THEN
           IF (ier.EQ.0)
-     &      CALL ezget('UNBIAS_ALL_JETS',unbias_all_jets, ier )
+     &      CALL ezget_l('UNBIAS_ALL_JETS',unbias_all_jets, ier )
           IF (ier.EQ.0)
-     &      CALL ezget('NJETS_TO_UNBIAS',njets_to_unbias, ier )
+     &      CALL ezget_i('NJETS_TO_UNBIAS',njets_to_unbias, ier )
         ENDIF
 C: ICR/HV/CRYOSTAT correction
         IF (ier.EQ.0)
@@ -209,7 +209,7 @@ c: Energy-dependent RESPONSE correction
      &    CALL ezget('DO_RESPONSE_CORRECTION',
      &    do_response_correction,ier)
 C: What TYPE of RCP?
-        IF (ier.EQ.0) CALL ezget('MC_RCP',mc_rcp, ier )
+        IF (ier.EQ.0) CALL ezget_i('MC_RCP',mc_rcp, ier )
         CALL ezrset
         IF ( ier .NE. 0 ) THEN
           CALL errmsg('RCP error','QCD_JET_CORRECTION',

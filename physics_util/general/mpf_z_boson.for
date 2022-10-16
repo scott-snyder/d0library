@@ -70,10 +70,10 @@ C-        INITIALIZE VARIABLES
       IF (first) THEN
         first = .false.
         CALL ezpick('MPF_JET_RESPONSE_RCP')
-        CALL ezget('use_ppho',use_ppho,ier)
+        CALL ezget_l('use_ppho',use_ppho,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_z_boson','use_ppho','F')
-        CALL ezget('use_pelc',use_pelc,ier)
+        CALL ezget_l('use_pelc',use_pelc,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_z_boson','use_pelc','F')
         CALL ezget('pho_emf',pho_emf,ier)

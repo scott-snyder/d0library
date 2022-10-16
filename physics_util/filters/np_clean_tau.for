@@ -66,7 +66,7 @@ C
      &      'NP_CLEAN_TAU', 'Could not find NP_CLEAN_TAU_RCP bank', 'F')
         ELSE
           IERR = 0
-          CALL EZGET('JETS_ALGORITHM',ICHOICE,IER)
+          CALL EZGET_i('JETS_ALGORITHM',ICHOICE,IER)
           IERR = IERR + ABS(IER)
           CALL EZGET('DPHIJ12_MAX', DPHIJ12_MAX, IER)
           IERR = IERR + ABS(IER)

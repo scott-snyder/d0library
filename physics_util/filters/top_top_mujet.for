@@ -99,14 +99,16 @@ C   Get parameters from TOP_TOP_MUJET.RCP
         ELSE
           CALL EZPICK('TOP_TOP_MUJET_RCP')
 C parameters for SIGNAL, COSMIC, and QCD
-          IF (IER.EQ.0) CALL EZGET('MU_QUAD_MAX',MU_QUAD_MAX, IER)
+          IF (IER.EQ.0) CALL EZGET_i('MU_QUAD_MAX',MU_QUAD_MAX, IER)
           IF (IER.EQ.0) CALL EZGET('MU_PT_MIN',MU_PT_MIN, IER)
-          IF (IER.EQ.0) CALL EZGET('DO_XOCT_REJ',DO_XOCT_REJ, IER)
-          IF (IER.EQ.0) CALL EZGET('MU_IFW4_MAX_CF',MU_IFW4_MAX_CF, IER)
-          IF (IER.EQ.0) CALL EZGET('MU_IFW4_MAX_EF',MU_IFW4_MAX_EF, IER)
-          IF (IER.EQ.0) CALL EZGET('MU_NCD_TRK_MIN_CF',
+          IF (IER.EQ.0) CALL EZGET_l('DO_XOCT_REJ',DO_XOCT_REJ, IER)
+          IF (IER.EQ.0) CALL EZGET_i('MU_IFW4_MAX_CF',MU_IFW4_MAX_CF,
+     &         IER)
+          IF (IER.EQ.0) CALL EZGET_i('MU_IFW4_MAX_EF',MU_IFW4_MAX_EF,
+     &         IER)
+          IF (IER.EQ.0) CALL EZGET_i('MU_NCD_TRK_MIN_CF',
      &                              MU_NCD_TRK_MIN_CF, IER)
-          IF (IER.EQ.0) CALL EZGET('MU_NCD_TRK_MIN_EF',
+          IF (IER.EQ.0) CALL EZGET_i('MU_NCD_TRK_MIN_EF',
      &                              MU_NCD_TRK_MIN_EF, IER)
           IF (IER.EQ.0) CALL EZGET('MU_ECAL_1NN_MIN_CF',
      &                              MU_ECAL_1NN_MIN_CF, IER)
@@ -129,44 +131,44 @@ C parameters for SIGNAL, COSMIC, and QCD
           IF (IER.EQ.0) CALL EZGET('MU_T0FLOAT_MAX_EF',
      &                              MU_T0FLOAT_MAX_EF, IER)
           IF (IER.EQ.0) CALL EZGET('MU_BDL_MIN',MU_BDL_MIN, IER)
-          IF (IER.EQ.0) CALL EZGET('JET_CONE_ICHOICE',ICHOICE,
+          IF (IER.EQ.0) CALL EZGET_i('JET_CONE_ICHOICE',ICHOICE,
      &      IER)
 C cuts for signal
-          IF (IER.EQ.0) CALL EZGET('COSMIC_HIT_REJ_S',
+          IF (IER.EQ.0) CALL EZGET_i('COSMIC_HIT_REJ_S',
      &                              COSMIC_HIT_REJ_S, IER)
-          IF (IER.EQ.0) CALL EZGET('COSMIC_TRK_REJ_S',
+          IF (IER.EQ.0) CALL EZGET_i('COSMIC_TRK_REJ_S',
      &                              COSMIC_TRK_REJ_S, IER)
-          IF (IER.EQ.0) CALL EZGET('PASS_MU_HITPLN_CUT_S',
+          IF (IER.EQ.0) CALL EZGET_l('PASS_MU_HITPLN_CUT_S',
      &                              PASS_MU_HITPLN_CUT_S, IER)
           IF (IER.EQ.0) CALL EZGET('JET_ETA_MAX',JET_ETA_MAX,IER)
           IF (IER.EQ.0) CALL EZGET('JET_ETMIN_S',JET_ETMIN_S,IER)
-          IF (IER.EQ.0) CALL EZGET('JET_S_NUM',JET_S_NUM,IER)
+          IF (IER.EQ.0) CALL EZGET_i('JET_S_NUM',JET_S_NUM,IER)
           IF (IER.EQ.0) CALL EZGET('ISO_JET_ET_MIN',ISO_JET_ET_MIN,IER)
           IF (IER.EQ.0) CALL EZGET('ISO_JET_DR_MIN',ISO_JET_DR_MIN,IER)
 C cuts for QCD
-          IF (IER.EQ.0) CALL EZGET('COSMIC_HIT_REJ_Q',
+          IF (IER.EQ.0) CALL EZGET_i('COSMIC_HIT_REJ_Q',
      &                              COSMIC_HIT_REJ_Q, IER)
-          IF (IER.EQ.0) CALL EZGET('COSMIC_TRK_REJ_Q',
+          IF (IER.EQ.0) CALL EZGET_i('COSMIC_TRK_REJ_Q',
      &                              COSMIC_TRK_REJ_Q, IER)
           IF (IER.EQ.0) CALL EZGET('JET_ETMIN_Q',JET_ETMIN_Q,IER)
-          IF (IER.EQ.0) CALL EZGET('JET_Q_NUM',JET_Q_NUM,IER)
-          IF (IER.EQ.0) CALL EZGET('QCD_PRESCALE',QCD_PRESCALE,IER)
+          IF (IER.EQ.0) CALL EZGET_i('JET_Q_NUM',JET_Q_NUM,IER)
+          IF (IER.EQ.0) CALL EZGET_i('QCD_PRESCALE',QCD_PRESCALE,IER)
 C cuts for COSMIC
-          IF (IER.EQ.0) CALL EZGET('COSMIC_HIT_REJ_C',
+          IF (IER.EQ.0) CALL EZGET_i('COSMIC_HIT_REJ_C',
      &                              COSMIC_HIT_REJ_C, IER)
-          IF (IER.EQ.0) CALL EZGET('COSMIC_TRK_REJ_C',
+          IF (IER.EQ.0) CALL EZGET_i('COSMIC_TRK_REJ_C',
      &                              COSMIC_TRK_REJ_C, IER)
-          IF (IER.EQ.0) CALL EZGET('PASS_MU_HITPLN_CUT_C',
+          IF (IER.EQ.0) CALL EZGET_l('PASS_MU_HITPLN_CUT_C',
      &                              PASS_MU_HITPLN_CUT_C,IER)
           IF (IER.EQ.0) CALL EZGET('JET_ETMIN_C',JET_ETMIN_C,IER)
-          IF (IER.EQ.0) CALL EZGET('JET_C_NUM',JET_C_NUM,IER)
+          IF (IER.EQ.0) CALL EZGET_i('JET_C_NUM',JET_C_NUM,IER)
 C- cuts for excluding em jets from counting...
-          IF (IER.EQ.0) CALL EZGET('IGNORE_EM_JETS',
+          IF (IER.EQ.0) CALL EZGET_l('IGNORE_EM_JETS',
      &      DO_EM_JET_REJECTION,IER)
           IF (IER.EQ.0) CALL EZGET('EM_THRESHOLD',EM_THRESHOLD,IER)
 C parameters for FAKE ONLY
            IF (IER.EQ.0) CALL EZGET('JET_ETMIN_F',JET_ETMIN_F,IER)
-          IF (IER.EQ.0) CALL EZGET('JET_F_NUM',JET_F_NUM,IER)
+          IF (IER.EQ.0) CALL EZGET_i('JET_F_NUM',JET_F_NUM,IER)
 C done with defining all the selection cuts.
           IF (IER.NE.0) THEN
             CALL ERRMSG('TOP_TOP_MUJET','TOP_TOP_MUJET_RCP',

@@ -76,8 +76,8 @@ C
      &    (' RECOMMEND ENTERING 1,2,4,6, or 9 H IDs ')
         CALL GETPAR(1,' HISTOGRAM ID(s) to UPDATE >','C',
      &    STRING)
-        CALL GETPAR
-     &    (1,' NUMBER OF TIMES TO UPDATE ? [0--forever] > ','I',NMAX)
+        CALL GETPAR1
+     &    (' NUMBER OF TIMES TO UPDATE ? [0--forever] > ','I',NMAX)
 C
 C ****  DETDERMINE THE NUMBER OF HISTOGRAM AND SET THE WINDOWS ACCORDINGLY
 C

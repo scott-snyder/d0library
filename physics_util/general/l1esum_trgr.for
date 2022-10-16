@@ -47,6 +47,7 @@ C
       REAL    VERTEX_BIN_WIDTH
       INTEGER Z_BIN
       LOGICAL GOOD
+      integer igood
       LOGICAL FIRST
       DATA FIRST/.TRUE./
       DATA VERTEX_BIN_WIDTH/6.25/
@@ -145,8 +146,9 @@ C
         VERT_X    = 0.0
         VERT_Y    = 0.0
         VERT_Z    = FLOAT(Z_BIN)*VERTEX_BIN_WIDTH
+        igood = good
         CALL ESUMFL('TRGR',ID_VERTEX,DUMMY,VERT_X,VERT_Y,VERT_Z,
-     &              GOOD)
+     &              iGOOD)
 
 C
 C ****  Get missing pt and sum et

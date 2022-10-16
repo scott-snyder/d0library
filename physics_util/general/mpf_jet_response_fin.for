@@ -49,13 +49,13 @@ C-        *** initialization and booking of finished response plots ***
 C      CALL dhshow
 C      CALL hprnt(nt_id)
       CALL ezpick('MPF_JET_RESPONSE_RCP')
-      CALL ezgeta('RBINS_ET',0,0,0,rnum_et,ier)
+      CALL ezgeta_i('RBINS_ET',0,0,0,rnum_et,ier)
       IF (ier.NE.0) CALL errmsg('ezgeta error','mpf_jet_response_fin',
      &    'rnum_et','F')
       CALL ezgeta('RBINS_ET',1,rnum_et,1,rbins_et,ier)
       IF (ier.NE.0) CALL errmsg('ezgeta error','mpf_jet_response_fin',
      &    'rbins_et','F')
-      CALL ezgeta('RBINS_E',0,0,0,rnum_e,ier)
+      CALL ezgeta_i('RBINS_E',0,0,0,rnum_e,ier)
       IF (ier.NE.0) CALL errmsg('ezgeta error','mpf_jet_response_fin',
      &    'rnum_e','F')
       CALL ezgeta('RBINS_E',1,rnum_e,1,rbins_e,ier)

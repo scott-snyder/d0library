@@ -69,12 +69,12 @@ C
         IF (ier.EQ.0) THEN    ! *** read in RCP parameters ***
           IF (IER.EQ.0) CALL ezget('ETA_SEC1',eta_sec1,ier)
           IF (IER.EQ.0) CALL ezget('ETA_SEC2',eta_sec2,ier)
-          IF (ier.EQ.0) CALL ezget('ETPARA',etpara,ier)
-          if (ier.EQ.0) CALL ezget('WIDTH_AVER',width_aver,ier)
-          if (ier.EQ.0) CALL ezget('WIDTH_CUTOFF',width_cutoff,ier)
-          if (ier.EQ.0) CALL ezget('WIDTH_A0',width_a0,ier)
-          if (ier.EQ.0) CALL ezget('WIDTH_A1',width_a1,ier)
-          if (ier.EQ.0) CALL ezget('WIDTH_A2',width_a2,ier)
+          IF (ier.EQ.0) CALL ezget_rarr('ETPARA',etpara,ier)
+          if (ier.EQ.0) CALL ezget_rarr('WIDTH_AVER',width_aver,ier)
+          if (ier.EQ.0) CALL ezget_rarr('WIDTH_CUTOFF',width_cutoff,ier)
+          if (ier.EQ.0) CALL ezget_rarr('WIDTH_A0',width_a0,ier)
+          if (ier.EQ.0) CALL ezget_rarr('WIDTH_A1',width_a1,ier)
+          if (ier.EQ.0) CALL ezget_rarr('WIDTH_A2',width_a2,ier)
           CALL ezrset
           IF (ier.NE.0) THEN
             CALL errmsg('RCP error','correct_jets_width',

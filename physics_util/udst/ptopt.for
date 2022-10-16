@@ -9,7 +9,7 @@ C----------------------------------------------------------------------
       INCLUDE 'D0$LINKS:IZVERT.LINK'
       INTEGER LCAEP,NCH,NR,PWORD,IETA,IPHI,LAYER,IER,I,LPTR,GZVERT
       INTEGER LCAEQ,GZCAEQ,IENR,JBYT,ISCALE,HL,IVERS,IEMAX,LVERT,GZCAEP
-      PARAMETER( IEMAX = '1FFF'X) ! E stored in 13 bits - assume always true!!
+      data IEMAX / z'1FFF' / ! E stored in 13 bits - assume always true!!
       REAL    XV,YV,ZV,XC,YC,ZC,E,R,PX,PY,W
       REAL OFFSET, E_SCALE_1, E_PREC_2
 C

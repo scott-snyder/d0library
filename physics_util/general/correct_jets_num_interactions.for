@@ -61,9 +61,9 @@ c
      &        'Cant find bank ','W')
           ELSE
             iertot = 0
-            CALL ezget('USE_LUM',use_lum, ier1 )
+            CALL ezget_l('USE_LUM',use_lum, ier1 )
             iertot = iertot + abs(ier1)
-            CALL ezget('NUM_PER_LUM',numperlum, ier1 )
+            CALL ezget_i('NUM_PER_LUM',numperlum, ier1 )
             iertot = iertot + abs(ier1)
             CALL ezrset
             IF ( iertot .NE. 0 ) THEN

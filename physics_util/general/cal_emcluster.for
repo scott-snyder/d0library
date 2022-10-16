@@ -114,8 +114,8 @@ C----------------------------------------------------------------------
       REAL fhadhi_cc,fhadhi_ec
       PARAMETER (wanted = 3)
       PARAMETER (ntyp_max = 10)
-      PARAMETER (mask_all = '1F'x)
-      PARAMETER (mask_trdoff = '0F'x)
+      data mask_all / z'1F' /
+      data mask_trdoff / z'0F' /
       PARAMETER (fhadhi_cc = 0.52)
       PARAMETER (fhadhi_ec = 0.62)
       INTEGER ier,i,k,n,nelc,npho,n_em,limit,k_em(ntyp_max),layer

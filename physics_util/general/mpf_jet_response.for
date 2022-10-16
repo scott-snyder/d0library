@@ -89,7 +89,7 @@ C        CALL dhshow
         CALL ezpick('MPF_JET_RESPONSE_RCP')
         CALL ezerr(ier)
         IF (ier.EQ.0) THEN
-          CALL ezget('dpho_mode',dpho_mode,ier)
+          CALL ezget_i('dpho_mode',dpho_mode,ier)
           IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_jet_response','dpho_mode','F')
           IF (ier.EQ.0) CALL ez_get_chars('filter_names',nfilt,
@@ -98,17 +98,17 @@ C        CALL dhshow
      &        name_of_file,ier)
           IF (ier.EQ.0) CALL ezgeta('PHOTON_ET_THRESH',1,num_name,1,
      &        photon_et_thresh,ier)
-          IF (ier.EQ.0) CALL ezget('met_corr',met_corr,ier)
-          IF (ier.EQ.0) CALL ezget('microblank_veto',microblank_veto,
+          IF (ier.EQ.0) CALL ezget_l('met_corr',met_corr,ier)
+          IF (ier.EQ.0) CALL ezget_l('microblank_veto',microblank_veto,
      &        ier)
-          IF (ier.EQ.0) CALL ezget('veto_caid',veto_caid,ier)
+          IF (ier.EQ.0) CALL ezget_l('veto_caid',veto_caid,ier)
           IF (ier.EQ.0) CALL ezget('mex_offset',mex_offset,ier)
           IF (ier.EQ.0) CALL ezget('mey_offset',mey_offset,ier)
           IF (ier.EQ.0) CALL ezget('abs_zvert',abs_zvert,ier)
           IF (ier.EQ.0) CALL ezget('jet_emf_hi',jet_emf_hi,ier)
           IF (ier.EQ.0) CALL ezget('jet_deta_low',jet_deta_low,ier)
           IF (ier.EQ.0) CALL ezget('jet_det_eta',jet_det_eta,ier)
-          IF (ier.EQ.0) CALL ezgeta('PM_CUT',0,0,0,nmet,ier)
+          IF (ier.EQ.0) CALL ezgeta_i('PM_CUT',0,0,0,nmet,ier)
           IF (ier.EQ.0) CALL ezgeta('PM_CUT',1,nmet,1,pm_cut,ier)
           IF (ier.EQ.0) CALL ezgeta('PHO_DEDX_LO',1,nmet,1,pho_dedx_lo,
      &      ier)
@@ -128,16 +128,16 @@ C        CALL dhshow
           IF (ier.EQ.0) CALL ezget('max_lum_cc',max_lum_cc,ier)
           IF (ier.EQ.0) CALL ezget('max_lum_ec',max_lum_ec,ier)
           IF (ier.EQ.0) CALL ezget('match_dis',match_dis,ier)
-          IF (ier.EQ.0) CALL ezget('write_dst',write_dst,ier)
-          IF (ier.EQ.0) CALL ezget('ntp_set',ntp_set,ier)
-          IF (ier.EQ.0) CALL ezget('write_if_em',write_if_em,ier)
-          CALL ezgeta('BIAS_CORR_BINS',0,0,0,nbias,ier)
+          IF (ier.EQ.0) CALL ezget_l('write_dst',write_dst,ier)
+          IF (ier.EQ.0) CALL ezget_l('ntp_set',ntp_set,ier)
+          IF (ier.EQ.0) CALL ezget_l('write_if_em',write_if_em,ier)
+          CALL ezgeta_i('BIAS_CORR_BINS',0,0,0,nbias,ier)
           IF (ier.NE.0) CALL errmsg('ezgeta error','mpf_jet_response',
      &      'nbias','F')
           CALL ezgeta('BIAS_CORR_BINS',1,nbias,1,bias_corr_bins,ier)
           IF (ier.NE.0) CALL errmsg('ezgeta error','mpf_jet_response',
      &      'bias_corr_bins','F')
-          CALL ezgeta('EPRIME_CORR_BINS',0,0,0,nprime,ier)
+          CALL ezgeta_i('EPRIME_CORR_BINS',0,0,0,nprime,ier)
           IF (ier.NE.0) CALL errmsg('ezgeta error','mpf_jet_response',
      &      'nprime','F')
           CALL ezgeta('EPRIME_CORR_BINS',1,nprime,1,eprime_corr_bins,

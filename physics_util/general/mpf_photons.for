@@ -96,33 +96,33 @@ C-        INITIALIZE VARIABLES
         first = .false.
         mc_set = monte_carlo_data()
         CALL ezpick('MPF_JET_RESPONSE_RCP')
-        CALL ezget('dpho_mode',dpho_mode,ier)
+        CALL ezget_i('dpho_mode',dpho_mode,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_photons','dpho_mode','F')
         IF (ier.EQ.0) CALL ez_get_chars('filter_names',nfilt,
      &        filter_names,ier)
-        CALL ezget('cleanem_mask',cleanem_mask,ier)
+        CALL ezget_i('cleanem_mask',cleanem_mask,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_photons','cleanem_mask','F')
-        CALL ezgeta('FILT_THRESH_LO',0,0,0,nfilt,ier)
+        CALL ezgeta_i('FILT_THRESH_LO',0,0,0,nfilt,ier)
         IF (ier.NE.0) CALL errmsg('ezgeta error','mpf_photons','nfilt',
      &    'F')
         CALL ezgeta('FILT_THRESH_LO',1,nfilt,1,filt_thresh_lo,ier)
         IF (ier.NE.0) CALL errmsg('ezgeta error','mpf_photons',
      &    'filt_thresh_lo','F')
-        CALL ezgeta('FILT_THRESH_HI',0,0,0,nfilt,ier)
+        CALL ezgeta_i('FILT_THRESH_HI',0,0,0,nfilt,ier)
         IF (ier.NE.0) CALL errmsg('ezgeta error','mpf_photons','nfilt',
      &    'F')
         CALL ezgeta('FILT_THRESH_HI',1,nfilt,1,filt_thresh_hi,ier)
         IF (ier.NE.0) CALL errmsg('ezgeta error','mpf_photons',
      &    'filt_thresh_hi','F')
-        CALL ezget('use_ppho',use_ppho,ier)
+        CALL ezget_l('use_ppho',use_ppho,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_photons','use_ppho','F')
-        CALL ezget('use_pelc',use_pelc,ier)
+        CALL ezget_l('use_pelc',use_pelc,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_photons','use_pelc','F')
-        CALL ezget('use_cc',use_cc,ier)
+        CALL ezget_l('use_cc',use_cc,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_photons','use_cc','F')
         CALL ezget('phot_deta_cc_low',phot_deta_cc_low,ier)
@@ -131,7 +131,7 @@ C-        INITIALIZE VARIABLES
         CALL ezget('phot_det_eta',phot_det_eta,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_photons','phot_det_eta','F')
-        CALL ezget('use_ec',use_ec,ier)
+        CALL ezget_l('use_ec',use_ec,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_photons','use_ec','F')
         CALL ezget('phot_deta_ec_low',phot_deta_ec_low,ier)
@@ -140,7 +140,7 @@ C-        INITIALIZE VARIABLES
         CALL ezget('phot_deta_ec_hi',phot_deta_ec_hi,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_photons','phot_deta_ec_hi','F')
-        IF (ier.EQ.0) CALL ezgeta('PM_CUT',0,0,0,nmet,ier)
+        IF (ier.EQ.0) CALL ezgeta_i('PM_CUT',0,0,0,nmet,ier)
         IF (ier.EQ.0) CALL ezgeta('PM_CUT',1,nmet,1,pm_cut,ier)
         IF (ier.EQ.0) CALL ezgeta('PHO_EMF',1,nmet,1,pho_emf,ier)
         IF (ier.EQ.0) CALL ezgeta('FISOL_TIGHT',1,nmet,1,fisol_tight,
@@ -153,10 +153,10 @@ C-        INITIALIZE VARIABLES
         CALL ezget('par_max_delta_r',par_max_delta_r,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_photons','par_max_delta_r','F')
-        IF (ier.EQ.0) CALL ezget('nalgo',iarray(1),ier)
-        IF (ier.EQ.0) CALL ezget('iter',iarray(2),ier)
-        IF (ier.EQ.0) CALL ezget('irst',iarray(3),ier)
-        IF (ier.EQ.0) CALL ezget('imuon',iarray(4),ier)
+        IF (ier.EQ.0) CALL ezget_i('nalgo',iarray(1),ier)
+        IF (ier.EQ.0) CALL ezget_i('iter',iarray(2),ier)
+        IF (ier.EQ.0) CALL ezget_i('irst',iarray(3),ier)
+        IF (ier.EQ.0) CALL ezget_i('imuon',iarray(4),ier)
         IF (ier.EQ.0) CALL ezget('etcut',pjarray(1),ier)
         IF (ier.EQ.0) CALL ezget('spl_mrg',pjarray(3),ier)
         CALL ezrset

@@ -104,13 +104,13 @@ C----------------------------------------------------------------------
           ERRSUM = 0
 c          CALL EZGET ('DO_SOFT_CORRECTION', WANT_SOFT_CORRECTION, IER)
 c          ERRSUM = ERRSUM + ABS(IER)
-          CALL EZGET ('REPEAT_CORRECTION', REPEAT_CORRECTION, IER)
+          CALL EZGET_l ('REPEAT_CORRECTION', REPEAT_CORRECTION, IER)
           ERRSUM = ERRSUM + ABS(IER)
 C
           USE_JET_CORRECTION = .TRUE.       ! Default
-          CALL EZGET ('USE_JET_CORRECTION', USE_JET_CORRECTION, IER)
+          CALL EZGET_l ('USE_JET_CORRECTION', USE_JET_CORRECTION, IER)
 C
-          CALL EZGET( 'ISYS',ISYS, IER )
+          CALL EZGET_i( 'ISYS',ISYS, IER )
           ERRSUM = ERRSUM + ABS(IER)
 C
           CALL EZRSET

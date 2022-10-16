@@ -45,15 +45,15 @@ C---------------------------------------------------------------------------
       IF(FIRST)THEN
         CALL INRCP('FAKE_E_CANDIDATE_RCP',IER)
         CALL EZPICK('FAKE_E_CANDIDATE_RCP')
-        CALL EZGET('JET_ALGO',JET_ALGO,IER)
-        CALL EZGET('MIN_NJET',MIN_NJET,IER)
+        CALL EZGET_i('JET_ALGO',JET_ALGO,IER)
+        CALL EZGET_i('MIN_NJET',MIN_NJET,IER)
         CALL EZGET('ET_MIN',ET_MIN,IER)
         CALL EZGET('ET_MIN_EMJ',ET_MIN_EMJ,IER)
         CALL EZGET('ETA_MAX',ETA_MAX,IER)
         CALL EZGET('ETA_MAX_EMJ',ETA_MAX_EMJ,IER)
         CALL EZGET('EMFR_MIN',EMFR_MIN,IER)
         CALL EZRSET
-        CALL VZERO(CNTR,20)
+        CALL VZERO_i(CNTR,20)
         FIRST = .FALSE.
         FIRST_RUN = RUNNO()
         FIRST_EVENT = EVONUM()

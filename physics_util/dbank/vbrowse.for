@@ -174,7 +174,7 @@ C
       STATUS=SMG$SET_CURSOR_ABS(WIND(IW),1,1)
 C
  1000 TCHR = ' '
-      STATUS=SMG$READ_STRING(KBID,TCHR,%VAL(0),MXT,MODD,
+      STATUS=SMG$READ_STRING(KBID,TCHR,'',MXT,MODD,
      &                       %VAL(0),%VAL(0),%VAL(0),
      &                       TERM,WIND(IW),%VAL(0),%VAL(0),%VAL(0))
       IF(.NOT.STATUS) CALL LIB$SIGNAL(%VAL(STATUS))
@@ -245,7 +245,7 @@ C
      &  'Hit Return to Proceed: '
      &  ,%VAL(0),%VAL(0),%VAL(0),%VAL(0),%VAL(0),SMG$M_UP)
 C
-        STATUS=SMG$READ_STRING(KBID,TCHR,%VAL(0),MXT,MODD,
+        STATUS=SMG$READ_STRING(KBID,TCHR,'',MXT,MODD,
      &                         %VAL(0),%VAL(0),%VAL(0),TERM,WIND(IW),
      &                         %VAL(0),%VAL(0),%VAL(0))
         IF(.NOT.STATUS) CALL LIB$SIGNAL(%VAL(STATUS))

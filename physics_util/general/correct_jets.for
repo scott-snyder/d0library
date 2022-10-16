@@ -152,12 +152,12 @@ C----------------------------------------------------------------------
         ELSE
           CALL EZPICK ('CAFIX_RCP')
           ERRSUM = 0
-          CALL EZGET ('DO_JET_CORRECTION', DO_JET_CORRECTION, IER)
+          CALL EZGET_l ('DO_JET_CORRECTION', DO_JET_CORRECTION, IER)
           ERRSUM = ERRSUM + ABS(IER)
-          CALL EZGET ('SPLIT_EMJET_CORRECTION',SPLIT_EMJET_CORRECTION,
+          CALL EZGET_l ('SPLIT_EMJET_CORRECTION',SPLIT_EMJET_CORRECTION,
      &      IER)
           ERRSUM = ERRSUM + ABS(IER)
-          CALL EZGET ('REPEAT_CORRECTION', REPEAT_CORRECTION, IER)
+          CALL EZGET_l ('REPEAT_CORRECTION', REPEAT_CORRECTION, IER)
           ERRSUM = ERRSUM + ABS(IER)
           CALL EZGET ('MET_USE_JETBIAS', MET_USE_JETBIAS, IER)
           IF (IER.NE.0) THEN
@@ -186,7 +186,7 @@ C----------------------------------------------------------------------
         ELSE
           CALL EZPICK ('CORRECTEM_RCP')
           ERRSUM = 0
-          CALL EZGET ('ECORRECT_MASK', ISOLATION_MASK, IER)
+          CALL EZGET_i ('ECORRECT_MASK', ISOLATION_MASK, IER)
           ERRSUM = ERRSUM + ABS(IER)
           CALL EZRSET
 

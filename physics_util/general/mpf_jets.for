@@ -88,10 +88,10 @@ C-        INITIALIZE VARIABLES
         CALL ezget('par_max_delta_r',par_max_delta_r,ier)
         IF (ier.NE.0) CALL errmsg('ezget error',
      &        'mpf_jets','par_max_delta_r','F')
-        IF (ier.EQ.0) CALL ezget('nalgo',iarray(1),ier)
-        IF (ier.EQ.0) CALL ezget('iter',iarray(2),ier)
-        IF (ier.EQ.0) CALL ezget('irst',iarray(3),ier)
-        IF (ier.EQ.0) CALL ezget('imuon',iarray(4),ier)
+        IF (ier.EQ.0) CALL ezget_i('nalgo',iarray(1),ier)
+        IF (ier.EQ.0) CALL ezget_i('iter',iarray(2),ier)
+        IF (ier.EQ.0) CALL ezget_i('irst',iarray(3),ier)
+        IF (ier.EQ.0) CALL ezget_i('imuon',iarray(4),ier)
         IF (ier.EQ.0) CALL ezget('etcut',pjarray(1),ier)
         IF (ier.EQ.0) CALL ezget('spl_mrg',pjarray(3),ier)
         CALL ezrset

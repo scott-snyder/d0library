@@ -51,10 +51,10 @@ C-----Necessary for histogramming
 C----------------------------------------------------------------------
       WEIGHT=0.
       ILEVEL = 0
-      CALL VZERO(TYPVER,MAXVER)
-      CALL VZERO(WGTVER,MAXVER)
-      CALL VZERO(METVER,MAXVER)
-      CALL VZERO(NVERTRK,MAXVER)
+      CALL VZERO_i(TYPVER,MAXVER)
+      CALL VZERO_i(WGTVER,MAXVER)
+      CALL VZERO_i(METVER,MAXVER)
+      CALL VZERO_i(NVERTRK,MAXVER)
       CALL VZERO(ZVER,MAXVER)
       CALL VZERO(DZVER,MAXVER)
       CALL VZERO(CZZVER,MAXVER)

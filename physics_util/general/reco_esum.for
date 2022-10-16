@@ -46,7 +46,7 @@ C
         IDJS(4)=ID_JET_4
         IDJS(5)=ID_JET_5
         CALL EZPICK('RECO_ESUM_RCP')
-        CALL EZGETA('DELTA_COS',0,0,0,N,IER)
+        CALL EZGETA_i('DELTA_COS',0,0,0,N,IER)
         CALL EZGETA('DELTA_COS',1,N,1,DCOS,IER)
         CALL EZRSET
         FIRST=.FALSE.

@@ -51,7 +51,7 @@ C----------------------------------------------------------------------
           IF (IER.EQ.0) CALL EZGET('PHOT_MIN_ET',PHETMIN,IER)
           IF (IER.EQ.0) CALL EZGET('em_max_eta',em_max_eta,IER)
           IF (IER.EQ.0) CALL
-     &      EZGET('SELECT_EM_FILTERS',SELECT_EM_FILTERS,IER)
+     &      EZGET_l('SELECT_EM_FILTERS',SELECT_EM_FILTERS,IER)
           IF (SELECT_EM_FILTERS) THEN
             CALL EZ_GET_CHARS('EM_FILTNAMES',NFSTRING_REQ,FSTRING_REQ,
      &        IER)

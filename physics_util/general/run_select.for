@@ -158,14 +158,15 @@ C-
           CALL inrcp('RUN_SELECT_RCP', ier)
           CALL ezpick_nomsg('RUN_SELECT_RCP', ier)
         ENDIF
-        IF (ier.EQ.0) CALL ezgeta('DO_RUN_RANGE_SELECT',0,0,0,nflag,ier)
-        IF (ier.EQ.0) CALL ezgeta('DO_RUN_RANGE_SELECT',1,nflag,1,
+        IF (ier.EQ.0) CALL ezgeta_i('DO_RUN_RANGE_SELECT',0,0,0,nflag
+     &       ,ier)
+        IF (ier.EQ.0) CALL ezgeta_l('DO_RUN_RANGE_SELECT',1,nflag,1,
      &    do_range_select,ier)
-        IF (ier.EQ.0) CALL ezgeta('FIRST_RUN',0,0,0,nfrst,ier)
-        IF (ier.EQ.0) CALL ezgeta('FIRST_RUN',1,nfrst,1,
+        IF (ier.EQ.0) CALL ezgeta_i('FIRST_RUN',0,0,0,nfrst,ier)
+        IF (ier.EQ.0) CALL ezgeta_iarr('FIRST_RUN',1,nfrst,1,
      &    first_runs,ier)
-        IF (ier.EQ.0) CALL ezgeta('LAST_RUN',0,0,0,nlast,ier)
-        IF (ier.EQ.0) CALL ezgeta('LAST_RUN',1,nlast,1,
+        IF (ier.EQ.0) CALL ezgeta_i('LAST_RUN',0,0,0,nlast,ier)
+        IF (ier.EQ.0) CALL ezgeta_iarr('LAST_RUN',1,nlast,1,
      &    last_runs,ier)
         IF (ier.NE.0.OR.nflag.NE.nfrst.OR.nflag.NE.nlast)
      &    CALL errmsg('error in run_select_rcp','run_select',
@@ -174,9 +175,10 @@ C-
         DO k = 1,nflag
           IF (.NOT.do_range_select(k)) num_nosel = num_nosel + 1
         ENDDO
-        IF(ier.EQ.0) CALL ezget('DO_GOOD_RUN_SELECT',do_run_select,ier)
-        IF(ier.EQ.0) CALL ezget('PRINT_RUNS',print_runs,ier)
-        IF(ier.EQ.0) CALL ezget('CLEAN_RUN_MASK',clean_run_mask,
+        IF(ier.EQ.0) CALL ezget_l('DO_GOOD_RUN_SELECT',do_run_select
+     &       ,ier)
+        IF(ier.EQ.0) CALL ezget_l('PRINT_RUNS',print_runs,ier)
+        IF(ier.EQ.0) CALL ezget_i('CLEAN_RUN_MASK',clean_run_mask,
      &        ier_nonfatal1)
         CALL ezrset
         IF (ier.NE.0) CALL errmsg('Error in RUN_SELECT_RCP',
@@ -192,19 +194,19 @@ C-
           ENDIF
           IF (ier.NE.0) CALL errmsg('Error in BAD_RUN_RCP',
      &      'RUN_SELECT',' ','F')
-          IF (ier.EQ.0) CALL ezget('NEW_BAD_RUN_LIST',new_bad_run_list,
-     &           ier_nonfatal2)
+          IF (ier.EQ.0) CALL ezget_l('NEW_BAD_RUN_LIST',new_bad_run_list
+     &         ,ier_nonfatal2)
           IF (ier_nonfatal1.EQ.0.AND.ier_nonfatal2.NE.0) ier = -1
           IF (ier_nonfatal1.NE.0.AND.ier_nonfatal2.EQ.0) ier = -1
           IF (ier.EQ.-1) call errmsg('BAD_RUN with wrong RUN_SELECT',
      &      'RUN_SELECT','mismatched RCPs','F')
-          IF (ier.EQ.0) CALL ezgeta('BAD_RUN_NOS',0,0,0,narray,ier)
+          IF (ier.EQ.0) CALL ezgeta_i('BAD_RUN_NOS',0,0,0,narray,ier)
           IF (ier.EQ.0) THEN
             IF (ier_nonfatal1.NE.0.AND.ier_nonfatal2.NE.0) THEN ! *** old mode
               CALL errmsg('OLD MODE-take all runs','RUN_SELECT',
      &            'get new RCPs','W')
               IF (narray.LE.max_bad_runs) THEN
-                CALL ezget('BAD_RUN_NOS',bad_run_nos,ier)
+                CALL ezget_iarr('BAD_RUN_NOS',bad_run_nos,ier)
                 no_bad_runs = narray
               ELSE
                 IF(ier.EQ.0)CALL errmsg('Too Many Bad Runs To Store',
