@@ -19,7 +19,7 @@ C----------------------------------------------------------------------
       INTEGER rmax,nput
       PARAMETER (rmax = 100)
       PARAMETER (nput = 10)
-      INTEGER j,k,m,n,ier,icycle,index,noent,rnum_e,rnum_et
+      INTEGER i,j,k,m,n,ier,icycle,index,noent,rnum_e,rnum_et
       integer qtot_nrg(rmax),qtot_low(rmax),qtot_end(rmax)
       real rcal_low(rmax,nput),sigcal_low(rmax,nput)
       REAL rcal_nrg(rmax,nput),sigcal_nrg(rmax,nput)
@@ -42,8 +42,10 @@ C----------------------------------------------------------------------
 C-        *** initialization and booking of finished response plots ***
       WRITE(6,*) 'NEVT, NPASS ',nevt,npass
       CALL vzero(chisq,5)
-      CALL vzero(r_par,5)
-      CALL vzero(e_par,5)
+      do i=1, 5
+        r_par(i) = 0
+        e_par(i) = 0
+      enddo
       CALL hcdir(pawcdir,' ')
       CALL hcdir(filedir,' ')
 C      CALL dhshow
@@ -224,7 +226,9 @@ C-          *** fitting of final response plots ***
           iquest(12) = 10           ! *** one below 20 GeV ('biased' region).
           CALL hfith(600+j,mpf_response_fit,'R',2,r_par,step,pmin,
      &          pmax,e_par,chisq(j))
-          CALL vzero(e_par,5)
+          do i=1, 5
+            e_par(i) = 0
+          enddo
           r_par(1) = 1.0
           iquest(11) = 4
           iquest(12) = rnum_e
