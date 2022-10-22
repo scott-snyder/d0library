@@ -104,7 +104,7 @@ C
 C
 C DRAW DATA
       CALL VZERO(Y,LFADC)
-      CALL VZERO(EVDATA(0),LFADC)
+      CALL VZERO_i(EVDATA(0),LFADC)
 C Unpack all CDD banks
       CALL ZDEXPD(0,LCHN(FCHAN),EVDATA)
 C "Unzerosuppress" data

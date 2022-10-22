@@ -85,7 +85,7 @@ C --------------------------------------------------------------------
       DATA FIRST/.TRUE./, ALGNMT/.FALSE./
 C --------------------------------------------------------------------
 C
-      CALL PUGETV('CDC ONLY',IFDCDC )
+      CALL PUGET_l('CDC ONLY',IFDCDC )
       NROAD=0
 C
       IF (FIRST) THEN
@@ -100,12 +100,12 @@ C
         IF (ABS(PCPHIW) .LE. 0.001) ALGNMT = .TRUE.
       ENDIF
 C
-      CALL PUGETV('CDC DRAW SECTORS',   IFDSEC )
-      CALL PUGETV('CDC DRAW WIRES',     IFDWIR )
-      CALL PUGETV('CDC DRAW HITS',      IFDHIT )
-      CALL PUGETV('CDC DRAW TRACK',     IFDTRK )
-      CALL PUGETV('CDC DRAW ISATRK ',   IFISTR )
-      CALL PUGETV('CDC DRAW LABEL',     IFDLBL )
+      CALL PUGET_i('CDC DRAW SECTORS',   IFDSEC )
+      CALL PUGET_i('CDC DRAW WIRES',     IFDWIR )
+      CALL PUGET_i('CDC DRAW HITS',      IFDHIT )
+      CALL PUGET_i('CDC DRAW TRACK',     IFDTRK )
+      CALL PUGET_i('CDC DRAW ISATRK ',   IFISTR )
+      CALL PUGET_i('CDC DRAW LABEL',     IFDLBL )
 C OPEN SEGMENT
       CALL PUOPEN
 C

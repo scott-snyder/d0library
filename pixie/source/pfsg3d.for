@@ -54,12 +54,12 @@ C
         CALL ERRMSG('PIXIE','PFSG3D','Cannot find PX_FDCDIS_RCP','W')
         GOTO 999
       ENDIF
-      CALL PUGETV('STRING QUALITY',STRQ)        
+      CALL PUGET_i('STRING QUALITY',STRQ)        
       CALL PUSETV('STRING QUALITY',3)
 C
 C  Make choice of how to view display
 C
-      CALL PUGETV('FDC 3D VIEW',IVIEW)
+      CALL PUGET_i('FDC 3D VIEW',IVIEW)
       CALL OUTMSG('1')
       CALL OUTMSG('    Choose a viewpoint to see FDC Half in 3-D')
       CALL OUTMSG(' ( 1=above center, 2=along segments, 3=along beam )')

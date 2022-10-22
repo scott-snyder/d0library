@@ -38,7 +38,7 @@ C----------------------------------------------------------------------
       CALL WORD(VIEWNAME,I,J,LNAM)
       CALL EZPICK(RCPFILE)
       IF ( EZERROR(IER) ) THEN
-        CALL WORD(I,J,K)
+ccc        CALL WORD(I,J,K)
 C&IF LINUX
 C&        xrcpfile = rcpfile
 C&        CALL INTMSG(

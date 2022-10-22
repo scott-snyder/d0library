@@ -33,10 +33,10 @@ C --------------------------------------------------------------------
 C
 C ****  Getting parameters from RCP files
 C
-      CALL PUGETV('CDC ONLY', IFDCDC )
+      CALL PUGET_l('CDC ONLY', IFDCDC )
       CALL EZPICK('PX_ZTRAKSDIS_RCP')
       IF ( .NOT. EZERROR(IER) ) THEN
-        CALL PUGETV('IMPACT CUT', IMPACT_CUT)
+        CALL PUGET_i('IMPACT CUT', IMPACT_CUT)
         CALL EZRSET
       ENDIF
 C

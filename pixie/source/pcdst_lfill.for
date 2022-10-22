@@ -66,7 +66,7 @@ C---------------------------------------------------------------------
       IOK=0
       CALL VZERO(ARRAY,NPHIL*2*NETAL)
       CALL VZERO(XPMUO,150)
-      CALL VZERO(IARRAY,NPHIL*2*NETAL)
+      CALL VZERO_i(IARRAY,NPHIL*2*NETAL)
 C zero variables
       NJET  = 0
       NTRA  = 0
@@ -85,7 +85,7 @@ C-
         CALL PC_SET_CAPH('JETS',JERR)
         IF (JERR .NE. 0)      GO TO 300
       ENDIF
-      CALL PUGETV('PHYDIS DRAW JETS',IJETS)
+      CALL PUGET_i('PHYDIS DRAW JETS',IJETS)
 C-
       LJETS = GZJETS()
       IF (LJETS .LE. 0) THEN
@@ -181,7 +181,7 @@ C-
 C ========= PROCESS TRACKS  =====================ADDED 21-11-91 !!
   600 NTRA= 0
       CALL PUGETV('PHYDIS ETMIN',ETMIN)
-      CALL PUGETV('PHYDIS DRAW TRACKS',DRAWTK)
+      CALL PUGET_i('PHYDIS DRAW TRACKS',DRAWTK)
       IF(DRAWTK.EQ.0)GO TO 700
 C
       LZTRH=GZZTRH()
@@ -232,7 +232,7 @@ C       !! Tracks are coded only in IARRAY not in ARRAY
       NMUOT=0
       K=1
 C Check if MUON tracks to be plotted
-      CALL PUGETV('PHYDIS DRAW MUOT',DRMUOT)
+      CALL PUGET_i('PHYDIS DRAW MUOT',DRMUOT)
       IF(DRMUOT.EQ.0)GO TO 900
 C    Get number of tracks from MTRH (muon track header bank) for MUOT
 C    =====================================================================

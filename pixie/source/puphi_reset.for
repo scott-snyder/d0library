@@ -44,7 +44,7 @@ C-
      &      'W')
           GOTO 999
         ENDIF
-        CALL PUGETV('PHI CONTROL',LPHICON)
+        CALL PUGET_l('PHI CONTROL',LPHICON)
         IF(LPHICON) THEN     ! Reset to the default PHI
           CALL PUGETV('PHI DEF CEN',CENPHI)
           CALL PUGETV('PHI DEF WID',WIDPHI)
@@ -64,9 +64,9 @@ C-
           ELSE
             IF(LPHICON) THEN     ! Reset to the default PHI & ETA
               CALL PUPHI_DEGTOSEG(CENPHI,WIDPHI,IPHI,IDPHI)
-              CALL PUSETV('CAL DPHI',IDPHI)
-              CALL PUSETV('CAL PHI',IPHI)
-              CALL PUSETV('CAL IETACEN',IETACN)
+              CALL PUSET_i('CAL DPHI',IDPHI)
+              CALL PUSET_i('CAL PHI',IPHI)
+              CALL PUSET_i('CAL IETACEN',IETACN)
             ENDIF
             CALL EZRSET
           ENDIF

@@ -47,7 +47,7 @@ C-
 C
 C ****  Get screen parameters from RCP
 C
-      CALL PU_GET_SCREEN_PARAM(IDX,'VIEW3D',VIEW3D,IER)
+      CALL PU_GET_SCREEN_PARAM_l(IDX,'VIEW3D',VIEW3D,IER)
       IF ( IER .NE. 0 ) THEN
         CALL ERRMSG('NOTFOUND','PU_SETUP_VIEWPORT',
      &    'Could not find parameter VIEW3D','W')

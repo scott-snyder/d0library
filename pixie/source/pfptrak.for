@@ -54,7 +54,7 @@ C ****  Initializations.
 C
       IF(ICALL.EQ.0) THEN
         CALL EZPICK('FTRAKS_RCP')
-        CALL EZGET('SGONLY',SGONLY,IER)
+        CALL EZGET_l('SGONLY',SGONLY,IER)
         CALL EZGET('PLNCUT',PLNCUT,IER)
         CALL EZRSET
         ICALL=1
@@ -123,8 +123,8 @@ C
 C ****  Copy track information pertaining to hits on track.
 C
       DO 200 IHSEC=1,IQTRAK(2)
-        CALL UCOPY(QHSEC(1,IHSEC),IADD(IHSEC),1)
-        CALL UCOPY(QHSEC(2,IHSEC),IHIT(IHSEC),1)
+        CALL UCOPY_i(QHSEC(1,IHSEC),IADD(IHSEC),1)
+        CALL UCOPY_i(QHSEC(2,IHSEC),IHIT(IHSEC),1)
         CALL UCOPY(QHSEC(3,IHSEC),RESID(IHSEC),1)
   200 CONTINUE
 C

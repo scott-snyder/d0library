@@ -70,7 +70,7 @@ C--- Get parameters for track display from currently set RCP bank
       CALL PUGETV ('TRACK PTMIN',PTMIN)
       CALL PUGETV ('TRACK DPT',DPT)
       CALL PUGETV ('TRACK LENGTH',LTRK)
-      CALL PUGETV ('ISAJET TRK CHOICE',ITKCHO)
+      CALL PUGET_i ('ISAJET TRK CHOICE',ITKCHO)
 C-
       LISAE = LQ(LHEAD-IZISAE)
       IF (LISAE .EQ. 0)             GO TO 950
@@ -134,11 +134,11 @@ C--- Draw Vertex(ISV1)
       ZBGN = XVSV1(3) + 5.
       YEND = XVSV1(2) - 5.
       ZEND = XVSV1(3) - 5.
-      CALL J3MOVE(XVSV1,YBGN,ZBGN)
+      CALL J3MOVE(XVSV1(1),YBGN,ZBGN)
       CALL J3DRAW(XVSV1,YEND,ZEND)
       ZBGN = XVSV1(3) - 5.
       ZEND = XVSV1(3) + 5.
-      CALL J3MOVE(XVSV1,YBGN,ZBGN)
+      CALL J3MOVE(XVSV1(1),YBGN,ZBGN)
       CALL J3DRAW(XVSV1,YEND,ZEND)
 
 C-

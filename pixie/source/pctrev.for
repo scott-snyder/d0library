@@ -49,7 +49,7 @@ C-
 C-
 C--- Get parameters
 C-
-      CALL PUGETV('CAL IETAMIN', IETAMN)
+      CALL PUGET_i('CAL IETAMIN', IETAMN)
       IF(IETAMN.LT.0) THEN
         IETAMN2=(IETAMN-1)/2
       ELSE
@@ -61,9 +61,9 @@ C-
       ELSE
         IETAMX2=(IETAMX+1)/2
       ENDIF
-      CALL PUGETV('CAL PHI', IPHI)
-      CALL PUGETV('CAL DPHI', IDPHI)
-      CALL PUGETV('CAL PICK PHI', PICPHI)
+      CALL PUGET_i('CAL PHI', IPHI)
+      CALL PUGET_i('CAL DPHI', IDPHI)
+      CALL PUGET_l('CAL PICK PHI', PICPHI)
       IF (IETAMN2 .GT. IETAMX2)   IETAMN2 = IETAMX2
 C-
 C--- Impose up and down region in the CAL SIDE view

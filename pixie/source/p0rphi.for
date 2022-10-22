@@ -116,7 +116,7 @@ C----------------------------------------------------------------------
           L0Z(1)=-142.3
           L0Z(2)= 142.3
         ELSE
-          CALL EZGET('L0Z',L0Z,IER)
+          CALL EZGET_rarr('L0Z',L0Z,IER)
           CALL EZGET('CHARGE_SCALE',CHARGE_SCALE,IER)
           CALL EZRSET
         ENDIF
@@ -174,11 +174,11 @@ C
       IF ( HITCLR.EQ.'   ' ) HITCLR='GRE'
       IF ( IUSE.LE.1 ) THEN
         DO I=1,6
-          LEGDCOL(I)=GREYSCL(I)
+          LEGDCOL(I)=GREYSCL(I-1)
         ENDDO
       ELSE
         DO I=1,6
-          LEGDCOL(I)=COLRSCL(I)
+          LEGDCOL(I)=COLRSCL(I-1)
         ENDDO
       ENDIF
 C

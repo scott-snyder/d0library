@@ -26,7 +26,7 @@ C----------------------------------------------------------------------
       DATA A_BUTTON/MAXOBJ*.FALSE./
 C----------------------------------------------------------------------
       IF ( A_BUTTON(ID) ) THEN
-        CALL PUTEXT_SET(ID,'AUTO',0)      ! Auto-position button
+        CALL PUTEXT_SET(ID,'AUTO',0.)      ! Auto-position button
         CALL PUTEXT(ID,LABEL(1:LEN(LABEL)),1)
       ENDIF
       RETURN
@@ -39,7 +39,7 @@ C
       RETURN
 C
       ENTRY PUBUTTON_SET(ID,OPTION,X)
-      CALL PUTEXT_SET(ID,OPTION(1:LEN(OPTION)),X)
+      CALL PUTEXT_SET(ID,OPTION(1:LEN(OPTION)),X(1))
       RETURN
 C
       ENTRY PUBUTTON_FIND(ID)

@@ -23,7 +23,7 @@ C----------------------------------------------------------------------
       CALL MENADD(MENU,.TRUE.,
      & 'Edit Screen Parameters',
      & 'EDIT SCREEN',
-     & ' Gives the list of current screens for you to chose form ',
+     & ' Gives the list of current screens for you to choose from '//
      & 'the one to be edit')
 
       CALL MENADD(MENU,.TRUE.,
@@ -44,7 +44,7 @@ C----------------------------------------------------------------------
       CALL MENADD(MENU,.TRUE.,
      & 'Write Routines',
      & 'WRITE ROUTINES',
-     & 'Writes the EXEC and INIT routines for current RCP file ',
+     & 'Writes the EXEC and INIT routines for current RCP file '//
      & 'to the local area.')
   999 RETURN
       END

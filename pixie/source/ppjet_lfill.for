@@ -42,7 +42,7 @@ C---------------------------------------------------------------------
       IOK=0
       CALL VZERO(ARRAY,NPHIL*2*NETAL)
       CALL VZERO(XPMUO,150)
-      CALL VZERO(IARRAY,NPHIL*2*NETAL)
+      CALL VZERO_i(IARRAY,NPHIL*2*NETAL)
 C- zero variables
       NJET  = 0
       NMUO  = 0

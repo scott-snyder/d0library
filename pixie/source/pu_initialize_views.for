@@ -259,16 +259,16 @@ C ****  Use equivalences to set correct type
 C
                 RVALUE = PARAM_VALUE(I)
                 IF     ( PARAM_TYPE(I) .EQ. VTINT ) THEN
-                  CALL EZ_SET_ELEMENT(ARRAY_NAME,PARAM(I),IDX,1,
+                  CALL EZ_SET_ELEMENT_i(ARRAY_NAME,PARAM(I),IDX,1,
      &               IVALUE,IER)
                 ELSEIF ( PARAM_TYPE(I) .EQ. VTREAL ) THEN
                   CALL EZ_SET_ELEMENT(ARRAY_NAME,PARAM(I),IDX,1,
      &               RVALUE,IER)
                 ELSEIF ( PARAM_TYPE(I) .EQ. VTLOG ) THEN
-                  CALL EZ_SET_ELEMENT(ARRAY_NAME,PARAM(I),IDX,1,
+                  CALL EZ_SET_ELEMENT_l(ARRAY_NAME,PARAM(I),IDX,1,
      &               LVALUE,IER)
                 ELSEIF ( PARAM_TYPE(I) .GE. VTCHAR ) THEN
-                  CALL EZ_SET_ELEMENT(ARRAY_NAME,PARAM(I),IDX,1,
+                  CALL EZ_SET_ELEMENT_i(ARRAY_NAME,PARAM(I),IDX,1,
      &              IVALUE,IER)
                 ENDIF
                 IF ( IER .NE. 0 ) THEN

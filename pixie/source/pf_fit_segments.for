@@ -137,8 +137,8 @@ C
      &                  'Cannot find PX_FDCDIS_RCP','W')
           GOTO 999
         ENDIF
-        CALL PUGETV('FDC FIT NO DL',FIT_NO_DL)
-        CALL PUGETV('FDC FIT SEGTRK',USE_FIT_SEGTRK)
+        CALL PUGET_i('FDC FIT NO DL',FIT_NO_DL)
+        CALL PUGET_l('FDC FIT SEGTRK',USE_FIT_SEGTRK)
         CALL EZRSET
 C
         IF ( FIT_NO_DL .GT. 0) THEN
@@ -171,7 +171,7 @@ C
         CALL MZBOOK(IXMAIN,LFLOC,0,2,'FDCT',1,1,26,IXFDCT,0)
         CALL UCOPY(QTRAK,Q(LFLOC+1),26)
         CALL MZBOOK(IXMAIN,LFDTH,LFLOC,-IZFDTH,'FDTH',0,0,105,IXFDTH,0)
-        CALL UCOPY(LADDER,IQ(LFDTH+103),3)        ! Put in ladder
+        CALL UCOPY_i(LADDER,IQ(LFDTH+103),3)        ! Put in ladder
 C
 C  Reset DL fitting
 C 

@@ -52,13 +52,13 @@ C
 C Optimize string quality initially to prevent bombs in XDW driver
 C   for long strings:
 C
-      CALL PUGETV('STRING QUALITY',STRQ)
+      CALL PUGET_i('STRING QUALITY',STRQ)
       CALL PUSETV('STRING QUALITY',3)
 C
 C  Select track to use for viewing parameters.
 C
       CALL PFPICK_TRACK(TRKNUM,HALF,1)
-      CALL PUGETV('FDC 3D VIEW',IVIEW)
+      CALL PUGET_i('FDC 3D VIEW',IVIEW)
       IF(IVIEW.EQ. 2) THEN
         CALL PUGETV('FDC 3D X0',X0)
         CALL PUGETV('FDC 3D Y0',Y0)

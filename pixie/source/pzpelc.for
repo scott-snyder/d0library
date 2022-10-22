@@ -108,7 +108,7 @@ C
         ERRVTX(1) = 9999.0  ! temporarily force the fit without the vertex 
         CALL 
      &    ZTRAKS(FITVTX(3),PHIMIN,PHIMAX,THEMIN,THEMAX,PT,NZTR,ZLINKR)
-        CALL UCOPY(ZLINKR(1),ZLINKS(1),NZTR)
+        CALL UCOPY_i(ZLINKR(1),ZLINKS(1),NZTR)
         DO 200 IZTRK = 1, NZTR
           IF (ZLINKS(IZTRK) .EQ. PLZTRK) THEN
             CALL ZTRKFT(ZLINKS(IZTRK),FITVTX,ERRVTX)

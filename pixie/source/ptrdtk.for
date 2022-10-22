@@ -110,7 +110,7 @@ C
       COR_ENRG(1)=1.
       COR_ENRG(2)=1.
       COR_ENRG(3)=1.
-      CALL EZ_GET_ARRAY('PXPARAMS','MIPS',1,E_IN_MIPS,CVAL,
+      CALL EZ_GET_ARRAY_l('PXPARAMS','MIPS',1,E_IN_MIPS,CVAL,
      &       TYP,REM,IER)
       DO ILAY=1,3
         IF(E_IN_MIPS)THEN
@@ -129,12 +129,12 @@ C
      &      'PXPARAMS NOT FOUND','W')
         GOTO 995
       ENDIF
-      CALL EZ_GET_ARRAY('PXPARAMS','TRD ONLY',1,TRONLY,CVAL,
+      CALL EZ_GET_ARRAY_l('PXPARAMS','TRD ONLY',1,TRONLY,CVAL,
      &       TYP,REM,IER)
       CALL EZ_GET_ARRAY('PXPARAMS','TRD BIN_TOMIPS',1,BTOMIPS,CVAL,
      &       TYP,REM,IER)
 C Fetch parameter to draw TRD for electron candidates
-      CALL EZ_GET_ARRAY('PXPARAMS','TRD ELEC_ONLY',1,VLOGIC,CVAL,
+      CALL EZ_GET_ARRAY_l('PXPARAMS','TRD ELEC_ONLY',1,VLOGIC,CVAL,
      &       TYP,REM,IER)
       ELEC_ONLY=.FALSE.
       IF ( IER .EQ. 0 ) THEN
@@ -166,7 +166,7 @@ C DRAW CIRCLE BOUNDARIES
     5 CALL JCIRCL(0.,0.,0.,R(ILAY),0)
       ITK=0
       CALL VZERO(MXENRG,3)
-      CALL VZERO(MXWIR,3)
+      CALL VZERO_i(MXWIR,3)
    10 IF(LTRDT.LE.0)GO TO 100
       IF(IQ(LTRDT+3).LE.0)GO TO 60 ! Check if there are hit anodes
 C If ELEC_ONLY is requested keep tracks with total energy>3*MIPS
@@ -178,7 +178,7 @@ C If ELEC_ONLY is requested keep tracks with total energy>3*MIPS
         LTPRL=LQ(LTRDT-ILAY)
         IF(LTPRL.LE.0)GO TO 40
         CALL VZERO(REAL_WORD,NWORD)
-        CALL VZERO(INTEGER_WORD,NWORD)
+        CALL VZERO_i(INTEGER_WORD,NWORD)
 C unpack wire energies
         CALL UNPACK_TPRL(LTPRL,VNTPRL,REAL_WORD,INTEGER_WORD,IER)
         IF(IER.NE.0)GO TO 40

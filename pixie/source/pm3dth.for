@@ -81,10 +81,10 @@ C
       ENDIF
       CALL PUGETV('TRACK PTMIN',PTMIN)
       CALL PUGETV('TRACK DPT',DPT)
-      CALL PUGETV('MUON ONLY',MUONLY)
-      CALL PUGETV ('MUON TK BANK',MUBANK)
-      CALL PUGETV('MUON TK FIT',MUFIT)
-      CALL PUGETV('MUON LABEL TKS',TKLAB)
+      CALL PUGET_l('MUON ONLY',MUONLY)
+      CALL PUGET_i ('MUON TK BANK',MUBANK)
+      CALL PUGET_l('MUON TK FIT',MUFIT)
+      CALL PUGET_i('MUON LABEL TKS',TKLAB)
       IF (.NOT. MUONLY) THEN
         IF(MUBANK.EQ.1) THEN
           BKNAME = 'MUOT'
@@ -109,7 +109,7 @@ C    ================
 C
 C    IF DON'T DESIRE TRACK, SKIP DRAWING TRACK
 C    =========================================
-      CALL PUGETV ('MUON DRAW TRACKS',D3TRK)
+      CALL PUGET_i ('MUON DRAW TRACKS',D3TRK)
       IF (D3TRK.EQ.0) GOTO 900           ! 1=DRAW / 0=DON'T DRAW
 C
 C    Get number of tracks from ZEBRA banks

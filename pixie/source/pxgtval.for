@@ -76,13 +76,13 @@ C-------------------------------------------------------------
         IER2 = 0
         IF (     PARTYPE .EQ. VTINT ) THEN        ! Integer
           READ( VALUE(1:LENGTH), * ) IVAL 
-          CALL EZ_SET_ELEMENT(ARRAY,NAME,IDX,1,IVAL,IER)
+          CALL EZ_SET_ELEMENT_i(ARRAY,NAME,IDX,1,IVAL,IER)
         ELSEIF ( PARTYPE .EQ. VTREAL ) THEN       ! Real
           READ( VALUE(1:LENGTH), * ) VALU  
           CALL EZ_SET_ELEMENT(ARRAY,NAME,IDX,1,VALU,IER)
         ELSEIF ( PARTYPE .EQ. VTLOG ) THEN        ! Logical
           READ( VALUE(1:LENGTH), * ) LVAL   
-          CALL EZ_SET_ELEMENT(ARRAY,NAME,IDX,1,LVAL,IER)
+          CALL EZ_SET_ELEMENT_l(ARRAY,NAME,IDX,1,LVAL,IER)
         ELSEIF ( PARTYPE .GT. VTCHR ) THEN        ! Character
           CVAL='    '
           READ( VALUE(1:LENGTH), 2120 ) CVAL

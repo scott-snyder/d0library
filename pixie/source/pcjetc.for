@@ -53,7 +53,7 @@ C-
         GO TO 900
       ENDIF
       CALL VZERO(ARRAY,NPHIL*2*NETAL)
-      CALL VZERO(IARRAY,NPHIL*2*NETAL)
+      CALL VZERO_i(IARRAY,NPHIL*2*NETAL)
 C-
 C--- Fill ARRAY in ETA-PHI bins with Et from CAEH bank
 C--- using hit numbers in CACH bank

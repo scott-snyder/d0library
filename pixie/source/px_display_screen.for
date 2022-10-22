@@ -68,7 +68,7 @@ C ****  Getting the number of screens in the package array
 C
       NUM = 1
       CALL EZ_GET_ARRAY('PXSCREEN','NSCREEN',NUM,NSCREEN,CVAL,
-     &              ITYPE,REM,IER)       ! Getting number of screens
+     &              ITYPE,REM(1),IER)       ! Getting number of screens
       IF ( IER .NE. 0 ) THEN
         CALL INTMSG(' Problem accessing PXSCREEN')
         GOTO 999
@@ -76,7 +76,7 @@ C
 C
 C ****  Getting the screen's names in PXSCREEN
 C
-      CALL EZ_GET_ARRAY('PXSCREEN','NAME',NSCREEN,IVAL,SCRENAM,
+      CALL EZ_GET_ARRAY('PXSCREEN','NAME',NSCREEN,IVAL(1),SCRENAM,
      &              SCRETY,SCREREM,IER) ! Getting screen names
       IF ( IER .NE. 0 ) THEN
         CALL INTMSG(' Problem accessing PXSCREEN')

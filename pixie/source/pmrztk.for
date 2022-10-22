@@ -82,7 +82,7 @@ C--- CHECK LOCAL OR GLOBAL
      &     'W')
         GOTO 999
       ENDIF
-      CALL PUGETV('PHI TYPE',LPHITYP)
+      CALL PUGET_l('PHI TYPE',LPHITYP)
       IF(LPHITYP) THEN           ! GLOBAL Mode
         CALL PUGETV('PHI CENTER',PHIPK)
         CALL PUGETV('PHI WIDTH',DPHIPK)
@@ -104,11 +104,11 @@ C---
      &    'Unable to pick RCP bank PX_MUODIS_RCP','W')
         GOTO 999
       ENDIF
-      CALL PUGETV ('MUON DRAW TRACKS',DRAWTRK)
-      CALL PUGETV ('MUON TK BANK',MUBANK)
+      CALL PUGET_i ('MUON DRAW TRACKS',DRAWTRK)
+      CALL PUGET_i ('MUON TK BANK',MUBANK)
       CALL PUGETV('TRACK PTMIN',PTMIN)
       CALL PUGETV('TRACK DPT',DPT)
-      CALL PUGETV('MUON LABEL TKS',TKLAB)
+      CALL PUGET_i('MUON LABEL TKS',TKLAB)
 C    Get number of tracks from ZEBRA banks
 C    =====================================
       CALL GTMTRH(NTRACK)
@@ -221,7 +221,7 @@ C    ==================================
 C
 C     SET COLOR OF TRACKS BY THE PT VALUE IF MUON ONLY=.TRUE.
 C     ===================================
-        CALL PUGETV('MUON ONLY',MUONLY)
+        CALL PUGET_l('MUON ONLY',MUONLY)
         IF (MUBANK.EQ.4) THEN           ! MUCD HAS NO MOMENTUM INFO.
           JCOL='YEL'
           GOTO 15

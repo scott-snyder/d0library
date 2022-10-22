@@ -54,7 +54,7 @@ C
       DATA FIRST /.TRUE./
 C----------------------------------------------------------------------
 C
-      CALL PUGETV( 'FDC ONLY', FDONLY )
+      CALL PUGET_l( 'FDC ONLY', FDONLY )
       IF ( .NOT. FDONLY ) THEN
         CALL PDGTRD( CDC, PHI1, PHI2, PHI3, PHI4 )
         IF ( CDC ) THEN    
@@ -63,7 +63,7 @@ C
           IMODE=1                       ! use PX_SYSTEM_RCP PHI
         ENDIF
       ELSE
-        CALL PUGETV( 'FDC PHI MODE', IMODE )
+        CALL PUGET_i( 'FDC PHI MODE', IMODE )
       ENDIF
 C
       IF ( IMODE .LT. 0 ) THEN

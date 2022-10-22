@@ -50,13 +50,13 @@ C
         CALL ERRMSG('PIXIE','PFD03D','Cannot find PX_FDCDIS_RCP','W')
         GOTO 999
       ENDIF
-      CALL PUGETV('STRING QUALITY',STRQ)
+      CALL PUGET_i('STRING QUALITY',STRQ)
       CALL PUSETV('STRING QUALITY',3)
 C
 C  Select track to view.
 C
       CALL PFPICK_TRACK(TRKNUM,HALF,1)
-      CALL PUGETV('FDC 3D VIEW',IVIEW)
+      CALL PUGET_i('FDC 3D VIEW',IVIEW)
 C
 C  Calculate and set 3-D viewing parameters.
 C

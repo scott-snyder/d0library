@@ -61,7 +61,7 @@ C
       CALL J3STRG('0.')
       CALL J3MOVE(PXMED-2.5, -3., 0. )
       CALL J3STRG(CPXMED)
-      CALL J3MOVE(XMAX-2.5, -3., 0. ,0)
+      CALL J3MOVE(XMAX-2.5, -3., 0.)
       CALL J3STRG(CXMAX)
 C Drawing Y-axis
 C

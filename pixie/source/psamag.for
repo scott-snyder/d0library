@@ -37,9 +37,9 @@ C----------------------------------------------------------------------
      &          0.0,0.0,+526.76/!         POSITION IN MOTHER VOLUME
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C DRAW MAGNET IF SAMONLY=TRUE     
-      CALL PUGETV('SAMUS ONLY',SAMONLY)
+      CALL PUGET_l('SAMUS ONLY',SAMONLY)
       IF(.NOT.SAMONLY)GO TO 999
-      CALL PUGETV('SAMUS DRAW MAGNET',IDRAW)
+      CALL PUGET_i('SAMUS DRAW MAGNET',IDRAW)
       IF(IDRAW.EQ.0)GO TO 999
       CALL PUOPEN
       CALL PXCOLR('YEL')

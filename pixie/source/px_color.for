@@ -33,7 +33,7 @@ C----------------------------------------------------------------------
       INTEGER ICTAB(*), IFTAB(*), I, 
      X        CORDER(17), FORDER(17), 
      X        CSKORD(16), FSKORD(16), VORDER(16), VFORDR(16),ENSCOL(17),
-     X        XCORDER(17),PCORDER(17),UORDER(17),HPCORDER(16)
+     X        XCORDER(17),PCORDER(17),UORDER(17),HPCORDER(17)
       INTEGER DEVCOL,DEFTERM
       REAL        RLEVEL
       CHARACTER*(*)DRVNAM
@@ -51,7 +51,7 @@ C PST driver for GREY scale's order
      &  20,39, 3, ! Purple, D. Blue, Blue
      &  6,51,2,   ! Cyan, D. Green, Green
      &  34,41,43, ! Blue Green, D. Magenta, D. Red,
-     &  4,5,27,1/
+     &  4,5,27,1,0/
 C----------------------------------------------------------------------
 C PST color driver order
       DATA PCORDER/ 7,8,40,20,39,4,6,51,2,34,41,43,1,5,27,3,8/
@@ -107,7 +107,7 @@ C GREY SHADE PST
           DO 40 I=1, 17
             ICTAB(I) = HPCORDER(I)
             IFTAB(I) = 1
-   40     CONTINUE
+ 40       CONTINUE
           GOTO 270
         ENDIF
 c color PST

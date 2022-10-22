@@ -56,7 +56,7 @@ C
         CALL ERRMSG('PIXIE','PVGPHI','Cannot find PX_VTXDIS_RCP','W')
         GOTO 999
       ENDIF
-      CALL PUGETV( 'VTX ONLY', VTONLY )
+      CALL PUGET_l( 'VTX ONLY', VTONLY )
       IF ( .NOT. VTONLY ) THEN
 C
 C ****  If the VTX R-Z display is used in a combined detector display, then
@@ -87,9 +87,9 @@ C- DEFINE PHI1..4 BY PX_SYSTEM_RCP
           CALL EZRSET
         ENDIF
       ELSE
-        CALL PUGETV( 'VTX USE PHI MODE', IUSPHI )
+        CALL PUGET_i( 'VTX USE PHI MODE', IUSPHI )
         IF ( IUSPHI .GT. 0 ) THEN
-          CALL PUGETV( 'VTX PHI MODE', IMODE )
+          CALL PUGET_i( 'VTX PHI MODE', IMODE )
           IF ( IMODE .LE. 0 ) THEN
 C
 C ****  Mode 0: full detector (0 to pi on top, pi to twopi on bottom)

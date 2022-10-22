@@ -36,8 +36,8 @@ C
       CALL EZ_GET_ARRAY('PXSCREEN','NSCREEN',J,NSCREEN,CVAL,
      &              TYPE,REMARK,IER)     ! Getting number of screens
       IF ( IER .EQ. 0 ) THEN
-        CALL EZ_GET_ARRAY('PXSCREEN','NAME',NSCREEN,IVAL,SCRENAM,
-     &              TYPES,REM,IER)       ! Getting screen names
+        CALL EZ_GET_ARRAY('PXSCREEN','NAME',NSCREEN,IVAL(1),SCRENAM,
+     &              TYPES(1),REM(1),IER)       ! Getting screen names
         IF ( IER .EQ. 0 ) THEN
           DO K = 1, NSCREEN
             CALL SWORDS(SCRENAM(K),I,J,LEN)
@@ -67,7 +67,8 @@ C
       DO WHILE ( TEMP .LT. TOTAL_SCREENS )
         TEMP = TEMP + 1
         CALL EZ_GET_ARRAY ! Getting remarks of combined views
-     &    (SCREEN_NAMES(TEMP),'%TITLE',1,IVAL,CVAL,TYPES,REMARK,IER)
+     &       (SCREEN_NAMES(TEMP),'%TITLE',1,IVAL(1),CVAL,TYPES(1),REMARK
+     &       ,IER)
         REM(TEMP) = REMARK
       ENDDO
 C

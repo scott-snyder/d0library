@@ -37,7 +37,7 @@ C=====================================================================
       WS(100)=0.! total energy
       WS(101)=0.!truncated mean
       call vzero(real_word,nword)
-      call vzero(integer_word,nword)
+      call vzero_i(integer_word,nword)
       LTRDT=GZTRDT()
       DO WHILE (LTRDT.NE.0)
         LTPRL=LQ(LTRDT-LAYER)
@@ -53,7 +53,7 @@ C  look if hit belongs to a track
           J=(layer-1)*10
           NHITA=MIN0(4,NHITA)
           IWS(J+1)=NHITA
-          CALL UCOPY(INTEGER_WORD(51),IWS(2+J),NHITA)! cell numbers
+          CALL UCOPY_i(INTEGER_WORD(51),IWS(2+J),NHITA)! cell numbers
           CALL UCOPY(REAL_WORD(51),IWS(6+J),NHITA)   ! energies
         DO 40 ICH=1,3
           IF(ICH.EQ .LAYER)GO TO 40
@@ -68,7 +68,7 @@ C check if there are any anode hits in this layer
           J=(ICH-1)*10
           NHITA=MIN0(4,NHITA)
           IWS(J+1)=NHITA
-          CALL UCOPY(INTEGER_WORD(51),IWS(2+J),NHITA)! cell numbers
+          CALL UCOPY_i(INTEGER_WORD(51),IWS(2+J),NHITA)! cell numbers
           CALL UCOPY(REAL_WORD(51),IWS(6+J),NHITA)   ! energies
    40   CONTINUE
         WS(100)=Q(LTRDT+4)

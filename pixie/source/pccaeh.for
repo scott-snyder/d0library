@@ -41,7 +41,7 @@ C----------------------------------------------------------------------
       NREP=IQ(LCAEH+2)
       NCLUS=0
       CALL VZERO(ARRAY,NPHIL*2*NETAL)
-      CALL VZERO(IARRAY,NPHIL*2*NETAL)
+      CALL VZERO_i(IARRAY,NPHIL*2*NETAL)
    20 IF(LCLUS.LE.0)GO TO 999
       LHITS=LQ(LCLUS-1)
       IF(LHITS.LE.0)GO TO 150

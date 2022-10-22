@@ -45,7 +45,7 @@ C--- Select correct RCP bank and get min. E/Et for towers to be plotted
         GOTO 999
       ELSE
         CALL PUGETV('CALEGO EMIN',ECUT)
-        CALL PUGETV('CAL ETORE',EORET)
+        CALL PUGET_l('CAL ETORE',EORET)
         CALL EZRSET
       ENDIF
 C-

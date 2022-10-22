@@ -27,9 +27,9 @@ C
 C
       DATA RMIN,RMAX/51.8,71.9/
 C----------------------------------------------------------------------
-      CALL PUGETV('CDC DRAW SECTORS', CDCSEC)
+      CALL PUGET_i('CDC DRAW SECTORS', CDCSEC)
       CALL PUSETV('CDC DRAW SECTORS',0)
-      CALL PUGETV('CDC ONLY', IFDCDC )
+      CALL PUGET_l('CDC ONLY', IFDCDC )
 C
       IF ( IFDCDC ) THEN
         EXTRAP =  CDCEXT

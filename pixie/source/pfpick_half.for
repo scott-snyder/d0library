@@ -40,8 +40,8 @@ C----------------------------------------------------------------------
         CALL ERRMSG('PIXIE','PFTHTA','Cannot find PX_FDCDIS_RCP','W')
         GOTO 999
       ENDIF
-      CALL PUGETV('FDC CHOOSE HALF',CHOOSE_HALF)
-      CALL PUGETV('FDC HALF',HALF)
+      CALL PUGET_l('FDC CHOOSE HALF',CHOOSE_HALF)
+      CALL PUGET_i('FDC HALF',HALF)
 C
       CALL PFFIX_HALF
 C

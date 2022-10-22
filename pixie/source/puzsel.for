@@ -24,6 +24,7 @@ C----------------------------------------------------------------------
       INTEGER ISEL,LSEL,NFND1,NFND2,I,II,JJ,CDIRL,IFILE,ICOM
       REAL    RTCODE, SYS$SETDDIR      
       CHARACTER*32 NAMFND1(39),NAMFND2(39),MENLIS1(39),MENLIS2(39)
+      character*32 rem1(39), rem2(39)
       CHARACTER*80 CURDIR,TOP
       CHARACTER*132 STRING
 C
@@ -65,9 +66,11 @@ C ****  Filling menu display array
 C
       DO 10 I = 1 , NFND1
         MENLIS1(I) = NAMFND1(I)
+        rem1(i) = ''
    10 CONTINUE
       DO 15 I = 1 , NFND2
         MENLIS2(I) = NAMFND2(I)
+        rem2(i) = ''
    15 CONTINUE
 C
 C ****  Select the which RCP files to display
@@ -81,7 +84,7 @@ C ****  Selecting from ligrary
 C
         IF( MENULIST(ICOM) .EQ. 'FILES AVAILABLE IN LIBRARY' ) THEN
           CALL DISPLAY_ITEMS
-     &      (NFND1,MENLIS1,'LIBRARY FILES',IFILE)
+     &      (NFND1,MENLIS1,rem1,'LIBRARY FILES',IFILE)
           IF( IFILE .NE. 0 ) THEN
             LSEL   = INDEX( NAMFND1(IFILE),' ') - 1
             FILNAM = DIRNAM//NAMFND1(IFILE)(1:LSEL)
@@ -93,7 +96,7 @@ C
         ELSEIF( MENULIST(ICOM) .EQ. 'USER DEFAULT AREA FILES' ) THEN
           TOP = 'FILES IN AREA '//CURDIR(1:CDIRL)
           CALL DISPLAY_ITEMS
-     &      (NFND2,MENLIS2,TOP,IFILE)
+     &      (NFND2,MENLIS2,rem2,TOP,IFILE)
           IF( IFILE .NE. 0 ) THEN
             LSEL   = INDEX( NAMFND2(IFILE),' ') - 1
             FILNAM = CURDIR(1:CDIRL)//NAMFND2(IFILE)(1:LSEL)

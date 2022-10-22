@@ -35,7 +35,7 @@ C----------------------------------------------------------------------
       CHARACTER*3  UCOL
 C---------------------------------------------------------------------
       CALL VZERO(ARRAY,NPHIL*2*NETAL)
-      CALL VZERO(IARRAY,NPHIL*2*NETAL)
+      CALL VZERO_i(IARRAY,NPHIL*2*NETAL)
       IOK=0
       TWOP=TWOPI
       CALL PUGETA('TOPDIS WCOL',UCOL)

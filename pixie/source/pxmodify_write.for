@@ -168,7 +168,7 @@ C
           DO WHILE ( ( ITYPE .EQ. VTLOG ) .AND.
      &               ( IER   .NE. 1     ) )
             CALL EZGET_NEXT_VALUE_TYPE
-     &        (BUFFER(II)(I+1:J-1),IVALUE,CVAL,ITYPE,LVAL,IER,PTR)
+     &        (BUFFER(II)(I+1:J-1),IVALUE,CVAL,ITYPE,iVAL,IER,PTR)
             IF ( ITYPE .EQ. VTLOG ) THEN
               IF ( IVALUE .EQ. 0 ) THEN
                 WRITE(UNIT=LUN,FMT='(A)')
@@ -187,7 +187,7 @@ C
             TEMP = '    '''//CVAL(1:iVAL)//''''
             WRITE(UNIT=LUN,FMT='(A)')TEMP
             CALL EZGET_NEXT_VALUE_TYPE
-     &        (BUFFER(II)(I+1:J-1),IVALUE,CVAL,ITYPE,LVAL,IER,PTR)
+     &        (BUFFER(II)(I+1:J-1),IVALUE,CVAL,ITYPE,iVAL,IER,PTR)
             TEMP = ' '
             TEMP = '    '''//CVAL(1:iVAL)//''''
             WRITE(UNIT=LUN,FMT='(A)')TEMP
@@ -197,7 +197,7 @@ C
             DO WHILE( ( ITYPE .NE. VTLOG ) .AND. ( IER .NE. 1) )
               TEMP_PTR = PTR
               CALL EZGET_NEXT_VALUE_TYPE
-     &          (BUFFER(II)(I+1:J-1),IVALUE,CVAL,ITYPE,LVAL,IER,PTR)
+     &          (BUFFER(II)(I+1:J-1),IVALUE,CVAL,ITYPE,iVAL,IER,PTR)
  1            IF(( ITYPE .NE. VTLOG ) .AND. ( iVAL .NE. 0 ))THEN
                 TEMP = ' '
                 TEMP = '    '''//CVAL(1:iVAL)//''''

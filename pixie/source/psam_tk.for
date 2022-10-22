@@ -95,7 +95,7 @@ C
      &         'Bank PX_SAMDIS_RCP NOT FOUND','W')
         GOTO 999
       ENDIF
-      CALL PUGETV('SAMUS ONLY',SAMONLY)
+      CALL PUGET_l('SAMUS ONLY',SAMONLY)
       IF(.NOT.SAMONLY)GO TO 900
 C    Get number of tracks from MTRH (muon track header bank)
 C    =======================================================
@@ -104,7 +104,7 @@ C    =======================================================
 C
 C    IF DON'T DESIRE TRACK, SKIP DRAWING TRACK
 C    =========================================
-      CALL PUGETV ('SAMUS DRAW TRACKS',DRAWTRK)
+      CALL PUGET_i ('SAMUS DRAW TRACKS',DRAWTRK)
       IF (DRAWTRK.EQ.0) GOTO 900   ! 1=DRAW EC, 2=DRAW ALL/ 0=DON'T DRAW
 C
       CALL PUOPEN

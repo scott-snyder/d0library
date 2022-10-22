@@ -47,7 +47,7 @@ C      CALL PUSLVP( XPV(1) , XPV(2) )
       DMIN=1.E6
 C-
 C--- Get parameters for track display
-      CALL PUGETV('ISAJET TRK CHOICE',ITKCHO)
+      CALL PUGET_i('ISAJET TRK CHOICE',ITKCHO)
       CALL PUGETV('TRACK PTMIN',PTMIN)
       CALL PUGETV('TRACK LENGTH',LTRK)
 C-

@@ -67,7 +67,7 @@ C
         VERSION1 = IQ(LFHIT+1).EQ.1
 C
         DO IHIT =  1, NHIT
-          CALL GTFHIT(IHIT,IQFHIT)
+          CALL GTFHIT(IHIT,IQFHIT(1))
           STATWORD = IQFHIT(1)
 C
 C  Require good Delay Line and on segment.

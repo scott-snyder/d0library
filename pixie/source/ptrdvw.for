@@ -99,7 +99,7 @@ C
       COR_ENRG(1)=1.
       COR_ENRG(2)=1.
       COR_ENRG(3)=1.
-      CALL EZ_GET_ARRAY('PXPARAMS','MIPS',1,E_IN_MIPS,CVAL,
+      CALL EZ_GET_ARRAY_l('PXPARAMS','MIPS',1,E_IN_MIPS,CVAL,
      &       TYP,REM,IER)
       DO ILAY=1,3
         IF(E_IN_MIPS)THEN
@@ -112,7 +112,7 @@ C
         END IF
       END DO
 
-      CALL EZ_GET_ARRAY('PXPARAMS','TRD ONLY',1,TRONLY,CVAL,
+      CALL EZ_GET_ARRAY_l('PXPARAMS','TRD ONLY',1,TRONLY,CVAL,
      &       TYP,REM,IER)
 C
 C ****  Check on the TRD_ANO_CATH flag to define

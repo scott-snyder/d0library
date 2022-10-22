@@ -95,13 +95,13 @@ C----------------------------------------------------------------------
 C
 C ****  Get parameters from currently selected bank
 C
-      CALL PUGETV('CDC ONLY',IFDCDC )
-      CALL PUGETV('CDC DRAW WIRES', IFDWIR )
-      CALL PUGETV('CDC DRAW HITS',  IFDHIT )
-      CALL PUGETV('CDC DRAW TRACK', IFDTRK )
-      CALL PUGETV('CDC DRAW LABEL', IFDLBL )
-      CALL PUGETV('CDC DRAW VERTEX',IFDVER )
-      CALL PUGETV('CDC MAX HITS',MAXCHITS)
+      CALL PUGET_l('CDC ONLY',IFDCDC )
+      CALL PUGET_i('CDC DRAW WIRES', IFDWIR )
+      CALL PUGET_i('CDC DRAW HITS',  IFDHIT )
+      CALL PUGET_i('CDC DRAW TRACK', IFDTRK )
+      CALL PUGET_i('CDC DRAW LABEL', IFDLBL )
+      CALL PUGET_i('CDC DRAW VERTEX',IFDVER )
+      CALL PUGET_i('CDC MAX HITS',MAXCHITS)
 C Check number of hits in CDC
       KCDCH=GZCDCH(0)
       NCDCHIT=IQ(KCDCH+1)
@@ -138,7 +138,7 @@ C-
      &     'W')
           GOTO 999
         ENDIF
-        CALL PUGETV('PHI TYPE',LPHITYP)
+        CALL PUGET_l('PHI TYPE',LPHITYP)
         IF (LPHITYP) THEN                  ! GLOBAL Mode
           CALL PUGETV('PHI CENTER',PHIPK)
           CALL PUGETV('PHI WIDTH',DPHIPK)
@@ -216,7 +216,7 @@ C
       IF (IFDHIT .NE. 0) THEN
         IF (LCDCH .EQ. 0) THEN
           CALL PATHST(DPATH)
-          LCDCH = GZCDCH()
+          LCDCH = GZCDCH(0)
         ENDIF
         IF (LCDCH .EQ. 0) GOTO 301
 C        IF (IQ(LCDCH+1) .EQ. 0) GOTO 301         ! No hit in the chamber...

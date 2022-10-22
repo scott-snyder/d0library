@@ -167,7 +167,7 @@ C
         CALL JHSTRG(' > Z')
         CALL J3MOVE(XXF0,0.,ZI)
         CALL J3STRG('ZDIV=')
-        CALL J3MOVE(XXF0,ZF1)
+        CALL J3MOVE(XXF0,ZF1,0.)
         WRITE(HOR,900)SCALEX
         CALL J3STRG(HOR)
         COLOR ='RED'

@@ -73,7 +73,7 @@ C
         COR_ENRG(1)=1.
         COR_ENRG(2)=1.
         COR_ENRG(3)=1.
-        CALL EZ_GET_ARRAY('PXPARAMS','MIPS',1,E_IN_MIPS,CVAL,
+        CALL EZ_GET_ARRAY_l('PXPARAMS','MIPS',1,E_IN_MIPS,CVAL,
      &       TYP,REM,IER)
         DO LAYER=1,3
           IF(E_IN_MIPS)THEN
@@ -86,7 +86,7 @@ C
           END IF
         END DO
       END IF
-      CALL EZ_GET_ARRAY('PXPARAMS','TRD ONLY',1,TRONLY,CVAL,
+      CALL EZ_GET_ARRAY_l('PXPARAMS','TRD ONLY',1,TRONLY,CVAL,
      &       TYP,REM,IER)
 C    draw chamber in the R-Z view
 C

@@ -72,8 +72,8 @@ C--- Select correct RCP bank
       ENDIF
 C-
       CALL PUGETV('CALEGO EMIN',EMIN)
-      CALL PUGETV('CAL ETORE',ETORE)
-      CALL PUGETV('JET TYPE',JTYPE)
+      CALL PUGET_l('CAL ETORE',ETORE)
+      CALL PUGET_i('JET TYPE',JTYPE)
 C-
       CALL EZRSET
 C-

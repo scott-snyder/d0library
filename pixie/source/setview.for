@@ -194,7 +194,7 @@ C ****  within the current viewport
 C
       IF ( PICKING ) THEN
 C
-        CALL PU_GET_SCREEN_PARAM(IDX,'PICKABLE',PICKABLE,IER)
+        CALL PU_GET_SCREEN_PARAM_l(IDX,'PICKABLE',PICKABLE,IER)
         IF ( PICKABLE ) THEN
 C
 C ****  Get selected point in PIXIE virtual coordinates

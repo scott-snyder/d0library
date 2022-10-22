@@ -87,7 +87,7 @@ C
      &      FIRST_HIT,NHIT,FIRST_DL,N_DL)
           DO IHIT = FIRST_HIT, NHIT+FIRST_HIT-1
 C
-            CALL GTFHIT(IHIT,IQFHIT)
+            CALL GTFHIT(IHIT,IQFHIT(1))
             CALL FHIT_DECODE( 
      &          IQFHIT,
      &          H,U,QD,S,WIRE,

@@ -42,9 +42,9 @@ C
       ENDIF
       CALL PFGPHI(PHI1,PHI2,PHI3,PHI4)  ! Get phi limits for plot
 C
-      CALL PUGETV('FDC ONLY        ', FDONLY)
-      CALL PUGETV('FDC DRAW ISATRK ', DRAISA)
-      CALL PUGETV('FDC DRAW ALL ISA', DRAW_ALL_ISA)
+      CALL PUGET_l('FDC ONLY        ', FDONLY)
+      CALL PUGET_i('FDC DRAW ISATRK ', DRAISA)
+      CALL PUGET_l('FDC DRAW ALL ISA', DRAW_ALL_ISA)
       CALL EZRSET
 C
       CALL PFGETD                            ! Find delay line hits

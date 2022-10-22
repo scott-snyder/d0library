@@ -127,7 +127,7 @@ C   Loop over channels in full FADC card
 C
       DO 50 ID = 0, 15
         CALL VZERO(Y,LFADC)
-        CALL VZERO(EVDATA(0),LFADC)
+        CALL VZERO_i(EVDATA(0),LFADC)
 C Unpack all CDD banks
         CALL ZDEXPD(0,LCHN(ID),EVDATA)
 C "Unzerosuppress" data 

@@ -123,10 +123,10 @@ C
      &    'Bank PX_CALDIS_RCP NOT FOUND','W')
         GOTO 999
       ENDIF
-      CALL PUGETV('CAL ONLY',CONLY)
-      CALL PUGETV('CAL PHI',IPHI)
-      CALL PUGETV('CAL DPHI',IDPHI)
-      CALL PUGETV('CAL ETA',IETA)
+      CALL PUGET_l('CAL ONLY',CONLY)
+      CALL PUGET_i('CAL PHI',IPHI)
+      CALL PUGET_i('CAL DPHI',IDPHI)
+      CALL PUGET_i('CAL ETA',IETA)
 C-
 C--- Impose up and down region in the CAL SIDE view
 C-
@@ -142,7 +142,7 @@ C--- CHECK LOCAL OR GLOBAL
      &      'W')
           GOTO 199
         ENDIF
-        CALL PUGETV('PHI TYPE',LPHITYP)
+        CALL PUGET_l('PHI TYPE',LPHITYP)
         IF(LPHITYP) THEN                     ! GLOBAL Mode
           CALL PUGETV('PHI CENTER',CENPHI)
           CALL PUGETV('PHI WIDTH',WIDPHI)
