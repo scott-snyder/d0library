@@ -110,8 +110,8 @@ C----------------------------------------------------------------------
 C  Get the label, name, and material number to be used for the crack
 C----------------------------------------------------------------------
         MATERIAL_LABEL = 'CCCH_CRACK_MATERIAL'
-        CALL EZGET('CCCH_CRACK_MATERIAL_NAME',MATERIAL_NAME,IER)
-        CALL EZGET('CCCH_CRACK_MATERIAL_CODE',CCCH_CRACK_MATERIAL,IER)
+        CALL EZGET_iarr('CCCH_CRACK_MATERIAL_NAME',MATERIAL_NAME,IER)
+        CALL EZGET_i('CCCH_CRACK_MATERIAL_CODE',CCCH_CRACK_MATERIAL,IER)
         MATERIAL_CODE = CCCH_CRACK_MATERIAL
 C----------------------------------------------------------------------
 C  Initialize the number of components
@@ -127,14 +127,14 @@ C----------------------------------------------------------------------
           IF ( CCCH_CRACK_VOL(CODE) .GT. 0. ) THEN
             N = N + 1
             CALL ADDSTR(CODE_CHARACTER(CODE),'_CODE',NAME,LSTRING)
-            CALL EZGET(NAME,COMPONENT_CODE(N),IER)
+            CALL EZGET_i(NAME,COMPONENT_CODE(N),IER)
             COMPONENT_FRACTION(N) = CCCH_CRACK_VOL(CODE) /
      &                              TOTAL_CRACK_VOL
             SUM = SUM + COMPONENT_FRACTION(N)
           ENDIF
         ENDDO
         N = N + 1
-        CALL EZGET('LIQUID_ARGON_CODE',COMPONENT_CODE(N),IER)
+        CALL EZGET_i('LIQUID_ARGON_CODE',COMPONENT_CODE(N),IER)
         COMPONENT_FRACTION(N) = 1. - SUM
         NUMBER_COMPONENTS = N
 C----------------------------------------------------------------------

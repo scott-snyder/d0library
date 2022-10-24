@@ -43,12 +43,12 @@ C
      &            'MH_MOTHER_VOLUME-Z'/
 C----------------------------------------------------------------------
       CALL GTSRCP('CONV_FACTOR',CONV,1)
-      CALL GTSRCP('MH_MVOLS_ROT_MATRIX',IRTOFF,1)
+      CALL GTSRCP_i('MH_MVOLS_ROT_MATRIX',IRTOFF,1)
 C
       DO 200 IZ = 1,2
         CALL ADDSTR(MOTHVL(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
         NAME = LSR(3)
         MATNO = LSR(2)
         DO 201 IFC = 4,7

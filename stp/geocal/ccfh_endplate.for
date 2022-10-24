@@ -51,10 +51,10 @@ C----------------------------------------------------------------------
 C  Set the GEANT SRCP parameters for the South=+ endplate
 C----------------------------------------------------------------------
       VOLUME_LABEL      = 'CCFH_SOUTH_ENDPLATE_VOLUME'
-      CALL EZGET('CCFH_SOUTH_ENDPLATE_VOLUME_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i('CCFH_SOUTH_ENDPLATE_VOLUME_NAME',VOLUME_NAME,IER)
       CALL UCTOH('TRD1',VOLUME_SHAPE,4,4)
-      CALL EZGET('STAINLESS_STEEL_CODE',VOLUME_MATERIAL_CODE,IER)
-      CALL EZGET('CCFH_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('STAINLESS_STEEL_CODE',VOLUME_MATERIAL_CODE,IER)
+      CALL EZGET_i('CCFH_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL UCTOH('POS',POSITIONING,4,3)
       ROTATION_MATRIX   = 1
       COPY_NUMBER       = 1
@@ -74,7 +74,7 @@ C----------------------------------------------------------------------
 C  Set the parameters for the North=- endplate
 C----------------------------------------------------------------------
       VOLUME_LABEL = 'CCFH_NORTH_ENDPLATE_VOLUME'
-      CALL EZGET('CCFH_NORTH_ENDPLATE_VOLUME_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i('CCFH_NORTH_ENDPLATE_VOLUME_NAME',VOLUME_NAME,IER)
       Y_POSITION   = - Y_POSITION
 C----------------------------------------------------------------------
 C  Write the North endplate volume GEANT SRCP parameter description

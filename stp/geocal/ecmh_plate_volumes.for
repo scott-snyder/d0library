@@ -42,9 +42,9 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C-    Platelevel Gaps.
 C----------------------------------------------------------------------
-      CALL EZGET('ECMH_LAST_GAP_PER_STEP',LAST_GAP_PER_STEP,IER)
-      CALL EZGET('ECMH_READOUT_GAPS',READOUT_GAP,IER)
-      CALL EZGET('ECMH_NUMBER_GAPS',NGAPS,IER)
+      CALL EZGET_iarr('ECMH_LAST_GAP_PER_STEP',LAST_GAP_PER_STEP,IER)
+      CALL EZGET_iarr('ECMH_READOUT_GAPS',READOUT_GAP,IER)
+      CALL EZGET_i('ECMH_NUMBER_GAPS',NGAPS,IER)
       DO IGAP=1,NGAPS
         WRITE(GAP,'(I2.2)') IGAP
         IF (IGAP.EQ.1) GOTO 100

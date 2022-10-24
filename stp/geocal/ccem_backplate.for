@@ -42,7 +42,7 @@ C       RVAL(6) = Length
 C----------------------------------------------------------------------
       CALL EZGET('CCEM_LAST_ELEMENT',LAST_ELEMENT,IER)
       WRITE(NAME,1001) LAST_ELEMENT
-      CALL EZGET(NAME,IVAL,IER)
+      CALL EZGET_iarr(NAME,IVAL,IER)
       CCEM_BACKPLATE_THICKNESS = RVAL(4)
       CCEM_BACKPLATE_WIDTH     = RVAL(5)
       CCEM_BACKPLATE_LENGTH    = RVAL(6)

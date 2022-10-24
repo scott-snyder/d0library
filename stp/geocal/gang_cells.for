@@ -37,7 +37,7 @@ C
         JQCLYR = LC(LQCETA-IZCLYR-JDEPTH+1)      ! master cell
         LQCLYR = LC(LQCETA-IZCLYR-IDEPTH+1)      ! slave cell
   100   IF(LQCLYR .EQ. 0) GO TO 150     ! loop on subcell banks
-        IF( JBYT(C(LQCLYR), JBSBCL, NBSBCL) .EQ. 0) THEN
+        IF( JBYT(iC(LQCLYR), JBSBCL, NBSBCL) .EQ. 0) THEN
           KQCLYR = JQCLYR
   120     KQCLYR = LZBYT(IXSTP, KQCLYR, 0, JBSBCL, NBSBCL)
           IF( KQCLYR .EQ. 0) THEN       ! error

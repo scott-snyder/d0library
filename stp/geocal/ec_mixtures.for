@@ -32,7 +32,7 @@ C
       REAL CONV
 C----------------------------------------------------------------------
       CALL ADDSTR(MIXTURE,'(1)',NMSRC1,LEN3)   !Makes it into array format
-      CALL GTSRCP(NMSRC1,LMIX(1),1)
+      CALL GTSRCP_i(NMSRC1,LMIX(1),1)
       CALL GTSRCP('CONV_FACTOR',CONV,1)    !conversion factor
 C
       NMIX = LMIX(1)

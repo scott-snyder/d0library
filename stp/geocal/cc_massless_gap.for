@@ -47,14 +47,14 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Fill the Massless Gap with liquid argon
 C----------------------------------------------------------------------
-      CALL EZGET ('LIQUID_ARGON_CODE',VOLUME_MATERIAL_CODE,IER)
+      CALL EZGET_i ('LIQUID_ARGON_CODE',VOLUME_MATERIAL_CODE,IER)
 C----------------------------------------------------------------------
 C  Set the GEANT SRCP parameters for the South=+ Massless Gap
 C----------------------------------------------------------------------
       CALL EZGETS ('CC_SOUTH_MASSLESS_GAP_LABEL',1,VOLUME_LABEL,LEN,IER)
-      CALL EZGET ('CC_SOUTH_MASSLESS_GAP_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i ('CC_SOUTH_MASSLESS_GAP_NAME',VOLUME_NAME,IER)
       CALL UCTOH ('TUBE',VOLUME_SHAPE,4,4)
-      CALL EZGET ('CAL_MOTHER_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i ('CAL_MOTHER_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL UCTOH ('POS',POSITIONING,4,3)
       ROTATION_MATRIX   = 1
       COPY_NUMBER       = 1
@@ -73,7 +73,7 @@ C----------------------------------------------------------------------
 C  Set the GEANT SRCP parameters for the North=- Massless Gap
 C----------------------------------------------------------------------
       CALL EZGETS ('CC_NORTH_MASSLESS_GAP_LABEL',1,VOLUME_LABEL,LEN,IER)
-      CALL EZGET ('CC_NORTH_MASSLESS_GAP_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i ('CC_NORTH_MASSLESS_GAP_NAME',VOLUME_NAME,IER)
       Z_POSITION        = - Z_POSITION
 C----------------------------------------------------------------------
 C  Write the South Massless Gap volume GEANT SRCP parameter description

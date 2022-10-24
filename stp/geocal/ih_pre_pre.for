@@ -36,7 +36,7 @@ C----------------------------------------------------------------------
 C
       DO 100 I = 1,NZDIV
         CALL ADDSTR(ZDVN(I),'(1)',NMSRCP,LEN3)
-        CALL GTSRCP(NMSRCP,LSR(1,I),1)
+        CALL GTSRCP_i(NMSRCP,LSR(1,I),1)
         NRAD(I) = 0
         DO 200 J = 1,100
           IF(LSR(J,I).EQ.0)GO TO 201

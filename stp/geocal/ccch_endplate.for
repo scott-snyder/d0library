@@ -59,7 +59,7 @@ C----------------------------------------------------------------------
 C  Set the GEANT SRCP parameters for the South=+ endplate
 C----------------------------------------------------------------------
       CALL UCTOH('TRAP',VOLUME_SHAPE,4,4)
-      CALL EZGET('STAINLESS_STEEL_CODE',VOLUME_MATERIAL_CODE,IER)
+      CALL EZGET_i('STAINLESS_STEEL_CODE',VOLUME_MATERIAL_CODE,IER)
       CALL UCTOH('POS',POSITIONING,4,3)
       ROTATION_MATRIX   = 1
       COPY_NUMBER       = 1
@@ -85,13 +85,13 @@ C  Write the South endplate volume GEANT SRCP parameter description
 C  for both normal and special main ring bypass modules
 C----------------------------------------------------------------------
       VOLUME_LABEL = 'CCCH_SOUTH_ENDPLATE_VOLUME'
-      CALL EZGET('CCCH_SOUTH_ENDPLATE_VOLUME_NAME',VOLUME_NAME,IER)
-      CALL EZGET('CCCH_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('CCCH_SOUTH_ENDPLATE_VOLUME_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i('CCCH_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL WRITE_VOLUME
 C
       VOLUME_LABEL = 'CCCH_MR_SOUTH_ENDPLATE'
-      CALL EZGET('CCCH_MR_SOUTH_ENDPLATE_NAME',VOLUME_NAME,IER)
-      CALL EZGET('CCCH_MR_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('CCCH_MR_SOUTH_ENDPLATE_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i('CCCH_MR_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL WRITE_VOLUME
 C----------------------------------------------------------------------
 C  Set the parameters for the North=- endplate
@@ -103,13 +103,13 @@ C  Write the North endplate volume GEANT SRCP parameter description
 C  for both normal and special main ring bypass modules
 C----------------------------------------------------------------------
       VOLUME_LABEL = 'CCCH_NORTH_ENDPLATE_VOLUME'
-      CALL EZGET('CCCH_NORTH_ENDPLATE_VOLUME_NAME',VOLUME_NAME,IER)
-      CALL EZGET('CCCH_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('CCCH_NORTH_ENDPLATE_VOLUME_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i('CCCH_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL WRITE_VOLUME
 C
       VOLUME_LABEL = 'CCCH_MR_NORTH_ENDPLATE'
-      CALL EZGET('CCCH_MR_NORTH_ENDPLATE_NAME',VOLUME_NAME,IER)
-      CALL EZGET('CCCH_MR_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('CCCH_MR_NORTH_ENDPLATE_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i('CCCH_MR_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL WRITE_VOLUME
       RETURN
       END

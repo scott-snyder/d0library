@@ -37,12 +37,12 @@ C
       INTEGER lum,nlum,INDX,ILUM
 C----------------------------------------------------------------------
       CALL EZPICK('VTWSTP_RCP')
-      CALL EZGET('NUM_CATEG',NUM_CATEG,IER)
-      CALL EZGET('CATEG',CATEG,IER)
-      CALL EZGET('ASCII_DTM', ASCII, IER)
-      CALL EZGET('WRITE_VDTM', WRITE, IER)
-      CALL EZGET('XCHANGE', XCHANGE, IER)
-      CALL ezget('NUM_DTMLUM',nlum,ier)
+      CALL EZGET_iarr('NUM_CATEG',NUM_CATEG,IER)
+      CALL EZGET_iarr('CATEG',CATEG,IER)
+      CALL EZGET_l('ASCII_DTM', ASCII, IER)
+      CALL EZGET_l('WRITE_VDTM', WRITE, IER)
+      CALL EZGET_l('XCHANGE', XCHANGE, IER)
+      CALL ezget_i('NUM_DTMLUM',nlum,ier)
 C
       CALL GTUNIT(666,LUN,IER)
       CALL GTUNIT(666,OUTLUN,IER)

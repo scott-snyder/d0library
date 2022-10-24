@@ -49,14 +49,14 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Fill the mother volume with liquid argon
 C----------------------------------------------------------------------
-      CALL EZGET ('LIQUID_ARGON_CODE',VOLUME_MATERIAL_CODE,IER)
+      CALL EZGET_i ('LIQUID_ARGON_CODE',VOLUME_MATERIAL_CODE,IER)
 C----------------------------------------------------------------------
 C  Set the GEANT SRCP parameters for the CCCH mother volume
 C----------------------------------------------------------------------
       CALL EZGETS ('CCCH_MOTHER_VOLUME_LABEL',1,VOLUME_LABEL,LEN,IER)
-      CALL EZGET ('CCCH_MOTHER_VOLUME_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i ('CCCH_MOTHER_VOLUME_NAME',VOLUME_NAME,IER)
       CALL UCTOH ('PCON',VOLUME_SHAPE,4,4)
-      CALL EZGET ('CAL_MOTHER_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i ('CAL_MOTHER_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL UCTOH ('POS',POSITIONING,4,3)
       ROTATION_MATRIX   = 1
       COPY_NUMBER       = 1

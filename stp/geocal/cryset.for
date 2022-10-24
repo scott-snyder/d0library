@@ -39,7 +39,7 @@ C----------------------------------------------------------------------
 C
 C ****  Get general SET data
 C
-      CALL EZGSET ('IUSET_GENERAL(1)',IRAW,1)
+      CALL EZGSET_i ('IUSET_GENERAL(1)',IRAW(1),1)
 C
       NWHI  = IRAW(1)
       NWDI  = IRAW(2)

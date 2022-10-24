@@ -34,9 +34,9 @@ C  with the first module being the one just above or containing the
 C  horizontal (X) axis, and sequentially in a right-handed manner
 C  about the +Z axis.
 C----------------------------------------------------------------------
-      CALL EZGET('CCEM_NUMBER_MODULES',NUMBER_MODULES,IER)
+      CALL EZGET_i('CCEM_NUMBER_MODULES',NUMBER_MODULES,IER)
       CALL EZGET('CCEM_ANGULAR_OFFSET',OFFSET,IER)
-      CALL EZGET('CCEM_FIRST_ROTATION_MATRIX',FIRST_ID,IER)
+      CALL EZGET_i('CCEM_FIRST_ROTATION_MATRIX',FIRST_ID,IER)
 C----------------------------------------------------------------------
 C  Set angular size of each module
 C----------------------------------------------------------------------

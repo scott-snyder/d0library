@@ -25,7 +25,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       CALL EZGET('MOTHER',MOTHER,IER)
       CALL EZGET('LV0XYZ',LV0XYZ,IER)
-      CALL EZGET('LV0_ROTATION_ID',ID,IER)
+      CALL EZGET_i('LV0_ROTATION_ID',ID,IER)
 C
 C ****  CONVERT FROM ENGLISH TO METRIC
 C

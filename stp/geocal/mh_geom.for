@@ -47,7 +47,7 @@ C
 C----------------------------------------------------------------------
       IF ( FIRST ) THEN
         FIRST = .FALSE.
-        CALL GTSRCP('MH_PHI_SEGMENTS',NSEG,1)
+        CALL GTSRCP_i('MH_PHI_SEGMENTS',NSEG,1)
         WRITE(20,21)NSEG
    21   FORMAT(' EC_MH_SEGMENTS  ',I2,'       !Number of Phi modules')
         CALL GTSRCP('PI',PI,1)

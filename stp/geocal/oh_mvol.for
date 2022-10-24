@@ -43,12 +43,12 @@ C
      &            'OH_BIG_MVOLUME-Z'/
 C----------------------------------------------------------------------
       CALL GTSRCP('CONV_FACTOR',CONV,1)
-      CALL GTSRCP('OH_MVOL_ROT_MATRIX',IRTOFF,1)
+      CALL GTSRCP_i('OH_MVOL_ROT_MATRIX',IRTOFF,1)
 C
       DO 200 IZ = 1,2
         CALL ADDSTR(MOTHVL(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
         NAME = LSR(3)
         MATNO = LSR(2)
         DO 201 IFC = 4,9

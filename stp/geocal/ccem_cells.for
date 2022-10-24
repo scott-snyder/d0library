@@ -54,7 +54,7 @@ C  Parameters
 C----------------------------------------------------------------------
 C  Get the number of modules in this floor
 C----------------------------------------------------------------------
-      CALL EZGET('CCEM_NUMBER_MODULES',NUMBER_MODULES,IER)
+      CALL EZGET_i('CCEM_NUMBER_MODULES',NUMBER_MODULES,IER)
 C----------------------------------------------------------------------
 C  Set the phi angular size of the entire module
 C----------------------------------------------------------------------
@@ -63,7 +63,7 @@ C----------------------------------------------------------------------
 C  Get the number of phi divisions in this floor
 C----------------------------------------------------------------------
       WRITE(NAME,1001) FLOOR
-      CALL EZGET(NAME,NUMBER_PHI_DIVISIONS,IER)
+      CALL EZGET_i(NAME,NUMBER_PHI_DIVISIONS,IER)
       NUMBER_PHI_BOUNDARIES = NUMBER_PHI_DIVISIONS + 1
 C----------------------------------------------------------------------
 C  Set the phi angular size of each cell
@@ -95,7 +95,7 @@ C----------------------------------------------------------------------
 C  Get the number of eta divisions in this floor
 C----------------------------------------------------------------------
       WRITE(NAME,1002) FLOOR
-      CALL EZGET(NAME,NUMBER_ETA_DIVISIONS,IER)
+      CALL EZGET_i(NAME,NUMBER_ETA_DIVISIONS,IER)
       NUMBER_ETA_BOUNDARIES = NUMBER_ETA_DIVISIONS / 2 + 1
 C----------------------------------------------------------------------
 C  Use the Floor Z boundaries to set the Z limits on the end cells of
@@ -109,7 +109,7 @@ C  that the boundaries are only given for 1/2 of a module, assuming
 C  that it is symmetric about Z=0.
 C----------------------------------------------------------------------
       WRITE(NAME,1003) FLOOR
-      CALL EZGET(NAME,IVAL,IER)
+      CALL EZGET_iarr(NAME,IVAL,IER)
       PTR = 1
       DO ETA_BOUNDARY=1,NUMBER_ETA_BOUNDARIES-1
         PTR = PTR + 1

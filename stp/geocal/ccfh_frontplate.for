@@ -43,7 +43,7 @@ C       RVAL(6) = Length
 C----------------------------------------------------------------------
       CALL EZGET('CCFH_FIRST_ELEMENT',FIRST_ELEMENT,IER)
       WRITE(NAME,1001) FIRST_ELEMENT
-      CALL EZGET(NAME,IVAL,IER)
+      CALL EZGET_iarr(NAME,IVAL,IER)
       CCFH_FRONTPLATE_THICKNESS = RVAL(4)
       CCFH_FRONTPLATE_WIDTH     = RVAL(5)
       CCFH_FRONTPLATE_LENGTH    = RVAL(6)

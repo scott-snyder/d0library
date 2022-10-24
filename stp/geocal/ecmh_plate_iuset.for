@@ -24,7 +24,7 @@ C-    ECMH Constants.
 C----------------------------------------------------------------------
       CALL EZGETS('IUSET_ECMH_PLATE_LABEL',1,IUSET_LABEL,LEN,IER)
       CALL EZGETS('IUSET_ECMH_PLATE_NAME',1,IUSET_NAME,LEN,IER)
-      CALL EZGET('IUSET_ECMH_IDTYPES',IDTYPE,IER)
+      CALL EZGET_iarr('IUSET_ECMH_IDTYPES',IDTYPE,IER)
       IUSET_NV=0
 C----------------------------------------------------------------------
 C-    ECMH Mother.

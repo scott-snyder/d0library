@@ -93,10 +93,10 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Get parameters for Fine Hadronic section
 C----------------------------------------------------------------------
-      CALL EZGET ( 'ECIH_FIRST_FLOOR',      FIRST,  IER )
-      CALL EZGET ( 'ECIFH_FLOORS',          FLOORS, IER )
-      CALL EZGET ( 'ECIFH_STEPS_PER_FLOOR', STEPS,  IER )
-      CALL EZGET ( 'ECIFH_GAPS_PER_STEP',   GAPS,   IER )
+      CALL EZGET_i ( 'ECIH_FIRST_FLOOR',      FIRST,  IER )
+      CALL EZGET_i ( 'ECIFH_FLOORS',          FLOORS, IER )
+      CALL EZGET_i ( 'ECIFH_STEPS_PER_FLOOR', STEPS,  IER )
+      CALL EZGET_i ( 'ECIFH_GAPS_PER_STEP',   GAPS,   IER )
 C----------------------------------------------------------------------
 C  Get the dimensions of the various components of the IH
 C  Set the material index code:
@@ -262,9 +262,9 @@ C  Determine the material properties of this homogeneous volume
 C----------------------------------------------------------------------
           WRITE(MATERIAL_LABEL,1001) FLOOR,STEP
           CALL ADDSTR ( MATERIAL_LABEL, '_NAME', NAME, LSTRING )
-          CALL EZGET ( NAME, MATERIAL_NAME, IER )
+          CALL EZGET_iarr ( NAME, MATERIAL_NAME, IER )
           CALL ADDSTR ( MATERIAL_LABEL, '_CODE', NAME, LSTRING )
-          CALL EZGET ( NAME, MATERIAL_CODE, IER )
+          CALL EZGET_i ( NAME, MATERIAL_CODE, IER )
 
           TOTAL_VI = 0.
           DO INDEX=1,4
@@ -276,7 +276,7 @@ C----------------------------------------------------------------------
           DO INDEX=1,4
             IF (VI(INDEX) .GT. 0.) THEN
               N = N + 1
-              CALL EZGET ( INDEX_NAME(INDEX), COMPONENT_CODE(N), IER )
+              CALL EZGET_i ( INDEX_NAME(INDEX), COMPONENT_CODE(N), IER )
               COMPONENT_FRACTION(N) = VI(INDEX) / TOTAL_VI
             ENDIF
           ENDDO
@@ -296,7 +296,7 @@ C----------------------------------------------------------------------
           CALL UCTOH ( CHAR_NAME, VOLUME_NAME, 4, 4 )
           CALL UCTOH ( 'TUBE', VOLUME_SHAPE, 4, 4 )
           VOLUME_MATERIAL_CODE = MATERIAL_CODE
-          CALL EZGET ( 'ECIH_HOMO_MODULE_VOLUME_NAME', VOLUME_MOTHER,
+          CALL EZGET_i ( 'ECIH_HOMO_MODULE_VOLUME_NAME', VOLUME_MOTHER,
      &      IER )
           CALL UCTOH ( 'POS', POSITIONING, 4, 3 )
           ROTATION_MATRIX = 1
@@ -318,8 +318,8 @@ C----------------------------------------------------------------------
 C  Get parameters for Coarse Hadronic section
 C----------------------------------------------------------------------
       FLOOR = FIRST + FLOORS
-      CALL EZGET ( 'ECICH_STEPS',         STEPS, IER )
-      CALL EZGET ( 'ECICH_GAPS_PER_STEP', GAPS,  IER )
+      CALL EZGET_i ( 'ECICH_STEPS',         STEPS, IER )
+      CALL EZGET_i ( 'ECICH_GAPS_PER_STEP', GAPS,  IER )
 C----------------------------------------------------------------------
 C  Loop over Coarse Hadronic section steps and gaps
 C----------------------------------------------------------------------
@@ -356,9 +356,9 @@ C  Determine the material properties of this homogeneous volume
 C----------------------------------------------------------------------
         WRITE(MATERIAL_LABEL,1001) FLOOR,STEP
         CALL ADDSTR ( MATERIAL_LABEL, '_NAME', NAME, LSTRING )
-        CALL EZGET ( NAME, MATERIAL_NAME, IER )
+        CALL EZGET_iarr ( NAME, MATERIAL_NAME, IER )
         CALL ADDSTR ( MATERIAL_LABEL, '_CODE', NAME, LSTRING )
-        CALL EZGET ( NAME, MATERIAL_CODE, IER )
+        CALL EZGET_i ( NAME, MATERIAL_CODE, IER )
 
         TOTAL_VI = 0.
         DO INDEX=1,4
@@ -370,7 +370,7 @@ C----------------------------------------------------------------------
         DO INDEX=1,4
           IF (VI(INDEX) .GT. 0.) THEN
             N = N + 1
-            CALL EZGET ( INDEX_NAME(INDEX), COMPONENT_CODE(N), IER )
+            CALL EZGET_i ( INDEX_NAME(INDEX), COMPONENT_CODE(N), IER )
             COMPONENT_FRACTION(N) = VI(INDEX) / TOTAL_VI
           ENDIF
         ENDDO
@@ -390,7 +390,7 @@ C----------------------------------------------------------------------
         CALL UCTOH ( CHAR_NAME, VOLUME_NAME, 4, 4 )
         CALL UCTOH ( 'TUBE', VOLUME_SHAPE, 4, 4 )
         VOLUME_MATERIAL_CODE = MATERIAL_CODE
-        CALL EZGET ( 'ECIH_HOMO_MODULE_VOLUME_NAME', VOLUME_MOTHER, 
+        CALL EZGET_i ( 'ECIH_HOMO_MODULE_VOLUME_NAME', VOLUME_MOTHER, 
      &    IER )
         CALL UCTOH ( 'POS', POSITIONING, 4, 3 )
         ROTATION_MATRIX = 1
@@ -412,8 +412,8 @@ C  Determine the material properties of the 'crack' homogeneous volume
 C----------------------------------------------------------------------
       CALL EZGETS ( 'ECIH_CRACK_MATERIAL_LABEL', 1,
      &  MATERIAL_LABEL, LEN, IER )
-      CALL EZGET ( 'ECIH_CRACK_MATERIAL_NAME', MATERIAL_NAME, IER )
-      CALL EZGET ( 'ECIH_CRACK_MATERIAL_CODE', MATERIAL_CODE, IER )
+      CALL EZGET_arr ( 'ECIH_CRACK_MATERIAL_NAME', MATERIAL_NAME, IER )
+      CALL EZGET_i ( 'ECIH_CRACK_MATERIAL_CODE', MATERIAL_CODE, IER )
 
       DO INDEX=1,4
         TOTAL_VC = TOTAL_VC + VC(INDEX)
@@ -427,7 +427,7 @@ C----------------------------------------------------------------------
       DO INDEX=1,4
         IF (VC(INDEX) .GT. 0.) THEN
           N = N + 1
-          CALL EZGET ( INDEX_NAME(INDEX), COMPONENT_CODE(N), IER )
+          CALL EZGET_i ( INDEX_NAME(INDEX), COMPONENT_CODE(N), IER )
           COMPONENT_FRACTION(N) = VC(INDEX) / TOTAL_VC
         ENDIF
       ENDDO

@@ -29,9 +29,9 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       IF ( FIRST ) THEN
         FIRST = .FALSE.
-        CALL EZGET('LV0_COPY_ANGLES',ANGLE,IER)
-        CALL EZGET('LV0_COPY_Z_OFFSETS',ZOFF,IER)
-        CALL EZGET('LV0_ROTATION_ID',ID,IER)
+        CALL EZGET_rarr('LV0_COPY_ANGLES',ANGLE,IER)
+        CALL EZGET_rarr('LV0_COPY_Z_OFFSETS',ZOFF,IER)
+        CALL EZGET_i('LV0_ROTATION_ID',ID,IER)
         CALL EZGET('CONVERSION_FACTOR',INCH_CM,IER)
 C----------------------------------------------------------------------
         CALL ZERO_MATRICES

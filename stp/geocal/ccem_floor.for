@@ -71,22 +71,22 @@ C----------------------------------------------------------------------
 C  Get element number of first element in this floor
 C----------------------------------------------------------------------
       WRITE(NAME,1001) FLOOR
-      CALL EZGET(NAME,FIRST_ELEMENT,IER)
+      CALL EZGET_i(NAME,FIRST_ELEMENT,IER)
 C----------------------------------------------------------------------
 C  Get element number of first signal board in this floor
 C----------------------------------------------------------------------
       WRITE(NAME,1002) FLOOR
-      CALL EZGET(NAME,FIRST_SIGNAL,IER)
+      CALL EZGET_i(NAME,FIRST_SIGNAL,IER)
 C----------------------------------------------------------------------
 C  Get element number of last signal board in this floor
 C----------------------------------------------------------------------
       WRITE(NAME,1003) FLOOR
-      CALL EZGET(NAME,LAST_SIGNAL,IER)
+      CALL EZGET_i(NAME,LAST_SIGNAL,IER)
 C----------------------------------------------------------------------
 C  Get element number of last element in this floor
 C----------------------------------------------------------------------
       WRITE(NAME,1004) FLOOR
-      CALL EZGET(NAME,LAST_ELEMENT,IER)
+      CALL EZGET_i(NAME,LAST_ELEMENT,IER)
 C----------------------------------------------------------------------
 C  Extract array of info for the first element of the floor
 C       IVAL(1) = Element name
@@ -98,7 +98,7 @@ C       RVAL(6) = Length
 C  Get inner radius of first element
 C----------------------------------------------------------------------
       WRITE(NAME,1005) FIRST_ELEMENT
-      CALL EZGET(NAME,IVAL,IER)
+      CALL EZGET_iarr(NAME,IVAL,IER)
       CCEM_FLOOR_INNER_RADIUS = RVAL(3)
 C----------------------------------------------------------------------
 C  Extract array of info for the first signal board
@@ -106,7 +106,7 @@ C  Compute radius at board center of first signal board
 C  Compute width and length of resistive coat on first signal board
 C----------------------------------------------------------------------
       WRITE(NAME,1005) FIRST_SIGNAL
-      CALL EZGET(NAME,IVAL,IER)
+      CALL EZGET_iarr(NAME,IVAL,IER)
       RADA = RVAL(3) + 0.5 * RVAL(4)
       WIDA = RVAL(5) - 2. * RCCUTW
       LENA = RVAL(6) - 2. * RCCUTL
@@ -116,7 +116,7 @@ C  Compute radius at board center of last signal board
 C  Compute width and length of resistive coat on last signal board
 C----------------------------------------------------------------------
       WRITE(NAME,1005) LAST_SIGNAL
-      CALL EZGET(NAME,IVAL,IER)
+      CALL EZGET_arr(NAME,IVAL,IER)
       RADB = RVAL(3) + 0.5 * RVAL(4)
       WIDB = RVAL(5) - 2. * RCCUTW
       LENB = RVAL(6) - 2. * RCCUTL
@@ -126,7 +126,7 @@ C  the floor.  The floor volume outer radius is taken as the inner
 C  radius of this next element.
 C----------------------------------------------------------------------
       WRITE(NAME,1005) LAST_ELEMENT+1
-      CALL EZGET(NAME,IVAL,IER)
+      CALL EZGET_arr(NAME,IVAL,IER)
       CCEM_FLOOR_OUTER_RADIUS = RVAL(3)
 C----------------------------------------------------------------------
 C  Compute width and length at inner and outer radii
@@ -181,7 +181,7 @@ C  Extract array of info for this element
 C  Get element type, which keys to material properties
 C----------------------------------------------------------------------
         WRITE(NAME,1005) ICCEM
-        CALL EZGET(NAME,IVAL,IER)
+        CALL EZGET_iarr(NAME,IVAL,IER)
         CODE = 1
         DO WHILE ( IVAL(2) .NE. CODE_HOLLERITH(CODE) )
           CODE = CODE + 1
@@ -235,9 +235,9 @@ C  Get label, name, and material code to be used for this CCEM floor
 C----------------------------------------------------------------------
       WRITE(MATERIAL_LABEL,1006) FLOOR
       CALL ADDSTR(MATERIAL_LABEL,'_NAME',NAME,LSTRING)
-      CALL EZGET(NAME,MATERIAL_NAME,IER)
+      CALL EZGET_iarr(NAME,MATERIAL_NAME,IER)
       CALL ADDSTR(MATERIAL_LABEL,'_CODE',NAME,LSTRING)
-      CALL EZGET(NAME,MATERIAL_CODE,IER)
+      CALL EZGET_i(NAME,MATERIAL_CODE,IER)
       CCEM_FLOOR_MATERIAL = MATERIAL_CODE
 C----------------------------------------------------------------------
 C  Initialize the number of components
@@ -253,14 +253,14 @@ C----------------------------------------------------------------------
         IF ( CCEM_FLOOR_VOLUME_INSIDE(CODE) .GT. 0. ) THEN
           N = N + 1
           CALL ADDSTR(CODE_CHARACTER(CODE),'_CODE',NAME,LSTRING)
-          CALL EZGET(NAME,COMPONENT_CODE(N),IER)
+          CALL EZGET_i(NAME,COMPONENT_CODE(N),IER)
           COMPONENT_FRACTION(N) = CCEM_FLOOR_VOLUME_INSIDE(CODE) /
      &                               CCEM_FLOOR_VOLUME
           SUM = SUM + COMPONENT_FRACTION(N)
         ENDIF
       ENDDO
       N = N + 1
-      CALL EZGET('LIQUID_ARGON_CODE',COMPONENT_CODE(N),IER)
+      CALL EZGET_i('LIQUID_ARGON_CODE',COMPONENT_CODE(N),IER)
       COMPONENT_FRACTION(N) = 1. - SUM
       NUMBER_COMPONENTS = N
 C----------------------------------------------------------------------
@@ -272,10 +272,10 @@ C  Set the GEANT SRCP volume parameters for the floor volume
 C----------------------------------------------------------------------
       WRITE(VOLUME_LABEL,1007) FLOOR
       CALL ADDSTR(VOLUME_LABEL,'_NAME',NAME,LSTRING)
-      CALL EZGET(NAME,VOLUME_NAME,IER)
+      CALL EZGET_i(NAME,VOLUME_NAME,IER)
       CALL UCTOH('TRD1',VOLUME_SHAPE,4,4)
       VOLUME_MATERIAL_CODE = CCEM_FLOOR_MATERIAL
-      CALL EZGET('CCEM_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('CCEM_MODULE_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL UCTOH('POS',POSITIONING,4,3)
       ROTATION_MATRIX   = 1
       COPY_NUMBER       = 1

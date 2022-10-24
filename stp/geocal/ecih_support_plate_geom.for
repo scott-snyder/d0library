@@ -62,10 +62,10 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Extract volume information
 C----------------------------------------------------------------------
-        CALL EZGET ( 'ECIH_SUPPORT_PLATE_VOLUME_NAME', NAME, IER )
+        CALL EZGET_i ( 'ECIH_SUPPORT_PLATE_VOLUME_NAME', NAME, IER )
         CALL UCTOH ( 'TUBE', SHAPE, 4, 4 )
-        CALL EZGET ( 'STAINLESS_STEEL_CODE', MATERIAL_CODE, IER )
-        CALL EZGET ( 'ECIH_MODULE_VOLUME_NAME', MOTHER, IER )
+        CALL EZGET_i ( 'STAINLESS_STEEL_CODE', MATERIAL_CODE, IER )
+        CALL EZGET_i ( 'ECIH_MODULE_VOLUME_NAME', MOTHER, IER )
         CALL UCTOH ( 'POS', POS, 4, 3 )
       ENDIF
 C----------------------------------------------------------------------

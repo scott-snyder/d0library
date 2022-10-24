@@ -44,8 +44,8 @@ C----------------------------------------------------------------------
      &            'MHG_DIVISIONS-Z'/
 C----------------------------------------------------------------------
       CALL GTSRCP('CONV_FACTOR',CONV,1)
-      CALL GTSRCP('MH_FIRST_ROT_MATRIX(1)',IRTOF(1),1.0)
-      CALL GTSRCP('MH_CRACK',CRACK,1.0)
+      CALL GTSRCP_i('MH_FIRST_ROT_MATRIX(1)',IRTOF(1),1)
+      CALL GTSRCP('MH_CRACK',CRACK,1)
       CRACK=CRACK*CONV  !in cm.
       CRACKM = 0.0     !CRACK FOR MOTHER VOLUME
 C
@@ -60,12 +60,12 @@ C
           IRTOFF = IRTOF(IZ)
           CALL ADDSTR(MUTRVL(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-          CALL GTSRCP(NMSRCP,LSR,1)
+          CALL GTSRCP_i(NMSRCP,LSR(1),1)
           MOTHER(1) = LSR(3)
           MOTHER(2) = LSR(3)
           CALL ADDSTR(MOTHVL(IZ,IFC),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-          CALL GTSRCP(NMSRCP,LSR,1)
+          CALL GTSRCP_i(NMSRCP,LSR(1),1)
           NAMES(1) = LSR(3)
           NAMES(2) = LSR(4)
           MATNO = LSR(2)
@@ -83,7 +83,7 @@ C Now to put in the Z divisions
 C
           CALL ADDSTR(ZDVNM(IZ,IFC),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-          CALL GTSRCP(NMSRCP,LSR,1)
+          CALL GTSRCP_i(NMSRCP,LSR(1),1)
           CALL WRTZDV1(20,ZDVNM(IZ,IFC),LSR,RSR)   !Write out in CGS system
           NDIV = LSR(1)
           MATNO = LSR(2)
@@ -117,7 +117,7 @@ C now do the ENDPLATES
 C
           CALL ADDSTR(MHEND(IZ,IFC),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-          CALL GTSRCP(NMSRCP,LSR,1)
+          CALL GTSRCP_i(NMSRCP,LSR(1),1)
           NDIV = LSR(1)
           MATNO = LSR(2)
           IPT = 2
@@ -154,7 +154,7 @@ C
         CALL UCTOH('MCAL',MOTHER(2),4,4)
         CALL ADDSTR(MHMASS(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
         NAMES(1) = LSR(3)
         NAMES(2) = LSR(4)
         MATNO = LSR(2)
@@ -170,7 +170,7 @@ C
 C write out Massless gap Z division
 C
         CALL ADDSTR(MHGZDV(IZ),'(1)',NMSRCP,LEN3)
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
         CALL WRTZDV(20,MHGZDV(IZ),LSR,RSR)    !Put out the radial info for
 C                                             ! massless gap
   600 CONTINUE

@@ -69,7 +69,7 @@ C       ZFIRST  z position of first z plane (inches)
 C       ZLAST   z position of last z plane (inches)
 C       MOTHERZ z position of center of module (inches)
 C----------------------------------------------------------------------
-      CALL EZGETA('ECEM+Z_MODULE_VOLUME',4,4,1,NZ,IER)
+      CALL EZGETA_i('ECEM+Z_MODULE_VOLUME',4,4,1,NZ,IER)
       IF (IER.NE.0) WRITE(6,1000) IER,'NZ'
       CALL EZGETA('ECEM+Z_MODULE_VOLUME',5,5,1,ZFIRST,IER)
       IF (IER.NE.0) WRITE(6,1000) IER,'ZFIRST'
@@ -92,7 +92,7 @@ C FIRST COMPUTE RELATIVE THICKNESS OF EACH MATERIAL IN EM1-4
         DO K=1,5
          IF(I.EQ.4.AND.J.EQ.1.AND.K.EQ.1)GOTO 101 ! Strongback
          WRITE(NAME,1007)L,PLATE_MATERIAL(K)
-         CALL EZGETA(NAME,2,2,1,ICODE,IER) 
+         CALL EZGETA_i(NAME,2,2,1,ICODE,IER) 
          IF(IER.NE.0)WRITE(6,1000)IER,'ICODE'
          CALL UHTOC(ICODE,4,MAT_CODE,4)
          ICODE=1         
@@ -113,9 +113,9 @@ C---------------------------------------------------------------------------
 C FIRST DEFINE MATERIAL FOR THIS MIXTURE
         WRITE(MATERIAL_LABEL,1003) I
         CALL ADDSTR(MATERIAL_LABEL,'_MATERIAL_NAME',NAME,LSTRING)
-        CALL EZGET(NAME,MATERIAL_NAME,IER)
+        CALL EZGET_iarr(NAME,MATERIAL_NAME,IER)
         CALL ADDSTR(MATERIAL_LABEL,'_MATERIAL_CODE',NAME,LSTRING)
-        CALL EZGET(NAME,MATERIAL_CODE,IER)
+        CALL EZGET_i(NAME,MATERIAL_CODE,IER)
         NUMBER_COMPONENTS=0
         DO J=1,5
           IF(MAT_THICKNESS(I,J).GT.0.)THEN

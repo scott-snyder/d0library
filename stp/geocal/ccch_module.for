@@ -73,17 +73,17 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Set the GEANT SRCP parameters for all modules
 C----------------------------------------------------------------------
-      CALL EZGET('CCCH_NUMBER_MODULES',CCCH_NUMBER_MODULES,IER)
+      CALL EZGET_i('CCCH_NUMBER_MODULES',CCCH_NUMBER_MODULES,IER)
       WRITE(OUT_VOL,1000) CCCH_NUMBER_MODULES
 C----------------------------------------------------------------------
 C  Parameters for CCCH module volume
 C----------------------------------------------------------------------
-      CALL EZGET('CCCH_MODULE_VOLUME_NAME',MODULE_VOLUME_NAME,IER)
-      CALL EZGET('CCCH_MR_MODULE_VOLUME_NAME',
+      CALL EZGET_i('CCCH_MODULE_VOLUME_NAME',MODULE_VOLUME_NAME,IER)
+      CALL EZGET_i('CCCH_MR_MODULE_VOLUME_NAME',
      &            MR_MODULE_VOLUME_NAME,IER)
       CALL UCTOH('TRD2',VOLUME_SHAPE,4,4)
-      CALL EZGET('CCCH_CRACK_MATERIAL_CODE',VOLUME_MATERIAL_CODE,IER)
-      CALL EZGET('CCCH_MOTHER_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('CCCH_CRACK_MATERIAL_CODE',VOLUME_MATERIAL_CODE,IER)
+      CALL EZGET_i('CCCH_MOTHER_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL UCTOH('POS',POSITIONING,4,3)
       Z_POSITION    = 0.0
       NUMBER_PARAMS = 5
@@ -96,7 +96,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Get the rotation matrix ID for the first CCCH module
 C----------------------------------------------------------------------
-      CALL EZGET('CCCH_FIRST_ROTATION_MATRIX',FIRST_ID,IER)
+      CALL EZGET_i('CCCH_FIRST_ROTATION_MATRIX',FIRST_ID,IER)
 C----------------------------------------------------------------------
 C  Get the angular offset for the first CCCH module
 C----------------------------------------------------------------------
@@ -113,7 +113,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Get the module of the main ring
 C----------------------------------------------------------------------
-      CALL EZGET('CCCH_MR_MODULE',MR_MODULE,IER)
+      CALL EZGET_i('CCCH_MR_MODULE',MR_MODULE,IER)
 C----------------------------------------------------------------------
 C  Position multiple copies of the normal CCCH module volumes.  There 
 C  is only one module containing the main ring, and it has a special 

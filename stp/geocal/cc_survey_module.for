@@ -50,9 +50,11 @@ C
           LCTHE = LC(LCMDL-IRCTHE)      ! link to CTHE
           IF(LCTHE .EQ. 0) GO TO 800
 C
-          DO 50 I = 1, 9
-            XNXN(I,1) = 0.
-            XNXS(I,1) = 0.
+          DO 50 I = 1, 3
+            do j = 1, 3
+              XNXN(I,j) = 0.
+              XNXS(I,j) = 0.
+            enddo
   50      CONTINUE
           DO 60 I = 1, 3
             XNOM(I) = 0.
@@ -100,8 +102,11 @@ C
 C
 C ...     INVERT XNXN ==> XSINV
 C
-          DO 450 I=1, 9            ! copy  3 x 3 matrix to XSINV
-  450     XSINV( I, 1) = XNXN( I, 1)     ! since MATIN2 will overwrite
+          do i=1, 3       ! copy  3 x 3 matrix to XSINV
+            do j=1, 3     ! since MATIN2 will overwrite
+              xsinv(i,j) = xnxn(i,j)
+            enddo
+          enddo
 C         CALL MATIN2(XSINV, 3, 3, 3, 0, IX, IERR, DETERM)  ! CERNLIB
                                    ! does not contain MATIN2 anymore
           CALL DINV( 3, XSINV, 3, IX, IERR)
@@ -160,8 +165,11 @@ C
 C
 C ...     rotational deviations
 C
-          DO 770 I = 1, 9
-  770     C(LQCLIN+IGR11+I-1) = RINV(I,1)*DL
+          do i=1, 3
+            do j=1, 3
+              C(LQCLIN+IGR11+(i-1)*3+j-1) = RINV(j,i)*DL
+            enddo
+          enddo
 C
           C(LQCLIN+IGTCN) = DL          ! thermal contraction of SS304, normal
                                         ! to particle direction

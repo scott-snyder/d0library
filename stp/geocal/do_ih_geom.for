@@ -42,7 +42,7 @@ C
      &           'ICH_SUPPORT_PIPE-Z'/
 C----------------------------------------------------------------------
       CALL GTSRCP('CONV_FACTOR',CONV,1)
-      CALL GTSRCP('IH_FIRST_ROT_MATRIX',IRTOFF,1)
+      CALL GTSRCP_i('IH_FIRST_ROT_MATRIX',IRTOFF,1)
       CALL GTSRCP('IH_CRACK(1)',CRACKS(1),1)
       CRACKS(1) = CRACKS(1)*CONV
       CRACKS(2) = CRACKS(2)*CONV
@@ -55,7 +55,7 @@ C
           CALL UCTOH('MCAL',MOTHER,4,4)
           CALL ADDSTR(MOTHVL(IZ,IFC),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-          CALL GTSRCP(NMSRCP,LSR,1)
+          CALL GTSRCP_i(NMSRCP,LSR(1),1)
           NAME = LSR(3)
           MATNO = LSR(2)
           RIN = RSR(6)*CONV
@@ -77,7 +77,7 @@ C now to do Z divisions
 C
           CALL ADDSTR(ZDVNM(IZ,IFC),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-          CALL GTSRCP(NMSRCP,LSR,1)
+          CALL GTSRCP_i(NMSRCP,LSR(1),1)
           CALL WRTZDV(20,ZDVNM(IZ,IFC),LSR,RSR)   !Write out in CGS system
           NDIV = LSR(1)
           MATNO = LSR(2)
@@ -111,7 +111,7 @@ C NOW ENDPLATES
 C
           CALL ADDSTR(IHEND(IZ,IFC),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-          CALL GTSRCP(NMSRCP,LSR,1)
+          CALL GTSRCP_i(NMSRCP,LSR(1),1)
 C
           STRING = '\ARRAY '//IHEND(IZ,IFC)
           NDIV = LSR(1)
@@ -142,7 +142,7 @@ C NOW Support pipes
 C
           CALL ADDSTR(IHSUP(IZ,IFC),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-          CALL GTSRCP(NMSRCP,LSR,1)
+          CALL GTSRCP_i(NMSRCP,LSR(1),1)
 C
           STRING = '\ARRAY '//IHSUP(IZ,IFC)
           NDIV = LSR(1)

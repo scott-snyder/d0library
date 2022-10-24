@@ -49,7 +49,7 @@ C       RVAL(6) = Length
 C----------------------------------------------------------------------
       CALL EZGET('CCEM_FIRST_ELEMENT',FIRST_ELEMENT,IER)
       WRITE(NAME,1001) FIRST_ELEMENT
-      CALL EZGET(NAME,IVAL,IER)
+      CALL EZGET_iarr(NAME,IVAL,IER)
       RAD = RVAL(3)
       CCEM_FRONTPLATE_THICKNESS = RVAL(4)
       CCEM_FRONTPLATE_WIDTH     = RVAL(5)

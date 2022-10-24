@@ -85,7 +85,7 @@ C
 C
 C ****  END CRYOSTAT BULGE OR FRONT SURFACE
 C
-        CALL EZGSET (NAME(1:L),IRAW(1),1)
+        CALL EZGSET_i (NAME(1:L),IRAW(1),1)
         NPT   = IRAW(1) ! Number of points in section
 C
         IF ( BULGE ) THEN
@@ -109,11 +109,11 @@ C
 C
         IF ( BULGE ) THEN
           CTEMP = NAME(1:LT)//INNER
-          CALL EZGSET (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+          CALL EZGSET_i (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
         ENDIF
         IF ( FRONT ) THEN
           CTEMP = NAME(1:LT)//OUTER
-          CALL EZGSET (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+          CALL EZGSET_i (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
         ENDIF
 C        IF ( BULGE ) CALL EZGSET (NAME(1:LT)//INNER,IRAW(1),1)
 C        IF ( FRONT ) CALL EZGSET (NAME(1:LT)//OUTER,IRAW(1),1)
@@ -141,7 +141,7 @@ C
 C
 C ****  END CRYOSTAT BACK SURFACES
 C
-        CALL EZGSET (NAME(1:L),IRAW(1),1)
+        CALL EZGSET_i (NAME(1:L),IRAW(1),1)
         NPT1  = IRAW(1) ! Number of points in section
         ZREL1 = RAW(2) - EMINUS  ! Center of curvature rel. to point E0
         YREL1 = RAW(3)  ! Center of curvature relative to point E0, Y coord.
@@ -156,7 +156,7 @@ C
         A2 = RAW(11)  ! cross-section angle at upper end
 C
         CTEMP = NAME(1:L)//'_BEND'
-        CALL EZGSET (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+        CALL EZGSET_i (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
 C        CALL EZGSET (NAME(1:L)//'_BEND',IRAW(1),1)
         NPT2  = IRAW(1)
         ZREL2 = RAW(2) - EMINUS
@@ -200,7 +200,7 @@ C
   120   CONTINUE
 C
         CTEMP = NAME(1:L)//'_TUBE'
-        CALL EZGSET (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+        CALL EZGSET_i (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
 C        CALL EZGSET (NAME(1:L)//'_TUBE',IRAW(1),1)
         ZLEN  = RAW(4)
         NPT   = NPT1 + NPT2
@@ -211,7 +211,7 @@ C
 C
 C ****  END RINGS ETC.
 C
-        CALL EZGSET (NAME(1:L),IRAW(1),1)
+        CALL EZGSET_i (NAME(1:L),IRAW(1),1)
         NPT    = IRAW(1)  ! Number of points
         RMIN   = RAW(2)   ! Inner radius of ring
         ZLEN   = RAW(3)   ! Length in Z

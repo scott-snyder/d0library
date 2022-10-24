@@ -47,7 +47,7 @@ C
       CALL EZPICK('CAL_SURVEY_MARKERS_RCP')
       SGN = SIGN(1.,FLOAT(IDENT))
       CALL EZGET('EC_THERMAL_COEFF',DL,IERR)      ! RCP numbers are warm
-      CALL EZGET('EC_FIXED_POINT', FIXPT, IERR1)
+      CALL EZGET_rarr('EC_FIXED_POINT', FIXPT, IERR1)
       IF( IERR .NE. 0 .OR. IERR1 .NE.0) THEN
         CALL ERRMSG('NO_THERMAL_CONTRACTION','MODULE_MARKERS',
      +    'thermal contraction params not found','W')
@@ -61,7 +61,7 @@ C
       MOD_NUMB = MOD(IC(LCLGA+IGIDEN),100)        ! module number
 C
       IF( MOD_TYPE .EQ. ICMFHA )THEN              ! MH module
-        CALL EZGET('MH_DOWNSTREAM_INNER_MARKER',ARRAY,IERR)
+        CALL EZGET_rarr('MH_DOWNSTREAM_INNER_MARKER',ARRAY,IERR)
         IF( IERR .NE. 0) THEN
           CALL ERRMSG('NO MH_DOWNSTREAM_INNER','MODULE_MARKERS',
      +      'can not find EC theo positions--stop','S')
@@ -104,7 +104,7 @@ C
   100   CONTINUE
         NC = 32
       ELSE IF( MOD_TYPE .EQ. ICOCHA) THEN         ! OH module
-          CALL EZGET('OH_DOWNSTREAM_INNER_MARKER', ARRAY, IERR)
+          CALL EZGET_rarr('OH_DOWNSTREAM_INNER_MARKER', ARRAY, IERR)
           IF( IERR .NE. 0) THEN
               CALL ERRMSG('NO OH_DOWNSTREAM_INNER','MODULE_MARKERS',
      +          'can not find EC theo positions--stop','S')

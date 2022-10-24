@@ -84,7 +84,8 @@ C----------------------------------------------------------------------
 C  Set volume parameters that are the same for all elements
 C----------------------------------------------------------------------
       CALL UCTOH ( 'BOX', VOLUME_SHAPE, 4, 3 )
-      CALL EZGET ( 'CCEM_PLATE_MODULE_VOLUME_NAME', VOLUME_MOTHER, IER)
+      CALL EZGET_i ( 'CCEM_PLATE_MODULE_VOLUME_NAME', VOLUME_MOTHER,
+     &     IER)
       CALL UCTOH ( 'POS', POSITIONING, 4, 3 )
       ROTATION_MATRIX = 1
       COPY_NUMBER     = 1
@@ -94,15 +95,15 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Get material codes for element materials to be encountered
 C----------------------------------------------------------------------
-      CALL EZGET ( 'LIQUID_ARGON_CODE', LIQUID_ARGON_CODE, IER )
-      CALL EZGET ( 'STAINLESS_STEEL_CODE', STAINLESS_STEEL_CODE, IER )
-      CALL EZGET ( 'URANIUM_CODE', URANIUM_CODE, IER )
-      CALL EZGET ( 'G10_CODE', G10_CODE, IER )
+      CALL EZGET_i ( 'LIQUID_ARGON_CODE', LIQUID_ARGON_CODE, IER )
+      CALL EZGET_i ( 'STAINLESS_STEEL_CODE', STAINLESS_STEEL_CODE, IER )
+      CALL EZGET_i ( 'URANIUM_CODE', URANIUM_CODE, IER )
+      CALL EZGET_i ( 'G10_CODE', G10_CODE, IER )
 C----------------------------------------------------------------------
 C  Get first and last element numbers in CCEM module
 C----------------------------------------------------------------------
-      CALL EZGET ( 'CCEM_FIRST_ELEMENT', FIRST_ELEMENT, IER )
-      CALL EZGET ( 'CCEM_LAST_ELEMENT', LAST_ELEMENT, IER )
+      CALL EZGET_i ( 'CCEM_FIRST_ELEMENT', FIRST_ELEMENT, IER )
+      CALL EZGET_i ( 'CCEM_LAST_ELEMENT', LAST_ELEMENT, IER )
 C----------------------------------------------------------------------
 C  Initialize parameters of previous element
 C----------------------------------------------------------------------
@@ -128,7 +129,7 @@ C       RVAL(5) = Width
 C       RVAL(6) = Length
 C----------------------------------------------------------------------
         CALL EZGETS ( NAME,1,ELEMENT_NAME,LEN,IER )
-        CALL EZGET ( NAME, IVAL, IER )
+        CALL EZGET_iarr ( NAME, IVAL, IER )
         MATERIAL_NAME = IVAL(2)
         LO_Z  = RVAL(3)
         DZ    = RVAL(4)

@@ -64,15 +64,15 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Set the GEANT SRCP parameters for all modules
 C----------------------------------------------------------------------
-      CALL EZGET('CCEM_NUMBER_MODULES',CCEM_NUMBER_MODULES,IER)
+      CALL EZGET_i('CCEM_NUMBER_MODULES',CCEM_NUMBER_MODULES,IER)
       WRITE(OUT_VOL,1000) CCEM_NUMBER_MODULES
 C----------------------------------------------------------------------
 C  Parameters for module volume
 C----------------------------------------------------------------------
-      CALL EZGET('CCEM_MODULE_VOLUME_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i('CCEM_MODULE_VOLUME_NAME',VOLUME_NAME,IER)
       CALL UCTOH('TRD1',VOLUME_SHAPE,4,4)
-      CALL EZGET('CCEM_CRACK_MATERIAL_CODE',VOLUME_MATERIAL_CODE,IER)
-      CALL EZGET('CCEM_MOTHER_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('CCEM_CRACK_MATERIAL_CODE',VOLUME_MATERIAL_CODE,IER)
+      CALL EZGET_i('CCEM_MOTHER_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL UCTOH('POS',POSITIONING,4,3)
       Z_POSITION        = 0.0
       NUMBER_PARAMS     = 4
@@ -84,7 +84,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Get the rotation matrix ID for the first CCEM module
 C----------------------------------------------------------------------
-      CALL EZGET('CCEM_FIRST_ROTATION_MATRIX',FIRST_ID,IER)
+      CALL EZGET_i('CCEM_FIRST_ROTATION_MATRIX',FIRST_ID,IER)
 C----------------------------------------------------------------------
 C  Get the angular offset for the first CCEM module
 C----------------------------------------------------------------------

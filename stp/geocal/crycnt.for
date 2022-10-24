@@ -77,14 +77,14 @@ C
 C ****  Get data on central tube
 C
         CTEMP = NAME(1:LT)//'_TUBE(1)'
-        CALL EZGSET (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+        CALL EZGSET_i (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
 C        CALL EZGSET (NAME(1:LT)//'_TUBE(1)',IRAW(1),1)
         ZLEN  = RAW(3)
 C
 C ****  Get data on bottom bend
 C
         CTEMP = NAME(1:LT)//'_BOTTOM(1)'
-        CALL EZGSET (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+        CALL EZGSET_i (CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
 C        CALL EZGSET (NAME(1:LT)//'_BOTTOM(1)',IRAW(1),1)
         NPT1  = IRAW(1)     ! Number of points in section
         ZREL1 = RAW(2) - CZ ! Center of curvature relative to ORIGIN
@@ -100,7 +100,7 @@ C
 C ****  Get data on side arc
 C
         CTEMP = NAME(1:LT)//'_SIDE(1)'
-        CALL EZGSET(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+        CALL EZGSET_i(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
 C        CALL EZGSET (NAME(1:LT)//'_SIDE(1)',IRAW(1),1)
         NPT2  = IRAW(1) ! Number of points in section
         ZREL2 = RAW(2) - CZ  ! Center of curvature rel. to origin, Z coord.
@@ -110,7 +110,7 @@ C
 C ****  Get data on top bend
 C
         CTEMP = NAME(1:LT)//'_TOP(1)'
-        CALL EZGSET(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+        CALL EZGSET_i(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
 C        CALL EZGSET (NAME(1:LT)//'_TOP(1)',IRAW(1),1)
         NPT3  = IRAW(1)     ! Number of points in section
         ZREL3 = RAW(2) - CZ ! Center of curvature relative to ORIGIN
@@ -172,7 +172,7 @@ C
 C ****  Get data on bottom bend
 C
         CTEMP = NAME(1:LT)//'_BOTTOM(1)'
-        CALL EZGSET(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+        CALL EZGSET_i(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
 C        CALL EZGSET (NAME(1:LT)//'_BOTTOM(1)',IRAW(1),1)
         ZREL1 = RAW(2) - CZ ! Center of curvature relative to ORIGIN
         YREL1 = CY - RAW(3)
@@ -180,7 +180,7 @@ C
 C ****  Get data on side arc
 C
         CTEMP = NAME(1:LT)//'_SIDE(1)'
-        CALL EZGSET(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+        CALL EZGSET_i(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
 C        CALL EZGSET (NAME(1:LT)//'_SIDE(1)',IRAW(1),1)
         NPT2  = IRAW(1) ! Number of points in section
         ZREL2 = RAW(2) - CZ  ! Center of curvature rel. to origin, Z coord.
@@ -190,7 +190,7 @@ C
 C ****  Get data on top bend
 C
         CTEMP = NAME(1:LT)//'_TOP(1)'
-        CALL EZGSET(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+        CALL EZGSET_i(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
 C        CALL EZGSET (NAME(1:LT)//'_TOP(1)',IRAW(1),1)
         NPT3  = IRAW(1)     ! Number of points in section
         ZREL3 = RAW(2) - CZ ! Center of curvature relative to ORIGIN
@@ -266,7 +266,7 @@ C
 C ****  CENTRAL CRYOSTAT TUBE
 C
         CTEMP = NAME(1:L)//'(1)'
-        CALL EZGSET(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
+        CALL EZGSET_i(CTEMP(1:TRULEN(CTEMP)),IRAW(1),1)
 C        CALL EZGSET (NAME(1:L)//'(1)',IRAW(1),1)
         NPT    = IRAW(1)  ! Number of points
         RMIN   = RAW(2)   ! Inner radius of tube

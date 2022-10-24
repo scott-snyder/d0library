@@ -43,10 +43,10 @@ C----------------------------------------------------------------------
       CALL GTSRCP('MAIN_RING_BEAM_PIPE(1)',BMP(1),1)   !Beam pipe stuff
       CALL GTSRCP('CONV_FACTOR',CONV,1)
       CALL GTSRCP('OH_CRACK',CRACK,1)
-      CALL GTSRCP('BEAM_PIPE_ROT_MATRIX(1)',IBMROT(1),1)  !BEAM PIPE
+      CALL GTSRCP_i('BEAM_PIPE_ROT_MATRIX(1)',IBMROT(1),1)  !BEAM PIPE
 C                                        ! LOCAL ROTATION MATRIX
       CALL GTSRCP('PI',PI,1)
-      CALL GTSRCP('OH_PHI_SEGMENTS',NSEG,1)
+      CALL GTSRCP_i('OH_PHI_SEGMENTS',NSEG,1)
       PHI =PI/NSEG   !Half angle
 C
       CRACK=CRACK*CONV  !in cm.
@@ -59,7 +59,7 @@ C
         CALL UCTOH('MCAL',MOTHER,4,4)
         CALL ADDSTR(MOTHVL(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR,1)
         NAME = LSR(3)
         MATNO = LSR(2)
         RIN = RSR(6)*CONV
@@ -79,7 +79,7 @@ C Z divisions
 C
         CALL ADDSTR(ZDVNM(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR,1)
         CALL WRTZDV(20,ZDVNM(IZ),LSR,RSR)   !Write out in CGS system
         NDIV = LSR(1)
         MATNO = LSR(2)
@@ -156,7 +156,7 @@ C END plates handled just as Z divisions
 C
         CALL ADDSTR(OHEND(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
         NDIV = LSR(1)
         MATNO = LSR(2)
         IPT = 2

@@ -52,10 +52,10 @@ C
         END IF
         CALL EZRSET
         CALL EZPICK('CAWSTP_RCP')
-        CALL EZGET('SURVEY_ECEM',LEM,IERR)
-        CALL EZGET('SURVEY_ECIH',LIH,IERR)
-        CALL EZGET('SURVEY_ECMH',LMH,IERR)
-        CALL EZGET('SURVEY_ECOH',LOH,IERR)
+        CALL EZGET_l('SURVEY_ECEM',LEM,IERR)
+        CALL EZGET_l('SURVEY_ECIH',LIH,IERR)
+        CALL EZGET_l('SURVEY_ECMH',LMH,IERR)
+        CALL EZGET_l('SURVEY_ECOH',LOH,IERR)
         CALL EZGET('SURVEY_TOLERANCE',T,IERR)
         IF( IERR .NE. 0) THEN
           T = 10.0
@@ -91,9 +91,9 @@ C
           IF(LCTHE .EQ. 0) GO TO 800
           NMEAS = 0
           NSLOT = 0
-          CALL VZERO(MI,MAX_POINTS)
-          CALL VZERO(MAP,MAX_POINTS)
-          CALL VZERO(IC(LCMDL+ISMCOD),4)! zero bit map of used points
+          CALL VZERO_i(MI,MAX_POINTS)
+          CALL VZERO_i(MAP,MAX_POINTS)
+          CALL VZERO_i(IC(LCMDL+ISMCOD),4)! zero bit map of used points
           NDATAW = IC(LCMDL-1)          ! number of data words in bank
 C
           DO 300 I = ISNIX-1, NDATAW-4, 4  ! loop on measurements for
@@ -117,7 +117,7 @@ C
 C ****  PREPARE IEST(10) FOR CHABA (7-PARAMETER FIT)
 C
           NFIT = NMEAS
-          CALL VZERO(IEST(1),10)
+          CALL VZERO_i(IEST(1),10)
           IEST(8)   = 1   !KILL NON UNIFORM SCALE
           IEST(9)   = 1
           IEST(10)  = 1
@@ -192,13 +192,17 @@ C
      &      .OR. ((.NOT.LIH).AND.(INDEX(MODULE(2:4),'CIH').GT.0))
      &      .OR. ((.NOT.LMH).AND.(INDEX(MODULE(2:4),'CMH').GT.0)) 
      &      .OR. ((.NOT.LOH).AND.(INDEX(MODULE(2:4),'COH').GT.0)) ) THEN
-            CALL VZERO(TR(1),6) !double precision
-            CALL VZERO(RM(1,1),18) !double precision
+            do i=1, 3
+              tr(i) = 0         !double precision
+              do j=1, 3
+                rm(j,i) = 0     !double precision
+              enddo
+            enddo
             SCALE = 1.0
             DO 20 I= 1, 3
    20       RM(I,I) = 1.0
             IC(LQCLIN+IGFTYP) = -1          ! indicates this CLIN is null
-            CALL VZERO(IC(LCMDL+ISMCOD),4)
+            CALL VZERO_i(IC(LCMDL+ISMCOD),4)
           END IF
 C
 C ...     fill translational deviation

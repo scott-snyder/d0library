@@ -43,7 +43,7 @@ C       RVAL(6) = Length
 C----------------------------------------------------------------------
       CALL EZGET('CCCH_LAST_ELEMENT',LAST_ELEMENT,IER)
       WRITE(NAME,1001) LAST_ELEMENT
-      CALL EZGET(NAME,IVAL,IER)
+      CALL EZGET_iarr(NAME,IVAL,IER)
       CCCH_BACKPLATE_THICKNESS = RVAL(4)
       CCCH_BACKPLATE_WIDTH     = RVAL(5)
       CCCH_BACKPLATE_LENGTH    = RVAL(6)

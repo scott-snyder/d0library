@@ -4,7 +4,7 @@ C-
 C-   Purpose and Methods : Compute ECEM geometry for GEANT 
 C-
 C-   Here the elements which are common to the plate level
-C-   and homogenous gemoetry are defined.  These are:
+C-   and homogenous geometry are defined.  These are:
 C-      1) EM1&2 readout ring (G10 + Copper)
 C-      2) Stainless steel strongback
 C-      3) Stainless steel skin on back of EM4
@@ -44,7 +44,7 @@ C----------------------------------------------------------------------
        IF(I.EQ.2)VOLUME_LABEL='ECEM+Z_READOUT_12_MLB' 
        IF(I.EQ.3)VOLUME_LABEL='ECEM+Z_READOUT_12_COPPER' 
        IF(I.EQ.4)VOLUME_LABEL='ECEM+Z_11_ABSORBER' 
-       CALL EZGETA(VOLUME_LABEL,1,1,1,VOLUME_NAME,IER)
+       CALL EZGETA_i(VOLUME_LABEL,1,1,1,VOLUME_NAME,IER)
        IF(IER.NE.0)WRITE(6,1000)IER,'NAME'
        IF (I.EQ.4) THEN
          CHARR= 'E41B'
@@ -53,12 +53,12 @@ C----------------------------------------------------------------------
        ELSE
          CALL UCTOH('POS',POSITIONING,4,3)
        ENDIF
-       CALL EZGETA(VOLUME_LABEL,2,2,1,ICODE,IER) 
+       CALL EZGETA_i(VOLUME_LABEL,2,2,1,ICODE,IER) 
        IF(IER.NE.0)WRITE(6,1000)IER,'ICODE'
        CALL UHTOC(ICODE,4,MATERIAL_CODE,4)
        CALL EZGET(MATERIAL_CODE,VOLUME_MATERIAL_CODE,IER)
        IF(IER.NE.0)WRITE(6,1000)IER,'MATERIAL'
-       CALL EZGETA(VOLUME_LABEL,3,3,1,VOLUME_MOTHER,IER) 
+       CALL EZGETA_i(VOLUME_LABEL,3,3,1,VOLUME_MOTHER,IER) 
        IF(IER.NE.0)WRITE(6,1000)IER,'MOTHER'
        CALL UCTOH('TUBE',VOLUME_SHAPE,4,4)               
        NUMBER_PARAMS=3 

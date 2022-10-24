@@ -35,7 +35,7 @@ C----------------------------------------------------------------------
 C
       CALL EZPICK('CAL_SURVEY_MARKERS_RCP')
       CALL EZGET('CC_THERMAL_COEFF',DL,IERR)
-      CALL EZGET('CC_FIXED_POINT', FIXPT, JERR)
+      CALL EZGET_rarr('CC_FIXED_POINT', FIXPT, JERR)
       IF( IERR.NE.0 .OR. JERR.NE.0) THEN
         CALL ERRMSG('NO THERMAL CONTRACTION','CC_THEO_GEO_BANKS',
      +  'no CC thermal contrat params found','W')

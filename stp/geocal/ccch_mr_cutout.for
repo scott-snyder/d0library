@@ -53,14 +53,14 @@ C----------------------------------------------------------------------
 C  Get the element number of the location of the cutout in the special
 C  MR CCCH module
 C----------------------------------------------------------------------
-      CALL EZGET('CCCH_MR_CUTOUT_ELEMENT',ELEMENT,IER)
+      CALL EZGET_i('CCCH_MR_CUTOUT_ELEMENT',ELEMENT,IER)
 C----------------------------------------------------------------------
 C  Get the radial position of this element, which gives the inner edge
 C  of the cutout section skin.  Add the skin thickness to get the
 C  inner radius of the cutout section
 C----------------------------------------------------------------------
       WRITE(NAME,1001) ELEMENT
-      CALL EZGET(NAME,IVAL,IER)
+      CALL EZGET_iarr(NAME,IVAL,IER)
       CALL EZGET('CCCH_MR_CUTOUT_SKIN',CCCH_CUTOUT_SKIN,IER)
       CCCH_CUTOUT_INNER_RADIUS = RVAL(3) + CCCH_CUTOUT_SKIN
 C----------------------------------------------------------------------
@@ -101,10 +101,10 @@ C----------------------------------------------------------------------
 C  Set the GEANT SRCP parameters for the cutout section
 C----------------------------------------------------------------------
       VOLUME_LABEL = 'CCCH_MR_CUTOUT_VOLUME'
-      CALL EZGET('CCCH_MR_CUTOUT_VOLUME_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i('CCCH_MR_CUTOUT_VOLUME_NAME',VOLUME_NAME,IER)
       CALL UCTOH('TRAP',VOLUME_SHAPE,4,4)
-      CALL EZGET('LIQUID_ARGON_CODE',VOLUME_MATERIAL_CODE,IER)
-      CALL EZGET('CCCH_MR_FLOOR8_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('LIQUID_ARGON_CODE',VOLUME_MATERIAL_CODE,IER)
+      CALL EZGET_i('CCCH_MR_FLOOR8_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL UCTOH('POS',POSITIONING,4,3)
       ROTATION_MATRIX   = 1
       COPY_NUMBER       = 1

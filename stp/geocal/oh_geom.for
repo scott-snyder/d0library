@@ -56,7 +56,7 @@ C----------------------------------------------------------------------
         IZ = 4   !IZ=5 IS THE FIRST NAME
         IZZ = 0
         FIRST = .FALSE.
-        CALL GTSRCP('OH_PHI_SEGMENTS',NSEG,1)
+        CALL GTSRCP_i('OH_PHI_SEGMENTS',NSEG,1)
         WRITE(20,21)NSEG
    21   FORMAT(' EC_OH_SEGMENTS  ',I2,'       !Number of Phi modules')
         CALL GTSRCP('PI',PI,1)

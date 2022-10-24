@@ -98,7 +98,7 @@ C----------------------------------------------------------------------
                 ENDIF
                 WRITE(VOLUME_LABEL,900) PLATE,PLATE_TYPE(MAT_LAYER)
   900           FORMAT('ECEM+Z_',I2.2,'_',A8)
-                CALL EZGETA(VOLUME_LABEL,2,2,1,ICODE,IER)
+                CALL EZGETA_i(VOLUME_LABEL,2,2,1,ICODE,IER)
                 CALL UHTOC(ICODE,4,MATERIAL_CODE,4)
                 CALL EZGET(MATERIAL_CODE,VOLUME_MATERIAL_CODE,IER)
                 IF (MAT_LAYER.EQ.1) THEN
@@ -108,7 +108,7 @@ C----------------------------------------------------------------------
                 ENDIF
   901           FORMAT('E',2I1.1,A1)
                 CALL UCTOH(CHAR_NAME,VOLUME_NAME,4,4)
-                CALL EZGETA(VOLUME_LABEL,3,3,1,VOLUME_MOTHER,IER)
+                CALL EZGETA_i(VOLUME_LABEL,3,3,1,VOLUME_MOTHER,IER)
                 CALL UCTOH('TUBE',VOLUME_SHAPE,4,4)
                 CALL UCTOH('POSP',POSITIONING,4,4)
                 NUMBER_PARAMS = 3

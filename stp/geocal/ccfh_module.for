@@ -64,15 +64,15 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Set the GEANT SRCP parameters for all modules
 C----------------------------------------------------------------------
-      CALL EZGET('CCFH_NUMBER_MODULES',CCFH_NUMBER_MODULES,IER)
+      CALL EZGET_i('CCFH_NUMBER_MODULES',CCFH_NUMBER_MODULES,IER)
       WRITE(OUT_VOL,1000) CCFH_NUMBER_MODULES
 C----------------------------------------------------------------------
 C  Parameters for CCFH Module volume
 C----------------------------------------------------------------------
-      CALL EZGET('CCFH_MODULE_VOLUME_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i('CCFH_MODULE_VOLUME_NAME',VOLUME_NAME,IER)
       CALL UCTOH('TRD1',VOLUME_SHAPE,4,4)
-      CALL EZGET('CCFH_CRACK_MATERIAL_CODE',VOLUME_MATERIAL_CODE,IER)
-      CALL EZGET('CCFH_MOTHER_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('CCFH_CRACK_MATERIAL_CODE',VOLUME_MATERIAL_CODE,IER)
+      CALL EZGET_i('CCFH_MOTHER_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL UCTOH('POS',POSITIONING,4,3)
       Z_POSITION        = 0.0
       NUMBER_PARAMS     = 4
@@ -84,7 +84,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Get the rotation matrix ID for the first CCFH module
 C----------------------------------------------------------------------
-      CALL EZGET('CCFH_FIRST_ROTATION_MATRIX',FIRST_ID,IER)
+      CALL EZGET_i('CCFH_FIRST_ROTATION_MATRIX',FIRST_ID,IER)
 C----------------------------------------------------------------------
 C  Get the angular offset for the first CCFH module
 C----------------------------------------------------------------------

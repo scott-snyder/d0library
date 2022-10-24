@@ -62,7 +62,7 @@ C
 C
 C ****  Read switches from CONTROL file
 C
-      CALL EZGET  ('PREGEO',DO_PREGEO,ERROR)
+      CALL EZGET_l  ('PREGEO',DO_PREGEO,ERROR)
       IF ( .NOT. DO_PREGEO ) GOTO 999        ! Exit if PREGEO switch not set
 C
       CALL EZGET  ('CRYOSTAT',DO_CRYOSTAT,ERROR)
@@ -166,7 +166,7 @@ C
         CALL EZREAD (LUNRAW,'ENDCAP',8,0,0) ! Read in Endcap raw data
         CLOSE(UNIT=LUNRAW)
 C
-        CALL EZGET  ('PRE_PREGEO',II,ERROR)
+        CALL EZGET_i  ('PRE_PREGEO',II,ERROR)
 C
         IF ( ERROR .NE. 0 ) THEN
           REMARK = 'ENDCAP CALORIMETER'

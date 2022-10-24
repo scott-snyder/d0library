@@ -59,13 +59,13 @@ C
      &           'EM_SUPPORT_PIPE-Z'/
 C----------------------------------------------------------------------
       CALL GTSRCP('CONV_FACTOR',CONV,1)
-      CALL GTSRCP('EM_FIRST_ROT_MATRIX',IRTOFF,1)
+      CALL GTSRCP_i('EM_FIRST_ROT_MATRIX',IRTOFF,1)
 C
       DO 200 IZ = 1,2
         CALL UCTOH('MCAL',MOTHER,4,4)
         CALL ADDSTR(MOTHVL(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
         NAME = LSR(3)
         MATNO = LSR(2)
         DO 201 IFC = 4,12
@@ -115,13 +115,13 @@ C
         DO 300 IFC = 1,4
           CALL ADDSTR(ZDVNM(IFC,IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-          CALL GTSRCP(NMSRCP,LSR,1)
+          CALL GTSRCP_i(NMSRCP,LSR(1),1)
           CALL WRTZDV(20,ZDVNM(IFC,IZ),LSR,RSR)   !Write out in CGS system
           NDIV = LSR(1)
           MATNO = LSR(2)
           CALL ADDSTR(EM_MODULES(IFC,IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-          CALL GTSRCP(NMSRCP,RSR1,1)
+          CALL GTSRCP(NMSRCP,RSR1(1),1)
 C We are only using the EM_Module information for getting RIN and ROUT
 C We are not going to define Geant modules. Rather we will let the Z
 C divisions hang off the PCON mother volume
@@ -165,7 +165,7 @@ C NOW ENDPLATES
 C
         CALL ADDSTR(EMPLATE(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
 C
         STRING = '\ARRAY '//EMPLATE(IZ)
         NDIV = LSR(1)
@@ -193,7 +193,7 @@ C NOW Support pipes
 C
         CALL ADDSTR(EMSUP(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
 C
         STRING = '\ARRAY '//EMSUP(IZ)
         NDIV = LSR(1)

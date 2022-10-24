@@ -67,7 +67,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Get the volume name for the left side skin
 C----------------------------------------------------------------------
-      CALL EZGET ( 'CCEM_LEFT_SKIN_VOLUME_NAME', VOLUME_NAME, IER )
+      CALL EZGET_i ( 'CCEM_LEFT_SKIN_VOLUME_NAME', VOLUME_NAME, IER )
 C----------------------------------------------------------------------
 C  Set volume shape
 C----------------------------------------------------------------------
@@ -75,11 +75,11 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Get material codes for skin
 C----------------------------------------------------------------------
-      CALL EZGET ( 'STAINLESS_STEEL_CODE', VOLUME_MATERIAL_CODE, IER )
+      CALL EZGET_i ( 'STAINLESS_STEEL_CODE', VOLUME_MATERIAL_CODE, IER )
 C----------------------------------------------------------------------
 C  Get volume mother name
 C----------------------------------------------------------------------
-      CALL EZGET ( 'CCEM_PLATE_MODULE_VOLUME_NAME', VOLUME_MOTHER, IER)
+      CALL EZGET_i ( 'CCEM_PLATE_MODULE_VOLUME_NAME', VOLUME_MOTHER,IER)
 C----------------------------------------------------------------------
 C  Set positioning mode
 C----------------------------------------------------------------------
@@ -87,7 +87,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Get rotation matrix ID for left side skin
 C----------------------------------------------------------------------
-      CALL EZGET ( 'CCEM_LEFT_SKIN_ROTATION_MATRIX', 
+      CALL EZGET_i ( 'CCEM_LEFT_SKIN_ROTATION_MATRIX', 
      &              ROTATION_MATRIX, IER )
 C----------------------------------------------------------------------
 C  Compute and store rotation matrix:
@@ -142,8 +142,8 @@ C  Repeat as necessary for right side skin
 C----------------------------------------------------------------------
       CALL EZGETS ( 'CCEM_RIGHT_SKIN_VOLUME_LABEL', 1, 
      &               VOLUME_LABEL, LEN, IER )
-      CALL EZGET ( 'CCEM_RIGHT_SKIN_VOLUME_NAME', VOLUME_NAME, IER )
-      CALL EZGET ( 'CCEM_RIGHT_SKIN_ROTATION_MATRIX', 
+      CALL EZGET_i ( 'CCEM_RIGHT_SKIN_VOLUME_NAME', VOLUME_NAME, IER )
+      CALL EZGET_i ( 'CCEM_RIGHT_SKIN_ROTATION_MATRIX', 
      &              ROTATION_MATRIX, IER )
       ID_MATRIX = ROTATION_MATRIX
       VAL_MATRIX(1) = ANGLE

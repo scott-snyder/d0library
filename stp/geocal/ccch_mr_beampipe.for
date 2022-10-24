@@ -83,7 +83,7 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
 C  Set the rotation matrix for the beampipe
 C----------------------------------------------------------------------
-      CALL EZGET('CCCH_MR_ROTATION_MATRIX',ID_MATRIX,IER)
+      CALL EZGET_i('CCCH_MR_ROTATION_MATRIX',ID_MATRIX,IER)
       VAL_MATRIX(1) = 0.
       VAL_MATRIX(2) = 0.
       VAL_MATRIX(3) = 90.
@@ -95,10 +95,10 @@ C----------------------------------------------------------------------
 C  Set the remaining GEANT SRCP parameters for the beampipe volume
 C----------------------------------------------------------------------
       VOLUME_LABEL = 'CCCH_MR_BEAMPIPE_VOLUME'
-      CALL EZGET('CCCH_MR_BEAMPIPE_VOLUME_NAME',VOLUME_NAME,IER)
+      CALL EZGET_i('CCCH_MR_BEAMPIPE_VOLUME_NAME',VOLUME_NAME,IER)
       CALL UCTOH('TUBE',VOLUME_SHAPE,4,4)
-      CALL EZGET('VACUUM_CODE',VOLUME_MATERIAL_CODE,IER)
-      CALL EZGET('CCCH_MR_CUTOUT_VOLUME_NAME',VOLUME_MOTHER,IER)
+      CALL EZGET_i('VACUUM_CODE',VOLUME_MATERIAL_CODE,IER)
+      CALL EZGET_i('CCCH_MR_CUTOUT_VOLUME_NAME',VOLUME_MOTHER,IER)
       CALL UCTOH('POS',POSITIONING,4,3)
       ROTATION_MATRIX = ID_MATRIX
       COPY_NUMBER = 1

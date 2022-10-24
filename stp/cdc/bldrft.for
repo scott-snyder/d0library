@@ -79,7 +79,7 @@ C            +31       F   .......................... 5           .02
 C            +32       F   .......................... 6          -.02
 C---------------------------------------------------------------------------
       IC ( LDRFT + 1 ) = NLAY
-      CALL UCOPY (NSEC, IC ( LDRFT + 2 ), 4 )
+      CALL UCOPY_i (NSEC, IC ( LDRFT + 2 ), 4 )
       IC ( LDRFT + 6 ) = NUWIR
       IC ( LDRFT + 7 ) = IFDGEH
       CALL UCOPY ( CORGEN, C (LDRFT+8), 3 )

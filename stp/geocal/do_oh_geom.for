@@ -37,7 +37,7 @@ C----------------------------------------------------------------------
      &            'OHG_DIVISIONS-Z'/
 C----------------------------------------------------------------------
       CALL GTSRCP('CONV_FACTOR',CONV,1)
-      CALL GTSRCP('OH_FIRST_ROT_MATRIX(1)',IRTOF(1),1)
+      CALL GTSRCP_i('OH_FIRST_ROT_MATRIX(1)',IRTOF(1),1)
       CALL GTSRCP('OH_CRACK',CRACK,1)
       CRACK=CRACK*CONV  !in cm.
       CRACKM = 0.0     !CRACK FOR MOTHER VOLUME
@@ -51,11 +51,11 @@ C
       DO 200 IZ = 1,2
         CALL ADDSTR(MUTRVL(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR,1)
         MOTHER = LSR(3)
         CALL ADDSTR(MOTHVL(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR,1)
         NAME = LSR(3)
         MATNO = LSR(2)
         RIN = RSR(6)*CONV
@@ -80,7 +80,7 @@ C Z divisions
 C
         CALL ADDSTR(ZDVNM(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
         CALL WRTZDV(20,ZDVNM(IZ),LSR,RSR)   !Write out in CGS system
         NDIV = LSR(1)
         MATNO = LSR(2)
@@ -118,7 +118,7 @@ C END plates handled just as Z divisions
 C
         CALL ADDSTR(OHEND(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
         NDIV = LSR(1)
         MATNO = LSR(2)
         IPT = 2
@@ -157,7 +157,7 @@ C
         CALL UCTOH('MCAL',MOTHER,4,4)
         CALL ADDSTR(OHMASS(IZ),'(1)',NMSRCP,LEN3)
      &      !Makes it into array format
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
         NAME = LSR(3)
         MATNO = LSR(2)
         RIN = RSR(6)*CONV
@@ -173,7 +173,7 @@ C
         CALL OH_GEOM(NAME,MOTHER,MATNO,CRACKM,RIN,ROUT,DELZ,
      &  ZLO,ZHI,IRTOF(IZ),1)
         CALL ADDSTR(OHGZDV(IZ),'(1)',NMSRCP,LEN3)
-        CALL GTSRCP(NMSRCP,LSR,1)
+        CALL GTSRCP_i(NMSRCP,LSR(1),1)
         CALL WRTZDV(20,OHGZDV(IZ),LSR,RSR)    !Put out the radial info for
 C                                        ! massless gap
   600 CONTINUE
