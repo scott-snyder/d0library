@@ -55,10 +55,10 @@ C
 C
 C: Initialize
 C
-      CALL VZERO( NTOWERS, 2 )
-      CALL VZERO( PTCATE, NTWMAX*2)
+      CALL VZERO_i( NTOWERS, 2 )
+      CALL VZERO_i( PTCATE, NTWMAX*2)
       CALL VZERO( ETLIST, NTWMAX*2)
-      CALL VZERO( ORLIST, NTWMAX*2)
+      CALL VZERO_i( ORLIST, NTWMAX*2)
 C
 C: Unpack CATD
 C
@@ -171,7 +171,7 @@ C
 C
 C: Fill the PTCATE array properly
       PTTFLG = .FALSE.          ! We will set PTCATE
-      CALL VZERO( PTCATE, NTWMAX*2 )
+      CALL VZERO_i( PTCATE, NTWMAX*2 )
       DO II = 1,2
         DO I = 1, NTOWERS(II)
           P = (II-1)*NTOWERS(1) + I

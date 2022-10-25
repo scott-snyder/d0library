@@ -41,10 +41,10 @@ C
       INTEGER NPVAR,NCLOUD
       REAL QUANS(15)
 
-      PARAMETER( MASK_ALL = '1F'X)
-      PARAMETER( MASK_TRDOFF = '0F'X)
-      PARAMETER( MASK_TRDOFF_DEDXOFF = '0E'X)
-      PARAMETER( MASK_TRD_DEDX_ONLY = '11'X)
+      data MASK_ALL / z'1F' /
+      data MASK_TRDOFF / z'0F' /
+      data MASK_TRDOFF_DEDXOFF / z'0E' /
+      data MASK_TRD_DEDX_ONLY / z'11' /
 C----------------------------------------------------------------------
       QCD_UPK_ELC = .TRUE.
 C

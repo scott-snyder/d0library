@@ -22,8 +22,8 @@ C----------------------------------------------------------------------
 C
       CALL VZERO( MASK1, 9*9 )
       CALL VZERO( MASK2, 9*9 )
-      CALL VZERO( ID1, 9*9 )
-      CALL VZERO( ID2, 9*9 )
+      CALL VZERO_i( ID1, 9*9 )
+      CALL VZERO_i( ID2, 9*9 )
 C
 C: Identify candidates that are close to others. Keep the highest ET object
 C

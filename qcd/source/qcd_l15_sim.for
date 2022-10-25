@@ -61,7 +61,7 @@ C
         IF ( IER .NE. 0 ) GOTO 900
         CALL EZGET( 'THRESH_5X5', THRESH_5X5, IER )
         IF ( IER .NE. 0 ) GOTO 900
-        CALL EZGET( 'COUNT_1',COUNT_1, IER )
+        CALL EZGET_i( 'COUNT_1',COUNT_1, IER )
         IF ( IER .NE. 0 ) GOTO 900
         CALL EZGET( 'ET_THRESH_1',ET_THRESH_1, IER )
         IF ( IER .NE. 0 ) GOTO 900
@@ -69,7 +69,7 @@ C
         IF ( IER .NE. 0 ) GOTO 900
         CALL EZGET( 'ETA_HIGH_1',ETA_HIGH_1, IER )
         IF ( IER .NE. 0 ) GOTO 900
-        CALL EZGET( 'COUNT_2',COUNT_2, IER )
+        CALL EZGET_i( 'COUNT_2',COUNT_2, IER )
         IF ( IER .NE. 0 ) GOTO 900
         CALL EZGET( 'ET_THRESH_2',ET_THRESH_2, IER )
         IF ( IER .NE. 0 ) GOTO 900

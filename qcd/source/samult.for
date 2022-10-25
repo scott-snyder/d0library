@@ -64,7 +64,7 @@ C
         LSAPH=GZSAPH()
         IF(LSAPH.GT.0) THEN
           OK=1
-          LMUHT=GZMUHT()
+          LMUHT=GZMUHT(0)
           NH=IQ(LMUHT+5)
           DO IHIT=1,NH
             LHIT=LSAPH+(IHIT-1)*NWSAPH
@@ -119,7 +119,7 @@ C
 C If no SAHS but there is a SAPH use it
 C
           IF(LSAPH.GT.0) THEN
-            LMUHT=GZMUHT()
+            LMUHT=GZMUHT(0)
             NH=IQ(LMUHT+5)
             DO IHIT=1,NH
               LHIT=LSAPH+(IHIT-1)*NWSAPH
