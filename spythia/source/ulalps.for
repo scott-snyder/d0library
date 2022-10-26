@@ -27,7 +27,7 @@ C-----------------------------------------------------------------------
 	first = .false.
         
         CALL EZPICK('SPYTHIA_RCP')
-        CALL EZGET('SUSY_ALPHA_S',susy,ier)
+        CALL EZGET_l('SUSY_ALPHA_S',susy,ier)
         IF ( ier .NE. 0 ) THEN
           CALL ERRMSG('NO RCP','ULALPS',
      &         'No SUSY_ALPHA_S in RCP file -- making false','W')
