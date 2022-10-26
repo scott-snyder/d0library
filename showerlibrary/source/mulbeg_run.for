@@ -28,11 +28,11 @@ C----------------------------------------------------------------------
         FIRST = .FALSE.
         CALL EZPICK('MUONLIBRARY_RCP')              ! select SHOWERLIB bank
         CALL EZ_GET_CHARS('MUON_LIBRARY_NAME',NCHAR,FILN,IER)
-        CALL EZGET('KEYED_ACCESS',KEYED,IER)
-        CALL EZGET('RUNS_FILE',RUNS_FILE,IER)
-        CALL EZGET('FILE_SEQ_NO',FILSEQ,IER)
+        CALL EZGET_l('KEYED_ACCESS',KEYED,IER)
+        CALL EZGET_i('RUNS_FILE',RUNS_FILE,IER)
+        CALL EZGET_i('FILE_SEQ_NO',FILSEQ,IER)
         CALL EZGET('MUONLIBRARY_RECL',SRECL,IER)
-        CALL EZGET('DO_MAKE_LIB',DO_MAKE_LIB,IER)
+        CALL EZGET_l('DO_MAKE_LIB',DO_MAKE_LIB,IER)
         CALL EZRSET
         IRUNS = 0
         OPEN_FILE = .TRUE.

@@ -55,10 +55,10 @@ C----------------------------------------------------------------------
         FIRST = .FALSE.
         CALL EZPICK('SHOWERLIBRARY_RCP')
         CALL EZGET('ENERGY_FRACTION_KEEP',EFR_KEEP,IER)
-        CALL EZGET('MAX_HIT_CAL',MAX_HIT_CAL,IER)
-        CALL EZGET('MAX_HIT_MG1',MAX_HIT_MG1,IER)
-        CALL EZGET('MAX_HIT_ICD',MAX_HIT_ICD,IER)
-        CALL EZGET('MAX_HIT_MG2',MAX_HIT_MG2,IER)
+        CALL EZGET_i('MAX_HIT_CAL',MAX_HIT_CAL,IER)
+        CALL EZGET_i('MAX_HIT_MG1',MAX_HIT_MG1,IER)
+        CALL EZGET_i('MAX_HIT_ICD',MAX_HIT_ICD,IER)
+        CALL EZGET_i('MAX_HIT_MG2',MAX_HIT_MG2,IER)
         CALL EZRSET
 C
       ENDIF
@@ -122,9 +122,9 @@ C
       CALL UZERO(ICDE,1,NPOINT)
       CALL UZERO(MG2E,1,NPOINT)
       ETOT=TOTAL(1)
-      CALL UZERO(IETA,1,NPOINT)
-      CALL UZERO(IPHI,1,NPOINT)
-      CALL UZERO(LAYER,1,NPOINT)
+      CALL UZERO_i(IETA,1,NPOINT)
+      CALL UZERO_i(IPHI,1,NPOINT)
+      CALL UZERO_i(LAYER,1,NPOINT)
 C
 C ****  Loop over all hits for this track
 C
@@ -162,7 +162,7 @@ C ****  Remove calorimeter hits until 20 remain
 C       Remove MG and ICD hits until 4 remain in each
 C       (or fewer in each case if they contain 95% of the energy)
 C
-      CALL UZERO(NHIT,1,4)
+      CALL UZERO_i(NHIT,1,4)
       IF(NPLIVE.EQ.0)THEN
         CALL UZERO(EMISS,1,4)
       ELSE

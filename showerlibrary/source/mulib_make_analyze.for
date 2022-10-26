@@ -57,7 +57,7 @@ C
         CALL EZRSET
 C
       ENDIF
-      CALL UCOPY ( KEY,RKEY,NKEY)
+      CALL UCOPY_i ( KEY,RKEY,NKEY)
       PT_GMUH = MULIB(2)                 ! POINTER TO 1ST GMUH AREA IN SHLB
       XTUPLE(1) = RKEY(1)      ! PHI RKEY
       XTUPLE(2) = RKEY(2)      ! ETA RKEY

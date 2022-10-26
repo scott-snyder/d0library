@@ -50,7 +50,7 @@ C
         PHI_LIM_EM(1) = 0.5*CRACK_ARC
         PHI_LIM_EM(2) = EM1_ARC - PHI_LIM_EM(1)       ! GOOD PHI REGIONS
 C
-        CALL EZGET('PHI_LIM_HAD',PHI_LIM_HAD,IER)       ! HADRONIC PHI LIMITS
+        CALL EZGET_rarr('PHI_LIM_HAD',PHI_LIM_HAD,IER)       ! HADRONIC PHI LIMITS
                                         ! IN RADIANS
 C
         CALL EZRSET

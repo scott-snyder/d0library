@@ -51,7 +51,7 @@ C-------------------------------------
         PMOM =  MULIB(PT_GMUH+20)
         CALL HFILL(104,PMOM,0.,1.)
         NUMHITS=MULIB(PT_GMUH+22)          ! NUMBER OF HITS PER GMUH BANK
-        CALL HFILL(105,NUMHITS,0.,1.)
+        CALL HFILL(105,real(numhits),0.,1.)
 C
       NUM_HITS = NUM_HITS + NUMHITS
       TOT_ENERGY = TOT_ENERGY + MULIB(PT_GMUH+20)

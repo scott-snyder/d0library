@@ -37,7 +37,7 @@ C
       IF ( FIRST ) THEN
         FIRST = .FALSE.
         CALL EZPICK('SHOWERLIBRARY_RCP')
-        CALL EZGET('ISA_SMEAR',ISASM,IER)
+        CALL EZGET_l('ISA_SMEAR',ISASM,IER)
         IF ( ISASM ) THEN
           DEFACT = 1.0
         ELSE
