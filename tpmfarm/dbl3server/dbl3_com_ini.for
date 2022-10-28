@@ -55,7 +55,7 @@ C-Read in input node parameters
       ENDIF
 
       CALL getenv('CLI_PORT_IN',inport)
-      CALL ezget(inport(1:trulen(inport)),cli_port,status)
+      CALL ezget_i(inport(1:trulen(inport)),cli_port,status)
       IF (status .NE. 0) THEN
         CALL errmsg('RCP reading error','CLI_INI',
      &    'Unable to find the parameter CLI_PORT_IN','F')
