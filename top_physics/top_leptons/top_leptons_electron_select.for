@@ -76,7 +76,7 @@ C
         IF(IER.EQ.0) CALL EZGET('PELC_ETAMAX',ETA_MAX,IER)
         IF(IER.EQ.0) CALL EZGET('PELC_PTMIN',PT_MIN,IER)
         IF(IER.EQ.0) CALL EZGET('PELC_PTMAX',PT_MAX,IER)
-        IF(IER.EQ.0) CALL EZGETA('ELECTRON_MASK',0,0,0,N,IER)  
+        IF(IER.EQ.0) CALL EZGETA_i('ELECTRON_MASK',0,0,0,N,IER)  
         IF (IER.EQ.0) THEN
           IF (N.NE.32) THEN
             CALL ERRMSG('Error reading Electron Mask',
@@ -97,7 +97,7 @@ C
             ENDIF
           ENDDO
         ENDIF
-        CALL EZGET('EM_CORR',EM_CORR,IER)
+        CALL EZGET_l('EM_CORR',EM_CORR,IER)
         CALL EZRSET
         IF (IER.NE.0) CALL ERRMSG('Error getting RCP parameters',
      &    'TOP_LEPTONS_ELECTRON_SELECT',' ','F')

@@ -24,10 +24,10 @@ C----------------------------------------------------------------------
       IF(FIRST)THEN
         CALL EZPICK('TTEE_RCP')
         CALL EZGET('ETCUT',ETCUT,IER)
-        CALL EZGET('LEVEL',LEVEL,IER)
+        CALL EZGET_i('LEVEL',LEVEL,IER)
         CALL EZGET('ISOLCUT',ISOLCUT,IER)
-        CALL EZGET('REQ_CSQCUT',REQ_CSQCUT,IER)
-        CALL EZGET('REJ_MBLANK',REJ_MBLANK,IER)
+        CALL EZGET_l('REQ_CSQCUT',REQ_CSQCUT,IER)
+        CALL EZGET_l('REJ_MBLANK',REJ_MBLANK,IER)
         CALL EZRSET
         FIRST = .FALSE.
       ENDIF

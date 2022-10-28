@@ -38,7 +38,7 @@ C
       NOVERT_P=0
       NOVERT_S=0
       CALL VZERO(VERTX_P,15)
-      CALL VZERO(NO_ZTRAK_VERTX_P,5)
+      CALL VZERO_i(NO_ZTRAK_VERTX_P,5)
 C
 C *** Total Ztrak count
 C

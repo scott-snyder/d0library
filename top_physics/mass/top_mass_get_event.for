@@ -76,20 +76,20 @@ C----------------------------------------------------------------------
       IF( first ) THEN
         first = .false.
         CALL EZPICK('TOP_MASS_RCP')
-        CALL EZGET('READ_EVENT_FROM_RCP',READ_RCP,IER)
+        CALL EZGET_l('READ_EVENT_FROM_RCP',READ_RCP,IER)
         CALL EZGET('JET_ET_CUT',JET_ET_CUT,IER)
         CALL EZ_GET_CHARS('JET_ALGORITHM_NAME',NCHR,
      &    JET_ALG_NAME,IER)
-        CALL EZGET('JET_TEMPLATE',JET_TEMPLATE,IER)
+        CALL EZGET_rarr('JET_TEMPLATE',JET_TEMPLATE,IER)
         CALL GET_JETS_SELECT(JET_ALG_NAME,JET_TEMPLATE)
-        CALL EZGET('LEPTON_TYPE',LEPTON_TYPE,IER)  !This is obtained
+        CALL EZGET_iarr('LEPTON_TYPE',LEPTON_TYPE,IER)  !This is obtained
                                                    ! from top_mass_rcp as default
                                                    ! and used when data is zebra.
                                                    ! overridden when data is rcp
-        CALL EZGET('MIN_JET_NUM',MIN_JET_NUM,IER)
-        CALL EZGET('MIN_EL_NUM',MIN_EL_NUM,IER)
-        CALL EZGET('MIN_MU_NUM',MIN_MU_NUM,IER)
-        CALL EZGET('ADD_JETS',JET_ADD,IER)
+        CALL EZGET_i('MIN_JET_NUM',MIN_JET_NUM,IER)
+        CALL EZGET_i('MIN_EL_NUM',MIN_EL_NUM,IER)
+        CALL EZGET_i('MIN_MU_NUM',MIN_MU_NUM,IER)
+        CALL EZGET_l('ADD_JETS',JET_ADD,IER)
         CALL EZGET('MAXIMUM_MUON_MOMENTUM',PMAX_MUON,IER)
         NCNFGE_SAVE = NCNFGE
         CALL EZRSET
@@ -115,15 +115,15 @@ C
         NCNFGE = NCNFGE_SAVE
         IF ( READ_RCP ) THEN
           CALL EZPICK('TOP_EVENT_RCP')
-          CALL EZGET('RUN',RUNC,IER)
-          CALL EZGET('EVENT',EVENTC,IER)
-          CALL EZGET('LEPTON1',LEPTON1S,IER)
-          CALL EZGET('LEPTON2',LEPTON2S,IER)
-          CALL EZGET('JET1',JET1S,IER)
-          CALL EZGET('JET2',JET2S,IER)
-          CALL EZGET('JET3',JET3S,IER)
-          CALL EZGET('PNUT',PNUTS,IER)
-          CALL EZGET('LEPTON_TYPE',LEPTON_TYPE,IER)  !THIS TELLS IT IF IT
+          CALL EZGET_i('RUN',RUNC,IER)
+          CALL EZGET_i('EVENT',EVENTC,IER)
+          CALL EZGET_rarr('LEPTON1',LEPTON1S,IER)
+          CALL EZGET_rarr('LEPTON2',LEPTON2S,IER)
+          CALL EZGET_rarr('JET1',JET1S,IER)
+          CALL EZGET_rarr('JET2',JET2S,IER)
+          CALL EZGET_rarr('JET3',JET3S,IER)
+          CALL EZGET_rarr('PNUT',PNUTS,IER)
+          CALL EZGET_iarr('LEPTON_TYPE',LEPTON_TYPE,IER)  !THIS TELLS IT IF IT
                                                      ! IS AN EE OR EMU EVENT
           CALL EZRSET
           IF ( JET3S(4).LT.1.0 ) THEN
@@ -317,7 +317,7 @@ C THIS MEANS THIS IS THE DECAY PRODUCT OF TOP QUARK. I.E. A B
                 IGOT = IGOT + 1
               ELSE
                 IFSRT = IFSRT + 1
-                CALL UCOPYSD(Q(LISAQ+2),TOP_FSR(1,IFSRT),4)
+                CALL UCOPY(Q(LISAQ+2),TOP_FSR(1,IFSRT),4)
               ENDIF
             ELSEIF ( IPISAJ.EQ.-6 ) THEN
 C THIS MEANS THIS IS THE DECAY PRODUCT OF ANTI-TOP QUARK. I.E. A B-BAR
@@ -326,7 +326,7 @@ C THIS MEANS THIS IS THE DECAY PRODUCT OF ANTI-TOP QUARK. I.E. A B-BAR
                 IGOT = IGOT + 1
               ELSE
                 IFSRA = IFSRA + 1
-                CALL UCOPYSD(Q(LISAQ+2),ATOP_FSR(1,IFSRA),4)
+                CALL UCOPY(Q(LISAQ+2),ATOP_FSR(1,IFSRA),4)
               ENDIF
             ELSEIF ( IPISAJ.EQ.80 ) THEN
 C THIS MEANS THIS IS A DECAY PRODUCT OF W+ (EITHER A +CHARGED LEPTON OR NEUTRINO)
@@ -385,7 +385,7 @@ C
       CALL UCOPYDD(JET2,JET2_S,4)
       CALL UCOPYDD(JET3,JET3_S,4)
       CALL UCOPYDD(PNUT,PNUT_S,2)
-      CALL UCOPY(LEPTON_TYPE,LEPTON_TYPE_S,2)
+      CALL UCOPY_i(LEPTON_TYPE,LEPTON_TYPE_S,2)
 C
   999 RETURN
       END

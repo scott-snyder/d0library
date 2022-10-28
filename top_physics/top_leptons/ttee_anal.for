@@ -20,9 +20,9 @@ C----------------------------------------------------------------------
 C
       IF(FIRST)THEN
         CALL EZPICK('TTEE_RCP')
-        CALL EZGET('FAKE_BKG',FAKE_BKG,IER)
+        CALL EZGET_l('FAKE_BKG',FAKE_BKG,IER)
         CALL EZGET('REJ_MBLANK',REJ_MBLANK,IER)
-        CALL EZGET('NELEC_REQ',NELEC_REQ,IER)
+        CALL EZGET_i('NELEC_REQ',NELEC_REQ,IER)
         CALL EZRSET
       ENDIF
 C

@@ -25,6 +25,7 @@ C----------------------------------------------------------------------
 C
       INTEGER IS1,IS2,ICOMB,STATUS,NITER,ITER_MAX
       REAL    PHILOS,PHIHIS,DEL_LAMBDAS,DELFS
+      real rtmp
 C----------------------------------------------------------------------
 C
       IF( first ) THEN
@@ -32,14 +33,15 @@ C
         CALL EZPICK('TOP_MASS_RCP')
         CALL EZGET('PHILO',PHILOS,IER)
         CALL EZGET('PHIHI',PHIHIS,IER)
-        CALL EZGET('NPHI',NPHI,IER)
-        CALL EZGET('NLAMBDA',NLAMBDA,IER)
+        CALL EZGET_i('NPHI',NPHI,IER)
+        CALL EZGET_i('NLAMBDA',NLAMBDA,IER)
         CALL EZGET('DEL_LAMBDA',DEL_LAMBDAS,IER)
-        CALL EZGET('DEL_LAMBDA_ITERATE',DEL_LAMBDA_ITERATE,IER)
-        CALL EZGET('NUMBER_CONFIGS',NCONFIG,IER)
-        CALL EZGET('DO_ITERATE',DO_ITERATE,IER)
+        CALL EZGET('DEL_LAMBDA_ITERATE',rtmp,IER)
+        del_lambda_iterate = rtmp
+        CALL EZGET_i('NUMBER_CONFIGS',NCONFIG,IER)
+        CALL EZGET_l('DO_ITERATE',DO_ITERATE,IER)
         CALL EZGET('DELTA_F',DELFS,IER)
-        CALL EZGET('ITER_MAX',ITER_MAX,IER)
+        CALL EZGET_i('ITER_MAX',ITER_MAX,IER)
         NPHI = MAX(2,NPHI)
         NLAMBDA = MAX(2,NLAMBDA)
         CONFIG = 1   !OBSERVED CONFIGURATION

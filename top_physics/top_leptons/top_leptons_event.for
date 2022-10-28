@@ -117,18 +117,18 @@ C
 C
 C *** Job steering and option information
 C
-        CALL EZGET('PRINT_CUTSUM',PRINT_LEPSUM,IER)
-        IF (IER.EQ.0) CALL EZGET('PRINT_LUN',LEPTONS_LUNSUM,IER)
-        IF (IER.EQ.0) CALL EZGET('ERROR_LUN',LEPTONS_LUNERR,IER)
-        IF (IER.EQ.0) CALL EZGET('PLOT_HISTOGRAMS',DO_HISTOGRAMS,IER)
-        IF (IER.EQ.0) CALL EZGET('FILL_NTUPLES',DO_NTUPLES,IER)
+        CALL EZGET_l('PRINT_CUTSUM',PRINT_LEPSUM,IER)
+        IF (IER.EQ.0) CALL EZGET_i('PRINT_LUN',LEPTONS_LUNSUM,IER)
+        IF (IER.EQ.0) CALL EZGET_i('ERROR_LUN',LEPTONS_LUNERR,IER)
+        IF (IER.EQ.0) CALL EZGET_l('PLOT_HISTOGRAMS',DO_HISTOGRAMS,IER)
+        IF (IER.EQ.0) CALL EZGET_l('FILL_NTUPLES',DO_NTUPLES,IER)
 C
 C *** Enable writing of selected events
 C
-        IF(IER.EQ.0) CALL EZGET('WRITE_EVENTS_OUT',DO_EVENT_WRITE,IER)
+        IF(IER.EQ.0) CALL EZGET_l('WRITE_EVENTS_OUT',DO_EVENT_WRITE,IER)
         IF(DO_EVENT_WRITE) THEN
-          IF(IER.EQ.0) CALL EZGET('WRITE_STA_FILE',WRITE_STA,IER)
-          IF(IER.EQ.0) CALL EZGET('WRITE_DST_FILE',WRITE_DST,IER)
+          IF(IER.EQ.0) CALL EZGET_l('WRITE_STA_FILE',WRITE_STA,IER)
+          IF(IER.EQ.0) CALL EZGET_l('WRITE_DST_FILE',WRITE_DST,IER)
           IF(WRITE_STA) THEN
             IF(IER.EQ.0)
      1         CALL EZGETS('OUTPUT_STA',1,OUTPUT_FILE,LENGTH,IER)
@@ -145,27 +145,27 @@ C
 C
 C *** Event fixup/repair for special events
 C
-        IF(IER.EQ.0) CALL EZGET('DO_EVENT_FIX',FIX_SPECIAL_EVENTS,IER)
+        IF(IER.EQ.0) CALL EZGET_l('DO_EVENT_FIX',FIX_SPECIAL_EVENTS,IER)
 C
 C *** Event dump enable/disable
 C
-        IF (IER.EQ.0) CALL EZGET('DO_DUMPS',DUMP_EVENT,IER)
+        IF (IER.EQ.0) CALL EZGET_l('DO_DUMPS',DUMP_EVENT,IER)
 C
 C *** enable/disable full length dumps
 C
-        IF (IER.EQ.0) CALL EZGET('LONG_DUMPS',LONG_EVENT_DUMP,IER)
+        IF (IER.EQ.0) CALL EZGET_l('LONG_DUMPS',LONG_EVENT_DUMP,IER)
 C
 C *** Force dump of all events (for program diagnostic tests)
 C
         IF (IER.EQ.0) CALL EZGET('DO_DIAGNOSTIC_DUMPS',DIAGNOSTIC_DUMPS,
      &    IER)
-        IF (IER.EQ.0) CALL EZGET('NO_EVT_DIAGNOSTICS',DUMP_LIMIT,IER)
+        IF (IER.EQ.0) CALL EZGET_i('NO_EVT_DIAGNOSTICS',DUMP_LIMIT,IER)
 C
 C *** Analysis Test Mode ( for finder code diagnostic testing )
 C
-        IF (IER.EQ.0) CALL EZGET('DO_ANAL_TEST',ANALYSIS_TEST,
+        IF (IER.EQ.0) CALL EZGET_l('DO_ANAL_TEST',ANALYSIS_TEST,
      &    IER)
-        IF (IER.EQ.0) CALL EZGET('NO_EVT_TEST',TEST_LIMIT,IER)
+        IF (IER.EQ.0) CALL EZGET_i('NO_EVT_TEST',TEST_LIMIT,IER)
 C
 C *** W-finder
 C
@@ -202,7 +202,7 @@ C
 C
 C *** Jet algorithm
 C
-        CALL EZGET('JETS_ALGORITHM',JET_ALG,IER)
+        CALL EZGET_i('JETS_ALGORITHM',JET_ALG,IER)
 C
         CALL EZRSET
 C
@@ -232,6 +232,10 @@ C *** Set Function to .FALSE. to prevent further event processing
 C
       TOP_LEPTONS_EVENT=.FALSE.
 C
+C *** Initialize Etmiss Correction Array
+C
+      CALL VZERO(MET_VEC,3)
+C
 C *** Program Diagnostic mode -> skip all selection and go straight to
 C *** event dumps. Also check on no of events wnated
 C
@@ -242,7 +246,7 @@ C
           NOJT=0
           NOJT_UNCUT=0
           CALL TOP_LEPTONS_JET_ET_DEF
-          CALL TOP_LEPTONS_JET_SELECT(NOEL,NOPH,NOJT,NOJT_UNCUT)
+          CALL TOP_LEPTONS_JET_SELECT(NOEL,NOPH,NOJT,NOJT_UNCUT,met_vec)
 C
 C *** Re-set Jet Algorithm to analysis default
 C
@@ -313,10 +317,6 @@ C
         GO TO 999
       ENDIF
 C
-C *** Initialize Etmiss Correction Array
-C
-      CALL VZERO(MET_VEC,3)
-C
 C *** Preliminary lepton and jet selection
 C ***  Note :
 C ***     the electron and photon selection should be called before
@@ -376,7 +376,7 @@ C
 C
 C *** Go to Phyiscs selection code
 C
-      CALL VZERO(TOP_FLAG,6)
+      CALL VZERO_i(TOP_FLAG,6)
       IF(DO_FINDTOP) THEN
         ITEST=NOMU+NOEL+NOPH
         IF(ITEST.GE.0) THEN
@@ -406,7 +406,7 @@ C
 C
 C *** Now do W-selection
 C
-      CALL VZERO(W_FLAG,3)
+      CALL VZERO_i(W_FLAG,3)
       IF(DO_FINDW) THEN
         CALL TOP_LEPTONS_FINDW(NOMU,NOMU_UNCUT,NOEL,NOEL_UNCUT,
      &    NOPH,NOPH_UNCUT,NOJT,NOJT_UNCUT,W_FLAG,MET_VEC)
@@ -426,7 +426,7 @@ C
 C
 C *** Next do Z0-selection
 C
-      CALL VZERO(Z_FLAG,3)
+      CALL VZERO_i(Z_FLAG,3)
       IF(DO_FINDZ) THEN
         CALL TOP_LEPTONS_FINDZ(NOMU,NOMU_UNCUT,NOEL,NOEL_UNCUT,
      &    NOPH,NOPH_UNCUT,NOJT,NOJT_UNCUT,Z_FLAG,MET_VEC)
@@ -447,7 +447,7 @@ C
 C
 C *** Next do WWgamma-selection
 C
-      CALL VZERO(WWG_FLAG,3)
+      CALL VZERO_i(WWG_FLAG,3)
       IF(DO_FINDWWG) THEN
         CALL TOP_LEPTONS_FINDWWG(NOMU,NOMU_UNCUT,NOEL,NOEL_UNCUT,
      &    NOPH,NOPH_UNCUT,NOJT,NOJT_UNCUT,WWG_FLAG,MET_VEC)
@@ -468,7 +468,7 @@ C
 C
 C *** Next Do Top/QCD background selection
 C
-      CALL VZERO(QCD_FLAG,6)
+      CALL VZERO_i(QCD_FLAG,6)
       IF(DO_FINDQCD) THEN
         ITEST=NOMU+NOEL+NOPH
         IF(ITEST.GE.0) THEN
@@ -500,7 +500,7 @@ C
 C
 C *** Now do WPAIR - selection
 C
-      CALL VZERO(WPAIR_FLAG,6)
+      CALL VZERO_i(WPAIR_FLAG,6)
       IF(DO_FINDWPAIR) THEN
         ITEST=NOMU+NOEL+NOPH
         IF(ITEST.GE.1) THEN
@@ -594,7 +594,7 @@ C
 C
 C *** call TOP_LEPTONS_NTUPLES for last time - to fill final event
 C
-      CALL TOP_LEPTONS_NTUPLE(-1,'DUMMY',1,0,X)
+      CALL TOP_LEPTONS_NTUPLE(-1,'DUMMY',1.,0,X)
 C
 C *** Close Ntuples
 C

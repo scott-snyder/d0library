@@ -40,7 +40,7 @@ C
 C
       IF (FIRST) THEN
         CALL EZPICK('TOP_LEPTONS_RCP')
-        CALL EZGETA('PHOTON_MASK',0,0,0,N,IER)  
+        CALL EZGETA_i('PHOTON_MASK',0,0,0,N,IER)  
         IF (N.NE.32) 
      1    CALL ERRMSG('Error reading Photon Mask Array',
      &      'TOP_LEPTONS_GOOD_PHOTON',' ','F')

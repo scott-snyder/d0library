@@ -43,7 +43,7 @@ C
 C
       IF (FIRST) THEN
         CALL EZPICK('TOP_LEPTONS_RCP')
-        CALL EZGETA('ELECTRON_MASK',0,0,0,N,IER)  
+        CALL EZGETA_i('ELECTRON_MASK',0,0,0,N,IER)  
         IF (N.NE.32) 
      1     CALL ERRMSG('Error reading ELE MASK ARRAY',
      2      'TOP_LEPTONS_GOOD_ELECTRON',' ','F')

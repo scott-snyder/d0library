@@ -55,7 +55,7 @@ C
       IF(FIRST) THEN
         CALL EZPICK('TOP_LEPTONS_RCP')
 C
-        IF (IER.EQ.0) CALL EZGET('DO_MT_WAB_CUT',DO_MT3_WAB_CUT,IER)
+        IF (IER.EQ.0) CALL EZGET_l('DO_MT_WAB_CUT',DO_MT3_WAB_CUT,IER)
         IF (IER.EQ.0) CALL EZGET('WAB_PNUT3_ETMIN',PNUT3_ETMIN,IER)
         IF (IER.EQ.0) CALL EZGET('WAB_DR_MAX_MUCLUS',
      1    DRMAX_MUCLUS,IER)
@@ -68,7 +68,7 @@ C
       ENDIF
 C
       I_CL_OUT=0
-      CALL VZERO(LCLUS_OUT,5)
+      CALL VZERO_i(LCLUS_OUT,5)
       IF(.NOT.DO_MT3_WAB_CUT) GO TO 888
 C
 C *** Check to see if we are dealing with PELC or PPHO Banks
@@ -83,7 +83,7 @@ C
 C
 C *** muon-electron search
 C
-        CALL VZERO(JCAND,5)
+        CALL VZERO_i(JCAND,5)
         DO I=1,I_MU_IN
           DO J=1,I_CL_IN
             IF(JCAND(J).GT.-1) THEN
@@ -153,7 +153,7 @@ C
 C
 C *** muon-photon search
 C
-        CALL VZERO(JCAND,5)
+        CALL VZERO_i(JCAND,5)
         DO I=1,I_MU_IN
           DO J=1,I_CL_IN
             IF(JCAND(J).GT.-1) THEN

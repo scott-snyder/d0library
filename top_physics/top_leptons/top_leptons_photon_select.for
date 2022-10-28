@@ -81,7 +81,7 @@ C
         IF(IER.EQ.0) CALL EZGET('PPHO_ETAMAX',ETA_MAX,IER)
         IF(IER.EQ.0) CALL EZGET('PPHO_PTMIN',PT_MIN,IER)
         IF(IER.EQ.0) CALL EZGET('PPHO_PTMAX',PT_MAX,IER)
-        IF(IER.EQ.0) CALL EZGETA('PHOTON_MASK',0,0,0,N,IER)  
+        IF(IER.EQ.0) CALL EZGETA_i('PHOTON_MASK',0,0,0,N,IER)  
         IF (IER.EQ.0) THEN
           IF (N.NE.32) THEN
             CALL ERRMSG('Error reading Photon Mask',
@@ -102,7 +102,7 @@ C
             ENDIF
           ENDDO
         ENDIF
-        IF(IER.EQ.0) CALL EZGET('EM_CORR',EM_CORR,IER)
+        IF(IER.EQ.0) CALL EZGET_l('EM_CORR',EM_CORR,IER)
         CALL EZRSET
         IF (IER.NE.0) CALL ERRMSG('Error getting RCP parameters',
      &    'TOP_LEPTONS_PHOTON_SELECT',' ','F')

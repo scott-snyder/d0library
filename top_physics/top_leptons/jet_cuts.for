@@ -31,7 +31,7 @@ C----------------------------------------------------------------------
         CALL EZPICK('TTEE_RCP')
         CALL EZGET('FICD_ACCEPT',FICD_ACCEPT,IER)
         CALL EZGET('JETA_MAX',JETA_MAX,IER)
-        CALL EZGET('REQ_CLEANJ',REQ_CLEANJ,IER)
+        CALL EZGET_l('REQ_CLEANJ',REQ_CLEANJ,IER)
         CALL EZRSET
         FIRST = .FALSE.
       ENDIF

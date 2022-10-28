@@ -80,7 +80,7 @@ C
 C
 C *** Jet Algorithm 
 C
-        CALL EZGET('JETS_ALGORITHM',JET_ALG,IER)
+        CALL EZGET_i('JETS_ALGORITHM',JET_ALG,IER)
 C
 C *** Jets --- JETS
 C
@@ -90,12 +90,12 @@ C
 C
 C *** Jet energy corrections
 C
-        IF (IER.EQ.0) CALL EZGET('JETS_CORR',CORR_JETS,IER)
+        IF (IER.EQ.0) CALL EZGET_l('JETS_CORR',CORR_JETS,IER)
 C
 C *** Hot Cell cuts
 C
-        IF (IER.EQ.0) CALL EZGET('JETS_KILL_HOT_CELLS',DO_HOTCELL_CUTS,
-     1    IER)
+        IF (IER.EQ.0) CALL EZGET_l('JETS_KILL_HOT_CELLS',DO_HOTCELL_CUTS
+     &       ,IER)
 C
         IF (IER.NE.0) CALL ERRMSG('Error getting RCP parameters',
      &    'TOP_LEPTONS_JET_SELECT',' ','F')

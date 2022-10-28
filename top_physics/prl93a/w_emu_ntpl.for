@@ -660,9 +660,9 @@ C         find a W -> hadrons
           DO K=1,NJETS
             IF(PJETS(5,K).GT.25..AND.K.NE.J) THEN
               CALL PAIR_MASS(PJETS(1,K),PJETS(1,J),PWHAD)
-              CALL HFILL(12,PWHAD(5),0,1.)
-              IF(NJETS.GT.2) CALL HFILL(13,PWHAD(5),0,1.)
-              IF(NJETS.GT.3) CALL HFILL(14,PWHAD(5),0,1.)
+              CALL HFILL(12,PWHAD(5),0.,1.)
+              IF(NJETS.GT.2) CALL HFILL(13,PWHAD(5),0.,1.)
+              IF(NJETS.GT.3) CALL HFILL(14,PWHAD(5),0.,1.)
             ENDIF
           ENDDO
 C
@@ -711,7 +711,7 @@ C
 C
       W_DIAL=.TRUE.
       ICHOICE=1
-      CALL GETPAR(1,'Chose Cone jets (1,2,3) or NN jets (4) [1]>',
+      CALL GETPAR1('Chose Cone jets (1,2,3) or NN jets (4) [1]>',
      &    'I',ICHOICE)
       ETMIN=10.
       CALL GETPAR(1,'ETMIN for jets [10.]>','R',ETMIN)
@@ -725,14 +725,14 @@ C
         DO_DCAL=.TRUE.
       ENDIF
       OK_TRGR=.TRUE.
-      CALL GETPAR(1,'Select e triggers only? [Y]>','L',OK_TRGR)
+      CALL GETPAR1l('Select e triggers only? [Y]>','L',OK_TRGR)
       ADD_PHOT=0
-      CALL GETPAR(1,'Include photons? 0=no, 1=only photons,
+      CALL GETPAR1('Include photons? 0=no, 1=only photons,
      &    2= phot + el [0]>','I',ADD_PHOT)
       MAKE_NTUPL=3
-      CALL GETPAR(1,'Make Ntuples 1,2,3? [3]>','I',MAKE_NTUPL)
+      CALL GETPAR1('Make Ntuples 1,2,3? [3]>','I',MAKE_NTUPL)
       DUMP_WHAT='NONE'
-      CALL GETPAR(1,'Dump selected events(3J,4J,5J,MET,EE,MUJ)? [NONE]>'
+      CALL GETPAR1c('Dump selected events(3J,4J,5J,MET,EE,MUJ)? [NONE]>'
      &    ,'C',DUMP_WHAT)
       IF(DUMP_WHAT.EQ.' ') DUMP_WHAT='NONE'
       GOTO 999

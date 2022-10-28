@@ -24,8 +24,8 @@ C----------------------------------------------------------------------
       IF( first ) THEN
         FIRST = .FALSE.
         CALL EZPICK('LJTOP_HMATRIX_RCP')
-        CALL EZGET('SEL_EVT_WRITE',SEL_EVT_WRITE,IER)
-        CALL EZGET('JETWRITE',JETWRITE,IER)
+        CALL EZGET_l('SEL_EVT_WRITE',SEL_EVT_WRITE,IER)
+        CALL EZGET_i('JETWRITE',JETWRITE,IER)
         CALL EZRSET
         NEVENT1 = 0
         NEVENT2 = 0

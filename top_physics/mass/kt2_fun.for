@@ -26,10 +26,10 @@ C----------------------------------------------------------------------
       IF( first ) THEN
         first = .false.
         CALL EZPICK('TOP_MASS_RCP')
-        CALL EZGET('KT2_EXPONENTIAL1',EXP1,IER)
-        CALL EZGET('KT2_EXPONENTIAL2',EXP2,IER)
+        CALL EZGET_rarr('KT2_EXPONENTIAL1',EXP1,IER)
+        CALL EZGET_rarr('KT2_EXPONENTIAL2',EXP2,IER)
         CALL EZGET('KT2_BINSIZE',BIN,IER)
-        CALL EZGET('KT2_EVENTS',EVENT,IER)
+        CALL EZGET_i('KT2_EVENTS',EVENT,IER)
         CALL EZRSET
       ENDIF
 C

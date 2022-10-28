@@ -50,7 +50,7 @@ C
 C
 C ****  do error handling in program
 C
-        CALL EZGETA('ERROR_HANDLING',0,0,0,ILEN,IER)
+        CALL EZGETA_i('ERROR_HANDLING',0,0,0,ILEN,IER)
         CALL EZGETA('ERROR_HANDLING',1,ILEN,1,ERROR,IER)
         INUM = ILEN/6
         IPT = 1

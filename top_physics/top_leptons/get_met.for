@@ -27,7 +27,7 @@ C
 C----------------------------------------------------------------------
       IF(FIRST)THEN
         CALL EZPICK('TTEE_RCP')
-        CALL EZGETA('EM_SCALE_FACTORS',0,0,0,N,IER)
+        CALL EZGETA_i('EM_SCALE_FACTORS',0,0,0,N,IER)
         CALL EZGETA('EM_SCALE_FACTORS',1,N,1,EM_SCALE,IER)
         CALL EZRSET
         CALL RECO_VERSION(RVERSION,PASS)

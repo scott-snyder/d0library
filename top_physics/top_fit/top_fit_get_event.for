@@ -67,20 +67,20 @@ C----------------------------------------------------------------------
       IF( first ) THEN
         first = .false.
         CALL EZPICK('TOP_FIT_RCP')
-        CALL EZGET('READ_EVENT_FROM_RCP',READ_RCP,IER)
+        CALL EZGET_l('READ_EVENT_FROM_RCP',READ_RCP,IER)
         CALL EZGET('JET_ET_CUT',JET_ET_CUT,IER)
         CALL EZ_GET_CHARS('JET_ALGORITHM_NAME',NCHR,
      &    JET_ALG_NAME,IER)
-        CALL EZGET('JET_TEMPLATE',JET_TEMPLATE,IER)
+        CALL EZGET_rarr('JET_TEMPLATE',JET_TEMPLATE,IER)
         CALL GET_JETS_SELECT(JET_ALG_NAME,JET_TEMPLATE)
-        CALL EZGET('LEPTON_TYPE',LEPTON_TYPE,IER)  !This is obtained
+        CALL EZGET_i('LEPTON_TYPE',LEPTON_TYPE,IER)  !This is obtained
                                                    ! from TOP_FIT_rcp as default
                                                    ! and used when data is zebra.
                                                    ! overridden when data is rcp
-        CALL EZGET('MIN_JET_NUM',MIN_JET_NUM,IER)
-        CALL EZGET('MIN_EL_NUM',MIN_EL_NUM,IER)
-        CALL EZGET('MIN_MU_NUM',MIN_MU_NUM,IER)
-        CALL EZGET('ADD_JETS',JET_ADD,IER)
+        CALL EZGET_i('MIN_JET_NUM',MIN_JET_NUM,IER)
+        CALL EZGET_i('MIN_EL_NUM',MIN_EL_NUM,IER)
+        CALL EZGET_i('MIN_MU_NUM',MIN_MU_NUM,IER)
+        CALL EZGET_l('ADD_JETS',JET_ADD,IER)
         CALL EZGET('MAXIMUM_MUON_MOMENTUM',PMAX_MUON,IER)
         CALL EZGET('BQUARK_MASS',BMASS_S,IER)
         BMASS = BMASS_S
@@ -113,15 +113,15 @@ C
 C rcp file not there.
             RETURN
           ENDIF
-          CALL EZGET('RUN',RUNC,IER)
-          CALL EZGET('EVENT',EVENTC,IER)
-          CALL EZGET('LEPTON1',LEPTON1_S,IER)
-          CALL EZGET('BJET_LEPTON',BJET_LEPTON_S,IER)
-          CALL EZGET('BJET_HADRON',BJET_HADRON_S,IER)
-          CALL EZGET('JET1_W',JET1_W_S,IER)
-          CALL EZGET('JET2_W',JET2_W_S,IER)
-          CALL EZGET('PNUT',NEUTRINO_S,IER)
-          CALL EZGET('LEPTON_TYPE',LEPTON_TYPE,IER)  !THIS TELLS IT IF IT
+          CALL EZGET_i('RUN',RUNC,IER)
+          CALL EZGET_i('EVENT',EVENTC,IER)
+          CALL EZGET_rarr('LEPTON1',LEPTON1_S,IER)
+          CALL EZGET_rarr('BJET_LEPTON',BJET_LEPTON_S,IER)
+          CALL EZGET_rarr('BJET_HADRON',BJET_HADRON_S,IER)
+          CALL EZGET_rarr('JET1_W',JET1_W_S,IER)
+          CALL EZGET_rarr('JET2_W',JET2_W_S,IER)
+          CALL EZGET_rarr('PNUT',NEUTRINO_S,IER)
+          CALL EZGET_i('LEPTON_TYPE',LEPTON_TYPE,IER)  !THIS TELLS IT IF IT
                                                      ! IS AN EE OR EMU EVENT
 C
           NJETS = 4

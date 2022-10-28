@@ -44,7 +44,7 @@ C----------------------------------------------------------------------
         CALL EZPICK('TOP_MASS_RCP')
         CALL DO_HBOOK('LIKELY')
         CALL EZGET('READ_EVENT_FROM_RCP',READ_RCP,IER)
-        CALL EZGET('NUMBER_DUMP_EVENTS',NDUMP,IER)
+        CALL EZGET_i('NUMBER_DUMP_EVENTS',NDUMP,IER)
         CALL EZRSET
         XLOLIM = .05
         XHILIM = .95

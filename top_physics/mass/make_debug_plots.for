@@ -32,9 +32,9 @@ C----------------------------------------------------------------------
       IF( first ) THEN
         first = .false.
         CALL EZPICK('TOP_MASS_RCP')
-        CALL EZGET('MAKE_DEBUG_PLOTS',MAKE_DEBUG,IER)
+        CALL EZGET_l('MAKE_DEBUG_PLOTS',MAKE_DEBUG,IER)
         CALL DO_HBOOK('DEBUG_HISTS')
-        CALL EZGET('NUMBER_DEBUG_SMEARS',NDSMEAR,IER)
+        CALL EZGET_i('NUMBER_DEBUG_SMEARS',NDSMEAR,IER)
         CALL EZRSET
       ENDIF
 C

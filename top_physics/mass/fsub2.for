@@ -34,8 +34,8 @@ C----------------------------------------------------------------------
       IF( first ) THEN
         first = .false.
         CALL EZPICK('TOP_MASS_RCP')
-        CALL EZGET('NGAUSS',NG2,IER)
-        CALL EZGET('NSUB_DIV',NI2,IER)
+        CALL EZGET_i('NGAUSS',NG2,IER)
+        CALL EZGET_i('NSUB_DIV',NI2,IER)
         CALL EZGET('ROOTS_TEV',ROOTS_TEV,IER)
       ENDIF
 C

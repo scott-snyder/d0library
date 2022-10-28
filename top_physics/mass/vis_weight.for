@@ -31,7 +31,7 @@ C----------------------------------------------------------------------
         CALL EZGETA('TOP_MASS_EFF',0,0,0,NMASS,IER)
         CALL EZGET('TOP_MASS_EFF',TM_EFF,IER)
         CALL EZGET('EMU_EFFICIENCIES',EMU_EFF,IER)
-        CALL EZGET('POLYNOMIAL_DEGREE',MPOL,IER)
+        CALL EZGET_i('POLYNOMIAL_DEGREE',MPOL,IER)
         CALL EZRSET
       ENDIF
 C

@@ -30,20 +30,20 @@ C
       JET_ETA_CUT=2.0
       CALL GETPAR(1,'Eta cut on jets [10.]>','R',JET_ETA_CUT)
       IALGO=5
-      CALL GETPAR(1,'ALGORITHM 1,2,3 (1,2=4,all>4) [5]:','I',IALGO)
+      CALL GETPAR1('ALGORITHM 1,2,3 (1,2=4,all>4) [5]:','I',IALGO)
       IF(IALGO.EQ.1.OR.IALGO.GT.3) ALGO(1)=.TRUE.
       IF(IALGO.EQ.2.OR.IALGO.GT.3) ALGO(2)=.TRUE.
       IF(IALGO.EQ.3.OR.IALGO.GT.4) ALGO(3)=.TRUE.
       ICHOICE=2
-      CALL GETPAR(1,'jet algorithm [2]:','I',ICHOICE)
+      CALL GETPAR1('jet algorithm [2]:','I',ICHOICE)
       CORRJ=.TRUE.
-      CALL GETPAR(1,'Correct jets [Y]:','L',CORRJ)
+      CALL GETPAR1l('Correct jets [Y]:','L',CORRJ)
       CORR_MISET=1.0
       CALL GETPAR(1,'Correct missing Et [1.0]:','R',CORR_MISET)
       DIST_EL_CUT=20.
       CALL GETPAR(1,'electron distance cut [20.]:','R',DIST_EL_CUT)
       DO_DUMPS=.FALSE.
-      CALL GETPAR(1,'DO_DUMPS [F]:','L',DO_DUMPS)
+      CALL GETPAR1l('DO_DUMPS [F]:','L',DO_DUMPS)
 C
       CALL LJTOP_SET_CUTS(ETCUTB,ETCUTW,ELEC_CUT,MUON_CUT,MISET_CUT,
      &  JET_ETA_CUT,DIST_EL_CUT)

@@ -455,17 +455,17 @@ C-
      &    l, ier)
         if(ier.eq.0)call ezgets('NTUPLE_DIR', 1, ntuple_dir, 
      &    l, ier)
-        if(ier.eq.0)call ezget('ntuple_max_records', 
+        if(ier.eq.0)call ezget_i('ntuple_max_records', 
      &    max_rec, ier)
-        if(ier.eq.0)call ezget('ntuple_record_size', 
+        if(ier.eq.0)call ezget_i('ntuple_record_size', 
      &    lrecl, ier)
-        if(ier.eq.0)call ezget('ntuple_buffer_size', 
+        if(ier.eq.0)call ezget_i('ntuple_buffer_size', 
      &    nwbuff, ier)
-        if(ier.eq.0)call ezget('column_wise_ntuple', 
+        if(ier.eq.0)call ezget_l('column_wise_ntuple', 
      &    column_wise, ier)
-        if(ier.eq.0)call ezget('ntuple_num_columns', 
+        if(ier.eq.0)call ezget_i('ntuple_num_columns', 
      &    num_col, ier)
-        if(ier.eq.0)call ezget('use_isp1', 
+        if(ier.eq.0)call ezget_l('use_isp1', 
      &    use_isp1, ier)
 C-
 C- C.M. energy
@@ -480,43 +480,43 @@ C-
 C-
 C- Vertex parameters
 C-
-        if(ier.eq.0)call ezget('use_mc_vertex', use_mc_vertex, ier)
+        if(ier.eq.0)call ezget_l('use_mc_vertex', use_mc_vertex, ier)
 C-
 C- Jets parameters
 C-
-        if(ier.eq.0)call ezget('jet_alg', jet_alg, ier)
-        if(ier.eq.0)call ezget('jet_sys', jet_sys, ier)
+        if(ier.eq.0)call ezget_i('jet_alg', jet_alg, ier)
+        if(ier.eq.0)call ezget_i('jet_sys', jet_sys, ier)
 C-
 C- Vector boson parameters
 C-
-        if(ier.eq.0)call ezget('w_use_met3', w_use_met3, ier)
-        if(ier.eq.0)call ezget('do_electron_w_analysis',
+        if(ier.eq.0)call ezget_l('w_use_met3', w_use_met3, ier)
+        if(ier.eq.0)call ezget_l('do_electron_w_analysis',
      &    do_electron_w_analysis, ier)
-        if(ier.eq.0)call ezget('do_electron_w_reconstruction',
+        if(ier.eq.0)call ezget_l('do_electron_w_reconstruction',
      &    do_electron_w_reconstruction, ier)
-        if(ier.eq.0)call ezget('do_electron_z_analysis',
+        if(ier.eq.0)call ezget_l('do_electron_z_analysis',
      &    do_electron_z_analysis, ier)
-        if(ier.eq.0)call ezget('do_electron_z_reconstruction',
+        if(ier.eq.0)call ezget_l('do_electron_z_reconstruction',
      &    do_electron_z_reconstruction, ier)
 C-
 C- Topological preselection cuts (determines ntuple filling).
 C-
-        if(ier.eq.0)call ezget('num_elec_min',num_elec_min,ier)
-        if(ier.eq.0)call ezget('num_phot_min',num_phot_min,ier)
-        if(ier.eq.0)call ezget('num_em_min',num_em_min,ier)
-        if(ier.eq.0)call ezget('num_jet_min',num_jet_min,ier)
-        if(ier.eq.0)call ezget('num_muon_min',num_muon_min,ier)
-        if(ier.eq.0)call ezget('num_mutag_min',num_mutag_min,ier)
+        if(ier.eq.0)call ezget_i('num_elec_min',num_elec_min,ier)
+        if(ier.eq.0)call ezget_i('num_phot_min',num_phot_min,ier)
+        if(ier.eq.0)call ezget_i('num_em_min',num_em_min,ier)
+        if(ier.eq.0)call ezget_i('num_jet_min',num_jet_min,ier)
+        if(ier.eq.0)call ezget_i('num_muon_min',num_muon_min,ier)
+        if(ier.eq.0)call ezget_i('num_mutag_min',num_mutag_min,ier)
         if(ier.eq.0)call ezget('met2_min',met2_min,ier)
         if(ier.eq.0)call ezget('met3_min',met3_min,ier)
 C-
 C- Final selection cuts (determines return value, dst output).
 C-
-        if(ier.eq.0)call ezget('do_final_selection', 
+        if(ier.eq.0)call ezget_l('do_final_selection', 
      &    do_final_selection, ier)
-        if(ier.eq.0)call ezget('num_elec_min_final',
+        if(ier.eq.0)call ezget_i('num_elec_min_final',
      &    num_elec_min_final,ier)
-        if(ier.eq.0)call ezget('num_phot_min_final',
+        if(ier.eq.0)call ezget_i('num_phot_min_final',
      &    num_phot_min_final,ier)
         if(ier.eq.0)call ezget('jet1_etmin_final', jet1_etmin_final,
      &    ier)
@@ -526,9 +526,9 @@ C-
      &    ier)
         if(ier.eq.0)call ezget('jet4_etmin_final', jet4_etmin_final,
      &    ier)
-        if(ier.eq.0)call ezget('num_muon_min_final',
+        if(ier.eq.0)call ezget_i('num_muon_min_final',
      &    num_muon_min_final, ier)
-        if(ier.eq.0)call ezget('num_mutag_min_final',
+        if(ier.eq.0)call ezget_i('num_mutag_min_final',
      &    num_mutag_min_final, ier)
         if(ier.eq.0)call ezget('met2_min_final', met2_min_final, ier)
         if(ier.eq.0)call ezget('met3_min_final', met3_min_final, ier)
@@ -567,7 +567,7 @@ C- Global variables.
      &    event_tag, ier)
         n = nglob_var
 C- Vertices
-        if(ier.eq.0)call ezget('NUM_VERT', num_vert, ier)
+        if(ier.eq.0)call ezget_i('NUM_VERT', num_vert, ier)
         if(ier.eq.0)call ez_get_chars('VERT_TAG', nvert_var, tags, 
      &    ier)
         vert_offset = n
@@ -579,7 +579,7 @@ C- Vertices
           enddo
         enddo
 C- Electrons
-        if(ier.eq.0)call ezget('NUM_ELEC', num_elec, ier)
+        if(ier.eq.0)call ezget_i('NUM_ELEC', num_elec, ier)
         if(ier.eq.0)call ez_get_chars('ELEC_TAG', nelec_var, tags, 
      &    ier)
         elec_offset = n
@@ -591,7 +591,7 @@ C- Electrons
           enddo
         enddo
 C- Photons
-        if(ier.eq.0)call ezget('NUM_PHOT', num_phot, ier)
+        if(ier.eq.0)call ezget_i('NUM_PHOT', num_phot, ier)
         if(ier.eq.0)call ez_get_chars('PHOT_TAG', nphot_var, tags, 
      &    ier)
         phot_offset = n
@@ -603,7 +603,7 @@ C- Photons
           enddo
         enddo
 C- Jets
-        if(ier.eq.0)call ezget('NUM_JET', num_jet, ier)
+        if(ier.eq.0)call ezget_i('NUM_JET', num_jet, ier)
         if(ier.eq.0)call ez_get_chars('JET_TAG', njet_var, tags, 
      &    ier)
         jet_offset = n
@@ -615,7 +615,7 @@ C- Jets
           enddo
         enddo
 C- High-pt muons
-        if(ier.eq.0)call ezget('NUM_MUON', num_muon, ier)
+        if(ier.eq.0)call ezget_i('NUM_MUON', num_muon, ier)
         if(ier.eq.0)call ez_get_chars('MUON_TAG', nmuon_var, tags, 
      &    ier)
         muon_offset = n
@@ -627,7 +627,7 @@ C- High-pt muons
           enddo
         enddo
 C- Soft muons
-        if(ier.eq.0)call ezget('NUM_MUTAG', num_mutag, ier)
+        if(ier.eq.0)call ezget_i('NUM_MUTAG', num_mutag, ier)
         if(ier.eq.0)call ez_get_chars('MUTAG_TAG', nmutag_var, tags, 
      &    ier)
         mutag_offset = n
@@ -639,7 +639,7 @@ C- Soft muons
           enddo
         enddo
 C- Electorn W's
-        if(ier.eq.0)call ezget('NUM_W', num_w, ier)
+        if(ier.eq.0)call ezget_i('NUM_W', num_w, ier)
         if(ier.eq.0)call ez_get_chars('W_TAG', nw_var, tags, 
      &    ier)
         w_offset = n
@@ -651,7 +651,7 @@ C- Electorn W's
           enddo
         enddo
 C- Electron Z's
-        if(ier.eq.0)call ezget('NUM_Z', num_z, ier)
+        if(ier.eq.0)call ezget_i('NUM_Z', num_z, ier)
         if(ier.eq.0)call ez_get_chars('Z_TAG', nz_var, tags, 
      &    ier)
         z_offset = n

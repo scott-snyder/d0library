@@ -30,7 +30,7 @@ C----------------------------------------------------------------------
       IF(FIRST)THEN
         CALL EZPICK('TOP_LEPTONS_RCP')  
         CALL EZGET('HV_SCALE_FACTOR',HV_COR,IER)
-        IF(IER.EQ.0)CALL EZGETA('EM_SCALE_FACTORS',0,0,0,N,IER)
+        IF(IER.EQ.0)CALL EZGETA_i('EM_SCALE_FACTORS',0,0,0,N,IER)
         IF(IER.EQ.0)CALL EZGETA('EM_SCALE_FACTORS',1,N,1,EM_COR,IER)
         CALL EZRSET
         FIRST = .FALSE.

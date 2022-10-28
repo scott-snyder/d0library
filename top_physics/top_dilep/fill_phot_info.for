@@ -23,9 +23,9 @@ C----------------------------------------------------------------------
       REAL    ZVTXP,ETZV(4),THZV(4)
       INTEGER mask_all,mask_trdoff,dummy,elike_set_mask_cc,
      &  elike_set_mask_ec,mask_ec,ier
-      PARAMETER( mask_ec = '0F'X  )
-      PARAMETER( mask_all = '1F'X  )
-      PARAMETER( mask_trdoff = '0F'X  )
+      data mask_ec / z'0F'  /
+      data mask_all / z'1F'  /
+      data mask_trdoff / z'0F'  /
       CHARACTER*4 BANK,PELC
       DATA    PELC/'PELC'/
       LOGICAL OK

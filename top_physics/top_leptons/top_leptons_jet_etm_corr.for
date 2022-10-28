@@ -47,7 +47,7 @@ C
 C
 C *** Calorimeter em-scale corrections (ECN,CC,ECS)
 C
-        IF(IER.EQ.0) CALL EZGETA('EM_SCALE_FACTORS',0,0,0,N,IER)
+        IF(IER.EQ.0) CALL EZGETA_i('EM_SCALE_FACTORS',0,0,0,N,IER)
         IF(IER.EQ.0) CALL EZGETA('EM_SCALE_FACTORS',1,N,1,EM_COR,IER)
 C
         IF (IER.NE.0) CALL ERRMSG('Error getting RCP parameters',

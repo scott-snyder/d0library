@@ -40,7 +40,7 @@ C
 C----------------------------------------------------------------------
       IF( first ) THEN
         first = .false.
-        CALL EZGETA('ERROR_HANDLING',0,0,0,ILEN,IER)
+        CALL EZGETA_i('ERROR_HANDLING',0,0,0,ILEN,IER)
         CALL EZGETA('ERROR_HANDLING',1,ILEN,1,ERROR,IER)
       ENDIF
 C
