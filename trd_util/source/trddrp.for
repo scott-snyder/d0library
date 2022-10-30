@@ -28,7 +28,7 @@ C
       CALL EZGET('NUM_DROPS_STA',NUMDRP,IER)   ! get number of banks
 C
       IF(NUMDRP.LE.MAXDRP)THEN
-        CALL EZGET('DROPS_STA_BANKS',BANKS,IER) ! get list of banks
+        CALL EZGET_iarr('DROPS_STA_BANKS',BANKS,IER) ! get list of banks
       ELSE
         CALL ERRMSG('TRD','TRDDRP',
      &      'DROP REQUEST EXCEEDS MAXIMUM ALLOWED ','W')
@@ -49,7 +49,7 @@ C
       CALL EZGET('NUM_DROPS_DST',NUMDRP,IER)   ! get number of banks
 C
       IF(NUMDRP.LE.MAXDRP)THEN
-        CALL EZGET('DROPS_DST_BANKS',BANKS,IER) ! get list of banks
+        CALL EZGET_iarr('DROPS_DST_BANKS',BANKS,IER) ! get list of banks
       ELSE
         CALL ERRMSG('TRD','TRDDRP',
      &      'DROP REQUEST EXCEEDS MAXIMUM ALLOWED ','W')

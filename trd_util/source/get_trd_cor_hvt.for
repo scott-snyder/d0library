@@ -35,9 +35,9 @@ C----------------------------------------------------------------------
       IF (FIRST) THEN
         FIRST=.FALSE.
         CALL EZPICK('TRD_RCP')
-        CALL EZGET('COR_HVT',DO_CORRECTION,IER)
-        CALL EZGET('READ_DBMON',READ_DBMON,IER)
-        CALL EZGET('DBM_FIRST_RUN',DBM_FIRST_RUN,IER)
+        CALL EZGET_l('COR_HVT',DO_CORRECTION,IER)
+        CALL EZGET_l('READ_DBMON',READ_DBMON,IER)
+        CALL EZGET_i('DBM_FIRST_RUN',DBM_FIRST_RUN,IER)
         CALL EZRSET
       ENDIF
       IF(READ_DBMON.AND.IQ(LHEAD+12).GT.DBM_FIRST_RUN) THEN

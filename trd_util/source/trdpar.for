@@ -59,26 +59,26 @@ C------------------------------------------------------------------------------
         FIRST=.FALSE.
         LOUT=TRUNIT()
         CALL EZPICK('TRD_RCP')
-        CALL EZGET('TEXAMIN',TEXAMIN,IER)
-        CALL EZGET('TTRAKIN',TTRAKIN,IER)
+        CALL EZGET_l('TEXAMIN',TEXAMIN,IER)
+        CALL EZGET_l('TTRAKIN',TTRAKIN,IER)
         READ_DBMON=.FALSE.
-        CALL EZGET('READ_DBMON',I, IER)
+        CALL EZGET_i('READ_DBMON',I, IER)
         IF(IER.EQ.0 .AND. I.NE.0)READ_DBMON=.TRUE.
         DBM_FIRST_RUN=100000
-        CALL EZGET('DBM_FIRST_RUN', I, IER)
+        CALL EZGET_i('DBM_FIRST_RUN', I, IER)
         IF(IER.EQ.0)DBM_FIRST_RUN=I
         CALL EZGETS(GEOFIL,IDX,DFLSTP,LENGTH,IER)
         CALL EZGETS(CLBDAT,IDX,SELCLB,LENGTH,IER)
 C Get number of crates, count from zero
-        CALL EZGET('MAX_TRDCRT',MAX_TRDCRT,IER)
+        CALL EZGET_i('MAX_TRDCRT',MAX_TRDCRT,IER)
         IF (IER.NE.0) THEN
           CALL INTMSG(' MAX_TRDCRT NOT SET IN TRD_RCP.')
           MAX_TRDCRT = 0
         END IF
 C ****  check if reset histograms upon begin run
 C
-        CALL EZGET('HRESET',RESET,IER)
-        CALL EZGET('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,IER)
+        CALL EZGET_l('HRESET',RESET,IER)
+        CALL EZGET_l('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,IER)
         IF(IER.NE.0)BYPASS_DBL3_ERROR=.FALSE.
         CALL EZRSET
 C ***   constants definition
@@ -99,7 +99,7 @@ C ***
         CALL INTMSG(' READ STATIC PARAMETER FILE '//FILNAM)
         CALL TRDCON(FILNAM, IERR)
         IF (IERR.NE.0) THEN
-          CALL INTMSG(' TRDPAR: CAN NOT OPEN FILE ',FILNAM)
+          CALL INTMSG(' TRDPAR: CAN NOT OPEN FILE '//FILNAM)
           TRDPAR = .FALSE.
           GOTO 999
         ELSE

@@ -62,9 +62,9 @@ C
         NGOOD31P=0
         print*,' in trdhit_u, nb de layers',nlm
         CALL EZPICK('TRDHIT_RCP')
-        CALL EZGET('TRIGGER_TIME',DT0,IER)
-        CALL EZGET('SUPPRESS_FLAT_CHAN',ISUPFLAT,IER)
-        CALL EZGET('CORRECTION_<EPI>',I,IER)
+        CALL EZGET_i('TRIGGER_TIME',DT0,IER)
+        CALL EZGET_i('SUPPRESS_FLAT_CHAN',ISUPFLAT,IER)
+        CALL EZGET_i('CORRECTION_<EPI>',I,IER)
         CALL UHTOC(I,3,C3,3)
         DOCOR=C3.EQ.'y' .OR. C3.EQ.'Y' .OR. C3.EQ.'YES'
         CALL VFILL(GAIN_TRD,768,1.)
@@ -90,7 +90,7 @@ C
      +    CALL ERRMSG('Bank THIT not booked','TRDHIT',' use CDD4','W')
         FIRST = .FALSE.
       ENDIF
-      CALL VZERO(NBTHIT,6)
+      CALL VZERO_i(NBTHIT,6)
       CALL VZERO(NUMTWH,6*NMWHIT)
       CALL VZERO(ENTWH,6*NMWHIT)
 C  Initialize array good_wire

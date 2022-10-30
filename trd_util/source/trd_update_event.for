@@ -25,11 +25,11 @@ C----------------------------------------------------------------------
       IF (FIRST) THEN
         FIRST = .FALSE.
         CALL EZPICK('TRD_RCP')
-        CALL EZGET('UPDATE_CANARY',i,IER)
+        CALL EZGET_i('UPDATE_CANARY',i,IER)
         CALL UHTOC(I,3,CAN_UPDT,3)
-        CALL EZGET('UPDATE_HV',i,IER)
+        CALL EZGET_i('UPDATE_HV',i,IER)
         CALL UHTOC(I,3,HV_UPDT,3)
-        CALL EZGET('BYPASS_DBMON_ERROR',BYPASS_DBMON_ERROR,IER)
+        CALL EZGET_l('BYPASS_DBMON_ERROR',BYPASS_DBMON_ERROR,IER)
         CALL EZRSET
       ENDIF
       TRD_UPDATE_EVENT = .TRUE.

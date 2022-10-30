@@ -92,16 +92,16 @@ C----------------------------------------------------------------------
      &    6,RUN_LIMITS_HV,N_ZONES_HV)
         CALL EZGETS ('URANIUM_DB',1,URANIUM_DB,LEN,IER)
         IF (URANIUM_DB.EQ.'TRD.RCP') THEN     ! READ FROM RCP FILE
-          CALL EZGETA ('URANIUM',0,0,0,N,IER)
+          CALL EZGETA_i ('URANIUM',0,0,0,N,IER)
           N_ZONES=N/14
           DO I=1,N_ZONES
             K=(I-1)*14
-            CALL EZGETA ('URANIUM',K+1,K+1,1,URANIUM_RUN_STOR(I),IER)
+            CALL EZGETA_i ('URANIUM',K+1,K+1,1,URANIUM_RUN_STOR(I),IER)
             CALL EZGETA ('URANIUM',K+2,K+4,1,UR_STOR(1,I),IER)
             CALL EZGETA ('URANIUM',K+5,K+5,1,PRES_STOR(I),IER)
             CALL EZGETA ('URANIUM',K+6,K+6,1,TEMP_STOR(I),IER)
-            CALL EZGETA ('URANIUM',K+7,K+7,1,IDAT,IER)
-            CALL EZGETA ('URANIUM',K+8,K+8,1,ITIM,IER)
+            CALL EZGETA_i ('URANIUM',K+7,K+7,1,IDAT,IER)
+            CALL EZGETA_i ('URANIUM',K+8,K+8,1,ITIM,IER)
             CALL EZGETA ('URANIUM',K+9,K+11,1,HV_STOR(1,I),IER)
             CALL EZGETA ('URANIUM',K+12,K+14,1,HP_STOR(1,I),IER)
             CALL CLDR(92,IDAT,ITIM,QJT_UR_STOR(I))

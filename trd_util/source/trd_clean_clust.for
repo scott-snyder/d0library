@@ -67,7 +67,7 @@ C       print'(20f5.2)',(ws(cl),cl=1,nmax)
 C       write(lout,*)' tag'
 C       print'(20i5)',(iws(cl+nclc),cl=1,nmax)
 C  Sort clusters by ascending wire number
-      CALL SORTZV(IWS(1+NMAX),INDEX,NMAX,-1,0,0)
+      CALL SORTZV(WS(1+NMAX),INDEX,NMAX,-1,0,0)
       DO CL=1,NMAX
         JS=INDEX(CL)
         ECL_PER_WIRE(CL,LAYER)=WS(JS)

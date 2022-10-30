@@ -36,7 +36,7 @@ C----------------------------------------------------------------------
               CALL ERRMSG(' TRD_ANALYSIS_INI','TRD_ANALYSIS_INI',
      &     'No STP file. Wrong initialization of TRD_ANALYSIS package.',
      &        'F')
-              CALL INTMSG(' TRD_ANALYSIS_INI : can not open file ',
+              CALL INTMSG(' TRD_ANALYSIS_INI : can not open file '//
      &          FILNAM)
             ENDIF
           ELSE

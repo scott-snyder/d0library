@@ -21,7 +21,7 @@ C----------------------------------------------------------------------
       IF (FIRST) THEN
         FIRST=.FALSE.
         CALL EZPICK('TRD_RCP')
-        CALL EZGET('COR_APC',DO_CORRECTION,IER)
+        CALL EZGET_l('COR_APC',DO_CORRECTION,IER)
         CALL EZGET('APC',APC(1),IER)
         CALL EZRSET
       ENDIF

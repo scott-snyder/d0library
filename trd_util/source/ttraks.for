@@ -58,8 +58,8 @@ C----------------------------------------------------------------------
           CALL ERRMSG('ZTRAKS','TTRAKS',
      &      'Unable to find bank ZTRAKS_RCP','W')
         ELSE
-          CALL EZGET('CALL_TRD',CALL_TRD,IER)
-          CALL EZGET('TRDON',TRDON,IER)
+          CALL EZGET_l('CALL_TRD',CALL_TRD,IER)
+          CALL EZGET_l('TRDON',TRDON,IER)
           CALL_TRD=CALL_TRD .OR. TRDON
         ENDIF
         CALL EZRSET
@@ -72,20 +72,20 @@ C          CALL UHTOC(I,3,C3,3)
 C          DOCLUS=C3.EQ.'Y' .OR. C3.EQ.'y' .OR. C3.EQ.'YES'
 C        END IF
         FILL_TLYR=.FALSE.
-        CALL EZGET('FILL_HITS',I,IERR)
+        CALL EZGET_i('FILL_HITS',I,IERR)
         IF(IERR.EQ.0)THEN
           CALL UHTOC(I,3,C3,3)
           FILL_TLYR=C3.EQ.'Y' .OR. C3.EQ.'y'
      &      .OR. C3.EQ.'YES'
         END IF
         DO_HISTO=.FALSE.
-        CALL EZGET('HSTBOK',IAUX,IERR)
+        CALL EZGET_iarr('HSTBOK',IAUX,IERR)
         IF(IERR.EQ.0)THEN
           CALL UHTOC(IAUX(1),3,C3,3)
           DO_HISTO=C3.EQ.'Y' .OR. C3.EQ.'y' .OR. C3.EQ.'YES'
         END IF
         REDUCED_SET=FLGVAL('VERIFY')
-        CALL EZGET('HISTO_REDUCED_SET',I,IERR)
+        CALL EZGET_i('HISTO_REDUCED_SET',I,IERR)
 C        if(doprint)write(lout,*)' in ttraks,reduce,i',i,' ierr',ierr
         IF(IERR.EQ.0)THEN
           CALL UHTOC(I,3,C3,3)
@@ -93,7 +93,7 @@ C        if(doprint)write(lout,*)' in ttraks,reduce,i',i,' ierr',ierr
 C          if(doprint)write(lout,*)' in ttraks i=',i,' c3',c3,' reduced_set',
 C     &      REDUCED_SET
         END IF
-        CALL EZGET('DO_ANALYSIS', CALL_TRD_ANALYSIS,IERR)
+        CALL EZGET_l('DO_ANALYSIS', CALL_TRD_ANALYSIS,IERR)
         CALL EZRSET
         NEVOLD=0
       END IF

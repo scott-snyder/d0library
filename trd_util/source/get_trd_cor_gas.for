@@ -48,9 +48,9 @@ C----------------------------------------------------------------------
         CALL EZLOC ('TRD_RCP',LOC)
         IF (LOC.LE.0) CALL INRCP ('TRD_RCP',IER)
         CALL EZPICK('TRD_RCP')
-        CALL EZGET('COR_GAS',DO_CORRECTION,IER)
-        CALL EZGET('READ_DBMON',READ_DBMON,IER)
-        CALL EZGET('DBM_FIRST_RUN',DBM_FIRST_RUN,IER)
+        CALL EZGET_l('COR_GAS',DO_CORRECTION,IER)
+        CALL EZGET_l('READ_DBMON',READ_DBMON,IER)
+        CALL EZGET_i('DBM_FIRST_RUN',DBM_FIRST_RUN,IER)
         CALL EZRSET
         IF(RUN1A())THEN
           LTCAN=GZTCAN()

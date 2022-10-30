@@ -37,14 +37,14 @@ C----------------------------------------------------------------------
       CALL EZLOC(RCP_FILE_NAME,LOC)
       IF (LOC.LE.0) CALL INRCP (RCP_FILE_NAME,IER)
       CALL EZPICK (RCP_BANK_NAME)
-      CALL EZGETA (RCP_ARRAY_NAME,0,0,0,N,IER)
+      CALL EZGETA_i (RCP_ARRAY_NAME,0,0,0,N,IER)
       J=X_DIM+2
       N_ZONES=N/J
       DO I=1,N_ZONES
         K=(I-1)*J
         CALL EZGETA
      &    (RCP_ARRAY_NAME,K+1,K+X_DIM,1,RUN_DEPENDENT_X(1,I),IER)
-        CALL EZGETA
+        CALL EZGETA_i
      &    (RCP_ARRAY_NAME,K+X_DIM+1,K+X_DIM+2,1,RUN_LIMITS(1,I),IER)
       ENDDO
       CALL EZRSET

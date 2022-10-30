@@ -60,7 +60,7 @@ C----------------------------------------------------------------------
             CALL ERRMSG('not THIT,no CDD4 banks','TSETWC',' ','W')
             GO TO 999
           END IF
-          CALL EZGET('BUILD_THIT',FILL_HITS_IN,IER)
+          CALL EZGET_l('BUILD_THIT',FILL_HITS_IN,IER)
         ELSE                  ! THIT bank present. Check version nb.
           CALL RECO_VERSION(RECOVERSION,PASS)
           VERS=RECOVERSION+FLOAT(PASS)/100.
@@ -74,7 +74,7 @@ C----------------------------------------------------------------------
           ICHM=3
         ENDIF
         BINMIN=-10.
-        CALL EZGET('SUPPRESS_FLAT_CHAN',ISUPFLAT,IER)
+        CALL EZGET_i('SUPPRESS_FLAT_CHAN',ISUPFLAT,IER)
         IF(IER.NE.0)BINMIN=FLOAT(ISUPFLAT)
         IF(DOPRINT)
      +      WRITE(LOUT,*)' In Tsetwc,fill_hits = ',FILL_HITS_IN,

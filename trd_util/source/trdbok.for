@@ -166,7 +166,7 @@ C     -------------------------------
         reduced_set=.false.
       IF(DO_HISTO(2).EQ.'Y')THEN
         CALL VZERO(IAUX,14)
-        CALL EZGET('PIONS_HISTOS'    ,IAUX ,IER)
+        CALL EZGET_iarr('PIONS_HISTOS'    ,IAUX ,IER)
         DO K=1,14
           IF(IAUX(K).NE.0)THEN
             CALL UHTOC(IAUX(K),3,SWITCH_HISTO(K,1),3)
@@ -175,7 +175,7 @@ C     -------------------------------
       END IF
       IF(DO_HISTO(3).EQ.'Y')THEN
         CALL VZERO(IAUX,14)
-        CALL EZGET('ELECTRONS_HISTOS',IAUX,IER)
+        CALL EZGET_iarr('ELECTRONS_HISTOS',IAUX,IER)
         DO K=1,14
           IF(IAUX(K).NE.0)THEN
             CALL UHTOC(IAUX(K),3,SWITCH_HISTO(K,2),3)
@@ -314,7 +314,7 @@ C      call hbsliy(firsht+553,2,0,)
       END IF
       IF (SWHISG(5).EQ.'Y') THEN
         CALL HBOOK1(FIRSHT+500+4,'CLUSTER ENERGIES$', 50,0.,500.,VMX)
-        CALL HBOOK1(FIRSHT+500+5,'ARRIVAL TIMES$', 64,0.,64,0.,128.,VMX)
+        CALL HBOOK1(FIRSHT+500+5,'ARRIVAL TIMES$',64,0.,64.,VMX)
         CALL HBOOK2(FIRSHT+500+6,'CLUSTER ENERGIES VS. ARRIVAL TIME$',
      &    50,0.,500.,64,0.,128.,VMX)
         CALL HBOOK1(FIRSHT+660+1,'CLUSTER ENERGY OFF-TRACK TRD1$',
@@ -366,7 +366,7 @@ C     &    32,-16.,16.,VMX)
       END IF
       IF (SWHISG(8).EQ.'Y') THEN! Timings
         CALL HBOOK2(FIRSHT+580,' TIME DTRGM VERSUS TMIN TRD$',
-     &    50,-20,80.,50,0.,100.,VMX)
+     &    50,-20.,80.,50,0.,100.,VMX)
         CALL HBOOK2(FIRSHT+581,' ENERGY VERSUS TIME DTRGM TRD1$',
      &    50,0.,600.,50,0.,100.,VMX)
         CALL HBOOK2(FIRSHT+582,' ENERGY VERSUS TIME DTRGM TRD2$',

@@ -41,13 +41,13 @@ C----------------------------------------------------------------------
         LOUT=TRUNIT()
         CALL EZPICK('TRD_RCP')
         DO_HISTO=.FALSE.
-        CALL EZGET('HSTBOK',IWS,IERR)
+        CALL EZGET_iarr('HSTBOK',IWS,IERR)
         IF(IERR.EQ.0)DO_HISTO=IWS(1).EQ.iHY .OR. IWS(1).EQ.iHY
      &    .OR. IWS(1).EQ.iHYES
         CALL EZGET('ETOTM',ETOTM,IER)
         NDFADC=TVALIN(3)
         DOCLUS=.FALSE.
-        CALL EZGET('CLUSTER_RECONS',I,IER)
+        CALL EZGET_i('CLUSTER_RECONS',I,IER)
         IF(I.EQ.iHY .OR. I.EQ.iHY .OR. I.EQ.iHYES)DOCLUS=.TRUE.
 C        DOCOR=.FALSE.
 C        CALL EZGET('CORRECTION_<EPI>',I,IER)

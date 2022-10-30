@@ -44,7 +44,7 @@ C-------------------------------------------------------------------------------
         CALL EZLOC ('TRD_RCP',LOC)
         IF (LOC.LE.0) CALL INRCP ('TRD_RCP',IER)
         CALL EZPICK('TRD_RCP')
-        CALL EZGET('COR_EPI',DO_CORRECTION,IER)
+        CALL EZGET_l('COR_EPI',DO_CORRECTION,IER)
         CALL GET_TRD_COR_BY_RUN
      &    ('TRD_RCP','TRD_RCP','NEW_EPICOR',EPICOR_ARRAY,3,
      &    RUN_LIMITS,N_ZONES)

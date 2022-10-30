@@ -103,7 +103,7 @@ C     If the validity dates are not correct, update from database
       IF (.NOT.DBM_VALID) THEN
 C     Updates a la Lars
       NTRIES = 0
-      CALL UCOPY(VTIM,V1TIM,2)
+      CALL UCOPY_i(VTIM,V1TIM,2)
  100  CONTINUE
       NTRIES = NTRIES+1
 C     Only 3 tries right now

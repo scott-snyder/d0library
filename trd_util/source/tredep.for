@@ -67,14 +67,14 @@ C----------------------------------------------------------------------
         CALL EZGET('NBINS_PHYSICS',I,IERR)
         IF(IERR.EQ.0)NBIN_FADC=I
         DO_HISTO=.FALSE.
-        CALL EZGET('HSTBOK',IAUX,IERR)
+        CALL EZGET_iarr('HSTBOK',IAUX,IERR)
         IF(IERR.EQ.0)THEN
           CALL UHTOC(IAUX(1),3,C3,3)
           DO_HISTO=C3.EQ.'Y' .OR. C3.EQ.'y' .OR. C3.EQ.'YES'
         END IF
         SWTDBG=0
         CALL EZGET('SWTDBG',SWTDBG,IERR)
-        CALL EZGET('EXTENDED_HITS',EXTENDED_HITS,IERR)
+        CALL EZGET_l('EXTENDED_HITS',EXTENDED_HITS,IERR)
         DOCLUS=.FALSE.
         CALL EZGET('CLUSTER_RECONS',I,IERR)
         IF(IERR.EQ.0)THEN
