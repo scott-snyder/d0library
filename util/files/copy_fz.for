@@ -153,17 +153,17 @@ C ****  Text output file
         WRITE(6,*) msg_out
         WRITE(TXTLUN,*) msg_out
       ENDIF
-      CALL d0open(txtlun,copy_fz_log,'FOL',status)
+      CALL d0open(txtlun,copy_fz_log,'FOL',ok)
 C
 C ****  Number of events to skip between printing an event
-      CALL ezget('PRINT_DO',print_do,status)
+      CALL ezget_i('PRINT_DO',print_do,status)
       IF ( status.NE.0 ) THEN
         WRITE(msg_out,'('' PRINT_DO not found:'',i4,'' assumed'')')
      &      print_do
         WRITE(6,*) msg_out
         WRITE(TXTLUN,*) msg_out
       ENDIF
-      CALL ezget('PRINT_SKIP',print_skip,status)
+      CALL ezget_i('PRINT_SKIP',print_skip,status)
       IF ( status.NE.0 ) THEN
         WRITE(msg_out,'('' PRINT_SKIP not found:'',i4,'' assumed'')')
      &      print_skip
@@ -179,7 +179,7 @@ C ****  Banks to drop (by LHEAD link numbers)
         WRITE(6,*) msg_out
         WRITE(TXTLUN,*) msg_out
       ELSE
-        CALL ezget('DROP_LINKS',drop_links,status)
+        CALL ezget_iarr('DROP_LINKS',drop_links,status)
         WRITE(msg_out,'('' Dropping'',i3,'' Links:'')') nlinks
         WRITE(6,*) msg_out
         WRITE(txtlun,*) msg_out
@@ -194,7 +194,7 @@ C ****  Banks to drop (by LHEAD link numbers)
       ENDIF
 C
 C ****  Keep all Begin Run Records?
-      CALL ezget('KEEP_BRR',keep_brr,status)
+      CALL ezget_l('KEEP_BRR',keep_brr,status)
       IF ( status.NE.0 ) THEN
         WRITE(msg_out,'('' KEEP_BRR not found:'',L1,'' assumed'')')
      &      keep_brr
@@ -203,7 +203,7 @@ C ****  Keep all Begin Run Records?
       ENDIF
 C
 C ****  Fix Begin Run Records?
-      CALL ezget('FIX_BRR',fix_brr,status)
+      CALL ezget_l('FIX_BRR',fix_brr,status)
       IF ( status.NE.0 ) THEN
         WRITE(msg_out,'('' FIX_BRR not found:'',L1,'' assumed'')')
      &      fix_brr
@@ -211,7 +211,7 @@ C ****  Fix Begin Run Records?
         WRITE(TXTLUN,*) msg_out
       ENDIF
       IF ( fix_brr ) THEN
-        CALL ezget('MAKE_BRR',make_brr,status)
+        CALL ezget_l('MAKE_BRR',make_brr,status)
         IF ( status.NE.0 ) THEN
           WRITE(msg_out,'('' MAKE_BRR not found:'',L1,'' assumed'')')
      &        make_brr
@@ -219,7 +219,7 @@ C ****  Fix Begin Run Records?
           WRITE(TXTLUN,*) msg_out
         ENDIF
         IF ( .NOT.make_brr ) THEN
-          CALL ezget('ADD_BRR',add_brr,status)
+          CALL ezget_l('ADD_BRR',add_brr,status)
           IF ( status.NE.0 ) THEN
             WRITE(msg_out,'('' ADD_BRR not found:'',L1,'' assumed'')')
      &          add_brr
@@ -240,7 +240,7 @@ C ****  Fix Begin Run Records?
       ENDIF
 C
 C ****  Renumber Run numbers?
-      CALL ezget('RENUM_RUN',renum_run,status)
+      CALL ezget_i('RENUM_RUN',renum_run,status)
       IF ( status.NE.0 ) THEN
         WRITE(msg_out,'('' RENUM_RUN not found:'',i4,'' assumed'')')
      &      renum_run
@@ -249,7 +249,7 @@ C ****  Renumber Run numbers?
       ENDIF
 C
 C ****  Renumber Event numbers?
-      CALL ezget('RENUM_EVT',renum_evt,status)
+      CALL ezget_i('RENUM_EVT',renum_evt,status)
       IF ( status.NE.0 ) THEN
         WRITE(msg_out,'('' RENUM_EVT not found:'',i4,'' assumed'')')
      &      renum_evt

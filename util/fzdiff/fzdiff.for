@@ -117,13 +117,13 @@ C-
         call errmsg('fzdiff','fzdiff','Error reading RCP file','F')
       endif
       call ezpick('fzdiff_rcp')
-      call ezget('NUM_EVENTS', num_events, ier)
-      if(ier.eq.0)call ezget('SKIP_RUNS_1', skip_runs(1), ier)
-      if(ier.eq.0)call ezget('SKIP_RUNS_2', skip_runs(2), ier)
-      if(ier.eq.0)call ezget('SKIP_EVENTS_1', skip_events(1), ier)
-      if(ier.eq.0)call ezget('SKIP_EVENTS_2', skip_events(2), ier)
+      call ezget_i('NUM_EVENTS', num_events, ier)
+      if(ier.eq.0)call ezget_i('SKIP_RUNS_1', skip_runs(1), ier)
+      if(ier.eq.0)call ezget_I('SKIP_RUNS_2', skip_runs(2), ier)
+      if(ier.eq.0)call ezget_i('SKIP_EVENTS_1', skip_events(1), ier)
+      if(ier.eq.0)call ezget_i('SKIP_EVENTS_2', skip_events(2), ier)
       if(ier.eq.0)then
-        call ezget('UNCOMPRESS_DATA', uncompress, ier)
+        call ezget_l('UNCOMPRESS_DATA', uncompress, ier)
         if(ier.ne.0)then
           ier = 0
           uncompress = .true.

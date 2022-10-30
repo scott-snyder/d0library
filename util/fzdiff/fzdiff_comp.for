@@ -69,8 +69,8 @@ C-
           call errmsg('fzdiff','fzdiff_comp',
      &      'Unable to pick SRCP bank FZDIFF_RCP','F')
         endif
-        call ezget('COMPARE_DATA', detail, ier)
-        if(ier.eq.0)call ezget('MAX_DATA_ERROR', max_error, ier)
+        call ezget_l('COMPARE_DATA', detail, ier)
+        if(ier.eq.0)call ezget_i('MAX_DATA_ERROR', max_error, ier)
         if(ier.eq.0)then
           call ezget('ZERO_EQUIV', zero, ier)
           if(ier.ne.0)then
