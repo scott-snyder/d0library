@@ -141,7 +141,7 @@ C                           14,15   Spares
 C                           16-->22 left position of clust. (7 bits)
 C                           23-->29 right ""      ""  ""
           II=ECLR(IR)+.5
-          CALL SBYT(ECLR,IQ(LSH+JJ),1,13)     ! Energy
+          CALL SBYT(II,IQ(LSH+JJ),1,13)     ! Energy
           CALL SBYT( IBLFT(IR),IQ(LSH+JJ),16,7)! left side of clust
           CALL SBYT(IBRGHT(IR),IQ(LSH+JJ),23,7)! right side of clust
           NTOT=NTOT+1

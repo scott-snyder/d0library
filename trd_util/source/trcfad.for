@@ -277,7 +277,7 @@ C-------------------------------------------------------------------------------
             CALL TCODER(CHA1,LAYER-1,ADJ(K)-1,UBIT,2)
             CALL ZDEXPD(4,CHA1,TDATA)
             CALL VFLOAT(TDATA(3),WS,NBIN_FADC)
-            CALL GET_TRD_COR_PED(LAYER,WIRE,TDATA,CPED,EPED)
+            CALL GET_TRD_COR_PED(LAYER,WIRE,WS,CPED,EPED)
             CALL VBIAS(WS,-CPED+CAPC,WS,NBIN_FADC)
             CALL VSCALE(WS,CORRECTION,WS,NBIN_FADC)
             ETOTWI(NBINFO+K-2,LAYER,TRACK)=
