@@ -20,7 +20,7 @@ C----------------------------------------------------------------------
       IF(FIRST)THEN
         FIRST = .FALSE.
         CALL EZPICK('WZ_RCP')
-        CALL EZGET ('MU_BAD_RUN',MUBADRUN,IER)
+        CALL EZGET_iarr ('MU_BAD_RUN',MUBADRUN,IER)
         CALL EZGET ('FIRST_RUN',FIRST_RUN,IER)
         CALL EZGET ('LAST_RUN',LAST_RUN,IER)
         IF(IER.EQ.0)CALL EZGET_SIZE ('MU_BAD_RUN',NMAX,IER)

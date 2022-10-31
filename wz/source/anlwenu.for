@@ -72,24 +72,25 @@ C
       IF(FIRST) THEN
         FIRST = .FALSE.
         CALL EZPICK('WZ_RCP')
-        CALL EZGET('W_E_WRITE_W',WRITE_W,IER)
-        IF(IER.EQ.0)CALL EZGET('W_E_SKIP_HOT_CELLS',SKIP_HOT_CELLS,IER)
-        IF(IER.EQ.0)CALL EZGET('W_E_CORRECT_HOT_CELLS',
+        CALL EZGET_l('W_E_WRITE_W',WRITE_W,IER)
+        IF(IER.EQ.0)CALL EZGET_l('W_E_SKIP_HOT_CELLS',SKIP_HOT_CELLS
+     &       ,IER)
+        IF(IER.EQ.0)CALL EZGET_l('W_E_CORRECT_HOT_CELLS',
      &    CORRECT_HOT_CELLS,IER)
-        IF(IER.EQ.0)CALL EZGET('W_E_DO_ELECTRON_ANALYSIS',
+        IF(IER.EQ.0)CALL EZGET_l('W_E_DO_ELECTRON_ANALYSIS',
      &    DO_ELECTRON_ANALYSIS,IER)
-        IF(IER.EQ.0)CALL EZGET('W_E_DO_GAMMA_ANALYSIS',
+        IF(IER.EQ.0)CALL EZGET_l('W_E_DO_GAMMA_ANALYSIS',
      &    DO_GAMMA_ANALYSIS,IER)
-        IF(IER.EQ.0)CALL EZGET('W_E_CLEANEM_MASK',CLEANEM_MASK,IER)
-        CLEANEM_MASK_LOOSE=IAND(CLEANEM_MASK,'FFFF'X) ! no tracking cuts
+        IF(IER.EQ.0)CALL EZGET_i('W_E_CLEANEM_MASK',CLEANEM_MASK,IER)
+        CLEANEM_MASK_LOOSE=IAND(CLEANEM_MASK,z'FFFF') ! no tracking cuts
         IF(IER.EQ.0)CALL EZGET('W_E_ET_CUT',EM_ET_CUT,IER)
         IF(IER.EQ.0)CALL EZGET('W_E_ETMISS_CUT',ET_MISS_CUT,IER)
         IF(IER.EQ.0)CALL EZGET('W_E_CORR_ETMISS_CUT',CORR_ET_MISS_CUT,
      &    IER)
         IF(IER.EQ.0)CALL EZGET('W_E_J_ETMIN_CUT',J_ETMIN_CUT,IER)
         IF(IER.EQ.0)CALL EZGET('W_E_J_ETA_CUT',J_ETA_CUT,IER)
-        IF(IER.EQ.0)CALL EZGET('W_E_FLAG_EVENT',FLAG_EVENT,IER)
-        IF(IER.EQ.0)CALL EZGET('W_E_MICRO_BLANK',MICRO_BLANK,IER)
+        IF(IER.EQ.0)CALL EZGET_l('W_E_FLAG_EVENT',FLAG_EVENT,IER)
+        IF(IER.EQ.0)CALL EZGET_l('W_E_MICRO_BLANK',MICRO_BLANK,IER)
         IF(IER.NE.0)CALL ERRMSG('RCP','ANLWENU',
      &    'error getting RCP parameters','W') 
         CALL EZRSET
@@ -179,7 +180,7 @@ C
       ENDIF
 C
       CALL FLGSET('WRITE_STREAM_WEV',.FALSE.)       ! WEV stream
-      IF(FLAG_EVENT)IQ(LHEAD+30)=IAND(IQ(LHEAD+30),'1FFFFFFF'X)
+      IF(FLAG_EVENT)IQ(LHEAD+30)=IAND(IQ(LHEAD+30),z'1FFFFFFF')
 C
 C **** check for micro blank bit
 C
@@ -206,7 +207,7 @@ C
       HOT_CELL=WZ_HOT_CELL(E_HOT)  
       IF ( HOT_CELL ) THEN  ! if a hot cell-jet was found
         IF(SKIP_HOT_CELLS) GOTO 999         ! skip events with hot cells
-        IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),'80000000'X) ! flag in event_head bank
+        IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),z'80000000') ! flag in event_head bank
       ENDIF
       PNUTX  = PNUT(1)+E_HOT(1)
       PNUTY  = PNUT(2)+E_HOT(2)
@@ -353,7 +354,7 @@ C
             PT_W = SQRT( (PNUT(1)+ EL_E(1,I))**2+
      &                    (PNUT(2)+ EL_E(2,I))**2 )
 C
-            IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),'40000000'X) ! flag in event_head bank
+            IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),z'40000000') ! flag in event_head bank
             CC = 0.
             IF(ABS(EL_IETA(I)).LT.13) CC = 1.
 C
@@ -398,7 +399,7 @@ C
             MT_GAMMA = SQRT(2*ET_MISS*EM_E(5,I)*FACTOR)
             PT_W = SQRT( (PNUT(1)+ EM_E(1,I))**2+
      &                    (PNUT(2)+ EM_E(2,I))**2 )
-            IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),'20000000'X) ! flag in event_head bank
+            IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),z'20000000') ! flag in event_head bank
             CC = 0.
             IF(ABS(EM_IETA(I)).LT.13) CC = 1.
 C

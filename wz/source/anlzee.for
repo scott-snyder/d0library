@@ -59,15 +59,15 @@ C
         FIRST = .FALSE.
         CALL EZPICK('WZ_RCP')
         CALL EZGET('Z_E_ET_CUT',EM_ET_CUT,IER)
-        IF(IER.EQ.0)CALL EZGET('Z_E_WRITE_Z',WRITE_Z,IER)
-        IF(IER.EQ.0)CALL EZGET('Z_E_DO_ONE_LOOSE_ELECTRON',
+        IF(IER.EQ.0)CALL EZGET_l('Z_E_WRITE_Z',WRITE_Z,IER)
+        IF(IER.EQ.0)CALL EZGET_l('Z_E_DO_ONE_LOOSE_ELECTRON',
      &    DO_ONE_LOOSE_ELECTRON,IER)
-        IF(IER.EQ.0)CALL EZGET('Z_E_DO_LOOSE_ELECTRONS',
+        IF(IER.EQ.0)CALL EZGET_l('Z_E_DO_LOOSE_ELECTRONS',
      &    DO_LOOSE_ELECTRONS,IER)
-        IF(IER.EQ.0)CALL EZGET('Z_E_CLEANEM_MASK',CLEANEM_MASK,IER)
-        IF(IER.EQ.0)CALL EZGET('Z_E_CLEANEM_MASK_LOOSE',
+        IF(IER.EQ.0)CALL EZGET_i('Z_E_CLEANEM_MASK',CLEANEM_MASK,IER)
+        IF(IER.EQ.0)CALL EZGET_i('Z_E_CLEANEM_MASK_LOOSE',
      &    CLEANEM_MASK_LOOSE,IER)
-        IF(IER.EQ.0)CALL EZGET('Z_E_FLAG_EVENT',FLAG_EVENT,IER)
+        IF(IER.EQ.0)CALL EZGET_l('Z_E_FLAG_EVENT',FLAG_EVENT,IER)
         IF(IER.NE.0)CALL ERRMSG('RCP','ANLZEE',
      &    'error getting RCP parameters','W') 
         CALL EZRSET
@@ -128,7 +128,7 @@ C
       ENDIF
 C
       CALL FLGSET('WRITE_STREAM_ZEE',.FALSE.)       ! ZEE stream
-      IF(FLAG_EVENT)IQ(LHEAD+30)=IAND(IQ(LHEAD+30),'E3FFFFFF'X)
+      IF(FLAG_EVENT)IQ(LHEAD+30)=IAND(IQ(LHEAD+30),z'E3FFFFFF')
 C
 C ****  MISSING ET...
 C
@@ -274,7 +274,7 @@ C
           MEM = SQRT (ABS( (EEM+PEM)*(EEM-PEM) ) )
           PT_Z=SQRT((EL_E(1,J) + EL_E(1,K))**2
      &                     +(EL_E(2,J) + EL_E(2,K))**2 +1.E-09)
-          IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),'10000000'X) ! flag in event_head bank
+          IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),z'10000000') ! flag in event_head bank
           CALL HFILL(50,MEM,0.0,1.0)
           CALL HFILL(51,MEM,0.0,1.0)
           CALL HFILL(100,MEM,0.0,1.0)
@@ -326,7 +326,7 @@ C
             CALL HFILL(143,ET_MISS,0.0,1.0)
             CALL HFILL(144,EL_E(5,J),0.0,1.0)
             CALL HFILL(145,EM_E(5,K),0.0,1.0)
-            IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),'8000000'X) ! flag in event_head bank
+            IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),z'8000000') ! flag in event_head bank
             IF(ABS(EL_IETA(J)).LT.13) THEN   !Central electron
               IF(ABS(EM_IETA(K)).LT.13) THEN
                 CALL HFILL(310,MEM,0.,1.)
@@ -363,7 +363,7 @@ C
             MEM = SQRT (ABS( (EEM+PEM)*(EEM-PEM) ) )
             PT_Z=SQRT((EM_E(1,J) + EM_E(1,K))**2
      &                     +(EM_E(2,J) + EM_E(2,K))**2 +1.E-09)
-            IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),'4000000'X) ! flag in event_head bank
+            IF(FLAG_EVENT)IQ(LHEAD+30)=IOR(IQ(LHEAD+30),z'4000000') ! flag in event_head bank
             CALL HFILL(50,MEM,0.0,1.0)
             CALL HFILL(51,MEM,0.0,1.0)
             CALL HFILL(150,MEM,0.0,1.0)
