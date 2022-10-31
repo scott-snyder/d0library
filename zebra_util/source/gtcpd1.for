@@ -102,7 +102,7 @@ C
             ERR=-4
           ELSE
 C
-            CALL UCOPY (IC(LINK),HEAD,CNHEAD)   ! Get header words
+            CALL UCOPY_i (IC(LINK),HEAD,CNHEAD)   ! Get header words
             LINK = LINK + CNHEAD + 1
             CALL UCOPY (IC(LINK),VAL,CNDATA)    ! Get values and sigmas
           ENDIF
