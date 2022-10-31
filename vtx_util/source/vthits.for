@@ -44,7 +44,7 @@ C-----------------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         CALL EZPICK('VTRAKS_RCP')
         CALL EZGET('VPATH',IPATH,IER)
-        CALL EZGET('NSEC',NSEC,IER)
+        CALL EZGET_iarr('NSEC',NSEC,IER)
         CALL EZRSET
         ICALL=1
       END IF

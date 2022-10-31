@@ -49,7 +49,7 @@ C
       CALL EZPICK('VTRAKS_RCP')       
       CALL EZGET('NUM_DUMPS',NUMDMP,IER)   ! get number of banks
       IF(NUMDMP.LE.MAXDMP)THEN
-        CALL EZGET('DUMP_BANKS',BANKS,IER) ! get list of banks
+        CALL EZGET_iarr('DUMP_BANKS',BANKS,IER) ! get list of banks
       ELSE
         CALL ERRMSG('VTRAKS','VTRDMP',
      &      'DUMP REQUEST EXCEEDS MAXIMUM ALLOWED ','W')

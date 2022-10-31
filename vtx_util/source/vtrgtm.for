@@ -30,7 +30,7 @@ C
       IF (FIRST) THEN
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('TRGCHN',TRGCHN,ERR) ! Logical channel number for
+        CALL EZGET_i('TRGCHN',TRGCHN,ERR) ! Logical channel number for
                                         ! timing pulse
         CALL EZGET('TRGOFF', TRGOFF, ERR)
         CALL EZRSET

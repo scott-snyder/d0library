@@ -57,8 +57,8 @@ C------------------------------------------------------------------------
 C-----------------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('INEFF',INEFF,IER)
-        CALL EZGET('TOLPHI_RD',TOLPHI_RD,IER)
+        CALL EZGET_i('INEFF',INEFF,IER)
+        CALL EZGET_rarr('TOLPHI_RD',TOLPHI_RD,IER)
         CALL EZGET('VTTRTO',VTTRTO,IER) ! road width (multiple of drift error)
         CALL EZRSET
         ICALL=1
@@ -81,7 +81,7 @@ C
       END IF
       LPOIN=LQ(LUSER-1)
       LOC=LPOIN+9
-      CALL UCOPY(IQ(LPOIN+1),NTHIT,NBSENS)
+      CALL UCOPY_i(IQ(LPOIN+1),NTHIT,NBSENS)
       CALL VZERO(HITINF,8*MXHWIR*NBSENS)
 C 
 C **** store  relative pointers in PTHIT array
@@ -104,7 +104,7 @@ C
         DO 120 FIRSPL = 1, INEF+1
           CALL VFILL( IPHIT, NBSENS, 1 )
           LASTPL = FIRSPL + NBSENS - INEF - 1
-          CALL VZERO(LISTPT, NBSENS )
+          CALL VZERO_i(LISTPT, NBSENS )
           DO 130 FIRHIT = 1, NTHIT(FIRSPL)
             LOC=PTHIT(FIRSPL)-1+(FIRHIT-1)*8+4 + LPOIN
             INFHIT(4,FIRHIT,FIRSPL)=IQ(LOC)

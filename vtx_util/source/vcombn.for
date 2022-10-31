@@ -55,6 +55,9 @@ C
       INTEGER STATUS, STAT1, STAT2, STATOR
       INTEGER LVRFT, LAYER, SECTOR, WIRE, END
       INTEGER LVTMW, GZVTMW, PTR, IVERS
+      real rstat1, rstat2
+      equivalence (rstat1, stat1)
+      equivalence (rstat2, stat2)
 C
       REAL RWTIME, TIME, TIMERR, AREA1, AREA2
       REAL XDRIFT(2), XERROR, ZCOORD, ZERROR
@@ -162,12 +165,12 @@ C
 C  Get status word for both hits and combine
       STATUS = 0
       IF ( HIT1 .GT. 0 ) THEN
-        CALL UCOPY(VTDAT1(8,HIT1),STAT1,1)
+        CALL UCOPY(VTDAT1(8,HIT1),rSTAT1,1)
       ELSE
         STAT1 = 0
       ENDIF
       IF ( HIT2 .GT. 0 ) THEN
-        CALL UCOPY(VTDAT2(8,HIT2),STAT2,1)
+        CALL UCOPY(VTDAT2(8,HIT2),rSTAT2,1)
       ELSE
         STAT2 = 0
       ENDIF
@@ -246,7 +249,7 @@ C  Pulse area from (-z) only
         VTHIT(7) = VTDAT1( 3, HIT1 )
         VTHIT(8) = VTDAT1( 7, HIT1 )    ! pulse area error
 C  Load status word
-        CALL UCOPY(STATUS,VTHIT(10),1)  ! status word for combined hit
+        CALL UCOPY_i(STATUS,VTHIT(10),1)  ! status word for combined hit
 C  Now for (+z) hit only
       ELSEIF ( HIT1 .EQ. 0 ) THEN
         END = 1
@@ -308,7 +311,7 @@ C
         VTHIT(9) = TIME
         VTHIT(7) = VTDAT2( 3, HIT2 )    ! pulse area from (+z) hit
         VTHIT(8) = VTDAT2( 7, HIT2 )    ! pulse area error
-        CALL UCOPY(STATUS,VTHIT(10),1)  ! status word for comb. hit
+        CALL UCOPY_i(STATUS,VTHIT(10),1)  ! status word for comb. hit
 C  Now for both ends hit
       ELSE
         AREA1 = VTDAT1( 3, HIT1 )
@@ -381,7 +384,7 @@ C  Pulse area = sum of (-z) and (+z) pulse areas
         VTHIT(7) = VTDAT1( 3, HIT1 ) + VTDAT2( 3, HIT2 )
         VTHIT(8) = SQRT( VTDAT1(7,HIT1)**2
      &                  +VTDAT2(7,HIT2)**2 )   ! area error
-        CALL UCOPY(STATUS,VTHIT(10),1)  ! status word for comb. hit
+        CALL UCOPY_i(STATUS,VTHIT(10),1)  ! status word for comb. hit
       ENDIF
   999 RETURN
       END

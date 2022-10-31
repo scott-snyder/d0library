@@ -34,11 +34,11 @@ C----------------------------------------------------------------------
       IF (FIRST) THEN
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('VERT_MINTRK',VERT_MINTRK,ERR)
+        CALL EZGET_i('VERT_MINTRK',VERT_MINTRK,ERR)
         CALL EZGET('VERT_MAXVAL',VERT_MAXVAL,ERR)
         CALL EZGET('PHIRD',PHIRD,ERR)
-        CALL EZGET('USE_CDC',USE_CDC,ERR)
-        CALL EZGET('USE_FDC',USE_FDC,ERR)
+        CALL EZGET_l('USE_CDC',USE_CDC,ERR)
+        CALL EZGET_l('USE_FDC',USE_FDC,ERR)
         CALL EZRSET
       ENDIF
       VTRAKS_EXTERNAL = .TRUE.

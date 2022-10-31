@@ -34,12 +34,12 @@ C------------------------------------------------------------------------
       NEL=IQ(LOC+2)
       NWORDS=IQ(LOC+3)
       IF (OPT.EQ.'SEC') THEN
-        CALL UCOPY(IQ(LOC+1),CONT,1)
+        CALL UCOPY_i(IQ(LOC+1),CONT,1)
         GO TO 1000
       END IF
       IF (OPT.EQ.'WIR') THEN  
-        CALL UCOPY(IQ(LOC+4),CONT(1),NEL)      
-        CALL UCOPY(IQ(LOC+4+NEL),CONT(1+NEL),NEL)      
+        CALL UCOPY_i(IQ(LOC+4),CONT(1),NEL)      
+        CALL UCOPY_i(IQ(LOC+4+NEL),CONT(1+NEL),NEL)      
         GO TO 1000
       END IF  
       IF (OPT.EQ.'HIT') THEN

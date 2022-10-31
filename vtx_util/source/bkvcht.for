@@ -39,14 +39,14 @@ C----------------------------------------------------------------------
       IF ( FIRST ) THEN
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('TABLE_VERSION',TABLE_VERSION,IER)
+        CALL EZGET_i('TABLE_VERSION',TABLE_VERSION,IER)
         IF ( IER .NE. 0 ) TABLE_VERSION = 1
-        CALL EZGET('PULTH1',THR1,IER)
-        CALL EZGET('PULTH2',THR2,IER)
-        CALL EZGET('PULTH3',THR3,IER)
-        CALL EZGET('PULWEI',WEIGHT,IER)
+        CALL EZGET_iarr('PULTH1',THR1,IER)
+        CALL EZGET_iarr('PULTH2',THR2,IER)
+        CALL EZGET_iarr('PULTH3',THR3,IER)
+        CALL EZGET_rarr('PULWEI',WEIGHT,IER)
         CALL EZGET('WINDOW',WINDOW,IER)
-        CALL EZGET('BINS_BEFORE_PEAK',N_BEFORE,IER)
+        CALL EZGET_i('BINS_BEFORE_PEAK',N_BEFORE,IER)
         N_AFTER = 3 - N_BEFORE
         CALL EZRSET
         CALL MZFORM('VCHT','5I 3F -B',NIO)

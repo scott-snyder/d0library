@@ -59,14 +59,14 @@ C               ! LAYER    WIRE 0, 1-6, 7   DRIFT IN mm    AREA
 C-------------------------------------------------------------------------
       IF (FIRST) THEN
         CALL EZPICK( 'VTRAKS_RCP' )
-        CALL EZGET( 'MXLAY', MXLAY, IER )
-        CALL EZGET( 'MXWIRE', MXWIRE, IER )
-        CALL EZGET( 'NSEC', NSEC, IER )
+        CALL EZGET_i( 'MXLAY', MXLAY, IER )
+        CALL EZGET_i( 'MXWIRE', MXWIRE, IER )
+        CALL EZGET_iarr( 'NSEC', NSEC, IER )
         CALL EZRSET
         CALL EZPICK( 'VTXCOFF_RCP' )
         CALL EZGET( 'G_NMIN', G_NMIN, IER )
         CALL EZGET( 'A_NMIN', A_NMIN, IER )
-        CALL EZGET( 'AREA_BIN', IAREA_BIN, IER )
+        CALL EZGET_i( 'AREA_BIN', IAREA_BIN, IER )
         CALL EZGET( 'MIN_DRFT_0', MIN_DRFT_0, IER)
         CALL EZGET( 'MAX_DRFT_0', MAX_DRFT_0, IER)
         CALL EZGET( 'MIN_DRFT_1', MIN_DRFT_1, IER)
@@ -74,7 +74,7 @@ C-------------------------------------------------------------------------
         CALL EZGET( 'MIN_DRFT_2', MIN_DRFT_2, IER)
         CALL EZGET( 'MAX_DRFT_2', MAX_DRFT_2, IER)
         CALL EZGET('DEL_AREA',DEL_AREA,IER)
-        CALL EZGET('AV_METHODE',AV_METHODE,IER)
+        CALL EZGET_i('AV_METHODE',AV_METHODE,IER)
         CALL EZGET('TRUNCATION',TRUNCATION,IER)
         CALL EZRSET
         CALL HBOOK1(127,'AREA',IAREA_BIN,-5.,7.,0.)

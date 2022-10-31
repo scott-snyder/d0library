@@ -36,8 +36,8 @@ C-------------------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         CALL EZPICK('VTRAKS_RCP')
         CALL EZGET('DSLMAX',DSLMAX,IER)
-        CALL EZGET('INEFF',INEFF,IER) ! max number of missing hits in a segment
-        CALL EZGET('MAXCHN',MAXCHN,IER) ! max number of chains in a
+        CALL EZGET_i('INEFF',INEFF,IER) ! max number of missing hits in a segment
+        CALL EZGET_i('MAXCHN',MAXCHN,IER) ! max number of chains in a
                                         ! sector
         CALL EZRSET
         MXPASS=INEFF+1

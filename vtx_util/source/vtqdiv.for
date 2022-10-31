@@ -33,7 +33,7 @@ C----------------------------------------------------------------------
       IF (FIRST) THEN
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('ZERR_COEF',ZER_COEF,ERR)
+        CALL EZGET_rarr('ZERR_COEF',ZER_COEF,ERR)
         CALL EZGET('RPERCM',RPERCM,IER)
         IF ( IQ(LHEAD+1) .GT. 1000 ) THEN   ! MC DATA
           CALL EZGET('RINPUT_MC',RINPUT,IER)

@@ -74,8 +74,8 @@ C------------------------------------------------------------------
      &    'Unable to find bank VTRAKS_RCP','W')
           GOTO 999
         ENDIF
-        CALL EZGET('VPATH',IPATH,IER)
-        CALL EZGET('INEFF',INEFF,IER)
+        CALL EZGET_i('VPATH',IPATH,IER)
+        CALL EZGET_i('INEFF',INEFF,IER)
         CALL EZRSET
 C
         CALL EZPICK('ZTRAKS_RCP')

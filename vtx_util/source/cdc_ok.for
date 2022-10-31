@@ -31,11 +31,11 @@ C----------------------------------------------------------------------
       IF (FIRST) THEN
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('VTXHL',VTXHL,ERR)
-        CALL EZGET('VTXR7',VTXR7,ERR)
+        CALL EZGET_rarr('VTXHL',VTXHL,ERR)
+        CALL EZGET_rarr('VTXR7',VTXR7,ERR)
         CALL EZGET('CDC_IMPXY',CDC_IMPXY,ERR)
         CALL EZGET('CDC_IMPSZ',CDC_IMPSZ,ERR)
-        CALL EZGET('VERT_MINTRK',VERT_MINTRK,ERR)
+        CALL EZGET_i('VERT_MINTRK',VERT_MINTRK,ERR)
         CALL EZGET('VERT_MAXVAL',VERT_MAXVAL,ERR)
         CALL EZRSET
       ENDIF

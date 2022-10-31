@@ -39,7 +39,7 @@ C----------------------------------------------------------------------
 C
 C ****  First, read in standard HV channel-to-sector assignment
 C
-      CALL EZGETA('HV_CHANNELS',0,0,0,NELS,ERR)
+      CALL EZGETA_i('HV_CHANNELS',0,0,0,NELS,ERR)
       ERROR = ERROR + ERR
       CHR = 1
       INT = 1
@@ -50,7 +50,7 @@ C
         CALL EZGETS('HV_CHANNELS',CHR+1,OUTER,LEN,ERR)
         ERROR = ERROR + ERR
         INT = INT + (LEN+3)/4
-        CALL EZGETA('HV_CHANNELS',INT,INT+1,1,LOGID,ERR)
+        CALL EZGETA_iarr('HV_CHANNELS',INT,INT+1,1,LOGID,ERR)
         ERROR = ERROR + ERR
         READ(INNER(8:10),'(I3)') ICH_I
         READ(OUTER(8:10),'(I3)') ICH_O
@@ -68,15 +68,15 @@ C
 C
 C ****  Then read in incremental history
 C
-      CALL EZGETA('HV_HISTORY',0,0,0,NELS,ERR)
+      CALL EZGETA_i('HV_HISTORY',0,0,0,NELS,ERR)
       ERROR = ERROR + ERR
       IF (NELS .GT. 0) THEN
         INT = 1
         CHR = 1
         DO WHILE(INT .LT. NELS)
-          CALL EZGETA('HV_HISTORY',INT,INT,0,RUN,ERR)
+          CALL EZGETA_i('HV_HISTORY',INT,INT,0,RUN,ERR)
           ERROR = ERROR + ERR
-          CALL EZGETA('HV_HISTORY',INT+1,INT+2,1,LOGID,ERR)
+          CALL EZGETA_iarr('HV_HISTORY',INT+1,INT+2,1,LOGID,ERR)
           ERROR = ERROR + ERR
           CALL EZGETS('HV_HISTORY',CHR  ,INNER,LEN,ERR)
           ERROR = ERROR + ERR

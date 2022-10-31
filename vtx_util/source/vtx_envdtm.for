@@ -36,7 +36,7 @@ C----------------------------------------------------------------------
       IF (FIRST) THEN
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('NUM_CATEG',NUM_CATEG,ERR)
+        CALL EZGET_i('NUM_CATEG',NUM_CATEG,ERR)
         CALL EZGET('VTX_TO_CANARY',VDVEL,ERR)
         CALL EZRSET
       ENDIF

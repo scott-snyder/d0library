@@ -36,13 +36,13 @@ C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       IF (FIRST) THEN
         CALL EZPICK( 'VTRAKS_RCP' )
-        CALL EZGET( 'MXLAY', MXLAY, IER )
-        CALL EZGET( 'MXWIRE', MXWIRE, IER )
-        CALL EZGET( 'NSEC', NSEC, IER )
+        CALL EZGET_i( 'MXLAY', MXLAY, IER )
+        CALL EZGET_i( 'MXWIRE', MXWIRE, IER )
+        CALL EZGET_iarr( 'NSEC', NSEC, IER )
         CALL EZRSET
         CALL EZPICK( 'VTXCOFF_RCP' )
-        CALL EZGET( 'WVGNH', WVGNH, IER )
-        CALL EZGET( 'WVGNHA', WVGNHA, IER )
+        CALL EZGET_l( 'WVGNH', WVGNH, IER )
+        CALL EZGET_l( 'WVGNHA', WVGNHA, IER )
         CALL EZGET( 'XCHANGE', XCHANGE, IER )
         CALL EZGETS('OUTPUT_AREA',1,AREA,LENGTH,IER)
         CALL EZRSET

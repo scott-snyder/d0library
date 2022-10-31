@@ -54,9 +54,9 @@ C----------------------------------------------------------------------
         CALL EZGET('DPHIG_TOL',DPHIG_TOL,IER)
         CALL EZGET('DPHI_OLD_TOL',DPHI_OLD_TOL,IER)
         CALL EZGET('DPHI_TOL',DPHI_TOL,IER)
-        CALL EZGET('AREA',DO_AREA,IER)
-        CALL EZGET('W_GAIN',DO_W_GAIN,IER)
-        CALL EZGET('E_GAIN',DO_E_GAIN,IER)
+        CALL EZGET_l('AREA',DO_AREA,IER)
+        CALL EZGET_l('W_GAIN',DO_W_GAIN,IER)
+        CALL EZGET_l('E_GAIN',DO_E_GAIN,IER)
         CALL EZRSET
         FIRST = .FALSE.
       END IF

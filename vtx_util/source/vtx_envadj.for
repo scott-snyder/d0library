@@ -61,13 +61,13 @@ C----------------------------------------------------------------------
       IF (FIRST) THEN 
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,ERR)
+        CALL EZGET_l('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,ERR)
         ERROR = ERR
         CALL EZGET('DBM_MAX_TIME',MAX_TIME,ERR)
         ERROR = ERROR + ERR
-        CALL EZGET('ENV_PAR',PAR,ERR)
+        CALL EZGET_rarr('ENV_PAR',PAR,ERR)
         ERROR = ERROR + ERR
-        CALL EZGET('LUM_STOP_RUN',RUN_NEW,ERR)
+        CALL EZGET_i('LUM_STOP_RUN',RUN_NEW,ERR)
         ERROR = ERROR + ERR
         CALL EZGETA('ENV_DEVICES',0,0,0,NWORDS,ERR)
         ERROR = ERROR + ERR

@@ -87,7 +87,7 @@ C----------------------------------------------------------------------
           ENDIF
         ENDIF
         CALL EZPICK('GLOBTZ_RCP')
-        CALL EZGET('NX',NX,IER)
+        CALL EZGET_i('NX',NX,IER)
         CALL EZGET('IMI',IMI,IER)
         CALL EZGET('IMA',IMA,IER)
         CALL EZRSET

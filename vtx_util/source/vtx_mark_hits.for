@@ -61,13 +61,13 @@ C
 C
 C ****  VCHT Status parameters (all are relative in STATUS field)
 C
-      DATA R_ZTK /'0002'X/    ! For unmatched or 1st wd of matched
-      DATA L_ZTK /'0004'X/
-      DATA R_XY  /'0008'X/
-      DATA L_XY  /'0010'X/
+      DATA R_ZTK /z'0002'/    ! For unmatched or 1st wd of matched
+      DATA L_ZTK /z'0004'/
+      DATA R_XY  /z'0008'/
+      DATA L_XY  /z'0010'/
 
-      DATA R_RZ  /'0008'X/    ! For 2nd wd of matched hits
-      DATA L_RZ  /'0010'X/
+      DATA R_RZ  /z'0008'/    ! For 2nd wd of matched hits
+      DATA L_RZ  /z'0010'/
 
       DATA MAXSEC/ 15, 31, 31/
       DATA FIRST/.TRUE./
@@ -309,7 +309,7 @@ C**  Mark as required (don't touch the "satureated" bit).
 C**  Set 1st wd of VCHT track block, and update pntrs
 
         IF (FILL_VCTH) THEN
-          TEMP = IAND( VTXT_NUM, '1FF'X)
+          TEMP = IAND( VTXT_NUM, z'1FF')
           CALL MVBITS( VCHT_SEC(0), 0, 4, TEMP, 9)
           CALL MVBITS( VCHT_SEC(1), 0, 5, TEMP, 13)
           CALL MVBITS( VCHT_SEC(2), 0, 5, TEMP, 18)

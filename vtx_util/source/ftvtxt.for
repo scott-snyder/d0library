@@ -105,16 +105,16 @@ C------------------------------------------------------------------------
 C------------------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('MINHIT',MINHIT,IER)
+        CALL EZGET_i('MINHIT',MINHIT,IER)
         CALL EZGET('CHIMAX_TRACK',CHIMAX,IER)
         CALL EZGET('CHIMXZ_TRACK',CHIMXZ,IER)
-        CALL EZGET('RZMETHOD',RZMETHOD,IER)
+        CALL EZGET_i('RZMETHOD',RZMETHOD,IER)
         CALL EZGET('DZTOL0',DZTOL0,IER)          ! r-z tolerance in sigmans
         CALL EZGET('DZTOL1',DZTOL1,IER)          ! r-z tolerance in cm
-        CALL EZGET('NZGOOD',NZGOOD,IER)
-        CALL EZGET('SIN_CORRECTION',SIN_CORRECTION,IER)
-        CALL EZGET('SLOPE_CORRECT',SLOPE_CORRECT,IER)
-        CALL EZGET('MINZHIT',MINZHIT,IER)
+        CALL EZGET_i('NZGOOD',NZGOOD,IER)
+        CALL EZGET_l('SIN_CORRECTION',SIN_CORRECTION,IER)
+        CALL EZGET_l('SLOPE_CORRECT',SLOPE_CORRECT,IER)
+        CALL EZGET_i('MINZHIT',MINZHIT,IER)
         CALL EZRSET
         ICALL=1
       END IF

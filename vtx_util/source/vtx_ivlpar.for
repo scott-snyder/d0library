@@ -19,7 +19,7 @@ C Locals:
       CHARACTER*10 NAME
 C----------------------------------------------------------------------
       CALL EZPICK('VTRAKS_RCP')
-      CALL EZGETA('I_VS_L_PARAMS',0,0,0,NELS,ERR)
+      CALL EZGETA_i('I_VS_L_PARAMS',0,0,0,NELS,ERR)
       CHR = 1
       FLT = 1
       DO WHILE(FLT .LT. NELS)

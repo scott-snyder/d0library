@@ -59,7 +59,7 @@ C
       IF ( FIRST ) THEN
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('USE_DEFAULT', USE_DEF, IER)
+        CALL EZGET_l('USE_DEFAULT', USE_DEF, IER)
         IF ( USE_DEF ) THEN
           TRGFLG = .FALSE. 
           IF ( IQ(LHEAD+1) .GT. 1000 ) THEN
@@ -68,7 +68,7 @@ C
             MCDATA = .FALSE.           ! Real data (collider run)
           ENDIF
         ELSE
-          CALL EZGET('TRGFLG', TRGFLG, IER)
+          CALL EZGET_l('TRGFLG', TRGFLG, IER)
         ENDIF
         CALL EZGET('TRGOFF', TRGOFF, IER)
         CALL EZRSET

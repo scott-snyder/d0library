@@ -64,11 +64,11 @@ C
 C---------------------------------------------------------------------
       IF ( NEV .EQ. 0 ) THEN
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('VPATH',IPATH,IER)
-        CALL EZGET('INEFF',INEFF,IER)
-        CALL EZGET('DROP_SEGM',DROP_SEGM,IER)
-        CALL EZGET('REDOVTX',REDOVTX,IER)
-        CALL EZGET('VTXRECO',VTXRECO,IER)
+        CALL EZGET_i('VPATH',IPATH,IER)
+        CALL EZGET_i('INEFF',INEFF,IER)
+        CALL EZGET_l('DROP_SEGM',DROP_SEGM,IER)
+        CALL EZGET_l('REDOVTX',REDOVTX,IER)
+        CALL EZGET_i('VTXRECO',VTXRECO,IER)
         CALL EZGET('CALLHST',CALLHST,IER)
         CALL EZRSET
         HITSEG = 8 - INEFF          ! minimum # hits in segment

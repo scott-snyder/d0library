@@ -40,7 +40,7 @@ c Data:
 C----------------------------------------------------------------------
       IF (FIRST) THEN
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('ALLOW',MAX,ERR)
+        CALL EZGET_i('ALLOW',MAX,ERR)
         CALL EZGET('CLOSE',CLOSE,ERR)
         CALL EZRSET
       ENDIF

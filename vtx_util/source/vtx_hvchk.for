@@ -48,15 +48,15 @@ C----------------------------------------------------------------------
         FIRST = .FALSE.
         CALL VTX_IVLPAR(PAR)
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,ERR)
+        CALL EZGET_l('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,ERR)
         ERROR = ERR
-        CALL EZGETA('HV_ISCALE',1,1,0,NEWSCALE_RUN,ERR)
+        CALL EZGETA_i('HV_ISCALE',1,1,0,NEWSCALE_RUN,ERR)
         ERROR = ERROR + ERR
         CALL EZGETA('HV_ISCALE',2,3,1,SCALES,ERR)
         ERROR = ERROR + ERR
         CALL EZGET('HV_SIG_MAX',SIG_MAX,ERR)
         ERROR = ERROR + ERR
-        CALL EZGET('HV_REFF',RESISTOR,ERR)
+        CALL EZGET_rarr('HV_REFF',RESISTOR,ERR)
         ERROR = ERROR + ERR
         CALL EZGET('HV_LUMCONV',RATE,ERR)
         ERROR = ERROR + ERR
@@ -81,7 +81,7 @@ C----------------------------------------------------------------------
         ISCALE = 1./SCALES(1)
         IF (RUN .GE. NEWSCALE_RUN) ISCALE = 1./SCALES(2)
         NCH = 0
-        CALL VZERO(NCAT,6)
+        CALL VZERO_i(NCAT,6)
         DO SUP = 1,192
           IF (NSEC(SUP) .GT. 0) THEN
             DO LAYER = 0,2
@@ -126,10 +126,10 @@ C
       ENDIF
       CALL VDYNSAVE('LUM',LUM,DBKEYS(3))
       CALL VZERO(SUM1,18)
-      CALL VZERO(NCAT,6)
-      CALL VZERO(OFF,6)
-      CALL VZERO(DYN,6)
-      CALL VZERO(NODYN,6)
+      CALL VZERO_i(NCAT,6)
+      CALL VZERO_i(OFF,6)
+      CALL VZERO_i(DYN,6)
+      CALL VZERO_i(NODYN,6)
 C
 C ****  array VAL contains HV voltages and currents -- the array is densely
 C ****  packed -- V(25),I(25),...,V(192),I(192).  
@@ -216,7 +216,7 @@ C
 C
 C ****  Shuffle this back..
 C
-      CALL VZERO(NCAT,6)
+      CALL VZERO_i(NCAT,6)
       DO I = 1,NCH/2
         CAT = CATEG(I)
         NCAT(CAT) = NCAT(CAT) + 1

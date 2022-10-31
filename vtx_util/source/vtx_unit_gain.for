@@ -25,7 +25,7 @@ C----------------------------------------------------------------------
         CALL EZPICK( 'VTRAKS_RCP' )
         CALL EZGET( 'MXLAY', MXLAY, IER )
         CALL EZGET( 'MXWIRE', MXWIRE, IER )
-        CALL EZGET( 'NSEC', NSEC, IER )
+        CALL EZGET_iarr( 'NSEC', NSEC, IER )
         CALL EZRSET
         FIRST = .FALSE.
       END IF

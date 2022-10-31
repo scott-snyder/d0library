@@ -71,7 +71,7 @@ C
               IF (VSCHIT(OFFSET+8) .LE. 0. .AND.
      &            VSCHIT(OFF1  +8) .LE. 0.) THEN
                 DROPPED(1) = DROPPED(1) + 1
-                CALL UCOPY(VSCHIT(OFFSET+9),STATUS,1)
+                CALL UCOPY_i(VSCHIT(OFFSET+9),STATUS,1)
                 STAT = IBITS(STATUS,0,2)
                 DROPPED(5-STAT) = DROPPED(5-STAT) + 1
                 GO TO 40
@@ -86,7 +86,7 @@ C
      &          VSCHIT(OFFSET + 2) .EQ. LAST2 .AND.
      &          VSCHIT(OFFSET + 8) .GT. 0.0) THEN
               DROPPED(1) = DROPPED(1) + 1
-              CALL UCOPY(VSCHIT(OFFSET+9),STATUS,1)
+              CALL UCOPY_i(VSCHIT(OFFSET+9),STATUS,1)
               STAT = IBITS(STATUS,0,2)
               DROPPED(5-STAT) = DROPPED(5-STAT) + 1
               GO TO 40

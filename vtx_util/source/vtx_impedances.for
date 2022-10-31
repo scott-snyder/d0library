@@ -58,7 +58,7 @@ C
 C
       CALL VFILL( dz_sum,  (M_wire+1)*(M_sector+1)*(M_layer+1), 0. )
       CALL VFILL( dz_2_sum,(M_wire+1)*(M_sector+1)*(M_layer+1), 0. )
-      CALL VFILL( Nz,      (M_wire+1)*(M_sector+1)*(M_layer+1), 0. )
+      CALL Vzero_i( Nz,      (M_wire+1)*(M_sector+1)*(M_layer+1))
       CALL VFILL( r_sum,   (M_wire+1)*(M_sector+1)*(M_layer+1), 0. )
 C
       CALL hBook1(90+Iteration,'dz$', 50,-10.,10., 0.)

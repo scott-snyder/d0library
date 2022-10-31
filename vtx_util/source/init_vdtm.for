@@ -40,8 +40,8 @@ C
       DATA IUSER / 793 /
 C----------------------------------------------------------------------
       CALL EZPICK('VTRAKS_RCP')
-      CALL EZGET('NUM_CATEG', NUM_CATEG, IER)
-      CALL EZGET('CATEG', CATEG, IER)
+      CALL EZGET_i('NUM_CATEG', NUM_CATEG, IER)
+      CALL EZGET_i('CATEG', CATEG, IER)
       CALL EZGET('DEF_TZERO', TZERO, IER)
       CALL EZGET('DEF_TSIGMA', TSIGMA, IER)
 C

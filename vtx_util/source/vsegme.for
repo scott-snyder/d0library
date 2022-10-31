@@ -30,7 +30,7 @@ C------------------------------------------------------------------
 C---------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('NSEC',NSEC,IER)
+        CALL EZGET_iarr('NSEC',NSEC,IER)
         CALL EZGET('INEFF',INEFF,IER)
         CALL EZGET('METHOD',METHOD,IER)
         CALL EZRSET

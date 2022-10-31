@@ -28,7 +28,7 @@ C
 C
       IF (NUMDRP.GT.0) THEN
        IF(NUMDRP.LE.MAXDRP)THEN
-         CALL EZGET('DROPS_STA_BANKS',BANKS,IER) ! get list of banks
+         CALL EZGET_iarr('DROPS_STA_BANKS',BANKS,IER) ! get list of banks
        ELSE
          CALL ERRMSG('VTRAKS','VTRDRP',
      &      'DROP REQUEST EXCEEDS MAXIMUM ALLOWED ','W')

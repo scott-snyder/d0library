@@ -80,18 +80,18 @@ C
 C **** Get parameters from RCP
 C
         CALL EZPICK( 'VTRAKS_RCP' )
-        CALL EZGET( 'PULTH1', PULTH1, IER )
-        CALL EZGET( 'PULTH2', PULTH2, IER )
-        CALL EZGET( 'PULTH3', PULTH3, IER )
-        CALL EZGET( 'PULMAX', PULMAX, IER )
-        CALL EZGET( 'PULWEI', PULWEI, IER )
+        CALL EZGET_iarr( 'PULTH1', PULTH1, IER )
+        CALL EZGET_iarr( 'PULTH2', PULTH2, IER )
+        CALL EZGET_iarr( 'PULTH3', PULTH3, IER )
+        CALL EZGET_iarr( 'PULMAX', PULMAX, IER )
+        CALL EZGET_rarr( 'PULWEI', PULWEI, IER )
         CALL EZGET( 'FRQNCY', FRQNCY, IER )
         CALL EZGET( 'BILIRT', BILIRT, IER )
         CALL EZGET( 'BILIPT', BILIPT, IER )
-        CALL EZGET( 'MAXCNT', MAXCNT, IER )
-        CALL EZGET( 'TABLE', TABLE, IER )
-        CALL EZGET('USE_DEFAULT', USE_DEF, IER)
-        CALL EZGET('BINS_BEFORE_PEAK',BBP,IER)
+        CALL EZGET_i( 'MAXCNT', MAXCNT, IER )
+        CALL EZGET_iarr( 'TABLE', TABLE, IER )
+        CALL EZGET_l('USE_DEFAULT', USE_DEF, IER)
+        CALL EZGET_i('BINS_BEFORE_PEAK',BBP,IER)
         IF ( USE_DEF ) THEN
           IF ( IQ(LHEAD+1) .GT. 1000 ) THEN
             TBLFLG = .FALSE.            ! MC DATA
@@ -101,10 +101,10 @@ C
             BILFLG = .FALSE.
           ENDIF
         ELSE
-          CALL EZGET( 'TBLFLG', TBLFLG, IER )
-          CALL EZGET( 'BILFLG', BILFLG, IER )
+          CALL EZGET_l( 'TBLFLG', TBLFLG, IER )
+          CALL EZGET_l( 'BILFLG', BILFLG, IER )
         ENDIF
-        CALL EZGET('VWDA_FROM_VCHT',VWDA_FROM_VCHT,IER)
+        CALL EZGET_l('VWDA_FROM_VCHT',VWDA_FROM_VCHT,IER)
         CALL EZRSET
         IF ( FRQNCY .NE. 0 ) THEN
           NBPBIN = 1000. / FRQNCY         ! bin width in ns

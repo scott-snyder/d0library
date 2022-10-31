@@ -56,7 +56,7 @@ C-------------------------------------------------------------------
       IF (ICALL.EQ.0) THEN
         CALL EZPICK('VTRAKS_RCP')
         CALL EZGET('CHIMAX',CHIMAX,IER)
-        CALL EZGET('INEFF',INEFF,IER)
+        CALL EZGET_i('INEFF',INEFF,IER)
         CALL EZRSET
         NEW=.TRUE.
         ICALL=1
@@ -84,7 +84,7 @@ C-------------------------------------------------------------------
 C
       LUSER=LQ(LHEAD-IZUSER)
       LPOIN=LQ(LUSER-1)
-      CALL UCOPY(IQ(LPOIN+1),NTHIT,NBSENS)
+      CALL UCOPY_i(IQ(LPOIN+1),NTHIT,NBSENS)
 C
 C *** store relative pointers in PTHIT
 C  

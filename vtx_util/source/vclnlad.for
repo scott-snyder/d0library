@@ -41,7 +41,7 @@ C----------------------------------------------------------------------
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
         CALL EZGET('CLOSE',CLOSE,ERR)
-        CALL EZGET('IUSED',IUSED,ERR)
+        CALL EZGET_i('IUSED',IUSED,ERR)
         CALL EZRSET
       ENDIF
       LVTRH = GZVTRH()

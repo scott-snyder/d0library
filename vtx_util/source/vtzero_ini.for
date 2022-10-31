@@ -47,10 +47,10 @@ C
         ENDIF
       ENDIF
       CALL EZPICK('VTXCOFF_RCP')
-      CALL EZGET('NX',NX,IER)
+      CALL EZGET_i('NX',NX,IER)
       CALL EZGET('IMI',IMI,IER)
       CALL EZGET('IMA',IMA,IER)
-      CALL EZGET('ROWST',ROWST,IER)
+      CALL EZGET_l('ROWST',ROWST,IER)
       CALL EZRSET
 C
 C ****  Read in VTRAKS_RCP if necessary

@@ -67,11 +67,11 @@ C----------------------------------------------------------------------
         CALL UFILL(GAIN_ADJUST(1,0,0),1,192,1.)
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,ERR)
+        CALL EZGET_l('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,ERR)
         ERROR = ERR
         CALL EZGET('HV_MAX_TIME',MAX_TIME,ERR)
         ERROR = ERROR + ERR
-        CALL EZGETA('HV_ISCALE',1,1,0,NEWSCALE_RUN,ERR)
+        CALL EZGETA_i('HV_ISCALE',1,1,0,NEWSCALE_RUN,ERR)
         ERROR = ERROR + ERR
         CALL EZGETA('HV_ISCALE',2,3,1,SCALES,ERR)
         ERROR = ERROR + ERR

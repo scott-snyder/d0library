@@ -60,13 +60,13 @@ C----------------------------------------------------------------------
         FIRST = .FALSE.
         CALL VTX_IVLPAR(PAR)
         CALL EZPICK('VTRAKS_RCP')
-        CALL EZGET('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,ERR)
+        CALL EZGET_l('BYPASS_DBL3_ERROR',BYPASS_DBL3_ERROR,ERR)
         ERROR = ERR
         CALL EZGET('LUM_MAX_TIME',MAX_TIME,ERR)
         ERROR = ERROR + ERR
-        CALL EZGET('HV_REFF',RESISTOR,ERR)
+        CALL EZGET_rarr('HV_REFF',RESISTOR,ERR)
         ERROR = ERROR + ERR
-        CALL EZGET('HV_KEFF',KR_FACT,ERR)  !  KEFF(FEED,LAYER)
+        CALL EZGET_rarr('HV_KEFF',KR_FACT,ERR)  !  KEFF(FEED,LAYER)
         ERROR = ERROR + ERR
         DO I = 1,6
           KR_FACT(I) = KR_FACT(I)*RESISTOR(I)

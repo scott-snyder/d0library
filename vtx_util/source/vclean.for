@@ -45,7 +45,7 @@ C----------------------------------------------------------------------
         FIRST = .FALSE.
         CALL EZPICK('VTRAKS_RCP')
         CALL EZGET('CLOSE',CLOSE,IER)
-        CALL EZGET('ALLOW',ALLOW,IER)
+        CALL EZGET_i('ALLOW',ALLOW,IER)
         CALL EZRSET
       ENDIF
       IF (LSTTRK .LE. 0) GO TO 999

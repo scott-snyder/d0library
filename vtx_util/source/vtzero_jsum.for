@@ -43,13 +43,13 @@ C----------------------------------------------------------------------
       CALL EZGET('TRGOFF',TRGOFF,IER)
       CALL EZRSET
       CALL EZPICK('VTXCOFF_RCP')
-      CALL EZGET('NX',NX,IER)
+      CALL EZGET_i('NX',NX,IER)
       CALL EZGET('IMI',IMI,IER)
       CALL EZGET('IMA',IMA,IER)
       CALL EZGET('FRAC',FRAC,IER)
-      CALL EZGET('SINGLE',SINGLE,IER)
-      CALL EZGET('CRAST',CRAST,IER)
-      CALL EZGET('ROWST',ROWST,IER)
+      CALL EZGET_l('SINGLE',SINGLE,IER)
+      CALL EZGET_l('CRAST',CRAST,IER)
+      CALL EZGET_l('ROWST',ROWST,IER)
       CALL EZGET('THT',THT,IER)
       CALL EZGET('THS',THS,IER)
       CALL EZRSET
