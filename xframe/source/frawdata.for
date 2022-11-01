@@ -97,7 +97,7 @@ c
 c       goto next crate
 c
         if (ncrates.lt.1) then
-          call rawstat(%ref('Status: No Crates Found!'),%val(24))
+          call rawstat(%ref('Status: No Crates Found!'))
           return
         endif
         curpnt = curpnt - 1

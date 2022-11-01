@@ -99,7 +99,7 @@ c
 c
       integer lvtrh,gzvtrh
 c
-      lvtrh = gzvtrh()
+      lvtrh = gzvtrh(0)
       num = 0
       okok = 0
       if (lvtrh.lt.1) return

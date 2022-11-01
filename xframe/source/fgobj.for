@@ -598,26 +598,26 @@ cccc        write(*,*) 'minem minhd=',minem,minhd
 
       do i=1,nem
         itmp=iq(lcatd+8+i)
-        jeta=iand(itmp,'7f'X)
-        jphi=iand(ishft(itmp,-7),'7f'X)
+        jeta=iand(itmp,z'7f')
+        jphi=iand(ishft(itmp,-7),z'7f')
 c        if(jeta.le.37) then
 c          jeta=jeta-38
 c        else
 c          jeta=jeta-37
 c        endif
-        energy(jphi,jeta,1)=iand(ishft(itmp,-19),'1FFF'X)/10.
+        energy(jphi,jeta,1)=iand(ishft(itmp,-19),z'1FFF')/10.
       enddo
 
       do i=1,nhad
         itmp=iq(lcatd+9+nem+i)
-        jeta=iand(itmp,'7f'X)
-        jphi=iand(ishft(itmp,-7),'7f'X)
+        jeta=iand(itmp,z'7f')
+        jphi=iand(ishft(itmp,-7),z'7f')
 c        if(jeta.le.37) then
 c          jeta=jeta-38
 c        else
 c          jeta=jeta-37
 c        endif
-        energy(jphi,jeta,2)=iand(ishft(itmp,-19),'1FFF'X)/10.
+        energy(jphi,jeta,2)=iand(ishft(itmp,-19),z'1FFF')/10.
       enddo
 
 C----------------------------------------------------------------------

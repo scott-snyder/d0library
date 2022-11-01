@@ -96,7 +96,7 @@ c
 c
 c       mark them 
 c
-        call mzmark(ixcom,lhead,mark,nb,hbank)
+        call mzmark(ixcom,lhead,mark,nb,hbank(1))
       endif
 c
 c     that's all folks

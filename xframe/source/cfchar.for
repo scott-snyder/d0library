@@ -56,7 +56,7 @@ c
       integer length
 c
       integer status,i
-      byte iret(132),b1
+      byte iret(512),b1
       character*1 c1
 c
       equivalence (c1,b1)

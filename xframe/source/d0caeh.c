@@ -17,7 +17,7 @@ int        *tag;
 unsigned long    *reason;
 {
     int select = *tag, nchan,dummy,status,addr;
-    char *cbuff,cnl[4], filename[120];
+    char *cbuff,cnl[5], filename[120];
     int etamin,etamax,phimin,phimax,laymin,laymax,iscale;
     float etmin,etmax;                                        
     FILE *fpo;

@@ -103,7 +103,7 @@ c
 c
       integer lftrh,gzftrh
 c
-      lftrh = gzftrh()
+      lftrh = gzftrh(0)
       num = 0
       okok = 0
       if (lftrh.lt.1) return

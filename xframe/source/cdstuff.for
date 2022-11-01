@@ -118,7 +118,7 @@ c
 c
       integer ldtrh,gzdtrh
 c
-      ldtrh = gzdtrh()
+      ldtrh = gzdtrh(0)
       num = 0
       okok = 0
       if (ldtrh.lt.1) return
