@@ -245,7 +245,7 @@ C-
 *   *       Display data if exists, if it does not, display dummy data  
 *   
             NTOT   = 0  
-            CALL UCOPY (IQ(KOFUDB+LBKYDB+1), KEYVDK(1), NWKYDK) 
+            CALL UCOPY_i (IQ(KOFUDB+LBKYDB+1), KEYVDK(1), NWKYDK) 
             NREC   = 0  
   120       IF (NTOT.LT.NDATA) THEN 
               CALL DBLIND (IQ(KOFUDB+LBDADB+1), NTOT, KLINE, LENG)  
@@ -385,7 +385,8 @@ C-
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
@@ -433,7 +434,7 @@ C-
 * *** Prepare the output with old keys if option X is selected  
 *   
       IF (IOPXDA.NE.0) THEN 
-        CALL VZERO (KEYVDK, MXDMDK) 
+        CALL VZERO_i (KEYVDK, MXDMDK) 
         KEYVDK(MBVRDB) = KEY(MBVRDB)    
         KEYVDK(MEVRDB) = KEY(MEVRDB)    
         KEYVDK(MPVSDB) = KEYO(MPVSDB)   
@@ -448,9 +449,10 @@ C-
         ENDIF   
 *   
         IF (LSTRDL(3).NE.0) CALL MZDROP (IDISDB, LSTRDL(3), 'L')    
-        JBIAS  = 2  
+        JBIAS  = 2
+        nio(1) = 2
         CALL DBBOOK (IDISDB, LSTRDL(3), LSTRDL(3), JBIAS, 'SAME', 0, 0, 
-     +               0, 2, 0)   
+     +               0, nio, 0)   
         IF (IQUEST(1).NE.0)   GO TO 999 
 *   
         CALL DBKOUT (PATH, IDISDB, LSTRDL(3), NTKEY, KEYVDK, 0) 
@@ -463,7 +465,7 @@ C-
 *   
 * *** Prepare the Key vector array  
 *   
-      CALL VZERO (KEYVDK, MXDMDK)   
+      CALL VZERO_i (KEYVDK, MXDMDK)   
       KEYVDK(MBVRDB) = KEY(MBVRDB)  
       KEYVDK(MEVRDB) = KEY(MEVRDB)  
       KEYVDK(MPVSDB) = KEY(MPVSDB)  
@@ -480,9 +482,10 @@ C-
 *   
       IF (LSTRDL(3).NE.0) CALL MZDROP (IDIVDB, LSTRDL(3), 'L')  
       NDATA  = NDMXDB   
-      JBIAS  = 2    
+      JBIAS  = 2
+      nio(1) = 1
       CALL DBBOOK (IDIVDB, LSTRDL(3), LSTRDL(3), JBIAS, 'USER', 0, 0,   
-     +             NDATA, 1, -1)    
+     +             NDATA, nio, -1)    
       IF (IQUEST(1).NE.0)     GO TO 999 
 *   
 *  ** Now read the file 
@@ -529,14 +532,14 @@ C-
           CALL DBKEYS (LBNODB, KEYVDK, LBK, KEYVDK(MBVRDB)) 
           IF (IQUEST(1).NE.0) GO TO 990 
           LREFDB(1) = LBK(1)    
-          CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
+          CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
           NDK    = IQ(KOFUDB+LREFDB(1)-1)   
           IQ(KOFUDB+LREFDB(1)+NDK+MKYFRI) = 0   
           IQ(KOFUDB+LREFDB(1)+NWKYDK+1)   = KEYVDK(MEVRDB)  
 *   
         ELSE    
 *   
-          CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
+          CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
           NDK    = IQ(KOFUDB+LREFDB(1)-1)   
           IQ(KOFUDB+LREFDB(1)+NDK+MKYFRI) = 0   
           IQ(KOFUDB+LREFDB(1)+NWKYDK+1)   = KEYVDK(MEVRDB)  
@@ -1242,7 +1245,7 @@ C-
       CHARACTER       CHFTDK*9, CHTGDK*8, CTAGDK*8  
 *   
       PARAMETER       (NLEVM=20)    
-      DIMENSION       KEY(9), LSUP(9)   
+      DIMENSION       KEY(9)
       DIMENSION       KEYV(MXDMDK), KEYO(MXDMDK), KEYN(MXDMDK)  
       CHARACTER       CHOPT*(*), PATHN*(*)  
       CHARACTER       PATH*80, PATHY*80, PATHX*16, PATHL*80, TOPN*16    
@@ -1259,12 +1262,13 @@ C-
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option (no compression of data)  
 *   
-      LREFDB(1) = LSUP(1)   
+      LREFDB(1) = LSUP
       CALL DBOPTS (CHOPT)   
       IF (IQUEST(1).NE.0)            GO TO 999  
       IOPRDA = 1    
@@ -1274,7 +1278,7 @@ C-
       IF (NWKEY.GT.MXDMDK)  THEN    
         IQUEST(1) = 61  
         IQUEST(11)= NWKEY   
-        IQUEST(12)= MXDMDK  
+        IQUEST(12)= MXDMDK
         IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBDONT : Too man'//    
      +  'y keys '',I6,'' maximum permitted '',I6)', IQUEST(11), 2)  
         GO TO 999   
@@ -1308,7 +1312,7 @@ C-
       IF (NWKYDK.NE.NWKEY) THEN 
         IQUEST(1) = 61  
         IQUEST(11)= NWKEY   
-        IQUEST(12)= NWKYDK  
+        IQUEST(12)= NWKYDK
         IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBDONT : Illegal'//    
      +  ' number of keys '',I10,'' & as in directory'',I6)', IQUEST(11),    
      +  2)  
@@ -1356,7 +1360,7 @@ C-
 *   
 * *** Prepare the Key vector array  
 *   
-      CALL VZERO (KEYVDK, MXDMDK)   
+      CALL VZERO_i (KEYVDK, MXDMDK)   
       KEYVDK(MBVRDB) = KEY(MBVRDB)  
       KEYVDK(MEVRDB) = KEY(MEVRDB)  
       KEYVDK(MPVSDB) = KEY(MPVSDB)  
@@ -1422,7 +1426,7 @@ C-
         IF (NDOP.GT.0)  
      +    CALL UCTOH (CHOPT, IHEADF(MPREDF+NWKYDK+1), 4, 4*NDOP)    
         CALL UCTOH (PATHY, IHEADF(MPREDF+NWKYDK+NDOP+1), 4, 4*NWDP) 
-        CALL UCOPY (KEYVDK, IHEADF(MPREDF+1), NWKYDK)   
+        CALL UCOPY_i (KEYVDK, IHEADF(MPREDF+1), NWKYDK)   
       ENDIF 
 *   
 *  ** Write the sequential output if needed 
@@ -1545,7 +1549,7 @@ C-
             LCDRDB = IQUEST(11) 
             IKDRDB = IQUEST(13) 
           ENDIF 
-          CALL UCOPY (KEYO, KEYN, NWKYDK)   
+          CALL UCOPY_i (KEYO, KEYN, NWKYDK)   
 *   
         ENDIF   
 *   
@@ -1566,9 +1570,11 @@ C-
         IF (IER.NE.0) IQUEST(1) = IER   
       ENDIF 
       IF (IQUEST(1).NE.0) THEN  
-        IQUEST(1) = 73  
+        IQUEST(1) = 73
+        iarg(1) = i
         IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBDONT : Error i'//    
-     +     'n RZ while writing Data for '//PATHY//PATHX(1:8)//''')',I,0)    
+     +       'n RZ while writing Data for '//PATHY//PATHX(1:8)//''')'
+     &       ,Iarg,0)
       ENDIF 
       GO TO 998 
 *   
@@ -2040,7 +2046,8 @@ C-
       COMMON /DLINKS/ LSTRDL(5), LAUXDL(10), LREFDL(10) 
 *   
       CHARACTER       PATH*(*), KLINE*80, PATHN*80, TOPN*16 
-*   
+*
+      dimension nio(9), keys(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Suppress blanks from the path name    
@@ -2085,9 +2092,10 @@ C-
 *   
       IF (LSTRDL(1).NE.0) CALL MZDROP (IDIVDB, LSTRDL(1), 'L')  
       NDATA  = NDMXDB   
-      JBIAS  = 2    
+      JBIAS  = 2
+      nio(1) = 1
       CALL DBBOOK (IDIVDB, LSTRDL(1), LSTRDL(1), JBIAS, 'USER', 0, 0,   
-     +             NDATA, 1, -1)    
+     +             NDATA, nio, -1)    
       IF (IQUEST(1).NE.0)     GO TO 999 
 *   
 * *** Now read the file 
@@ -2111,8 +2119,9 @@ C-
       IF (NDP.LT.0) CALL MZPUSH (IDIVDB, LSTRDL(1), 0, NDP, 'I')    
 *   
 * *** Now save the bank into the database and drop the bank 
-*   
-      CALL DBSNAM (1, IDN, LSTRDL(1), TOPN, 0)  
+*
+      keys(1) = idn
+      CALL DBSNAM (1, keys, LSTRDL(1), TOPN, 0)  
 *   
   990 IF (LSTRDL(1).NE.0) THEN  
         IERR   = IQUEST(1)  
@@ -2205,7 +2214,8 @@ C-
 *   
       CHARACTER*(*)   CHTAG(*)  
       CHARACTER       CTAG*8, TOPN*16, PATH*(*), PATHN*80   
-*   
+*
+      dimension nio(9), keys(9)
 *     ------------------------------------------------------------------    
 *   
       IF (NW.LE.0) THEN 
@@ -2246,9 +2256,10 @@ C-
       IF (LSTRDL(1).NE.0) THEN  
         CALL MZDROP (IDISDB, LSTRDL(1), 'L')    
         LSTRDL(1) = 0   
-      ENDIF 
+      ENDIF
+      nio(1) = 5
       CALL DBBOOK (IDISDB, LSTRDL(1), LSTRDL(1), 2, 'DNAM', 0, 0, NUM,  
-     +             5, -1)   
+     +             nio, -1)   
       IF (IQUEST(1).NE.0)  GO TO 999    
       IPNT = KOFUDB + LSTRDL(1) 
       DO 10 I = 1, NW   
@@ -2258,8 +2269,9 @@ C-
    10 CONTINUE  
 *   
 * *** Now store the information inside data base    
-*   
-      CALL DBSNAM (2, IDN, LSTRDL(1), TOPN, 0)  
+*
+      keys(1) = idn
+      CALL DBSNAM (2, keys, LSTRDL(1), TOPN, 0)  
       IERR = IQUEST(1)  
       CALL MZDROP (IDISDB, LSTRDL(1), 'L')  
       LSTRDL(1) = 0 
@@ -2589,7 +2601,10 @@ C-
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      integer ival
+      real fval
+      equivalence (ival, fval)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
@@ -2606,8 +2621,9 @@ C-
      +  ' executed'')', IARGDB, 0)  
 *   
       ELSE IF (IOPZDA.NE.0) THEN    
-        PACKDZ = .TRUE. 
-        CALL UCOPY (IPREC, PRECDZ, 1)   
+        PACKDZ = .TRUE.
+        ival = IPREC
+        PRECDZ = fval
       ENDIF 
 *   
 * *** Suppress blanks from the path name    
@@ -2731,8 +2747,9 @@ C-
           IFORO  = 3    
           NCUR   = 1    
           NLEV   = NLEV + 1 
-          CHCUR(NLEV) = CFORM(IFORO)    
-          CALL UCOPY (PRECDZ, IHEADF(MPREDF), 1)    
+          CHCUR(NLEV) = CFORM(IFORO)
+          fval = PRECDZ
+          IHEADF(MPREDF) = ival
         ELSE    
           IHEADF(MPREDF) = IPREC    
         ENDIF   
@@ -2839,7 +2856,7 @@ C-
           LCDRDB = IQUEST(11)   
           IKDRDB = IQUEST(13)   
         ENDIF   
-        CALL UCOPY (KEYO, KEYN, NWKYDK) 
+        CALL UCOPY_i (KEYO, KEYN, NWKYDK) 
 *   
       ENDIF 
 *   
@@ -2913,7 +2930,7 @@ C-
 *  **   Write the sequential output if needed   
 *   
         IF (LUFZDF.GT.0) THEN   
-          CALL UCOPY (KEY(1,IOBJ), IHEADF(MPREDF+1), NWKYDK)    
+          CALL UCOPY_i (KEY(1,IOBJ), IHEADF(MPREDF+1), NWKYDK)    
           CALL FZOUT (LUFZDF, IUDIV, LSUP(IOBJ), 1, CHOP, IOFMDF,   
      +                NWDH, IHEADF) 
           IF (IQUEST(1).NE.0) THEN  
@@ -2980,7 +2997,7 @@ C-
         ENDIF   
         IF (IQUEST(1).NE.0)        GO TO 993    
         IF (IDEBDB.GT.1) THEN   
-          CALL UCOPY (KEY(1,IOBJ), KEYNDK, NWKYDK)  
+          CALL UCOPY_i (KEY(1,IOBJ), KEYNDK, NWKYDK)  
           IARGDB(1) = IDATE 
           IARGDB(2) = ITIME 
           CALL DBPRNT (LPRTDB, '(/,'' DBENTB : Data was inserted into'//    
@@ -3003,8 +3020,8 @@ C-
             IF (IQUEST(1).NE.0) THEN    
               IQUEST(1) = 74    
               IF (IDEBDB.GT.0) THEN 
-                CALL UCOPY  (KEYO, IARGDB(1),        NSYSDK)    
-                CALL UCOPY  (KEYN, IARGDB(NSYSDK+1), NSYSDK)    
+                CALL UCOPY_i  (KEYO, IARGDB(1),        NSYSDK)    
+                CALL UCOPY_i  (KEYN, IARGDB(NSYSDK+1), NSYSDK)    
                 CALL DBPRNT (LPRTDB, '(/,'' DBENTB : Error in RZREN'//  
      +               'K while writing data for '//PATHY//''',/(10X,'//  
      +               '7I12))', IARGDB, 2*NSYSDK)    
@@ -3040,7 +3057,7 @@ C-
             LCDRDB = IQUEST(11) 
             IKDRDB = IQUEST(13) 
             NINS   = 0  
-            CALL UCOPY (KEYO, KEYN, NWKYDK) 
+            CALL UCOPY_i (KEYO, KEYN, NWKYDK) 
           ENDIF 
         ENDIF   
    40 CONTINUE  
@@ -3081,8 +3098,8 @@ C-
               IF (IQUEST(1).NE.0) THEN  
                 IQUEST(1) = 74  
                 IF (IDEBDB.GT.0) THEN   
-                  CALL UCOPY  (KEYO, IARGDB(1),        NSYSDK)  
-                  CALL UCOPY  (KEYN, IARGDB(NSYSDK+1), NSYSDK)  
+                  CALL UCOPY_i  (KEYO, IARGDB(1),        NSYSDK)  
+                  CALL UCOPY_i  (KEYN, IARGDB(NSYSDK+1), NSYSDK)  
                   CALL DBPRNT (LPRTDB, '(/,'' DBENTB : Error in RZREN'//    
      +                 'K while writing data for '//PATHY//''',/(10X,'//    
      +                 '7I12))', IARGDB, 2*NSYSDK)  
@@ -3221,9 +3238,12 @@ C-
       COMMON /DZPACK/ PRECDZ, PACKDZ    
       LOGICAL         PACKDZ    
 *   
-      DIMENSION       KEY(9), LBD(9), LBK(9), LSUP(9)   
+      DIMENSION       KEY(9), LBD(9), LBK(9)
       CHARACTER       CHOPT*(*), PATHN*(*), PATH*80, FPATH*80, CHOP*2   
-*   
+*
+      integer ival
+      real fval
+      equivalence (ival, fval)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
@@ -3240,8 +3260,9 @@ C-
      +  ' executed'')', IARGDB, 0)  
 *   
       ELSE IF (IOPZDA.NE.0)  THEN   
-        PACKDZ = .TRUE. 
-        CALL UCOPY (IPREC, PRECDZ, 1)   
+        PACKDZ = .TRUE.
+        ival = iprec
+        precdz = fval
       ENDIF 
 *   
       IF (IOPRDA.NE.0.AND.IOPNDA.NE.0)  THEN    
@@ -3295,7 +3316,7 @@ C-
 *   
 * *** Prepare the Key vector array  
 *   
-      CALL VZERO (KEYVDK, MXDMDK)   
+      CALL VZERO_i (KEYVDK, MXDMDK)   
       KEYVDK(MBVRDB) = KEY(MBVRDB)  
       KEYVDK(MEVRDB) = KEY(MEVRDB)  
       KEYVDK(MPVSDB) = KEY(MPVSDB)  
@@ -3310,7 +3331,7 @@ C-
 *   
 * *** Write out the data    
 *   
-      CALL DBKOUT (PATH, IUDIV, LSUP(1), NTKEY, KEYVDK, IPREC)  
+      CALL DBKOUT (PATH, IUDIV, LSUP, NTKEY, KEYVDK, IPREC)  
       IF (IQUEST(1).NE.0)          GO TO 999    
 *   
 * *** Create data bank in memory ala DBUSE  
@@ -3336,7 +3357,7 @@ C-
           LREFDB(1) = LBK(1)    
           IOPMDA = ITMPM    
           IOPSDA = ITMPS    
-          CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
+          CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
           NDK    = IQ(KOFUDB+LREFDB(1)-1)   
           IQ(KOFUDB+LREFDB(1)+NDK+MKYFRI) = 0   
           IQ(KOFUDB+LREFDB(1)+NWKYDK+1)   = KEYVDK(MEVRDB)  
@@ -3364,7 +3385,7 @@ C-
             ENDIF   
           ENDIF 
 *   
-          CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
+          CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
           NDK    = IQ(KOFUDB+LREFDB(1)-1)   
           IQ(KOFUDB+LREFDB(1)+NDK+MKYFRI) = 0   
           IQ(KOFUDB+LREFDB(1)+NWKYDK+1)   = KEYVDK(MEVRDB)  
@@ -3378,8 +3399,8 @@ C-
           CHOP   = 'LP' 
         ENDIF   
 *   
-        IF (IOPKDA.EQ.0 .AND. LSUP(1).NE.0) THEN    
-          CALL MZCOPY (IUDIV, LSUP(1), IDIVDB, LREFDB(1), -KLDADB, CHOP)    
+        IF (IOPKDA.EQ.0 .AND. LSUP.NE.0) THEN    
+          CALL MZCOPY (IUDIV, LSUP, IDIVDB, LREFDB(1), -KLDADB, CHOP)    
         ENDIF   
 *   
         IF (IQUEST(1).EQ.0)  THEN   
@@ -4103,7 +4124,8 @@ C-
       CHARACTER       CHFOR*100, CFORM(6)*1, CHOPF*80, CHCUR(NLEVM)*1   
       CHARACTER       ALIAS*8, PATHZ*80 
       DATA            CFORM / 'B', 'I', 'F', 'D', 'H', 'A' /    
-*   
+*
+      dimension itmp(9)
 *     ------------------------------------------------------------------    
 *   
       PATHD  = ' '  
@@ -4394,7 +4416,7 @@ C-
 *   
         ITIME  = IHEADF(MTIMDF) 
         IF (ITIME.GT.0) THEN    
-          CALL UCOPY (IHEADF(MINSDF+1), KEYVDK, NWKEY)  
+          CALL UCOPY_i (IHEADF(MINSDF+1), KEYVDK, NWKEY)  
           CALL DBPURK (PATHN, ITIME, KEYVDK, CHOPF) 
         ELSE    
           KYDAT  = IHEADF(MINSDF+MSERDB)    
@@ -4428,8 +4450,8 @@ C-
 *   
 *  **   Rename the keys 
 *   
-        CALL UCOPY  (IHEADF(MPREDF+1), KEYVDK, NWKEY)   
-        CALL UCOPY  (IHEADF(MPREDF+NWKEY+1), KEYN, NWKEY)   
+        CALL UCOPY_i  (IHEADF(MPREDF+1), KEYVDK, NWKEY)   
+        CALL UCOPY_i  (IHEADF(MPREDF+NWKEY+1), KEYN, NWKEY)   
         CALL DBRENK (PATHN, KEYVDK, KEYN)   
         IF (IDEBDB.GT.0) THEN   
           CALL DBUPTM (IARGDB(1), IARGDB(2), IHEADF(MPREDF+MITMDB)) 
@@ -4445,7 +4467,7 @@ C-
 *  **   Enter the name or help information  
 *   
         IFLG   = IHEADF(MFLGDF) 
-        CALL UCOPY  (IHEADF(MFLGDF+1), KEYVDK, NWKEY)   
+        CALL UCOPY_i  (IHEADF(MFLGDF+1), KEYVDK, NWKEY)   
         CALL DBSNAM (IFLG, KEYVDK, 0, TOPN, LUNFZ)  
         IF (IDEBDB.GT.0) THEN   
           IARGDB(1) = IHEADF(MFLGDF+MSERDB) 
@@ -4497,8 +4519,9 @@ C-
       ELSE IF (IACT.EQ.9) THEN  
 *   
 *  **   Use the forbidden path for updating data base (replace object)  
-*   
-        CALL FZIN (LUNFZ, IDISDB, LFIXDB, 2, 'A', 0, 0) 
+*
+        itmp(1) = 0
+        CALL FZIN (LUNFZ, IDISDB, LFIXDB, 2, 'A', 0, itmp) 
         IF (IQUEST(1).GT.0)                                GO TO 997    
         IF (IQUEST(1).NE.0) THEN    
           IQUEST(11) = IQUEST(1)    
@@ -4507,7 +4530,7 @@ C-
      +    'ror type '',I12)', IQUEST(11), 1)    
           GO TO 991 
         ENDIF   
-        CALL UCOPY (IHEADF(MPREDF+1), KEYN, NWKEY)  
+        CALL UCOPY_i (IHEADF(MPREDF+1), KEYN, NWKEY)  
         CALL DBDONT (PATHN, IDISDB, LFIXDB, NWKEY, KEYN, CHOPF) 
         IKEEP  = IQUEST(1)  
         CALL MZDROP (IDISDB, LFIXDB, 'L')   
@@ -4684,7 +4707,7 @@ C-
         JBIAS  =-KLKYDB 
       ENDIF 
       NDK    = IQ(KOFUDB+LBNODB+MNDNWD) 
-      CALL UCOPY (IQ(KOFUDB+LBNODB+MNDIOF), IOKYDB, NWNODB) 
+      CALL UCOPY_i (IQ(KOFUDB+LBNODB+MNDIOF), IOKYDB, NWNODB) 
 *   
 * *** Set the current directory 
 *   
@@ -4764,7 +4787,7 @@ C-
           LFIXDB = LBKYDB   
           JBIAS  = 0    
           IF (IOPKDA.EQ.0) THEN 
-            CALL VZERO (KEYVDK, NWKYDK) 
+            CALL VZERO_i (KEYVDK, NWKYDK) 
             KEYVDK(MSERDB) = IK 
             IOKYDA(MSERDB) = 1  
             CALL DBKXIN (ITIME, IDIVDB, LAUXDL(9), LBKYDB, -KLDADB, 
@@ -4775,7 +4798,7 @@ C-
             IQ(KOFUDB+LBKYDB+NDK+MKYRID) = IQ(KOFUDB+LBKYDB+NDK+MKYRID) 
      +                                   + 1    
           ENDIF 
-          CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LBKYDB+1), NWKYDK)   
+          CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LBKYDB+1), NWKYDK)   
           IQ(KOFUDB+LBKYDB+NWKYDK+1) = IQ(KOFUDB+LBKYDB+MBVRDB) + 1 
           IF (IQUEST(1).NE.0)                                GO TO 999  
           IF (IOPSDA.EQ.0) THEN 
@@ -4855,7 +4878,7 @@ C-
             LFIXDB = LBKYDB 
             JBIAS  = 0  
             IF (IOPKDA.EQ.0) THEN   
-              CALL VZERO (KEYVDK, NWKYDK)   
+              CALL VZERO_i (KEYVDK, NWKYDK)   
               KEYVDK(MSERDB) = IK   
               IOKYDA(MSERDB) = 1    
               CALL DBKXIN (ITIME, IDIVDB, LAUXDL(9), LBKYDB, -KLDADB,   
@@ -4866,7 +4889,7 @@ C-
               IQ(KOFUDB+LBKYDB+NDK+MKYRID) =IQ(KOFUDB+LBKYDB+NDK+MKYRID)    
      +                                     + 1  
             ENDIF   
-            CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LBKYDB+1), NWKYDK) 
+            CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LBKYDB+1), NWKYDK) 
             IQ(KOFUDB+LBKYDB+NWKYDK+1) = IQ(KOFUDB+LBKYDB+MBVRDB) + 1   
             IOKYDA(MSERDB) = 0  
             IF (IQUEST(1).NE.0)                              GO TO 999  
@@ -5047,7 +5070,7 @@ C-
         JBIAS  =-KLKYDB 
       ENDIF 
       NDK    = IQ(KOFUDB+LBNODB+MNDNWD) 
-      CALL UCOPY (IQ(KOFUDB+LBNODB+MNDIOF), IOKYDB, NWNODB) 
+      CALL UCOPY_i (IQ(KOFUDB+LBNODB+MNDIOF), IOKYDB, NWNODB) 
 *   
 * *** Set the current directory 
 *   
@@ -5125,7 +5148,7 @@ C-
           LFIXDB = LBKYDB   
           JBIAS  = 0    
           IF (IOPKDA.EQ.0) THEN 
-            CALL VZERO (KEYVDK, NWKYDK) 
+            CALL VZERO_i (KEYVDK, NWKYDK) 
             KEYVDK(MSERDB) = IK 
             IOKYDA(MSERDB) = 1  
             CALL DBKXIN (ITIME, IDIVDB, LAUXDL(9), LBKYDB, -KLDADB, 
@@ -5136,7 +5159,7 @@ C-
             IQ(KOFUDB+LBKYDB+NDK+MKYRID) = IQ(KOFUDB+LBKYDB+NDK+MKYRID) 
      +                                   + 1    
           ENDIF 
-          CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LBKYDB+1), NWKYDK)   
+          CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LBKYDB+1), NWKYDK)   
           IQ(KOFUDB+LBKYDB+NWKYDK+1) = IQ(KOFUDB+LBKYDB+MBVRDB) + 1 
           IF (IQUEST(1).NE.0)                                GO TO 999  
    20   CONTINUE    
@@ -5210,7 +5233,7 @@ C-
             LFIXDB = LBKYDB 
             JBIAS  = 0  
             IF (IOPKDA.EQ.0) THEN   
-              CALL VZERO (KEYVDK, NWKYDK)   
+              CALL VZERO_i (KEYVDK, NWKYDK)   
               KEYVDK(MSERDB) = IK   
               IOKYDA(MSERDB) = 1    
               CALL DBKXIN (ITIME, IDIVDB, LAUXDL(9), LBKYDB, -KLDADB,   
@@ -5221,7 +5244,7 @@ C-
               IQ(KOFUDB+LBKYDB+NDK+MKYRID) =IQ(KOFUDB+LBKYDB+NDK+MKYRID)    
      +                                     + 1  
             ENDIF   
-            CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LBKYDB+1), NWKYDK) 
+            CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LBKYDB+1), NWKYDK) 
             IQ(KOFUDB+LBKYDB+NWKYDK+1) = IQ(KOFUDB+LBKYDB+MBVRDB) + 1   
             IOKYDA(MSERDB) = 0  
             IF (IQUEST(1).NE.0)                              GO TO 999  
@@ -5317,7 +5340,8 @@ C-
 *   
       PARAMETER       (NWDS=50) 
       CHARACTER       CHOPT*(*), PATH*80, PATHN*80  
-*   
+*
+      dimension nio(9), iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
@@ -5330,9 +5354,10 @@ C-
       LREFDB(1) = LBAFDB    
       IF (LREFDB(1).EQ.0) THEN  
         JBIAS  = 1  
-        ND     = NWDS * (MXLWDB + 1)    
+        ND     = NWDS * (MXLWDB + 1)
+        nio(1) = iofddb
         CALL DBBOOK (IDIVDB, LBAFDB, LBAFDB, JBIAS, 'FDDB', 0, 0, ND,   
-     +               IOFDDB, -1)    
+     +               nio, -1)    
         IF (IQUEST(1).NE.0)   GO TO 999 
         IQ(KOFUDB+LBAFDB-5) = 0 
         LREFDB(1) = LBAFDB  
@@ -5348,9 +5373,10 @@ C-
 * *** Check input file number   
 *   
       IF (LUNI.LE.0) THEN   
-        IQUEST(1) = 232 
+        IQUEST(1) = 232
+        iarg(1) = luni
         IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBILDF : Illegal'//    
-     +  ' logical unit number'',I12)', LUNI, 1) 
+     +  ' logical unit number'',I12)', iarg, 1) 
         GO TO 999   
       ENDIF 
 *   
@@ -5367,17 +5393,18 @@ C-
       IF (NCUR.GT.NWMX) THEN    
         CALL ZSHUNT (IDIVDB, LREFDB(1), LREFDB(3), 2, 0)    
         ND     = IQ(KOFUDB+LREFDB(3)-1) + NWDS * (MXLWDB + 1)   
-        JBIAS  = 1  
+        JBIAS  = 1
+        nio(1) = iofddb
         CALL DBBOOK (IDIVDB, LBAFDB, LBAFDB, JBIAS, 'FDDB', 0, 0, ND,   
-     +               IOFDDB, -1)    
+     +               nio, -1)    
         IF (IQUEST(1).NE.0) THEN    
           IERR   = IQUEST(1)    
           CALL MZDROP (IDIVDB, LREFDB(3), ' ')  
           IQUEST(1) = IERR  
           GO TO 999 
         ENDIF   
-        CALL UCOPY (IQ(KOFUDB+LREFDB(3)+1), IQ(KOFUDB+LBAFDB+1),    
-     +              IQ(KOFUDB+LREFDB(3)-1)) 
+        CALL UCOPY_i (IQ(KOFUDB+LREFDB(3)+1), IQ(KOFUDB+LBAFDB+1),    
+     +                IQ(KOFUDB+LREFDB(3)-1)) 
         LREFDB(1) = LBAFDB  
         CALL MZDROP (IDIVDB, LREFDB(3), ' ')    
         IQUEST(1) = 0   
@@ -5391,14 +5418,16 @@ C-
 *   
    20 IQUEST(11)= NCNT  
       IF (IDEBDB.GT.3) THEN 
-        NCUR   = IQ(KOFUDB+LREFDB(1)-5) 
+        NCUR   = IQ(KOFUDB+LREFDB(1)-5)
+        iarg(1) = ncur
         CALL DBPRNT (LPRTDB, '(/,'' DBILDF : '',I8,'' directory names'//    
-     +       ' stored for forced updating'')', NCUR, 1) 
+     +       ' stored for forced updating'')', iarg, 1) 
         DO 30 I = 1, NCUR   
           IPNT   = KOFUDB + LREFDB(1) + (I - 1) * (MXLWDB + 1) + 1  
-          CALL UHTOC (IQ(IPNT+1), 4, PATH, 80)  
+          CALL UHTOC (IQ(IPNT+1), 4, PATH, 80)
+          iarg(1) = i
           CALL DBPRNT (LPRTDB, '(10X,''Directory '',I5,'' '//PATH//''')'    
-     +,        I, 1)    
+     +,        Iarg, 1)    
    30   CONTINUE    
       ENDIF 
 *   
@@ -5483,7 +5512,8 @@ C-
 *   
       PARAMETER       (NWDS=50) 
       CHARACTER       CHOPT*(*), TOPNM*(*), TOPN*16, PATH*80, PATHN*80  
-*   
+*
+      dimension nio(9), iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option and analyse the top directory name    
@@ -5526,9 +5556,10 @@ C-
           ENDIF 
         ELSE    
           JBIAS  = 1    
-          ND     = NWDS * (MXLWDB + 1) + MFZDIR - 1 
+          ND     = NWDS * (MXLWDB + 1) + MFZDIR - 1
+          nio(1) = iofzdb
           CALL DBBOOK (IDIVDB, LBADDB, LBADDB, JBIAS, 'FZDB', 0, 0, ND, 
-     +                 IOFZDB, -1)  
+     +                 nio, -1)  
           IF (IQUEST(1).NE.0) GO TO 999 
           IQ(KOFUDB+LBADDB-5) = 0   
           LREFDB(1) = LBADDB    
@@ -5547,9 +5578,10 @@ C-
 * *** Check input file number   
 *   
       IF (LUNI.LE.0) THEN   
-        IQUEST(1) = 232 
+        IQUEST(1) = 232
+        iarg(1) = luni
         IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBILDU : Illegal'//    
-     +  ' logical unit number'',I12)', LUNI, 1) 
+     +  ' logical unit number'',I12)', iarg, 1) 
         GO TO 999   
       ENDIF 
 *   
@@ -5566,9 +5598,10 @@ C-
       IF (NCUR.GT.NWMX) THEN    
         CALL ZSHUNT (IDIVDB, LREFDB(1), LREFDB(3), 2, 0)    
         ND     = IQ(KOFUDB+LREFDB(3)-1) + NWDS * (MXLWDB + 1)   
-        JBIAS  = 1  
+        JBIAS  = 1
+        nio(1) = iofzdb
         CALL DBBOOK (IDIVDB, LBADDB, LBADDB, JBIAS, 'FZDB', 0, 0, ND,   
-     +               IOFZDB, -1)    
+     +               nio, -1)    
         IF (IQUEST(1).NE.0) THEN    
           IERR   = IQUEST(1)    
           CALL MZDROP (IDIVDB, LREFDB(3), ' ')  
@@ -5576,8 +5609,8 @@ C-
           IQUEST(1) = IERR  
           GO TO 999 
         ENDIF   
-        CALL UCOPY (IQ(KOFUDB+LREFDB(3)+1), IQ(KOFUDB+LBADDB+1),    
-     +              IQ(KOFUDB+LREFDB(3)-1)) 
+        CALL UCOPY_i (IQ(KOFUDB+LREFDB(3)+1), IQ(KOFUDB+LBADDB+1),    
+     +                IQ(KOFUDB+LREFDB(3)-1)) 
         LREFDB(1) = LBADDB  
         IF (LREFDB(2).GT.0) LQ(KOFUDB+LREFDB(2)-KLFZDB) = LBADDB    
         CALL MZDROP (IDIVDB, LREFDB(3), ' ')    
@@ -5593,14 +5626,16 @@ C-
    30 IQUEST(11)= NCNT  
       IF (IDEBDB.GT.3) THEN 
         NCUR   = IQ(KOFUDB+LREFDB(1)-5) 
-        CALL UHTOC (IQ(KOFUDB+LREFDB(1)+MFZTOP), 4, TOPNDI, 16) 
+        CALL UHTOC (IQ(KOFUDB+LREFDB(1)+MFZTOP), 4, TOPNDI, 16)
+        iarg(1) = ncur
         CALL DBPRNT (LPRTDB, '(/,'' DBILDU : '',I8,'' directory names'//    
-     +       ' stored for top directory '//TOPNDI//''')', NCUR, 1)  
+     +       ' stored for top directory '//TOPNDI//''')', iarg, 1)  
         DO 40 I = 1, NCUR   
           IPNT   = KOFUDB + LREFDB(1) + MFZDIR + (I - 1) * (MXLWDB + 1) 
-          CALL UHTOC (IQ(IPNT+1), 4, PATH, 80)  
+          CALL UHTOC (IQ(IPNT+1), 4, PATH, 80)
+          iarg(1) = i
           CALL DBPRNT (LPRTDB, '(10X,''Directory '',I5,'' '//PATH//''')'    
-     +,        I, 1)    
+     +,        Iarg, 1)    
    40   CONTINUE    
       ENDIF 
 *   
@@ -5784,7 +5819,7 @@ C-
       CALL DBKXIN (ITIME, IUDIV, LSUP(1), LSUP(1), JBIAS, NWKEY, KEYVDK,    
      +             IPREC)   
       IF (IQUEST(1).NE.0) GO TO 999 
-      CALL UCOPY (KEYVDK, KEY, NWKEY)   
+      CALL UCOPY_i (KEYVDK, KEY, NWKEY)   
 *                                                               END DBIN    
   999 END   
       SUBROUTINE DBINCT (IDTMI, ISADD, IDTMO)   
@@ -6003,21 +6038,22 @@ C-
       PARAMETER       (NOPRZ=7) 
       CHARACTER       CHOPT*(*), TOPNM*(*)  
       CHARACTER       CHOP*8, COPRZ(NOPRZ)*1, TOP*16, TOP1*16, PATH*18  
-      INTEGER         KEYXT(4), IBUF(2), IOPRZ(NOPRZ), IACRZ(NOPRZ) 
-      DIMENSION       LTOP(9)   
-      SAVE            INIT, NTOPM, IUPDB, KEYXT, IBUF, NBUF, NKYXT  
+      INTEGER         KEYXT(4), IOPRZ(NOPRZ), IACRZ(NOPRZ)
+      real fbuf(2)
+      SAVE            INIT, NTOPM, IUPDB, KEYXT, fBUF, NBUF, NKYXT  
       SAVE            IVSTR, IVEND, IDTYP, IPRVS, COPRZ, IACRZ  
 *   
-      DATA            KEYXT /0, 0, 0, 0/, IBUF /0, 0/, NKYXT /4/    
+      DATA            KEYXT /0, 0, 0, 0/, fBUF /0, 0/, NKYXT /4/    
       DATA            IVSTR /0/, IVEND /999999999/, IDTYP /2/, IPRVS /1/    
       DATA            INIT /0/, NBUF /2/    
       DATA            COPRZ /'1', 'D', 'L', 'M', 'S', 'U', 'X'/ 
       DATA            IACRZ /  0,   0,   1,   0,   0,   0,   0/ 
-*   
+*
+      dimension iarg(9), nio(9)
 *     ------------------------------------------------------------------    
 *   
 C ACP_data_retrieval_start  
-      LTOP(1)= 0    
+      LTOP= 0    
       NTOP   = IQUEST(1)    
       IOPTO  = 0    
       CALL UOPTC (CHOPT, 'Z', IOPTZ)    
@@ -6108,9 +6144,10 @@ C ACP_data_retrieval_start
         ENDIF   
         IF (TOP.EQ.TOPNDI.AND.LUN.EQ.LUNRZ) THEN    
           IQUEST(1) = -2    
-          LSAVDB = 0    
+          LSAVDB = 0
+          iarg(1) = lunrz
           CALL DBPRNT (LPRTDB, '(/,'' DBINIT : Top Directory '//TOPNDI//    
-     +         ' is already open on unit '',I4)', LUNRZ, 1) 
+     +         ' is already open on unit '',I4)', iarg, 1) 
           GO TO 999 
         ENDIF   
         IF (TOP.EQ.TOPNDI.OR. LUN.EQ.LUNRZ) THEN    
@@ -6130,12 +6167,14 @@ C ACP_data_retrieval_start
         IF (LSAVDB.NE.0)       GO TO 40 
 *   
 *  **   Create linear structure of the top-directories  
-*   
+*
+        nio(1) = iupdb
         CALL MZBOOK (IDIVDB, LSAVDB, LSUP, 0, 'UPDB', NLUPDB, NSUPDB,   
-     +               NDUPDB, IUPDB, -1) 
+     +               NDUPDB, nio, -1) 
       ELSE  
+        nio(1) = iupdb
         CALL MZBOOK (IDIVDB, LTOPDB, 0, 2, 'UPDB', NLUPDB, NSUPDB,  
-     +               NDUPDB, IUPDB, -1) 
+     +               NDUPDB, nio, -1) 
         LSAVDB = LTOPDB 
       ENDIF 
 *   
@@ -6173,9 +6212,10 @@ C ACP_data_retrieval_start
         IF (LTOPDB.EQ.LSAVDB) LTOPDB = 0    
         CALL MZDROP (IDIVDB, LSAVDB, ' ')   
         CALL RZEND  (TOPNDI)    
-        IQUEST(1) = -2  
+        IQUEST(1) = -2
+        iarg(1) = lunrz
         CALL DBPRNT (LPRTDB, '(/,'' DBINIT : Top Directory '//TOPNDI//  
-     +       ' is already open on unit '',I4)', LUNRZ, 1)   
+     +       ' is already open on unit '',I4)', iarg, 1)   
       ELSE  
 *   
         IF (IOPTN.NE.0)  THEN   
@@ -6183,7 +6223,7 @@ C ACP_data_retrieval_start
 *   *     Create the version number 
 *   
           PATH = '//'//TOPNDI   
-          CALL DBVOUT (PATH, IVSTR, IVEND, NBUF, IBUF, IPRVS, NKYXT 
+          CALL DBVOUT (PATH, IVSTR, IVEND, NBUF, fBUF, IPRVS, NKYXT 
      +               , KEYXT, IDTYP, 0, 'SU')   
           IERR = IQUEST(1)  
           IF (IERR.NE.0) THEN   
@@ -6225,7 +6265,7 @@ C ACP_data_retrieval_start
 *   
       ENDIF 
 *   
-      LTOP(1) = LSAVDB  
+      LTOP = LSAVDB  
    60 LSAVDB = 0    
 *                                                             END DBINIT    
   999 CONTINUE  
@@ -6313,15 +6353,17 @@ C ACP_data_retrieval_end
       CHARACTER       PATH*80, PATHX*16, PATHY*80, PATHF*80, PATHZ*16   
       CHARACTER       CNODE(NLEVM)*16   
       CHARACTER*(*)   PATHS(*), CHOPT   
-*   
+*
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Find the top directory name   
 *   
       IF (NPATH.LE.0) THEN  
-        IQUEST(1) = 211 
+        IQUEST(1) = 211
+        iarg(1) = npath
         IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBKEPT : Illegal'//    
-     +  ' number of paths to be kept '',I12)', NPATH, 1)    
+     +  ' number of paths to be kept '',I12)', iarg, 1)    
         GO TO 999   
       ENDIF 
       PATHX  = ' '  
@@ -6650,7 +6692,7 @@ C ACP_data_retrieval_end
 *   
 * *** Read in the data  
 *   
-      CALL VZERO (KEYVDK, NWKYDK)   
+      CALL VZERO_i (KEYVDK, NWKYDK)   
       KEYVDK(MSERDB) = KEY1S    
       CALL DBKXIN (ITIME, IUDIV, LBD(1), LSUP(1), JBIAS, NWKEY, KEYVDK, 
      +             IPREC)   
@@ -7633,7 +7675,8 @@ C ACP_data_retrieval_end
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension iarg(9), nio(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Check on format and tags of the DB system keys    
@@ -7887,7 +7930,7 @@ C ACP_data_retrieval_end
 * *** Now create Partitioned subdirectory   
 *   
    80 NK    = IQUEST(7) 
-      CALL VZERO (KEYNDK, NSYSDK)   
+      CALL VZERO_i (KEYNDK, NSYSDK)   
       IF (NK.GT.0) THEN 
 *   
 *  **   Get the keys of the last data inserted  
@@ -7944,9 +7987,10 @@ C ACP_data_retrieval_end
         ENDIF   
       ENDIF 
       IF (LSTRDL(3).NE.0) CALL MZDROP (IDISDB, LSTRDL(3), ' ')  
-      JBIAS  = 2    
+      JBIAS  = 2
+      nio(1) = 2
       CALL DBBOOK (IDISDB, LSTRDL(3), LSTRDL(3), JBIAS, 'SAME', 0, 0, 0,    
-     +             2, 0)    
+     +             nio, 0)    
       IF (IQUEST(1).NE.0)                        GO TO 9981 
       CALL RZOUT (IDISDB, LSTRDL(3), KEYNDK, ICYCLE, 'S')   
       CALL MZDROP (IDISDB, LSTRDL(3), ' ')  
@@ -7976,16 +8020,17 @@ C ACP_data_retrieval_end
         CALL DBPRNT (LPRTDB, '(/,'' DBMDIP : The system tags for CHTA'//    
      +       'G does not conform with defaults '')', IARGDB, 0) 
         DO 9921 I = 1, NSYSDK   
-          CHTMP = CHTAG(I)  
+          CHTMP = CHTAG(I)
+          iarg(1) = i
           CALL DBPRNT (LPRTDB, '(10X,''Key '',I2,'' Supplied '//CHTMP// 
-     +         ' Default '//CHTGDK(I)//''')', I, 1) 
+     +         ' Default '//CHTGDK(I)//''')', Iarg, 1) 
  9921   CONTINUE    
       ENDIF 
       GO TO 999 
 *   
   993 IQUEST(1) = 43    
       IQUEST(11)= NWKEY 
-      IQUEST(12)= MXDMDK    
+      IQUEST(12)= MXDMDK
       IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBMDIP : Too many '//    
      +   'key elements requested = '',I6,'' maximum permitted '',I5)',  
      +   IQUEST(11), 2) 
@@ -8009,9 +8054,9 @@ C ACP_data_retrieval_end
 *   
   998 IQUEST(1) = 48    
       IQUEST(11)= ISTCH 
-      IQUEST(12)= NCH   
+      IQUEST(12)= NCH
       IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBMDIP : Error in '//    
-     +   'Directory Search - ISTCH = '',I5,'' NCH = '',I5)', IQUEST(11),    
+     +   'Directory Search - ISTCH = '',I5,'' NCH = '',I5)', IQUEST(11),
      +   2) 
 *   
 * *** Unlock the directory if required  
@@ -8137,7 +8182,8 @@ C ACP_data_retrieval_end
       CHARACTER       CHFOR*(*), PATHN*(*)  
       CHARACTER       PATH*80, PATHX*80, PATHL*80, CHTMP*8  
       CHARACTER*(*)   CHTAG(*)  
-*   
+*
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Check on format and tags of the DB system keys    
@@ -8369,16 +8415,17 @@ C ACP_data_retrieval_end
         CALL DBPRNT (LPRTDB, '(/,'' DBMDIR : The system tags for CHTA'//    
      +       'G does not conform with defaults '')', IARGDB, 0) 
         DO 9921 I = 1, NSYSDK   
-          CHTMP = CHTAG(I)  
+          CHTMP = CHTAG(I)
+          iarg(1) = i
           CALL DBPRNT (LPRTDB, '(10X,''Key '',I2,'' Supplied '//CHTMP// 
-     +         ' Default '//CHTGDK(I)//''')', I, 1) 
+     +         ' Default '//CHTGDK(I)//''')', Iarg, 1) 
  9921   CONTINUE    
       ENDIF 
       GO TO 999 
 *   
   993 IQUEST(1) = 43    
       IQUEST(11)= NWKEY 
-      IQUEST(12)= MXDMDK    
+      IQUEST(12)= MXDMDK
       IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBMDIR : Too many '//    
      +   'key elements requested = '',I6,'' maximum permitted '',I5)',  
      +   IQUEST(11), 2) 
@@ -8408,7 +8455,7 @@ C ACP_data_retrieval_end
 *   
   998 IQUEST(1) = 48    
       IQUEST(11)= ISTCH 
-      IQUEST(12)= NCH   
+      IQUEST(12)= NCH
       IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBMDIR : Error in '//    
      +   'Directory Search - ISTCH = '',I5,'' NCH = '',I5)', IQUEST(11),    
      +   2) 
@@ -8551,7 +8598,10 @@ C ACP_data_retrieval_end
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      integer ival
+      real fval
+      equivalence (ival, fval)
 *     ------------------------------------------------------------------    
 *   
 * *** Suppress blanks from the path name    
@@ -8716,7 +8766,7 @@ C ACP_data_retrieval_end
               IQUEST(1) = IER   
               GO TO 997 
             ENDIF   
-            CALL UCOPY (Q(KOFUDB+LSTRDL(2)+3), IXX, 1)  
+            ixx = iQ(KOFUDB+LSTRDL(2)+3)
             IF (IQ(KOFUDB+LSTRDL(2)+1).EQ.0) THEN   
               IF (KEYSDS(MUPNDB,NOBJDS).EQ.0) THEN  
                 CHOPS(NOBJDS) = '7SU'   
@@ -8768,7 +8818,7 @@ C ACP_data_retrieval_end
       KOBJ   = KEYO(MOBJDB) 
       MXKP   = KEYO(MXKPDB) 
       NWKYS  = NWKYDK   
-      CALL UCOPY (KEYO, KEYN, NWKYDK)   
+      CALL UCOPY_i (KEYO, KEYN, NWKYDK)   
 *   
       CALL DBPATH (PATHX, NKEYDK)   
       CALL RZCDIR (PATHX, ' ')  
@@ -8812,8 +8862,9 @@ C ACP_data_retrieval_end
             IFORO  = 3  
             NCUR   = 1  
             NLEV   = NLEV + 1   
-            CHCUR(NLEV) = CFORM(IFORO)  
-            CALL UCOPY (PRECDZ, IHEADF(MPREDF), 1)  
+            CHCUR(NLEV) = CFORM(IFORO)
+            fval = precdz
+            iheadf(mpredf) = ival
           ELSE  
             IHEADF(MPREDF) = IPREC  
           ENDIF 
@@ -8842,7 +8893,7 @@ C ACP_data_retrieval_end
           CHFRM = CHFRM(1:II)//' -H'    
           CALL MZIOCH (IOFMDF, NWFMDF, CHFRM(1:II+3))   
           CALL UCTOH (CHOP0, IHEADF(NWKYDK+MPREDF+1), 4, 4*NDOP)    
-          CALL UCOPY (KEYSDS(1,IOBJ), IHEADF(MPREDF+1), NWKYDK) 
+          CALL UCOPY_i (KEYSDS(1,IOBJ), IHEADF(MPREDF+1), NWKYDK) 
           CALL FZOUT (LUFZDF, IDISDB, LOBJDS(IOBJ), 1, 'L', IOFMDF, 
      +                NWDH, IHEADF) 
           IF (IQUEST(1).NE.0) THEN  
@@ -8874,8 +8925,8 @@ C ACP_data_retrieval_end
           IF (IERR.NE.0) THEN   
             IQUEST(1) = 74  
             IF (IDEBDB.GT.0) THEN   
-              CALL UCOPY (KEYO, IARGDB(1),        NSYSDK)   
-              CALL UCOPY (KEYN, IARGDB(NSYSDK+1), NSYSDK)   
+              CALL UCOPY_i (KEYO, IARGDB(1),        NSYSDK)   
+              CALL UCOPY_i (KEYN, IARGDB(NSYSDK+1), NSYSDK)   
               CALL DBPRNT (LPRTDB, '(/,'' DBNTOP : Error in RZRENK '//  
      +             'while writing data for '//PATHY//''',/(10X,7I12))', 
      +             IARGDB, 2*NSYSDK)    
@@ -8907,7 +8958,7 @@ C ACP_data_retrieval_end
           LCDRDB = IQUEST(11)   
           IKDRDB = IQUEST(13)   
           NINS   = NKEYDK + 1   
-          CALL UCOPY (KEYO, KEYN, NWKYDK)   
+          CALL UCOPY_i (KEYO, KEYN, NWKYDK)   
         ENDIF   
 *   
         IDB    = IDBTYP (LOBJDS(IOBJ))  
@@ -8993,7 +9044,7 @@ C ACP_data_retrieval_end
         KEYN(MEVRDB) = MAX0 (KEYN(MEVRDB), KEYSDS(MEVRDB,IOBJ)) 
         IF (IQUEST(1).NE.0)        GO TO 993    
         IF (IDEBDB.GT.1) THEN   
-          CALL UCOPY (KEYSDS(1,IOBJ), KEYNDK, NWKYDK)   
+          CALL UCOPY_i (KEYSDS(1,IOBJ), KEYNDK, NWKYDK)   
           CALL DBUPTM (IARGDB(1), IARGDB(2), KEYNDK(MITMDB))    
           CALL DBPRNT (LPRTDB, '(/,'' DBNTOP : Data was inserted into'//    
      +         '   '//PATHY//''',/,10X,''on the '',I8,'' at '',I6,'' '//    
@@ -9022,8 +9073,8 @@ C ACP_data_retrieval_end
         IF (IERR.NE.0) THEN 
           IQUEST(1) = 74    
           IF (IDEBDB.GT.0) THEN 
-            CALL UCOPY (KEYO, IARGDB(1),        NSYSDK) 
-            CALL UCOPY (KEYN, IARGDB(NSYSDK+1), NSYSDK) 
+            CALL UCOPY_i (KEYO, IARGDB(1),        NSYSDK) 
+            CALL UCOPY_i (KEYN, IARGDB(NSYSDK+1), NSYSDK) 
             CALL DBPRNT (LPRTDB, '(/,'' DBNTOP : Error in RZRENK '//    
      +           'while writing data for '//PATHY//''',/(10X,7I12))',   
      +           IARGDB, 2*NSYSDK)  
@@ -9069,8 +9120,8 @@ C ACP_data_retrieval_end
             IF (IERR.NE.0) THEN 
               IQUEST(1) = 74    
               IF (IDEBDB.GT.0) THEN 
-                CALL UCOPY (KEYO, IARGDB(1),        NSYSDK) 
-                CALL UCOPY (KEYN, IARGDB(NSYSDK+1), NSYSDK) 
+                CALL UCOPY_i (KEYO, IARGDB(1),        NSYSDK) 
+                CALL UCOPY_i (KEYN, IARGDB(NSYSDK+1), NSYSDK) 
                 CALL DBPRNT (LPRTDB, '(/,'' DBNTOP : Error in RZRENK '//    
      +               'while writing data for '//PATHY//''',/(10X,7I12))'    
      +,              IARGDB, 2*NSYSDK)  
@@ -9203,7 +9254,10 @@ C ACP_data_retrieval_end
 *   
       DIMENSION       KEYXT(9), LSUP(9) 
       CHARACTER       CHOPT*(*), PATHN*(*), PATH*80 
-*   
+*
+      integer ival
+      real fval
+      equivalence (ival, fval)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
@@ -9219,8 +9273,9 @@ C ACP_data_retrieval_end
      +  'executed'')', IARGDB, 0)   
 *   
       ELSE IF (IOPZDA.NE.0)  THEN   
-        PACKDZ = .TRUE. 
-        CALL UCOPY (IPREC, PRECDZ, 1)   
+        PACKDZ = .TRUE.
+        ival = IPREC
+        PRECDZ = fval
       ENDIF 
 *   
       IF (IOPRDA.NE.0.AND.IOPNDA.NE.0)  THEN    
@@ -9242,8 +9297,8 @@ C ACP_data_retrieval_end
 *   
 * *** Prepare the Key vector array  
 *   
-      CALL VZERO (KEYVDK, MXDMDK)   
-      IF (NKEXT.GT.2) CALL UCOPY (KEYXT(3), KEYVDK(8), NKEXT-2) 
+      CALL VZERO_i (KEYVDK, MXDMDK)   
+      IF (NKEXT.GT.2) CALL UCOPY_i (KEYXT(3), KEYVDK(8), NKEXT-2) 
       KEYVDK(MBVRDB) = IVSTR    
       KEYVDK(MEVRDB) = IVEND    
       KEYVDK(MPVSDB) = IPRVS    
@@ -9498,7 +9553,9 @@ C ACP_data_retrieval_end
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+
+      dimension kdum(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Suppress blanks from the path name    
@@ -9728,7 +9785,7 @@ C ACP_data_retrieval_end
             GO TO 996   
           ENDIF 
           IF (IDEBDB.GT.1) THEN 
-            CALL UCOPY (KEYSDS(1,IK), KEYNDK, NWKYDK)   
+            CALL UCOPY_i (KEYSDS(1,IK), KEYNDK, NWKYDK)   
             CALL DBUPTM (IARGDB(1), IARGDB(2), KEYNDK(MITMDB))  
             CALL DBPRNT (LPRTDB, '(/,'' DBPRGD : Data was inserted in'//    
      +           'to   '//PATHY//''',/,10X,''on the '',I8,'' at '',I6'//    
@@ -9770,8 +9827,8 @@ C ACP_data_retrieval_end
         IF (IQUEST(1).NE.0) THEN    
           IQUEST(1) = 74    
           IF (IDEBDB.GT.0) THEN 
-            CALL UCOPY  (KEYO, IARGDB(1),        NSYSDK)    
-            CALL UCOPY  (KEYN, IARGDB(NSYSDK+1), NSYSDK)    
+            CALL UCOPY_i  (KEYO, IARGDB(1),        NSYSDK)    
+            CALL UCOPY_i  (KEYN, IARGDB(NSYSDK+1), NSYSDK)    
             CALL DBPRNT (LPRTDB, '(/,'' DBPRGD : Error in RZRENK whil'//    
      +           'e writing data for '//PATHY//''',/(10X,7I12))',   
      +           IARGDB, 2*NSYSDK)  
@@ -10144,7 +10201,9 @@ C ACP_data_retrieval_end
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+
+      dimension kdum(9)
 *     ------------------------------------------------------------------    
 *   
       KEY7   = KEY7DK   
@@ -10178,7 +10237,7 @@ C ACP_data_retrieval_end
 *   
 * *** Save the command in the journal file  
 *   
-      CALL VZERO (KEYS, NSYSDK) 
+      CALL VZERO_i (KEYS, NSYSDK) 
       KEYS(MSERDB) = KYDAT  
       KEYS(MUPNDB) = KYTIM  
       KEY7DK  = KEY7    
@@ -10198,7 +10257,7 @@ C ACP_data_retrieval_end
             IF (IOPS.NE.0) CALL RZFREE ('DBPURG')   
             NDEL   = NKEYDK 
           ELSE  
-            CALL VZERO (IPURDK, NKEYDK) 
+            CALL VZERO_i (IPURDK, NKEYDK) 
             IPNT   = KOFSDB + LCDRDB + IKDRDB   
             ISTP   = NWKYDK + 1 
             NKEEP  = 0  
@@ -10245,7 +10304,7 @@ C ACP_data_retrieval_end
                 IKDRDB = IQUEST(13) 
                 IPNT   = KOFSDB + LCDRDB + IKDRDB   
                 ISTP   = NWKYDK + 1 
-                CALL VZERO (IPURDK, NKEYDK) 
+                CALL VZERO_i (IPURDK, NKEYDK) 
                 NKEEP  = 0  
                 DO 15 JK = 1, NKEYDK    
                   IP     = IPNT + (JK - 1) * ISTP   
@@ -10275,7 +10334,7 @@ C ACP_data_retrieval_end
 *  **   on) Highest number of KEY(1)    
 *   
         IF (IOPTP.EQ.0) THEN    
-          CALL VZERO (IPURDK, NKEYDK)   
+          CALL VZERO_i (IPURDK, NKEYDK)   
           NO1    = 0    
           IPNT   = KOFSDB + LCDRDB + IKDRDB 
           ISTP   = NWKYDK + 1   
@@ -10321,7 +10380,7 @@ C ACP_data_retrieval_end
               IPNT   = KOFSDB + LCDRDB + IKDRDB 
               ISTP   = NWKYDK + 1   
 *   
-              CALL VZERO (IPURDK, NKEYDK)   
+              CALL VZERO_i (IPURDK, NKEYDK)   
               NO1    = 0    
               DO 30 IK = 1, NKEYDK  
                 IP     = IPNT + (IK - 1) * ISTP 
@@ -10365,7 +10424,7 @@ C ACP_data_retrieval_end
 * ***   KEY(5)  
 *   
         IF (IOPTP.EQ.0)  THEN   
-          CALL VZERO (IPURDK, NKEYDK)   
+          CALL VZERO_i (IPURDK, NKEYDK)   
 *   
 *  **     Label by '2' the object of the highest program version #  
 *   
@@ -10412,7 +10471,7 @@ C ACP_data_retrieval_end
             LCDRDB = IQUEST(11) 
             IKDRDB = IQUEST(13) 
 *   
-            CALL VZERO (IPURDK, NKEYDK) 
+            CALL VZERO_i (IPURDK, NKEYDK) 
 *   
 *  **       Label by '2' the object of the highest program version #    
 *   
@@ -10462,7 +10521,7 @@ C ACP_data_retrieval_end
 *   
 *  *        Get the master object names in the master subdirectory  
 *   
-            CALL VZERO (INDKDK, NKEY2)  
+            CALL VZERO_i (INDKDK, NKEY2)  
             DO 90 IK = 1, NKEY2 
               INDKDK(IK) = 2    
               CALL DBKEYR (IK, NWKYDK, KEYVDK)  
@@ -10571,7 +10630,7 @@ C ACP_data_retrieval_end
 *   
         IF (IOPTP.EQ.0)  THEN   
 *   
-          CALL VZERO (IPURDK, NKEYDK)   
+          CALL VZERO_i (IPURDK, NKEYDK)   
 *   
 *  **     Label by '2' the objects for which KEY(KYDAT).le.KYTIM    
 *   
@@ -10612,7 +10671,7 @@ C ACP_data_retrieval_end
             IKDRDB = IQUEST(13) 
             CALL DBKEYT 
 *   
-            CALL VZERO (IPURDK, NKEYDK) 
+            CALL VZERO_i (IPURDK, NKEYDK) 
 *   
 *  **       Label by '2' the object for which KEY(KYDAT).le.KYTIM   
 *   
@@ -10875,7 +10934,8 @@ C ACP_data_retrieval_end
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension lbk(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Initialize options    
@@ -10965,8 +11025,9 @@ C ACP_data_retrieval_end
           KEYS(MITMDB)   = KEY7 
           IOKYDA(MITMDB) = 1    
         ENDIF   
-      ENDIF 
-      CALL DBKEYS (LBNODB, KEYS, LBDADB, ITIME) 
+      ENDIF
+      lbk(1) = LBDADB
+      CALL DBKEYS (LBNODB, KEYS, lbk, ITIME) 
       IF (IQUEST(1).NE.0) THEN  
         IF (KEY7.GT.0) KEYS(MITMDB) = KEY7O 
         GO TO 999   
@@ -10996,7 +11057,7 @@ C ACP_data_retrieval_end
         CALL DBKXIN (ITIME, IDIVDB, LBDADB, LBKYDB, -1, NWKYDK, KEYVDK, 
      +               IPREC) 
         IF (IQUEST(1).NE.0)                 GO TO 100   
-        CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LBKYDB+1), NWKYDK) 
+        CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LBKYDB+1), NWKYDK) 
         LBKYDB = LQ(KOFUDB+LBKYDB)  
         GO TO 10    
       ENDIF 
@@ -11307,7 +11368,9 @@ C ACP_data_retrieval_end
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Suppress blanks from the path name    
@@ -11381,13 +11444,15 @@ C ACP_data_retrieval_end
           IF (KEYO(MSERDB).LE.IQ(KPNT+MOBJDB)) GO TO 20 
           NK     = (KPNT - KOFSDB - LCDRDB -IKDRDB) / KST + 1   
           CALL DBKEYR (NK, NWKYDK, KEYOP)   
-          CALL UCOPY (KEYOP, KEYNP, NWKYDK) 
+          CALL UCOPY_i (KEYOP, KEYNP, NWKYDK) 
           CALL DBPATH (PATHX, IK)   
           CALL RZCDIR (PATHX, ' ')  
           IF (IQUEST(1).NE.0) THEN  
-            IQUEST(1) = 191 
+            IQUEST(1) = 191
+            iarg(1) = iq(1)
             IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBRENK : Ill'//    
-     +      'egal Path Name '//PATHY(1:NCHAR)//PATHX(1:8)//''')', IQ, 0)    
+     +           'egal Path Name '//PATHY(1:NCHAR)//PATHX(1:8)//''')',
+     &           Iarg, 0)
             GO TO 999   
           ENDIF 
           NKEYDK = IQUEST(7)    
@@ -11511,8 +11576,8 @@ C ACP_data_retrieval_end
         IHEADF(MOPTDF) = 0  
         IHEADF(MPATDF) = NWDP   
         IHEADF(MPREDF) = 0  
-        CALL UCOPY (KEYO,  IHEADF(MPREDF+1),        NWKYDK) 
-        CALL UCOPY (KEYN,  IHEADF(MPREDF+NWKYDK+1), NWKYDK) 
+        CALL UCOPY_i (KEYO,  IHEADF(MPREDF+1),        NWKYDK) 
+        CALL UCOPY_i (KEYN,  IHEADF(MPREDF+NWKYDK+1), NWKYDK) 
         CALL UCTOH (PATHY, IHEADF(MPREDF+2*NWKYDK+1), 4, 4*NWDP)    
       ENDIF 
 *   
@@ -11686,7 +11751,7 @@ C ACP_data_retrieval_end
       COMMON /DZPACK/ PRECDZ, PACKDZ    
       LOGICAL         PACKDZ    
 *   
-      DIMENSION       KEYN(9), KEYO(9), LBD(9), LBK(9), LSUP(9) 
+      DIMENSION       KEYN(9), KEYO(9), LBD(9), LBK(9)
       CHARACTER       CHOPT*(*), PATHN*(*), PATH*80, FPATH*80, CHOP*2   
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
@@ -11698,7 +11763,11 @@ C ACP_data_retrieval_end
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension nio(9)
+      integer ival
+      real fval
+      equivalence (ival, fval)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
@@ -11715,8 +11784,9 @@ C ACP_data_retrieval_end
      +  ' executed'')', IARGDB, 0)  
 *   
       ELSE IF (IOPZDA.NE.0)  THEN   
-        PACKDZ = .TRUE. 
-        CALL UCOPY (IPREC, PRECDZ, 1)   
+        PACKDZ = .TRUE.
+        ival = iprec
+        precdz = fval
       ENDIF 
 *   
       IF (IOPRDA.NE.0.AND.IOPNDA.NE.0)  THEN    
@@ -11770,7 +11840,7 @@ C ACP_data_retrieval_end
 *   
 * *** Prepare the output with the old keys  
 *   
-      CALL VZERO (KEYVDK, MXDMDK)   
+      CALL VZERO_i (KEYVDK, MXDMDK)   
       KEYVDK(MBVRDB) = KEYN(MBVRDB) 
       KEYVDK(MEVRDB) = KEYN(MEVRDB) 
       KEYVDK(MPVSDB) = KEYO(MPVSDB) 
@@ -11785,9 +11855,10 @@ C ACP_data_retrieval_end
       ENDIF 
 *   
       IF (LSTRDL(3).NE.0) CALL MZDROP (IDISDB, LSTRDL(3), 'L')  
-      JBIAS  = 2    
+      JBIAS  = 2
+      nio(1) = 2
       CALL DBBOOK (IDISDB, LSTRDL(3), LSTRDL(3), JBIAS, 'SAME', 0, 0, 0 
-     +           , 2, 0)    
+     +           , nio, 0)    
       IF (IQUEST(1).NE.0)     GO TO 999 
 *   
       CALL DBKOUT (PATH, IDISDB, LSTRDL(3), NTKEY, KEYVDK, IPREC)   
@@ -11799,7 +11870,7 @@ C ACP_data_retrieval_end
 *   
 * *** Prepare the Key vector array  
 *   
-      CALL VZERO (KEYVDK, MXDMDK)   
+      CALL VZERO_i (KEYVDK, MXDMDK)   
       KEYVDK(MBVRDB) = KEYN(MBVRDB) 
       KEYVDK(MEVRDB) = KEYN(MEVRDB) 
       KEYVDK(MPVSDB) = KEYN(MPVSDB) 
@@ -11811,7 +11882,7 @@ C ACP_data_retrieval_end
 *   
 * *** Write out the data    
 *   
-      CALL DBKOUT (PATH, IUDIV, LSUP(1), NTKEY, KEYVDK, IPREC)  
+      CALL DBKOUT (PATH, IUDIV, LSUP, NTKEY, KEYVDK, IPREC)  
       IF (IQUEST(1).NE.0)     GO TO 999 
 *   
 * *** Create data bank in memory ala DBUSE  
@@ -11837,7 +11908,7 @@ C ACP_data_retrieval_end
           LREFDB(1) = LBK(1)    
           IOPMDA = ITMPM    
           IOPSDA = ITMPS    
-          CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
+          CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
           NDK    = IQ(KOFUDB+LREFDB(1)-1)   
           IQ(KOFUDB+LREFDB(1)+NDK+MKYFRI) = 0   
           IQ(KOFUDB+LREFDB(1)+NWKYDK+1)   = KEYVDK(MEVRDB)  
@@ -11865,7 +11936,7 @@ C ACP_data_retrieval_end
             ENDIF   
           ENDIF 
 *   
-          CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
+          CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LREFDB(1)+1), NWKYDK)    
           NDK    = IQ(KOFUDB+LREFDB(1)-1)   
           IQ(KOFUDB+LREFDB(1)+NDK+MKYFRI) = 0   
           IQ(KOFUDB+LREFDB(1)+NWKYDK+1)   = KEYVDK(MEVRDB)  
@@ -11879,8 +11950,8 @@ C ACP_data_retrieval_end
           CHOP   = 'LP' 
         ENDIF   
 *   
-        IF (IOPKDA.EQ.0 .AND. LSUP(1).NE.0) THEN    
-          CALL MZCOPY (IUDIV, LSUP(1), IDIVDB, LREFDB(1), -KLDADB, CHOP)    
+        IF (IOPKDA.EQ.0 .AND. LSUP.NE.0) THEN    
+          CALL MZCOPY (IUDIV, LSUP, IDIVDB, LREFDB(1), -KLDADB, CHOP)    
         ENDIF   
 *   
         IF (IQUEST(1).EQ.0)  THEN   
@@ -12047,7 +12118,7 @@ C ACP_data_retrieval_end
         GO TO 999   
       ENDIF 
       KEY1S  = (KPNT - MSERDB) / ISTP + 1   
-      CALL VZERO (KEYVDK, NWKYDK)   
+      CALL VZERO_i (KEYVDK, NWKYDK)   
       KEYVDK(MSERDB) = KEY1S    
       IF (LSTRDL(1).NE.0) THEN  
         CALL MZDROP (IDISDB, LSTRDL(1), 'L')    
@@ -12394,7 +12465,7 @@ C ACP_data_retrieval_end
         GO TO 999   
       ENDIF 
       KEY1S  = (KPNT - MSERDB) / ISTP + 1   
-      CALL VZERO (KEYVDK, NWKYDK)   
+      CALL VZERO_i (KEYVDK, NWKYDK)   
       KEYVDK(MSERDB) = KEY1S    
       IF (LSTRDL(1).NE.0) THEN  
         CALL MZDROP (IDISDB, LSTRDL(1), 'L')    
@@ -12542,7 +12613,8 @@ C ACP_data_retrieval_end
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension ixx(1)
 *     ------------------------------------------------------------------    
 *   
 * *** Suppress blanks from the path name    
@@ -12628,7 +12700,7 @@ C ACP_data_retrieval_end
                 IQUEST(1) = IER 
                 GO TO 997   
               ENDIF 
-              CALL UCOPY (Q(KOFUDB+LSTRDL(2)+3), IXX, 1)    
+              CALL UCOPY_i (iQ(KOFUDB+LSTRDL(2)+3), IXX, 1)    
               IF (IQ(KOFUDB+LSTRDL(2)+1).EQ.0) THEN 
                 IF (KEYSDS(MUPNDB,NOBJDS).EQ.0) THEN    
                   CHOPS  = '7SU'    
@@ -12636,7 +12708,7 @@ C ACP_data_retrieval_end
                   CHOPS  = '7U' 
                 ENDIF   
               ELSE  
-                PACKDZ = (JBIT(IXX,32).EQ.0)    
+                PACKDZ = (JBIT(IXX(1),32).EQ.0)    
                 IF (PACKDZ) THEN    
                   IDTY   = IDBTYP (LSTRDL(2))   
                   IF (IDTY.EQ.3) THEN   
@@ -12721,7 +12793,7 @@ C ACP_data_retrieval_end
                   IQUEST(1) = IER   
                   GO TO 997 
                 ENDIF   
-                CALL UCOPY (Q(KOFUDB+LSTRDL(2)+3), IXX, 1)  
+                CALL UCOPY_i (iQ(KOFUDB+LSTRDL(2)+3), IXX, 1)  
                 IF (IQ(KOFUDB+LSTRDL(2)+1).EQ.0) THEN   
                   IF (KEYSDS(MUPNDB,NOBJDS).EQ.0) THEN  
                     CHOPS  = '7SU'  
@@ -12729,7 +12801,7 @@ C ACP_data_retrieval_end
                     CHOPS  = '7U'   
                   ENDIF 
                 ELSE    
-                  PACKDZ = (JBIT(IXX,32).EQ.0)  
+                  PACKDZ = (JBIT(IXX(1),32).EQ.0)  
                   IF (PACKDZ) THEN  
                     IDTY   = IDBTYP (LSTRDL(2)) 
                     IF (IDTY.EQ.3) THEN 
@@ -13003,10 +13075,10 @@ C ACP_data_retrieval_end
 *   
             IF (MRET.NE.0.AND.MRET.LT.IQ(IPNT+MITMDB))  THEN    
               IF (LSUP(1).NE.0)  THEN   
-                CALL MZDROP (IUDIV, LSUP, ' ')  
+                CALL MZDROP (IUDIV, LSUP(1), ' ')  
                 LSUP(1) = 0 
               ENDIF 
-              CALL VZERO (KEYVDK, NWKYDK)   
+              CALL VZERO_i (KEYVDK, NWKYDK)   
               KEYVDK(MSERDB) = IK   
               CALL DBKXIN (ITIME, IUDIV, LSUP(1), LSUP(1), JBIAS, NWKEY,    
      +                     KEYVDK, IPREC)   
@@ -13014,7 +13086,7 @@ C ACP_data_retrieval_end
               IF (IQUEST(1).EQ.0)  THEN 
                 MRET   = KEYVDK(MITMDB) 
                 IF (IDEBDB.GT.1) THEN   
-                  CALL UCOPY (KEYVDK(1), IARGDB, 5) 
+                  CALL UCOPY_i (KEYVDK(1), IARGDB, 5) 
                   IARGDB(6) = IDATE 
                   IARGDB(7) = ITIME 
                   CALL DBPRNT (LPRTDB, '(/,'' DBSRTM : Data with Ke'//  
@@ -13026,7 +13098,7 @@ C ACP_data_retrieval_end
               ELSE  
                 MRET   = 0  
                 IF (LSUP(1).NE.0) THEN  
-                  CALL MZDROP (IUDIV, LSUP, ' ')    
+                  CALL MZDROP (IUDIV, LSUP(1), ' ')    
                   LSUP(1) = 0   
                 ENDIF   
 *   
@@ -13089,10 +13161,10 @@ C ACP_data_retrieval_end
 *   
               IF (MRET.NE.0.AND.MRET.LT.IQ(IPNT+MITMDB))  THEN  
                 IF (LSUP(1).NE.0)  THEN 
-                  CALL MZDROP (IUDIV, LSUP, ' ')    
+                  CALL MZDROP (IUDIV, LSUP(1), ' ')    
                   LSUP(1) = 0   
                 ENDIF   
-                CALL VZERO (KEYVDK, NWKYDK) 
+                CALL VZERO_i (KEYVDK, NWKYDK) 
                 KEYVDK(MSERDB) = IK 
                 CALL DBKXIN (ITIME, IUDIV, LSUP(1), LSUP(1), JBIAS, 
      +                       NWKEY, KEYVDK, IPREC)  
@@ -13101,7 +13173,7 @@ C ACP_data_retrieval_end
 *   
                   MRET   = KEYVDK(MITMDB)   
                   IF (IDEBDB.GT.1) THEN 
-                    CALL UCOPY (KEYVDK(1), IARGDB, 5)   
+                    CALL UCOPY_i (KEYVDK(1), IARGDB, 5)   
                     IARGDB(6) = IDATE   
                     IARGDB(7) = ITIME   
                     CALL DBPRNT (LPRTDB, '(/,'' DBSRTM : Data with Ke'//    
@@ -13114,7 +13186,7 @@ C ACP_data_retrieval_end
 *   
                   MRET   = 0    
                   IF (LSUP(1).NE.0) THEN    
-                    CALL MZDROP (IUDIV, LSUP, ' ')  
+                    CALL MZDROP (IUDIV, LSUP(1), ' ')  
                     LSUP(1) = 0 
                   ENDIF 
 *   
@@ -13225,7 +13297,8 @@ C ACP_data_retrieval_end
 *   
       PARAMETER       (NLEVM=20, NDMAX=100) 
       DIMENSION       LSUP(9), LAD(9), ISDI(NLEVM), NSDI(NLEVM) 
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Loop over all top directories 
@@ -13267,20 +13340,22 @@ C ACP_data_retrieval_end
    25       IF (LBKYDB.GT.0) THEN   
               IF (IQ(KOFUDB+LBKYDB+NDK+MKYCEV).GT.0) THEN   
                 IF (NDAT.EQ.0) THEN 
-                  NDTOT  = NDMAX    
+                  NDTOT  = NDMAX
+                  nio(1) = 2
                   CALL DBBOOK (IUDIV, LAD(1), LREFDB(1), JBIAS, 'DBTB', 
-     +                         0, 0, NDTOT, 2, -1)  
+     +                         0, 0, NDTOT, nio, -1)  
                   IF (IQUEST(1).NE.0) GO TO 999 
                   LREFDB(2) = LAD(1)    
                 ELSE IF (NDAT.GE.NDTOT) THEN    
-                  NDTOT  = NDTOT + NDMAX    
+                  NDTOT  = NDTOT + NDMAX
+                  nio(1) = 2
                   CALL DBBOOK (IUDIV, LAD(1), LREFDB(1), JBIAS, 'DBTB', 
-     +                         0, 0, NDTOT, 2, -1)  
+     +                         0, 0, NDTOT, nio, -1)  
                   IF (IQUEST(1).NE.0) GO TO 999 
                   LREFDB(2) = LAD(1)    
                   LBD    = LQ(KOFUDB+LREFDB(1)) 
-                  CALL UCOPY (IQ(KOFUDB+LBD+1), IQ(KOFUDB+LREFDB(2)+1), 
-     +                        NDAT) 
+                  CALL UCOPY_i (IQ(KOFUDB+LBD+1), IQ(KOFUDB+LREFDB(2)+1)
+     &                 ,NDAT)
                   CALL MZDROP (IUDIV, LBD, 'L') 
                 ENDIF   
                 IQ(KOFUDB+LREFDB(2)+NDAT+1) = IDIC  
@@ -14093,7 +14168,7 @@ C ACP_data_retrieval_end
 *   
         L      = LAUXDL(7)  
         ND     = IQ(KOFUDB+L-1) 
-        CALL UCOPY (KEYVDK, KEY, NWKEY) 
+        CALL UCOPY_i (KEYVDK, KEY, NWKEY) 
         IF (ND.GT.NDAT)  THEN   
 *   
 *  *      Insufficient space    
@@ -14363,9 +14438,13 @@ C ACP_data_retrieval_end
       COMMON /DZPACK/ PRECDZ, PACKDZ    
       LOGICAL         PACKDZ    
 *   
-      DIMENSION       KEYXT(9) , USER(2)    
+      DIMENSION       KEYXT(*) , USER(2)    
       CHARACTER       CHOPT*(*), PATHN*(*), PATH*80 
-*   
+*
+      integer ival
+      real fval
+      equivalence (ival, fval)
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
@@ -14381,8 +14460,9 @@ C ACP_data_retrieval_end
      +  ' executed'')', IARGDB, 0)  
 *   
       ELSE IF (IOPZDA.NE.0)  THEN   
-        PACKDZ = .TRUE. 
-        CALL UCOPY (IPREC, PRECDZ, 1)   
+        PACKDZ = .TRUE.
+        ival = iprec
+        precdz = fval
       ENDIF 
 *   
       IOPRDA = 0    
@@ -14399,8 +14479,8 @@ C ACP_data_retrieval_end
 *   
 * *** Prepare the Key vector array  
 *   
-      CALL VZERO (KEYVDK, MXDMDK)   
-      IF (NKEXT.GT.2) CALL UCOPY (KEYXT(3), KEYVDK(8), NKEXT-2) 
+      CALL VZERO_i (KEYVDK, MXDMDK)   
+      IF (NKEXT.GT.2) CALL UCOPY_i (KEYXT(3), KEYVDK(8), NKEXT-2) 
       KEYVDK(MBVRDB) = IVSTR    
       KEYVDK(MEVRDB) = IVEND    
       KEYVDK(MPVSDB) = IPRVS    
@@ -14428,9 +14508,10 @@ C ACP_data_retrieval_end
 *   
 * *** Create a temporary bank with the data 
 *   
-      JBIAS  = 2    
+      JBIAS  = 2
+      nio(1) = idtyp
       CALL DBBOOK (IDISDB, LAUXDL(7), LAUXDL(7), JBIAS, 'AUX7', 0, 0    
-     +           , NDAT, IDTYP, 0)  
+     +           , NDAT, nio, 0)  
       IF (IQUEST(1).NE.0)   GO TO 999   
       CALL UCOPY (USER(1), Q(KOFUDB+LAUXDL(7)+1), NDAT) 
 *   
@@ -14514,13 +14595,13 @@ C ACP_data_retrieval_end
       PARAMETER       (NDMXDB=25000)    
 *   
       CHARACTER       CHID*(*), CHID0*4 
-      DIMENSION       NL(9), NS(9), ND(9), NIO(9), LSUP(9), LAD(9)  
+      DIMENSION       NIO(9)
 *   
 *     ------------------------------------------------------------------    
 *   
 * *** See if enough space is available in memory    
 *   
-      NEEDW  = NL(1) + ND(1) + 20   
+      NEEDW  = NL + ND + 20   
       CALL MZNEED (IDIV, NEEDW, ' ')    
       IF (IQUEST(11).LT.0)  THEN    
         CALL MZNEED (IDIV, NEEDW, 'G')  
@@ -14552,10 +14633,10 @@ C ACP_data_retrieval_end
 *   
 * *** Create the bank as desired    
 *   
-      CALL MZBOOK (IDIV, LAD(1), LSUP(1), JBIAS, CHID, NL, NS, ND, NIO, 
+      CALL MZBOOK (IDIV, LAD, LSUP, JBIAS, CHID, NL, NS, ND, NIO, 
      +             NZ)  
       IQUEST(1) = 0 
-      IQ(KOFUDB+LAD(1)-5) = 0   
+      IQ(KOFUDB+LAD-5) = 0   
 *                                                             END DBBOOK    
   999 END   
       SUBROUTINE DBCDIC (PATH)  
@@ -14639,7 +14720,8 @@ C ACP_data_retrieval_end
       DIMENSION       KEYN(MXDMDK)  
       CHARACTER       PATHN*80, PATHF*80, PATHY*80, TOPN*16, TOPN1*16   
       CHARACTER       PATHD*80, PATH*(*)    
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
       JBIAS  = -KLDICT  
@@ -14751,9 +14833,10 @@ C ACP_data_retrieval_end
       CALL DBPKTM (IDATE,  ITIME,  KEYN(MITMDB))    
       LFIXDB = LQ(KOFUDB+LBNODB+JBIAS)  
       IF (LFIXDB.NE.0) CALL MZDROP (IDIVDB, LFIXDB, ' ')    
-      NDWD   = NPUSDB*NWITDB + 1    
+      NDWD   = NPUSDB*NWITDB + 1
+      nio(1) = IODIDB
       CALL DBBOOK (IDIVDB, LFIXDB, LBNODB, JBIAS, 'DIDB', 0, 0, NDWD,   
-     +             IODIDB, 0)   
+     +             nio, 0)   
       IF (IQUEST(1).NE.0)     GO TO 999 
 *   
    45 NITEM  = IQ(KOFUDB+LFIXDB+MDCNTM) 
@@ -14790,16 +14873,17 @@ C ACP_data_retrieval_end
           CALL ZSHUNT (IDIVDB, LFIXDB, LBDADB, 2, 0)    
           LBDADB = LFIXDB   
           LFIXDB = 0    
-          ND     = NDWD + NPUSDB * NWITDB   
+          ND     = NDWD + NPUSDB * NWITDB
+          nio(1) = IODIDB
           CALL DBBOOK (IDIVDB, LFIXDB, LBNODB, JBIAS, 'DIDB', 0, 0, ND, 
-     +                 IODIDB, -1)  
+     +                 nio, -1)  
           IF (IQUEST(1).NE.0) THEN  
             IERR   = IQUEST(1)  
             CALL MZDROP (IDIVDB, LBDADB, ' ')   
             IQUEST(1) = IERR    
             GO TO 999   
           ENDIF 
-          CALL UCOPY (IQ(KOFUDB+LBDADB+1), IQ(KOFUDB+LFIXDB+1), NDWD)   
+          CALL UCOPY_i (IQ(KOFUDB+LBDADB+1), IQ(KOFUDB+LFIXDB+1), NDWD)   
           CALL MZDROP (IDIVDB, LBDADB, ' ') 
         ENDIF   
         IQ(KOFUDB+LFIXDB+MDCNTM) = NITEM    
@@ -14857,7 +14941,7 @@ C ACP_data_retrieval_end
       INTEGER         MPAKDA    
 *   
       CHARACTER       CH*(*), CH1*1 
-      DIMENSION       IAR(9), IB(4) 
+      DIMENSION       IAR(*), IB(4) 
 *     ------------------------------------------------------------------    
 *   
       DO 10 J = 1, NWD  
@@ -14961,7 +15045,7 @@ C ACP_data_retrieval_end
       COMMON /DTKXIN/ ICURDT, IDNRDT, IKYLDT, IMINDT, INRSDT, IPRVDT    
      +              , IUSEDT, KEY6DT, KY6NDT, MNKYDT, NTIMDT    
 *   
-      DIMENSION       LBK(9), LBD(9), KEYS(9)   
+      DIMENSION       KEYS(9)   
       CHARACTER       PATHN*80, PATH*80, PATHX*16   
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
@@ -14973,12 +15057,13 @@ C ACP_data_retrieval_end
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Lock the bank 
 *   
-      LREFDB(2) = LBK(1)    
+      LREFDB(2) = LBK
       IQ2    = IQUEST(2)    
       NDK    = IQ(KOFUDB+LREFDB(2)-1)   
       IQ(KOFUDB+LREFDB(2)+NDK+MKYFRI) = 0   
@@ -15004,7 +15089,7 @@ C ACP_data_retrieval_end
 *   
       CALL RZCDIR (PATHN, ' ')  
       IF (IQUEST(1).NE.0)  THEN 
-        IQUEST(1) = 31  
+        IQUEST(1) = 31
         IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBCHCK : '//   
      +  'Path name '//PATHN//' from node bank illegal'')', IQ, 0)   
         GO TO 998   
@@ -15046,16 +15131,16 @@ C ACP_data_retrieval_end
             ENDIF   
    10     CONTINUE  
         ELSE    
-          CALL UCOPY (IQ(KOFUDB+LREFDB(2)+1), KEYVDK, NWKYDK)   
+          CALL UCOPY_i (IQ(KOFUDB+LREFDB(2)+1), KEYVDK, NWKYDK)   
         ENDIF   
 *   
 *  **   Retrieve data   
 *   
-        CALL DBKXIN (ITIME, IDIVDB, LBD(1), LBK(1), -KLDADB, NWKEY, 
+        CALL DBKXIN (ITIME, IDIVDB, LBD, LBK, -KLDADB, NWKEY, 
      +               KEYVDK, IPREC) 
         IF (IQUEST(1).NE.0)                                    GO TO 998    
-        LREFDB(2) = LBK(1)  
-        LREFDB(3) = LBD(1)  
+        LREFDB(2) = LBK  
+        LREFDB(3) = LBD  
         IF (IOPSDA.EQ.0) THEN   
           IF (IQ(KOFUDB+LREFDB(2)+MSERDB).NE.KEYVDK(MSERDB)) IQ2 = 1    
         ELSE    
@@ -15064,7 +15149,7 @@ C ACP_data_retrieval_end
 *   
 *  *    Overwrite keys in key-bank  
 *   
-        CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LREFDB(2)+1), NWKYDK)  
+        CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LREFDB(2)+1), NWKYDK)  
         IQ(KOFUDB+LREFDB(2)+NDK+MKYPRE) = IPREC 
         IQ(KOFUDB+LREFDB(2)+NDK+MKYRID) =IQ(KOFUDB+LREFDB(2)+NDK+MKYRID)    
      +                                  + 1 
@@ -15082,8 +15167,8 @@ C ACP_data_retrieval_end
 *   
 *  **   The data bank exists already    
 *   
-        LBD(1) = LQ(KOFUDB+LREFDB(2)-KLDADB)    
-        LREFDB(3) = LBD(1)  
+        LBD = LQ(KOFUDB+LREFDB(2)-KLDADB)    
+        LREFDB(3) = LBD  
 *   
 *  **   Check if data are valid 
 *   
@@ -15145,7 +15230,7 @@ C ACP_data_retrieval_end
             PATH   = PATHN(1:NCHAR)//'/'//PATHX 
             CALL RZCDIR (PATH, ' ') 
             IF (IQUEST(1).NE.0)  THEN   
-              IQUEST(1) = 31    
+              IQUEST(1) = 31
               IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBCHCK : '// 
      +        'Path name '//PATH//' from node bank illegal'')', IQ, 0)  
               GO TO 998 
@@ -15266,7 +15351,7 @@ C ACP_data_retrieval_end
             ENDIF   
    60     CONTINUE  
         ELSE    
-          CALL UCOPY (IQ(KOFUDB+LREFDB(2)+1), KEYVDK, NWKYDK)   
+          CALL UCOPY_i (IQ(KOFUDB+LREFDB(2)+1), KEYVDK, NWKYDK)   
         ENDIF   
 *   
 *  *    Retrieve data   
@@ -15278,10 +15363,10 @@ C ACP_data_retrieval_end
 *  *      Variable data length - attach data to a new bank  
 *   
           CALL MZDROP (IDIVDB, LREFDB(3), 'L')  
-          CALL DBKXIN (ITIME, IDIVDB, LBD(1), LBK(1), -KLDADB, NWKEY,   
+          CALL DBKXIN (ITIME, IDIVDB, LBD, LBK, -KLDADB, NWKEY,   
      +                 KEYVDK, IPREC)   
           IF (IQUEST(1).NE.0)                                  GO TO 998    
-          LREFDB(3) = LBD(1)    
+          LREFDB(3) = LBD    
           IF (IOPSDA.EQ.0) THEN 
             IF (IQ(KOFUDB+LREFDB(2)+MSERDB).NE.KEYVDK(MSERDB)) IQ2 = 1  
           ELSE  
@@ -15352,7 +15437,7 @@ C ACP_data_retrieval_end
 *   
 *  *    Overwrite keys in key-bank  
 *   
-  990   CALL UCOPY (KEYVDK(1), IQ(KOFUDB+LREFDB(2)+1), NWKYDK)  
+  990   CALL UCOPY_i (KEYVDK(1), IQ(KOFUDB+LREFDB(2)+1), NWKYDK)  
         IQ(KOFUDB+LREFDB(2)+NDK+MKYPRE) = IPREC 
         IQ(KOFUDB+LREFDB(2)+NDK+MKYRID) =IQ(KOFUDB+LREFDB(2)+NDK+MKYRID)    
      +                                  + 1 
@@ -15582,7 +15667,6 @@ C ACP_data_retrieval_end
 *   
       COMMON /DLINKS/ LSTRDL(5), LAUXDL(10), LREFDL(10) 
 *   
-      DIMENSION       LB(9) 
       SAVE            IWMX  
       DATA            IWMX /1073741824/ 
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
@@ -15608,17 +15692,19 @@ C ACP_data_retrieval_end
      +                          ISHFT(NOT(MZ),32-NZB),-33+IZP+NZB)) )   
       MBYTOR (MZ,IZW,IZP,NZB) = IOR (IZW, ISHFT (   
      +                               ISHFT(MZ,32-NZB),-33+IZP+NZB) )    
-*   
+*
+      dimension nio(9), iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Data type ?   
 *   
-      LREFDB(5) = LB(1) 
+      LREFDB(5) = LB
       IDTYP  = IDBTYP(LREFDB(5))    
       NDA    = IQ(KOFUDB+LREFDB(5)-1)   
-      JBIAS  = 2    
+      JBIAS  = 2
+      nio(1) = 2
       CALL DBBOOK (IDISDB, LAUXDL(IADS), LAUXDL(IADS), JBIAS, 'AUX1', 0,    
-     +             0, NDA, 2, 0)    
+     +             0, NDA, nio, 0)    
       IF (IQUEST(1).NE.0) GO TO 999 
       LAUX1  = LAUXDL(IADS) 
       IF (IDTYP.EQ.3) THEN  
@@ -15647,9 +15733,10 @@ C ACP_data_retrieval_end
 *  **   Nonstandard data type   
 *   
         IER    = 5  
-        CALL MZDROP (IDISDB, LAUX1, ' ')    
+        CALL MZDROP (IDISDB, LAUX1, ' ')
+        iarg(1) = idtyp
         IF (IDEBDB.GT.1) CALL DBPRNT (LPRTDB, '(/,'' DBCMPR : Data-Ty'//    
-     +  'pe '',I4,'' incompatible for packing'')', IDTYP, 1)    
+     +  'pe '',I4,'' incompatible for packing'')', iarg, 1)    
         GO TO 999   
       ENDIF 
 *   
@@ -15666,9 +15753,10 @@ C ACP_data_retrieval_end
 *   
       IF (MVM.GT.IWMX.OR.-IVM.GT.IWMX) THEN 
         IER    = 4  
-        CALL MZDROP (IDISDB, LAUXDL(IADS),   ' ')   
+        CALL MZDROP (IDISDB, LAUXDL(IADS),   ' ')
+        iarg(1) = lbitl
         IF (IDEBDB.GT.1) CALL DBPRNT (LPRTDB, '(/,'' DBCMPR : Packing'//    
-     +  ' Bit Length is '',I4,'' - No Compression !'')', LBITL, 1)  
+     +  ' Bit Length is '',I4,'' - No Compression !'')', iarg, 1)  
         GO TO 999   
       ENDIF 
 *   
@@ -15685,12 +15773,13 @@ C ACP_data_retrieval_end
 * *** bit-length    
 *   
       ND3    = ND2 + 3  
-      JBIAS  = 2    
+      JBIAS  = 2
+      nio(1) = 1
       CALL DBBOOK (IDISDB, LAUXDL(IADS+1), LAUXDL(IADS+1), JBIAS, 'AUX2'    
-     +           , 0, 0, ND3, 1, 0) 
+     +           , 0, 0, ND3, nio, 0) 
       IF (IQUEST(1).NE.0) GO TO 999 
       CALL DBBOOK (IDISDB, LSTRDL(5), LSTRDL(5), JBIAS, 'WKSP', 0, 0    
-     +           , ND3, 1, -1)  
+     +           , ND3, nio, -1)  
       IF (IQUEST(1).NE.0) GO TO 999 
       LAUX1  = LAUXDL(IADS) 
       LAU13  = LAUX1 + 3    
@@ -15702,9 +15791,10 @@ C ACP_data_retrieval_end
       IF (LBITL.EQ.32) THEN 
         IER    = 4  
         CALL MZDROP (IDISDB, LAUXDL(IADS),   ' ')   
-        CALL MZDROP (IDISDB, LAUXDL(IADS+1), ' ')   
+        CALL MZDROP (IDISDB, LAUXDL(IADS+1), ' ')
+        iarg(1) = lbitl
         IF (IDEBDB.GT.1) CALL DBPRNT (LPRTDB, '(/,'' DBCMPR : Packing'//    
-     +  ' Bit Length is '',I4,'' - No Compression !'')', LBITL, 1)  
+     +  ' Bit Length is '',I4,'' - No Compression !'')', iarg, 1)  
         GO TO 999   
       ENDIF 
 *   
@@ -15720,13 +15810,14 @@ C ACP_data_retrieval_end
 *   
       ND3    = NDO + 3  
       CALL MZDROP (IDISDB, LAUX1, ' ')  
-      JBIAS  = 2    
+      JBIAS  = 2
+      nio(1) = 1
       CALL DBBOOK (IDISDB, LAUXDL(IADS), LAUXDL(IADS), JBIAS, 'AU11', 0,    
-     +             0, ND3, 1, 0)    
+     +             0, ND3, nio, 0)    
       IF (IQUEST(1).NE.0) GO TO 999 
       LAUX1  = LAUXDL(IADS) 
       LAUX2  = LAUXDL(IADS+1)   
-      CALL UCOPY (IQ(KOFUDB+LAUX2+1), IQ(KOFUDB+LAUX1+1), ND3)  
+      CALL UCOPY_i (IQ(KOFUDB+LAUX2+1), IQ(KOFUDB+LAUX1+1), ND3)  
       CALL MZDROP (IDISDB, LAUX2, ' ')  
       IER    = 0    
 *                                                             END DBCMPR    
@@ -15798,20 +15889,20 @@ C ACP_data_retrieval_end
 *   
       COMMON /DZPACK/ PRECDZ, PACKDZ    
       LOGICAL         PACKDZ    
-*   
-      DIMENSION       LB(9) 
-*   
+*
+      dimension nio(9), iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Data type ?   
 *   
-      LREFDB(5) = LB(1) 
+      LREFDB(5) = LB
       IDTYP  = IDBTYP (LREFDB(5))   
       NDA    = IQ(KOFUDB+LREFDB(5)-1)   
       ND2    = NDA - 2  
-      JBIAS  = 2    
+      JBIAS  = 2
+      nio(1) = idtyp
       CALL DBBOOK (IDISDB, LAUXDL(IADS), LAUXDL(IADS), JBIAS, 'AUX1', 0,    
-     +             0, NDA, IDTYP, 0)    
+     +             0, NDA, nio, 0)    
       IF (IQUEST(1).NE.0)   GO TO 999   
       LAUX1  = LAUXDL(IADS) 
 *   
@@ -15829,9 +15920,10 @@ C ACP_data_retrieval_end
 *  **   Copy compressed data into reduced array with appropriate header 
 *   
         ND3    = NDO + 3    
-        JBIAS  = 2  
+        JBIAS  = 2
+        nio(1) = idtyp
         CALL DBBOOK (IDISDB, LAUXDL(IADS+1), LAUXDL(IADS+1), JBIAS, 
-     +               'AUX2', 0, 0, ND3, IDTYP, 0)   
+     +               'AUX2', 0, 0, ND3, nio, 0)   
         IF (IQUEST(1).NE.0) GO TO 999   
         LAUX1  = LAUXDL(IADS)   
         LAUX2  = LAUXDL(IADS+1) 
@@ -15858,9 +15950,10 @@ C ACP_data_retrieval_end
 *  **   Copy compressed data into reduced array with appropriate header 
 *   
         ND3    = NDO + 3    
-        JBIAS  = 2  
+        JBIAS  = 2
+        nio(1) = idtyp
         CALL DBBOOK (IDISDB, LAUXDL(IADS+1), LAUXDL(IADS+1), JBIAS, 
-     +               'AUX2', 0, 0, ND3, IDTYP, 0)   
+     +               'AUX2', 0, 0, ND3, nio, 0)   
         IF (IQUEST(1).NE.0) GO TO 999   
         LAUX1  = LAUXDL(IADS)   
         LAUX2  = LAUXDL(IADS+1) 
@@ -15868,7 +15961,7 @@ C ACP_data_retrieval_end
         IQ(KOFUDB+LAUX2+1) = ND2    
         IQ(KOFUDB+LAUX2+2) = PRECDZ 
         IQ(KOFUDB+LAUX2+3) = NDO    
-        CALL UCOPY (IQ(KOFUDB+LAUX1+1), IQ(KOFUDB+LAUX2+4), NDO)    
+        CALL UCOPY_i (IQ(KOFUDB+LAUX1+1), IQ(KOFUDB+LAUX2+4), NDO)    
         CALL MZDROP (IDISDB, LAUX1, ' ')    
         LAUXDL(IADS) = LAUXDL(IADS+1)   
         LAUXDL(IADS+1) = 0  
@@ -15878,9 +15971,10 @@ C ACP_data_retrieval_end
 *  **   Nonstandard Data type   
 *   
         IER    = 5  
-        CALL MZDROP (IDISDB, LAUX1, ' ')    
+        CALL MZDROP (IDISDB, LAUX1, ' ')
+        iarg(1) = idtyp
         IF (IDEBDB.GT.1) CALL DBPRNT (LPRTDB, '(/,'' DBCMPZ : Data-Ty'//    
-     +  'pe'',I4,'' incompatible for packing'')', IDTYP, 1) 
+     +  'pe'',I4,'' incompatible for packing'')', iarg, 1) 
         GO TO 999   
       ENDIF 
 *   
@@ -15899,7 +15993,7 @@ C ACP_data_retrieval_end
 *   Arguments :                                                        *    
 *                                                                      *    
 *     LSUP     Address of the bank to be compressed                    *    
-*     LUPDA(*) Address of the compressed bank                          *    
+*     LUPDA    Address of the compressed bank                          *    
 *     KEYS     Vector of keys; Key 2 on return will contain the        *    
 *              pointer to the Key 1 of the object with reference       *    
 *              to which the current object has been updated            *    
@@ -15974,37 +16068,37 @@ C ACP_data_retrieval_end
       LOGICAL         PACKDZ    
 *   
       PARAMETER       (MXNEI=5) 
-      DIMENSION       LSUP(9), LUPDA(9), KEYS(9)    
+      DIMENSION       KEYS(9)    
 *   
 *     ------------------------------------------------------------------    
 *   
       IADS      = 1 
       KEYS(MUPNDB)   = 0    
-      LREFDB(3) = LSUP(1)   
+      LREFDB(3) = LSUP
 *   
 * *** If data is of mixed type, data cannot be compressed ! 
 *   
       ITYP   = IDBTYP (LREFDB(3))   
       IF (ITYP.NE.2.AND.ITYP.NE.3)  THEN    
-        LUPDA(1) = LREFDB(3)    
+        LUPDA = LREFDB(3)    
         GO TO 999   
       ENDIF 
 *   
 * *** Compress the data 
 *   
       IF (PACKDZ) THEN  
-        CALL DBCMPZ (LSUP(1), IADS, IER)    
+        CALL DBCMPZ (LSUP, IADS, IER)    
       ELSE  
-        CALL DBCMPR (LSUP(1), IADS, IER)    
+        CALL DBCMPR (LSUP, IADS, IER)    
       ENDIF 
       IF (IQUEST(1).NE.0)             GO TO 999 
 *   
 * *** If IER .ne. 0 ----> Data cannot be compressed !   
 *   
       IF (IER.EQ.0)  THEN   
-        LUPDA(1) = LAUXDL(IADS) 
+        LUPDA = LAUXDL(IADS) 
       ELSE  
-        LUPDA(1) = LREFDB(3)    
+        LUPDA = LREFDB(3)    
         GOTO  999   
       ENDIF 
 *   
@@ -16017,7 +16111,7 @@ C ACP_data_retrieval_end
 *   
       ISTP   = NWKYDK + 1   
 *   
-      LREFDB(4) = LUPDA(1)  
+      LREFDB(4) = LUPDA  
       MINWD  = IQ(KOFUDB+LREFDB(4)-1)   
       IADS   = 9    
       LADR   = -777 
@@ -16135,7 +16229,7 @@ C ACP_data_retrieval_end
         MINWD  = NWORD  
         CALL MZDROP (IDISDB, LCOM, ' ') 
         CALL MZDROP (IDISDB, LREFDB(4), ' ')    
-        LUPDA(1)  = LADR    
+        LUPDA  = LADR    
         LREFDB(4) = LADR    
         IF (IADS.EQ.1)  THEN    
           IADS   = 9    
@@ -16377,7 +16471,11 @@ C ACP_data_retrieval_end
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      integer ival
+      real fval
+      equivalence (ival, fval)
+      dimension iuhead(9)
 *     ------------------------------------------------------------------    
 *   
       JBIAS  = 2    
@@ -16386,8 +16484,9 @@ C ACP_data_retrieval_end
         PACKDZ = .FALSE.    
         IPREC  = 0  
       ELSE IF (IOPZDA.NE.0) THEN    
-        PACKDZ = .TRUE. 
-        CALL UCOPY (IHEADF(MPREDF), PRECDZ, 1)  
+        PACKDZ = .TRUE.
+        ival = IHEADF(MPREDF)
+        PRECDZ = fval
       ELSE  
         PACKDZ = .FALSE.    
         IPREC  = IHEADF(MPREDF) 
@@ -16523,7 +16622,7 @@ C ACP_data_retrieval_end
           ENDIF 
           GO TO 20  
    15   CONTINUE    
-   20   CALL UCOPY (KEYO, KEYN, NWKYDK) 
+   20   CALL UCOPY_i (KEYO, KEYN, NWKYDK) 
         KOBJ   = KEYO(MOBJDB)   
       ENDIF 
 *   
@@ -16548,8 +16647,9 @@ C ACP_data_retrieval_end
 *   
 * *** Now read the data part of the transcript file 
 *   
-      IF (LUNFZ.GT.0) THEN  
-        CALL FZIN (LUNFZ, IDISDB, LFIXDB, JBIAS, 'A', 0, 0) 
+      IF (LUNFZ.GT.0) THEN
+        iuhead(1) = 0
+        CALL FZIN (LUNFZ, IDISDB, LFIXDB, JBIAS, 'A', 0, iuhead) 
         IF (IQUEST(1).GT.0) THEN    
           IQUEST(1) = -1    
           GO TO 999 
@@ -16650,7 +16750,7 @@ C ACP_data_retrieval_end
         GO TO 999   
       ELSE  
         IF (IDEBDB.GT.1) THEN   
-          CALL UCOPY (IHEADF(MPREDF+1), KEYNDK, NWKYDK) 
+          CALL UCOPY_i (IHEADF(MPREDF+1), KEYNDK, NWKYDK) 
           CALL DBUPTM (IARGDB(1), IARGDB(2), KEYNDK(MITMDB))    
           CALL DBPRNT (LPRTDB, '(/,'' DBENFZ : Data was inserted into'//    
      +         '   '//PATHY//''',/,10X,''on the '',I8,'' at '',I6,'' '//    
@@ -16853,7 +16953,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *              information has to be provided                          *    
 *     LEVMX    Number of levels below CPATH about which information    *    
 *              has to be accumulated                                   *    
-*     LAD(*)   Address of the bank containing the information          *    
+*     LAD      Address of the bank containing the information          *    
 *                                                                      *    
 *   Called by DBKEPT, DBACPL                                           *    
 *                                                                      *    
@@ -16917,7 +17017,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       PARAMETER       (NWLEV=8, NWNOD=6)    
       DIMENSION       NKEY(NLEVM), NCHD(NLEVM), ISDI(NLEVM) 
       DIMENSION       NSDI(NLEVM), IOPT(NLEVM)  
-      DIMENSION       NODES(NLEVM), IHDIR(4), LAD(9)    
+      DIMENSION       NODES(NLEVM), IHDIR(4)
       CHARACTER       PATHN*80, PATHX*16, PATHY*80, PATHD*80, PATHZ*16  
       CHARACTER       CPATH*(*), PATHF*80   
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
@@ -16930,19 +17030,20 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
-      IF (LAD(1).NE.0) THEN 
-        CALL MZDROP (IDIVDB, LAD(1), 'L')   
-        LAD(1) = 0  
+      IF (LAD.NE.0) THEN 
+        CALL MZDROP (IDIVDB, LAD, 'L')   
+        LAD = 0  
       ENDIF 
       IF (LEVMX.LE.0) THEN  
         LEVEL  = NLEVM  
       ELSE  
         LEVEL  = LEVMX  
       ENDIF 
-      CALL VZERO (NODES, NLEVM) 
+      CALL VZERO_i (NODES, NLEVM) 
       CALL DBSBLC (CPATH, PATHN, NCHAR) 
       CALL RZCDIR (PATHD, 'R')  
       CALL RZCDIR (PATHN, ' ')  
@@ -16973,8 +17074,10 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       NKEEP  = NPUSH    
       NITEM  = 0    
       NLEVT  = NLEV 
-      NWDSN  = 0    
-      CALL DBBOOK (IDIVDB, LFIXDB, LFIXDB, 2, 'TEMP', 0, 0, NDWD, 0, -1)    
+      NWDSN  = 0
+      nio(1) = 0
+      CALL DBBOOK (IDIVDB, LFIXDB, LFIXDB, 2, 'TEMP', 0, 0, NDWD, nio,
+     &     -1)    
       IF (IQUEST(1).NE.0)                 GO TO 100 
 *   
 * *** Now scan down to find all the subdirectories  
@@ -17056,15 +17159,17 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
         IF (NITEM.GT.NKEEP) THEN    
           LBDADB = LFIXDB   
           LFIXDB = 0    
-          ND     = NDWD + NPUSH * NWITM 
-          CALL DBBOOK (IDIVDB, LFIXDB, LFIXDB, 2, 'TEMP', 0,0, ND, 0,-1)    
+          ND     = NDWD + NPUSH * NWITM
+          nio(1) = 0
+          CALL DBBOOK (IDIVDB, LFIXDB, LFIXDB, 2, 'TEMP', 0,0, ND, nio,
+     &         -1) 
           IF (IQUEST(1).NE.0) THEN  
             IERR   = IQUEST(1)  
             CALL MZDROP (IDIVDB, LBDADB, ' ')   
             IQUEST(1) = IERR    
             GO TO 100   
           ENDIF 
-          CALL UCOPY (IQ(KOFUDB+LBDADB+1), IQ(KOFUDB+LFIXDB+1), NDWD)   
+          CALL UCOPY_i (IQ(KOFUDB+LBDADB+1), IQ(KOFUDB+LFIXDB+1), NDWD)   
           CALL MZDROP (IDIVDB, LBDADB, ' ') 
           NDWD   = IQ(KOFUDB+LFIXDB-1)  
           NKEEP  = NKEEP + NPUSH    
@@ -17093,15 +17198,16 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 * *** All subdirectories looked at; now store dictionary if permitted   
 *   
    60 IF (NLEVT.GT.0) THEN  
-        ND     = 3 + NWLEV*NLEVT + NWNOD*NITEM + NWDSN  
-        CALL DBBOOK (IDIVDB, LAD(1), LAD(1), 2, 'NAME', 0, 0, ND, 0, -1)    
+        ND     = 3 + NWLEV*NLEVT + NWNOD*NITEM + NWDSN
+        nio(1) = 0
+        CALL DBBOOK (IDIVDB, LAD, LAD, 2, 'NAME', 0, 0, ND, nio, -1)    
         IF (IQUEST(1).NE.0) THEN    
           IERR   = IQUEST(1)    
           CALL MZDROP (IDIVDB, LFIXDB, ' ') 
           IQUEST(1) = IERR  
           GO TO 100 
         ENDIF   
-        IOFF   = KOFUDB + LAD(1)    
+        IOFF   = KOFUDB + LAD    
         KPNTL  = 3  
         IQ(IOFF+MPNLDB) = KPNTL 
         IQ(IOFF+MNLVDB) = NLEVT 
@@ -17369,8 +17475,34 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
    10 CHTGDK(I) = CHTAG(I)  
 *   
       DO 15 K = 1, 62   
-   15 CALFDA(K) = CHNAM(K:K)    
-      CALL VZERO (IOPADA, MXKYDA+26)    
+ 15     CALFDA(K) = CHNAM(K:K)
+      IOPADA = 0
+      IOPBDA = 0
+      IOPCDA = 0
+      IOPDDA = 0
+      IOPEDA = 0
+      IOPFDA = 0
+      IOPGDA = 0
+      IOPHDA = 0
+      IOPIDA = 0
+      IOPJDA = 0
+      IOPKDA = 0
+      IOPLDA = 0
+      IOPMDA = 0
+      IOPNDA = 0
+      IOPODA = 0
+      IOPPDA = 0
+      IOPQDA = 0
+      IOPRDA = 0
+      IOPSDA = 0
+      IOPTDA = 0
+      IOPUDA = 0
+      IOPVDA = 0
+      IOPWDA = 0
+      IOPXDA = 0
+      IOPYDA = 0
+      IOPZDA = 0
+      CALL VZERO_i (IOKYDA, MXKYDA)    
       MPAKDA(1) = 8 
       MPAKDA(2) = 4 
       CSTRDA( 32: 47) = ' !"#$%&''()*+,-./' 
@@ -17450,11 +17582,12 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       COMMON /DZPACK/ PRECDZ, PACKDZ    
       LOGICAL         PACKDZ    
 *   
-      DIMENSION       LC(9), LU(9)  
-*   
+      DIMENSION       LU(*)
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
-      LREFDB(4) = LC(1) 
+      LREFDB(4) = LC
       NDU    = IQ(KOFUDB+LREFDB(4)-1) + 2   
       ITU    = IDBTYP (LREFDB(4))   
       IF (ITU.NE.2 .AND. ITU.NE.3 .AND. ITU.NE.5) THEN  
@@ -17464,8 +17597,9 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
      +  ' Data-type '',I5,/)', IQUEST(11), 1)   
         GO TO 999   
       ENDIF 
-      JBIAS  = 2    
-      CALL DBBOOK (IDISDB, LU(1), LU(1), JBIAS, 'BASE', 0, 0, NDU, ITU, 
+      JBIAS  = 2
+      nio(1) = itu
+      CALL DBBOOK (IDISDB, LU(1), LU(1), JBIAS, 'BASE', 0, 0, NDU, nio, 
      +             0)   
       IF (IQUEST(1).NE.0) GO TO 999 
       IF (ITU.EQ.3) THEN    
@@ -17477,7 +17611,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
           Q (KOFUDB+LU(1)+2) = IPREC    
         ENDIF   
       ELSE IF (ITU.EQ.2) THEN   
-        CALL UCOPY (IQ(KOFUDB+LREFDB(4)+1), IQ(KOFUDB+LU(1)+3), NDU-2)  
+        CALL UCOPY_i (IQ(KOFUDB+LREFDB(4)+1), IQ(KOFUDB+LU(1)+3), NDU-2)  
         IQ(KOFUDB+LU(1)+1) = 0  
         IF (PACKDZ) THEN    
           IQ(KOFUDB+LU(1)+2) = 0    
@@ -17485,7 +17619,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
           IQ(KOFUDB+LU(1)+2) = IPREC    
         ENDIF   
       ELSE IF (ITU.EQ.5) THEN   
-        CALL UCOPY (IQ(KOFUDB+LREFDB(4)+1), IQ(KOFUDB+LU(1)+3), NDU-2)  
+        CALL UCOPY_i (IQ(KOFUDB+LREFDB(4)+1), IQ(KOFUDB+LU(1)+3), NDU-2)  
         IQ(KOFUDB+LU(1)+1) = 0  
         IQ(KOFUDB+LU(1)+2) = 0  
       ENDIF 
@@ -17641,7 +17775,11 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       CHARACTER       CHCUR(NLEVM)*1, CHFRM*100, CFORM(6)*1, CHOP0*4    
       CHARACTER       CHOPT*(*) 
       DATA            CFORM /'B', 'I', 'F', 'D', 'H', 'A'/  
-*   
+*
+
+      integer ival
+      real fval
+      equivalence (ival, fval)
 *     ------------------------------------------------------------------    
 *   
 * *** Write the sequential output if needed 
@@ -17663,8 +17801,9 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
         IFORO  = 3  
         NCUR   = 1  
         NLEV   = NLEV + 1   
-        CHCUR(NLEV) = CFORM(IFORO)  
-        CALL UCOPY (PRECDZ, IHEADF(MPREDF), 1)  
+        CHCUR(NLEV) = CFORM(IFORO)
+        fval = precdz
+        iheadf(mpredf) = ival
       ELSE  
         IHEADF(MPREDF) = IPREC  
       ENDIF 
@@ -17696,7 +17835,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *  ** Write on the FZ file  
 *   
       CALL UCTOH (CHOP0, IHEADF(MPREDF+NWKYDK+1), 4, 4) 
-      CALL UCOPY (KEYSDS(1,1), IHEADF(MPREDF+1), NWKYDK)    
+      CALL UCOPY_i (KEYSDS(1,1), IHEADF(MPREDF+1), NWKYDK)    
       CALL FZOUT (LUFZDF, IDISDB, LOBJDS(1), 1, 'L', IOFMDF,    
      +            NWHEDF, IHEADF)   
       IF (IQUEST(1).NE.0) THEN  
@@ -17853,7 +17992,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
         GO TO 999   
       ENDIF 
       KEY1S  = (KPNT - MSERDB) / ISTP + 1   
-      CALL VZERO (KEYVDK, NWKYDK)   
+      CALL VZERO_i (KEYVDK, NWKYDK)   
       KEYVDK(1) = KEY1S 
       IF (LSTRDL(1).NE.0) THEN  
         CALL MZDROP (IDISDB, LSTRDL(1), 'L')    
@@ -18266,7 +18405,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       IPR1   = -IPREC   
 *   
       IF (IPR1.EQ.0) THEN   
-        CALL UCOPY (IA1, IA2, N)    
+        CALL UCOPY_i (IA1, IA2, N)    
         GO TO 999   
       ENDIF 
       XMULT  = 1./10**IPR1  
@@ -18516,7 +18655,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
      +              , IUSEDT, KEY6DT, KY6NDT, MNKYDT, NTIMDT    
 *   
       PARAMETER       (NZ=0)    
-      DIMENSION       LBN(9), KEYS(9), LBK(9)   
+      DIMENSION       KEYS(9), LBK(9)   
       CHARACTER       PATH*80, PATHN*80, PATHX*16   
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
@@ -18531,7 +18670,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
 *     ------------------------------------------------------------------    
 *   
-      LREFDB(2) = LBN(1)    
+      LREFDB(2) = LBN    
       IQUEST(1) = 0 
       NCHR   = IQ(KOFUDB+LREFDB(2)+MNDNCH)  
       CALL UHTOC (IQ(KOFUDB+LREFDB(2)+MNDNAM), 4, PATH, NCHR)   
@@ -18660,7 +18799,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
 *  *    The Key bank does not exist, create it  
 *   
-        CALL UCOPY  (IQ(KOFUDB+LREFDB(2)+MNDIOF), IOKYDB, NWNODB)   
+        CALL UCOPY_i  (IQ(KOFUDB+LREFDB(2)+MNDIOF), IOKYDB, NWNODB)   
         CALL DBBOOK (IDIVDB, LBKYDB, LSAVDB, JBIAS, 'KYDB', NLKYDB, 
      +               NSKYDB, ND, IOKYDB, NZ)    
         IF (IQUEST(1).NE.0)  THEN   
@@ -19065,7 +19204,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       LOGICAL         PACKDZ    
 *   
       PARAMETER       (NLEVM=20)    
-      DIMENSION       KEY(9), LSUP(9), KEYO(MXDMDK), KEYN(MXDMDK)   
+      DIMENSION       KEY(9), KEYO(MXDMDK), KEYN(MXDMDK)   
       CHARACTER       PATHY*80, PATHX*16, CHFOR*100, CFORM(6)*1 
       CHARACTER       CHCUR(NLEVM)*1, TOPN*16, PATHN*(*), CHOPT*28  
       CHARACTER       CHOP*1, PATHL*80  
@@ -19082,12 +19221,15 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      integer ival
+      real fval
+      equivalence (ival, fval)
 *     ------------------------------------------------------------------    
 *   
 * *** Set the current directory path name   
 *   
-      LREFDB(2) = LSUP(1)   
+      LREFDB(2) = LSUP   
       PATHX  = ' '  
       PATHY  = PATHN    
       PATHL  = ' '  
@@ -19224,8 +19366,9 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
           IFORO  = 3    
           NCUR   = 1    
           NLEV   = NLEV + 1 
-          CHCUR(NLEV) = CFORM(IFORO)    
-          CALL UCOPY (PRECDZ, IHEADF(MPREDF), 1)    
+          CHCUR(NLEV) = CFORM(IFORO)
+          fval = PRECDZ
+          IHEADF(MPREDF) = ival
         ELSE    
           IHEADF(MPREDF) = IPREC    
         ENDIF   
@@ -19268,7 +19411,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
         IF (NDOP.GT.0)  
      +    CALL UCTOH (CHOPT, IHEADF(MPREDF+NWKYDK+1), 4, 4*NDOP)    
         CALL UCTOH (PATHY, IHEADF(MPREDF+NWKYDK+NDOP+1), 4, 4*NWDP) 
-        CALL UCOPY (KEY, IHEADF(MPREDF+1), NWKYDK)  
+        CALL UCOPY_i (KEY, IHEADF(MPREDF+1), NWKYDK)  
       ENDIF 
 *   
 * *** Take necessary action for partitioned and nonpartiitined datasets 
@@ -19332,7 +19475,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
           LCDRDB = IQUEST(11)   
           IKDRDB = IQUEST(13)   
         ENDIF   
-        CALL UCOPY (KEYO, KEYN, NWKYDK) 
+        CALL UCOPY_i (KEYO, KEYN, NWKYDK) 
 *   
       ENDIF 
 *   
@@ -19429,7 +19572,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
         IQUEST(1) = IER 
 *   
       ENDIF 
-      CALL UCOPY (KEY, KEYNDK, NWKYDK)  
+      CALL UCOPY_i (KEY, KEYNDK, NWKYDK)  
 *   
       IF (IQUEST(1).NE.0)          GO TO 993    
       IF (IDEBDB.GT.1) THEN 
@@ -19490,8 +19633,8 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
             IF (IQUEST(1).NE.0) THEN    
               IQUEST(1) = 74    
               IF (IDEBDB.GT.0) THEN 
-                CALL UCOPY (KEYO, IARGDB(1),        NSYSDK) 
-                CALL UCOPY (KEYN, IARGDB(NSYSDK+1), NSYSDK) 
+                CALL UCOPY_i (KEYO, IARGDB(1),        NSYSDK) 
+                CALL UCOPY_i (KEYN, IARGDB(NSYSDK+1), NSYSDK) 
                 CALL DBPRNT (LPRTDB, '(/,'' DBKOUT : Error in RZRENK '//    
      +               'while writing data for '//PATHY//''',/(10X,7I12))'    
      +,              IARGDB, 2*NSYSDK)  
@@ -19533,7 +19676,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *                                                                      *    
 *     ITIME    Time for which data are required to be valid            *    
 *     IUDIV    Division index where bank is expected                   *    
-*     LU(*)    Address of the bank in memory                           *    
+*     LU       Address of the bank in memory                           *    
 *     LSUP     Supporting link of the bank (see MZBOOK)                *    
 *     JBIAS    Link bias for creating the data bank (see MZBOOK)       *    
 *     NWKEY    Number of key elements                                  *    
@@ -19622,7 +19765,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       COMMON /DTKXIN/ ICURDT, IDNRDT, IKYLDT, IMINDT, INRSDT, IPRVDT    
      +              , IUSEDT, KEY6DT, KY6NDT, MNKYDT, NTIMDT    
 *   
-      DIMENSION       KEY(9), LSUP(9), LU(9)    
+      DIMENSION       KEY(*)
       CHARACTER       PATHN*80, PATH*80, PATHX*16   
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
@@ -19817,32 +19960,32 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
 *  **   Only the keys are needed    
 *   
-        CALL UCOPY (KEYNDK, KEY, NWKYDK)    
+        CALL UCOPY_i (KEYNDK, KEY, NWKYDK)    
 *   
       ELSE IF (JBIT(KEY6DT,JRZUDB) .NE. 0)  THEN    
 *   
 *  **   Data are stored in RZ way   
 *   
-        LSTRDL(2) = LSUP(1) 
-        CALL DBRZIN (IUDIV, LSTRDL(2), JBIAS, KEY, ICYCL, PATHN)    
-        LSUP(1) = LSTRDL(2) 
+        LSTRDL(2) = LSUP 
+        CALL DBRZIN (IUDIV, LSTRDL(2), JBIAS, KEY(1), ICYCL, PATHN)    
+        LSUP = LSTRDL(2) 
         LSTRDL(2) = 0   
         IF (JBIAS.GT.0)  THEN   
-          LU(1)  = LSUP(1)  
+          LU  = LSUP  
         ELSE    
-          LU(1)  = LQ(KOFUDB+LSUP(1)+JBIAS) 
+          LU  = LQ(KOFUDB+LSUP+JBIAS) 
         ENDIF   
         IF (IQUEST(1).NE.0)                                 GO TO 998   
 *   
-        CALL UCOPY (KEYNDK, KEY, NWKYDK)    
+        CALL UCOPY_i (KEYNDK, KEY, NWKYDK)    
 *   
       ELSE  
 *   
 *  **   Read in standard DB format  
 *   
-        CALL DBRZIN (IDISDB, LSTRDL(2), 2, KEY, ICYCL, PATHN)   
+        CALL DBRZIN (IDISDB, LSTRDL(2), 2, KEY(1), ICYCL, PATHN)   
         IF (IQUEST(1).NE.0)                                 GO TO 998   
-        CALL UCOPY (KEYNDK, KEY, NWKYDK)    
+        CALL UCOPY_i (KEYNDK, KEY, NWKYDK)    
 *   
 *  **   If the data is update - uncompress and proceed updating 
 *   
@@ -19870,7 +20013,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
 *  **   Copy from internal Data Base system to user format  
 *   
-        CALL DBTOUS (LREFDL(3), IUDIV, LU(1), LSUP(1), JBIAS, IPREC)    
+        CALL DBTOUS (LREFDL(3), IUDIV, LU, LSUP, JBIAS, IPREC)    
 *   
         IER       = IQUEST(1)   
         CALL MZDROP (IDISDB, LREFDL(3), ' ')    
@@ -20054,7 +20197,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
 *  *    Create a new Key bank   
 *   
-        CALL UCOPY  (IQ(KOFUDB+LREFDB(2)+MNDIOF), IOKYDB, NWNODB)   
+        CALL UCOPY_i  (IQ(KOFUDB+LREFDB(2)+MNDIOF), IOKYDB, NWNODB)   
         CALL DBBOOK (IDIVDB, LBKYDB, LFIXDB, JBIAS, 'KYDB', NLKYDB, 
      +               NSKYDB, ND, IOKYDB, NZ)    
         IF (IQUEST(1).NE.0)  THEN   
@@ -20069,7 +20212,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
         LQ(KOFUDB+LBKYDB-KLNODB) = LREFDB(2)    
         LQ(KOFUDB+LBKYDB-KLUPDB) = LBFXDB   
-        CALL UCOPY (KEYNDK, IQ(KOFUDB+LBKYDB+1), NWKYDK)    
+        CALL UCOPY_i (KEYNDK, IQ(KOFUDB+LBKYDB+1), NWKYDK)    
         IQ(KOFUDB+LBKYDB+NWKYDK+1) = KEYNDK(MBVRDB) + 1 
 *   
    15 CONTINUE  
@@ -20119,14 +20262,14 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
             ENDIF   
    40     CONTINUE  
           IF (IQ(KOFUDB+LBKYDB+MSERDB).LT.KEYNDK(MSERDB))  THEN 
-            CALL UCOPY (KEYNDK, IQ(KOFUDB+LBKYDB+1), NWKYDK)    
+            CALL UCOPY_i (KEYNDK, IQ(KOFUDB+LBKYDB+1), NWKYDK)    
           ENDIF 
           GO TO 50  
         ENDIF   
 *   
 *  *    Create a new Key bank   
 *   
-        CALL UCOPY  (IQ(KOFUDB+LREFDB(2)+MNDIOF), IOKYDB, NWNODB)   
+        CALL UCOPY_i  (IQ(KOFUDB+LREFDB(2)+MNDIOF), IOKYDB, NWNODB)   
         CALL DBBOOK (IDIVDB, LBKYDB, LFIXDB, JBIAS, 'KYDB', NLKYDB, 
      +               NSKYDB, ND, IOKYDB, NZ)    
         IF (IQUEST(1).NE.0)  THEN   
@@ -20141,7 +20284,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
         LQ(KOFUDB+LBKYDB-KLNODB) = LREFDB(2)    
         LQ(KOFUDB+LBKYDB-KLUPDB) = LBFXDB   
-        CALL UCOPY (KEYNDK, IQ(KOFUDB+LBKYDB+1), NWKYDK)    
+        CALL UCOPY_i (KEYNDK, IQ(KOFUDB+LBKYDB+1), NWKYDK)    
    50 CONTINUE  
 *                                                             END DBKYSE    
   999 END   
@@ -20650,7 +20793,8 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension itwo(1)
 *     ------------------------------------------------------------------    
 *   
       ICADRE = 0    
@@ -20667,7 +20811,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       IBIT31 = JBIT (IWORD, 31) 
       IBIT32 = JBIT (IWORD, 32) 
       IF (IBIT31.NE.0) THEN 
-        ITWO   = IDATA(NTOT+2)  
+        ITWO(1)   = IDATA(NTOT+2)  
         NWI    = 2  
         CALL DBCFRI (ITWO, KTWO, 1, 3)  
       ELSE  
@@ -20941,7 +21085,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       CHARACTER       CHFRM(5)*1, CFORM*80, CHCUR(NLEVM)*1  
       CHARACTER       FPATH*80, FTEMP*80, FTMP1*80, CNODE(20)*16, CHL*16    
       CHARACTER       PATH*(*)  
-      INTEGER         NUCUR(NLEVM), NCHL(NLEVM), LBN(9) 
+      INTEGER         NUCUR(NLEVM), NCHL(NLEVM)
       DATA            CHFRM / 'B', 'I', 'F', 'D', 'H'/,  NZ / 0/    
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
@@ -20953,12 +21097,13 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Get the full pathname 
 *   
-      LREFDB(2) = LBN(1)    
+      LREFDB(2) = LBN    
       CALL RZCDIR (PATH, ' ')   
       IF (IQUEST(1) .NE. 0)  THEN   
         IQUEST(1) = 11  
@@ -21158,9 +21303,10 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
           IF (NL.LT.0) NL = 0   
         ENDIF   
       ENDIF 
-*   
+*
+      nio(1) = ionodb
       CALL DBBOOK (IDIVDB, LA, LSAVDB, JBIAS, 'NODB', NL, NL, ND,   
-     +             IONODB, NZ)  
+     +             nio, NZ)  
       IF (IQUEST(1).NE.0)  THEN 
         IQUEST(1) = 14  
         IQUEST(11)= IN  
@@ -21243,7 +21389,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       CALL MZIOCH (IQ(KOFUDB+LSAVDB+MNDIOF), NWNODB, CFORM(1:I))    
       CALL UCTOH (FPATH, IQ(KOFUDB+LSAVDB+MNDNAM), 4, NCHAR)    
 *   
-   90 LBN(1) = LSAVDB   
+   90 LBN = LSAVDB   
       LREFDB(2) = LSAVDB    
       LSAVDB = 0    
       IF (IN.LT.NODES)           GO TO 45   
@@ -21451,8 +21597,8 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
 *     ------------------------------------------------------------------    
 *   
-      CALL VZERO (IHB, 33)  
-      CALL VZERO (IAOU, LIN)    
+      CALL VZERO_i (IHB, 33)  
+      CALL VZERO_i (IAOU, LIN)    
       CALL VFILL (LHB, 32, IBIG)    
 *   
 * *** Histogram of the input stream bit-length  
@@ -21535,7 +21681,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       GO TO 999 
 *   
   991 CONTINUE  
-      CALL UCOPY (IAIN, IAOU, LIN)  
+      CALL UCOPY_i (IAIN, IAOU, LIN)  
       LOU   = LIN   
       LBITL = 32    
       LAUX  = 0 
@@ -21670,7 +21816,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
       IOKYDA(MSERDB) = 1    
       ITIME  = 0    
       JBIAS  = 2    
-      CALL VZERO (INDKDK, NKEYDK)   
+      CALL VZERO_i (INDKDK, NKEYDK)   
       IL     = 1    
    10 IN     = IL   
       MNKYDT = 0    
@@ -21731,7 +21877,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
               ENDIF 
               IF (IOPDDA.NE.0)  THEN    
                 LAUXDL(8) = 0   
-                CALL VZERO (KEYVDK, NWKYDK) 
+                CALL VZERO_i (KEYVDK, NWKYDK) 
                 KEYVDK(MSERDB) = IK 
                 CALL DBKXIN (ITIME, IDISDB, LAUXDL(8), LAUXDL(8),   
      +                       JBIAS, NWKEY, KEYVDK, IPREC)   
@@ -21823,7 +21969,8 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 *   
       CHARACTER       CHPRT*132 
       DIMENSION       KY(NW), KT(NW)    
-*   
+*
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
       IPR   = 0 
@@ -21883,9 +22030,10 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 * *** Error codes   
 *   
   901 CONTINUE  
-      IQUEST(1) = 103   
+      IQUEST(1) = 103
+      iarg(1) = kk
       IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBPRKY : Illegal '// 
-     +   'data type to be printed = '',I10/)', KK, 1)   
+     +   'data type to be printed = '',I10/)', iarg, 1)   
       GO TO 999 
 *                                                             END DBPRKY    
   999 END   
@@ -21914,7 +22062,7 @@ CCC  +  'on is not given - Compression cannot be made'',/)', IARGDB, 0)
 ************************************************************************    
 *   
       CHARACTER       CFORM*(*) 
-      DIMENSION       IARG(9)   
+      DIMENSION       IARG(*)   
 *   
 *     ------------------------------------------------------------------    
 *   
@@ -22095,7 +22243,6 @@ C&ENDIF
       COMMON /DKTAGS/ CHTGDK(NINEDK), CTAGDK(MXDMDK), CHFTDK    
       CHARACTER       CHFTDK*9, CHTGDK*8, CTAGDK*8  
 *   
-      DIMENSION       LAD(9)    
       CHARACTER       PATHD*80, PATHN*(*)   
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
@@ -22107,7 +22254,8 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension keyu(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Find number of data words 
@@ -22149,8 +22297,9 @@ C&ENDIF
 *   
 * *** Now call RZIN 
 *   
-      ICYCL  = 999999   
-      CALL RZIN (IDIV, LAD(1), JBIAS, ICUR, ICYCL, 'S') 
+      ICYCL  = 999999
+      keyu(1) = icur
+      CALL RZIN (IDIV, LAD, JBIAS, keyu, ICYCL, 'S') 
   990 IF (IQUEST(1).NE.0) THEN  
         IQUEST(1) = 34  
         PATHD  = PATHN  
@@ -22693,7 +22842,7 @@ C&ENDIF
       CHARACTER       CHFTDK*9, CHTGDK*8, CTAGDK*8  
 *   
       CHARACTER       PATHN*32, TOPN*(*), PATHL*80  
-      DIMENSION       KEYO(MXDMDK), LBK(9), KEYS(9) 
+      DIMENSION       KEYO(MXDMDK), KEYS(9) 
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
       JBIT (IZW,IZP)     = IBITS (IZW,IZP-1,1)  
@@ -22704,12 +22853,13 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension iuhead(1)
 *     ------------------------------------------------------------------    
 *   
 * *** Find the path name for storing the information    
 *   
-      LREFDB(2) = LBK(1)    
+      LREFDB(2) = LBK
       PATHL  = ' '  
       NCH    = LENOCC (TOPN)    
       IF (IFLG.EQ.1) THEN   
@@ -22729,7 +22879,7 @@ C&ENDIF
 * *** Fill up the key vector    
 *   
       IF (LUNFZ.GT.0) THEN  
-        CALL UCOPY (KEYS(1), KEYNDK, NSYSDK)    
+        CALL UCOPY_i (KEYS(1), KEYNDK, NSYSDK)    
       ELSE  
         KEYNDK(MSERDB) = KEYS(MSERDB)   
         KEYNDK(MUPNDB) = 0  
@@ -22772,8 +22922,9 @@ C&ENDIF
 *   
       IF (LUNFZ.EQ.0) THEN  
         LBDADB = LREFDB(2)  
-      ELSE  
-        CALL FZIN (LUNFZ, IDISDB, LBDADB, 2, 'A', 0, 0) 
+      ELSE
+        iuhead(1) = 0
+        CALL FZIN (LUNFZ, IDISDB, LBDADB, 2, 'A', 0, iuhead) 
         IF (IQUEST(1).GT.0) THEN    
           IQUEST(1) = -1    
           GO TO 999 
@@ -22797,7 +22948,7 @@ C&ENDIF
         IHEADF(MOPTDF) = 0  
         IHEADF(MPATDF) = NCHD   
         IHEADF(MFLGDF) = IFLG   
-        CALL UCOPY (KEYNDK, IHEADF(MFLGDF+1), NSYSDK)   
+        CALL UCOPY_i (KEYNDK, IHEADF(MFLGDF+1), NSYSDK)   
         NPNT   = NSYSDK + MFLGDF + 1    
         CALL UCTOH (PATHN, IHEADF(NPNT), 4, 4*NCHD) 
         NWDH   = NPNT + NCHD - 1    
@@ -23078,7 +23229,7 @@ C&ENDIF
       PARAMETER       (NLEVM=20)    
       CHARACTER       CHCUR(NLEVM)*1, CHFOR*100, CFORM(6)*1 
       CHARACTER       CHOP*80, TOPN*16, PATHN*(*), CHOPT*(*)    
-      DIMENSION       KEYS(9), NLCUR(NLEVM) 
+      DIMENSION       KEYS(*), NLCUR(NLEVM) 
       DATA            CFORM /'B', 'I', 'F', 'D', 'H', 'A'/  
 *   
 *     ------------------------------------------------------------------    
@@ -23291,7 +23442,7 @@ C&ENDIF
 *                                                                      *    
 *     LC       Address of the bank to be copied                        *    
 *     IUDIV    Division index of the user division                     *    
-*     LU(*)    Address of the copied bank                              *    
+*     LU       Address of the copied bank                              *    
 *     LSUP     Address of the supporting bank (see MZBOOK)             *    
 *     JBIAS    Link Bias (see MZBOOK)                                  *    
 *     IPREC    Signed precision word; the data are truncated after     *    
@@ -23341,22 +23492,22 @@ C&ENDIF
      +              , LBFYDB, LBKYDB, LBNODB, LFIXDB, LREFDB(7) 
      +              , LSAVDB, LTOPDB, LPRTDB, NTOPDB    
       PARAMETER       (NDMXDB=25000)    
-*   
-      DIMENSION       LC(9), LSUP(9), LU(9) 
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
-      LREFDB(4) = LC(1) 
+      LREFDB(4) = LC
       NDU    = IQ(KOFUDB+LREFDB(4)-1) - 2   
-      ITU    = IDBTYP (LREFDB(4))   
-      CALL DBBOOK (IUDIV, LU(1), LSUP(1), JBIAS, 'USER', 0, 0, NDU, ITU,    
+      ITU    = IDBTYP (LREFDB(4))
+      nio(1) = itu
+      CALL DBBOOK (IUDIV, LU, LSUP, JBIAS, 'USER', 0, 0, NDU, nio,    
      +             0)   
       IF (IQUEST(1).NE.0) GO TO 999 
       IF (ITU.EQ.3) THEN    
-        CALL UCOPY (Q(KOFUDB+LREFDB(4)+3), Q(KOFUDB+LU(1)+1), NDU)  
+        CALL UCOPY (Q(KOFUDB+LREFDB(4)+3), Q(KOFUDB+LU+1), NDU)  
         IPREC = Q(KOFUDB+LREFDB(4)+2)   
       ELSE  
-        CALL UCOPY (IQ(KOFUDB+LREFDB(4)+3), IQ(KOFUDB+LU(1)+1), NDU)    
+        CALL UCOPY_i (IQ(KOFUDB+LREFDB(4)+3), IQ(KOFUDB+LU+1), NDU)    
         IPREC = IQ(KOFUDB+LREFDB(4)+2)  
       ENDIF 
 *                                                             END DBTOUS    
@@ -23423,7 +23574,6 @@ C&ENDIF
 *   
       COMMON /DLINKS/ LSTRDL(5), LAUXDL(10), LREFDL(10) 
 *   
-      DIMENSION       LB(9) 
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
       JBIT (IZW,IZP)     = IBITS (IZW,IZP-1,1)  
@@ -23434,10 +23584,11 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
-      LREFDB(7) = LB(1) 
+      LREFDB(7) = LB
       NDI    = IQ(KOFUDB+LREFDB(7)-1) - 3   
       LB3    = LREFDB(7) + 3    
       NAU    = JBYT (IQ(KOFUDB+LB3), 1, 26) 
@@ -23451,9 +23602,10 @@ C&ENDIF
       IPREC  = IPREC - 100  
 *   
       ND2    = NDO + 2  
-      JBIAS  = 2    
+      JBIAS  = 2
+      nio(1) = 2
       CALL DBBOOK (IDISDB, LAUXDL(IADS), LAUXDL(IADS), JBIAS, 'AUX3', 0,    
-     +             0, ND2, 2, 0)    
+     +             0, ND2, nio, 0)    
       IF (IQUEST(1).NE.0)              GO TO 999    
 *   
       LAUX3  = LAUXDL(IADS) 
@@ -23486,9 +23638,10 @@ C&ENDIF
           CALL VSCALE (Q(KOFUDB+LAU33), XMULT, Q(KOFUDB+LAU33), NDO)    
         ENDIF   
 *   
-        JBIAS  = 2  
+        JBIAS  = 2
+        nio(1) = 3
         CALL DBBOOK (IDISDB, LAUXDL(IADS-1), LAUXDL(IADS-1), JBIAS, 
-     +               'AUX4', 0, 0, ND2, 3, 0)   
+     +               'AUX4', 0, 0, ND2, nio, 0)   
         IF (IQUEST(1).NE.0)            GO TO 999    
         LAUX3  = LAUXDL(IADS)   
         LAU33  = LAUX3 + 3  
@@ -23509,15 +23662,16 @@ C&ENDIF
    30     CONTINUE  
         ENDIF   
 *   
-        JBIAS  = 2  
+        JBIAS  = 2
+        nio(1) = idt
         CALL DBBOOK (IDISDB, LAUXDL(IADS-1), LAUXDL(IADS-1), JBIAS, 
-     +               'AUX4', 0, 0, ND2, IDT, 0) 
+     +               'AUX4', 0, 0, ND2, nio, 0) 
         IF (IQUEST(1).NE.0)            GO TO 999    
         LAUX3  = LAUXDL(IADS)   
         LAU33  = LAUX3 + 3  
         LAUX4  = LAUXDL(IADS-1) 
         IQ(KOFUDB+LAUX4+2) = IPREC  
-        CALL UCOPY (Q(KOFUDB+LAU33), IQ(KOFUDB+LAUX4+3), NDO)   
+        CALL UCOPY (Q(KOFUDB+LAU33), Q(KOFUDB+LAUX4+3), NDO)   
         CALL MZDROP (IDISDB, LAUX3, ' ')    
       ENDIF 
       GO TO 999 
@@ -23597,11 +23751,10 @@ C&ENDIF
       COMMON /DZPACK/ PRECDZ, PACKDZ    
       LOGICAL         PACKDZ    
 *   
-      DIMENSION       LB(9) 
-*   
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
-      LREFDB(7) = LB(1) 
+      LREFDB(7) = LB
       IDTYP  = IDBTYP (LREFDB(7))   
 *   
       IF (IDTYP.EQ.3) THEN  
@@ -23609,9 +23762,10 @@ C&ENDIF
         NDO    = Q(KOFUDB+LREFDB(7)+1)  
         PRECDZ = Q(KOFUDB+LREFDB(7)+2)  
         ND2    = NDO + 2    
-        JBIAS  = 2  
+        JBIAS  = 2
+        nio(1) = idtyp
         CALL DBBOOK (IDISDB, LAUXDL(IADS), LAUXDL(IADS), JBIAS, 'AUX3', 
-     +               0, 0, ND2, IDTYP, 0)   
+     +               0, 0, ND2, nio, 0)   
         IF (IQUEST(1).NE.0) GO TO 999   
         LAUX3  = LAUXDL(IADS)   
         LAU33  = LAUX3 + 3  
@@ -23625,14 +23779,15 @@ C&ENDIF
         NDO    = IQ(KOFUDB+LREFDB(7)+1) 
         PRECDZ = IQ(KOFUDB+LREFDB(7)+2) 
         ND2    = NDO + 2    
-        JBIAS  = 2  
+        JBIAS  = 2
+        nio(1) = idtyp
         CALL DBBOOK (IDISDB, LAUXDL(IADS), LAUXDL(IADS), JBIAS, 'AUX3', 
-     +               0, 0, ND2, IDTYP, 0)   
+     +               0, 0, ND2, nio, 0)   
         IF (IQUEST(1).NE.0) GO TO 999   
         LAUX3  = LAUXDL(IADS)   
         LAU33  = LAUX3 + 3  
         IF (NDI.LE.0) THEN  
-          CALL VZERO (IQ(KOFUDB+LAU33), NDO)    
+          CALL VZERO_i (IQ(KOFUDB+LAU33), NDO)    
         ELSE    
           CALL DBUPIZ (IQ(KOFUDB+LREFDB(7)+4),NDI, IQ(KOFUDB+LAU33),NDO)    
         ENDIF   
@@ -23729,7 +23884,7 @@ C&ENDIF
       PARAMETER       (NLEVM=20)    
       DIMENSION       KEYN(MXDMDK), NCHD(NLEVM), ISDI(NLEVM)    
       DIMENSION       NKEY(NLEVM), IOPT(NLEVM), NSDI(NLEVM) 
-      DIMENSION       IHDIR(4), LTOP(9) 
+      DIMENSION       IHDIR(4)
       CHARACTER       PATHN*80, PATHX*16, PATHY*80, PATHF*80, PATHZ*16  
       CHARACTER       PATHD*80  
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
@@ -23742,10 +23897,11 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
-      LBNODB = LTOP(1)  
+      LBNODB = LTOP
       JBIAS  = -KLDICT  
       NLEV   = 1    
       IOUT   = IQ(KOFUDB+LBNODB+MUPFLG) 
@@ -23843,9 +23999,10 @@ C&ENDIF
       CALL DBPKTM (IDATE,  ITIME,  KEYN(MITMDB))    
       LFIXDB = LQ(KOFUDB+LBNODB+JBIAS)  
       IF (LFIXDB.NE.0) CALL MZDROP (IDIVDB, LFIXDB, ' ')    
-      NDWD   = NPUSDB*NWITDB + 1    
+      NDWD   = NPUSDB*NWITDB + 1
+      nio(1) = iodidb
       CALL DBBOOK (IDIVDB, LFIXDB, LBNODB, JBIAS, 'DIDB', 0, 0, NDWD,   
-     +             IODIDB, 0)   
+     +             nio, 0)   
       IF (IQUEST(1).NE.0)              GO TO 999    
       NITEM  = 0    
       NKEEP  = NPUSDB   
@@ -23951,16 +24108,18 @@ C&ENDIF
             CALL ZSHUNT (IDIVDB, LFIXDB, LBDADB, 2, 0)  
             LBDADB = LFIXDB 
             LFIXDB = 0  
-            ND     = NDWD + NPUSDB * NWITDB 
+            ND     = NDWD + NPUSDB * NWITDB
+            nio(1) = IODIDB
             CALL DBBOOK (IDIVDB, LFIXDB, LBNODB, JBIAS, 'DIDB', 0, 0,   
-     +                   ND, IODIDB, -1)    
+     +                   ND, nio, -1)    
             IF (IQUEST(1).NE.0) THEN    
               IERR   = IQUEST(1)    
               CALL MZDROP (IDIVDB, LBDADB, ' ') 
               IQUEST(1) = IERR  
                GO TO 999    
             ENDIF   
-            CALL UCOPY (IQ(KOFUDB+LBDADB+1), IQ(KOFUDB+LFIXDB+1), NDWD) 
+            CALL UCOPY_i (IQ(KOFUDB+LBDADB+1), IQ(KOFUDB+LFIXDB+1),
+     &           NDWD) 
             CALL MZDROP (IDIVDB, LBDADB, ' ')   
             NDWD   = IQ(KOFUDB+LFIXDB-1)    
             NKEEP  = NKEEP + NPUSDB 
@@ -24027,7 +24186,7 @@ C&ENDIF
 *   Arguments :                                                        *    
 *                                                                      *    
 *     LC       Address of the bank to be uncompressed                  *    
-*     LU(*)    Address of the uncompressed bank                        *    
+*     LU       Address of the uncompressed bank                        *    
 *     IK       If nonzero the Key 1 of the master bank with reference  *    
 *              to which the bank is to be updated                      *    
 *                                                                      *    
@@ -24098,7 +24257,7 @@ C&ENDIF
       COMMON /DZPACK/ PRECDZ, PACKDZ    
       LOGICAL         PACKDZ    
 *   
-      DIMENSION       LC(9), LU(9), KEY(NINEDK) 
+      DIMENSION       KEY(NINEDK) 
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
       JBIT (IZW,IZP)     = IBITS (IZW,IZP-1,1)  
@@ -24109,10 +24268,11 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
-      LREFDB(5) = LC(1) 
+      LREFDB(5) = LC 
       ITU    = IDBTYP (LREFDB(5))   
 *   
 * *** Data uncompressed ?   
@@ -24121,32 +24281,33 @@ C&ENDIF
       IF (IQ(KOFUDB+LREFDB(5)+1).EQ.0) THEN 
         IF (IK.NE.0)        GO TO 991   
         NDU    = IQ(KOFUDB+LREFDB(5)-1) 
-        JBIAS  = 2  
-        CALL DBBOOK (IDISDB, LU(1), LU(1), JBIAS, 'SAME', 0, 0, NDU,    
-     +               ITU, 0)    
+        JBIAS  = 2
+        nio(1) = itu
+        CALL DBBOOK (IDISDB, LU, LU, JBIAS, 'SAME', 0, 0, NDU,    
+     +               nio, 0)    
         IF (IQUEST(1).NE.0) GO TO 999   
         IF (ITU.EQ.3)  THEN 
-          CALL UCOPY (Q(KOFUDB+LREFDB(5)+1), Q(KOFUDB+LU(1)+1), NDU)    
+          CALL UCOPY (Q(KOFUDB+LREFDB(5)+1), Q(KOFUDB+LU+1), NDU)    
         ELSE    
-          CALL UCOPY (IQ(KOFUDB+LREFDB(5)+1), IQ(KOFUDB+LU(1)+1), NDU)  
+          CALL UCOPY_i (IQ(KOFUDB+LREFDB(5)+1), IQ(KOFUDB+LU+1), NDU)  
         ENDIF   
         GO TO 999   
       ENDIF 
 *   
 * *** Uncompress data   
 * *** Which packing mode ?  
-*   
-      CALL UCOPY (Q(KOFUDB+LREFDB(5)+3), IXX, 1)    
+*
+      ixx = iQ(KOFUDB+LREFDB(5)+3)
       PACKDZ = (JBIT (IXX, 32)) .EQ. 0  
 *   
       IADS   = 5    
 *   
       IF (PACKDZ) THEN  
         CALL DBUCMZ (LREFDB(5), IADS)   
-        LU(1) = LAUXDL(IADS)    
+        LU = LAUXDL(IADS)    
       ELSE  
         CALL DBUCMP (LREFDB(5), IADS)   
-        LU(1) = LAUXDL(IADS-1)  
+        LU = LAUXDL(IADS-1)  
       ENDIF 
       IF (IQUEST(1).NE.0)   GO TO 999   
 *   
@@ -24156,12 +24317,12 @@ C&ENDIF
       CALL MZDROP (IDISDB, LREFDB(5), ' ')  
 *   
       LREFDB(5) = 0 
-      LREFDB(6) = LU(1) 
-      LC(1)     = 0 
+      LREFDB(6) = LU 
+      LC     = 0 
       JBIAS  = 2    
       CALL DBRZIN (IDISDB, LREFDB(5), JBIAS, IK, ICYCL, ' ')    
       IF (IQUEST(1).NE.0)   GO TO 999   
-      LC(1)     = LREFDB(5) 
+      LC     = LREFDB(5) 
       CALL DBKEYR (IK, NWKEY, KEY)  
    10 LCC    = LREFDB(5)    
 *   
@@ -24283,7 +24444,7 @@ C&ENDIF
 *   
 *     ------------------------------------------------------------------    
 *   
-      CALL VZERO (IAOU, LOU)    
+      CALL VZERO_i (IAOU, LOU)    
 *   
       AUXI   = LAUX.GT.0    
 *   
@@ -24376,7 +24537,7 @@ C&ENDIF
 *   
 *     ------------------------------------------------------------------    
 *   
-      CALL VZERO (IAO(1), NDO)  
+      CALL VZERO_i (IAO(1), NDO)  
 *   
       DO 10 I = 1, NDI  
         I2     = 2*I    
@@ -24410,7 +24571,7 @@ C&ENDIF
 *   
 * ** Get date and time for constructing the return arguments    
 *   
-      CALL LIB$DAY (IDAY,,ITIM) 
+      CALL LIB$DAY (IDAY,%val(0),ITIM) 
 *                                                             END DBUVTX    
       END   
       FUNCTION IDBTYP (L)   
@@ -24681,7 +24842,7 @@ C&ENDIF
       PARAMETER       (NDMXDB=25000)    
 *   
       CHARACTER       CHVAR*16  
-      DIMENSION       X(5), Y(5), LAD(9)    
+      DIMENSION       X(5), Y(5)
       PARAMETER       (XRNG=24.0, YRNG=24.0, HIGH=0.5, SMARG=1.0)   
       PARAMETER       (CSIZ=0.6, HSIZ=1.5, GAP=3.5, FRAM=1.2)   
 *   
@@ -24689,7 +24850,7 @@ C&ENDIF
 *   
 * *** Derive the number of tree structure levels    
 *   
-      LREFDB(1) = LAD(1)    
+      LREFDB(1) = LAD
       NLEV = IQ(KOFUDB+LREFDB(1)+MNLVDB)    
       IF (NLEV.LE.0)            GO TO 999   
 *   
@@ -25102,7 +25263,9 @@ C&ENDIF
       CHARACTER       PATH*80, PATHX*16, PATHY*80, PATHN*80, CTAG(25)*16    
       CHARACTER*(*)   PATHS(*), CHOPT   
       DIMENSION       KEYS(9), KEYXS(9), KOBJS(9), NKEYX(9), NOBJS(9)   
-      DOUBLE PRECISION DVAL 
+      DOUBLE PRECISION DVAL
+      real fval(2)
+      equivalence (fval, dval)
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
       JBIT (IZW,IZP)     = IBITS (IZW,IZP-1,1)  
@@ -25113,7 +25276,9 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Prepare object and key vector specifiers for different paths  
@@ -25177,7 +25342,7 @@ C&ENDIF
      +  ' number of objects '',2I9,'' for All Paths'')', IQUEST(11), 2) 
         GO TO 999   
       ENDIF 
-      CALL VZERO (IOTYDP, NTOT) 
+      CALL VZERO_i (IOTYDP, NTOT) 
       NPLM  = NPLMDP    
       CALL HCDIR (PATHN, 'R')   
 *   
@@ -25275,9 +25440,10 @@ C&ENDIF
       CALL DATIME (IDATX, ITIMX)    
       CALL DBPKTS (IDATX, ITIMX*100, ITNOW) 
       ND    = (NTOT + 1) * NPLM 
-      IF (LAUXDL(10).NE.0) CALL MZDROP (IDISDB, LAUXDL(10), 'L')    
+      IF (LAUXDL(10).NE.0) CALL MZDROP (IDISDB, LAUXDL(10), 'L')
+      nio(1) = 0
       CALL DBBOOK (IDISDB, LAUXDL(10), LAUXDL(10), 2, 'TEMP', 0, 0, ND, 
-     +             0, -1)   
+     +             nio, -1)   
       IF (IQUEST(1).NE.0)                                     GO TO 999 
       NCUR   = 0    
       NCURD  = 0    
@@ -25355,7 +25521,7 @@ C&ENDIF
           ENDIF 
           IF (NOBJS(1).GT.0) THEN   
             LAUXDL(9) = 0   
-            CALL VZERO (KEYVDK, NWKYDK) 
+            CALL VZERO_i (KEYVDK, NWKYDK) 
             KEYVDK(MSERDB) = IK 
             IOKYDA(MSERDB) = 1  
             CALL DBKXIN (ITIME, IDISDB, LAUXDL(9), LAUXDL(9), JBIAS,    
@@ -25409,7 +25575,7 @@ C&ENDIF
               IVAL   = IQ(KOFUDB+LAUXDL(9)+II)  
               Q(IPNT+ID+1) = IVAL   
             ELSE IF (IOTYDP(ID).EQ.4) THEN  
-              CALL UCOPY (Q(KOFUDB+LAUXDL(9)+II), DVAL, 2)  
+              CALL UCOPY (Q(KOFUDB+LAUXDL(9)+II), fVAL, 2)  
               Q(IPNT+ID+1) = DVAL   
             ELSE    
               Q(IPNT+ID+1) = Q(KOFUDB+LAUXDL(9)+II) 
@@ -25479,7 +25645,7 @@ C&ENDIF
             ENDIF   
             IF (NOBJS(1).GT.0) THEN 
               LAUXDL(9) = 0 
-              CALL VZERO (KEYVDK, NWKYDK)   
+              CALL VZERO_i (KEYVDK, NWKYDK)   
               KEYVDK(MSERDB) = IK   
               IOKYDA(MSERDB) = 1    
               CALL DBKXIN (ITIME, IDISDB, LAUXDL(9), LAUXDL(9), JBIAS,  
@@ -25534,7 +25700,7 @@ C&ENDIF
                 IVAL   = IQ(KOFUDB+LAUXDL(9)+II)    
                 Q(IPNT+ID+1) = IVAL 
               ELSE IF (IOTYDP(ID).EQ.4) THEN    
-                CALL UCOPY (Q(KOFUDB+LAUXDL(9)+II), DVAL, 2)    
+                CALL UCOPY (Q(KOFUDB+LAUXDL(9)+II), fVAL, 2)    
                 Q(IPNT+ID+1) = DVAL 
               ELSE  
                 Q(IPNT+ID+1) = Q(KOFUDB+LAUXDL(9)+II)   
@@ -25632,7 +25798,7 @@ C&ENDIF
               ENDIF 
               IF (NOBJS(NPT).GT.0) THEN 
                 LAUXDL(9) = 0   
-                CALL VZERO (KEYVDK, NWKYDK) 
+                CALL VZERO_i (KEYVDK, NWKYDK) 
                 KEYVDK(MSERDB) = IK 
                 IOKYDA(MSERDB) = 1  
                 CALL DBKXIN (ITIME, IDISDB, LAUXDL(9), LAUXDL(9), JBIAS,    
@@ -25685,7 +25851,7 @@ C&ENDIF
                   IVAL   = IQ(KOFUDB+LAUXDL(9)+II)  
                   Q(IPNT+ID+1) = IVAL   
                 ELSE IF (IOTYDP(ID).EQ.4) THEN  
-                  CALL UCOPY (Q(KOFUDB+LAUXDL(9)+II), DVAL, 2)  
+                  CALL UCOPY (Q(KOFUDB+LAUXDL(9)+II), fVAL, 2)  
                   Q(IPNT+ID+1) = DVAL   
                 ELSE    
                   Q(IPNT+ID+1) = Q(KOFUDB+LAUXDL(9)+II) 
@@ -25755,7 +25921,7 @@ C&ENDIF
                 ENDIF   
                 IF (NOBJS(NPT).GT.0) THEN   
                   LAUXDL(9) = 0 
-                  CALL VZERO (KEYVDK, NWKYDK)   
+                  CALL VZERO_i (KEYVDK, NWKYDK)   
                   KEYVDK(MSERDB) = IK   
                   IOKYDA(MSERDB) = 1    
                   CALL DBKXIN (ITIME, IDISDB, LAUXDL(9), LAUXDL(9), 
@@ -25808,7 +25974,7 @@ C&ENDIF
                     IVAL   = IQ(KOFUDB+LAUXDL(9)+II)    
                     Q(IPNT+ID+1) = IVAL 
                   ELSE IF (IOTYDP(ID).EQ.4) THEN    
-                    CALL UCOPY (Q(KOFUDB+LAUXDL(9)+II), DVAL, 2)    
+                    CALL UCOPY (Q(KOFUDB+LAUXDL(9)+II), fVAL, 2)    
                     Q(IPNT+ID+1) = DVAL 
                   ELSE  
                     Q(IPNT+ID+1) = Q(KOFUDB+LAUXDL(9)+II)   
@@ -25983,7 +26149,9 @@ C&ENDIF
       CHARACTER       PATH*80, PATHX*16, PATHY*80, CHTAG(7)*16, CTAG*16 
       CHARACTER       PATHN*(*), CHOPT*(*)  
       DIMENSION       KEYS(9), KOBJ(9), ISYMB(MXSYM)    
-      DOUBLE PRECISION DVAL 
+      DOUBLE PRECISION DVAL
+      real fval(2)
+      equivalence (dval, fval)
       DATA            CHTAG /'Serial Number   ', 'Pointer         ',    
      +                       'Start Validity  ', 'End Validity    ',    
      +                       'Program Version ', 'Flags           ',    
@@ -25999,7 +26167,8 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension nio(9), iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
@@ -26019,7 +26188,7 @@ C&ENDIF
       IF (NOBJ.LT.1.OR.NOBJ.GT.NOBMDP) THEN 
         IQUEST(1) = 163 
         IQUEST(11)= NOBJ    
-        IQUEST(12)= NOBMDP  
+        IQUEST(12)= NOBMDP
         IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBPLOB : Illegal'//    
      +  ' number of objects '',2I12)', IQUEST(11), 2)   
         GO TO 999   
@@ -26099,9 +26268,10 @@ C&ENDIF
       ENDIF 
       ND     = (NOBJ + 1) * NPLM    
       NBAD   = 0    
-      IF (LAUXDL(10).NE.0) CALL MZDROP (IDISDB, LAUXDL(10), 'L')    
+      IF (LAUXDL(10).NE.0) CALL MZDROP (IDISDB, LAUXDL(10), 'L')
+      nio(1) = 0
       CALL DBBOOK (IDISDB, LAUXDL(10), LAUXDL(10), 2, 'TEMP', 0, 0, ND, 
-     +             0, -1)   
+     +             nio, -1)   
       IF (IQUEST(1).NE.0)                                    GO TO 999  
       VMINDP = 9.0E20   
       VMAXDP =-9.0E20   
@@ -26143,7 +26313,7 @@ C&ENDIF
           LAUXDL(9) = 0 
           KTIME  = KEYVDK(KABS) 
           KYVAL  = KEYVDK(KPEX) 
-          CALL VZERO (KEYVDK, NWKYDK)   
+          CALL VZERO_i (KEYVDK, NWKYDK)   
           KEYVDK(MSERDB) = IK   
           IOKYDA(MSERDB) = 1    
           CALL DBKXIN (ITIME, IDISDB, LAUXDL(9), LAUXDL(9), JBIAS,  
@@ -26172,7 +26342,7 @@ C&ENDIF
                 IVAL   = IQ(KOFUDB+LAUXDL(9)+KOBJ(I))   
                 Q(IPNT+I+1) = IVAL  
               ELSE IF (IOTYDP(I).EQ.4) THEN 
-                CALL UCOPY (Q(KOFUDB+LAUXDL(9)+KOBJ(I)), DVAL, 2)   
+                CALL UCOPY (Q(KOFUDB+LAUXDL(9)+KOBJ(I)), fVAL, 2)   
                 Q(IPNT+I+1) = DVAL  
               ELSE  
                 Q(IPNT+I+1) = Q(KOFUDB+LAUXDL(9)+KOBJ(I))   
@@ -26245,7 +26415,7 @@ C&ENDIF
             LAUXDL(9) = 0   
             KTIME  = KEYVDK(KABS)   
             KYVAL  = KEYVDK(KPEX)   
-            CALL VZERO (KEYVDK, NWKYDK) 
+            CALL VZERO_i (KEYVDK, NWKYDK) 
             KEYVDK(MSERDB) = IK 
             IOKYDA(MSERDB) = 1  
             CALL DBKXIN (ITIME, IDISDB, LAUXDL(9), LAUXDL(9), JBIAS,    
@@ -26274,7 +26444,7 @@ C&ENDIF
                   IVAL   = IQ(KOFUDB+LAUXDL(9)+KOBJ(I)) 
                   Q(IPNT+I+1) = IVAL    
                 ELSE IF (IOTYDP(I).EQ.4) THEN   
-                  CALL UCOPY (Q(KOFUDB+LAUXDL(9)+KOBJ(I)), DVAL, 2) 
+                  CALL UCOPY (Q(KOFUDB+LAUXDL(9)+KOBJ(I)), fVAL, 2) 
                   Q(IPNT+I+1) = DVAL    
                 ELSE    
                   Q(IPNT+I+1) = Q(KOFUDB+LAUXDL(9)+KOBJ(I)) 
@@ -26305,8 +26475,9 @@ C&ENDIF
 * *** All points collected  
 *   
    45 CONTINUE  
+      iarg(1) = nbad
       IF (IDEBDB.GT.1) CALL DBPRNT (LPRTDB, '(/,'' DBPLOB : Number of'//    
-     +   ' bad objects '',I12)', NBAD, 1)   
+     +   ' bad objects '',I12)', iarg, 1)   
       IF (NPL.EQ.0) THEN    
         CALL MZDROP (IDISDB, LAUXDL(10), ' ')   
         GO TO 999   
@@ -26322,9 +26493,10 @@ C&ENDIF
       ENDIF 
 *   
 * *** Sort the objects in increasing time   
-*   
+*
+      nio(1) = 0
       CALL DBBOOK (IDISDB, LAUXDL(9), LAUXDL(9), 2, 'TIME', 0, 0, 4*NPL,    
-     +             0, -1)   
+     +             nio, -1)   
       IF (IQUEST(1).NE.0) THEN  
         IER    = IQUEST(1)  
         CALL MZDROP (IDISDB, LAUXDL(10), ' ')   
@@ -26573,7 +26745,9 @@ C&ENDIF
       CHARACTER       PATH*80, PATHX*16, PATHY*80   
       CHARACTER       PATHN*(*), CHOPT*(*)  
       DIMENSION       KEYS(9), KOBJ(2,9)    
-      DOUBLE PRECISION DVAL 
+      DOUBLE PRECISION DVAL
+      real fval(2)
+      equivalence (dval, fval)
       IBITS (I,N,L)      = ISHFT(ISHFT(I,32-L-N),L-32)  
 *   
       JBIT (IZW,IZP)     = IBITS (IZW,IZP-1,1)  
@@ -26584,7 +26758,8 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension nio(9), iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
@@ -26600,7 +26775,7 @@ C&ENDIF
       IF (NOBJ.LT.1.OR.NOBJ.GT.NOBMDP) THEN 
         IQUEST(1) = 163 
         IQUEST(11)= NOBJ    
-        IQUEST(12)= NOBMDP  
+        IQUEST(12)= NOBMDP
         IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBPLOV : Illegal'//    
      +  ' number of objects '',2I12)', IQUEST(11), 2)   
         GO TO 999   
@@ -26679,9 +26854,10 @@ C&ENDIF
         IF (NKEYDK.LT.NPLM) NPLM = NKEYDK   
       ENDIF 
       ND     = (NOBJDP + 1) * NPLM  
-      IF (LAUXDL(10).NE.0) CALL MZDROP (IDISDB, LAUXDL(10), 'L')    
+      IF (LAUXDL(10).NE.0) CALL MZDROP (IDISDB, LAUXDL(10), 'L')
+      nio(1) = 0
       CALL DBBOOK (IDISDB, LAUXDL(10), LAUXDL(10), 2, 'TEMP', 0, 0, ND, 
-     +             0, -1)   
+     +             nio, -1)   
       IF (IQUEST(1).NE.0)                                    GO TO 999  
       VMINDP = 9.0E20   
       VMAXDP =-9.0E20   
@@ -26722,7 +26898,7 @@ C&ENDIF
           ENDIF 
           LAUXDL(9) = 0 
           KTIME  = KEYVDK(KABS) 
-          CALL VZERO (KEYVDK, NWKYDK)   
+          CALL VZERO_i (KEYVDK, NWKYDK)   
           KEYVDK(MSERDB) = IK   
           IOKYDA(MSERDB) = 1    
           CALL DBKXIN (ITIME, IDISDB, LAUXDL(9), LAUXDL(9), JBIAS,  
@@ -26751,7 +26927,7 @@ C&ENDIF
                 IVAL   = IQ(KOFUDB+LAUXDL(9)+KOBJDP(I)) 
                 Q(IPNT+I+1) = IVAL  
               ELSE IF (IOTYDP(I).EQ.4) THEN 
-                CALL UCOPY (Q(KOFUDB+LAUXDL(9)+KOBJDP(I)), DVAL, 2) 
+                CALL UCOPY (Q(KOFUDB+LAUXDL(9)+KOBJDP(I)), fVAL, 2) 
                 Q(IPNT+I+1) = DVAL  
               ELSE  
                 Q(IPNT+I+1) = Q(KOFUDB+LAUXDL(9)+KOBJDP(I)) 
@@ -26823,7 +26999,7 @@ C&ENDIF
             ENDIF   
             LAUXDL(9) = 0   
             KTIME  = KEYVDK(KABS)   
-            CALL VZERO (KEYVDK, NWKYDK) 
+            CALL VZERO_i (KEYVDK, NWKYDK) 
             KEYVDK(MSERDB) = IK 
             IOKYDA(MSERDB) = 1  
             CALL DBKXIN (ITIME, IDISDB, LAUXDL(9), LAUXDL(9), JBIAS,    
@@ -26852,7 +27028,7 @@ C&ENDIF
                   IVAL   = IQ(KOFUDB+LAUXDL(9)+KOBJDP(I))   
                   Q(IPNT+I+1) = IVAL    
                 ELSE IF (IOTYDP(I).EQ.4) THEN   
-                  CALL UCOPY (Q(KOFUDB+LAUXDL(9)+KOBJDP(I)), DVAL, 2)   
+                  CALL UCOPY (Q(KOFUDB+LAUXDL(9)+KOBJDP(I)), fVAL, 2)   
                   Q(IPNT+I+1) = DVAL    
                 ELSE    
                   Q(IPNT+I+1) = Q(KOFUDB+LAUXDL(9)+KOBJDP(I))   
@@ -26883,8 +27059,9 @@ C&ENDIF
 * *** All points collected  
 *   
    45 CONTINUE  
+      iarg(1) = nbad
       IF (IDEBDB.GT.1) CALL DBPRNT (LPRTDB, '(/,'' DBPLOV : Number of'//    
-     +   ' bad objects '',I12)', NBAD, 1)   
+     +   ' bad objects '',I12)', iarg, 1)   
       IF (NPL.EQ.0) THEN    
         CALL MZDROP (IDISDB, LAUXDL(10), ' ')   
         GO TO 999   
@@ -26900,9 +27077,10 @@ C&ENDIF
       ENDIF 
 *   
 * *** Sort the objects in increasing time   
-*   
+*
+      nio(1) = 0
       CALL DBBOOK (IDISDB, LAUXDL(9), LAUXDL(9), 2, 'TIME', 0, 0, 4*NPL,    
-     +             0, -1)   
+     +             nio, -1)   
       IF (IQUEST(1).NE.0) THEN  
         IER    = IQUEST(1)  
         CALL MZDROP (IDISDB, LAUXDL(10), ' ')   
@@ -27094,7 +27272,8 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
@@ -27135,9 +27314,10 @@ C&ENDIF
         IF (NKEYDK.LT.NPLM) NPLM = NKEYDK   
       ENDIF 
       ND     = 3 * NPLM 
-      IF (LAUXDL(10).NE.0) CALL MZDROP (IDISDB, LAUXDL(10), 'L')    
+      IF (LAUXDL(10).NE.0) CALL MZDROP (IDISDB, LAUXDL(10), 'L')
+      nio(1) = 2
       CALL DBBOOK (IDISDB, LAUXDL(10), LAUXDL(10), 2, 'TEMP', 0, 0, ND, 
-     +             2, -1)   
+     +             nio, -1)   
       IF (IQUEST(1).NE.0)                                    GO TO 999  
 *   
 * *** Load useful data in the temporary bank    
@@ -27639,7 +27819,8 @@ C&ENDIF
       CHARACTER       CPATL*32, CHOPT*32, PATHN*80  
       CHARACTER       TOPN*16, PATH*80, CFNAM*80, ALIAS*8, CHTAG*8  
       DATA            PATHN /' '/, ALIAS /' '/, CHTAG /' '/ 
-*   
+*
+      dimension iarg(9), kobj(9)
 *     ------------------------------------------------------------------    
 *   
       CALL KUPATL (CPATL, NPAR) 
@@ -27671,30 +27852,34 @@ C&ENDIF
               IF (PATH(1:1).NE.' ') THEN    
                 CALL KUGETC (CFNAM, NCF)    
                 CALL DBOPEN (LUKYDX, CFNAM, 'UNKNOWN', ISTAT)   
-                IF (ISTAT.NE.0) THEN    
+                IF (ISTAT.NE.0) THEN
+                  iarg(1) = istat
                   CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Error '',I12'//  
      +                 ','' in opening file '//CFNAM(1:NCF)//''')', 
-     +                 ISTAT, 1)    
+     +                 iarg, 1)    
                   GO TO 999 
                 ENDIF   
                 CALL DBRHLP (PATH, LUKYDX)  
-                IERR = IQUEST(1)    
+                IERR = IQUEST(1)
+                iarg(1) = ierr
                 IF (IERR.NE.0) CALL DBPRNT (LUKYDX, '(/,'' DBACPL : '// 
      +          'Error '',I12,'' in getting help info. for '',/,'' '//  
-     +          PATH(1:72)//''')', IERR, 1) 
+     +          PATH(1:72)//''')', iarg, 1) 
                 CALL DBCLOS (LUKYDX)    
                 CALL KUEDIT (CFNAM, IST)    
               ELSE  
                 CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Cursor does not '//    
      +               'point to any valid path'')', IARGDB, 0)   
               ENDIF 
-            ELSE    
+            ELSE
+              iarg(1) = ist
               CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Error '',I12,'' in'//    
-     +             ' picking operation'')', IST, 1) 
+     +             ' picking operation'')', iarg, 1) 
             ENDIF   
-          ELSE  
+          ELSE
+            iarg(1) = iquest(1)
             CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Error '',I12,'' in '// 
-     +           'finding the tree for '//TOPN//''')', IQUEST(1), 1)    
+     +           'finding the tree for '//TOPN//''')', iarg, 1)    
           ENDIF 
           IF (LFRSDX.NE.0) THEN 
             CALL MZDROP (IDIVDB, LFRSDX, ' ')   
@@ -27722,13 +27907,14 @@ C&ENDIF
      +         'T '//CHOPT(1:NCH)//''')', IARGDB, 0)    
           GO TO 999 
         ENDIF   
-        CALL VZERO (KEYS, 100)  
+        CALL VZERO_i (KEYS, 100)  
         CALL DBRVPL (1, NOBJ, KOBJ1, KOBJ2, KEYS)   
         IF (IQUEST(1).NE.0) GO TO 999   
         CALL IGSG (L3WKST)  
-        CALL DBPLOB (PATHN, KEYS, NOBJ, KOBJ1, KEX, NST, CHOPT) 
+        CALL DBPLOB (PATHN, KEYS, NOBJ, KOBJ1, KEX, NST, CHOPT)
+        iarg(1) = iquest(1)
         IF (IQUEST(1).NE.0) CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Erro'//    
-     +  'r '',I12,'' in routine DBPLOB'')', IQUEST(1), 1)   
+     +  'r '',I12,'' in routine DBPLOB'')', iarg, 1)   
         CALL IGSA (L3WKST)  
 *   
       ELSE IF (CPATL(1:6).EQ.'DBPLOT') THEN 
@@ -27756,16 +27942,18 @@ C&ENDIF
      +         'T '//CHOPT(1:NCH)//''')', IARGDB, 0)    
           GO TO 999 
         ENDIF   
-        CALL VZERO (KEYS, 100)  
+        CALL VZERO_i (KEYS, 100)  
         CALL DBRVPL (0, NOBJ, KOBJ1, KOBJ2, KEYS)   
         IF (IQUEST(1).NE.0) GO TO 999   
         NOBJ   = 1  
         KEX    = 3  
         NST    = 1  
-        CALL IGSG (L3WKST)  
-        CALL DBPLOB (PATHN, KEYS, NOBJ, IOBJ, KEX, NST, CHOPT)  
+        CALL IGSG (L3WKST)
+        kobj(1) = iobj
+        CALL DBPLOB (PATHN, KEYS, NOBJ, kOBJ, KEX, NST, CHOPT)
+        iarg(1) = iquest(1)
         IF (IQUEST(1).NE.0) CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Erro'//    
-     +  'r '',I12,'' in routine DBPLOB'')', IQUEST(1), 1)   
+     +  'r '',I12,'' in routine DBPLOB'')', iarg, 1)   
         CALL IGSA (L3WKST)  
 *   
       ELSE IF (CPATL.EQ.'DBPLOV') THEN  
@@ -27787,13 +27975,14 @@ C&ENDIF
      +         'T '//CHOPT(1:NCH)//''')', IARGDB, 0)    
           GO TO 999 
         ENDIF   
-        CALL VZERO (KEYS, 100)  
+        CALL VZERO_i (KEYS, 100)  
         CALL DBRVPL (2, NOBJ, KOBJ1, KOBJ2, KEYS)   
         IF (IQUEST(1).NE.0) GO TO 999   
         CALL IGSG (L3WKST)  
-        CALL DBPLOV (PATHN, KEYS, NOBJ, KOBJ2, NST, CHOPT)  
+        CALL DBPLOV (PATHN, KEYS, NOBJ, KOBJ2, NST, CHOPT)
+        iarg(1) = iquest(1)
         IF (IQUEST(1).NE.0) CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Erro'//    
-     +  'r '',I12,'' in routine DBPLOV'')', IQUEST(1), 1)   
+     +  'r '',I12,'' in routine DBPLOV'')', iarg, 1)   
         CALL IGSA (L3WKST)  
 *   
       ELSE IF (CPATL.EQ.'DBPLTI') THEN  
@@ -27808,13 +27997,14 @@ C&ENDIF
      +         'T '//CHOPT(1:NCH)//''')', IARGDB, 0)    
           GO TO 999 
         ENDIF   
-        CALL VZERO (KEYS, 100)  
+        CALL VZERO_i (KEYS, 100)  
         CALL DBRVPL (0, NOBJ, KOBJ1, KOBJ2, KEYS)   
         IF (IQUEST(1).NE.0) GO TO 999   
         CALL IGSG (L3WKST)  
-        CALL DBPLTI (PATHN, KEYS, CHOPT)    
+        CALL DBPLTI (PATHN, KEYS, CHOPT)
+        iarg(1) = iquest(1)
         IF (IQUEST(1).NE.0) CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Erro'//    
-     +  'r '',I12,'' in routine DBPLTI'')', IQUEST(1), 1)   
+     +  'r '',I12,'' in routine DBPLTI'')', iarg, 1)   
         CALL IGSA (L3WKST)  
 *   
       ELSE IF (CPATL.EQ.'DBREAD') THEN  
@@ -27844,10 +28034,11 @@ C&ENDIF
               IF (PATH(1:1).NE.' ') THEN    
                 CALL KUGETC (CFNAM, NCF)    
                 CALL DBOPEN (LUKYDX, CFNAM, 'UNKNOWN', ISTAT)   
-                IF (ISTAT.NE.0) THEN    
+                IF (ISTAT.NE.0) THEN
+                  iarg(1) = istat
                   CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Error '',I12'//  
      +                 ','' in opening file '//CFNAM(1:NCF)//''')', 
-     +                 ISTAT, 1)    
+     +                 iarg, 1)    
                   GO TO 999 
                 ENDIF   
                 CALL KUGETC (CHOPT, NCH)    
@@ -27857,13 +28048,15 @@ C&ENDIF
                 CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Cursor does not '//    
      +               'point to any valid path'')', IARGDB, 0)   
               ENDIF 
-            ELSE    
+            ELSE
+              iarg(1) = ist
               CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Error '',I12,'' in'//    
-     +             ' picking operation'')', IST, 1) 
+     +             ' picking operation'')', iarg, 1) 
             ENDIF   
-          ELSE  
+          ELSE
+            iarg(1) = iquest(1)
             CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Error '',I12,'' in '// 
-     +           'finding the tree for '//TOPN//''')', IQUEST(1), 1)    
+     +           'finding the tree for '//TOPN//''')', iarg, 1)    
           ENDIF 
           IF (LFRSDX.NE.0) THEN 
             CALL MZDROP (IDIVDB, LFRSDX, ' ')   
@@ -27890,9 +28083,10 @@ C&ENDIF
             CALL ICLRWK (1, 1)  
             CALL DBPLBK (LFRSDX)    
             CALL IGSA (L3WKST)  
-          ELSE  
+          ELSE
+            iarg(1) = iquest(1)
             CALL DBPRNT (L3PRDX, '(/,'' DBACPL : Error '',I12,'' in '// 
-     +           'finding the tree for '//TOPN//''')', IQUEST(1), 1)    
+     +           'finding the tree for '//TOPN//''')', iarg, 1)    
           ENDIF 
           IF (LFRSDX.NE.0) THEN 
             CALL MZDROP (IDIVDB, LFRSDX, ' ')   
@@ -27977,7 +28171,8 @@ C&ENDIF
       DIMENSION       LUNRZ(MXLUN)  
       DATA            PATHN /' '/, TOPNM /' '/, CFNAM /' '/, PATHI /' '/    
       DATA            IDATE /800101/, ITIME /0/, LUNF /0/, LUNI /0/ 
-*   
+*
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
       CALL KUPATL (CPATL, NPAR) 
@@ -27987,20 +28182,22 @@ C&ENDIF
 *  **   DBCRDR  
 *   
         CALL KUGETC (PATHN, NCH)    
-        CALL DBCRDR (PATHN) 
+        CALL DBCRDR (PATHN)
+        iarg(1) = iquest(1)
         CALL DBPRNT (L3PRDX, '(/,'' DBACTI : Create directory for '//   
      +       PATHN(1:NCH)//''',/,''          return code '',I12)',  
-     +       IQUEST(1), 1)  
+     +       iarg, 1)  
 *   
       ELSE IF (CPATL.EQ.'DBDELT') THEN  
 *   
 *  **   DBDELT  
 *   
         CALL KUGETC (PATHN, NCH)    
-        CALL DBDELT (PATHN, ' ')    
+        CALL DBDELT (PATHN, ' ')
+        iarg(1) = iquest(1)
         CALL DBPRNT (L3PRDX, '(/,'' DBACTI : Delete the directory tre'//    
      +       'e '//PATHN(1:NCH)//''',/,''          return code '',I12)',    
-     +       IQUEST(1), 1)  
+     +       iarg, 1)  
 *   
       ELSE IF (CPATL.EQ.'DBEFOR') THEN  
 *   
@@ -28105,9 +28302,10 @@ C&ENDIF
           CALL DBPRNT (L3PRDX, '(/,'' DBACTI : list of'',I6,'' direct'//    
      +         'ories read from '//CFNAM(1:40)//' error code'',I12)',   
      +         IARGDB, 2)   
-        ELSE    
+        ELSE
+          iarg(1) = lumi
           CALL DBPRNT (L3PRDX, '(/,'' DBACTI : error in opening file '//    
-     +         CFNAM(1:40)//' on unit '',I6)', LUNI, 1) 
+     +         CFNAM(1:40)//' on unit '',I6)', iarg, 1) 
         ENDIF   
 *   
       ELSE IF (CPATL.EQ.'DBILDU') THEN  
@@ -28127,9 +28325,10 @@ C&ENDIF
           CALL DBPRNT (L3PRDX, '(/,'' DBACTI : list of'',I6,'' direct'//    
      +         'ories read from '//CFNAM(1:40)//' error code'',I12)',   
      +         IARGDB, 2)   
-        ELSE    
+        ELSE
+          iarg(1) = luni
           CALL DBPRNT (L3PRDX, '(/,'' DBACTI : error in opening file '//    
-     +         CFNAM(1:40)//' on unit '',I6)', LUNI, 1) 
+     +         CFNAM(1:40)//' on unit '',I6)',  iarg, 1) 
         ENDIF   
 *   
       ELSE IF (CPATL.EQ.'DBINIT') THEN  
@@ -28147,10 +28346,10 @@ C&ENDIF
         IF (IQUEST(1).NE.0) GO TO 999   
         CALL KUGETI (IDIV)  
         CALL KUGETC (TOPNM, NCH)    
-        CALL DBINIT (IDIV, LUNRZ, TOPNM, LTOP, NREC, CHOPT) 
+        CALL DBINIT (IDIV, LUNRZ(1), TOPNM, LTOP, NREC, CHOPT) 
         IF (IQUEST(1).NE.0) THEN    
           IERR   = IQUEST(1)    
-          CALL DBCLOS (LUNRZ)   
+          CALL DBCLOS (LUNRZ(1))   
           IQUEST(1) = IERR  
         ENDIF   
 *   
@@ -28158,9 +28357,9 @@ C&ENDIF
 *   
 *  **   DBLOGL  
 *   
-        CALL KUGETI (LUNRZ) 
+        CALL KUGETI (LUNRZ(1)) 
         CALL KUGETI (LOGL)  
-        CALL DBLOGL (LUNRZ, LOGL)   
+        CALL DBLOGL (LUNRZ(1), LOGL)   
 *   
       ELSE IF (CPATL.EQ.'DBNTOP') THEN  
 *   
@@ -28171,10 +28370,11 @@ C&ENDIF
         CALL KUGETI (MXKP)  
         CALL KUGETI (NSAV)  
         CALL KUGETC (CHOPT, NCH)    
-        CALL DBNTOP (PATHI, PATHN, MXKP, NSAV, CHOPT)   
+        CALL DBNTOP (PATHI, PATHN, MXKP, NSAV, CHOPT)
+        iarg(1) = iquest(1)
         CALL DBPRNT (L3PRDX, '(/,'' DBACTI : Copies '//PATHI(1:NCHI)//  
      +       ' to '',/,''                 '//PATHN(1:NCHO)//' return '//    
-     +       'code '',I12)', IQUEST(1), 1)  
+     +       'code '',I12)', iarg, 1)  
 *   
       ELSE IF (CPATL.EQ.'DBOPEN') THEN  
 *   
@@ -28192,9 +28392,10 @@ C&ENDIF
 *   
 *  **   DBSAVE  
 *   
-        CALL DBSAVE 
+        CALL DBSAVE
+        iarg(1) = iquest(1)
         CALL DBPRNT (L3PRDX, '(/,'' DBACTI : Saves the changes to '//   
-     +       'data base - return code'',I12)', IQUEST(1), 1)    
+     +       'data base - return code'',I12)', Iarg, 1)    
 *   
       ELSE IF (CPATL.EQ.'DBSETD') THEN  
 *   
@@ -28208,9 +28409,10 @@ C&ENDIF
         ELSE    
           MXDPDD = MXDIS    
         ENDIF   
-        WRITE (CFMTDD, '(''(A'',I3,'')'')') MXDPDD  
+        WRITE (CFMTDD, '(''(A'',I3,'')'')') MXDPDD
+        iarg(1) = mxdpdd
         CALL DBPRNT (L3PRDX, '(/,'' DBACTI : MXDIS is set to '',I10)',  
-     +       MXDPDD, 1) 
+     +       iarg, 1) 
 *   
       ENDIF 
 *                                                             END DBACTI    
@@ -28319,7 +28521,8 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Set the current directory 
@@ -28459,9 +28662,10 @@ C&ENDIF
         ENDIF   
         NREC   = NREC + 1   
         GO TO 50    
-      ENDIF 
+      ENDIF
+      iarg(1) = nrec
       IF (IDEBDB.GT.1) CALL DBPRNT (LPRTDB, '(/,'' DBAIRD : '',I8,'' '//    
-     +   'records written on the file'')', NREC, 1) 
+     +   'records written on the file'')', iarg, 1) 
       GO TO 60  
 *   
    55 WRITE (LUN, 1001) 'There is no data ' 
@@ -28575,7 +28779,8 @@ C&ENDIF
       CHARACTER       CFNAM*80, KLINE*80    
       CHARACTER       PATHN*(*), CHOPT*(*)  
       EQUIVALENCE     (IOPTI, IOPTS(1)), (IOPTX, IOPTS(2))  
-*   
+*
+      dimension nio(9), iarg(9)
 *     ------------------------------------------------------------------    
 *   
 *  ** Open the file to editing  
@@ -28604,8 +28809,10 @@ C&ENDIF
 *  ** Read the data part    
 *   
       IF (LFRSDX.NE.0) CALL MZDROP (IDIVDB, LFRSDX, 'L')    
-      NDATA  = NDMXDB   
-      CALL DBBOOK (IDIVDB, LFRSDX, LFRSDX, 2, 'USER', 0,0, NDATA, 1, -1)    
+      NDATA  = NDMXDB
+      nio(1) = 1
+      CALL DBBOOK (IDIVDB, LFRSDX, LFRSDX, 2, 'USER', 0,0, NDATA, nio,
+     &     -1)
       IF (IQUEST(1).NE.0) GO TO 999 
       CALL DBOPEN (LUDADX, CFNAM, 'OLD', ISTAT) 
       IF (ISTAT.NE.0)     GO TO 50  
@@ -28626,9 +28833,10 @@ C&ENDIF
 *   
    20 NDP    = NDAT - NDATA 
       CALL DBCLOS (LUDADX)  
-      IF (NDP.LT.0) CALL MZPUSH (IDIVDB, LFRSDX, 0, NDP, 'I')   
+      IF (NDP.LT.0) CALL MZPUSH (IDIVDB, LFRSDX, 0, NDP, 'I')
+      iarg(1) = nrec
       IF (IDEBDB.GT.1) CALL DBPRNT (LPRTDB, '(/,'' DBAIWR : '',I8,'' '//    
-     +   'records read from the file'')', NREC, 1)  
+     +   'records read from the file'')', iarg, 1)  
 *   
       IQUEST(1) = 0 
       IF (IOPTX.NE.0) THEN  
@@ -28751,7 +28959,8 @@ C&ENDIF
       DATA            PATHN /' '/, ALIAS /' '/, CTITL /' '/ 
       DATA            NWDS /0/, NPATH /1/, IDN /0/, KYI /0/, KYEL /0/   
       DATA            LUNFZ /0/, IDATM /0/  
-*   
+*
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
       CALL KUPATL (CPATL, NPAR) 
@@ -28771,9 +28980,10 @@ C&ENDIF
         CALL KUGETC (PATHN, NCH)    
         CALL KUGETC (CFNAM, NCF)    
         CALL DBOPEN (LUKYDX, CFNAM, 'UNKNOWN', ISTAT)   
-        IF (ISTAT.NE.0) THEN    
+        IF (ISTAT.NE.0) THEN
+          iarg(1) = istat
           CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : error '',I12,'' in ope'//    
-     +         'ning file '//CFNAM(1:NCF)//''')', ISTAT, 1) 
+     +         'ning file '//CFNAM(1:NCF)//''')', iarg, 1) 
           GO TO 999 
         ENDIF   
         CALL KUGETC (CHOPT, NCH)    
@@ -28830,18 +29040,21 @@ C&ENDIF
             IF (IQUEST(1).EQ.0) THEN    
               CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : Help info. for '//   
      +             PATHN(1:NCT)//' is stored'')', IARGDB, 0)    
-            ELSE    
+            ELSE
+              iarg(1) = iquest(1)
               CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : error '',I6,'' in '//    
      +             'storing Help info. for '//PATHN(1:NCT)//''')',  
-     +             IQUEST(1), 1)    
+     +             iarg, 1)    
             ENDIF   
-          ELSE  
+          ELSE
+            iarg(1) = istat
             CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : error '',I12,'' in o'//    
-     +           'pening file '//CFNAM(1:NCH)//''')', ISTAT, 1) 
+     +           'pening file '//CFNAM(1:NCH)//''')', iarg, 1) 
           ENDIF 
-        ELSE    
+        ELSE
+          iarg(1) = ist
           CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : error '',I12,'' in ed'// 
-     +         'iting file '//CFNAM(1:NCH)//''')', IST, 1)  
+     +         'iting file '//CFNAM(1:NCH)//''')', iarg, 1)  
         ENDIF   
 *   
       ELSE IF (CPATL.EQ.'DBENAM') THEN  
@@ -28867,10 +29080,11 @@ C&ENDIF
           IF (IQUEST(1).EQ.0) THEN  
             CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : Tags of data for '//   
      +           PATHN(1:NCT)//' is stored'')', IARGDB, 0)  
-          ELSE  
+          ELSE
+            iarg(1) = iquest(1)
             CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : error '',I6,'' in st'//    
      +           'oring Tags of data for '//PATHN(1:NCT)//''')',    
-     +           IQUEST(1), 1)  
+     +           iarg, 1)  
           ENDIF 
         ENDIF   
 *   
@@ -28899,9 +29113,10 @@ C&ENDIF
         CALL KUGETC (PATHN, NCH)    
         CALL KUGETC (CFNAM, NCF)    
         CALL DBOPEN (LUKYDX, CFNAM, 'UNKNOWN', ISTAT)   
-        IF (ISTAT.NE.0) THEN    
+        IF (ISTAT.NE.0) THEN
+          iarg(1) = istat
           CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : error '',I12,'' in ope'//    
-     +         'ning file '//CFNAM(1:NCF)//''')', ISTAT, 1) 
+     +         'ning file '//CFNAM(1:NCF)//''')', iarg, 1) 
           GO TO 999 
         ENDIF   
         CALL KUGETC (CHOPT, NCH)    
@@ -28933,7 +29148,7 @@ C&ENDIF
         CALL HCDIR (CRZPA, 'R') 
         CALL DBOPTS (CHOPT) 
         IF (IQUEST(1).NE.0)               GO TO 999 
-        CALL VZERO (KEYS, MXDMDK)   
+        CALL VZERO_i (KEYS, MXDMDK)   
         CALL DBRVNT (NPATH, PATHS, KEYS, NVAR, NKST, NDST, NKEYX, KEYXS,    
      1               NOBJS, KOBJS, CTAG, NOBJM) 
         IF (IQUEST(1).NE.0)               GO TO 999 
@@ -28947,8 +29162,9 @@ C&ENDIF
         CALL HBOOKN (IDN, CTITL(1:NCT), NVAR, CRZPA, NPRIM, CTAG)   
         CALL DBPLNT (IDN, PATHS, NPATH, NOBJS, KOBJS, NKEYX, KEYXS, 
      +               KEYS, CHOPT)   
+        iarg(1) = iquest(1)
         IF (IQUEST(1).NE.0) CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : erro'//    
-     +  'r '',I12,'' in routine DBPLNT'')', IQUEST(1), 1)   
+     +  'r '',I12,'' in routine DBPLNT'')', iarg, 1)   
         CALL HCDIR  (PATH, ' ') 
 *   
       ELSE IF (CPATL.EQ.'DBPRGD') THEN  
@@ -28986,9 +29202,10 @@ C&ENDIF
         CALL KUGETC (CHOPT, NCH)    
         CALL DBPURG (PATHN, KYDAT, KYTIM, CHOPT)    
         NCH    = LENOCC (PATHN) 
-        IF (NCH.GT.40) NCH = 40 
+        IF (NCH.GT.40) NCH = 40
+        iarg(1) = iquest(1)
         CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : DBPURG deletes in Path '// 
-     +       PATHN(1:NCH)//' return code '',I6)', IQUEST(1), 1) 
+     +       PATHN(1:NCH)//' return code '',I6)', iarg, 1) 
 *   
       ELSE IF (CPATL.EQ.'DBRALI') THEN  
 *   
@@ -29051,28 +29268,31 @@ C&ENDIF
               IF (KK.GT.0) THEN 
                 KK     = (KK - MSERDB) / KST + 1    
                 GO TO 50    
-              ELSE  
+              ELSE
+                iarg(1) = kyi
                 CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : Object '',I12'//   
-     +               ','' not found in '//PATH//''')', KYI, 1)  
+     +               ','' not found in '//PATH//''')', iarg, 1)  
                 GO TO 999   
               ENDIF 
    45       CONTINUE    
+            iarg(1) = kyi
             CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : Object '',I12'//   
-     +           ','' not found in '//PATH//''')', KYI, 1)  
+     +           ','' not found in '//PATH//''')', iarg, 1)  
             GO TO 999   
           ELSE  
             KK     = IUHUNT (KYI, IQ(KOFSDB+LCDRDB+IKDRDB+MSERDB),  
      +                       NKEYDK*KST, KST)   
             IF (KK.GT.0) THEN   
               KK     = (KK - MSERDB) / KST + 1  
-            ELSE    
+            ELSE
+              iarg(1) = kyi
               CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : Object '',I12'// 
-     +             ','' not found in '//PATH//''')', KYI, 1)    
+     +             ','' not found in '//PATH//''')', iarg, 1)    
               GO TO 999 
             ENDIF   
           ENDIF 
    50     CALL DBKEYR (KK, NWKYDK, KEYS)    
-          CALL UCOPY  (KEYS, KEYXS, NWKYDK) 
+          CALL UCOPY_i  (KEYS, KEYXS, NWKYDK) 
           IF (KYEL.GT.2.AND.KYEL.LE.NWKYDK.AND.KYEL.NE.MFLGDB.AND.  
      +        KYEL.NE.MITMDB)                     THEN  
             IF (KYEL.EQ.MBVRDB.OR.KYEL.EQ.MEVRDB) THEN  
@@ -29122,15 +29342,17 @@ C&ENDIF
         CALL DBOPEN (LUKYDX, CFNAM, 'UNKNOWN', ISTAT)   
         IF (ISTAT.EQ.0) THEN    
           CALL DBRHLP (PATHN, LUKYDX)   
-          IERR = IQUEST(1)  
+          IERR = IQUEST(1)
+          iarg(1) = ierr
           IF (IERR.NE.0) CALL DBPRNT (LUKYDX, '(/,'' DBAUXI : Error'//  
      +    ' '',I12,'' in getting help info. for '',/,'' '//PATHN(1:72)  
-     +    //''')', IERR, 1) 
+     +    //''')', iarg, 1) 
           CALL DBCLOS (LUKYDX)  
           CALL KUEDIT (CFNAM, IST)  
-        ELSE    
+        ELSE
+          iarg(1) = istat
           CALL DBPRNT (L3PRDX, '(/,'' DBAUXI : error '',I12,'' in ope'//    
-     +         'ning file '//CFNAM(1:NCH)//''')', ISTAT, 1) 
+     +         'ning file '//CFNAM(1:NCH)//''')', iarg, 1) 
         ENDIF   
 *   
       ELSE IF (CPATL.EQ.'DBRNAM') THEN  
@@ -29276,7 +29498,7 @@ C&ENDIF
 *   
 *     ------------------------------------------------------------------    
 *   
-      CALL VZERO (ICON(1), N)   
+      CALL VZERO_i (ICON(1), N)   
       NSK  = 0  
       I    = 0  
       ISYS = 0  
@@ -29654,7 +29876,7 @@ C&ENDIF
 *     ------------------------------------------------------------------    
 *   
       READ (CHPRT(2:9), '(I8)') IKEY    
-      CALL VZERO (KY(1), NWKYDK)    
+      CALL VZERO_i (KY(1), NWKYDK)    
       ISTR = 12 
       DO 10 I = 1, NWKYDK   
         KK    = IOTYDD(I)   
@@ -30064,7 +30286,7 @@ C&ENDIF
           LFRSDX = 0    
         ENDIF   
         IF (NKEYDK.EQ.0) THEN   
-          CALL UCOPY (KEYX, KEYVDK, NWKYDK) 
+          CALL UCOPY_i (KEYX, KEYVDK, NWKYDK) 
           GO TO 20  
         ENDIF   
         IF (IOPTP.EQ.0) THEN    
@@ -30472,7 +30694,7 @@ C&ENDIF
       IKDRDB = IQUEST(13)   
       CALL DBKYTG   
       CALL DBCONC (IOTYDK(1), NWKYDK, ICONDK(1), NSKPDK)    
-      CALL UCOPY  (IOTYDK(1), IOTYDD(1), NWKYDK)    
+      CALL UCOPY_i  (IOTYDK(1), IOTYDD(1), NWKYDK)    
 *   
 * *** Check the number of keys  
 *   
@@ -30818,7 +31040,7 @@ C&ENDIF
       CHARACTER       CHFTDK*9, CHTGDK*8, CTAGDK*8  
 *   
       CHARACTER       CHPRT*300, CFORM*5    
-      DIMENSION       KY(9), KT(9), ICON(9) 
+      DIMENSION       KY(9), KT(9), ICON(9), iarg(9)
 *   
 *     ------------------------------------------------------------------    
 *   
@@ -30907,8 +31129,9 @@ C&ENDIF
 * *** Error codes   
 *   
   901 IQUEST(1) = 103   
+      iarg(1) = kk
       IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBDKYH : Illegal '// 
-     +   'data type to be printed = '',I10,/)', KK, 1)  
+     +   'data type to be printed = '',I10,/)', iarg, 1)  
 *   
  1001 FORMAT (I8)   
  1002 FORMAT (I2)   
@@ -30992,7 +31215,7 @@ C&ENDIF
       PARAMETER       (NDMXDB=25000)    
 *   
       CHARACTER       CHPRT*80, CT(*)*8 
-      DIMENSION       KY(9), KT(9), ICON(9) 
+      DIMENSION       KY(9), KT(9), ICON(9), iarg(9)
 *   
 *     ------------------------------------------------------------------    
 *   
@@ -31103,8 +31326,9 @@ C&ENDIF
 * *** Error codes   
 *   
   901 IQUEST(1) = 103   
+      iarg(1) = kk
       IF (IDEBDB.GT.0) CALL DBPRNT (LPRTDB, '(/,'' DBDKYV : Illegal '// 
-     +   'data type to be printed = '',I10,/)', KK, 1)  
+     +   'data type to be printed = '',I10,/)', iarg, 1)  
 *   
  1001 FORMAT (Z10)  
  1002 FORMAT (I10)  
@@ -31153,7 +31377,7 @@ C&ENDIF
 *   
 *     ------------------------------------------------------------------    
 *   
-      CALL VZERO (KDISP, NK)    
+      CALL VZERO_i (KDISP, NK)    
 *   
       IF (CHOPT.EQ.'TERM') THEN 
         CALL KUPROC ('Range of Keys to display: K1-K2,K3-K4,..',    
@@ -31326,7 +31550,7 @@ C&ENDIF
       IF (YESNO.EQ.'H') THEN    
         CHOPT(4:4) = 'H'    
         READ (LUKYDX, 1001, ERR=20, END=20) 
-        CALL VZERO (KEYO, NWKYDK)   
+        CALL VZERO_i (KEYO, NWKYDK)   
 *   
    10   CONTINUE    
         READ (LUKYDX, CFMTDD, ERR=20, END=20) STRFL(1:MXDPDD)   
@@ -31336,7 +31560,7 @@ C&ENDIF
 *   
 *  **     The object is to be inserted  
 *   
-          CALL VZERO (KEYS, NWKYDK) 
+          CALL VZERO_i (KEYS, NWKYDK) 
           CALL DBDCKH (STRFL, KEYS(1), IKEY)    
           KEYS(MSERDB) = IKEY   
           CALL DBUPKY (KEYS, KEYO, PATHN, CHOPT)    
@@ -31345,7 +31569,7 @@ C&ENDIF
         GO TO 10    
       ELSE  
         CHOPT(4:4) = 'V'    
-        CALL VZERO (KEYS, NWKYDK)   
+        CALL VZERO_i (KEYS, NWKYDK)   
         READ (LUKYDX, 1002, ERR=20, END=20) 
    15   CONTINUE    
         READ (LUKYDX, '(A80)', ERR=20, END=20) STRFL(1:80)  
@@ -31499,7 +31723,7 @@ C&ENDIF
       CALL DBDISP (LUKYDX, PATHN, CHOP1)    
       IERR   = IQUEST(1)    
       CALL DBCLOS (LUKYDX)  
-      CALL UOPTC (CHOPT, 'AS', IOPTS)   
+      CALL UOPTC (CHOPT, 'AS', IOPTS(1))
       IF (IERR.NE.0)        GO TO 999   
       CALL KUEDIT (CFNAM, IST)  
 *   
@@ -31508,7 +31732,7 @@ C&ENDIF
       CALL DBOPEN (LUKYDX, CFNAM, 'OLD', ISTAT) 
       IF (ISTAT.NE.0)       GO TO 999   
       CHOP2  = ' '  
-      CALL VZERO (KEYO, MXDMDK) 
+      CALL VZERO_i (KEYO, MXDMDK) 
       CHSLA  = ' '  
       IF (IOPHDD.NE.0) THEN 
         READ (LUKYDX, 1001, ERR=20, END=20) 
@@ -31532,7 +31756,7 @@ C&ENDIF
 *   
 *  **   The object is to be inserted    
 *   
-        CALL VZERO (KEYS, NWKYDK)   
+        CALL VZERO_i (KEYS, NWKYDK)   
         IF (IOPHDD.NE.0) THEN   
           CALL DBDCKH (STRFL, KEYS(1), IKEY)    
           KEYS(MSERDB) = IKEY   
@@ -31771,7 +31995,9 @@ C-------------------------  CDE  -----------------------------------
       CHARACTER       PATHN*(*), CHTI(NI)*8, CHTO(*)*8, CHTG(100)*8 
       CHARACTER       CHOPT*40, KYNAM*8, KYVAL*20, BLANK*20, PATHY*80   
       CHARACTER       KY10*10, CHPRO*50 
-      DATA            BLANK /' '/   
+      DATA            BLANK /' '/
+
+      dimension nio(9), iarg(9)
 *   
 *     ------------------------------------------------------------------    
 *   
@@ -31793,8 +32019,8 @@ C-------------------------  CDE  -----------------------------------
 *   
 *  ** Get the Coloumn Names in the Table to Join    
 *   
-      CALL VZERO (IFKYDV, NWKYDK)   
-      CALL VZERO (IFLAG, NWKYDK)    
+      CALL VZERO_i (IFKYDV, NWKYDK)   
+      CALL VZERO_i (IFLAG, NWKYDK)    
       I = 1 
     1 CONTINUE  
       I = I + 1 
@@ -31833,7 +32059,7 @@ C-------------------------  CDE  -----------------------------------
 *   
 *  ** Get additional Key-Names and Key-Values to Search 
 *   
-      CALL VZERO (KEYSDV, NWKYDK)   
+      CALL VZERO_i (KEYSDV, NWKYDK)   
       IK = NI-1 
    10 CONTINUE  
       CALL KUPROC ('Key-Name to Search (if no more - |) ?', KYNAM, LKEY)    
@@ -31917,8 +32143,8 @@ C-------------------------  CDE  -----------------------------------
 *   
 *  ** Get the Key-Names to Present  
 *   
-      CALL VZERO (JFKYDV, NWKYDK)   
-      CALL VZERO (IFLAG, NWKYDK)    
+      CALL VZERO_i (JFKYDV, NWKYDK)   
+      CALL VZERO_i (IFLAG, NWKYDK)    
       IP = 1    
       ICONO(I) = 0  
       CHTO(1)  = CTAGDK(MSERDB) 
@@ -31963,8 +32189,10 @@ C-------------------------  CDE  -----------------------------------
       IF (NO.LE.0)          GO TO 999   
       NOBO =  NZBANK (IDIVDB, LKJNDX(1))    
       IF (NOBO.LE.0)        GO TO 999   
-      NDAT = NO *  NOBO 
-      CALL DBBOOK (IDIVDB, LJOIDX, LJOIDX, 2, 'JOIN', 0, 0, NDAT, 2, 0) 
+      NDAT = NO *  NOBO
+      nio(1) = 2
+      CALL DBBOOK (IDIVDB, LJOIDX, LJOIDX, 2, 'JOIN', 0, 0, NDAT, nio,
+     &     0) 
       IF (IQUEST(1).NE.0)   GO TO 999   
 *   
 *  ** Fill-Up 'JOIN' Bank and free LKJNDX   
@@ -31998,9 +32226,10 @@ C-------------------------  CDE  -----------------------------------
 *   
   992 IQUEST(1) = 102   
       IF (IDEBDB.GT.0) THEN 
-        PATHY  = PATHN  
+        PATHY  = PATHN
+        iarg(1) = nsysdk
         CALL DBPRNT (LPRTDB, '(/,'' DBJOIN : Less than '',I5,'' key '// 
-     +       'for Path Name '//PATHY//''')', NSYSDK, 1) 
+     +       'for Path Name '//PATHY//''')', iarg, 1) 
       ENDIF 
       GO TO 999 
 *   
@@ -32083,48 +32312,47 @@ C-------------------------  CDE  -----------------------------------
       COMMON /DKTAGS/ CHTGDK(NINEDK), CTAGDK(MXDMDK), CHFTDK    
       CHARACTER       CHFTDK*9, CHTGDK*8, CTAGDK*8  
 *   
-      DIMENSION       LAD(9)    
       CHARACTER       PATHX*17, PATHY*80, PATHZ*80, PATH*(*)    
 *   
 *     ------------------------------------------------------------------    
 *   
       PATH   = ' '  
-      IF (LAD(1).LE.0) GO TO 999    
-      NLEV   = IQ(KOFUDB+LAD(1)+MNLVDB) 
+      IF (LAD.LE.0) GO TO 999    
+      NLEV   = IQ(KOFUDB+LAD+MNLVDB) 
       IF (NLEV.LE.0)   GO TO 999    
 *   
 * *** Find the level number from the x coordinate   
 *   
-      IPNL   = IQ(KOFUDB+LAD(1)+MPNLDB) 
-      HFRAM  =  Q(KOFUDB+LAD(1)+MHFMDB) 
+      IPNL   = IQ(KOFUDB+LAD+MPNLDB) 
+      HFRAM  =  Q(KOFUDB+LAD+MHFMDB) 
       KLEV   = 0    
       DO 10 ILEV = 1, NLEV  
-        XDIST  = X - Q(KOFUDB+LAD(1)+IPNL+MXOFDB)   
-        DELX   = Q(KOFUDB+LAD(1)+IPNL+MXWDDB)   
+        XDIST  = X - Q(KOFUDB+LAD+IPNL+MXOFDB)   
+        DELX   = Q(KOFUDB+LAD+IPNL+MXWDDB)   
         IF (XDIST.GE.0.AND.XDIST.LE.DELX) THEN  
           KLEV   = ILEV 
         ENDIF   
-        IPNL   = IQ(KOFUDB+LAD(1)+IPNL+MPNLDB)  
+        IPNL   = IQ(KOFUDB+LAD+IPNL+MPNLDB)  
    10 CONTINUE  
       IF (KLEV.LE.0)   GO TO 999    
 *   
 * *** Find the node number from the y coordinate    
 *   
-      IPNL   = IQ(KOFUDB+LAD(1)+MPNLDB) 
+      IPNL   = IQ(KOFUDB+LAD+MPNLDB) 
       NODE   = 0    
       IF (KLEV.GT.1) THEN   
         DO 15 ILEV = 2, KLEV    
-          IPNL   = IQ(KOFUDB+LAD(1)+IPNL+MPNLDB)    
+          IPNL   = IQ(KOFUDB+LAD+IPNL+MPNLDB)    
    15   CONTINUE    
       ENDIF 
-      NODES  = IQ(KOFUDB+LAD(1)+IPNL+MNODDB)    
-      IPNN   = IQ(KOFUDB+LAD(1)+IPNL+MPNNDB)    
+      NODES  = IQ(KOFUDB+LAD+IPNL+MNODDB)    
+      IPNN   = IQ(KOFUDB+LAD+IPNL+MPNNDB)    
       DO 20 INOD = 1, NODES 
-        YDIST  = Y- Q(KOFUDB+LAD(1)+IPNN+MYFNDB)    
+        YDIST  = Y- Q(KOFUDB+LAD+IPNN+MYFNDB)    
         IF (YDIST.GE.0.AND.YDIST.LE.HFRAM) THEN 
           NODE   = INOD 
         ENDIF   
-        IPNN   = IQ(KOFUDB+LAD(1)+IPNN+MPNLDB)  
+        IPNN   = IQ(KOFUDB+LAD+IPNN+MPNLDB)  
    20 CONTINUE  
       IF (NODE.LE.0)   GO TO 999    
 *   
@@ -32135,21 +32363,21 @@ C-------------------------  CDE  -----------------------------------
       PATHY  = ' '  
       DO 40 ILEV = 1, KLEV  
         JLEV   = KLEV + 1 - ILEV    
-        IPNL   = IQ(KOFUDB+LAD(1)+MPNLDB)   
+        IPNL   = IQ(KOFUDB+LAD+MPNLDB)   
         IF (JLEV.GT.1) THEN 
           DO 25 IL = 2, JLEV    
-            IPNL   = IQ(KOFUDB+LAD(1)+IPNL+MPNLDB)  
+            IPNL   = IQ(KOFUDB+LAD+IPNL+MPNLDB)  
    25     CONTINUE  
         ENDIF   
-        IPNN   = IQ(KOFUDB+LAD(1)+IPNL+MPNNDB)  
+        IPNN   = IQ(KOFUDB+LAD+IPNL+MPNNDB)  
         IF (IUPN.GT.1) THEN 
           DO 30 INOD = 2, IUPN  
-            IPNN   = IQ(KOFUDB+LAD(1)+IPNN+MPNLDB)  
+            IPNN   = IQ(KOFUDB+LAD+IPNN+MPNLDB)  
    30     CONTINUE  
         ENDIF   
-        NCHR   = IQ(KOFUDB+LAD(1)+IPNN+MNCHDB)  
-        IUPN   = IQ(KOFUDB+LAD(1)+IPNN+MNFNDB)  
-        CALL UHTOC (IQ(KOFUDB+LAD(1)+IPNN+MNAMDB), 4, PATHZ, NCHR)  
+        NCHR   = IQ(KOFUDB+LAD+IPNN+MNCHDB)  
+        IUPN   = IQ(KOFUDB+LAD+IPNN+MNFNDB)  
+        CALL UHTOC (IQ(KOFUDB+LAD+IPNN+MNAMDB), 4, PATHZ, NCHR)  
         PATHX  = '/'//PATHZ(1:NCHR) 
         NCHR   =NCHR+1  
         IF (NCHRT.GT.0) THEN    
@@ -32310,7 +32538,8 @@ C&ENDIF
       MSBYT (MZ,IZW,IZP,NZB) = IOR ( IAND (IZW, NOT(    
      +                   ISHFT (ISHFT(NOT(0),-32+NZB), IZP-1))) 
      +                     , ISHFT (ISHFT(MZ, 32-NZB), -33+IZP+NZB) )   
-*   
+*
+      dimension ierr(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Display the keys  
@@ -32327,9 +32556,9 @@ C&ENDIF
         CHOP1  = 'U'    
       ENDIF 
       CALL DBDISP (LUKYDX, PATHN, CHOP1)    
-      IERR   = IQUEST(1)    
+      IERR(1)   = IQUEST(1)    
       CALL DBCLOS (LUKYDX)  
-      IF (IERR.NE.0) THEN   
+      IF (IERR(1).NE.0) THEN   
         CHSLA  = PATHN  
         NCH    = LENOCC (CHSLA) 
         CALL DBPRNT (LPRTDB, '(/,'' DBPEEK : Error '',I6,'' from DBDI'//    
@@ -32344,9 +32573,11 @@ C&ENDIF
       IF (IST.NE.0) THEN    
         CHSLA  = CFNAM  
         NCH    = LENOCC (CHSLA) 
-        IF (IST.NE.1)   
-     +    CALL DBPRNT (LPRTDB, '(/,'' DBPEEK : Error '',I12,'' in edi'//    
-     +         'ting file '//CHSLA(1:NCH)//''')', IST, 1)   
+        IF (IST.NE.1) then
+          ierr(1) = ist
+          CALL DBPRNT (LPRTDB, '(/,'' DBPEEK : Error '',I12,'' in edi'//
+     &         'ting file '//CHSLA(1:NCH)//''')', ierr, 1)   
+        endif
         GO TO 999   
       ENDIF 
       DFNAM  = 'DFNAME.FILEXT'  
@@ -32356,12 +32587,13 @@ C&ENDIF
       CALL DBOPEN (LUKYDX, CFNAM, 'OLD', ISTAT) 
       IF (ISTAT.NE.0) THEN  
         CHSLA  = CFNAM  
-        NCH    = LENOCC (CHSLA) 
+        NCH    = LENOCC (CHSLA)
+        ierr(1) = istat
         CALL DBPRNT (LPRTDB, '(/,'' DBPEEK : Error '',I12,'' in open'// 
-     +       'ing file '//CHSLA(1:NCH)//''')', ISTAT, 1)    
+     +       'ing file '//CHSLA(1:NCH)//''')', ierr, 1)    
         GO TO 999   
       ENDIF 
-      CALL UCOPY (IOTYDK, IOTYDD, NWKYDK)   
+      CALL UCOPY_i (IOTYDK, IOTYDD, NWKYDK)   
       IOTYDD(MBVRDB) = 7    
       IOTYDD(MEVRDB) = 7    
       IOTYDD(MITMDB) = 8    
@@ -32403,9 +32635,10 @@ C&ENDIF
           CALL DBOPEN (LUDADX, DFNAM, 'UNKNOWN', IST1)  
           IF (IST1.NE.0) THEN   
             CHSLA  = DFNAM  
-            NCH    = LENOCC (CHSLA) 
+            NCH    = LENOCC (CHSLA)
+            ierr(1) = ist1
             CALL DBPRNT (LPRTDB, '(/,'' DBPEEK : Error '',I12,'' in '// 
-     +           'opening file '//CHSLA(1:NCH)//''')', IST1, 1) 
+     +           'opening file '//CHSLA(1:NCH)//''')', ierr, 1) 
             GO TO 20    
           ENDIF 
           IF (JBIT(KEYX(MFLGDB), JASFDB).EQ.0) THEN 
@@ -32422,9 +32655,10 @@ C&ENDIF
             IARGDB(2) = KEYX(MSERDB)    
             CALL DBPRNT (LPRTDB, '(/,'' DBPEEK : Error '',I12,'' in '// 
      +           'reading data for '',I12)', IARGDB, 2) 
-          ELSE  
+          ELSE
+            ierr(1) = KEYX(MSERDB)
             CALL DBPRNT (LPRTDB, '(/,'' DBPEEK : Empty data structure'//    
-     +           ' for '',I12)', KEYX(MSERDB), 1)   
+     +           ' for '',I12)', ierr, 1)   
           ENDIF 
         ENDIF   
 *   
@@ -32704,7 +32938,10 @@ C&ENDIF
 *   
       CHARACTER       IOC*1, STRFIL*80, CHVAL*80    
       DIMENSION       DATA (9)  
-*   
+*
+      integer istr
+      real fstr
+      equivalence (istr, fstr)
 *     ------------------------------------------------------------------    
 *   
 *  ** Decode the Data part of the edited file   
@@ -32742,14 +32979,15 @@ C&ENDIF
         CALL DBCTOB (CHVAL, DATA(I))    
         I = I + 1   
       ELSE IF (IOC.EQ.'I') THEN 
-        CALL DBCTOI (CHVAL, ISTR)   
-        CALL UCOPY (ISTR, DATA(I), 1)   
+        CALL DBCTOI (CHVAL, ISTR)
+        data(i) = fstr
         I = I + 1   
       ELSE IF (IOC.EQ.'F') THEN 
         CALL DBCTOR (CHVAL, DATA(I))    
         I = I + 1   
-      ELSE IF (IOC.EQ.'H') THEN 
-        CALL UCTOH (CHVAL, DATA(I), 4, LCDAT)   
+      ELSE IF (IOC.EQ.'H') THEN
+        CALL UCTOH (CHVAL, istr, 4, LCDAT)
+        data(i) = fstr
         I = I + LWRDH   
       ELSE  
         DATA(I) = 0.    
@@ -32832,7 +33070,7 @@ C&ENDIF
 *   
       CHARACTER       CFNAM*32, PATHN*(*), STRFIL*40    
       CHARACTER       IOO*1, ION*1, IOC*2, CHIDH*(*), CHOPT*(*) 
-      DIMENSION       KEYX(100) 
+      DIMENSION       KEYX(*) 
 *   
 *     ------------------------------------------------------------------    
 *   
@@ -33233,7 +33471,8 @@ C&ENDIF
       DIMENSION       KEYS(9), NKEYX(9), KEYXS(9), KOBJS(9), NOBJS(9)   
       CHARACTER       CFNAM*80, CHPRO*32, PATHN*80, CTEMP*5 
       CHARACTER*(*)   PATHS(*), CTAG(*) 
-*   
+*
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
       CALL KUGETI (LUNI)    
@@ -33247,9 +33486,10 @@ C&ENDIF
 * ***   Read the information from an external file  
 *   
         CALL DBOPEN (LUNI, CFNAM, 'OLD', ISTAT) 
-        IF (ISTAT.NE.0) THEN    
+        IF (ISTAT.NE.0) THEN
+          iarg(1) = istat
           CALL DBPRNT (L3PRDX, '(/,'' DBRVNT : Error '',I12,'' in ope'//    
-     +         'ning file '//CFNAM(1:NCF)//''')', ISTAT, 1) 
+     +         'ning file '//CFNAM(1:NCF)//''')', iarg, 1) 
           IQUEST(1) = 167   
           GO TO 999 
         ENDIF   
@@ -33310,9 +33550,10 @@ C&ENDIF
           ENDIF 
           DO 15 J = 1, NKEYX(I) 
             READ (LUNI, *, ERR=30, END=30) KEYXS(NKST+J)    
-            IF (KEYXS(NKST+J).LT.1.OR.KEYXS(NKST+J).GT.NWKYDK) THEN 
+            IF (KEYXS(NKST+J).LT.1.OR.KEYXS(NKST+J).GT.NWKYDK) THEN
+              iarg(1) = KEYXS(NKST+J) 
               CALL DBPRNT (L3PRDX, '('' Invalid Key index'',I12)',  
-     +             KEYXS(NKST+J), 1)    
+     +             iarg, 1)    
               IQUEST(1) = 167   
               GO TO 30  
             ENDIF   
@@ -33338,8 +33579,9 @@ C&ENDIF
         IQUEST(1) = 0   
         GO TO 40    
 *   
-   30   CALL DBPRNT (L3PRDX, '(/,'' DBRVNT : Error in reading file '//  
-     +       CFNAM(1:NCF)//''')', ISTAT, 0) 
+   30   iarg(1) = istat
+        CALL DBPRNT (L3PRDX, '(/,'' DBRVNT : Error in reading file '//  
+     +       CFNAM(1:NCF)//''')', iarg, 0) 
         IQUEST(1) = 167 
    40   CALL DBCLOS (LUNI)  
 *   
@@ -33531,7 +33773,8 @@ C&ENDIF
 *   
       DIMENSION       KEYS(9), KOBJ2(2,9), KOBJ1(9) 
       CHARACTER       CFNAM*80, CHPRO*32, CTEMP*5   
-*   
+*
+      dimension iarg(9)
 *     ------------------------------------------------------------------    
 *   
       CALL KUGETI (LUNI)    
@@ -33542,9 +33785,10 @@ C&ENDIF
 * ***   Read the information from an external file  
 *   
         CALL DBOPEN (LUNI, CFNAM, 'OLD', ISTAT) 
-        IF (ISTAT.NE.0) THEN    
+        IF (ISTAT.NE.0) THEN
+          iarg(1) = istat
           CALL DBPRNT (L3PRDX, '(/,'' DBRVPL : Error '',I12,'' in ope'//    
-     +         'ning file '//CFNAM(1:NCF)//''')', ISTAT, 1) 
+     +         'ning file '//CFNAM(1:NCF)//''')', iarg, 1) 
           IQUEST(1) = 167   
           GO TO 999 
         ENDIF   
@@ -33580,8 +33824,9 @@ C&ENDIF
         IQUEST(1) = 0   
         GO TO 30    
 *   
-   25   CALL DBPRNT (L3PRDX, '(/,'' DBRVPL : Error in reading file '//  
-     +       CFNAM(1:NCF)//''')', ISTAT, 0) 
+ 25     iarg(1) = istat
+        CALL DBPRNT (L3PRDX, '(/,'' DBRVPL : Error in reading file '//  
+     +       CFNAM(1:NCF)//''')', iarg, 0) 
         IQUEST(1) = 167 
    30   CALL DBCLOS (LUNI)  
 *   
@@ -33801,16 +34046,18 @@ C&ENDIF
       EQUIVALENCE     (IOPTA, IOPTS(1)), (IOPTE, IOPTS(2)), 
      +                (IOPTI, IOPTS(3)), (IOPTW, IOPTS(4)), 
      +                (IOPTX, IOPTS(5)) 
-*   
+*
+      dimension nio(9)
 *     ------------------------------------------------------------------    
 *   
 * *** Decode the character option   
 *   
       CALL UOPTC (CHOPT, 'AEIWX', IOPTS)    
       IF (IOPTA.NE.0.AND.IOPTW.NE.0) THEN   
-        NDAT = 0    
+        NDAT = 0
+        nio(1) = 2
         CALL DBBOOK (IDIVDB, LASTDX, LASTDX, 2, 'USER', 0, 0, NDAT, 
-     +               2, 0)  
+     +               nio, 0)  
         IF (IQUEST(1).NE.0)   GO TO 999 
         GO TO 10    
       ENDIF 
@@ -33837,15 +34084,17 @@ C&ENDIF
           IF (IQUEST(1).NE.0) GO TO 999 
           CALL DBRDDA (Q(KOFUDB+LASTDX+1))  
         ELSE    
-          NDAT = 0  
+          NDAT = 0
+          nio(1) = 2
           CALL DBBOOK (IDIVDB, LASTDX, LASTDX, 2, 'USER', 0, 0, NDAT,   
-     +                 2, 0)    
+     +                 nio, 0)    
           IF (IQUEST(1).NE.0) GO TO 999 
         ENDIF   
       ELSE  
-        NDAT = 0    
+        NDAT = 0
+        nio(1) = 2
         CALL DBBOOK (IDIVDB, LASTDX, LASTDX, 2, 'USER', 0, 0, NDAT, 
-     +               2, 0)  
+     +               nio, 0)  
         IF (IQUEST(1).NE.0)   GO TO 999 
       ENDIF 
 *   
@@ -34168,7 +34417,9 @@ C&ENDIF
       DIMENSION       IFLAG(100)    
       CHARACTER       PATHN*(*), CHTI(*)*8, CHTO(*)*8   
       CHARACTER       CHOPT*40, KYNAM*8, KYVAL*100, BLANK*20, KY10*10   
-      DATA            BLANK /' '/   
+      DATA            BLANK /' '/
+
+      dimension nio(9), iarg(9)
 *   
 *     ------------------------------------------------------------------    
 *   
@@ -34190,8 +34441,8 @@ C&ENDIF
 *   
 *  ** Get Key-Names and Key-Values to Search    
 *   
-      CALL VZERO (KEYSDV, NWKYDK)   
-      CALL VZERO (IFLAG, NWKYDK)    
+      CALL VZERO_i (KEYSDV, NWKYDK)   
+      CALL VZERO_i (IFLAG, NWKYDK)    
       IK = 0    
    10 CONTINUE  
       CALL KUPROC ('Key-Name to Search (if no more - |) ?', KYNAM, LKEY)    
@@ -34270,8 +34521,8 @@ C&ENDIF
 *   
 *  ** Get the Key-Names to Present  
 *   
-      CALL VZERO (JFKYDV, NWKYDK)   
-      CALL VZERO (IFLAG, NWKYDK)    
+      CALL VZERO_i (JFKYDV, NWKYDK)   
+      CALL VZERO_i (IFLAG, NWKYDK)    
       IP = 1    
       ICONO(I) = 0  
       CHTO(1)  = CTAGDK(1)  
@@ -34316,8 +34567,10 @@ C&ENDIF
       IF (NO.LE.0)          GO TO 999   
       NOBO = NZBANK (IDIVDB, LKVWDX(1)) 
       IF (NOBO.LE.0)        GO TO 999   
-      NDAT = NO *  NOBO 
-      CALL DBBOOK (IDIVDB, LVIWDX, LVIWDX, 2, 'VIEW', 0, 0, NDAT, 2, 0) 
+      NDAT = NO *  NOBO
+      nio(1) = 2
+      CALL DBBOOK (IDIVDB, LVIWDX, LVIWDX, 2, 'VIEW', 0, 0, NDAT, nio,
+     &     0) 
       IF (IQUEST(1).NE.0)   GO TO 999   
 *   
 *  ** Fill-Up 'VIEW' Bank and free LKVWDX   
@@ -34353,9 +34606,10 @@ C&ENDIF
   992 IQUEST(1) = 102   
       IF (IDEBDB.GT.0) THEN 
         KYVAL  = PATHN  
-        NCH    = LENOCC (KYVAL) 
+        NCH    = LENOCC (KYVAL)
+        iarg(1) = nsysdk
         CALL DBPRNT (LPRTDB, '(/,'' DBVWPR : Less than '',I5,'' key '// 
-     +       'for Path Name '//KYVAL(1:NCH)//''')', NSYSDK, 1)  
+     +       'for Path Name '//KYVAL(1:NCH)//''')', iarg, 1)  
       ENDIF 
       GO TO 999 
 *   
