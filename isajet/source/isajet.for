@@ -270,6 +270,10 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
      $,HMASS,HGAM,HGAMS(29),ETAHGG,MATCHH(29),ZSTARS(4,2)
      $,IHTYPE,HGAMSS(85,85)
       SAVE /HCON/
+      real pud_arr(41)
+      equivalence (pud, pud_arr(1))
+      real hmass_arr(69)
+      equivalence (hmass, hmass_arr(1))
       DOUBLE PRECISION ANWWWW,ADWWWW,AIWWWW
       INTEGER   MATCHH,IHTYPE
       REAL      HMASS,HGAM,HGAMS,ETAHGG,ZSTARS,HGAMSS
@@ -305,6 +309,8 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
       COMMON /LIMEVL/ ETTHRS,CONCUT,USELIM
       SAVE /LIMEVL/
       REAL ETTHRS,CONCUT
+      real ETTHRS_arr(3)
+      equivalence (ETTHRS, ETTHRS_arr(1))
       LOGICAL USELIM
       COMMON/LSTPRT/LSTPRT
       SAVE /LSTPRT/
@@ -322,6 +328,8 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
       REAL      PUD0,PJSPN,PISPN,SIGQT0,XGEN0,PMIX01,PMIX02,PBARY0
       COMMON/NODCAY/NODCAY,NOETA,NOPI0,NONUNU,NOEVOL,NOHADR,NOGRAV
       SAVE /NODCAY/
+      real pud0_arr(19)
+      equivalence (pud0, pud0_arr(1))
       LOGICAL NODCAY,NOETA,NOPI0,NONUNU,NOEVOL,NOHADR,NOGRAV
       COMMON/PRIMAR/NJET,SCM,HALFE,ECM,IDIN(2),NEVENT,NTRIES,NSIGMA
       SAVE /PRIMAR/
@@ -333,6 +341,8 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
       COMMON/PTPAR/PTFUN1,PTFUN2,PTGEN1,PTGEN2,PTGEN3,SIGMAX
       SAVE /PTPAR/
       REAL      PTFUN1,PTFUN2,PTGEN1,PTGEN2,PTGEN3,SIGMAX
+      real ptfun1_arr(6)
+      equivalence (ptfun1, ptfun1_arr(1))
       INTEGER MXGOQ
       PARAMETER (MXGOQ=85)
       COMMON/Q1Q2/GOQ(MXGOQ,3),GOALL(3),GODY(4),STDDY,GOWW(25,2),
@@ -340,6 +350,8 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
       SAVE /Q1Q2/
       LOGICAL GOQ,GOALL,GODY,STDDY,GOWW,ALLWW,GOWMOD
       COMMON/QCDPAR/ALAM,ALAM2,CUTJET,ISTRUC
+      real alam_arr(4)
+      equivalence (alam, alam_arr(1))
       SAVE /QCDPAR/
       INTEGER   ISTRUC
       REAL      ALAM,ALAM2,CUTJET
@@ -350,9 +362,13 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
       COMMON/TCPAR/TCMRHO,TCGRHO
       SAVE /TCPAR/
       REAL TCMRHO,TCGRHO
+      real TCMRHO_arr(2)
+      equivalence (TCMRHO, TCMRHO_arr(1))
       COMMON/TIMES/TIME1,TIME2
       SAVE /TIMES/
       REAL      TIME1,TIME2
+      real time1_arr(2)
+      equivalence (time1, time1_arr(1))
       COMMON/TOTALS/NKINPT,NWGEN,NKEEP,SUMWT,WT
       SAVE /TOTALS/
       INTEGER   NKINPT,NWGEN,NKEEP
@@ -367,6 +383,8 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
      1MATCH(25,4),WCBR(25,4),CUTOFF,CUTPOW,TBRWW(4,2),RBRWW(12,4,2),EZ,
      2AQDP(12,4),BQDP(12,4),EZDP,WFUDGE
       SAVE /WCON/
+      real sin2w_arr(514+97)
+      equivalence (sin2w, sin2w_arr(1))
       DOUBLE PRECISION AQDP,BQDP,EZDP
       INTEGER   MATCH
       REAL      SIN2W,WMASS,WGAM,AQ,BQ,COUT,WCBR,CUTOFF,CUTPOW,TBRWW,
@@ -378,8 +396,8 @@ C
       REAL VC(MXVC)
       CHARACTER*8 CLIST(290)
       EQUIVALENCE (CLIST(1),PARTYP(1))
-      integer itmp
-      real rtmp
+      integer itmp(8)
+      real rtmp(8)
       equivalence (itmp, rtmp)
 C
 C          Dummy real variables for integers
@@ -421,13 +439,14 @@ C          DKYTAB
       CALL MOVLEV(VC(NC+1),VLOOK(1),NN)
       NC=NC+NN
 C          DYLIM
-      CALL MOVLEV(VC(NC+1),QMIN,24)
+      CALL MOVLEV(VC(NC+1),blim1,24)
       NC=NC+24
 C          DYPAR
       CALL MOVLEV(VC(NC+1),VFLW(1),13)
       NC=NC+13
 C          EEPAR
-      CALL MOVLEV(VC(NC+1),SGMXEE,1)
+c     CALL MOVLEV(VC(NC+1),SGMXEE,1)
+      SGMXEE = VC(NC+1)
       NC=NC+1
 C          FINAL
       CALL MOVLEV(VC(NC+1),VNKINF(1),5)
@@ -437,10 +456,10 @@ C          FORCE
       CALL MOVLEV(VC(NC+1),VFORCE(1),NN)
       NC=NC+NN
 C          FRGPAR
-      CALL MOVLEV(VC(NC+1),PUD,41)
+      CALL MOVLEV(VC(NC+1),PUD_arr,41)
       NC=NC+41
 C          HCON
-      CALL MOVLEV(VC(NC+1),HMASS,69)
+      CALL MOVLEV(VC(NC+1),HMASS_arr,69)
       NC=NC+69
 C          IDRUN
       CALL MOVLEV(VC(NC+1),VIDVER(1),5)
@@ -457,21 +476,22 @@ C          JETLIM
 C          KEYS
       CALL MOVLEV(VC(NC+1),VIKEYS(1),12)
       NC=NC+12
-      rtmp = vc(nc+1)
+      call ucopy (vc(nc+1), rtmp, 8)
       CALL CTXI2C(itmp,REAC,8)
       NC=NC+8
 C          LIMEVL
-      CALL MOVLEV(VC(NC+1),ETTHRS,3)
+      CALL MOVLEV(VC(NC+1),ETTHRS_arr,3)
       NC=NC+3
 C          LSTPRT
-      CALL MOVLEV(VC(NC+1),VSTPRT,1)
+c     CALL MOVLEV(VC(NC+1),VSTPRT,1)
+      VSTPRT = VC(NC+1)
       NC=NC+1
 C          MBGEN
       NN=4*LIMPOM+8
       CALL MOVLEV(VC(NC+1),POMWT(1),NN)
       NC=NC+NN
 C          MBPAR
-      CALL MOVLEV(VC(NC+1),PUD0,19)
+      CALL MOVLEV(VC(NC+1),PUD0_arr,19)
       NC=NC+19
 C          NODCAY
       CALL MOVLEV(VC(NC+1),VNODCY(1),6)
@@ -483,22 +503,22 @@ C          PRTOUT
       CALL MOVLEV(VC(NC+1),VEVPRT(1),2)
       NC=NC+2
 C          PTPAR
-      CALL MOVLEV(VC(NC+1),PTFUN1,6)
+      CALL MOVLEV(VC(NC+1),PTFUN1_arr,6)
       NC=NC+6
 C          Q1Q2
       CALL MOVLEV(VC(NC+1),VGOQ(1),3*MXGOQ+135)
       NC=NC+3*MXGOQ+135
 C          QCDPAR
-      CALL MOVLEV(VC(NC+1),ALAM,4)
+      CALL MOVLEV(VC(NC+1),ALAM_arr,4)
       NC=NC+4
 C          QLMASS
       CALL MOVLEV(VC(NC+1),AMLEP(1),55)
       NC=NC+55
 C          TCPAR
-      CALL MOVLEV(VC(NC+1),TCMRHO,2)
+      CALL MOVLEV(VC(NC+1),TCMRHO_arr,2)
       NC=NC+2
 C          TIMES
-      CALL MOVLEV(VC(NC+1),TIME1,2)
+      CALL MOVLEV(VC(NC+1),TIME1_arr,2)
       NC=NC+2
 C          TOTALS
       CALL MOVLEV(VC(NC+1),VKINPT(1),5)
@@ -507,13 +527,13 @@ C          TYPES
       CALL MOVLEV(VC(NC+1),VLOC(1),100)
       NC=NC+100
       DO 100 I=1,290
-        rtmp = vc(nc+1)
+        call ucopy(vc(nc+1), rtmp, 8)
         CALL CTXI2C(itmp,CLIST(I),8)
         NC=NC+8
 100   CONTINUE
 C          WCON
       NN=514+97
-      CALL MOVLEV(VC(NC+1),SIN2W,NN)
+      CALL MOVLEV(VC(NC+1),SIN2W_arr,NN)
       NC=NC+NN
 C
       NVC=NC
@@ -590,9 +610,13 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
      $,HMASS,HGAM,HGAMS(29),ETAHGG,MATCHH(29),ZSTARS(4,2)
      $,IHTYPE,HGAMSS(85,85)
       SAVE /HCON/
+      real pud_arr(41)
+      equivalence (pud, pud_arr(1))
       DOUBLE PRECISION ANWWWW,ADWWWW,AIWWWW
       INTEGER   MATCHH,IHTYPE
       REAL      HMASS,HGAM,HGAMS,ETAHGG,ZSTARS,HGAMSS
+      real hmass_arr(69)
+      equivalence (hmass, hmass_arr(1))
       COMMON/IDRUN/IDVER,IDG(2),IEVT,IEVGEN
       SAVE /IDRUN/
       INTEGER   IDVER,IDG,IEVT,IEVGEN
@@ -625,6 +649,8 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
       COMMON /LIMEVL/ ETTHRS,CONCUT,USELIM
       SAVE /LIMEVL/
       REAL ETTHRS,CONCUT
+      real etthrs_arr(3)
+      equivalence (etthrs, etthrs_arr(1))
       LOGICAL USELIM
       COMMON/LSTPRT/LSTPRT
       SAVE /LSTPRT/
@@ -641,6 +667,8 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
       SAVE /MBPAR/
       REAL      PUD0,PJSPN,PISPN,SIGQT0,XGEN0,PMIX01,PMIX02,PBARY0
       COMMON/NODCAY/NODCAY,NOETA,NOPI0,NONUNU,NOEVOL,NOHADR,NOGRAV
+      real pud0_arr(19)
+      equivalence (pud0, pud0_arr(1))
       SAVE /NODCAY/
       LOGICAL NODCAY,NOETA,NOPI0,NONUNU,NOEVOL,NOHADR,NOGRAV
       COMMON/PRIMAR/NJET,SCM,HALFE,ECM,IDIN(2),NEVENT,NTRIES,NSIGMA
@@ -653,6 +681,8 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
       COMMON/PTPAR/PTFUN1,PTFUN2,PTGEN1,PTGEN2,PTGEN3,SIGMAX
       SAVE /PTPAR/
       REAL      PTFUN1,PTFUN2,PTGEN1,PTGEN2,PTGEN3,SIGMAX
+      real ptfun1_arr(6)
+      equivalence (ptfun1, ptfun1_arr(1))
       INTEGER MXGOQ
       PARAMETER (MXGOQ=85)
       COMMON/Q1Q2/GOQ(MXGOQ,3),GOALL(3),GODY(4),STDDY,GOWW(25,2),
@@ -663,6 +693,8 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
       SAVE /QCDPAR/
       INTEGER   ISTRUC
       REAL      ALAM,ALAM2,CUTJET
+      real alam_arr(4)
+      equivalence (alam, alam_arr(1))
       COMMON/QLMASS/AMLEP(100),NQLEP,NMES,NBARY
       SAVE /QLMASS/
       INTEGER   NQLEP,NMES,NBARY
@@ -670,9 +702,13 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
       COMMON/TCPAR/TCMRHO,TCGRHO
       SAVE /TCPAR/
       REAL TCMRHO,TCGRHO
+      real TCMRHO_arr(2)
+      equivalence (TCMRHO, TCMRHO_arr(1))
       COMMON/TIMES/TIME1,TIME2
       SAVE /TIMES/
       REAL      TIME1,TIME2
+      real time1_arr(2)
+      equivalence (time1, time1_arr(1))
       COMMON/TOTALS/NKINPT,NWGEN,NKEEP,SUMWT,WT
       SAVE /TOTALS/
       INTEGER   NKINPT,NWGEN,NKEEP
@@ -687,6 +723,9 @@ C          LOOK MUST BE DIMENSIONED TO THE MAXIMUM VALUE OF INDEX.
      1MATCH(25,4),WCBR(25,4),CUTOFF,CUTPOW,TBRWW(4,2),RBRWW(12,4,2),EZ,
      2AQDP(12,4),BQDP(12,4),EZDP,WFUDGE
       SAVE /WCON/
+      real sin2w_arr(514+97)
+      equivalence (sin2w, sin2w_arr(1))
+      
       DOUBLE PRECISION AQDP,BQDP,EZDP
       INTEGER   MATCH
       REAL      SIN2W,WMASS,WGAM,AQ,BQ,COUT,WCBR,CUTOFF,CUTPOW,TBRWW,
@@ -698,9 +737,9 @@ C
       REAL VC(MXVC)
       CHARACTER*8 CLIST(290)
       EQUIVALENCE (CLIST(1),PARTYP(1))
-      integer itmp
-      real rtmp
-      equivalence (itmp, rtmp)
+      integer itmp(8)
+      real rtmp(8)
+      equivalence (itmp(1), rtmp(1))
 C
 C          Dummy real variables for integers
       REAL VLOOK(MXLOOK+6*MXDKY)
@@ -741,13 +780,14 @@ C          DKYTAB
       CALL MOVLEV(VLOOK(1),VC(NC+1),NN)
       NC=NC+NN
 C          DYLIM
-      CALL MOVLEV(QMIN,VC(NC+1),24)
+      CALL MOVLEV(blim1,VC(NC+1),24)
       NC=NC+24
 C          DYPAR
       CALL MOVLEV(VFLW(1),VC(NC+1),13)
       NC=NC+13
 C          EEPAR
-      CALL MOVLEV(SGMXEE,VC(NC+1),1)
+c     CALL MOVLEV(SGMXEE,VC(NC+1),1)
+      VC(NC+1) = SGMXEE
       NC=NC+1
 C          FINAL
       CALL MOVLEV(VNKINF(1),VC(NC+1),5)
@@ -757,10 +797,10 @@ C          FORCE
       CALL MOVLEV(VFORCE(1),VC(NC+1),NN)
       NC=NC+NN
 C          FRGPAR
-      CALL MOVLEV(PUD,VC(NC+1),41)
+      CALL MOVLEV(PUD_arr,VC(NC+1),41)
       NC=NC+41
 C          HCON
-      CALL MOVLEV(HMASS,VC(NC+1),69)
+      CALL MOVLEV(HMASS_arr,VC(NC+1),69)
       NC=NC+69
 C          IDRUN
       CALL MOVLEV(VIDVER(1),VC(NC+1),5)
@@ -778,20 +818,21 @@ C          KEYS
       CALL MOVLEV(VIKEYS(1),VC(NC+1),12)
       NC=NC+12
       CALL CTXC2I(REAC,itmp,8)
-      vc(nc+1) = rtmp
+      call ucopy (rtmp, vc(nc+1), 8)
       NC=NC+8
 C          LIMEVL
-      CALL MOVLEV(ETTHRS,VC(NC+1),3)
+      CALL MOVLEV(ETTHRS_arr,VC(NC+1),3)
       NC=NC+3
 C          LSTPRT
-      CALL MOVLEV(VSTPRT,VC(NC+1),1)
+c     CALL MOVLEV(VSTPRT,VC(NC+1),1)
+      vc(nc+1) = VSTPRT
       NC=NC+1
 C          MBGEN
       NN=4*LIMPOM+8
       CALL MOVLEV(POMWT(1),VC(NC+1),NN)
       NC=NC+NN
 C          MBPAR
-      CALL MOVLEV(PUD0,VC(NC+1),19)
+      CALL MOVLEV(PUD0_arr,VC(NC+1),19)
       NC=NC+19
 C          NODCAY
       CALL MOVLEV(VNODCY(1),VC(NC+1),6)
@@ -803,22 +844,22 @@ C          PRTOUT
       CALL MOVLEV(VEVPRT(1),VC(NC+1),2)
       NC=NC+2
 C          PTPAR
-      CALL MOVLEV(PTFUN1,VC(NC+1),6)
+      CALL MOVLEV(PTFUN1_arr,VC(NC+1),6)
       NC=NC+6
 C          Q1Q2
       CALL MOVLEV(VGOQ(1),VC(NC+1),3*MXGOQ+135)
       NC=NC+3*MXGOQ+135
 C          QCDPAR
-      CALL MOVLEV(ALAM,VC(NC+1),4)
+      CALL MOVLEV(ALAM_arr,VC(NC+1),4)
       NC=NC+4
 C          QLMASS
       CALL MOVLEV(AMLEP(1),VC(NC+1),55)
       NC=NC+55
 C          TCPAR
-      CALL MOVLEV(TCMRHO,VC(NC+1),2)
+      CALL MOVLEV(TCMRHO_arr,VC(NC+1),2)
       NC=NC+2
 C          TIMES
-      CALL MOVLEV(TIME1,VC(NC+1),2)
+      CALL MOVLEV(TIME1_arr,VC(NC+1),2)
       NC=NC+2
 C          TOTALS
       CALL MOVLEV(VKINPT(1),VC(NC+1),5)
@@ -828,12 +869,12 @@ C          TYPES
       NC=NC+100
       DO 100 I=1,290
         CALL CTXC2I(CLIST(I),itmp,8)
-        vc(nc+1) = rtmp
+        call ucopy (rtmp, vc(nc+1), 8)
         NC=NC+8
 100   CONTINUE
 C          WCON
       NN=514+97
-      CALL MOVLEV(SIN2W,VC(NC+1),NN)
+      CALL MOVLEV(sin2w_arr,VC(NC+1),NN)
       NC=NC+NN
 C
       IF(NC.LE.MXVC) THEN
@@ -27605,9 +27646,14 @@ C          to those in versions < 6.50 but may be changed.
       PARAMETER (ISGRAV=91)
 C
       EXTERNAL SSGWQ1,SSGWQ2,SSGZG1,SSGZG2,SSGZG3,SSGZT
+      real SSGWQ1,SSGWQ2,SSGZG1,SSGZG2,SSGZG3,SSGZT
       EXTERNAL SSGWT1,SSGWT2,SSGWT3,SSGWT4,SSGWT5,SSGWT6,
      $SSGWT7,SSGWT8
+      real SSGWT1,SSGWT2,SSGWT3,SSGWT4,SSGWT5,SSGWT6,
+     $SSGWT7,SSGWT8
       EXTERNAL SSGX1,SSGX2,SSGX3,SSGX4,SSGX5,SSGX6,SSGX7,SSGX8
+     $,SSGX9
+      real SSGX1,SSGX2,SSGX3,SSGX4,SSGX5,SSGX6,SSGX7,SSGX8
      $,SSGX9
       REAL WIDU,WIDD,WIDI,WIDL,WIDR
       REAL SSXINT,SSXLAM,XUPPER,XTCON,SUM,GMQK,C,G,FT,GP
@@ -33441,7 +33487,8 @@ C
       REAL A11,A22,A12,B11,B22,B12,C11,C12,C21,C22
       REAL ASQ,BSQ,CSQ,DWSF
       REAL DWSFL,DWSFH,DWSFP,DWSFC,SSXLAM
-      REAL ASMB,MBMB,MBQ,ASMT,MTMT,MTQ,SUALFS,SSMQCD
+      REAL ASMB,MBMB,MBQ,ASMT,MTMT,MTQ,SUALFS
+      double precision SSMQCD
       DIMENSION ATERM(12),MSFMIX(12,2),THETSF(12)
       DIMENSION ASQ(10,3),BSQ(9),CSQ(6,4)
       DIMENSION DWSF(12,4),DWSFL(12,4),DWSFH(12,4)
@@ -38133,6 +38180,7 @@ C     MGUTSS  = M_GUT    GGUTSS  = g_GUT    AGUTSS  = alpha_GUT
 C
       INTEGER IALLOW
       EXTERNAL SSZHX
+      real SSZHX
       REAL MHSM,GAMINV,PI,SR2,G,GP,MZ,MZ1,MZ2,MZ3,MZ4,MW1,MW2,
      $TANB,BETA,COS2B,SIN2B,VS,V,VP,FT,MHL,ALPHA,SUSYCC,
      $GAMSS,W11,GZ1Z1,GAMSM,SSXINT,SSXLAM,COS2W,
@@ -38720,6 +38768,9 @@ C          PTAUWZ    = P_tau for w1ss -> z1ss tau nutau
       REAL PTAU1,PTAU2,PTAUZ2,PTAUZ3,PTAUZ4,PTAUZZ,PTAUWZ
 C
       EXTERNAL SSZWF1,SSZZF1,SSZZF2,SSZZF3,SSWZF1,SSWZF2,SSWZF3
+     $,SSWZF4,SSWZF5,SSWZF6,SSWZF7,SSWWF1,SSZZF4,SSZZF5,SSGX1
+     $,SSGX2,SSGX8
+      real SSZWF1,SSZZF1,SSZZF2,SSZZF3,SSWZF1,SSWZF2,SSWZF3
      $,SSWZF4,SSWZF5,SSWZF6,SSWZF7,SSWWF1,SSZZF4,SSZZF5,SSGX1
      $,SSGX2,SSGX8
 C
@@ -44626,9 +44677,13 @@ C
       EQUIVALENCE(FRPAR(1),PUD)
       REAL      PUD,PBARY,SIGQT,PEND,XGEN,PSPIN1,PMIX1,PMIX2,XGENSS,
      +          PMIXX1(6),PMIXX2(6),FRPAR(32)
+      real pud_arr(22)
+      equivalence (pud, pud_arr(1))
       COMMON/IDRUN/IDVER,IDG(2),IEVT,IEVGEN
       SAVE /IDRUN/
       INTEGER   IDVER,IDG,IEVT,IEVGEN
+      integer idver_arr(4)
+      equivalence (idver, idver_arr(1))
       COMMON/JETLIM/PMIN(3),PMAX(3),PTMIN(3),PTMAX(3),YJMIN(3),YJMAX(3)
      1 ,PHIMIN(3),PHIMAX(3),XJMIN(3),XJMAX(3),THMIN(3),THMAX(3)
      2 ,SETLMJ(36)
@@ -44652,11 +44707,15 @@ C
       COMMON/PRIMAR/NJET,SCM,HALFE,ECM,IDIN(2),NEVENT,NTRIES,NSIGMA
       SAVE /PRIMAR/
       INTEGER   NJET,IDIN,NEVENT,NTRIES,NSIGMA
+      integer njet_arr(7)
+      equivalence (njet, njet_arr(1))
       REAL      SCM,HALFE,ECM
       COMMON/QCDPAR/ALAM,ALAM2,CUTJET,ISTRUC
       SAVE /QCDPAR/
       INTEGER   ISTRUC
       REAL      ALAM,ALAM2,CUTJET
+      real alam_arr(4)
+      equivalence (alam, alam_arr(1))
       COMMON/QLMASS/AMLEP(100),NQLEP,NMES,NBARY
       SAVE /QLMASS/
       INTEGER   NQLEP,NMES,NBARY
@@ -44689,6 +44748,10 @@ C
      $,XM0SU,XMHSU,XA0SU,XTGBSU,XSMUSU
      $,XLAMGM,XMESGM,XN5GM,XCMGV,XMGVTO
       LOGICAL GOMSSM,GOSUG,GOGMSB
+      real xglss_arr(11)
+      equivalence (xglss, xglss_arr(1))
+      real xm0su_arr(5)
+      equivalence (xm0su, xm0su_arr(1))
 
 C
       COMMON/ZVOUT/ZVOUT(512)
@@ -44723,9 +44786,9 @@ C
       NRECS=0
       CALL ZEROL(ZEVEL,MAXLEN)
       IL=3
-      CALL MOVLEI(IDVER,IZEVEL(IL),4)
+      CALL MOVLEI(IDVER_arr,IZEVEL(IL),4)
       IL=IL+4
-      CALL MOVLEI(NJET,IZEVEL(IL),7)
+      CALL MOVLEI(NJET_arr,IZEVEL(IL),7)
       IL=IL+7
       NL=NJET*MXGOQ
       IF(NJET.NE.0) CALL MOVLEL(GOQ(1,1),LZEVEL(IL),NL)
@@ -44735,26 +44798,28 @@ C
       CALL MOVLEV(PMIN(1),ZEVEL(IL),36)
       IL=IL+36
       IF(.NOT.KEYS(3)) GOTO 11
-      CALL MOVLEV(QMIN,ZEVEL(IL),12)
+      CALL MOVLEV(blim1,ZEVEL(IL),12)
       IL=IL+12
    11 CONTINUE
       CALL MOVLEL(GODY(1),LZEVEL(IL),5)
       IL=IL+5
-      CALL MOVLEV(PUD,ZEVEL(IL),22)
+      CALL MOVLEV(PUD_arr,ZEVEL(IL),22)
       IL=IL+22
-      CALL MOVLEV(ALAM,ZEVEL(IL),4)
+      CALL MOVLEV(ALAM_arr,ZEVEL(IL),4)
       IL=IL+4
       CALL MOVLEV(AMLEP(6),ZEVEL(IL),3)
       IL=IL+3
       CALL MOVLEI(LOC(1),IZEVEL(IL),100)
       IL=IL+100
-      CALL MOVLEL(GOMSSM,LZEVEL(IL),1)
+c     CALL MOVLEL(GOMSSM,LZEVEL(IL),1)
+      lzevel(il) = GOMSSM
       IL=IL+1
-      CALL MOVLEV(XGLSS,ZEVEL(IL),11)
+      CALL MOVLEV(XGLSS_arr,ZEVEL(IL),11)
       IL=IL+11
-      CALL MOVLEL(GOSUG,LZEVEL(IL),1)
+c     CALL MOVLEL(GOSUG,LZEVEL(IL),1)
+      LZEVEL(IL) = GOSUG
       IL=IL+1
-      CALL MOVLEV(XM0SU,ZEVEL(IL),5)
+      CALL MOVLEV(XM0SU_arr,ZEVEL(IL),5)
       IL=IL+5
 C
       IZEVEL(1)=200
@@ -45202,6 +45267,8 @@ C
      +          PMIXX1(6),PMIXX2(6),FRPAR(32)
       COMMON/IDRUN/IDVER,IDG(2),IEVT,IEVGEN
       SAVE /IDRUN/
+      integer idver_arr(4)
+      equivalence (idver_arr(1), idver)
       INTEGER   IDVER,IDG,IEVT,IEVGEN
       COMMON/JETLIM/PMIN(3),PMAX(3),PTMIN(3),PTMAX(3),YJMIN(3),YJMAX(3)
      1 ,PHIMIN(3),PHIMAX(3),XJMIN(3),XJMAX(3),THMIN(3),THMAX(3)
@@ -45225,10 +45292,14 @@ C
       INTEGER   IKEYS
       COMMON/PRIMAR/NJET,SCM,HALFE,ECM,IDIN(2),NEVENT,NTRIES,NSIGMA
       SAVE /PRIMAR/
+      integer njet_arr(7)
+      equivalence (njet, njet_arr(1))
       INTEGER   NJET,IDIN,NEVENT,NTRIES,NSIGMA
       REAL      SCM,HALFE,ECM
       COMMON/QCDPAR/ALAM,ALAM2,CUTJET,ISTRUC
       SAVE /QCDPAR/
+      real alam_arr(4)
+      equivalence (alam_arr(1), alam)
       INTEGER   ISTRUC
       REAL      ALAM,ALAM2,CUTJET
       COMMON/QLMASS/AMLEP(100),NQLEP,NMES,NBARY
@@ -45255,6 +45326,8 @@ C
      $,XM1SS,XM2SS,XM0SU,XMHSU,XA0SU,XTGBSU,XSMUSU
      $,XLAMGM,XMESGM,XN5GM,XCMGV,XMGVTO
       SAVE /XMSSM/
+      real xglss_arr(11)
+      equivalence (xglss_arr(1), xglss)
       REAL XGLSS,XMUSS,XHASS,XTBSS
      $,XQ1SS,XDRSS,XURSS,XL1SS,XERSS
      $,XQ2SS,XSRSS,XCRSS,XL2SS,XMRSS
@@ -45263,7 +45336,8 @@ C
      $,XM0SU,XMHSU,XA0SU,XTGBSU,XSMUSU
      $,XLAMGM,XMESGM,XN5GM,XCMGV,XMGVTO
       LOGICAL GOMSSM,GOSUG,GOGMSB
-
+      real xm0su_arr(5)
+      equivalence (xm0su_arr(1), xm0su)
 C
       INTEGER   MAXLEN
       PARAMETER (MAXLEN=1024)
@@ -45281,14 +45355,14 @@ C
 C
       IL=3
       IDSAVE=IDVER
-      CALL MOVLEI(IZEVEL(IL),IDVER,4)
+      CALL MOVLEI(IZEVEL(IL),idver_arr,4)
       IF(IDVER.NE.IDSAVE) WRITE(ITLIS,1777) IDVER,IDSAVE
 1777  FORMAT(///,
      $' WARNING:  DATA WERE GENERATED WITH VERSION',I5,/,
      $'           DATA ARE BEING READ WITH VERSION',I5,/,
      $' RESULTS CANNOT BE PREDICTED.'///)
       IL=IL+4
-      CALL MOVLEI(IZEVEL(IL),NJET,7)
+      CALL MOVLEI(IZEVEL(IL),njet_arr,7)
       IL=IL+7
       NL=NJET*MXGOQ
       IF(NJET.NE.0) CALL MOVLEL(LZEVEL(IL),GOQ(1,1),NL)
@@ -45298,26 +45372,28 @@ C
       CALL MOVLEV(ZEVEL(IL),PMIN(1),36)
       IL=IL+36
       IF(.NOT.KEYS(3)) GO TO 11
-      CALL MOVLEV(ZEVEL(IL),QMIN,12)
+      CALL MOVLEV(ZEVEL(IL),blim1,12)
       IL=IL+12
 11    CONTINUE
       CALL MOVLEL(LZEVEL(IL),GODY(1),5)
       IL=IL+5
-      CALL MOVLEV(ZEVEL(IL),PUD,22)
+      CALL MOVLEV(ZEVEL(IL),frpar,22)
       IL=IL+22
-      CALL MOVLEV(ZEVEL(IL),ALAM,4)
+      CALL MOVLEV(ZEVEL(IL),ALAM_arr,4)
       IL=IL+4
       CALL MOVLEV(ZEVEL(IL),AMLEP(6),3)
       IL=IL+3
       CALL MOVLEI(IZEVEL(IL),LOC(1),100)
       IL=IL+100
-      CALL MOVLEL(LZEVEL(IL),GOMSSM,1)
+c     CALL MOVLEL(LZEVEL(IL),GOMSSM,1)
+      gomssm = LZEVEL(IL)
       IL=IL+1
-      CALL MOVLEV(ZEVEL(IL),XGLSS,11)
+      CALL MOVLEV(ZEVEL(IL),XGLSS_arr,11)
       IL=IL+11
-      CALL MOVLEL(LZEVEL(IL),GOSUG,1)
+c     CALL MOVLEL(LZEVEL(IL),GOSUG,1)
+      gosug = LZEVEL(IL)
       IL=IL+1
-      CALL MOVLEV(ZEVEL(IL),XM0SU,5)
+      CALL MOVLEV(ZEVEL(IL),XM0SU_arr,5)
       IL=IL+5
 C
       RETURN
@@ -45421,6 +45497,8 @@ C
       COMMON/IDRUN/IDVER,IDG(2),IEVT,IEVGEN
       SAVE /IDRUN/
       INTEGER   IDVER,IDG,IEVT,IEVGEN
+      integer idver_arr(4)
+      equivalence (idver, idver_arr(1))
       COMMON/JETPAR/P(3),PT(3),YJ(3),PHI(3),XJ(3),TH(3),CTH(3),STH(3)
      1 ,JETTYP(3),SHAT,THAT,UHAT,QSQ,X1,X2,PBEAM(2)
      2 ,QMW,QW,QTW,YW,XW,THW,QTMW,PHIW,SHAT1,THAT1,UHAT1,JWTYP
@@ -45432,6 +45510,8 @@ C
      +          PBEAM,QMW,QW,QTW,YW,XW,THW,QTMW,PHIW,SHAT1,THAT1,UHAT1,
      +          ALFQSQ,CTHW,STHW,Q0W,PBEAMS
       INTEGER   MXJSET,JPACK
+      real qmw_arr(16)
+      equivalence (qmw, qmw_arr(1))
       PARAMETER (MXJSET=400,JPACK=1000)
       COMMON/JETSET/NJSET,PJSET(5,MXJSET),JORIG(MXJSET),JTYPE(MXJSET),
      $JDCAY(MXJSET)
@@ -45480,6 +45560,8 @@ C
       COMMON/TOTALS/NKINPT,NWGEN,NKEEP,SUMWT,WT
       SAVE /TOTALS/
       INTEGER   NKINPT,NWGEN,NKEEP
+      integer nkinpt_arr(5)
+      equivalence (nkinpt, nkinpt_arr(1))
       REAL      SUMWT,WT
       COMMON/WSIG/SIGLLQ
       SAVE /WSIG/
@@ -45502,7 +45584,7 @@ C
       IF(IRECTP.EQ.300) RETURN
       IF(IFL.EQ.10) RETURN
       IL=3
-      CALL MOVLEI(IZEVEL(IL),IDVER,4)
+      CALL MOVLEI(IZEVEL(IL),IDVER_arr,4)
       IL=IL+4
       CALL MOVLEL(LZEVEL(IL),KEYS(1),10)
       IL=IL+10
@@ -45510,7 +45592,8 @@ C
       IL=IL+1
       CALL MOVLEV(ZEVEL(IL),P(1),59)
       IL=IL+59
-      CALL MOVLEV(ZEVEL(IL),SIGF,1)
+c     CALL MOVLEV(ZEVEL(IL),SIGF,1)
+      sigf = ZEVEL(IL)
       IL=IL+1
       IF(.NOT.KEYS(4)) THEN
         SIGMA=ZEVEL(IL)
@@ -45530,7 +45613,7 @@ C
       IF(KEYS(3).OR.KEYS(7)) THEN
         CALL MOVLEV(ZEVEL(IL),QWJET(1),6)
         IL=IL+6
-        CALL MOVLEV(ZEVEL(IL),QMW,16)
+        CALL MOVLEV(ZEVEL(IL),QMW_arr,16)
         IL=IL+16
         SIGLLQ=ZEVEL(IL)
         IL=IL+1
@@ -45549,9 +45632,10 @@ C
       ENDIF
       NJSET=IZEVEL(IL)
       IL=IL+1
-      CALL MOVLEI(IZEVEL(IL),NKINPT,5)
+      CALL MOVLEI(IZEVEL(IL),NKINPT_arr,5)
       IL=IL+5
-      CALL MOVLEI(IZEVEL(IL),NPOM,1)
+c     CALL MOVLEI(IZEVEL(IL),NPOM,1)
+      npom = IZEVEL(IL)
       IL=IL+1
 C
 C          /JETSET/ COMMON BLOCK
@@ -45634,6 +45718,8 @@ C
       COMMON/IDRUN/IDVER,IDG(2),IEVT,IEVGEN
       SAVE /IDRUN/
       INTEGER   IDVER,IDG,IEVT,IEVGEN
+      integer idver_arr(4)
+      equivalence (idver, idver_arr(1))
       COMMON/JETPAR/P(3),PT(3),YJ(3),PHI(3),XJ(3),TH(3),CTH(3),STH(3)
      1 ,JETTYP(3),SHAT,THAT,UHAT,QSQ,X1,X2,PBEAM(2)
      2 ,QMW,QW,QTW,YW,XW,THW,QTMW,PHIW,SHAT1,THAT1,UHAT1,JWTYP
@@ -45644,6 +45730,8 @@ C
       REAL      P,PT,YJ,PHI,XJ,TH,CTH,STH,SHAT,THAT,UHAT,QSQ,X1,X2,
      +          PBEAM,QMW,QW,QTW,YW,XW,THW,QTMW,PHIW,SHAT1,THAT1,UHAT1,
      +          ALFQSQ,CTHW,STHW,Q0W,PBEAMS
+      real qmw_arr(16)
+      equivalence (qmw, qmw_arr(1))
       INTEGER   MXJSET,JPACK
       PARAMETER (MXJSET=400,JPACK=1000)
       COMMON/JETSET/NJSET,PJSET(5,MXJSET),JORIG(MXJSET),JTYPE(MXJSET),
@@ -45697,6 +45785,8 @@ C
       COMMON/TOTALS/NKINPT,NWGEN,NKEEP,SUMWT,WT
       SAVE /TOTALS/
       INTEGER   NKINPT,NWGEN,NKEEP
+      integer nkinpt_arr(5)
+      equivalence (NKINPT, NKINPT_arr(1))
       REAL      SUMWT,WT
       COMMON/WSIG/SIGLLQ
       SAVE /WSIG/
@@ -45708,7 +45798,7 @@ C
       IZEVEL(1)=100
       IZEVEL(2)=1
       IL=3
-      CALL MOVLEI(IDVER,IZEVEL(IL),4)
+      CALL MOVLEI(IDVER_arr,IZEVEL(IL),4)
       IL=IL+4
       CALL MOVLEL(KEYS(1),LZEVEL(IL),10)
       IL=IL+10
@@ -45716,7 +45806,8 @@ C
       IL=IL+1
       CALL MOVLEV(P(1),ZEVEL(IL),59)
       IL=IL+59
-      CALL MOVLEV(SIGF,ZEVEL(IL),1)
+c     CALL MOVLEV(SIGF,ZEVEL(IL),1)
+      zevel(il) = sigf
       IL=IL+1
       IF(.NOT.KEYS(4)) THEN
         ZEVEL(IL)=SIGMA
@@ -45745,7 +45836,7 @@ C          BY NPTCL=-(NO. OF STABLE PARTICLES)
       IF(KEYS(3).OR.KEYS(7)) THEN
         CALL MOVLEV(QWJET(1),ZEVEL(IL),6)
         IL=IL+6
-        CALL MOVLEV(QMW,ZEVEL(IL),16)
+        CALL MOVLEV(QMW_arr,ZEVEL(IL),16)
         IL=IL+16
         I1=JWTYP
         I2=JETTYP(3)
@@ -45766,9 +45857,10 @@ C          BY NPTCL=-(NO. OF STABLE PARTICLES)
       ENDIF
       IZEVEL(IL)=NJSET
       IL=IL+1
-      CALL MOVLEI(NKINPT,IZEVEL(IL),5)
+      CALL MOVLEI(NKINPT_arr,IZEVEL(IL),5)
       IL=IL+5
-      CALL MOVLEI(NPOM,IZEVEL(IL),1)
+c     CALL MOVLEI(NPOM,IZEVEL(IL),1)
+      IZEVEL(IL) = npom
       IL=IL+1
 C
 C          /JETSET/ COMMON BLOCK
