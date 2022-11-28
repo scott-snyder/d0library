@@ -41,8 +41,7 @@ C----------------------------------------------------------------------
       integer*8 d0_loc
       integer*8 d0_loci
       integer*8 d0_locs
-      integer narg, iargc
-      external iargc
+      integer narg
       logical get_args
 C----------------------------------------------------------------------
       str = ' '

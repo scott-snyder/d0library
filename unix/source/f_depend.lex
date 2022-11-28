@@ -21,6 +21,7 @@ char rfile[STRLEN];
 char *fch, *lch;
 context_t *context;
 int nch;
+void find_includes();
 %}
 S                       [ \t]+
 s                       [ \t]*
@@ -28,7 +29,7 @@ s                       [ \t]*
 ^{S}[Ii][Nn][Cc][Ll][Uu][Dd][Ee]{s}'.*'.*\n find_includes();
 ^.*\n ;
 %%
- find_includes()
+void find_includes()
  {
  
  /* Extract the UNIX filename from INCLUDE statements. */
@@ -43,4 +44,12 @@ s                       [ \t]*
    find_file_end(&context);
    if(rfile != NULL && *rfile != '\0')
      printf("\\\n  %s", rfile);
+   else
+     fprintf(stderr, "error: include file %s not found\n", ifile);
  }
+
+int main()
+{
+  yylex();
+  return 0;
+}

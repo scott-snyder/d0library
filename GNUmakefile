@@ -11,8 +11,8 @@ FORT_COMMON_FLAGS := -fdollar-ok -fno-second-underscore --std=legacy \
                      -fno-automatic -fno-backslash -I$(TOPDIR) -fd-lines-as-comments
 
 F77 := g77
-F77_COMMON_FLAGS := -fdollar-ok -fugly-logint -fno-second-underscore \
-                    -fno-automatic -fno-backslash -Wno-globals -I$(TOPDIR)
+F77_COMMON_FLAGS := -fdollar-ok -fno-second-underscore \
+                    -fno-automatic -fno-backslash -I$(TOPDIR)
 
 CC := cc
 C_DEB_FLAGS := -g
@@ -27,9 +27,26 @@ endif
 
 
 .PHONY : build-tools
-all : build-tools libs
+all : build-tools libs bins
 libs :
+bins :
 clean :
+
+export d0calor_filter__source=calor_filter/source
+export d0compack__source=compack/source
+export d0errmsg_util__params=errmsg_util/params
+export d0inc=inc
+export d0lcompack__source=lcompack/source
+export d0links=links
+export d0offline_util__general=offline_util/general
+export d0params=params
+export d0program_builder__inc=program_builder/inc
+export d0spythia__inc=spythia/inc
+export d0util=util
+export d0xframe__source=xframe/source
+export d0zeb__isa=zeb/isa
+export d0zeb__run_head=zeb/run_head
+export d0zeb__scal=zeb/scal
 
 #include $(wildcard */GNUmakefile.sub)
 include unix/GNUmakefile.sub

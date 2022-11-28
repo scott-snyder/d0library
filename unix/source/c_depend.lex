@@ -13,6 +13,7 @@
 #include "unix.h"
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #define STRLEN 256
 #undef output
 #define output(c)
@@ -21,6 +22,7 @@ char rfile[STRLEN];
 char *fch, *lch;
 context_t *context;
 int nch;
+void find_includes();
 %}
 S                       [ \t]+
 s                       [ \t]*
@@ -28,7 +30,7 @@ s                       [ \t]*
 ^{s}#{s}include{s}["<].*[">].*\n find_includes();
 ^.*\n ;
 %%
- find_includes()
+void find_includes()
  {
  
  /* Extract the UNIX filename from #include preprocessor statements. */
@@ -54,4 +56,12 @@ s                       [ \t]*
    find_file_end(&context);
    if(rfile != NULL && *rfile != '\0')
      printf("\\\n  %s", rfile);
+   else
+     fprintf(stderr, "error: include file %s not found\n", ifile);
  }
+
+int main()
+{
+  yylex();
+  return 0;
+}

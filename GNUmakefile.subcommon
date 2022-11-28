@@ -74,18 +74,21 @@ define for_common_compile
 	$(NOECHO) echo '-->' $(1) $<
 	$(NOECHO) mkdir -p $(dir $@)
 	$(NOECHO) mkdir -p $(TOPDIR)/tmp/$(1)/$(dir $<)
-	$(BINDIR)/tasteofd0 LINUX < $< | \
+	$(NOECHO) $(BINDIR)/tasteofd0 LINUX < $< | \
           $(BINDIR)/vmstounix > $(TOPDIR)/tmp/$(1)/$(patsubst %.for,%.f,$<)
-	$(FORT)  \
+	$(NOECHO) $(FORT)  \
           $(FORT_COMMON_FLAGS) -I $(dir $<) $(FORT_$(1)_FLAGS) -c -o $@ \
           $(TOPDIR)/tmp/$(1)/$(patsubst %.for,%.f,$<)
+	$(NOECHO) echo "$@ : $< \\" > $(TOPDIR)/tmp/$(1)/$(patsubst %.for,%.d,$<)
+	$(NOECHO) $(BINDIR)/for_depend < $< >> $(TOPDIR)/tmp/$(1)/$(patsubst %.for,%.d,$<)
+	$(NOECHO) echo "" >> $(TOPDIR)/tmp/$(1)/$(patsubst %.for,%.d,$<)
 endef
 
 
 define c_common_compile
 	$(NOECHO) echo '-->' $(1) $<
 	$(NOECHO) mkdir -p $(dir $@)
-	$(CC)  \
+	$(NOECHO) $(CC) -MMD \
           $(C_COMMON_FLAGS) $(C_$(1)_FLAGS) -c -o $@ $<
 endef
 
@@ -93,19 +96,22 @@ endef
 define f_common_compile
 	$(NOECHO) echo '-->' $(1) $<
 	$(NOECHO) mkdir -p $(dir $@)
-	$(FORT) $(FORT_COMMON_FLAGS) $(FORT_$(1)_FLAGS) -c -o $@ $<
+	$(NOECHO) $(FORT) $(FORT_COMMON_FLAGS) $(FORT_$(1)_FLAGS) -c -o $@ $<
+	$(NOECHO) echo "$@ : $< \\" > $(TOPDIR)/tmp/$(1)/$(patsubst %.f,%.d,$<)
+	$(NOECHO) $(BINDIR)/f_depend < $< >> $(TOPDIR)/tmp/$(1)/$(patsubst %.f,%.d,$<)
+	$(NOECHO) echo "" >> $(TOPDIR)/tmp/$(1)/$(patsubst %.f,%.d,$<)
 endef
 
 
 define make_lib_common
 	$(NOECHO) echo '-->' Make lib $@
-	ar cr $@ $+
+	$(NOECHO) ar cr $@ $+
 endef
 
 
 ifneq (,$($(PACKAGE)_LIB))
   LIB_OPT := $(LIBDIR)/$(PACKAGE).a
-  LIB_DEB := $(LIBDIR)/deb_$(PACKAGE).a
+  LIB_DEB := $(LIBDIR)/$(PACKAGE)_deb.a
   libs : $(LIB_DEB) $(LIB_OPT)
 
   $(LIB_DEB) : $(OBJECT_DEB)
@@ -113,22 +119,51 @@ ifneq (,$($(PACKAGE)_LIB))
   $(LIB_OPT) : $(OBJECT_OPT)
 	$(make_lib_common)
 
-  $(OBJECT_FOR_DEB) : $(TMP_DEB)/%.o : $(THISDIR)/%.for
+  $(OBJECT_FOR_DEB) : $(TMP_DEB)/%.o : $(THISDIR)/%.for $(BINDIR)/tasteofd0 $(BINDIR)/vmstounix $(BINDIR)/for_depend
 	$(call for_common_compile,DEB)
-  $(OBJECT_FOR_OPT) : $(TMP_OPT)/%.o : $(THISDIR)/%.for
+  $(OBJECT_FOR_OPT) : $(TMP_OPT)/%.o : $(THISDIR)/%.for $(BINDIR)/tasteofd0 $(BINDIR)/vmstounix $(BINDIR)/for_depend
 	$(call for_common_compile,OPT)
+  -include $(foreach f,$(OBJECT_FOR_DEB),$(basename $(f)).d)
+  -include $(foreach f,$(OBJECT_FOR_OPT),$(basename $(f)).d)
 
   $(OBJECT_C_DEB) : $(TMP_DEB)/%.o : $(THISDIR)/%.c
 	$(call c_common_compile,DEB)
   $(OBJECT_C_OPT) : $(TMP_OPT)/%.o : $(THISDIR)/%.c
 	$(call c_common_compile,OPT)
+  -include $(foreach f,$(OBJECT_C_DEB),$(basename $(f)).d)
+  -include $(foreach f,$(OBJECT_C_OPT),$(basename $(f)).d)
 
-  $(OBJECT_F_DEB) : $(TMP_DEB)/%.o : $(THISDIR)/%.f
+  $(OBJECT_F_DEB) : $(TMP_DEB)/%.o : $(THISDIR)/%.f $(BINDIR)/f_depend
 	$(call f_common_compile,DEB)
-  $(OBJECT_F_OPT) : $(TMP_OPT)/%.o : $(THISDIR)/%.f
+  $(OBJECT_F_OPT) : $(TMP_OPT)/%.o : $(THISDIR)/%.f $(BINDIR)/f_depend
 	$(call f_common_compile,OPT)
+  -include $(foreach f,$(OBJECT_F_DEB),$(basename $(f)).d)
+  -include $(foreach f,$(OBJECT_F_OPT),$(basename $(f)).d)
 
 endif
+
+
+##############################################################################3
+
+
+ifneq (,$($(PACKAGE)_BINS))
+
+  BINS_OPT := $(foreach b, $($(PACKAGE)_BINS), $(BINDIR)/$(b))
+  BINS_DEB := $(foreach b, $($(PACKAGE)_BINS), $(BINDIR)/$(b)_deb)
+
+  $(info $(PACKAGE) $($(PACKAGE)_BINS))
+  $(info $(PACKAGE) BINS_OPT $(BINS_OPT))
+
+  $(BINS_OPT) : $(BINDIR)/% : $(TMP_OPT)/source/%.o
+	$(NOECHO) echo link $< $@ $* libs $(foreach l, $($*_LIBS), $(LIBDIR)/$(l).a)
+	$(NOECHO) gfortran -o $@ $< $(foreach l, $($*_LIBS), $(LIBDIR)/$(l).a) -L$(CERN_ROOT)/lib -lpacklib -lkernlib  -lcrypt
+
+  all : $(BINS_OPT)
+endif
+
+
+##############################################################################3
+
 
 clean : clean-$(PACKAGE)
 clean-$(PACKAGE) :

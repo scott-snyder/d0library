@@ -2,17 +2,23 @@ PACKAGE := unix
 $(PACKAGE)_LIB := yes
 include GNUmakefile.subcommon
 
-LEX_PROGRAMS = tasteofd0 vmstounix
-# missing c_depend f_depend for_depend.  require library.
-LEX_PROGRAM_BINS := $(addprefix $(BINDIR)/,$(LEX_PROGRAMS))
+LEX_PROGRAMS = tasteofd0 vmstounix for_depend f_depend c_depend
+LEX_PROGRAM_BINS_OPT := $(addprefix $(BINDIR)/,$(LEX_PROGRAMS))
+LEX_PROGRAM_BINS_DEB := $(addprefix $(BINDIR)/deb_,$(LEX_PROGRAMS))
+LEX_DEPS = find_file glob lib_find_file fstring cstring getusernetrc getpassnetrc fatmen_find
 
-build-tools : $(LEX_PROGRAM_BINS)
+build-tools : $(LEX_PROGRAM_BINS_OPT) $(LEX_PROGRAM_BINS_DEB)
 
-$(LEX_PROGRAM_BINS) : $(BINDIR)/% : $(THISDIR)/source/%.lex
+$(LEX_PROGRAM_BINS_OPT) : $(BINDIR)/% : $(THISDIR)/source/%.lex $(foreach f,$(LEX_DEPS),$(TOPDIR)/tmp/OPT/unix/source/$(f).o)
+	lex -o$(TOPDIR)/tmp/OPT/unix/$*.yy.c $<
+	$(CC) -I$(TOPDIR)/unix/source \
+          $(C_OPT_FLAGS) $(C_COMMON_FLAGS) -o $@ \
+          $(TOPDIR)/tmp/OPT/unix/$*.yy.c $(filter-out $<,$^) -lfl
+$(LEX_PROGRAM_BINS_DEB) : $(BINDIR)/deb_% : $(THISDIR)/source/%.lex $(foreach f,$(LEX_DEPS),$(TOPDIR)/tmp/DEB/unix/source/$(f).o)
 	lex -o$(TOPDIR)/tmp/DEB/unix/$*.yy.c $<
 	$(CC) -I$(TOPDIR)/unix/source \
           $(C_DEB_FLAGS) $(C_COMMON_FLAGS) -o $@ \
-          $(TOPDIR)/tmp/DEB/unix/$*.yy.c -lfl
+          $(TOPDIR)/tmp/DEB/unix/$*.yy.c $(filter-out $<,$^) -lfl
 
 
 clean : clean-unix-buildtools
